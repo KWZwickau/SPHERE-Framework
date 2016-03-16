@@ -5,6 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -126,5 +128,14 @@ class TblPeriod extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName()
+    {
+
+        return $this->getName() . ' ' . new Small(new Muted('(' .$this->getFromDate() . ' - ' . $this->getToDate() . ')'));
     }
 }

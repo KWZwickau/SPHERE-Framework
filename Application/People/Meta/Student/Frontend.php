@@ -250,10 +250,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblLevel = $tblDivision->getTblLevel();
                         $tblYear = $tblDivision->getServiceTblYear();
                         if ($tblLevel && $tblYear) {
-                            $VisitedDivisions[] = $tblYear->getName() . ' Klasse ' . $tblLevel->getName() . $tblDivision->getName();
+                            $VisitedDivisions[] = $tblYear->getName() . ' Klasse ' . $tblDivision->getDisplayName();
 
                             foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
                                 if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
+                                    && $tblDivisionStudentTemp->getTblDivision()
                                     && (
                                         $tblDivisionStudentTemp->getTblDivision()->getTblLevel()
                                         && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()

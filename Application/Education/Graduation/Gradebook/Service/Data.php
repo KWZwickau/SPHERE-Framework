@@ -44,6 +44,7 @@ class Data extends AbstractData
         $this->createScoreType('Noten (1-6)', 'GRADES');
         $this->createScoreType('Punkte (0-15)', 'POINTS');
         $this->createScoreType('Verbale Bewertung', 'VERBAL');
+        $this->createScoreType('Noten (1-5) mit Komma', 'GRADES_V1');
     }
 
     /**
@@ -246,7 +247,7 @@ class Data extends AbstractData
 
         if ($tblSubjectGroup === null) {
             if ($tblPeriod === null) {
-                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
                     array(
                         TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
                         TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -255,7 +256,7 @@ class Data extends AbstractData
                     )
                 );
             } else {
-                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                $list =  $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
                     array(
                         TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
                         TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -267,7 +268,7 @@ class Data extends AbstractData
             }
         } else {
             if ($tblPeriod === null) {
-                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+               $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
                     array(
                         TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
                         TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -277,7 +278,7 @@ class Data extends AbstractData
                     )
                 );
             } else {
-                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
                     array(
                         TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
                         TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -288,6 +289,20 @@ class Data extends AbstractData
                     )
                 );
             }
+        }
+
+        if ($list) {
+            /** @var TblGrade $item */
+            foreach ($list as &$item){
+                if (!$item->getTblGradeType()){
+                    $item = false;
+                }
+            }
+            $list = array_filter($list);
+
+            return empty($list) ? false : $list;
+        } else {
+            return false;
         }
     }
 
@@ -349,7 +364,7 @@ class Data extends AbstractData
         TblPerson $tblPerson
     ) {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+        return  $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
             array(
                 TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
                 TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
@@ -414,7 +429,7 @@ class Data extends AbstractData
             /** @var TblGrade $item */
             foreach ($EntityList as &$item) {
                 // filter deleted persons
-                if (!$item->getServiceTblPerson()) {
+                if (!$item->getServiceTblPerson() || !$item->getTblGradeType()) {
                     $item = false;
                 }
             }
@@ -556,10 +571,24 @@ class Data extends AbstractData
     public function getScoreGroupGradeTypeListByGroup(TblScoreGroup $tblScoreGroup)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblScoreGroupGradeTypeList',
             array(TblScoreGroupGradeTypeList::ATTR_TBL_SCORE_GROUP => $tblScoreGroup->getId())
         );
+
+        if ($list) {
+            /** @var TblScoreGroupGradeTypeList $item */
+            foreach ($list as &$item){
+                if (!$item->getTblGradeType()){
+                    $item = false;
+                }
+            }
+            $list = array_filter($list);
+
+            return empty($list) ? false : $list;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -570,10 +599,24 @@ class Data extends AbstractData
     public function getScoreConditionGradeTypeListByCondition(TblScoreCondition $tblScoreCondition)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblScoreConditionGradeTypeList',
             array(TblScoreConditionGradeTypeList::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId())
         );
+
+        if ($list) {
+            /** @var TblScoreConditionGradeTypeList $item */
+            foreach ($list as &$item){
+                if (!$item->getTblGradeType()){
+                    $item = false;
+                }
+            }
+            $list = array_filter($list);
+
+            return empty($list) ? false : $list;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -588,6 +631,28 @@ class Data extends AbstractData
             'TblScoreRuleConditionList',
             array(TblScoreRuleConditionList::ATTR_TBL_SCORE_RULE => $tblScoreRule->getId())
         );
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return array|TblScoreCondition[]
+     */
+    public function getScoreConditionsByRule(TblScoreRule $tblScoreRule)
+    {
+
+        $list = $this->getScoreRuleConditionListByRule($tblScoreRule);
+
+        $result = array();
+        if ($list){
+            foreach ($list as $item){
+                if ($item->getTblScoreCondition()){
+                    array_push($result, $item->getTblScoreCondition());
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
     }
 
     /**
@@ -1140,6 +1205,60 @@ class Data extends AbstractData
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblScoreRuleDivisionSubject', $Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     * @return false|TblGrade[]
+     */
+    public function getGradesByGradeType(TblPerson $tblPerson, TblSubject $tblSubject, TblGradeType $tblGradeType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblGrade', array(
+                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+            ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),  'TblGrade', array(
+            TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ));
+
+        return $list ? true : false;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function destroyGradeType(TblGradeType $tblGradeType)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGradeType $Entity */
+        $Entity = $Manager->getEntityById('TblGradeType', $tblGradeType->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+            return true;
+        }
+        return false;
     }
 
 }
