@@ -34,6 +34,21 @@ class SelectBox extends Field implements IFieldInterface
         }
         if (empty( $Data )) {
             $Data[0] = '-[ Nicht verfügbar ]-';
+        } else {
+            // Data is Entity-List ?
+            if (count($Data) == 1 && !is_numeric(key($Data))) {
+                $Attribute = key($Data);
+                $Sample = current($Data[$Attribute]);
+                // Add Zero-Element -> '-[ Nicht ausgewählt ]-'
+                if (is_object($Sample)) {
+                    if ($Sample instanceof Element) {
+                        /** @var Element $SampleClass */
+                        $SampleClass = (new \ReflectionClass($Sample))->newInstanceWithoutConstructor();
+                        $SampleClass->setId(0);
+                        array_unshift($Data[$Attribute], $SampleClass);
+                    }
+                }
+            }
         }
         $this->Name = $Name;
         $this->Template = $this->getTemplate(__DIR__.'/SelectBox.twig');
