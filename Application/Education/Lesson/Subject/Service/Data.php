@@ -389,7 +389,7 @@ class Data extends AbstractData
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
-            $Manager->killEntity($Entity);
+            $Manager->removeEntity($Entity);
             return true;
         }
         return false;
@@ -498,11 +498,16 @@ class Data extends AbstractData
         );
         if ($EntityList) {
             array_walk($EntityList, function (TblCategorySubject &$V) {
-
-                $V = $V->getTblSubject();
+                if ($V->getTblSubject()){
+                    $V = $V->getTblSubject();
+                } else {
+                    $V = false;
+                }
             });
+            $EntityList = array_filter($EntityList);
         }
-        return $EntityList;
+
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**

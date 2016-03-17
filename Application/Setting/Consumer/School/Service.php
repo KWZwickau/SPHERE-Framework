@@ -96,7 +96,7 @@ class Service extends AbstractService
         if (!$Error) {
             $tblCompany = Company::useService()->getCompanyById($School);
             $tblType = Type::useService()->getTypeById($Type['Type']);
-            if ((new Data($this->getBinding()))->addSchool($tblCompany, $tblType)
+            if ($tblCompany && (new Data($this->getBinding()))->addSchool($tblCompany, $tblType)
             ) {
                 return new Success('Die Schule wurde erfolgreich hinzugefügt')
                 .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()));

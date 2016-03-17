@@ -38,6 +38,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -299,7 +300,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
                     $tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject();
-                    if ($tblDivisionSubject->getServiceTblSubject()) {
+                    if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                         if ($tblDivisionSubject->getTblSubjectGroup()) {
                             $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                             [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -332,34 +333,36 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
             if ($tblDivisionTeacherAllByTeacher) {
                 foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
-                    $tblDivisionSubjectAllByDivision
-                        = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
-                    if ($tblDivisionSubjectAllByDivision) {
-                        foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                            if ($tblDivisionSubject->getServiceTblSubject()) {
-                                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                                    $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
-                                    [$tblDivisionSubject->getServiceTblSubject()->getId()]
-                                    [$tblDivisionSubject->getTblSubjectGroup()->getId()]
-                                        = $tblDivisionSubject->getId();
-                                } else {
-                                    $tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject
-                                        = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                                        $tblDivisionSubject->getTblDivision(),
-                                        $tblDivisionSubject->getServiceTblSubject()
-                                    );
-                                    if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
-                                        /** @var TblDivisionSubject $item */
-                                        foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
-                                            $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
-                                            [$tblDivisionSubject->getServiceTblSubject()->getId()]
-                                            [$item->getTblSubjectGroup()->getId()]
-                                                = $item->getId();
-                                        }
-                                    } else {
+                    if ($tblDivisionTeacher->getTblDivision()) {
+                        $tblDivisionSubjectAllByDivision
+                            = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
+                        if ($tblDivisionSubjectAllByDivision) {
+                            foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
+                                if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                                    if ($tblDivisionSubject->getTblSubjectGroup()) {
                                         $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                         [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        [$tblDivisionSubject->getTblSubjectGroup()->getId()]
                                             = $tblDivisionSubject->getId();
+                                    } else {
+                                        $tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject
+                                            = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                            $tblDivisionSubject->getTblDivision(),
+                                            $tblDivisionSubject->getServiceTblSubject()
+                                        );
+                                        if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
+                                            /** @var TblDivisionSubject $item */
+                                            foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
+                                                $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                                [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                                [$item->getTblSubjectGroup()->getId()]
+                                                    = $item->getId();
+                                            }
+                                        } else {
+                                            $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                            [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                                = $tblDivisionSubject->getId();
+                                        }
                                     }
                                 }
                             }
@@ -372,46 +375,51 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty($divisionSubjectList)) {
             foreach ($divisionSubjectList as $divisionId => $subjectList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
-                foreach ($subjectList as $subjectId => $value) {
-                    $tblSubject = Subject::useService()->getSubjectById($subjectId);
-                    if (is_array($value)) {
-                        foreach ($value as $subjectGroupId => $subValue) {
-                            /** @var TblSubjectGroup $item */
-                            $item = Division::useService()->getSubjectGroupById($subjectGroupId);
-                            $divisionSubjectTable[] = array(
-                                'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                'Type' => $tblDivision->getTypeName(),
-                                'Division' => $tblDivision->getDisplayName(),
-                                'Subject' => $tblSubject->getName(),
-                                'SubjectGroup' => $item->getName(),
-                                'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                    $tblDivision, $tblSubject, $item
-                                ),
-                                'Option' => new Standard(
-                                    '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
-                                    'DivisionSubjectId' => $subValue
-                                ),
-                                    'Auswählen'
-                                )
-                            );
+                if ($tblDivision) {
+                    foreach ($subjectList as $subjectId => $value) {
+                        $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                        if ($tblSubject) {
+                            if (is_array($value)) {
+                                foreach ($value as $subjectGroupId => $subValue) {
+                                    /** @var TblSubjectGroup $item */
+                                    $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+                                    $divisionSubjectTable[] = array(
+                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
+                                        'Type' => $tblDivision->getTypeName(),
+                                        'Division' => $tblDivision->getDisplayName(),
+                                        'Subject' => $tblSubject->getName(),
+                                        'SubjectGroup' => $item->getName(),
+                                        'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                            $tblDivision, $tblSubject, $item
+                                        ),
+                                        'Option' => new Standard(
+                                            '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(),
+                                            array(
+                                                'DivisionSubjectId' => $subValue
+                                            ),
+                                            'Auswählen'
+                                        )
+                                    );
+                                }
+                            } else {
+                                $divisionSubjectTable[] = array(
+                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
+                                    'Type' => $tblDivision->getTypeName(),
+                                    'Division' => $tblDivision->getDisplayName(),
+                                    'Subject' => $tblSubject->getName(),
+                                    'SubjectGroup' => '',
+                                    'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                        $tblDivision, $tblSubject
+                                    ),
+                                    'Option' => new Standard(
+                                        '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
+                                        'DivisionSubjectId' => $value
+                                    ),
+                                        'Auswählen'
+                                    )
+                                );
+                            }
                         }
-                    } else {
-                        $divisionSubjectTable[] = array(
-                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                            'Type' => $tblDivision->getTypeName(),
-                            'Division' => $tblDivision->getDisplayName(),
-                            'Subject' => $tblSubject->getName(),
-                            'SubjectGroup' => '',
-                            'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                $tblDivision, $tblSubject
-                            ),
-                            'Option' => new Standard(
-                                '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
-                                'DivisionSubjectId' => $value
-                            ),
-                                'Auswählen'
-                            )
-                        );
                     }
                 }
             }
@@ -460,7 +468,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                 if ($tblDivisionSubjectAllByDivision) {
                     foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                        if ($tblDivisionSubject->getServiceTblSubject()) {
+                        if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                             if ($tblDivisionSubject->getTblSubjectGroup()) {
                                 $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                 [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -494,48 +502,54 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty($divisionSubjectList)) {
             foreach ($divisionSubjectList as $divisionId => $subjectList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
-                foreach ($subjectList as $subjectId => $value) {
-                    $tblSubject = Subject::useService()->getSubjectById($subjectId);
-                    if (is_array($value)) {
-                        foreach ($value as $subjectGroupId => $subValue) {
-                            $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+                if ($tblDivision) {
+                    foreach ($subjectList as $subjectId => $value) {
+                        $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                        if ($tblSubject) {
+                            if (is_array($value)) {
+                                foreach ($value as $subjectGroupId => $subValue) {
+                                    $item = Division::useService()->getSubjectGroupById($subjectGroupId);
 
-                            $divisionSubjectTable[] = array(
-                                'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                'Type' => $tblDivision->getTypeName(),
-                                'Division' => $tblDivision->getDisplayName(),
-                                'Subject' => $tblSubject->getName(),
-                                'SubjectGroup' => $item->getName(),
-                                'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                    $tblDivision, $tblSubject, $item
-                                ),
-                                'Option' => new Standard(
-                                    '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
-                                    array(
-                                        'DivisionSubjectId' => $subValue
+                                    $divisionSubjectTable[] = array(
+                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
+                                        'Type' => $tblDivision->getTypeName(),
+                                        'Division' => $tblDivision->getDisplayName(),
+                                        'Subject' => $tblSubject->getName(),
+                                        'SubjectGroup' => $item->getName(),
+                                        'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                            $tblDivision, $tblSubject, $item
+                                        ),
+                                        'Option' => new Standard(
+                                            '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
+                                            new Select(),
+                                            array(
+                                                'DivisionSubjectId' => $subValue
+                                            ),
+                                            'Auswählen'
+                                        )
+                                    );
+                                }
+                            } else {
+                                $divisionSubjectTable[] = array(
+                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
+                                    'Type' => $tblDivision->getTypeName(),
+                                    'Division' => $tblDivision->getDisplayName(),
+                                    'Subject' => $tblSubject->getName(),
+                                    'SubjectGroup' => '',
+                                    'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                        $tblDivision, $tblSubject
                                     ),
-                                    'Auswählen'
-                                )
-                            );
+                                    'Option' => new Standard(
+                                        '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
+                                        new Select(),
+                                        array(
+                                            'DivisionSubjectId' => $value
+                                        ),
+                                        'Auswählen'
+                                    )
+                                );
+                            }
                         }
-                    } else {
-                        $divisionSubjectTable[] = array(
-                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                            'Type' => $tblDivision->getTypeName(),
-                            'Division' => $tblDivision->getDisplayName(),
-                            'Subject' => $tblSubject->getName(),
-                            'SubjectGroup' => '',
-                            'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                $tblDivision, $tblSubject
-                            ),
-                            'Option' => new Standard(
-                                '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
-                                array(
-                                    'DivisionSubjectId' => $value
-                                ),
-                                'Auswählen'
-                            )
-                        );
                     }
                 }
             }
@@ -612,16 +626,16 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
                     if ($tblScoreRule) {
                         $scoreRuleText[] = new Bold($tblScoreRule->getName());
-                        $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
-                        if ($tblScoreRuleConditionListByRule) {
-                            $tblScoreRuleConditionListByRule =
-                                $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
+                        $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
+                        if ($tblScoreConditionsByRule) {
+                            $tblScoreConditionsByRule =
+                                $this->getSorter($tblScoreConditionsByRule)->sortObjectList('Priority');
 
-                            /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
-                            foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                            /** @var TblScoreCondition $tblScoreCondition */
+                            foreach ($tblScoreConditionsByRule as $tblScoreCondition) {
                                 $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
-                                    . $tblScoreRuleConditionList->getTblScoreCondition()->getPriority()
-                                    . '&nbsp;&nbsp;&nbsp;' . $tblScoreRuleConditionList->getTblScoreCondition()->getName();
+                                    . $tblScoreCondition->getPriority()
+                                    . '&nbsp;&nbsp;&nbsp;' . $tblScoreCondition->getName();
                             }
                         } else {
                             $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
@@ -737,7 +751,7 @@ class Frontend extends Extension implements IFrontendInterface
             $columnSubList = array();
             $columnSubList[] = new LayoutColumn(new Header(new Bold('&#216;')), 6);
             $columnSubList[] = new LayoutColumn(new Header(new Bold('P')), 6);
-            $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),1);
+            $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))), 1);
 
             $rowList[] = new LayoutRow($columnSecondList);
             $rowList[] = new LayoutRow($columnList);
@@ -821,34 +835,36 @@ class Frontend extends Extension implements IFrontendInterface
                                 $width);
                         }
 
-                        // total average (Gesamtjahr)
-                        $average = Gradebook::useService()->calcStudentGrade(
-                            $tblPerson,
-                            $tblDivision,
-                            $tblDivisionSubject->getServiceTblSubject(),
-                            $tblTestType,
-                            $tblScoreRule ? $tblScoreRule : null,
-                            null,
-                            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
-                        );
-                        $priority = '';
-                        if (is_array($average)) {
-                            $errorRowList = $average;
-                            $average = '';
-                        } else {
-                            $posStart = strpos($average, '(');
-                            if ($posStart !== false) {
-                                $posEnd = strpos($average, ')');
-                                if ($posEnd !== false) {
-                                    $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
+                        if ($tblDivisionSubject->getServiceTblSubject()) {
+                            // total average (Gesamtjahr)
+                            $average = Gradebook::useService()->calcStudentGrade(
+                                $tblPerson,
+                                $tblDivision,
+                                $tblDivisionSubject->getServiceTblSubject(),
+                                $tblTestType,
+                                $tblScoreRule ? $tblScoreRule : null,
+                                null,
+                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                            );
+                            $priority = '';
+                            if (is_array($average)) {
+                                $errorRowList = $average;
+                                $average = '';
+                            } else {
+                                $posStart = strpos($average, '(');
+                                if ($posStart !== false) {
+                                    $posEnd = strpos($average, ')');
+                                    if ($posEnd !== false) {
+                                        $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
+                                    }
+                                    $average = substr($average, 0, $posStart);
                                 }
-                                $average = substr($average, 0, $posStart);
                             }
-                        }
 
-                        $columnSubList = array();
-                        $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 6);
-                        $columnSubList[] = new LayoutColumn(new Container(new Bold($priority)), 6);
+                            $columnSubList = array();
+                            $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 6);
+                            $columnSubList[] = new LayoutColumn(new Container(new Bold($priority)), 6);
+                        }
 
                         $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                             1);
@@ -1025,7 +1041,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblDivisionStudent $tblDivisionStudent */
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                 $tblDivision = $tblDivisionStudent->getTblDivision();
-                if ($tblDivision->getServiceTblYear()) {
+                if ($tblDivision && $tblDivision->getServiceTblYear()) {
                     if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
 
                         // Header
@@ -1047,7 +1063,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                         if ($tblDivisionSubjectList) {
                             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                                if ($tblDivisionSubject->getServiceTblSubject()) {
+                                if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                                     if (!$tblDivisionSubject->getTblSubjectGroup()) {
                                         $tblDivisionSubjectWhereGroup =
                                             Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
@@ -1333,18 +1349,19 @@ class Frontend extends Extension implements IFrontendInterface
                     $structure[] = 'Beschreibung: ' . $tblScoreRule->getDescription() . '<br>';
                 }
 
-                $tblScoreConditions = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                $tblScoreConditions = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
                 if ($tblScoreConditions) {
                     $tblScoreConditions = $this->getSorter($tblScoreConditions)->sortObjectList('Priority');
+
                     $count = 1;
-                    /** @var TblScoreRuleConditionList $tblScoreCondition */
+                    /** @var TblScoreCondition $tblScoreCondition */
                     foreach ($tblScoreConditions as $tblScoreCondition) {
-                        $structure[] = $count++ . '. Berechnungsvariante: ' . $tblScoreCondition->getTblScoreCondition()->getName()
-                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priortität: '
-                            . $tblScoreCondition->getTblScoreCondition()->getPriority();
+                        $structure[] = $count++ . '. Berechnungsvariante: ' . $tblScoreCondition->getName()
+                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
+                            . $tblScoreCondition->getPriority();
 
                         $tblScoreConditionGradeTypeListByCondition = Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
-                            $tblScoreCondition->getTblScoreCondition()
+                            $tblScoreCondition
                         );
                         if ($tblScoreConditionGradeTypeListByCondition) {
                             $list = array();
@@ -1359,7 +1376,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition(
-                            $tblScoreCondition->getTblScoreCondition()
+                            $tblScoreCondition
                         );
                         if ($tblScoreConditionGroupListByCondition) {
                             foreach ($tblScoreConditionGroupListByCondition as $tblScoreConditionGroupList) {
@@ -2522,11 +2539,21 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Data
+     * @param null $Data
+     * @param null $Filter
+     * @param null $YearDivisionSubjectId
+     * @param null $TypeDivisionSubjectId
+     * @param null $LevelDivisionSubjectId
+     *
      * @return Stage
      */
-    public function frontendScoreDivision($Data = null)
-    {
+    public function frontendScoreDivision(
+        $Data = null,
+        $Filter = null,
+        $YearDivisionSubjectId = null,
+        $TypeDivisionSubjectId = null,
+        $LevelDivisionSubjectId = null
+    ) {
 
         $Stage = new Stage('Fach-Klassen', 'Berechnungsvorschrift und Bewertungssystem einer Fach-Klasse zuordnen');
         $Stage->setMessage(
@@ -2552,8 +2579,55 @@ class Frontend extends Extension implements IFrontendInterface
             $tblScoreRuleAll = array(new TblScoreRule());
         }
 
+        $hasFilter = false;
+        $filterYear = false;
+        $filterType = false;
+        $filterLevel = false;
+
+        // filter
+        if ($YearDivisionSubjectId !== null) {
+            $Global = $this->getGlobal();
+            $Global->POST['Filter']['Year'] = $YearDivisionSubjectId;
+            $Global->savePost();
+
+            $yearDivisionSubject = Division::useService()->getDivisionSubjectById($YearDivisionSubjectId);
+            if ($yearDivisionSubject) {
+                $hasFilter = true;
+                $filterYear = $yearDivisionSubject->getTblDivision() ? $yearDivisionSubject->getTblDivision()->getServiceTblYear() : false;
+            }
+        }
+        if ($TypeDivisionSubjectId !== null) {
+            $Global = $this->getGlobal();
+            $Global->POST['Filter']['Type'] = $TypeDivisionSubjectId;
+            $Global->savePost();
+
+            $typeDivisionSubject = Division::useService()->getDivisionSubjectById($TypeDivisionSubjectId);
+            if ($typeDivisionSubject) {
+                $hasFilter = true;
+                if ($typeDivisionSubject->getTblDivision() && $typeDivisionSubject->getTblDivision()->getTblLevel()
+                    && $typeDivisionSubject->getTblDivision()->getTblLevel()->getServiceTblType()
+                ) {
+                    $filterType = $typeDivisionSubject->getTblDivision()->getTblLevel()->getServiceTblType();
+                }
+            }
+        }
+        if ($LevelDivisionSubjectId !== null) {
+            $Global = $this->getGlobal();
+            $Global->POST['Filter']['Level'] = $LevelDivisionSubjectId;
+            $Global->savePost();
+
+            $levelDivisionSubject = Division::useService()->getDivisionSubjectById($LevelDivisionSubjectId);
+            if ($levelDivisionSubject) {
+                $hasFilter = true;
+                if ($levelDivisionSubject->getTblDivision() && $levelDivisionSubject->getTblDivision()->getTblLevel()) {
+                    $filterLevel = $levelDivisionSubject->getTblDivision()->getTblLevel();
+                }
+            }
+        }
+
         $tblDivisionSubjectList = array();
-        $tblYearList = Term::useService()->getYearByNow();
+        //$tblYearList = Term::useService()->getYearByNow();
+        $tblYearList = Term::useService()->getYearAll();
         if ($tblYearList) {
             foreach ($tblYearList as $tblYear) {
                 $tblDivisionAllByYear = Division::useService()->getDivisionByYear($tblYear);
@@ -2572,13 +2646,23 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $form = $this->formScoreDivisionFilter($tblDivisionSubjectList)->appendFormButton(new Primary('Filtern',
+            new Filter()));
+
+        $tblDivisionSubjectList = Gradebook::useService()->filterDivisionSubjectList(
+            $tblDivisionSubjectList,
+            $filterYear ? $filterYear : null,
+            $filterType ? $filterType : null,
+            $filterLevel ? $filterLevel : null
+        );
+
         if (!empty($tblDivisionSubjectList)) {
 
             /** @var TblDivisionSubject $tblDivisionSubject */
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                 $tblDivision = $tblDivisionSubject->getTblDivision();
                 $tblSubject = $tblDivisionSubject->getServiceTblSubject();
-                if ($tblSubject) {
+                if ($tblDivision && $tblSubject) {
                     $tblDivisionSubject->DisplayDivision = $tblDivision->getDisplayName();
                     $tblDivisionSubject->Year = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '';
                     $tblDivisionSubject->Type = $tblDivision->getTypeName();
@@ -2627,6 +2711,34 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                Gradebook::useService()->getFilteredDivisionSubjectList($form, $Filter)
+                            )
+                        )
+                    )
+                    , new Title(new Filter() . ' Filter')),
+                $hasFilter
+                    ? new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Filter() . ' Filter',
+                                array(
+                                    $filterYear ? new Bold('Schuljahr: ') . $filterYear->getName()
+                                        . new Small(new Muted($filterYear->getDescription())) : null,
+                                    $filterType ? new Bold('Schulart: ') . $filterType->getName()
+                                        . new Small(new Muted($filterType->getDescription())) : null,
+                                    $filterLevel ? new Bold('Klassenstufe: ') . $filterLevel->getName()
+                                        . new Small(new Muted($filterLevel->getDescription())) : null,
+                                ),
+                                Panel::PANEL_TYPE_PRIMARY
+                            )
+                        )
+                    ))
+                    : null,
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -2639,9 +2751,9 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblDivisionSubjectList,
                                                     null,
                                                     array(
-                                                        'DisplayDivision' => 'Klasse',
                                                         'Year' => 'Schuljahr',
                                                         'Type' => 'Schulart',
+                                                        'DisplayDivision' => 'Klasse',
                                                         'DisplaySubject' => 'Fach',
                                                         'ScoreRule' => 'Berechnungsvorschrift',
                                                         'ScoreType' => 'Bewertungssystem',
@@ -2652,15 +2764,64 @@ class Frontend extends Extension implements IFrontendInterface
                                         ),
                                     ))
                                     , new Primary('Speichern', new Save()))
-                                , $Data
+                                , $Data, $YearDivisionSubjectId, $TypeDivisionSubjectId, $LevelDivisionSubjectId
                             )
                         )
                     ))
-                ))
+                ), new Title(new Edit() . ' Bearbeiten'))
             ))
         );
 
         return $Stage;
+    }
+
+    private function formScoreDivisionFilter(
+        $tblDivisionSubjectList
+    ) {
+
+        $yearAll = array();
+        $typeAll = array();
+        $levelAll = array();
+
+        if (is_array($tblDivisionSubjectList) && !empty($tblDivisionSubjectList)) {
+            /** @var TblDivisionSubject $tblDivisionSubject */
+            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                if (($tblDivision = $tblDivisionSubject->getTblDivision())) {
+                    if (($tblLevel = $tblDivision->getTblLevel())) {
+                        $levelAll[$tblDivisionSubject->getId()] = $tblLevel->getName();
+                        if ($tblLevel->getServiceTblType()) {
+                            $typeAll[$tblDivisionSubject->getId()] = $tblLevel->getServiceTblType()->getName();
+                        }
+                    }
+                    if ($tblDivision->getServiceTblYear()) {
+                        $yearAll[$tblDivisionSubject->getId()] = $tblDivision->getServiceTblYear()->getName();
+                    }
+
+                }
+            }
+            $yearAll = array_unique($yearAll, SORT_REGULAR);
+            $yearAll[0] = '';
+            $levelAll = array_unique($levelAll, SORT_REGULAR);
+            $levelAll[0] = '';
+            $typeAll = array_unique($typeAll, SORT_REGULAR);
+            $typeAll[0] = '';
+        }
+
+        return new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Filter[Year]', 'Schuljahr', $yearAll), 4
+                    ),
+                    new FormColumn(
+                        new SelectBox('Filter[Type]', 'Schulart', $typeAll), 4
+                    ),
+                    new FormColumn(
+                        new SelectBox('Filter[Level]', 'Klassenstufe', $levelAll), 4
+                    ),
+                ))
+            ))
+        ));
     }
 
     /**

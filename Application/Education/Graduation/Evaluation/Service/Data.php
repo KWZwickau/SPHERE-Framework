@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -120,7 +121,7 @@ class Data extends AbstractData
                         )
                     );
                 } else {
-                    $list =  $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
@@ -132,7 +133,7 @@ class Data extends AbstractData
                 }
             } else {
                 if ($tblPeriod === null) {
-                    $list =  $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
@@ -445,6 +446,7 @@ class Data extends AbstractData
      * @param null $FromDate
      * @param null $ToDate
      * @param TblPeriod|null $tblPeriod
+     * @param TblScoreType $tblScoreType
      *
      * @return TblTask
      */
@@ -454,7 +456,8 @@ class Data extends AbstractData
         $Date = null,
         $FromDate = null,
         $ToDate = null,
-        TblPeriod $tblPeriod = null
+        TblPeriod $tblPeriod = null,
+        TblScoreType $tblScoreType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -466,6 +469,7 @@ class Data extends AbstractData
         $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
         $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
         $Entity->setServiceTblPeriod($tblPeriod);
+        $Entity->setServiceTblScoreType($tblScoreType);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -497,6 +501,7 @@ class Data extends AbstractData
      * @param null $ToDate
      * @param TblPeriod $tblPeriod
      *
+     * @param TblScoreType $tblScoreType
      * @return bool
      */
     public function updateTask(
@@ -506,7 +511,8 @@ class Data extends AbstractData
         $Date = null,
         $FromDate = null,
         $ToDate = null,
-        TblPeriod $tblPeriod = null
+        TblPeriod $tblPeriod = null,
+        TblScoreType $tblScoreType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -521,6 +527,7 @@ class Data extends AbstractData
             $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
             $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
             $Entity->setServiceTblPeriod($tblPeriod);
+            $Entity->setServiceTblScoreType($tblScoreType);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -629,8 +636,8 @@ class Data extends AbstractData
         if (null !== $Entity) {
 
             $tblTestAllByTask = $this->getTestAllByTask($tblTask);
-            if ($tblTestAllByTask){
-                foreach ($tblTestAllByTask as $tblTest){
+            if ($tblTestAllByTask) {
+                foreach ($tblTestAllByTask as $tblTest) {
                     $this->destroyTest($tblTest);
                 }
             }

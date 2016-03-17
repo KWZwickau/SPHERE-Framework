@@ -44,6 +44,7 @@ class Data extends AbstractData
         $this->createScoreType('Noten (1-6)', 'GRADES');
         $this->createScoreType('Punkte (0-15)', 'POINTS');
         $this->createScoreType('Verbale Bewertung', 'VERBAL');
+        $this->createScoreType('Noten (1-5) mit Komma', 'GRADES_V1');
     }
 
     /**
@@ -630,6 +631,28 @@ class Data extends AbstractData
             'TblScoreRuleConditionList',
             array(TblScoreRuleConditionList::ATTR_TBL_SCORE_RULE => $tblScoreRule->getId())
         );
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return array|TblScoreCondition[]
+     */
+    public function getScoreConditionsByRule(TblScoreRule $tblScoreRule)
+    {
+
+        $list = $this->getScoreRuleConditionListByRule($tblScoreRule);
+
+        $result = array();
+        if ($list){
+            foreach ($list as $item){
+                if ($item->getTblScoreCondition()){
+                    array_push($result, $item->getTblScoreCondition());
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
     }
 
     /**
