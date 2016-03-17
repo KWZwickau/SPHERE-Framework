@@ -49,14 +49,17 @@
             float: right !important;
         }
 
+        td.Align.Center,
         div.Align.Center {
             text-align: center !important;
         }
 
+        td.Align.Left,
         div.Align.Left {
             text-align: left !important;
         }
 
+        td.Align.Right,
         div.Align.Right {
             text-align: right !important;
         }
@@ -107,17 +110,18 @@
 
         <div class="DocumentSlice">
 
-            <div class="Float Left">
-                <div class="Align Left">
-                    Klasse: <span class="DocumentData">{{ Data.Division }}</span>
-                </div>
-            </div>
-
-            <div class="Float Right">
-                <div class="Align Right">
-                    Schuljahr: <span class="DocumentData">{{ Data.School.Year }}</span>
-                </div>
-            </div>
+            <table style="width: 100% !important;">
+                <tbody>
+                <tr>
+                    <td style="width: 50% !important;">
+                        Klasse: <span class="DocumentData">{{ Data.Division }}</span>
+                    </td>
+                    <td style="width: 50% !important;" class="Align Right">
+                        Schuljahr: <span class="DocumentData">{{ Data.School.Year }}</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
 
         </div>
 

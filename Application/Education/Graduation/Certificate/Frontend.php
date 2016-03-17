@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -277,7 +276,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Template = Template::getTemplate(__DIR__.'/Vorlage.twig');
         $Template->setVariable('Data', $Data);
 
-        $FileLocation = Storage::useWriter()->getTemporary('pdf');
+        $FileLocation = Storage::useWriter()->getTemporary('pdf', 'Zeugnistest', true);
         /** @var DomPdf $Document */
         $Document = Document::getPdfDocument($FileLocation->getFileLocation());
         $Document->setContent($Template);
