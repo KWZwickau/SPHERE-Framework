@@ -26,23 +26,25 @@ class Data extends AbstractData
     /**
      * @param string $Name
      * @param string $Description
+     * @param string $Year
      *
      * @return TblYear
      */
-    public function createYear($Name, $Description = '')
+    public function createYear($Name, $Description = '', $Year = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblYear')->findOneBy(array(
-            TblYear::ATTR_NAME => $Name
-        ));
-        if (null === $Entity) {
-            $Entity = new TblYear();
-            $Entity->setName($Name);
-            $Entity->setDescription($Description);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
+//        $Entity = $Manager->getEntity('TblYear')->findOneBy(array(
+//            TblYear::ATTR_YEAR => $Year
+//        ));
+//        if (null === $Entity) {
+        $Entity = new TblYear();
+        $Entity->setName($Name);
+        $Entity->setDescription($Description);
+        $Entity->setYear($Year);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+//        }
         return $Entity;
     }
 
@@ -80,13 +82,15 @@ class Data extends AbstractData
      * @param TblYear $tblYear
      * @param string  $Name
      * @param string  $Description
+     * @param string  $Year
      *
      * @return bool
      */
     public function updateYear(
         TblYear $tblYear,
         $Name,
-        $Description
+        $Description,
+        $Year
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -97,6 +101,7 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            $Entity->setYear($Year);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -305,6 +310,19 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
             TblYear::ATTR_NAME => $Name
+        ));
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblYear[]
+     */
+    public function getYearsByYear(TblYear $tblYear)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
+            TblYear::ATTR_YEAR => $tblYear->getYear()
         ));
     }
 

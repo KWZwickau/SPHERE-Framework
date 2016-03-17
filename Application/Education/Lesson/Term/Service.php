@@ -173,18 +173,17 @@ class Service extends AbstractService
         $Error = false;
 
         if (isset( $Year['Name'] ) && empty( $Year['Name'] )) {
-            $Form->setError('Year[Name]', 'Bitte geben Sie einen eineindeutigen Namen an');
+            $Form->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
-        } else {
-            if ($this->getYearByName($Year['Name'])) {
-                $Form->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
-                $Error = true;
-            }
+        }
+        if (isset( $Year['Year'] ) && empty( $Year['Year'] )) {
+            $Form->setError('Year[Year]', 'Bitte geben sie ein Jahr an');
+            $Error = true;
         }
 
         if (!$Error) {
 
-            if ((new Data($this->getBinding()))->createYear($Year['Name'], $Year['Description'])) {
+            if ((new Data($this->getBinding()))->createYear($Year['Name'], $Year['Description'], $Year['Year'])) {
                 return new Success('Das Schuljahr wurde erfolgreich hinzugefügt')
                 .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
@@ -204,6 +203,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getYearByName($Name);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return bool|TblYear
+     */
+    public function getYearsByYear(TblYear $tblYear)
+    {
+
+        return (new Data($this->getBinding()))->getYearsByYear($tblYear);
     }
 
     /**
@@ -459,20 +469,18 @@ class Service extends AbstractService
         if (isset( $Year['Name'] ) && empty( $Year['Name'] )) {
             $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
-        } else {
-            if (( $TempYear = $this->getYearByName($Year['Name']) )) {
-                if ($TempYear->getId() !== $tblYear->getId()) {
-                    $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
-                    $Error = true;
-                }
-            }
+        }
+        if (isset( $Year['Year'] ) && empty( $Year['Year'] )) {
+            $Stage->setError('Year[Year]', 'Bitte geben Sie ein Jahr an');
+            $Error = true;
         }
 
         if (!$Error) {
             if ((new Data($this->getBinding()))->updateYear(
                 $tblYear,
                 $Year['Name'],
-                $Year['Description']
+                $Year['Description'],
+                $Year['Year']
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')

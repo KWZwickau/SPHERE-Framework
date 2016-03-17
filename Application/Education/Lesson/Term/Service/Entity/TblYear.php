@@ -17,11 +17,16 @@ class TblYear extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_YEAR = 'Year';
 
     /**
      * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $Year;
     /**
      * @Column(type="string")
      */
@@ -43,6 +48,24 @@ class TblYear extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getYear()
+    {
+
+        return $this->Year;
+    }
+
+    /**
+     * @param string $Year
+     */
+    public function setYear($Year)
+    {
+
+        $this->Year = $Year;
     }
 
     /**

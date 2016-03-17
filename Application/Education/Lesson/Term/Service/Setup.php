@@ -45,9 +45,15 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblYear', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblYear', 'Year')) {
+            $Table->addColumn('Year', 'string');
+        }
         if (!$this->getConnection()->hasColumn('tblYear', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+//        else {
+//            $Table->changeColumn('Description', array( 'type' => Type::getType('text')));
+//        }
         return $Table;
     }
 
