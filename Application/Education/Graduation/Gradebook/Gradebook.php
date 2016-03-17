@@ -35,7 +35,7 @@ class Gradebook implements IModuleInterface
                 new Link\Icon(new Book()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Gradebook'), new Link\Name('Notenbuch (Leitung)'),
+            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Gradebook'), new Link\Name('Notenbuch'),
                 new Link\Icon(new Book()))
         );
         Main::getDisplay()->addModuleNavigation(
@@ -50,6 +50,10 @@ class Gradebook implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Edit',
                 __NAMESPACE__.'\Frontend::frontendEditGradeType')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyGradeType')
         );
 
         Main::getDispatcher()->registerRoute(

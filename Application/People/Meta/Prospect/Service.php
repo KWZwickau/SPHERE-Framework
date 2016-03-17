@@ -40,9 +40,9 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Meta
-     * @param null           $Group
+     * @param TblPerson $tblPerson
+     * @param array $Meta
+     * @param null $Group
      *
      * @return IFormInterface|Redirect
      */
@@ -70,8 +70,8 @@ class Service extends AbstractService
                 $tblProspect->getTblProspectReservation(),
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
-                ( $OptionA ? $OptionA : null ),
-                ( $OptionB ? $OptionB : null )
+                ($OptionA ? $OptionA : null),
+                ($OptionB ? $OptionB : null)
             );
             (new Data($this->getBinding()))->updateProspect(
                 $tblProspect,
@@ -88,8 +88,8 @@ class Service extends AbstractService
             $tblProspectReservation = (new Data($this->getBinding()))->createProspectReservation(
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
-                ( $OptionA ? $OptionA : null ),
-                ( $OptionB ? $OptionB : null )
+                ($OptionA ? $OptionA : null),
+                ($OptionB ? $OptionB : null)
             );
             (new Data($this->getBinding()))->createProspect(
                 $tblPerson,
@@ -99,8 +99,8 @@ class Service extends AbstractService
             );
         }
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
-        .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array(
-            'Id'    => $tblPerson->getId(),
+        . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array(
+            'Id' => $tblPerson->getId(),
             'Group' => $Group
         ));
     }
@@ -151,10 +151,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson    $tblPerson
-     * @param string       $ReservationDate
-     * @param string       $InterviewDate
-     * @param string       $TrialDate
+     * @param TblPerson $tblPerson
+     * @param string $ReservationDate
+     * @param string $InterviewDate
+     * @param string $TrialDate
      * @param              $ReservationYear
      * @param              $ReservationDivision
      * @param TblType|null $tblTypeOptionA
@@ -192,5 +192,14 @@ class Service extends AbstractService
             $tblProspectReservation,
             $Remark
         );
+    }
+
+    /**
+     * @return false|TblProspectReservation[]
+     */
+    public function getProspectReservationAll()
+    {
+
+        return (new Data($this->getBinding()))->getProspectReservationAll();
     }
 }

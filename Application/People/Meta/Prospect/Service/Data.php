@@ -241,4 +241,14 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @return false|TblProspectReservation[]
+     */
+    public function getProspectReservationAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblProspectReservation');
+    }
 }
