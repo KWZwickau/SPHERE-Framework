@@ -3,9 +3,13 @@ namespace SPHERE\Application\Education\Graduation\Certificate;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
-use MOC\V\Component\Document\Document;
-use MOC\V\Component\Template\Template;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\Education\Graduation\Certificate\Repository\Document;
+use SPHERE\Application\Education\Graduation\Certificate\Repository\Element;
+use SPHERE\Application\Education\Graduation\Certificate\Repository\Frame;
+use SPHERE\Application\Education\Graduation\Certificate\Repository\Page;
+use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
+use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -142,13 +146,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                         } else {
                             $Stage->setContent(
-                                new Warning( 'Vorlage kann nicht gewählt werden, da dem Schüler in der Schülerakte keine aktuelle Schulart zugewiesen wurde.' )
+                                new Warning('Vorlage kann nicht gewählt werden, da dem Schüler in der Schülerakte keine aktuelle Schulart zugewiesen wurde.')
                             );
                         }
                     } else {
                         $Stage->setContent(
-                            new Warning( 'Vorlage kann nicht gewählt werden, da dem Schüler keine Schülerakte zugewiesen wurde.' )
-                            .new Standard( 'Zum Schüler', '/People/Person', new Person(), array( 'Id' => $tblPerson->getId() ) )
+                            new Warning('Vorlage kann nicht gewählt werden, da dem Schüler keine Schülerakte zugewiesen wurde.')
+                            .new Standard('Zum Schüler', '/People/Person', new Person(),
+                                array('Id' => $tblPerson->getId()))
                         );
                     }
                 } else {
@@ -156,7 +161,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             } else {
                 $Stage->setContent(
-                    new Warning( 'Vorlage kann nicht gewählt werden, da dem Schüler keine Klasse zugewiesen wurde.' )
+                    new Warning('Vorlage kann nicht gewählt werden, da dem Schüler keine Klasse zugewiesen wurde.')
                 );
             }
         } else {
@@ -267,33 +272,501 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendCreate($Data, $Template)
+    public function frontendCreate($Data, $Content = null)
     {
 
         // TODO: Find Template in Database (DMS)
-
         $this->getCache(new TwigHandler())->clearCache();
-        $Template = Template::getTemplate(__DIR__.'/Vorlage.twig');
-        $Template->setVariable('Data', $Data);
 
-        $FileLocation = Storage::useWriter()->getTemporary('pdf', 'Zeugnistest', true);
+        $Header = (new Slice())
+            ->addSection(
+                (new Section())
+                    ->addColumn(
+                        (new Element())
+                            ->setContent('MS Abgangszeugnis 3g.pdf')
+                            ->styleTextSize('12px')
+                            ->styleTextColor('#CCC')
+                            ->styleAlignCenter()
+                        , '25%'
+                    )->addColumn(
+                        (new Element\Sample())
+                            ->styleTextSize('30px')
+                    )->addColumn(
+                        (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '200px')), '25%'
+                    )
+            );
+
+        $Content = (new Frame())->addDocument(
+            (new Document())
+                ->addPage(
+                    (new Page())
+                        ->addSlice(
+                            $Header
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('ABGANGSZEUGNIS')
+                                        ->styleTextSize('30px')
+                                        ->styleAlignCenter()
+                                        ->styleMarginTop('32%')
+                                )
+                        )
+                )
+                ->addPage(
+                    (new Page())
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Vorname und Name:')
+                                            , '25%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('{{ Data.Name }}')
+                                                ->styleBorderBottom()
+                                        )
+                                )->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('geboren am')
+                                            , '25%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('{{ Data.Division }}')
+                                                ->styleBorderBottom()
+                                            , '20%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('in')
+                                                ->styleAlignCenter()
+                                            , '5%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('{{ Data.Name }}')
+                                                ->styleBorderBottom()
+                                        )
+                                )->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('wohnhaft in')
+                                            , '25%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('{{ Data.School.Course }}')
+                                                ->styleBorderBottom()
+                                        )
+                                )->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('hat')
+                                            , '10%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('{{ Data.School.Name }}')
+                                                ->styleBorderBottom()
+                                        )
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('&nbsp;')
+                                        ->styleBorderBottom()
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('&nbsp;')
+                                        ->styleBorderBottom()
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('&nbsp;')
+                                                ->styleBorderBottom()
+                                        )
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('besucht')
+                                                ->styleAlignRight()
+                                            , '15%')
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('Name und Anschrift der Schule')
+                                        ->styleTextSize('12px')
+                                        ->styleTextColor('#CCC')
+                                        ->styleAlignCenter()
+                                        ->styleMarginTop('5px')
+                                        ->styleMarginBottom('5px')
+                                )
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß § 28 Abs. 1 Nr. 1 SchulG')
+                                        ->styleMarginTop('8px')
+                                )
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('die Schulart Mittelschule –')
+                                        ->styleMarginTop('8px')
+                                )
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('Hauptschulbildungsgang/Realschulbildungsgang¹.')
+                                        ->styleMarginTop('8px')
+                                )
+                                ->styleAlignCenter()
+                                ->styleMarginTop('20%')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('¹ Zutreffendes ist zu unterstreichen.')
+                                                ->styleTextSize('10px')
+                                                ->styleBorderTop()
+                                            , '33%')
+                                        ->addColumn(
+                                            (new Element())
+                                        )
+                                )
+                        )
+                )
+                ->addPage(
+                    (new Page())
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Vorname und Name:')
+                                            , '25%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('{{ Data.Name }}')
+                                                ->styleBorderBottom()
+                                            , '45%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Klasse')
+                                                ->styleAlignCenter()
+                                            , '10%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('{{ Data.Division }}')
+                                                ->styleBorderBottom()
+                                        )
+                                )->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('Leistungen in den einzelnen Fächern:')
+                                        ->styleTextSize('20px')
+                                        ->styleMarginTop('15px')
+                                )
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Deutsch')
+                                            , '35%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('1')
+                                                ->styleAlignCenter()
+                                                ->styleBackgroundColor('#DDD')
+                                                ->styleBorderBottom('2px', '#999')
+                                            , '14%')
+                                        ->addColumn(
+                                            (new Element())
+                                            , '2%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Mathematik')
+                                            , '35%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('2')
+                                                ->styleAlignCenter()
+                                                ->styleBackgroundColor('#DDD')
+                                                ->styleBorderBottom('2px', '#999')
+                                            , '14%')
+                                )
+                                ->styleMarginTop('15px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Englisch')
+                                            , '35%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('3')
+                                                ->styleAlignCenter()
+                                                ->styleBackgroundColor('#DDD')
+                                                ->styleBorderBottom('2px', '#999')
+                                            , '14%')
+                                        ->addColumn(
+                                            (new Element())
+                                            , '2%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Biologie')
+                                            , '35%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('3')
+                                                ->styleAlignCenter()
+                                                ->styleBackgroundColor('#DDD')
+                                                ->styleBorderBottom('2px', '#999')
+                                            , '14%')
+                                )
+                                ->styleMarginTop('5px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addElement(
+                                    (new Element())
+                                        ->setContent('Wahlpflichtbereich:')
+                                        ->styleTextSize('20px')
+                                        ->styleMarginTop('15px')
+                                )
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Nuff nuff')
+                                                ->styleBorderBottom()
+                                        )
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('3')
+                                                ->styleAlignCenter()
+                                                ->styleBackgroundColor('#DDD')
+                                                ->styleBorderBottom('2px', '#999')
+                                            , '14%')
+                                )
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Neigungskurs (Neigungskursbereich)/Vertiefungskurs/2. Fremdsprache (abschlussorientiert)¹')
+                                                ->styleTextSize('10px')
+                                        )
+                                )
+                                ->styleMarginTop('15px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Bemerkungen:')
+                                            , '22%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Dumdidum')
+                                                ->styleBorderBottom()
+                                        )
+                                )
+                                ->styleMarginTop('15px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('&nbsp;')
+                                                ->styleBorderBottom()
+                                        )
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('&nbsp;')
+                                                ->styleBorderBottom()
+                                        )
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('&nbsp;')
+                                                ->styleBorderBottom()
+                                        )
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('&nbsp;')
+                                                ->styleBorderBottom()
+                                        )
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('&nbsp;')
+                                                ->styleBorderBottom()
+                                        )
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Datum:')
+                                            , '15%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent(date('d.m.Y'))
+                                                ->styleBorderBottom()
+                                            , '15%')
+                                        ->addColumn(
+                                            (new Element())
+                                            , '5%')
+                                        ->addColumn(
+                                            (new Element())
+                                            , '30%')
+                                        ->addColumn(
+                                            (new Element())
+                                            , '5%')
+                                        ->addColumn(
+                                            (new Element())
+                                            , '30%')
+                                )
+                                ->styleMarginTop('15px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Schulleiter(in)')
+                                                ->styleAlignCenter()
+                                                ->styleBorderTop()
+                                            , '30%')
+                                        ->addColumn(
+                                            (new Element())
+                                            , '5%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Dienstsiegel der Schule')
+                                                ->styleAlignCenter()
+                                                ->styleBorderTop()
+                                            , '30%')
+                                        ->addColumn(
+                                            (new Element())
+                                            , '5%')
+                                        ->addColumn(
+                                            (new Element())
+                                                ->setContent('Klassenlehrer(in)')
+                                                ->styleAlignCenter()
+                                                ->styleBorderTop()
+                                            , '30%')
+                                )
+                                ->styleMarginTop('15px')
+                        )
+                )
+        );
+
+        $Content->setData($Data);
+
+        $Preview = $Content->getContent();
+
+        $FileLocation = Storage::useWriter()->getTemporary('pdf', 'Zeugnistest-'.date('Ymd-His'), false);
         /** @var DomPdf $Document */
-        $Document = Document::getPdfDocument($FileLocation->getFileLocation());
-        $Document->setContent($Template);
+        $Document = \MOC\V\Component\Document\Document::getPdfDocument($FileLocation->getFileLocation());
+        $Document->setContent($Content->getTemplate());
         $Document->saveFile(new FileParameter($FileLocation->getFileLocation()));
 
-        $Stage = new Stage('Vorschau');
+        $Stage = new Stage();
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(array(
-                $FileLocation->getFileLocation(),
-                '<div class="cleanslate">'.$Template->getContent().'</div>'
-            ), 6),
-            new LayoutColumn(array(
-                '<pre><code class="small">'.( str_replace("\n"," ~~~ ",file_get_contents($FileLocation->getFileLocation())) ).'</code></pre>'
+//                $FileLocation->getFileLocation(),
+                '<div class="cleanslate">'.$Preview.'</div>'
+            ), 12),
+//            new LayoutColumn(array(
+//                '<pre><code class="small">'.( str_replace("\n", " ~~~ ",
+//                    file_get_contents($FileLocation->getFileLocation())) ).'</code></pre>'
 //                FileSystem::getDownload($FileLocation->getRealPath(),
 //                    "Zeugnis ".date("Y-m-d H:i:s").".pdf")->__toString()
-            ), 6),
+//            ), 6),
         )))));
 
         return $Stage;
