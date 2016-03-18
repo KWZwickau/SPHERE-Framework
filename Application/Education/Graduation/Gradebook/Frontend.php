@@ -384,15 +384,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     /** @var TblSubjectGroup $item */
                                     $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                                     $divisionSubjectTable[] = array(
-                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                        'Type' => $tblDivision->getTypeName(),
-                                        'Division' => $tblDivision->getDisplayName(),
-                                        'Subject' => $tblSubject->getName(),
-                                        'SubjectGroup' => $item->getName(),
+                                        'Year'            => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                        'Type'            => $tblDivision->getTypeName(),
+                                        'Division'        => $tblDivision->getDisplayName(),
+                                        'Subject'         => $tblSubject->getName(),
+                                        'SubjectGroup'    => $item->getName(),
                                         'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                             $tblDivision, $tblSubject, $item
                                         ),
-                                        'Option' => new Standard(
+                                        'Option'          => new Standard(
                                             '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(),
                                             array(
                                                 'DivisionSubjectId' => $subValue
@@ -403,15 +403,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             } else {
                                 $divisionSubjectTable[] = array(
-                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                    'Type' => $tblDivision->getTypeName(),
-                                    'Division' => $tblDivision->getDisplayName(),
-                                    'Subject' => $tblSubject->getName(),
-                                    'SubjectGroup' => '',
+                                    'Year'            => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                    'Type'            => $tblDivision->getTypeName(),
+                                    'Division'        => $tblDivision->getDisplayName(),
+                                    'Subject'         => $tblSubject->getName(),
+                                    'SubjectGroup'    => '',
                                     'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                         $tblDivision, $tblSubject
                                     ),
-                                    'Option' => new Standard(
+                                    'Option'          => new Standard(
                                         '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
                                         'DivisionSubjectId' => $value
                                     ),
@@ -511,15 +511,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     $item = Division::useService()->getSubjectGroupById($subjectGroupId);
 
                                     $divisionSubjectTable[] = array(
-                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                        'Type' => $tblDivision->getTypeName(),
-                                        'Division' => $tblDivision->getDisplayName(),
-                                        'Subject' => $tblSubject->getName(),
-                                        'SubjectGroup' => $item->getName(),
+                                        'Year'            => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                        'Type'            => $tblDivision->getTypeName(),
+                                        'Division'        => $tblDivision->getDisplayName(),
+                                        'Subject'         => $tblSubject->getName(),
+                                        'SubjectGroup'    => $item->getName(),
                                         'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                             $tblDivision, $tblSubject, $item
                                         ),
-                                        'Option' => new Standard(
+                                        'Option'          => new Standard(
                                             '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
                                             new Select(),
                                             array(
@@ -531,15 +531,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             } else {
                                 $divisionSubjectTable[] = array(
-                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                    'Type' => $tblDivision->getTypeName(),
-                                    'Division' => $tblDivision->getDisplayName(),
-                                    'Subject' => $tblSubject->getName(),
-                                    'SubjectGroup' => '',
+                                    'Year'            => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                    'Type'            => $tblDivision->getTypeName(),
+                                    'Division'        => $tblDivision->getDisplayName(),
+                                    'Subject'         => $tblSubject->getName(),
+                                    'SubjectGroup'    => '',
                                     'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                         $tblDivision, $tblSubject
                                     ),
-                                    'Option' => new Standard(
+                                    'Option'          => new Standard(
                                         '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
                                         new Select(),
                                         array(
@@ -1000,7 +1000,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormRow(array(
                                             new FormColumn(
                                                 new SelectBox('Select[Year]', 'Schuljahr',
-                                                    array('{{Name}}' => $tblYearAll)),
+                                                    array('{{Name}} {{ Description }}' => $tblYearAll)),
                                                 12
                                             ),
                                         )),
@@ -1011,7 +1011,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ),
                     ($YearId !== null ? new LayoutColumn(
-                        new Panel('Schuljahr', $tblYear->getName(), Panel::PANEL_TYPE_INFO)
+                        new Panel('Schuljahr', $tblYear->getDisplayName(), Panel::PANEL_TYPE_INFO)
                     ) : null)
                 ))),
                 ($YearId !== null ? new LayoutGroup($rowList) : null)
@@ -2664,7 +2664,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblSubject = $tblDivisionSubject->getServiceTblSubject();
                 if ($tblDivision && $tblSubject) {
                     $tblDivisionSubject->DisplayDivision = $tblDivision->getDisplayName();
-                    $tblDivisionSubject->Year = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '';
+                    $tblDivisionSubject->Year = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '';
                     $tblDivisionSubject->Type = $tblDivision->getTypeName();
                     $tblDivisionSubject->DisplaySubject = $tblSubject ? $tblSubject->getName() : '';
                     $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
@@ -2727,7 +2727,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel(
                                 new Filter() . ' Filter',
                                 array(
-                                    $filterYear ? new Bold('Schuljahr: ') . $filterYear->getName()
+                                    $filterYear ? new Bold('Schuljahr: ').$filterYear->getDisplayName()
                                         . new Small(new Muted($filterYear->getDescription())) : null,
                                     $filterType ? new Bold('Schulart: ') . $filterType->getName()
                                         . new Small(new Muted($filterType->getDescription())) : null,
@@ -2794,7 +2794,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                     if ($tblDivision->getServiceTblYear()) {
-                        $yearAll[$tblDivisionSubject->getId()] = $tblDivision->getServiceTblYear()->getName();
+                        $yearAll[$tblDivisionSubject->getId()] = $tblDivision->getServiceTblYear()->getDisplayName();
                     }
 
                 }

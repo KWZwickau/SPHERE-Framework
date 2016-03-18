@@ -205,12 +205,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 foreach ($value as $subjectGroupId => $subValue) {
                                     $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                                     $divisionSubjectTable[] = array(
-                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                        'Type' => $tblDivision->getTypeName(),
-                                        'Division' => $tblDivision->getDisplayName(),
-                                        'Subject' => $tblSubject->getName(),
+                                        'Year'         => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                        'Type'         => $tblDivision->getTypeName(),
+                                        'Division'     => $tblDivision->getDisplayName(),
+                                        'Subject'      => $tblSubject->getName(),
                                         'SubjectGroup' => $item->getName(),
-                                        'Option' => new Standard(
+                                        'Option'       => new Standard(
                                             '', '/Education/Graduation/Evaluation/Test/Selected', new Select(), array(
                                             'DivisionSubjectId' => $subValue
                                         ),
@@ -220,12 +220,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             } else {
                                 $divisionSubjectTable[] = array(
-                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                    'Type' => $tblDivision->getTypeName(),
-                                    'Division' => $tblDivision->getDisplayName(),
-                                    'Subject' => $tblSubject->getName(),
+                                    'Year'         => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                    'Type'         => $tblDivision->getTypeName(),
+                                    'Division'     => $tblDivision->getDisplayName(),
+                                    'Subject'      => $tblSubject->getName(),
                                     'SubjectGroup' => '',
-                                    'Option' => new Standard(
+                                    'Option'       => new Standard(
                                         '', '/Education/Graduation/Evaluation/Test/Selected', new Select(), array(
                                         'DivisionSubjectId' => $value
                                     ),
@@ -323,12 +323,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 foreach ($value as $subjectGroupId => $subValue) {
                                     $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                                     $divisionSubjectTable[] = array(
-                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                        'Type' => $tblDivision->getTypeName(),
-                                        'Division' => $tblDivision->getDisplayName(),
-                                        'Subject' => $tblSubject->getName(),
+                                        'Year'         => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                        'Type'         => $tblDivision->getTypeName(),
+                                        'Division'     => $tblDivision->getDisplayName(),
+                                        'Subject'      => $tblSubject->getName(),
                                         'SubjectGroup' => $item->getName(),
-                                        'Option' => new Standard(
+                                        'Option'       => new Standard(
                                             '', '/Education/Graduation/Evaluation/Headmaster/Test/Selected',
                                             new Select(),
                                             array(
@@ -340,12 +340,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             } else {
                                 $divisionSubjectTable[] = array(
-                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                    'Type' => $tblDivision->getTypeName(),
-                                    'Division' => $tblDivision->getDisplayName(),
-                                    'Subject' => $tblSubject->getName(),
+                                    'Year'         => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                    'Type'         => $tblDivision->getTypeName(),
+                                    'Division'     => $tblDivision->getDisplayName(),
+                                    'Subject'      => $tblSubject->getName(),
                                     'SubjectGroup' => '',
-                                    'Option' => new Standard(
+                                    'Option'       => new Standard(
                                         '', '/Education/Graduation/Evaluation/Headmaster/Test/Selected', new Select(),
                                         array(
                                             'DivisionSubjectId' => $value

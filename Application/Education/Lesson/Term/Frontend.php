@@ -3,6 +3,8 @@ namespace SPHERE\Application\Education\Lesson\Term;
 
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -69,7 +71,6 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblYearAll, function (TblYear &$tblYear) use (&$TableContent) {
 
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
-                $Temp['Name'] = $tblYear->getName();
                 $Temp['Year'] = $tblYear->getYear();
                 $Temp['Description'] = $tblYear->getDescription();
                 $Temp['Option'] =
@@ -91,7 +92,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
-                                'Name'        => 'Name',
                                 'Year'        => 'Jahr',
                                 'Description' => 'Beschreibung',
                                 'Option'      => '',
@@ -142,18 +142,20 @@ class Frontend extends Extension implements IFrontendInterface
         $YearList[( date('Y') + 4 ).'/'.( date('y') + 5 )] = ( date('Y') + 4 ).'/'.( date('y') + 5 );
 //        $YearList[(date('Y') + 5).'/'.(date('y') + 6)] = (date('Y') + 5).'/'.(date('y') + 6);
 
+        $TypeList = Type::useService()->getTypeAll();
+        $TypeList[] = new TblType('');
+
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear $tblYear) use (&$acNameAll) {
 
-                if (!in_array($tblYear->getName(), $acNameAll)) {
-                    array_push($acNameAll, $tblYear->getName());
+                if (!in_array($tblYear->getDisplayName(), $acNameAll)) {
+                    array_push($acNameAll, $tblYear->getDisplayName());
                 }
             });
         }
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Year'] ) && $tblYear) {
-            $Global->POST['Year']['Name'] = $tblYear->getName();
             $Global->POST['Year']['Year'] = $tblYear->getYear();
             $Global->POST['Year']['Description'] = $tblYear->getDescription();
             $Global->savePost();
@@ -168,23 +170,15 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Schuljahr', array(
-                                new AutoCompleter('Year[Name]', 'Name',
-                                    'z.B: '.date('Y').'/'.( date('Y') + 1 ).' Gymnasium',
-                                    $acNameAll, new Pencil()))
-
-                            , Panel::PANEL_TYPE_INFO
-                        ), 4),
-                    new FormColumn(
-                        new Panel('Schuljahr', array(
                                 new SelectBox('Year[Year]', 'Jahr', $YearList, new Select()))
                             , Panel::PANEL_TYPE_INFO
-                        ), 4),
+                        ), 6),
                     new FormColumn(
                         new Panel('Sonstiges', array(
                                 new TextField('Year[Description]', 'z.B: für Gymnasium', 'Beschreibung', new Pencil()))
                             , Panel::PANEL_TYPE_INFO
                         )
-                        , 4)
+                        , 6)
                 )),
             ))
         );
@@ -442,7 +436,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblYear) {
             $Panel = new Panel('<b>'.( ( $tblYear->getDescription() ) ? ( $tblYear->getDescription() ) : 'Schuljahr' ).'&nbsp'
-                .$tblYear->getName().'</b>', '', Panel::PANEL_TYPE_INFO);
+                .$tblYear->getDisplayName().'</b>', '', Panel::PANEL_TYPE_INFO);
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Panel, 6))));
         }
         return false;
@@ -493,7 +487,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             array(
                                 new Panel('Jahr',
-                                    $tblYear->getName().' '.new Small(new Muted($tblYear->getDescription())),
+                                    $tblYear->getDisplayName().' '.new Small(new Muted($tblYear->getDescription())),
                                     Panel::PANEL_TYPE_INFO).
                                 new Headline(new Edit().' Bearbeiten'),
                                 new Well(Term::useService()->changeYear($Form, $tblYear, $Year)),

@@ -172,18 +172,18 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Year['Name'] ) && empty( $Year['Name'] )) {
-            $Form->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
         if (isset( $Year['Year'] ) && empty( $Year['Year'] )) {
             $Form->setError('Year[Year]', 'Bitte geben sie ein Jahr an');
             $Error = true;
+        } else {
+            if (( $tblYear = Term::useService()->checkYearExist($Year['Year'], $Year['Description']) )) {
+                $Form->setError('Year[Description]', 'Bitte geben sie eine andere Beschreibung an');
+                $Error = true;
+            }
         }
 
         if (!$Error) {
-
-            if ((new Data($this->getBinding()))->createYear($Year['Name'], $Year['Description'], $Year['Year'])) {
+            if ((new Data($this->getBinding()))->createYear($Year['Year'], $Year['Description'])) {
                 return new Success('Das Schuljahr wurde erfolgreich hinzugefügt')
                 .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
@@ -194,15 +194,10 @@ class Service extends AbstractService
         return $Form;
     }
 
-    /**
-     * @param string $Name
-     *
-     * @return bool|TblYear
-     */
-    public function getYearByName($Name)
+    public function checkYearExist($Year, $Description)
     {
 
-        return (new Data($this->getBinding()))->getYearByName($Name);
+        return (new Data($this->getBinding()))->checkYearExist($Year, $Description);
     }
 
     /**
@@ -466,21 +461,23 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Year['Name'] ) && empty( $Year['Name'] )) {
-            $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
         if (isset( $Year['Year'] ) && empty( $Year['Year'] )) {
             $Stage->setError('Year[Year]', 'Bitte geben Sie ein Jahr an');
             $Error = true;
+        } else {
+            if (( $CheckYear = Term::useService()->checkYearExist($Year['Year'], $Year['Description']) )) {
+                if ($tblYear->getId() !== $CheckYear->getId()) {
+                    $Stage->setError('Year[Description]', 'Bitte geben sie eine andere Beschreibung an');
+                    $Error = true;
+                }
+            }
         }
 
         if (!$Error) {
             if ((new Data($this->getBinding()))->updateYear(
                 $tblYear,
-                $Year['Name'],
-                $Year['Description'],
-                $Year['Year']
+                $Year['Year'],
+                $Year['Description']
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
@@ -610,15 +607,15 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Name
+     * @param string $Year
      * @param string $Description
      *
      * @return TblYear
      */
-    public function insertYear($Name, $Description = '')
+    public function insertYear($Year, $Description = '')
     {
 
-        return (new Data($this->getBinding()))->createYear($Name, $Description);
+        return (new Data($this->getBinding()))->createYear($Year, $Description);
     }
 
     /**

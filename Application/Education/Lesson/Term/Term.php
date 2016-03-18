@@ -113,7 +113,7 @@ class Term implements IModuleInterface
                     $tblPeriodAll = array();
                 }
                 array_push($Year, array(
-                    'Schuljahr' => $tblYear->getName().' '.$tblYear->getYear().'<br/>'.new Muted($tblYear->getDescription()),
+                    'Schuljahr' => $tblYear->getDisplayName(),
                     'Zeiträume' => new Panel(
                         ( empty( $tblPeriodAll ) ?
                             'Keine Zeiträume hinterlegt'

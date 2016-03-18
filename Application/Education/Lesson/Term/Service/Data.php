@@ -24,27 +24,27 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $Name
-     * @param string $Description
-     * @param string $Year
+     * @param              $Year
+     * @param string       $Description
      *
      * @return TblYear
      */
-    public function createYear($Name, $Description = '', $Year = '')
+    public function createYear($Year, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-//        $Entity = $Manager->getEntity('TblYear')->findOneBy(array(
-//            TblYear::ATTR_YEAR => $Year
-//        ));
-//        if (null === $Entity) {
-        $Entity = new TblYear();
-        $Entity->setName($Name);
-        $Entity->setDescription($Description);
-        $Entity->setYear($Year);
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-//        }
+        $Entity = $Manager->getEntity('TblYear')->findOneBy(array(
+            TblYear::ATTR_YEAR        => $Year,
+            TblYear::ATTR_DESCRIPTION => $Description
+        ));
+        if (null === $Entity) {
+            $Entity = new TblYear();
+            $Entity->setName($Year);
+            $Entity->setDescription($Description);
+            $Entity->setYear($Year);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
         return $Entity;
     }
 
@@ -79,18 +79,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYear $tblYear
-     * @param string  $Name
-     * @param string  $Description
-     * @param string  $Year
+     * @param TblYear      $tblYear
+     * @param              $Year
+     * @param null         $Description
      *
      * @return bool
      */
     public function updateYear(
         TblYear $tblYear,
-        $Name,
-        $Description,
-        $Year
+        $Year,
+        $Description = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -99,7 +97,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblYear', $tblYear->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setName($Name);
+            $Entity->setName($Year);
             $Entity->setDescription($Description);
             $Entity->setYear($Year);
             $Manager->saveEntity($Entity);
@@ -301,19 +299,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $Name
-     *
-     * @return bool|TblYear
-     */
-    public function getYearByName($Name)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
-            TblYear::ATTR_NAME => $Name
-        ));
-    }
-
-    /**
      * @param TblYear $tblYear
      *
      * @return false|TblYear[]
@@ -324,6 +309,16 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
             TblYear::ATTR_YEAR => $tblYear->getYear()
         ));
+    }
+
+    public function checkYearExist($Year, $Description)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
+            TblYear::ATTR_YEAR        => $Year,
+            TblYear::ATTR_DESCRIPTION => $Description
+        ));
+
     }
 
     /**

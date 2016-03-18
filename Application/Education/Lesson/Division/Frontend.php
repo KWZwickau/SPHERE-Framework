@@ -117,7 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (isset( $Year ) && $Year !== '0') {
             $tblYear = Term::useService()->getYearById($Year);
             if ($tblYear) {
-                $Stage->setDescription('Übersicht '.new \SPHERE\Common\Frontend\Text\Repository\Info(new Bold($tblYear->getName().' '.$tblYear->getYear())));
+                $Stage->setDescription('Übersicht '.new \SPHERE\Common\Frontend\Text\Repository\Info(new Bold($tblYear->getDisplayName())));
             }
         }
 
@@ -129,7 +129,7 @@ class Frontend extends Extension implements IFrontendInterface
         $YearAll = Term::useService()->getYearAllSinceYears(1);
         if (!empty( $YearAll )) {
             foreach ($YearAll as $key => $row) {
-                $name[$key] = strtoupper($row->getName());
+                $name[$key] = strtoupper($row->getDisplayName());
             }
             array_multisort($name, SORT_ASC, $YearAll);
 
@@ -138,7 +138,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Stage->addButton(
                     new Standard(
-                        $tblYear->getName().' '.$tblYear->getYear(),
+                        $tblYear->getDisplayName(),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Year' => $tblYear->getId()
@@ -153,8 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblDivisionAll) {
             array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
 
-                $Temp['Year'] = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName().' '.
-                    $tblDivision->getServiceTblYear()->getYear() : '';
+                $Temp['Year'] = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '';
                 $Temp['SchoolType'] = $tblDivision->getTypeName();
                 $Temp['ClassGroup'] = $tblDivision->getDisplayName();
 
@@ -315,7 +314,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Klassengruppe',
                             array(
                                 new SelectBox('Division[Year]', 'Schuljahr', array(
-                                    '{{ Name }} {{ Year }} {{ Description }}' => $tblYearAll
+                                    '{{ Year }} {{ Description }}' => $tblYearAll
                                 ), new Education()),
                                 '&nbsp;',
                                 new AutoCompleter('Division[Name]', 'Klassengruppe (Name)', 'z.B: Alpha', $acNameAll,
@@ -361,7 +360,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$tblDivision->getTblLevel()) {
             $Stage->setMessage('Liste aller Schüler im Schuljahr '.( $tblDivision->getServiceTblYear()
-                    ? $tblDivision->getServiceTblYear()->getName().' '.$tblDivision->getServiceTblYear()->getYear() : '' ).'.');
+                    ? $tblDivision->getServiceTblYear()->getDisplayName() : '' ).'.');
 
             if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
                 if ($Remove) {
@@ -426,11 +425,11 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             if ($tblDivision->getTblLevel()->getIsChecked()) {
                 $Stage->setMessage('Liste aller Schüler die im Schuljahr '.( $tblDivision->getServiceTblYear()
-                        ? $tblDivision->getServiceTblYear()->getName().' '.$tblDivision->getServiceTblYear()->getYear() : '' )
+                        ? $tblDivision->getServiceTblYear()->getDisplayName() : '' )
                     .' noch keiner Klasse zugeordnet sind.');
             } else {
                 $Stage->setMessage('Liste aller Schüler im Schuljahr '.( $tblDivision->getServiceTblYear()
-                        ? $tblDivision->getServiceTblYear()->getName().' '.$tblDivision->getServiceTblYear()->getYear() : '' ).'.');
+                        ? $tblDivision->getServiceTblYear()->getDisplayName() : '' ).'.');
             }
 
             if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
@@ -461,12 +460,16 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!$IsChecked) {
                     if ($tblDivision->getServiceTblYear()) {
                         $tblYear = $tblDivision->getServiceTblYear();
-                        $tblYearList = Term::useService()->getYearsByYear($tblYear);
+                        $tblYearAll = Term::useService()->getYearAll();
                         $tblDivisionList = array();
-                        if ($tblYearList) {
-                            foreach ($tblYearList as $tblYear) {
-                                $DivisionList = Division::useService()->getDivisionByYear($tblYear);
-                                $tblDivisionList = array_merge($tblDivisionList, $DivisionList);
+                        if ($tblYearAll) {
+                            foreach ($tblYearAll as $Year) {
+                                if ($tblYear->getYear() == $Year->getYear()) {
+                                    $DivisionList = Division::useService()->getDivisionByYear($Year);
+                                    if (is_array($DivisionList)) {
+                                        $tblDivisionList = array_merge($tblDivisionList, $DivisionList);
+                                    }
+                                }
                             }
                         }
 //                            $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
@@ -1593,24 +1596,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$tblDivision->getTblLevel()) {
             $PanelShow = new Panel('Beschreibung für', array(
-                ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName()
-                    .' '.$tblDivision->getServiceTblYear()->getYear() : '' )
+                ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '' )
                 .' - '.$tblDivision->getDisplayName(),
                 $tblDivision->getDescription()
             ), Panel::PANEL_TYPE_SUCCESS);
 
         } elseif ($tblDivision->getTblLevel()->getName() == '') {
             $PanelShow = new Panel('Beschreibung für', array(
-                ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName()
-                    .' '.$tblDivision->getServiceTblYear()->getYear() : '' )
+                ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '' )
                 .' - '.( $tblDivision->getTblLevel()->getServiceTblType() ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : '' )
                 .' - '.$tblDivision->getDisplayName(),
                 $tblDivision->getDescription()
             ), Panel::PANEL_TYPE_SUCCESS);
         } else {
             $PanelShow = new Panel('Beschreibung für', array(
-                ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName()
-                    .' '.$tblDivision->getServiceTblYear()->getYear() : '' )
+                ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '' )
                 .' - '.( $tblDivision->getTblLevel()->getServiceTblType() ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : '' )
                 .' - '.$tblDivision->getDisplayName(),
                 $tblDivision->getDescription()
@@ -2057,7 +2057,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $Content[] = 'Jahr: '.new Bold($tblDivision->getServiceTblYear()
-                        ? $tblDivision->getServiceTblYear()->getName() : '');
+                        ? $tblDivision->getServiceTblYear()->getDisplayName() : '');
                 $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()
                         ? $tblLevel->getServiceTblType()->getName() : '');
                 $Content[] = 'Stufe: '.new Bold($tblLevel->getName());
@@ -2147,7 +2147,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Content[] = 'Stufe: ' . new Bold($tblLevel->getName());
         $Content[] = 'Klassenbezeichnung: '.new Bold($tblDivision->getDisplayName());
         $Content1[] = 'Jahr: '.new Bold($tblDivision->getServiceTblYear()
-                ? $tblDivision->getServiceTblYear()->getName().' '.$tblDivision->getServiceTblYear()->getYear() : '');
+                ? $tblDivision->getServiceTblYear()->getDisplayName() : '');
 //        $Content1[] = 'Gruppe: ' . new Bold($tblDivision->getName());
         $Content1[] = 'Beschreibung: '.new Bold($tblDivision->getDescription());
         $Content2[] = 'Schüler: '.new Bold(Division::useService()->countDivisionStudentAllByDivision($tblDivision));

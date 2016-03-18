@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -16,8 +17,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblYear extends Element
 {
 
-    const ATTR_NAME = 'Name';
     const ATTR_YEAR = 'Year';
+    const ATTR_DESCRIPTION = 'Description';
 
     /**
      * @Column(type="string")
@@ -38,6 +39,9 @@ class TblYear extends Element
     public function getName()
     {
 
+        if (empty( $this->Name )) {
+            $this->setName($this->Year);
+        }
         return $this->Name;
     }
 
@@ -56,6 +60,9 @@ class TblYear extends Element
     public function getYear()
     {
 
+        if (empty( $this->Year )) {
+            $this->setYear($this->getName());
+        }
         return $this->Year;
     }
 
@@ -93,5 +100,14 @@ class TblYear extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName()
+    {
+
+        return $this->getYear().' '.new Muted($this->getDescription());
     }
 }
