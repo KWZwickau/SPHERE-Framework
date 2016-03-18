@@ -941,6 +941,8 @@ class Service
                 $mother = null;
                 $fatherPhoneList = false;
                 $motherPhoneList = false;
+                $tblPerson->Orientation = '';
+                $tblPerson->Education = '';
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
@@ -1050,8 +1052,17 @@ class Service
                     } else {
                         $tblPerson->Orientation = '';
                     }
-                } else {
-                    $tblPerson->Orientation = '';
+                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                    if ($tblTransferType) {
+                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType);
+                        if ($tblStudentTransfer) {
+                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                            if ($tblCourse) {
+                                $tblPerson->Education = $tblCourse->getName();
+                            }
+                        }
+                    }
                 }
 
                 // ToDo JohK zusammenfassung am Ende
@@ -1080,7 +1091,8 @@ class Service
             $export->setValue($export->getCell("1", "0"), "Geb.-Datum");
             $export->setValue($export->getCell("2", "0"), "Adresse");
             $export->setValue($export->getCell("3", "0"), "Telefonnummer");
-            $export->setValue($export->getCell("4", "0"), "NK");
+            $export->setValue($export->getCell("4", "0"), "Bildungsgang");
+            $export->setValue($export->getCell("5", "0"), "NK");
 
             $row = 2;
             foreach ($studentList as $tblPerson) {
@@ -1088,7 +1100,8 @@ class Service
                 $export->setValue($export->getCell("0", $row), $tblPerson->ExcelNameRow1);
                 $export->setValue($export->getCell("1", $row), $tblPerson->Birthday);
                 $export->setValue($export->getCell("2", $row), $tblPerson->ExcelAddressRow1);
-                $export->setValue($export->getCell("4", $row), $tblPerson->Orientation);
+                $export->setValue($export->getCell("4", $row), $tblPerson->Education);
+                $export->setValue($export->getCell("5", $row), $tblPerson->Orientation);
 
                 $row++;
                 $export->setValue($export->getCell("0", $row), $tblPerson->ExcelNameRow2);
