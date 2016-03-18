@@ -90,7 +90,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Division'] = $tblDivision->getDisplayName();
                 $Item['Type'] = $tblDivision->getTypeName();
                 if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getName();
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/ClassList', new EyeOpen(),
                     array('DivisionId' => $tblDivision->getId()));
@@ -120,7 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     ( $tblDivision->getServiceTblYear() ?
                         new LayoutColumn(
-                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getName(),
+                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                 Panel::PANEL_TYPE_SUCCESS), 4
                         ) : '' ),
                     new LayoutColumn(
@@ -245,7 +245,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Division'] = $tblDivision->getDisplayName();
                 $Item['Type'] = $tblDivision->getTypeName();
                 if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getName();
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/MedicList', new EyeOpen(),
                     array('DivisionId' => $tblDivision->getId()));
@@ -275,7 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     ( $tblDivision->getServiceTblYear() ?
                         new LayoutColumn(
-                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getName(),
+                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                 Panel::PANEL_TYPE_SUCCESS), 4
                         ) : '' ),
                     new LayoutColumn(
@@ -352,7 +352,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Division'] = $tblDivision->getDisplayName();
                 $Item['Type'] = $tblDivision->getTypeName();
                 if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getName();
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList', new EyeOpen(),
                     array('DivisionId' => $tblDivision->getId()));
@@ -382,7 +382,7 @@ class Frontend extends Extension implements IFrontendInterface
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     ( $tblDivision->getServiceTblYear() ?
                         new LayoutColumn(
-                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getName(),
+                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                 Panel::PANEL_TYPE_SUCCESS), 4
                         ) : '' ),
                     new LayoutColumn(
@@ -617,7 +617,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Division'] = $tblDivision->getDisplayName();
                 $Item['Type'] = $tblDivision->getTypeName();
                 if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getName();
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/PrintClassList', new EyeOpen(),
                     array('DivisionId' => $tblDivision->getId()));
@@ -647,7 +647,7 @@ class Frontend extends Extension implements IFrontendInterface
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     ( $tblDivision->getServiceTblYear() ?
                         new LayoutColumn(
-                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getName(),
+                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                 Panel::PANEL_TYPE_SUCCESS), 4
                         ) : '' ),
                     new LayoutColumn(
