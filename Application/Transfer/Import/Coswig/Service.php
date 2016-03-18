@@ -112,8 +112,8 @@ class Service
                     'Bemerkungen' => null,
                     'Beruf Mutter' => null,
                     'Beruf Vater' => null,
-//                    'Mitglied Mutter' => null,
-//                    'Mitglied Vater' => null,
+                    'Mitglied Mutter' => null,
+                    'Mitglied Vater' => null,
                     'Bürgschaft' => null,
                 );
 
@@ -144,12 +144,13 @@ class Service
                     $countFatherExists = 0;
                     $countMotherExists = 0;
 
+
+                    // create groups
+                    $schoolClubGroup = Group::useService()->insertGroup('Schulverein');
+                    $boosterClubGroup =  Group::useService()->insertGroup('Förderverein');
+
                     $error = array();
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-
-                        if ($RunY > 210){
-                            break;
-                        }
 
                         // Student
                         $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
@@ -203,10 +204,15 @@ class Service
                                     trim($Document->getValue($Document->getCell($Location['Bemerkungen'], $RunY)))
                                 );
 
-                                // Todo JohK schuljahr 16 für zukünftige 1. Klasse
                                 // division
                                 $tblDivision = false;
                                 $year = 15;
+                                $division = trim($Document->getValue($Document->getCell($Location['Klasse'],
+                                    $RunY)));
+                                if ($division == 16) {
+                                    $year = 16;
+                                    $division = 1;
+                                }
                                 $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
                                 if ($tblYear) {
                                     $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
@@ -232,8 +238,6 @@ class Service
                                         }
                                     }
 
-                                    $division = trim($Document->getValue($Document->getCell($Location['Klasse'],
-                                        $RunY)));
                                     $tblType = Type::useService()->getTypeById(6); // Grundschule
                                     if ($division > 4) {
                                         $tblType = Type::useService()->getTypeById(8); // Mittelschule / Oberschule
@@ -267,8 +271,7 @@ class Service
                                 $pos = strrpos($fatherFullName, ' ');
                                 if ($pos === false) {
                                     if ($fatherFullName != '') {
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt,
-                                    da der Name des Vaters nicht getrennt werden konnte (Enthält kein Leerzeichen).';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da der Name des Vaters nicht getrennt werden konnte (Enthält kein Leerzeichen).';
                                     }
                                 } else {
                                     $firstName = trim(substr($fatherFullName, 0, $pos));
@@ -326,6 +329,15 @@ class Service
                                             ''
                                         );
 
+                                        $club = trim($Document->getValue($Document->getCell($Location['Mitglied Vater'],
+                                            $RunY)));
+                                        if (strpos($club, 'Schulverein') !== false){
+                                            Group::useService()->addGroupPerson($schoolClubGroup, $tblPersonFather);
+                                        }
+                                        if (strpos($club, 'Förderverein') !== false){
+                                            Group::useService()->addGroupPerson($boosterClubGroup, $tblPersonFather);
+                                        }
+
                                         $countFather++;
                                     } else {
 
@@ -336,9 +348,16 @@ class Service
                                             ''
                                         );
 
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt,
-                                            da schon eine Person mit gleichen Namen und gleicher PLZ existiert.
-                                            Der Schüler wurde mit der bereits existierenden Person verknüpft';
+                                        $club = trim($Document->getValue($Document->getCell($Location['Mitglied Vater'],
+                                            $RunY)));
+                                        if (strpos($club, 'Schulverein') !== false){
+                                            Group::useService()->addGroupPerson($schoolClubGroup, $tblPersonFatherExists);
+                                        }
+                                        if (strpos($club, 'Förderverein') !== false){
+                                            Group::useService()->addGroupPerson($boosterClubGroup, $tblPersonFatherExists);
+                                        }
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
 
                                         $countFatherExists++;
                                     }
@@ -351,8 +370,7 @@ class Service
                                 $pos = strrpos($motherFullName, ' ');
                                 if ($pos === false) {
                                     if ($motherFullName != '') {
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt,
-                                    da der Name der Mutter nicht getrennt werden konnte (Enthält kein Leerzeichen).';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da der Name der Mutter nicht getrennt werden konnte (Enthält kein Leerzeichen).';
                                     }
                                 } else {
                                     $firstName = trim(substr($motherFullName, 0, $pos));
@@ -403,14 +421,22 @@ class Service
                                             }
                                         }
 
-                                        // Todo JohK Mitglied Mutter, Mitglied Vater
-
                                         Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonMother,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
                                             ''
                                         );
+
+                                        $club = trim($Document->getValue($Document->getCell($Location['Mitglied Mutter'],
+                                            $RunY)));
+                                        if (strpos($club, 'Schulverein') !== false){
+                                            Group::useService()->addGroupPerson($schoolClubGroup, $tblPersonMother);
+                                        }
+                                        if (strpos($club, 'Förderverein') !== false){
+                                            Group::useService()->addGroupPerson($boosterClubGroup, $tblPersonMother);
+                                        }
+
 
                                         $countMother++;
                                     } else {
@@ -422,9 +448,16 @@ class Service
                                             ''
                                         );
 
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt,
-                                            da schon eine Person mit gleichen Namen und gleicher PLZ existiert.
-                                            Der Schüler wurde mit der bereits existierenden Person verknüpft';
+                                        $club = trim($Document->getValue($Document->getCell($Location['Mitglied Mutter'],
+                                            $RunY)));
+                                        if (strpos($club, 'Schulverein') !== false){
+                                            Group::useService()->addGroupPerson($schoolClubGroup, $tblPersonMotherExists);
+                                        }
+                                        if (strpos($club, 'Förderverein') !== false){
+                                            Group::useService()->addGroupPerson($boosterClubGroup, $tblPersonMotherExists);
+                                        }
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
 
                                         $countMotherExists++;
                                     }
@@ -568,11 +601,13 @@ class Service
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Geschwisterkind konnte nicht angelegt werden.';
                                     }
                                 }
+
                                 if ($tblSiblingRank) {
                                     $tblStudentBilling = Student::useService()->insertStudentBilling($tblSiblingRank);
                                 } else {
                                     $tblStudentBilling = null;
                                 }
+
                                 $tblStudent = Student::useService()->insertStudent($tblPerson, '', null, null,
                                     $tblStudentBilling);
                                 if ($tblStudent) {
