@@ -2,10 +2,13 @@
 namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Data;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
@@ -105,6 +108,19 @@ class Service extends Integration
     }
 
     /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentAgreementType $tblStudentAgreementType
+     * @return Service\Entity\TblStudentAgreement
+     */
+    public function insertStudentAgreement(
+        TblStudent $tblStudent,
+        TblStudentAgreementType $tblStudentAgreementType
+    ) {
+
+        return (new Data($this->getBinding()))->addStudentAgreement($tblStudent, $tblStudentAgreementType);
+    }
+
+    /**
      * @param        $Route
      * @param        $StationEntrance
      * @param        $StationExit
@@ -128,6 +144,41 @@ class Service extends Integration
     }
 
     /**
+     * @param TblPerson|null $IntegrationPerson
+     * @param TblCompany|null $IntegrationCompany
+     * @param $CoachingRequestDate
+     * @param $CoachingCounselDate
+     * @param $CoachingDecisionDate
+     * @param $CoachingRequired
+     * @param $CoachingTime
+     * @param string $CoachingRemark
+     * @return Service\Entity\TblStudentIntegration
+     */
+    public function insertStudentIntegration(
+        TblPerson $IntegrationPerson = null,
+        TblCompany $IntegrationCompany = null,
+        $CoachingRequestDate,
+        $CoachingCounselDate,
+        $CoachingDecisionDate,
+        $CoachingRequired,
+        $CoachingTime = '',
+        $CoachingRemark = ''
+    ) {
+
+        return (new Data($this->getBinding()))->createStudentIntegration(
+            $IntegrationPerson ? $IntegrationPerson : null,
+            $IntegrationCompany ? $IntegrationCompany : null,
+            $CoachingRequestDate,
+            $CoachingCounselDate,
+            $CoachingDecisionDate,
+            $CoachingRequired,
+            $CoachingTime,
+            $CoachingRemark
+        );
+    }
+
+
+        /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta

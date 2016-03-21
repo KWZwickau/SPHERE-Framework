@@ -2,11 +2,11 @@
 /**
  * Created by PhpStorm.
  * User: Kauschke
- * Date: 16.03.2016
- * Time: 10:00
+ * Date: 18.03.2016
+ * Time: 10:40
  */
 
-namespace SPHERE\Application\Transfer\Import\Coswig;
+namespace SPHERE\Application\Transfer\Import\Muldental;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IModuleInterface;
@@ -15,7 +15,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Main;
 
-class Coswig implements IModuleInterface
+class Muldental implements IModuleInterface
 {
 
     public static function registerModule()
@@ -54,8 +54,8 @@ class Coswig implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Coswig', 'Schüler-Daten',
-            new Standard('', '/Transfer/Import/Coswig/Student', new Upload(), array(), 'Upload')
+            'Muldental', 'SchÃ¼ler-Daten',
+            new Standard('', '/Transfer/Import/Muldental/Student', new Upload(), array(), 'Upload')
         );
     }
 }
