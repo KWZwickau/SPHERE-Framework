@@ -100,6 +100,30 @@ abstract class Style extends Extension
     }
 
     /**
+     * @param string $Size
+     *
+     * @return $this
+     */
+    public function stylePaddingBottom($Size = '2px')
+    {
+
+        $this->Style[] = 'padding-bottom: '.$Size.' !important;';
+        return $this;
+    }
+
+    /**
+     * @param string $Size
+     *
+     * @return $this
+     */
+    public function stylePaddingTop($Size = '2px')
+    {
+
+        $this->Style[] = 'padding-top: '.$Size.' !important;';
+        return $this;
+    }
+
+    /**
      * @return $this
      */
     public function styleAlignLeft()
