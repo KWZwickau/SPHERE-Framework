@@ -22,6 +22,7 @@ div.Document {
 
 div.Page {
 
+    font-size: 14px !important;
     position: relative !important;
     page-break-after: always !important;
     page-break-inside: avoid !important;
