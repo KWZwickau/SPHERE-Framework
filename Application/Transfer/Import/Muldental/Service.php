@@ -819,4 +819,189 @@ class Service
 
         return new Danger('File nicht gefunden');
     }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createClubMembersFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'ID' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Straße' => null,
+                    'PLZ' => null,
+                    'Ort' => null,
+                    'Eintritt' => null
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countClubMember = 0;
+                    $countClubMemberExists = 0;
+                    $error = array();
+
+                    $tblGroupClubMember = Group::useService()->insertGroup('Schulverein');
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        // InterestedPerson
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        if ($firstName !== '') {
+                            $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                            $cityCode = str_pad(
+                                trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
+                                5,
+                                "0",
+                                STR_PAD_LEFT
+                            );
+                            $tblPersonExits = Person::useService()->existsPerson(
+                                $firstName,
+                                $lastName,
+                                $cityCode
+                            );
+
+                            $entryDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP(
+                                trim($Document->getValue($Document->getCell($Location['Eintritt'],
+                                    $RunY)))));
+                            $clubNumber = trim($Document->getValue($Document->getCell($Location['ID'],
+                                $RunY)));
+                            $remark = ($entryDate !== '' ? 'Eintritt: ' . $entryDate : '') .
+                                ($clubNumber !== '' ? ' Mitgliedsnummer: ' . $clubNumber : '');
+
+                            if ($tblPersonExits) {
+
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
+
+                                Group::useService()->addGroupPerson($tblGroupClubMember, $tblPersonExits);
+                                $tblCommon = Common::useService()->getCommonByPerson($tblPersonExits);
+                                if ($tblCommon) {
+                                    Common::useService()->updateCommon($tblCommon, $remark);
+                                }
+                                $countClubMemberExists++;
+
+                            } else {
+
+                                $tblPerson = Person::useService()->insertPerson(
+                                    null,
+                                    '',
+                                    $firstName,
+                                    '',
+                                    $lastName,
+                                    array(
+                                        0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                        1 => $tblGroupClubMember
+                                    )
+                                );
+
+                                if ($tblPerson !== false) {
+                                    $countClubMember++;
+
+                                    Common::useService()->insertMeta(
+                                        $tblPerson,
+                                        '',
+                                        '',
+                                        TblCommonBirthDates::VALUE_GENDER_NULL,
+                                        '',
+                                        '',
+                                        TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                        '',
+                                        $remark
+                                    );
+
+                                    // Address
+                                    $cityName = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                        $RunY)));
+                                    $cityDistrict = '';
+                                    $pos = strpos($cityName, " OT ");
+                                    if ($pos !== false) {
+                                        $cityDistrict = trim(substr($cityName, $pos + 4));
+                                        $cityName = trim(substr($cityName, 0, $pos));
+                                    }
+                                    $StreetName = '';
+                                    $StreetNumber = '';
+                                    $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $RunY)));
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+                                        }
+                                    }
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''
+                                    );
+                                }
+                            }
+                        }
+                    }
+
+                    Debugger::screenDump($error);
+
+                    return
+                        new Success('Es wurden ' . $countClubMember . ' Schulverein-Mitglieder erfolgreich angelegt.') .
+                        ($countClubMemberExists > 0 ?
+                            new Warning($countClubMemberExists . ' Schulverein-Mitglieder exisistieren bereits.') : '');
+
+                } else {
+                    Debugger::screenDump($Location);
+
+                    return new Warning(json_encode($Location)) . new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
 }

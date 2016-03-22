@@ -24,8 +24,12 @@ class Muldental implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Student', __NAMESPACE__ . '\Frontend::frontendStudentImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/ClubMember', __NAMESPACE__.'\Frontend::frontendClubMemberImport'
+        ));
 
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetClubMember'), 2, 2);
     }
 
     /**
@@ -56,6 +60,19 @@ class Muldental implements IModuleInterface
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
             'Muldental', 'Schüler-Daten',
             new Standard('', '/Transfer/Import/Muldental/Student', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetClubMember()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
+            'Hormersdorf', 'Mitglieder-Daten',
+            new Standard('', '/Transfer/Import/Muldental/ClubMember', new Upload(), array(), 'Upload')
         );
     }
 }
