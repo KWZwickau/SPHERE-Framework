@@ -48,6 +48,18 @@ abstract class Style extends Extension
     }
 
     /**
+     * @param string $Weight
+     *
+     * @return $this
+     */
+    public function styleTextBold($Weight = 'bold')
+    {
+
+        $this->Style[] = 'font-weight: '.$Weight.' !important;';
+        return $this;
+    }
+
+    /**
      * @param string $Size
      *
      * @return $this
@@ -78,7 +90,7 @@ abstract class Style extends Extension
      *
      * @return $this
      */
-    public function styleBorderTop($Size = '1px', $Color = '#CCC', $Style = 'solid')
+    public function styleBorderTop($Size = '1px', $Color = '#000', $Style = 'solid')
     {
 
         $this->Style[] = 'border-top: '.$Size.' '.$Style.' '.$Color.' !important;';
@@ -92,7 +104,7 @@ abstract class Style extends Extension
      *
      * @return $this
      */
-    public function styleBorderBottom($Size = '1px', $Color = '#CCC', $Style = 'solid')
+    public function styleBorderBottom($Size = '1px', $Color = '#000', $Style = 'solid')
     {
 
         $this->Style[] = 'border-bottom: '.$Size.' '.$Style.' '.$Color.' !important;';

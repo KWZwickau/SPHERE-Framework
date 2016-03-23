@@ -1,276 +1,23 @@
 <?php
 namespace SPHERE\Application\Education\Graduation\Certificate;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
-use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
-use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Document;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Element;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Frame;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Page;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
-use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Search\Group\Group;
-use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
-use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
-class Frontend extends Extension implements IFrontendInterface
+class MSHJ extends Extension implements IFrontendInterface
 {
-
-    public function frontendStudent()
-    {
-
-        $Stage = new Stage('Schüler', 'wählen');
-
-        $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-
-        $StudentTable = array();
-        if ($tblGroup) {
-            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
-            if ($tblPersonAll) {
-                array_walk($tblPersonAll, function (TblPerson $tblPerson) use (&$StudentTable) {
-
-                    $tblDivisionStudent = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-                    if ($tblDivisionStudent) {
-                        array_walk($tblDivisionStudent,
-                            function (TblDivisionStudent $tblDivisionStudent) use (&$StudentTable, $tblPerson) {
-
-                                $tblDivision = $tblDivisionStudent->getTblDivision();
-
-                                $StudentTable[] = array(
-                                    'Division' => $tblDivision->getDisplayName(),
-                                    'Student'  => $tblPerson->getLastFirstName(),
-                                    'Option'   => new Standard(
-                                        'Weiter', '/Education/Graduation/Certificate/Template', new ChevronRight(),
-                                        array(
-                                            'Id' => $tblDivisionStudent->getId()
-                                        ), 'Auswählen')
-                                );
-                            }
-                        );
-                    }
-                });
-            } else {
-                // TODO: Error
-            }
-
-            $Stage->setContent(
-                new TableData($StudentTable)
-            );
-
-        } else {
-            // TODO: Error
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param null|int $Id TblDivisionStudent
-     *
-     * @return Stage
-     */
-    public function frontendTemplate($Id = null)
-    {
-
-        $Stage = new Stage('Vorlage', 'wählen');
-
-        if ($Id) {
-            $tblDivisionStudent = Division::useService()->getDivisionStudentById($Id);
-            if ($tblDivisionStudent) {
-                $tblPerson = $tblDivisionStudent->getServiceTblPerson();
-                if ($tblPerson) {
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType(
-                            $tblStudent, $tblStudentTransferType
-                        );
-                        if ($tblStudentTransfer) {
-                            // TODO: Find Templates in Database (DMS)
-
-                            $TemplateTable[] = array(
-                                'Template' => 'Hauptschulzeugnis',
-                                'Option'   => new Standard(
-                                    'Weiter', '/Education/Graduation/Certificate/Data', new ChevronRight(), array(
-                                    'Id'       => $tblDivisionStudent->getId(),
-                                    'Template' => 1
-                                ), 'Auswählen')
-                            );
-
-                            $Stage->setContent(
-                                new Layout(array(
-                                    new LayoutGroup(new LayoutRow(
-                                        new LayoutColumn(array(
-                                            new Panel('Aktuelle Schule: ', array(
-                                                ( $tblStudentTransfer->getServiceTblCompany() ? $tblStudentTransfer->getServiceTblCompany()->getName() : 'Schule' )
-                                            )),
-                                            new Panel('Aktuelle Schulart: ', array(
-                                                ( $tblStudentTransfer->getServiceTblType() ? $tblStudentTransfer->getServiceTblType()->getName() : 'Schulart' )
-                                            )),
-                                            new Panel('Aktueller Bildungsgang: ', array(
-                                                ( $tblStudentTransfer->getServiceTblCourse() ? $tblStudentTransfer->getServiceTblCourse()->getName() : 'Abschluss' )
-                                            )),
-                                        ))
-                                    ), new Title('Schüler-Informationen')),
-                                    new LayoutGroup(new LayoutRow(
-                                        new LayoutColumn(
-                                            new TableData($TemplateTable)
-                                        )
-                                    ), new Title('Verfügbare Vorlagen')),
-                                ))
-                            );
-
-                        } else {
-                            $Stage->setContent(
-                                new Warning('Vorlage kann nicht gewählt werden, da dem Schüler in der Schülerakte keine aktuelle Schulart zugewiesen wurde.')
-                            );
-                        }
-                    } else {
-                        $Stage->setContent(
-                            new Warning('Vorlage kann nicht gewählt werden, da dem Schüler keine Schülerakte zugewiesen wurde.')
-                            .new Standard('Zum Schüler', '/People/Person', new Person(),
-                                array('Id' => $tblPerson->getId()))
-                        );
-                    }
-                } else {
-                    // TODO: Error
-                }
-            } else {
-                $Stage->setContent(
-                    new Warning('Vorlage kann nicht gewählt werden, da dem Schüler keine Klasse zugewiesen wurde.')
-                );
-            }
-        } else {
-            // TODO: Error
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param null|int $Id TblDivisionStudent
-     * @param          $Template
-     *
-     * @return Stage
-     */
-    public function frontendData($Id, $Template)
-    {
-
-        $Stage = new Stage('Daten', 'eingeben');
-
-        if ($Id) {
-            $tblDivisionStudent = Division::useService()->getDivisionStudentById($Id);
-            if ($tblDivisionStudent) {
-                $tblPerson = $tblDivisionStudent->getServiceTblPerson();
-                if ($tblPerson) {
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-
-                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType(
-                            $tblStudent, $tblStudentTransferType
-                        );
-                        if ($tblStudentTransfer) {
-
-                            $tblPerson = $tblStudent->getServiceTblPerson();
-                            $tblDivision = $tblDivisionStudent->getTblDivision();
-                            $tblYear = $tblDivision->getServiceTblYear();
-
-                            $Global = $this->getGlobal();
-                            $Global->POST['Data']['School']['Name'] = ( $tblStudentTransfer->getServiceTblCompany() ? $tblStudentTransfer->getServiceTblCompany()->getName() : 'Schule' );
-                            $Global->POST['Data']['School']['Type'] = ( $tblStudentTransfer->getServiceTblType() ? $tblStudentTransfer->getServiceTblType()->getName() : 'Schulart' );
-                            $Global->POST['Data']['School']['Course'] = ( $tblStudentTransfer->getServiceTblCourse() ? $tblStudentTransfer->getServiceTblCourse()->getName() : 'Abschluss' );
-                            $Global->POST['Data']['School']['Year'] = $tblYear->getName();
-                            $Global->POST['Data']['Name'] = $tblPerson->getLastFirstName();
-                            $Global->POST['Data']['Division'] = $tblDivision->getDisplayName();
-                            $Global->savePost();
-
-                            $Stage->setContent(
-                                new Layout(array(
-                                    new LayoutGroup(new LayoutRow(
-                                        new LayoutColumn(array(
-                                            new Panel('Aktuelle Schule: ', array(
-                                                ( $tblStudentTransfer->getServiceTblCompany() ? $tblStudentTransfer->getServiceTblCompany()->getName() : 'Schule' )
-                                            )),
-                                            new Panel('Aktuelle Schulart: ', array(
-                                                ( $tblStudentTransfer->getServiceTblType() ? $tblStudentTransfer->getServiceTblType()->getName() : 'Schulart' )
-                                            )),
-                                            new Panel('Aktueller Bildungsgang: ', array(
-                                                ( $tblStudentTransfer->getServiceTblCourse() ? $tblStudentTransfer->getServiceTblCourse()->getName() : 'Abschluss' )
-                                            )),
-                                        ))
-                                    ), new Title('Schüler-Informationen')),
-                                    new LayoutGroup(new LayoutRow(
-                                        new LayoutColumn(
-                                            new Form(
-                                                new FormGroup(
-                                                    new FormRow(array(
-                                                        new FormColumn(
-                                                            new Panel('Schuldaten', array(
-                                                                (new TextField('Data[School][Name]', 'Schule',
-                                                                    'Schule')),
-                                                                (new TextField('Data[School][Type]', 'Schulart',
-                                                                    'Schulart')),
-                                                                (new TextField('Data[School][Course]', 'Bildungsgang',
-                                                                    'Bildungsgang')),
-                                                                (new TextField('Data[School][Year]', 'Schuljahr',
-                                                                    'Schuljahr')),
-                                                            )), 4),
-                                                        new FormColumn(
-                                                            new Panel('Schüler', array(
-                                                                (new TextField('Data[Name]', 'Name', 'Name')),
-                                                                (new TextField('Data[Division]', 'Klasse', 'Klasse')),
-                                                            )), 4),
-                                                    ))
-                                                )
-                                                , new Primary('Vorschau erstellen'),
-                                                '/Education/Graduation/Certificate/Create',
-                                                array('Template' => $Template))
-                                        )
-                                    ), new Title('Verfügbare Daten-Felder')),
-                                ))
-                            );
-                        } else {
-                            // TODO: Error
-                        }
-                    } else {
-                        // TODO: Error
-                    }
-                } else {
-                    // TODO: Error
-                }
-            } else {
-                // TODO: Error
-            }
-        } else {
-            // TODO: Error
-        }
-        return $Stage;
-    }
 
     public function frontendCreate($Data, $Content = null)
     {
@@ -283,7 +30,7 @@ class Frontend extends Extension implements IFrontendInterface
                 (new Section())
                     ->addColumn(
                         (new Element())
-                            ->setContent('MS Jahreszeugnis 3c.pdf')
+                            ->setContent('MS Halbjahreszeugnis 3e.pdf')
                             ->styleTextSize('12px')
                             ->styleTextColor('#CCC')
                             ->styleAlignCenter()
@@ -324,7 +71,7 @@ class Frontend extends Extension implements IFrontendInterface
                             (new Slice())
                                 ->addElement(
                                     (new Element())
-                                        ->setContent('Jahreszeugnis der Mittelschule')
+                                        ->setContent('Halbjahreszeugnis der Mittelschule')
                                         ->styleTextSize('18px')
                                         ->styleTextBold()
                                         ->styleAlignCenter()
@@ -353,7 +100,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         )
                                         ->addColumn(
                                             (new Element())
-                                                ->setContent('Schulhalbjahr:')
+                                                ->setContent('1. Schulhalbjahr:')
                                                 ->styleAlignRight()
                                             , '18%'
                                         )
@@ -373,12 +120,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         ->addColumn(
                                             (new Element())
                                                 ->setContent('Vorname und Name:')
-                                            , '21%')
+                                            , '25%')
                                         ->addColumn(
                                             (new Element())
                                                 ->setContent('{{ Data.Name }}')
                                                 ->styleBorderBottom()
-                                            , '79%')
+                                            , '75%')
                                 )->styleMarginTop('5px')
                         )
                         ->addSlice(
@@ -386,7 +133,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ->addElement(
                                     (new Element())
                                         ->setContent('nahm am Unterricht mit dem Ziel des
-                                Hauptschulabschlusses/Realschulabschlusses¹ teil.²')
+                                Hauptschulabschlusses/Realschulabschlusses¹ teil.')
                                         ->styleTextSize('11px')
                                         ->styleMarginTop('7px')
                                 )->styleMarginTop('5px')
@@ -466,46 +213,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             , '9%')
                                 )
                                 ->styleMarginTop('7px')
-                        )
-                        ->addSlice(
-                            (new Slice())
-                                ->addSection(
-                                    (new Section())
-                                        ->addColumn(
-                                            (new Element())
-                                                ->setContent('Einschätzung:')
-                                            , '16%')
-                                        ->addColumn(
-                                            (new Element())
-                                                ->setContent('&nbsp;')
-                                                ->styleBorderBottom('1px', '#BBB')
-                                            , '84%')
-                                )
-                                ->styleMarginTop('10px')
-                        )
-                        ->addSlice(
-                            (new Slice())
-                                ->addSection(
-                                    (new Section())
-                                        ->addColumn(
-                                            (new Element())
-                                                ->setContent('&nbsp;')
-                                                ->styleBorderBottom('1px', '#BBB')
-                                        )
-                                )
-                                ->styleMarginTop('10px')
-                        )
-                        ->addSlice(
-                            (new Slice())
-                                ->addSection(
-                                    (new Section())
-                                        ->addColumn(
-                                            (new Element())
-                                                ->setContent('&nbsp;')
-                                                ->styleBorderBottom('1px', '#BBB')
-                                        )
-                                )
-                                ->styleMarginTop('10px')
                         )
                         ->addSlice(
                             (new Slice())
@@ -890,7 +597,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     (new Section())
                                         ->addColumn(
                                             (new Element())
-                                                ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)¹')
+                                                ->setContent('Neigungskurs (Neigungskursbereich)/Vertiefungskurs/2. Fremdsprache (abschlussorientiert)¹')
                                                 ->styleTextSize('11px')
                                         )
                                 )
@@ -962,18 +669,32 @@ class Frontend extends Extension implements IFrontendInterface
                                     (new Section())
                                         ->addColumn(
                                             (new Element())
-                                                ->setContent('Versetzungsvermerk:')
-                                            , '22%'
+                                                ->setContent('&nbsp;')
+                                                ->styleBorderBottom('1px', '#BBB')
                                         )
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
                                         ->addColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleBorderBottom('1px', '#BBB')
-                                            , '58%'
                                         )
+                                )
+                                ->styleMarginTop('10px')
+                        )
+                        ->addSlice(
+                            (new Slice())
+                                ->addSection(
+                                    (new Section())
                                         ->addColumn(
                                             (new Element())
-                                            , '20%'
+                                                ->setContent('&nbsp;')
+                                                ->styleBorderBottom('1px', '#BBB')
                                         )
                                 )
                                 ->styleMarginTop('10px')
@@ -1108,7 +829,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             (new Element())
                                             , '70%'
                                         )
-                                )->styleMarginTop('11px')
+                                )->styleMarginTop('45px')
                                 ->addSection(
                                     (new Section())
                                         ->addColumn(
@@ -1116,8 +837,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ->setContent('Notenerläuterung:<br/>
                                                     1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                                     6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)<br/>
-                                                    ¹ &nbsp;&nbsp;&nbsp; Zutreffendes ist zu unterstreichen.<br/>
-                                                    ² &nbsp;&nbsp;&nbsp; Gild nicht für Klassenstufen 5 und 6')
+                                                    ¹ &nbsp;&nbsp;&nbsp; Zutreffendes ist zu unterstreichen.')
                                                 ->styleTextSize('9.5px')
                                             , '30%')
                                 )
@@ -1129,25 +849,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Preview = $Content->getContent();
 
-//        $FileLocation = Storage::useWriter()->getTemporary('pdf', 'Zeugnistest-'.date('Ymd-His'), true);
-//        /** @var DomPdf $Document */
-//        $Document = \MOC\V\Component\Document\Document::getPdfDocument($FileLocation->getFileLocation());
-//        $Document->setContent($Content->getTemplate());
-//        $Document->saveFile(new FileParameter($FileLocation->getFileLocation()));
-
         $Stage = new Stage();
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(array(
-//                $FileLocation->getFileLocation(),
                 '<div class="cleanslate">'.$Preview.'</div>'
             ), 12),
-//            new LayoutColumn(array(
-//                '<pre><code class="small">'.( str_replace("\n", " ~~~ ",
-//                    file_get_contents($FileLocation->getFileLocation())) ).'</code></pre>'
-//                FileSystem::getDownload($FileLocation->getRealPath(),
-//                    "Zeugnis ".date("Y-m-d H:i:s").".pdf")->__toString()
-//            ), 6),
         )))));
 
         return $Stage;

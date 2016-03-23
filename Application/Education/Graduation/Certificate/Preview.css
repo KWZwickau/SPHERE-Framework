@@ -1,7 +1,7 @@
 /* Test */
 @media screen {
     div.Document {
-        max-width: 21cm !important;
+        max-width: 18cm !important;
 
         background-color: rgba(100, 100, 150, 0.02) !important;
         margin: 5px !important;
@@ -12,7 +12,7 @@
 /* Test */
 @media screen {
     div.Page {
-        min-height: 29.7cm !important;
+        min-height: 26cm !important;
 
         background-color: rgba(100, 150, 100, 0.02) !important;
         margin: 5px !important;
@@ -24,7 +24,7 @@
 @media screen {
     div.Slice {
         background-color: rgba(150, 100, 100, 0.02) !important;
-        margin: 5px !important;
+        /*margin: 5px !important;*/
         border: 1px dotted silver !important;
     }
 }
