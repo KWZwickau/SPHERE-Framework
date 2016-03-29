@@ -10,6 +10,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\ITemplateInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -43,6 +44,8 @@ class Error extends Extension implements ITemplateInterface
                     $this->Template->setVariable('ErrorMessage', '');
             }
         } else {
+            $Message = new Paragraph('Error-Log: '.$this->getRequest()->getUrl()).$Message;
+
             $this->Template->setVariable('ErrorMessage', $Message);
             $this->Template->setVariable('ErrorMenu', array(
                     new Form(

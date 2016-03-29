@@ -1,0 +1,47 @@
+/* Test */
+@media screen {
+    div.Document {
+        max-width: 21cm !important;
+
+        background-color: rgba(100, 100, 150, 0.02) !important;
+        margin: 5px !important;
+        border: 1px dotted silver !important;
+    }
+}
+
+/* Test */
+@media screen {
+    div.Page {
+        min-height: 29cm !important;
+
+        background-color: rgba(100, 150, 100, 0.02) !important;
+        margin: 5px !important;
+        border: 1px dotted silver !important;
+    }
+}
+
+/* Test */
+@media screen {
+    div.Slice {
+        /*background-color: rgba(150, 100, 100, 0.02) !important;*/
+        /*margin: 5px !important;*/
+        /*border: 1px dotted silver !important;*/
+    }
+}
+
+/* Test */
+@media screen {
+    table.Section td {
+        /*border-left: 1px dotted silver !important;*/
+    }
+
+    table.Section td:first-child {
+        /*border-left: 0 !important;*/
+    }
+}
+
+@media screen {
+    div.Element {
+        /*background-color: rgba(150, 150, 150, 0.05) !important;*/
+    }
+}

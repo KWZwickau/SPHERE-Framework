@@ -16,6 +16,11 @@ class Data extends AbstractData
 
     public function setupDatabaseContent()
     {
+
+        $this->createToken('ccccccdilkui');
+        $this->createToken('ccccccectjge');
+        $this->createToken('ccccccectjgt');
+        $this->createToken('ccccccectjgr');
     }
 
     /**

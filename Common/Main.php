@@ -11,6 +11,8 @@ use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Document\Document;
+use SPHERE\Application\Document\LegalNotice;
+use SPHERE\Application\Document\License;
 use SPHERE\Application\Education\Education;
 use SPHERE\Application\Manual\Manual;
 use SPHERE\Application\People\People;
@@ -342,5 +344,7 @@ class Main extends Extension
         Manual::registerCluster();
         Reporting::registerCluster();
         Document::registerCluster();
+        License::registerCluster();
+        LegalNotice::registerCluster();
     }
 }

@@ -594,6 +594,17 @@ class Service extends AbstractService
     /**
      * @param TblCompany $tblCompany
      *
+     * @return bool|TblAddress
+     */
+    public function getAddressByCompany(TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->getAddressByCompany($tblCompany);
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
      * @return bool|TblToCompany[]
      */
     public function getAddressAllByCompany(TblCompany $tblCompany)

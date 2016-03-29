@@ -378,6 +378,30 @@ class Data extends AbstractData
     /**
      * @param TblCompany $tblCompany
      *
+     * @return bool|TblAddress
+     */
+    public function getAddressByCompany(TblCompany $tblCompany)
+    {
+
+        // TODO: Persistent Types
+        $Type = $this->getTypeById(1);
+        /** @var TblToPerson $Entity */
+        if (( $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
+            array(
+                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId(),
+                TblToCompany::ATT_TBL_TYPE        => $Type->getId()
+            ))
+        )
+        ) {
+            return $Entity->getTblAddress();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
      * @return bool|TblToCompany[]
      */
     public function getAddressAllByCompany(TblCompany $tblCompany)

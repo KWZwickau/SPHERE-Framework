@@ -233,14 +233,14 @@ class Display extends Extension implements ITemplateInterface
 
         $TraceList = '';
         foreach ((array)$Exception->getTrace() as $Trace) {
-            $TraceList .= nl2br('<br/><samp class="text-info">'
-                .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? '<br/>Method: '.$Trace['type'].$Trace['function'] : '<br/>Method: ' )
+            $TraceList .= nl2br('<samp class="text-info small">'
+                .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? 'Method: '.$Trace['type'].$Trace['function'] : 'Method: ' )
                 .( isset( $Trace['class'] ) ? '<br/>Class: '.$Trace['class'] : '<br/>Class: ' )
                 .( isset( $Trace['file'] ) ? '<br/>File: '.$Trace['file'] : '<br/>File: ' )
                 .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
-                .'</samp>');
+                .'</samp><br/>');
         }
-        $Hit = '<samp class="text-danger"><div class="h6">'.nl2br($Exception->getMessage()).'</div>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
+        $Hit = '<hr/><samp class="text-danger"><div class="h6">'.get_class($Exception).'<br/><br/>'.nl2br($Exception->getMessage()).'</div>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp><hr/><div class="small">'.$TraceList.'</div>';
         $this->addContent(new Error(
             $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
         ));
