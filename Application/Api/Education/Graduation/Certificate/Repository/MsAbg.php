@@ -680,7 +680,7 @@ class MsAbg extends Certificate
                                             , '16%')
                                         ->addElementColumn(
                                             (new Element())
-                                                ->setContent('{{ Content.Input.Remark }}')
+                                                ->setContent('{{ Content.Input.Remark|nl2br }}')
                                                 ->styleBorderBottom('1px', '#BBB')
                                         )
                                 )
