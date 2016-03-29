@@ -1,173 +1,430 @@
 <?php
 namespace SPHERE\Application\Education\Graduation\Certificate;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
-use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
-use SPHERE\Application\Document\Explorer\Storage\Storage;
-use SPHERE\Application\Education\Graduation\Certificate\Repository\Document;
+use SPHERE\Application\Api\Education\Graduation\Certificate\Certificate;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Element;
-use SPHERE\Application\Education\Graduation\Certificate\Repository\Frame;
-use SPHERE\Application\Education\Graduation\Certificate\Repository\Page;
-use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
-use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Blackboard;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
-use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 class Frontend extends Extension implements IFrontendInterface
 {
 
-    public function frontendStudent()
+    public function frontendSelectDivision($SinceYears = 1)
+    {
+
+        $Stage = new Stage('Klasse', 'wählen');
+        $Stage->addButton(new Backward());
+
+        $tblYearAll = Term::useService()->getYearAllSinceYears($SinceYears);
+
+        $DivisionList = array();
+        if ($tblYearAll) {
+            array_walk($tblYearAll, function (TblYear $tblYear) use (&$DivisionList) {
+
+                $tblPeriodAll = $tblYear->getTblPeriodAll();
+                $PeriodList = array();
+                array_walk($tblPeriodAll, function (TblPeriod $tblPeriod) use (&$PeriodList) {
+
+                    $PeriodList[] = $tblPeriod->getDisplayName();
+                });
+                $tblDivisionAll = Division::useService()->getDivisionByYear($tblYear);
+                if ($tblDivisionAll) {
+                    array_walk($tblDivisionAll,
+                        function (TblDivision $tblDivision) use (&$DivisionList, $tblYear, $PeriodList) {
+
+                            $Division = array(
+                                'Year'     => $tblYear->getName(),
+                                'Period'   => (new Listing($PeriodList))->__toString(),
+                                'Division' => $tblDivision->getDisplayName(),
+                                'Option'   => new Standard(
+                                    'Weiter', '/Education/Graduation/Certificate/Select/Student', new ChevronRight(),
+                                    array(
+                                        'Division' => $tblDivision->getId()
+                                    ), $tblDivision->getDisplayName().' auswählen')
+                            );
+                            array_push($DivisionList, $Division);
+                        });
+                }
+            });
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(new LayoutColumn(
+                        new TableData($DivisionList, null, array(
+                            'Year'     => 'Schuljahr',
+                            'Period'   => 'Zeitraum',
+                            'Division' => 'Klasse',
+                            'Option'   => ' '
+                        ), array('pageLength' => -1))
+                    ))
+                    , new Title('Verfügbare Klassen')),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    public function frontendSelectStudent($Division = null)
     {
 
         $Stage = new Stage('Schüler', 'wählen');
+        $Stage->addButton(new Backward());
+        $Header = '';
 
-        $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+        if ($Division) {
+            $tblDivision = Division::useService()->getDivisionById($Division);
 
-        $StudentTable = array();
-        if ($tblGroup) {
-            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
-            if ($tblPersonAll) {
-                array_walk($tblPersonAll, function (TblPerson $tblPerson) use (&$StudentTable) {
+            if ($tblDivision) {
+                $Header = new Panel(new Blackboard().' '.$tblDivision->getDisplayName(), array(
+                    $tblDivision->getServiceTblYear()->getName()
+                ), Panel::PANEL_TYPE_INFO);
 
-                    $tblDivisionStudent = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-                    if ($tblDivisionStudent) {
-                        array_walk($tblDivisionStudent,
-                            function (TblDivisionStudent $tblDivisionStudent) use (&$StudentTable, $tblPerson) {
+                $tblPersonAll = Division::useService()->getStudentAllByDivision($tblDivision);
+                $PersonList = array();
+                if ($tblPersonAll) {
+                    array_walk($tblPersonAll, function (TblPerson $tblPerson) use (&$PersonList, $tblDivision) {
 
-                                $tblDivision = $tblDivisionStudent->getTblDivision();
-
-                                $StudentTable[] = array(
-                                    'Division' => $tblDivision->getDisplayName(),
-                                    'Student'  => $tblPerson->getLastFirstName(),
-                                    'Option'   => new Standard(
-                                        'Weiter', '/Education/Graduation/Certificate/Template', new ChevronRight(),
-                                        array(
-                                            'Id' => $tblDivisionStudent->getId()
-                                        ), 'Auswählen')
-                                );
-                            }
+                        $PersonList[] = array(
+                            'Student' => $tblPerson->getLastFirstName(),
+                            'Option'  => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Certificate',
+                                new ChevronRight(),
+                                array(
+                                    'Division' => $tblDivision->getId(),
+                                    'Person'   => $tblPerson->getId()
+                                ), $tblPerson->getLastFirstName().' auswählen')
                         );
-                    }
-                });
+                    });
+
+                    $Content = new TableData($PersonList, null, array(
+                        'Student' => 'Schüler',
+                        'Option'  => ' '
+                    ), array('pageLength' => -1));
+                } else {
+                    $Content = new Danger('Dieser Klasse wurden noch keine Schüler zugewiesen')
+                        .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                }
             } else {
-                // TODO: Error
+                $Content = new Danger('Gewählte Schulklasse ist nicht verfügbar')
+                    .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
             }
-
-            $Stage->setContent(
-                new TableData($StudentTable)
-            );
-
         } else {
-            // TODO: Error
+            $Content = new Danger('Keine Schulklasse gewählt')
+                .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
         }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(new LayoutColumn($Header))
+                    , new Title('Gewählte Klassenstufe')),
+                new LayoutGroup(
+                    new LayoutRow(new LayoutColumn($Content))
+                    , new Title('Verfügbare Schüler')),
+            ))
+        );
 
         return $Stage;
     }
 
     /**
-     * @param null|int $Id TblDivisionStudent
+     * @param null|int $Division
+     * @param null|int $Person
      *
      * @return Stage
      */
-    public function frontendTemplate($Id = null)
+    public function frontendSelectCertificate($Division = null, $Person = null)
     {
 
-        $Stage = new Stage('Vorlage', 'wählen');
+        $Stage = new Stage('Zeugnisvorlage', 'wählen');
+        $Stage->addButton(new Backward());
+        $Header = '';
 
-        if ($Id) {
-            $tblDivisionStudent = Division::useService()->getDivisionStudentById($Id);
-            if ($tblDivisionStudent) {
-                $tblPerson = $tblDivisionStudent->getServiceTblPerson();
+        if ($Division && $Person) {
+            $tblDivision = Division::useService()->getDivisionById($Division);
+            if ($tblDivision) {
+                $tblPerson = Person::useService()->getPersonById($Person);
                 if ($tblPerson) {
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType(
-                            $tblStudent, $tblStudentTransferType
-                        );
-                        if ($tblStudentTransfer) {
-                            // TODO: Find Templates in Database (DMS)
+                    $Header = array(
+                        new Panel(new Blackboard().' '.$tblDivision->getDisplayName(), array(
+                            $tblDivision->getServiceTblYear()->getName()
+                        ), Panel::PANEL_TYPE_INFO),
+                        new Panel(new Education().' '.$tblPerson->getFullName(), array(
+                            ( $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '' )
+                        ), Panel::PANEL_TYPE_INFO),
+                    );
 
-                            $TemplateTable[] = array(
-                                'Template' => 'Hauptschulzeugnis',
-                                'Option'   => new Standard(
-                                    'Weiter', '/Education/Graduation/Certificate/Data', new ChevronRight(), array(
-                                    'Id'       => $tblDivisionStudent->getId(),
-                                    'Template' => 1
-                                ), 'Auswählen')
-                            );
+                    // TODO: Find Templates in Database (DMS)
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abgangszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbg'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abschlusszeugnis Hauptschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbsHs'
+                        ), 'Auswählen')
+                    );
 
-                            $Stage->setContent(
-                                new Layout(array(
-                                    new LayoutGroup(new LayoutRow(
-                                        new LayoutColumn(array(
-                                            new Panel('Aktuelle Schule: ', array(
-                                                ( $tblStudentTransfer->getServiceTblCompany() ? $tblStudentTransfer->getServiceTblCompany()->getName() : 'Schule' )
-                                            )),
-                                            new Panel('Aktuelle Schulart: ', array(
-                                                ( $tblStudentTransfer->getServiceTblType() ? $tblStudentTransfer->getServiceTblType()->getName() : 'Schulart' )
-                                            )),
-                                            new Panel('Aktueller Bildungsgang: ', array(
-                                                ( $tblStudentTransfer->getServiceTblCourse() ? $tblStudentTransfer->getServiceTblCourse()->getName() : 'Abschluss' )
-                                            )),
-                                        ))
-                                    ), new Title('Schüler-Informationen')),
-                                    new LayoutGroup(new LayoutRow(
-                                        new LayoutColumn(
-                                            new TableData($TemplateTable)
-                                        )
-                                    ), new Title('Verfügbare Vorlagen')),
-                                ))
-                            );
+                    $Content = new TableData($TemplateTable);
 
-                        } else {
-                            $Stage->setContent(
-                                new Warning('Vorlage kann nicht gewählt werden, da dem Schüler in der Schülerakte keine aktuelle Schulart zugewiesen wurde.')
-                            );
-                        }
-                    } else {
-                        $Stage->setContent(
-                            new Warning('Vorlage kann nicht gewählt werden, da dem Schüler keine Schülerakte zugewiesen wurde.')
-                            .new Standard('Zum Schüler', '/People/Person', new Person(),
-                                array('Id' => $tblPerson->getId()))
-                        );
-                    }
                 } else {
                     // TODO: Error
+                    $Content = new Danger('Keine Schulklasse gewählt')
+                        .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
                 }
             } else {
-                $Stage->setContent(
-                    new Warning('Vorlage kann nicht gewählt werden, da dem Schüler keine Klasse zugewiesen wurde.')
-                );
+                // TODO: Error
+                $Content = new Danger('Keine Schulklasse gewählt')
+                    .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
             }
         } else {
             // TODO: Error
+            $Content = new Danger('Keine Schulklasse gewählt')
+                .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
         }
 
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(new LayoutColumn($Header[0]))
+                    , new Title('Gewählte Klassenstufe')),
+                new LayoutGroup(
+                    new LayoutRow(new LayoutColumn($Header[1]))
+                    , new Title('Gewählter Schüler')),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn($Content)
+                ), new Title('Verfügbare Vorlagen')),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    public function frontendSelectContent($Division = null, $Person = null, $Certificate = null, $Content = array())
+    {
+
+        $Stage = new Stage('Zeugnisdaten', 'überprüfen');
+        $Stage->addButton(new Backward(true));
+
+        $Form = '';
+        $Header = '';
+
+        if ($Division && $Person) {
+            $tblDivision = Division::useService()->getDivisionById($Division);
+            if ($tblDivision) {
+                $tblPerson = Person::useService()->getPersonById($Person);
+                if ($tblPerson) {
+                    $Header = implode(array(
+                        new Panel(new Education().' '.$tblPerson->getFullName(), array(
+                            ( $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '' )
+                        ), Panel::PANEL_TYPE_INFO),
+                        new Panel(new Blackboard().' '.$tblDivision->getDisplayName(), array(
+                            $tblDivision->getServiceTblYear()->getName()
+                        ), Panel::PANEL_TYPE_INFO),
+                    ));
+
+                    if (class_exists('\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Certificate)) {
+
+                        $Certificate = '\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Certificate;
+
+                        /** @var Certificate $Template */
+                        $Template = new $Certificate($tblPerson, $tblDivision);
+
+                        $FormField = array(
+                            'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
+
+                            'Content.Input.Remark' => 'TextArea',
+                            'Content.Input.Date'   => 'DatePicker',
+                        );
+                        $FormLabel = array(
+                            'Content.Person.Data.Name.Salutation'       => 'Anrede',
+                            'Content.Person.Data.Name.First'            => 'Vorname',
+                            'Content.Person.Data.Name.Last'             => 'Nachname',
+                            'Content.Person.Common.BirthDates.Birthday' => 'Geburtsdatum',
+
+                            'Content.Company.Data.Name' => 'Name der Schule',
+
+                            'Content.Division.Data.Level.Name' => 'Klassenstufe',
+                            'Content.Division.Data.Name'       => 'Klassengruppe',
+
+                            'Content.Input.Remark' => 'Bemerkungen',
+                            'Content.Input.Date'   => 'Datum',
+                        );
+
+                        $PlaceholderList = $Template->getCertificate()->getPlaceholder();
+
+                        $FormPanelList = array();
+                        if ($PlaceholderList) {
+                            array_walk($PlaceholderList,
+                                function ($Placeholder) use ($Template, $FormField, $FormLabel, &$FormPanelList) {
+
+                                    $PlaceholderList = explode('.', $Placeholder);
+                                    $Identifier = array_slice($PlaceholderList, 1);
+
+                                    $FieldName = $PlaceholderList[0].'['.implode('][', $Identifier).']';
+
+                                    $Type = array_shift($Identifier);
+                                    if (method_exists($Template, 'get'.$Type)) {
+                                        $Payload = $Template->{'get'.$Type}();
+
+                                        foreach ($Identifier as $Key) {
+                                            if (isset( $Payload[$Key] )) {
+                                                $Payload = $Payload[$Key];
+                                            } else {
+                                                $Payload = '';
+                                                break;
+                                            }
+                                        }
+                                        if (isset( $FormLabel[$Placeholder] )) {
+                                            $Label = $FormLabel[$Placeholder];
+                                        } else {
+                                            $Label = $Placeholder;
+                                        }
+                                        if (isset( $FormField[$Placeholder] )) {
+                                            $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\'.$FormField[$Placeholder];
+                                            $Placeholder = (new $Field($FieldName, $Label, $Label));
+                                        } else {
+                                            $Placeholder = (new TextField($FieldName, $Label, $Label));
+                                        }
+                                        /** @var Field $Placeholder */
+//                                        $Placeholder = $Placeholder->setDefaultValue($Payload,true);
+//                                        $FormPanelList[$Type][] = $Placeholder;
+                                    } else {
+                                        if (isset( $FormLabel[$Placeholder] )) {
+                                            $Label = $FormLabel[$Placeholder];
+                                        } else {
+                                            $Label = $Placeholder;
+                                        }
+                                        if (isset( $FormField[$Placeholder] )) {
+                                            $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\'.$FormField[$Placeholder];
+                                            $Placeholder = (new $Field($FieldName, $Label, $Label));
+                                        } else {
+                                            $Placeholder = (new TextField($FieldName, $Label, $Label));
+                                        }
+//                                        /** @var Field $Placeholder */
+//                                        $Placeholder = $Placeholder;
+
+                                        $FormPanelList['Additional'][] = $Placeholder;
+                                    }
+                                });
+                        }
+
+                        foreach ($FormPanelList as $Type => $Payload) {
+                            switch ($Type) {
+                                case 'Person':
+                                    $Title = 'Schülerinformationen';
+                                    break;
+                                case 'Company':
+                                    $Title = 'Schulinformationen';
+                                    break;
+                                case 'Division':
+                                    $Title = 'Klassen-Informationen';
+                                    break;
+                                case 'Grade':
+                                    $Title = 'Noten-Informationen';
+                                    break;
+                                case 'Additional':
+                                    $Title = 'Zusätzliche Informationen';
+                                    break;
+                                default:
+                                    $Title = 'Informationen';
+                            }
+                            $FormPanelList[] = new FormColumn(new Panel($Title, $Payload));
+                        }
+
+                        $Form = new Form(
+                            new FormGroup(
+                                new FormRow(
+                                    $FormPanelList
+                                )
+                            )
+                        );
+
+                        $Form->appendFormButton(
+                            new Primary('Vorschau aktualisieren')
+                        );
+
+                        $Content = $Template->createCertificate($Content)->getContent();
+                    } else {
+                        // TODO: Error
+                        $Content = new Danger('Keine Schulklasse gewählt')
+                            .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                    }
+                } else {
+                    // TODO: Error
+                    $Content = new Danger('Keine Schulklasse gewählt')
+                        .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                }
+            } else {
+                // TODO: Error
+                $Content = new Danger('Keine Schulklasse gewählt')
+                    .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+            }
+        } else {
+            // TODO: Error
+            $Content = new Danger('Keine Schulklasse gewählt')
+                .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Title('Daten für:'),
+                            $Header,
+                            $Form,
+                        ), 5),
+                        new LayoutColumn(array(
+                            new Title('Vorschau der Daten'),
+                            $Content,
+                        ), 7)
+                    ))
+                )
+            ))
+        );
         return $Stage;
     }
 
@@ -269,464 +526,6 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             // TODO: Error
         }
-        return $Stage;
-    }
-
-    public function frontendCreate($Data, $Content = null)
-    {
-
-        // TODO: Find Template in Database (DMS)
-        $this->getCache(new TwigHandler())->clearCache();
-
-        $Header = (new Slice())
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('HorJEins.pdf')
-                    ->styleTextSize('12px')
-                    ->styleTextColor('#CCC')
-                    ->styleAlignCenter()
-                    , '25%')
-                ->addElementColumn((new Element\Sample())
-                    ->styleTextSize('30px')
-                )
-                ->addElementColumn((new Element())
-                    , '25%')
-            );
-
-        $Content = (new Frame())->addDocument(
-            (new Document())
-                ->addPage((new Page())
-                    ->addSlice(
-                        $Header
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Hormersdorf_logo.png', '150px'))
-                                ->styleAlignCenter()
-                                , '25%')
-                            ->addSliceColumn((new Slice())
-                                ->addSection((new Section())
-                                    ->addElementColumn((new Element())
-                                        ->setContent('Name der Schule:')
-                                        ->styleTextSize('11px')
-                                        ->styleMarginTop('6px')
-                                        , '20%')
-                                    ->addElementColumn((new Element())
-                                        ->setContent('Freie Evangelische Grundschule Hormersdorf')
-                                        ->styleTextSize('17px')
-                                        ->styleTextBold()
-                                        ->styleBorderBottom('1px', '#BBB')
-                                        ->styleAlignCenter()
-                                        , '80%')
-                                )
-                                ->addSection((new Section())
-                                    ->addElementColumn((new Element())
-                                        , '27%')
-                                    ->addElementColumn((new Element())
-                                        ->setContent('(Staatlich anerkannte Ersatzschule)')
-                                        ->styleAlignCenter()
-                                        , '73%')
-                                )
-                                ->styleMarginTop('30px')
-                                , '75%')
-                        )
-                    )
-                    ->addSlice((new Slice())
-                        ->addElement((new Element())
-                            ->setContent('HALBJAHRESINFORMATION DER GRUNDSCHULE')
-                            ->styleTextSize('24px')
-                            ->styleTextBold()
-                            ->styleAlignCenter()
-                            ->styleMarginTop('20px')
-                        )
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Klasse')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '8%')
-                            ->addElementColumn((new Element())
-                                ->setContent('{{ Data.Division }}')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '47%')
-                            ->addElementColumn((new Element())
-                                ->setContent('1. Schulhalbjahr')
-                                ->styleBorderBottom('1px', '#BBB')
-                                ->styleAlignRight()
-                                , '30%')
-                            ->addElementColumn((new Element())
-                                ->setContent('{{ Data.School.Year }}')
-                                ->styleBorderBottom('1px', '#BBB')
-                                ->styleAlignCenter()
-                                , '15%')
-                        )->styleMarginTop('30px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Vor- und Zuname:')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '20%')
-                            ->addElementColumn((new Element())
-                                ->setContent('{{ Data.Name }}')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '80%')
-                        )->styleMarginTop('5px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Betragen')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                            ->addElementColumn((new Element())
-                                , '4%')
-                            ->addElementColumn((new Element())
-                                ->setContent('Mitarbeit')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                        )
-                        ->styleMarginTop('15px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Fleiß')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                            ->addElementColumn((new Element())
-                                , '4%')
-                            ->addElementColumn((new Element())
-                                ->setContent('Ordnung')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                        )
-                        ->styleMarginTop('7px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Notenstufen:
-                                1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft, 6 = ungenügend')
-                                ->styleTextSize('8px')
-                                ->styleMarginTop('15px')
-                                , '30%')
-                        )
-                    )
-                    ->addSlice((new Slice())
-                        ->addElement((new Element())
-                            ->setContent('Leistungen in den einzelnen Fächern')
-                            ->styleMarginTop('20px')
-                            ->styleTextBold()
-                            ->styleTextItalic()
-                        )
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Deutsch')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                            ->addElementColumn((new Element())
-                                , '4%')
-                            ->addElementColumn((new Element())
-                                ->setContent('Mathematik')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                        )
-                        ->styleMarginTop('20px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Sachunterricht')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                            ->addElementColumn((new Element())
-                                , '4%')
-                            ->addElementColumn((new Element())
-                                ->setContent('Werken')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                        )
-                        ->styleMarginTop('7px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Kunst')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                            ->addElementColumn((new Element())
-                                , '4%')
-                            ->addElementColumn((new Element())
-                                ->setContent('EV. Religion')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                        )
-                        ->styleMarginTop('7px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Musik')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                            ->addElementColumn((new Element())
-                                , '4%')
-                            ->addElementColumn((new Element())
-                                ->setContent('Sport')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                        )
-                        ->styleMarginTop('7px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Englisch')
-                                ->stylePaddingTop()
-                                , '33%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleAlignCenter()
-                                ->styleBackgroundColor('#CCC')
-                                ->stylePaddingTop()
-                                ->stylePaddingBottom()
-                                , '15%')
-                            ->addElementColumn((new Element())
-                                , '52%')
-                        )
-                        ->styleMarginTop('7px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Notenstufen:
-                                1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft, 6 = ungenügend')
-                                ->styleTextSize('8px')
-                                ->styleMarginTop('15px')
-                                , '30%')
-                        )
-                    )
-                    ->addSlice((new Slice())
-                        ->addElement((new Element())
-                            ->setContent('Bemerkungen:')
-                            ->styleTextBold()
-                            ->styleTextItalic()
-                            ->styleMarginTop('20px')
-                        )
-                    )
-                    ->addSlice((new Slice())
-                        ->addElement((new Element())
-                            ->setContent('Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx
-                                Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx Mustertext xxx ')
-                            ->styleMarginTop('5px')
-                        )
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Fehltage entschuldigt:')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '23%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '10%')
-                            ->addElementColumn((new Element())
-                                ->setContent('unentschuldigt:')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '17%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '50%')
-                        )->styleMarginTop('30px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                ->setContent('Datum:')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '10%')
-                            ->addElementColumn((new Element())
-                                ->setContent('23.03.2016')
-                                ->styleAlignCenter()
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '25%')
-                            ->addElementColumn((new Element())
-                                , '65%')
-                        )->styleMarginTop('30px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                , '35%')
-                            ->addElementColumn((new Element())
-                                ->setContent('Dienststempel der Schule')
-                                ->styleTextSize('9px')
-                                ->styleAlignCenter()
-                                , '30%')
-                            ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleBorderBottom('1px', '#BBB')
-                                , '35%')
-                        )
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element())
-                                , '35%')
-                            ->addElementColumn((new Element())
-                                , '30%')
-                            ->addElementColumn((new Element())
-                                ->setContent('Klassenlehrer/in')
-                                ->styleAlignCenter()
-                                ->styleTextSize('11px')
-                                , '35%')
-                        )
-                        ->styleMarginTop('30px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addElement((new Element())
-                            ->setContent('Zur Kenntnis genommen:')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                        ->styleMarginTop('30px')
-                    )
-                    ->addSlice((new Slice())
-                        ->addElement((new Element())
-                            ->setContent('Personensorgeberechtigte/r')
-                            ->styleTextSize('11px')
-                            ->styleAlignCenter()
-                        )
-                    )
-                )
-        );
-
-        $Content->setData($Data);
-
-        $Preview = $Content->getContent();
-
-//        $FileLocation = Storage::useWriter()->getTemporary('pdf', 'Zeugnistest-'.date('Ymd-His'), true);
-//        /** @var DomPdf $Document */
-//        $Document = \MOC\V\Component\Document\Document::getPdfDocument($FileLocation->getFileLocation());
-//        $Document->setContent($Content->getTemplate());
-//        $Document->saveFile(new FileParameter($FileLocation->getFileLocation()));
-
-        $Stage = new Stage();
-
-        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
-            new LayoutColumn(array(
-//                $FileLocation->getFileLocation(),
-                '<div class="cleanslate">'.$Preview.'</div>'
-            ), 12),
-//            new LayoutColumn(array(
-//                '<pre><code class="small">'.( str_replace("\n", " ~~~ ",
-//                    file_get_contents($FileLocation->getFileLocation())) ).'</code></pre>'
-//                FileSystem::getDownload($FileLocation->getRealPath(),
-//                    "Zeugnis ".date("Y-m-d H:i:s").".pdf")->__toString()
-//            ), 6),
-        )))));
-
         return $Stage;
     }
 }

@@ -44,8 +44,29 @@ class Frame
     public function setData($Data)
     {
 
-        $this->Data = $Data;
+        $this->Data = array_merge($this->Data, $Data);
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPlaceholder()
+    {
+
+        $Prepare = clone $this->Template;
+        $Prepare->setVariable('Documents', implode("\n", $this->Documents));
+        $Text = $Prepare->getContent();
+        preg_match_all('/\{\%\s*([^\%\}]*)\s*\%\}|\{\{\s*([^\}\}]*)\s*\}\}/i', $Text, $MatchList);
+        if (isset( $MatchList[2] )) {
+            $MatchList = array_values(array_filter($MatchList[2]));
+            array_walk($MatchList, function (&$Placeholder) {
+
+                $Placeholder = trim(preg_replace('!\|.*?$!', '', $Placeholder));
+            });
+            return array_unique($MatchList);
+        }
+        return array();
     }
 
     /**
@@ -57,7 +78,9 @@ class Frame
         $Prepare = clone $this->Template;
         $Prepare->setVariable('Documents', implode("\n", $this->Documents));
         $Payload = Template::getTwigTemplateString($Prepare->getContent());
+        // TODO: Remove 'Data'
         $Payload->setVariable('Data', $this->Data);
+        $Payload->setVariable('Content', $this->Data);
         return $Payload;
     }
 
@@ -80,7 +103,9 @@ class Frame
         $Prepare->setVariable('PreviewCss', file_get_contents(__DIR__.'/../Preview.css'));
         $Prepare->setVariable('Documents', implode("\n", $this->Documents));
         $Payload = Template::getTwigTemplateString($Prepare->getContent());
+        // TODO: Remove 'Data'
         $Payload->setVariable('Data', $this->Data);
+        $Payload->setVariable('Content', $this->Data);
         return $Payload->getContent();
     }
 }

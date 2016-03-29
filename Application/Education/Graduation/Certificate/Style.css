@@ -1,3 +1,33 @@
+/* Test */
+@media screen {
+    div.Document {
+        /*max-width: 21cm !important;*/
+
+        border: 1px dotted #CCC !important;
+        margin: 5px !important;
+    }
+}
+
+/* Test */
+@media screen {
+    div.Page {
+        min-height: 29cm !important;
+
+        background-color: rgba(100, 100, 150, 0.05) !important;
+        border: 1px dotted blue !important;
+        margin: 5px !important;
+    }
+}
+
+/* Test */
+@media screen {
+    div.Slice {
+        /*background-color: rgba(150, 100, 100, 0.02) !important;*/
+        margin: 5px !important;
+        /*border: 1px dotted silver !important;*/
+    }
+}
+
 /* FIX: BOOTSTRAP FLOAT DISABLE, FOR PAGE-BREAK TO WORK */
 
 @media print {
