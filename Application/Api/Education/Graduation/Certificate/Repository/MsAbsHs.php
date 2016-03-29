@@ -26,17 +26,17 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('MS HA Abschlusszeugnis 3i.pdf')
                                                 ->styleTextSize('12px')
                                                 ->styleTextColor('#CCC')
                                                 ->styleAlignCenter()
                                             , '25%'
-                                        )->addColumn(
+                                        )->addElementColumn(
                                             (new Element\Sample())
                                                 ->styleTextSize('30px')
-                                        )->addColumn(
+                                        )->addElementColumn(
                                             (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
                                                 '200px')), '25%'
                                         )
@@ -70,11 +70,11 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Vorname und Name:')
                                             , '22%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {{ Content.Person.Data.Name.Salutation }} 
@@ -89,23 +89,23 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('geboren am')
                                             , '22%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {{ Content.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
                                                 ')
                                                 ->styleBorderBottom()
                                             , '20%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('in')
                                                 ->styleAlignCenter()
                                             , '5%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {{ Content.Person.Common.BirthDates.Birthplace }}
@@ -118,11 +118,11 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('wohnhaft in')
                                             , '22%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {{ Content.Person.Address.Street.Name }} 
@@ -138,11 +138,11 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('hat')
                                             , '5%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     &nbsp;
@@ -179,7 +179,7 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {{ Content.Company.Address.City.Code }}
@@ -187,7 +187,7 @@ class MsAbsHs extends Certificate
                                                 ')
                                                 ->styleBorderBottom('1px', '#BBB')
                                         )
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('besucht')
                                                 ->styleAlignRight()
@@ -238,11 +238,11 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Vorname und Name:')
                                             , '25%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {{ Content.Person.Data.Name.Salutation }} 
@@ -251,12 +251,12 @@ class MsAbsHs extends Certificate
                                                 ')
                                                 ->styleBorderBottom()
                                             , '45%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Klasse')
                                                 ->styleAlignCenter()
                                             , '10%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {{ Content.Division.Data.Level.Name }}
@@ -279,12 +279,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Deutsch')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {% if(Content.Grade.Data.DE is not empty) %}
@@ -299,15 +299,15 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Mathematik')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {% if(Content.Grade.Data.MA is not empty) %}
@@ -329,12 +329,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Englisch')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('
                                                     {% if(Content.Grade.Data.EN is not empty) %}
@@ -349,15 +349,15 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Biologie')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -373,12 +373,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Kunst')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -387,15 +387,15 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Chemie')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -411,12 +411,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Musik')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -425,15 +425,15 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Physik')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -449,12 +449,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Geschichte')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -463,15 +463,15 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Sport')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -487,12 +487,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Gemeinschaftskunde/Rechtserziehung')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -501,15 +501,15 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('EV./Kath. Religion/Ethik¹')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -525,12 +525,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Geographie')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -539,15 +539,15 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Informatik')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -563,12 +563,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Wirtschaft-Technick-Haushalt/Soziales')
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -577,16 +577,16 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->styleMarginTop('16px')
                                                 ->styleBorderBottom()
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -602,13 +602,13 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->styleMarginTop('16px')
                                                 ->styleBorderBottom()
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -617,16 +617,16 @@ class MsAbsHs extends Certificate
                                                 ->stylePaddingTop()
                                                 ->stylePaddingBottom()
                                             , '9%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '4%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->styleMarginTop('16px')
                                                 ->styleBorderBottom()
                                                 ->stylePaddingTop()
                                             , '39%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -651,12 +651,12 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleBorderBottom()
                                         )
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -666,7 +666,7 @@ class MsAbsHs extends Certificate
                                 )
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Vertiefungskurs/2. Fremdsprache (abschlussorientiert)¹')
                                                 ->styleTextSize('11px')
@@ -678,11 +678,11 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Bemerkungen:')
                                             , '16%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('{{ Content.Input.Remark }}')
                                                 ->styleBorderBottom('1px', '#BBB')
@@ -694,7 +694,7 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleBorderBottom('1px', '#BBB')
@@ -706,7 +706,7 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleBorderBottom('1px', '#BBB')
@@ -718,7 +718,7 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleBorderBottom('1px', '#BBB')
@@ -730,7 +730,7 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleBorderBottom('1px', '#BBB')
@@ -742,7 +742,7 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleBorderBottom('1px', '#BBB')
@@ -754,26 +754,26 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Datum:')
                                             , '7%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('{{ Content.Input.Date }}')
                                                 ->styleBorderBottom('1px', '#000')
                                                 ->styleAlignCenter()
                                             , '23%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '5%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '30%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '5%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '30%')
                                 )
@@ -783,15 +783,15 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '30%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Der Prüfungsausschuss')
                                                 ->styleAlignCenter()
                                             , '40%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '30%')
                                 )
@@ -800,16 +800,16 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
                                                 ->styleBorderBottom('1px', '#000')
                                             , '30%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '40%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -822,25 +822,25 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Vorsitzende(r)')
                                                 ->styleAlignCenter()
                                                 ->styleTextSize('11px')
                                             , '30%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '5%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Dienstsiegel der Schule')
                                                 ->styleAlignCenter()
                                                 ->styleTextSize('11px')
                                             , '30%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '5%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Mitglied')
                                                 ->styleAlignCenter()
@@ -852,10 +852,10 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '70%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('&nbsp;')
                                                 ->styleAlignCenter()
@@ -867,10 +867,10 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '70%')
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Mitglied')
                                                 ->styleAlignCenter()
@@ -882,19 +882,19 @@ class MsAbsHs extends Certificate
                             (new Slice())
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->styleBorderBottom()
                                             , '30%'
                                         )
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                             , '70%'
                                         )
                                 )->styleMarginTop('239px')
                                 ->addSection(
                                     (new Section())
-                                        ->addColumn(
+                                        ->addElementColumn(
                                             (new Element())
                                                 ->setContent('Notenerläuterung:<br/>
                                                             1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
