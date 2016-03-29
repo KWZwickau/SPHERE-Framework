@@ -3,7 +3,6 @@ namespace SPHERE\System\Token\Type;
 
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Proxy\Proxy;
 use SPHERE\System\Proxy\Type\Http;
 use SPHERE\System\Token\ITypeInterface;
@@ -52,7 +51,7 @@ class YubiKey implements ITypeInterface
     final public function parseKey($Value)
     {
 
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Parse' );
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Parse');
 
         if (!preg_match("/^((.*)".$this->KeyDelimiter.")?".
             "(([cbdefghijklnrtuvCBDEFGHIJKLNRTUV]{0,16})".
@@ -75,7 +74,7 @@ class YubiKey implements ITypeInterface
     final public function verifyKey(KeyValue $Key)
     {
 
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Verify' );
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verify');
 
         $Parameter = $this->createParameter($Key);
         $Query = $this->createSignature($Parameter);
@@ -83,7 +82,7 @@ class YubiKey implements ITypeInterface
         $QueryList = array();
         foreach ((array)$this->YubiApiEndpoint as $YubiApiEndpoint) {
 
-            if (($YubiApiAddress = $this->getHostIpAddress($YubiApiEndpoint))) {
+            if (( $YubiApiAddress = $this->getHostIpAddress($YubiApiEndpoint) )) {
                 $QueryList[] = 'http://'.$YubiApiAddress.$this->YubiApiLocation."?".$Query;
             }
         }
@@ -122,7 +121,7 @@ class YubiKey implements ITypeInterface
                     if ($this->checkSignature($Response, $Status[1])) {
                         $Decision[] = 1;
                     } else {
-                        $Decision[] = 0;
+                        $Decision[] = -1;
                     }
                 } /** Case 3.
                  * We check the status directly
@@ -145,19 +144,18 @@ class YubiKey implements ITypeInterface
                 }
             }
         }
-        /**
-         *
-         */
+
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.json_encode($Decision).' Decision');
         $Decision = array_sum($Decision) / ( count($Decision) > 0 ? count($Decision) : 1 );
 
-        if ($Decision > 0.5) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Verification: '.$Decision.' OK' );
+        if ($Decision >= 0.5) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$Decision.' OK');
             return true;
         } elseif ($Decision == 0) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Verification: '.$Decision.' Failed' );
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$Decision.' Failed');
             throw new ReplayedOTPException();
         } else {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Verification: '.$Decision.' Failed' );
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Verification: '.$Decision.' Failed');
             return false;
         }
     }
@@ -217,10 +215,10 @@ class YubiKey implements ITypeInterface
     private function getHostIpAddress($Host)
     {
 
-        $Address = gethostbyname( $Host );
+        $Address = gethostbyname($Host);
 
-        if( $Address == $Host ) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Offline! (DNS: '.$Host.')' );
+        if ($Address == $Host) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Offline! (DNS: '.$Host.')');
             return false;
         }
 
@@ -229,10 +227,10 @@ class YubiKey implements ITypeInterface
 
         $Handler = fsockopen($Host, 80, $ErrorNumber, $ErrorMessage, 10);
         if (!$Handler) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api offline! '.$ErrorMessage );
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api offline! '.$ErrorMessage);
             return false;
         } else {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Online '.$Host.' > '.$Address );
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Online '.$Host.' > '.$Address);
             return (string)$Address;
         }
     }
