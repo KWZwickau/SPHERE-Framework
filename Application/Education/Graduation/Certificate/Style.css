@@ -1,20 +1,19 @@
 /* Test */
 @media screen {
     div.Document {
-        /*max-width: 21cm !important;*/
+        width: 21cm !important;
 
         border: 1px dotted #CCC !important;
-        margin: 5px !important;
+        margin: 5px auto 5px auto !important;
     }
 }
 
 /* Test */
 @media screen {
     div.Page {
-        min-height: 29cm !important;
+        height: 29cm !important;
 
-        background-color: rgba(100, 100, 150, 0.05) !important;
-        border: 1px dotted blue !important;
+        border: 1px dashed blue !important;
         margin: 5px !important;
     }
 }
@@ -22,9 +21,7 @@
 /* Test */
 @media screen {
     div.Slice {
-        /*background-color: rgba(150, 100, 100, 0.02) !important;*/
         margin: 5px !important;
-        /*border: 1px dotted silver !important;*/
     }
 }
 
@@ -44,6 +41,7 @@
 
 div.Document {
     position: relative !important;
+    width: 21cm !important;
 
     font-family: Helvetica, serif !important;
 }
@@ -51,9 +49,10 @@ div.Document {
 /* DOCUMENT.PAGE */
 
 div.Page {
+    position: relative !important;
+    height: 29cm !important;
 
     font-size: 14px !important;
-    position: relative !important;
     page-break-after: always !important;
     page-break-inside: avoid !important;
 }

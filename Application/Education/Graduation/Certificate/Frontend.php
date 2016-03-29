@@ -1,14 +1,12 @@
 <?php
 namespace SPHERE\Application\Education\Graduation\Certificate;
 
-use SPHERE\Application\Api\Education\Graduation\Certificate\Certificate;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Element;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -269,7 +267,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                         $Certificate = '\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Certificate;
 
-                        /** @var Certificate $Template */
+                        /** @var \SPHERE\Application\Api\Education\Graduation\Certificate\Certificate $Template */
                         $Template = new $Certificate($tblPerson, $tblDivision);
 
                         $FormField = array(
@@ -425,107 +423,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ))
         );
-        return $Stage;
-    }
-
-    /**
-     * @param null|int $Id TblDivisionStudent
-     * @param          $Template
-     *
-     * @return Stage
-     */
-    public function frontendData($Id, $Template)
-    {
-
-        $Stage = new Stage('Daten', 'eingeben');
-
-        if ($Id) {
-            $tblDivisionStudent = Division::useService()->getDivisionStudentById($Id);
-            if ($tblDivisionStudent) {
-                $tblPerson = $tblDivisionStudent->getServiceTblPerson();
-                if ($tblPerson) {
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-
-                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType(
-                            $tblStudent, $tblStudentTransferType
-                        );
-                        if ($tblStudentTransfer) {
-
-                            $tblPerson = $tblStudent->getServiceTblPerson();
-                            $tblDivision = $tblDivisionStudent->getTblDivision();
-                            $tblYear = $tblDivision->getServiceTblYear();
-
-                            $Global = $this->getGlobal();
-                            $Global->POST['Data']['School']['Name'] = ( $tblStudentTransfer->getServiceTblCompany() ? $tblStudentTransfer->getServiceTblCompany()->getName() : 'Schule' );
-                            $Global->POST['Data']['School']['Type'] = ( $tblStudentTransfer->getServiceTblType() ? $tblStudentTransfer->getServiceTblType()->getName() : 'Schulart' );
-                            $Global->POST['Data']['School']['Course'] = ( $tblStudentTransfer->getServiceTblCourse() ? $tblStudentTransfer->getServiceTblCourse()->getName() : 'Abschluss' );
-                            $Global->POST['Data']['School']['Year'] = $tblYear->getName();
-                            $Global->POST['Data']['Name'] = $tblPerson->getLastFirstName();
-                            $Global->POST['Data']['Division'] = $tblDivision->getDisplayName();
-                            $Global->savePost();
-
-                            $Stage->setContent(
-                                new Layout(array(
-                                    new LayoutGroup(new LayoutRow(
-                                        new LayoutColumn(array(
-                                            new Panel('Aktuelle Schule: ', array(
-                                                ( $tblStudentTransfer->getServiceTblCompany() ? $tblStudentTransfer->getServiceTblCompany()->getName() : 'Schule' )
-                                            )),
-                                            new Panel('Aktuelle Schulart: ', array(
-                                                ( $tblStudentTransfer->getServiceTblType() ? $tblStudentTransfer->getServiceTblType()->getName() : 'Schulart' )
-                                            )),
-                                            new Panel('Aktueller Bildungsgang: ', array(
-                                                ( $tblStudentTransfer->getServiceTblCourse() ? $tblStudentTransfer->getServiceTblCourse()->getName() : 'Abschluss' )
-                                            )),
-                                        ))
-                                    ), new Title('Schüler-Informationen')),
-                                    new LayoutGroup(new LayoutRow(
-                                        new LayoutColumn(
-                                            new Form(
-                                                new FormGroup(
-                                                    new FormRow(array(
-                                                        new FormColumn(
-                                                            new Panel('Schuldaten', array(
-                                                                (new TextField('Data[School][Name]', 'Schule',
-                                                                    'Schule')),
-                                                                (new TextField('Data[School][Type]', 'Schulart',
-                                                                    'Schulart')),
-                                                                (new TextField('Data[School][Course]', 'Bildungsgang',
-                                                                    'Bildungsgang')),
-                                                                (new TextField('Data[School][Year]', 'Schuljahr',
-                                                                    'Schuljahr')),
-                                                            )), 4),
-                                                        new FormColumn(
-                                                            new Panel('Schüler', array(
-                                                                (new TextField('Data[Name]', 'Name', 'Name')),
-                                                                (new TextField('Data[Division]', 'Klasse', 'Klasse')),
-                                                            )), 4),
-                                                    ))
-                                                )
-                                                , new Primary('Vorschau erstellen'),
-                                                '/Education/Graduation/Certificate/Create',
-                                                array('Template' => $Template))
-                                        )
-                                    ), new Title('Verfügbare Daten-Felder')),
-                                ))
-                            );
-                        } else {
-                            // TODO: Error
-                        }
-                    } else {
-                        // TODO: Error
-                    }
-                } else {
-                    // TODO: Error
-                }
-            } else {
-                // TODO: Error
-            }
-        } else {
-            // TODO: Error
-        }
         return $Stage;
     }
 }
