@@ -60,6 +60,16 @@ abstract class Style extends Extension
     }
 
     /**
+     * @return $this
+     */
+    public function styleTextItalic()
+    {
+
+        $this->Style[] = 'font-style:italic !important;';
+        return $this;
+    }
+
+    /**
      * @param string $Size
      *
      * @return $this

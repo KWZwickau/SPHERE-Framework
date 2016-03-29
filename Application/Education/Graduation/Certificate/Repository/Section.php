@@ -46,10 +46,23 @@ class Section
      *
      * @return Section
      */
-    public function addColumn(Element $Element, $Width = 'auto')
+    public function addElementColumn(Element $Element, $Width = 'auto')
     {
 
         $this->Columns[] = '<td style="width: '.$Width.' !important;">'.$Element.'</td>';
+        return $this;
+    }
+
+    /**
+     * @param Slice  $Slice
+     * @param string $Width
+     *
+     * @return Section
+     */
+    public function addSliceColumn(Slice $Slice, $Width = 'auto')
+    {
+
+        $this->Columns[] = '<td style="width: '.$Width.' !important;">'.$Slice.'</td>';
         return $this;
     }
 }
