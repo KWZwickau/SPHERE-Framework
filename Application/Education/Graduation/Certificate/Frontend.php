@@ -291,8 +291,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Input.Date'   => 'Datum',
                         );
 
+                        // Create Form, Additional Information from Template
                         $PlaceholderList = $Template->getCertificate()->getPlaceholder();
-
                         $FormPanelList = array();
                         if ($PlaceholderList) {
                             array_walk($PlaceholderList,
@@ -384,6 +384,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Primary('Vorschau aktualisieren')
                         );
 
+                        // Create Certificate, Preview
                         $Content = $Template->createCertificate($Content)->getContent();
                     } else {
                         // TODO: Error
@@ -417,7 +418,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 5),
                         new LayoutColumn(array(
                             new Title('Vorschau der Daten'),
-                            $Content,
+                            '<div class="cleanslate">'.$Content.'</div>',
                         ), 7)
                     ))
                 )
