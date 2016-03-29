@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Support\Support as SystemSupport;
@@ -52,44 +53,49 @@ class Frontend extends Extension implements IFrontendInterface
             $TicketList = $YouTrack->ticketList();
             array_walk($TicketList, function (&$Ticket) {
 
-                if (!preg_match('!\bAccount: '.Account::useService()->getAccountBySession()->getId().'\b!is',
-                    $Ticket[0])
-                ) {
-                    $Ticket = false;
+                $tblAccount = Account::useService()->getAccountBySession();
+                if ($tblAccount) {
+                    if (!preg_match('!\bAccount: '.$tblAccount->getId().'\b!is',
+                        $Ticket[0])
+                    ) {
+                        $Ticket = false;
+                    } else {
+                        if (!isset( $Ticket[1] )) {
+                            $Ticket[1] = '';
+                        }
+                        if (!isset( $Ticket[1] )) {
+                            $Ticket[2] = '';
+                        }
+                        switch (strtoupper($Ticket[2])) {
+                            case 'ERFASST': {
+                                $Label = 'label-primary';
+                                break;
+                            }
+                            case 'ZU BESPRECHEN': {
+                                $Label = 'label-warning';
+                                break;
+                            }
+                            case 'OFFEN': {
+                                $Label = 'label-danger';
+                                break;
+                            }
+                            case 'IN BEARBEITUNG': {
+                                $Label = 'label-success';
+                                break;
+                            }
+                            default:
+                                $Label = 'label-default';
+                        }
+                        $Ticket[1] = preg_replace(array('!^\{[^\}]*?\}!is', '!\{[^\}]*?\}$!is'), '', $Ticket[1]);
+                        $Ticket[1] = utf8_decode($Ticket[1]);
+                        $Ticket = new Info(
+                            '<strong>'.$Ticket[0].'</strong>'
+                            .'<div class="pull-right label '.$Label.'"><samp>'.$Ticket[2].'</samp></div>'
+                            .'<hr/><small>'.nl2br($Ticket[1]).'</small>'
+                        );
+                    }
                 } else {
-                    if (!isset( $Ticket[1] )) {
-                        $Ticket[1] = '';
-                    }
-                    if (!isset( $Ticket[1] )) {
-                        $Ticket[2] = '';
-                    }
-                    switch (strtoupper($Ticket[2])) {
-                        case 'ERFASST': {
-                            $Label = 'label-primary';
-                            break;
-                        }
-                        case 'ZU BESPRECHEN': {
-                            $Label = 'label-warning';
-                            break;
-                        }
-                        case 'OFFEN': {
-                            $Label = 'label-danger';
-                            break;
-                        }
-                        case 'IN BEARBEITUNG': {
-                            $Label = 'label-success';
-                            break;
-                        }
-                        default:
-                            $Label = 'label-default';
-                    }
-                    $Ticket[1] = preg_replace(array('!^\{[^\}]*?\}!is', '!\{[^\}]*?\}$!is'), '', $Ticket[1]);
-                    $Ticket[1] = utf8_decode($Ticket[1]);
-                    $Ticket = new Info(
-                        '<strong>'.$Ticket[0].'</strong>'
-                        .'<div class="pull-right label '.$Label.'"><samp>'.$Ticket[2].'</samp></div>'
-                        .'<hr/><small>'.nl2br($Ticket[1]).'</small>'
-                    );
+                    $Ticket = false;
                 }
             });
             $TicketList = array_filter($TicketList);
@@ -140,7 +146,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextArea('Ticket[Body]', 'Meine Frage oder mein Problem',
                                 'Inhalt der Nachricht'.new Danger(' *')),
                             new FileUpload('Attachment', 'z.B. ein Screenshot', 'Optionaler Datei-Anhang'),
-                        ), Panel::PANEL_TYPE_INFO, new Primary('Absenden', new Mail()).new Danger(' (* Pflichtfeld)'))),
+                        ), Panel::PANEL_TYPE_INFO,
+                            new Primary('Absenden', new Mail()).new Danger(new Small(' (* Pflichtfeld)')))),
                 ))
             )
         );

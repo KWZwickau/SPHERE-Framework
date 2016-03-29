@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -54,10 +55,10 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendIdentification($CredentialName, $CredentialLock, $CredentialKey)
+    public function frontendIdentification($CredentialName = null, $CredentialLock = null, $CredentialKey = null)
     {
 
-        $View = new Stage('Anmeldung', 'Bitte geben Sie Ihre Benutzerdaten ein');
+        $View = new Stage('Anmeldung');
 
         // Prepare Environment
         switch (strtolower($this->getRequest()->getHost())) {
@@ -128,19 +129,21 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $View->setContent(
+            new Well(
             new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
                         ''
                         , 2),
                     new LayoutColumn(
-                        new Well($FormService)
+                        $FormService
                         , 8),
                     new LayoutColumn(
                         ''
                         , 2),
                 )),
-            )))
+            ), new Title('Anmelden', 'Bitte geben Sie Ihre Benutzerdaten ein')))
+            )
         );
         return $View;
     }
