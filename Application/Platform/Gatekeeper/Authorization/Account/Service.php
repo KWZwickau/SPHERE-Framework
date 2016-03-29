@@ -16,6 +16,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -122,7 +123,7 @@ class Service extends AbstractService
 
     /**
      * @param null|Redirect $Redirect
-     * @param null|string $Session
+     * @param null|string   $Session
      *
      * @return bool|Redirect
      */
@@ -135,7 +136,7 @@ class Service extends AbstractService
                     // Destroy Cookie
                     $params = session_get_cookie_params();
                     setcookie(session_name(), '', 0, $params['path'], $params['domain'], $params['secure'],
-                        isset($params['httponly']));
+                        isset( $params['httponly'] ));
                     session_start();
                     // Generate New Id
                     session_regenerate_id(true);
@@ -148,9 +149,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param string $CredentialName
-     * @param string $CredentialLock
+     * @param IFormInterface    $Form
+     * @param string            $CredentialName
+     * @param string            $CredentialLock
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -164,16 +165,16 @@ class Service extends AbstractService
 
         switch ($this->isCredentialValid($CredentialName, $CredentialLock, false, $tblIdentification)) {
             case false: {
-                if (null !== $CredentialName && empty($CredentialName)) {
+                if (null !== $CredentialName && empty( $CredentialName )) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialName && !empty($CredentialName)) {
+                if (null !== $CredentialName && !empty( $CredentialName )) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialLock && empty($CredentialLock)) {
+                if (null !== $CredentialLock && empty( $CredentialLock )) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
-                if (null !== $CredentialLock && !empty($CredentialLock)) {
+                if (null !== $CredentialLock && !empty( $CredentialLock )) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
                 break;
@@ -187,9 +188,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
-     * @param bool $TokenString
+     * @param string            $Username
+     * @param string            $Password
+     * @param bool              $TokenString
      * @param TblIdentification $tblIdentification
      *
      * @return null|bool
@@ -197,7 +198,7 @@ class Service extends AbstractService
     private function isCredentialValid($Username, $Password, $TokenString, TblIdentification $tblIdentification)
     {
 
-        if (false === ($tblAccount = $this->getAccountByCredential($Username, $Password, $tblIdentification))) {
+        if (false === ( $tblAccount = $this->getAccountByCredential($Username, $Password, $tblIdentification) )) {
             return false;
         } else {
             if (false === $TokenString) {
@@ -207,7 +208,7 @@ class Service extends AbstractService
             } else {
                 try {
                     if (Token::useService()->isTokenValid($TokenString)) {
-                        if (false === ($Token = $tblAccount->getServiceTblToken())) {
+                        if (false === ( $Token = $tblAccount->getServiceTblToken() )) {
                             return null;
                         } else {
                             if ($Token->getIdentifier() == substr($TokenString, 0, 12)) {
@@ -229,8 +230,8 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
+     * @param string            $Username
+     * @param string            $Password
      * @param TblIdentification $tblIdentification
      *
      * @return bool|TblAccount
@@ -242,9 +243,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param TblAccount  $tblAccount
      * @param null|string $Session
-     * @param integer $Timeout
+     * @param integer     $Timeout
      *
      * @return Service\Entity\TblSession
      */
@@ -255,10 +256,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param string $CredentialName
-     * @param string $CredentialLock
-     * @param string $CredentialKey
+     * @param IFormInterface    $Form
+     * @param string            $CredentialName
+     * @param string            $CredentialLock
+     * @param string            $CredentialKey
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -273,16 +274,16 @@ class Service extends AbstractService
 
         switch ($this->isCredentialValid($CredentialName, $CredentialLock, $CredentialKey, $tblIdentification)) {
             case false: {
-                if (null !== $CredentialName && empty($CredentialName)) {
+                if (null !== $CredentialName && empty( $CredentialName )) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialName && !empty($CredentialName)) {
+                if (null !== $CredentialName && !empty( $CredentialName )) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialLock && empty($CredentialLock)) {
+                if (null !== $CredentialLock && empty( $CredentialLock )) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
-                if (null !== $CredentialLock && !empty($CredentialLock)) {
+                if (null !== $CredentialLock && !empty( $CredentialLock )) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
                 break;
@@ -291,11 +292,12 @@ class Service extends AbstractService
                 $Form->setSuccess('CredentialName', '');
                 $Form->setSuccess('CredentialLock', '');
                 $Form->setError('CredentialKey', 'Der von Ihnen angegebene YubiKey ist nicht gültig.'
-                    . '<br/>Bitte verwenden Sie Ihren YubiKey um dieses Feld zu befüllen');
+                    .'<br/>Bitte verwenden Sie Ihren YubiKey um dieses Feld zu befüllen');
                 break;
             }
             case true: {
-                return new Redirect('/', 0);
+                return new Success('Anmeldung erfolgreich', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                .new Redirect('/', 0);
                 break;
             }
         }
@@ -333,7 +335,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole $tblRole
+     * @param TblRole    $tblRole
      *
      * @return bool
      */
@@ -345,13 +347,13 @@ class Service extends AbstractService
         array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization) use ($tblRole) {
 
             if ($tblAuthorization->getServiceTblRole()
-                && $tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId())
-            {
+                && $tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()
+            ) {
                 $tblAuthorization = false;
             }
         });
         $tblAuthorization = array_filter($tblAuthorization);
-        if (!empty($tblAuthorization)) {
+        if (!empty( $tblAuthorization )) {
             return true;
         }
         return false;
@@ -381,9 +383,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
-     * @param null|TblToken $tblToken
+     * @param string           $Username
+     * @param string           $Password
+     * @param null|TblToken    $tblToken
      * @param null|TblConsumer $tblConsumer
      *
      * @return TblAccount
@@ -395,7 +397,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param TblAccount        $tblAccount
      * @param TblIdentification $tblIdentification
      *
      * @return TblAuthentication
@@ -408,7 +410,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole $tblRole
+     * @param TblRole    $tblRole
      *
      * @return TblAuthorization
      */
@@ -429,7 +431,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblPerson $tblPerson
+     * @param TblPerson  $tblPerson
      *
      * @return TblUser
      */
@@ -441,7 +443,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblPerson $tblPerson
+     * @param TblPerson  $tblPerson
      *
      * @return bool
      */
@@ -488,7 +490,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole $tblRole
+     * @param TblRole    $tblRole
      *
      * @return bool
      */
@@ -499,7 +501,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param TblAccount        $tblAccount
      * @param TblIdentification $tblIdentification
      *
      * @return bool
@@ -522,7 +524,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Password
+     * @param string     $Password
      * @param TblAccount $tblAccount
      *
      * @return bool
@@ -535,7 +537,7 @@ class Service extends AbstractService
 
     /**
      * @param TblConsumer $tblConsumer
-     * @param TblAccount $tblAccount
+     * @param TblAccount  $tblAccount
      *
      * @return bool
      */
@@ -546,7 +548,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblToken $tblToken
+     * @param TblToken   $tblToken
      * @param TblAccount $tblAccount
      *
      * @return bool
@@ -559,7 +561,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param string $Identifier
+     * @param string     $Identifier
      *
      * @return bool|TblSetting
      */
@@ -571,8 +573,8 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param string $Identifier
-     * @param string $Value
+     * @param string     $Identifier
+     * @param string     $Value
      *
      * @return bool|TblSetting
      */
@@ -600,6 +602,7 @@ class Service extends AbstractService
      */
     public function getSettingAllByAccount(TblAccount $tblAccount)
     {
+
         return (new Data($this->getBinding()))->getSettingAllByAccount($tblAccount);
     }
 
