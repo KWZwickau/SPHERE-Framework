@@ -277,12 +277,21 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Halbjahresinformation',
+                        'Template' => 'Mittelschule Halbjahresinformation Hauptschule',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
                             'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsHjInfo'
+                            'Certificate' => 'MsHjHsInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Halbjahresinformation Realschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsHjRsInfo'
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(

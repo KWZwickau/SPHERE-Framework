@@ -22,7 +22,7 @@ class MsAbsRs extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS RS Abschlusszeugnis 3K.pdf')
+                    ->setContent('MS RS Abschlusszeugnis Realschule 3K.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -875,8 +875,7 @@ class MsAbsRs extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'
                                 .new Container('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                          6 = ungenügend')
-                                .new Container('¹ &nbsp;&nbsp;&nbsp; Zutreffendes ist zu unterstreichen.'))
+                                          6 = ungenügend'))
                             ->styleTextSize('9.5px')
                             , '30%')
                     )

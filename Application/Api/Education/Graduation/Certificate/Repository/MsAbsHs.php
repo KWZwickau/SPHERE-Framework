@@ -24,7 +24,7 @@ class MsAbsHs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('MS HA Abschlusszeugnis 3i.pdf')
+                            ->setContent('MS Abschlusszeugnis Hauptschule 3i.pdf')
                             ->styleTextSize('12px')
                             ->styleTextColor('#CCC')
                             ->styleAlignCenter()
@@ -115,48 +115,75 @@ class MsAbsHs extends Certificate
                             ->setContent('hat')
                             , '5%')
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                                    &nbsp;
-                                                ')
+                            ->setContent('{% if(Content.Company.Data.Name) %}
+                                    {{ Content.Company.Data.Name }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('10px')
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('
-                            {{ Content.Company.Data.Name }},
-                        ')
-                        ->styleBorderBottom('1px', '#BBB')
-                    )
-                    ->styleMarginTop('10px')
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('
-                            {{ Content.Company.Address.Street.Name }}
-                            {{ Content.Company.Address.Street.Number }},
-                        ')
-                        ->styleBorderBottom('1px', '#BBB')
-                    )
-                    ->styleMarginTop('10px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {{ Content.Company.Address.City.Code }}
-                                {{ Content.Company.Address.City.Name }}
-                            ')
-                            ->styleBorderBottom('1px', '#BBB')
+                            ->styleAlignCenter()
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('besucht')
-                            ->styleAlignRight()
-                            , '10%')
+                            ->styleBorderBottom('1px', '#BBB')
+                            ->setContent('&nbsp;')
+                            , '5%')
                     )
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('20px')
+                )
+//                ->addSlice(
+//                    (new Slice())
+//                        ->addElement(
+//                            (new Element())
+//                                ->setContent('
+//                                            {{ Content.Company.Data.Name }},
+//                                        ')
+//                                ->styleBorderBottom('1px', '#BBB')
+//                                ->styleAlignCenter()
+//                        )
+//                        ->styleMarginTop('10px')
+//                )
+                ->addSlice(
+                    (new Slice())
+                        ->addElement(
+                            (new Element())
+                                ->setContent('{% if(Content.Company.Address.Street.Name) %}
+                                    {{ Content.Company.Address.Street.Name }}
+                                    {{ Content.Company.Address.Street.Number }},
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
+                                ->styleBorderBottom('1px', '#BBB')
+                                ->styleAlignCenter()
+                        )
+                        ->styleMarginTop('10px')
+                )
+                ->addSlice(
+                    (new Slice())
+                        ->addSection(
+                            (new Section())
+                                ->addElementColumn(
+                                    (new Element())
+                                        ->setContent('&nbsp;')
+                                        ->styleBorderBottom('1px', '#BBB')
+                                    , '10%')
+                                ->addElementColumn(
+                                    (new Element())
+                                        ->setContent('{% if(Content.Company.Address.City.Name) %}
+                                            {{ Content.Company.Address.City.Code }}
+                                            {{ Content.Company.Address.City.Name }}
+                                        {% else %}
+                                              &nbsp;
+                                        {% endif %}')
+                                        ->styleBorderBottom('1px', '#BBB')
+                                        ->styleAlignCenter()
+                                )
+                                ->addElementColumn(
+                                    (new Element())
+                                        ->setContent('besucht')
+                                        ->styleAlignRight()
+                                    , '10%')
+                        )
+                        ->styleMarginTop('10px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -739,8 +766,7 @@ class MsAbsHs extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'
                                 .new Container('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                           6 = ungenügend')
-                                .new Container('¹ &nbsp;&nbsp;&nbsp; Zutreffendes ist zu unterstreichen.'))
+                                           6 = ungenügend'))
                             ->styleTextSize('9.5px')
                             , '30%')
                     )

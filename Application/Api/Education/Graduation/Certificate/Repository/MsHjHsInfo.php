@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class MsHjRs extends Certificate
+class MsHjHsInfo extends Certificate
 {
 
     /**
@@ -22,7 +22,7 @@ class MsHjRs extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS Halbjahreszeugnis Realschule 3e.pdf')
+                    ->setContent('MS Halbjahres Info 3a.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -59,7 +59,7 @@ class MsHjRs extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Halbjahreszeugnis der Mittelschule')
+                        ->setContent('Halbjahresinformation der Mittelschule')
                         ->styleTextSize('18px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -107,9 +107,17 @@ class MsHjRs extends Certificate
                     )->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('nahm am Unterricht mit dem Ziel des
-                                Realschulabschlusses teil.')
+                    ->addElement((new Element())//ToDO
+                    ->setContent('{% if(Content.Division.Data.Level.Name is not empty ) %}
+                                {% if(Content.Division.Data.Level.Name > 6 ) %}
+                                nahm am Unterricht mit dem Ziel des Hauptschulabschlusses teil.
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')
@@ -684,6 +692,15 @@ class MsHjRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleBorderBottom('1px', '#BBB')
+                        )
+                    )
+                    ->styleMarginTop('5px')
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
                             ->setContent('Datum:')
                             , '7%')
                         ->addElementColumn((new Element())
@@ -709,9 +726,6 @@ class MsHjRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom('1px', '#000')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '40%')
@@ -723,16 +737,10 @@ class MsHjRs extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schulleiter(in)')
-                            ->styleAlignCenter()
-                            ->styleTextSize('11px')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '5%')
                         ->addElementColumn((new Element())
-                            ->setContent('Dienstsiegel der Schule')
-                            ->styleAlignCenter()
-                            ->styleTextSize('11px')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '5%')
@@ -775,7 +783,7 @@ class MsHjRs extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('76px')
+                    )->styleMarginTop('47px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'

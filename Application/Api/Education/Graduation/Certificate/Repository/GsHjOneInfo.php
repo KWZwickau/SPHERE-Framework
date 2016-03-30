@@ -22,7 +22,7 @@ class GsHjOneInfo extends Certificate
             ->addSection(
                 (new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('GS HalbjahreszeugnisInfo Klasse 1 1a.pdf')
+                        ->setContent('GS Halbjahresinformation Klasse 1 1a.pdf')
                         ->styleTextSize('12px')
                         ->styleTextColor('#CCC')
                         ->styleAlignCenter()
@@ -45,7 +45,11 @@ class GsHjOneInfo extends Certificate
                             ->setContent('Name der Schule:')
                             , '18%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Company.Data.Name }}')
+                            ->setContent('{% if(Content.Company.Data.Name) %}
+                                    {{ Content.Company.Data.Name }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom()
                             , '82%')
                     )->styleMarginTop('20px')

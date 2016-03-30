@@ -46,7 +46,12 @@ class MsHjHs extends Certificate
                             , '18%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Company.Data.Name }}')
+                            ->setContent('{% if(Content.Company.Data.Name is not empty) %}
+                                    {{ Content.Company.Data.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBorderBottom()
                             , '82%'
                         )

@@ -45,7 +45,11 @@ class GsHjInfo extends Certificate
                             ->setContent('Name der Schule:')
                             , '18%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Company.Data.Name }}')
+                            ->setContent('{% if(Content.Company.Data.Name) %}
+                                    {{ Content.Company.Data.Name }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom()
                             , '82%')
                     )->styleMarginTop('20px')

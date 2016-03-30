@@ -8,8 +8,9 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Frame;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Page;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class MsHjInfo extends Certificate
+class MsHjRsInfo extends Certificate
 {
 
     /**
@@ -45,7 +46,12 @@ class MsHjInfo extends Certificate
                             , '18%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Data.School.Name }}')
+                            ->setContent('{% if(Content.Company.Data.Name is not empty) %}
+                                    {{ Content.Company.Data.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBorderBottom()
                             , '82%'
                         )
@@ -67,7 +73,7 @@ class MsHjInfo extends Certificate
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Data.Division }}')
+                            ->setContent('{{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}')
                             ->styleBorderBottom()
                             ->styleAlignCenter()
                             , '7%'
@@ -94,15 +100,24 @@ class MsHjInfo extends Certificate
                             ->setContent('Vorname und Name:')
                             , '25%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Data.Name }}')
+                            ->setContent('{{ Content.Person.Data.Name.First }}
+                                          {{ Content.Person.Data.Name.Last }}')
                             ->styleBorderBottom()
                             , '75%')
                     )->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('nahm am Unterricht mit dem Ziel des
-                                Hauptschulabschlusses/Realschulabschlusses¹ teil.²')
+                    ->addElement((new Element())//ToDO
+                    ->setContent('{% if(Content.Division.Data.Level.Name is not empty ) %}
+                                {% if(Content.Division.Data.Level.Name > 6 ) %}
+                                nahm am Unterricht mit dem Ziel des Realschulabschlusses teil.
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')
@@ -114,7 +129,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                                {{ Content.Grade.Data.ToDO }}
+                                            {% else %}
+                                                ---
+                                            {% endif %}')//ToDO Kopfnoten
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -128,7 +147,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                                {{ Content.Grade.Data.ToDO }}
+                                            {% else %}
+                                                ---
+                                            {% endif %}')//ToDO Kopfnoten
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -145,7 +168,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                                {{ Content.Grade.Data.ToDO }}
+                                            {% else %}
+                                                ---
+                                            {% endif %}')//ToDO Kopfnoten
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -159,7 +186,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                                {{ Content.Grade.Data.ToDO }}
+                                            {% else %}
+                                                ---
+                                            {% endif %}')//ToDO Kopfnoten
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -183,7 +214,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.DE is not empty) %}
+                                    {{ Content.Grade.Data.DE }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -197,7 +232,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.MA is not empty) %}
+                                    {{ Content.Grade.Data.MA }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -214,7 +253,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.EN is not empty) %}
+                                    {{ Content.Grade.Data.EN }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -228,7 +271,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.BI is not empty) %}
+                                    {{ Content.Grade.Data.BI }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -245,7 +292,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.KU is not empty) %}
+                                    {{ Content.Grade.Data.KU }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -259,7 +310,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.CH is not empty) %}
+                                    {{ Content.Grade.Data.CH }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -276,7 +331,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.MU is not empty) %}
+                                    {{ Content.Grade.Data.MU }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -290,7 +349,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.PH is not empty) %}
+                                    {{ Content.Grade.Data.PH }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -307,7 +370,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.GE is not empty) %}
+                                    {{ Content.Grade.Data.GE }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -321,7 +388,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }}
+                                {% else %}
+                                    ---
+                                {% endif %}')//ToDO Sport ist kein vorgegebenes Fach
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -338,7 +409,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }}
+                                {% else %}
+                                    ---
+                                {% endif %}')//ToDO Gemeinschaftskunde/Rechtserziehung ist kein vorgegebenes Fach
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -348,11 +423,35 @@ class MsHjInfo extends Certificate
                         ->addElementColumn((new Element())
                             , '4%')
                         ->addElementColumn((new Element())
-                            ->setContent('EV./Kath. Religion/Ethik¹')
+                            ->setContent('{% if(Content.Grade.Data.ETH is not empty) %}
+                                    Ethik
+                                {% else %}
+                                    {% if(Content.Grade.Data.RKA is not empty) %}
+                                        Kath. Religion
+                                    {% else %}
+                                        {% if(Content.Grade.Data.REV is not empty) %}
+                                            Ev. Religion
+                                        {% else %}
+                                            Ev./Kath. Religion/Ethik¹
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ETH is not empty) %}
+                                    {{ Content.Grade.Data.ETH }}
+                                {% else %}
+                                    {% if(Content.Grade.Data.RKA is not empty) %}
+                                        {{ Content.Grade.Data.RKA }}
+                                    {% else %}
+                                        {% if(Content.Grade.Data.REV is not empty) %}
+                                        {{ Content.Grade.Data.REV }}
+                                        {% else %}
+                                            ---
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -369,7 +468,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.GEO is not empty) %}
+                                    {{ Content.Grade.Data.GEO }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -382,8 +485,12 @@ class MsHjInfo extends Certificate
                             ->setContent('Technik/Computer')
                             ->stylePaddingTop()
                             , '39%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                        ->addElementColumn((new Element())//ToDO Technik/Computer ist kein vorgegebenes Fach
+                        ->setContent('{% if(Content.Grade.Data.GE is not empty) %}
+                                    {{ Content.Grade.Data.GE }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -400,7 +507,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }}
+                                {% else %}
+                                    ---
+                                {% endif %}')//ToDO Wirtschaft-Technik-Haushalt/Soziales
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -414,7 +525,11 @@ class MsHjInfo extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.IN is not empty) %}
+                                    {{ Content.Grade.Data.IN }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -467,7 +582,15 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }} Vertiefungskurs
+                                {% else %}
+                                    {% if(Content.Person.Data.ToDO is not empty) %}
+                                        {{ Content.Grade.Data.ToDO }} 2. Fremdsprache (abschlussorientiert)
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
+                                {% endif %}')//ToDO Wahlpflichtbereich
                             ->styleBorderBottom()
                         )
                         ->addElementColumn((new Element())
@@ -479,7 +602,15 @@ class MsHjInfo extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)¹')
+                            ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
+                                    Vertiefungskurs
+                                {% else %}
+                                    {% if(Content.Person.Data.ToDO is not empty) %}
+                                        2. Fremdsprache (abschlussorientiert)
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
+                                {% endif %}')//ToDO Wahlpflichtbereich
                             ->styleTextSize('11px')
                         )
                     )
@@ -521,7 +652,11 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Input.Remark is not empty) %}
+                                    {{ Content.Input.Remark|nl2br }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                         )
                     )
@@ -569,7 +704,11 @@ class MsHjInfo extends Certificate
                             ->setContent('Datum:')
                             , '7%')
                         ->addElementColumn((new Element())
-                            ->setContent(date('d.m.Y'))
+                            ->setContent('{% if(Content.Input.Date is not empty) %}
+                                    {{ Content.Input.Date }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
                             , '23%')
@@ -647,11 +786,9 @@ class MsHjInfo extends Certificate
                     )->styleMarginTop('47px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Notenerläuterung:<br/>
-                                                    1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                                    6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)<br/>
-                                                    ¹ &nbsp;&nbsp;&nbsp; Zutreffendes ist zu unterstreichen.<br/>
-                                                    ² &nbsp;&nbsp;&nbsp; Gilt nicht für die Klassenstufen 5 und 6')
+                            ->setContent('Notenerläuterung:'
+                                .new Container('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
+                                                6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'))
                             ->styleTextSize('9.5px')
                             , '30%')
                     )

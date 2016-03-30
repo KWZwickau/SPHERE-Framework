@@ -22,7 +22,7 @@ class MsJRs extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS Jahreszeugnis 3c.pdf')
+                    ->setContent('MS Jahreszeugnis Realschule 3c.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -45,7 +45,12 @@ class MsJRs extends Certificate
                             ->setContent('Name der Schule:')
                             , '18%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Company.Data.Name }}')
+                            ->setContent('{% if(Content.Company.Data.Name is not empty) %}
+                                    {{ Content.Company.Data.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBorderBottom()
                             , '82%')
                     )->styleMarginTop('20px')

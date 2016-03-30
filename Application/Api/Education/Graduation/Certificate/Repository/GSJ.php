@@ -45,7 +45,11 @@ class GsJ extends Certificate
                             ->setContent('Name der Schule:')
                             , '18%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Company.Data.Name }}')
+                            ->setContent('{% if(Content.Company.Data.Name) %}
+                                    {{ Content.Company.Data.Name }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom()
                             , '82%')
                     )->styleMarginTop('20px')
@@ -537,7 +541,11 @@ class GsJ extends Certificate
                             ->setContent('Versetzungsvermerk:')
                             , '22%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Input.Transfer }}')
+                            ->setContent('{% if(Content.Input.Transfer) %}
+                                    {{ Content.Input.Transfer }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             , '58%')
                         ->addElementColumn((new Element())

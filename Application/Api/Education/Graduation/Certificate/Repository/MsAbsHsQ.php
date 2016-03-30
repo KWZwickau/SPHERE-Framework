@@ -22,7 +22,7 @@ class MsAbsHsQ extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS HS qualifiziertes Abschlusszeugnis 3j.pdf')
+                    ->setContent('MS qualifiziertes Abschlusszeugnis Hauptschule 3j.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -144,18 +144,6 @@ class MsAbsHsQ extends Certificate
                     )
                     ->styleMarginTop('20px')
                 )
-//                ->addSlice(
-//                    (new Slice())
-//                        ->addElement(
-//                            (new Element())
-//                                ->setContent('
-//                                            {{ Content.Company.Data.Name }},
-//                                        ')
-//                                ->styleBorderBottom('1px', '#BBB')
-//                                ->styleAlignCenter()
-//                        )
-//                        ->styleMarginTop('10px')
-//                )
                 ->addSlice(
                     (new Slice())
                         ->addElement(
