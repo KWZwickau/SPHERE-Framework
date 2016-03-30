@@ -62,7 +62,10 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblGradeType')
-            ->findOneBy(array(TblGradeType::ATTR_NAME => $Name));
+            ->findOneBy(array(
+                TblGradeType::ATTR_NAME => $Name,
+                'EntityRemove' => null
+            ));
 
         if (null === $Entity) {
             $Entity = new TblGradeType();
@@ -291,19 +294,21 @@ class Data extends AbstractData
             }
         }
 
-        if ($list) {
-            /** @var TblGrade $item */
-            foreach ($list as &$item){
-                if (!$item->getTblGradeType()){
-                    $item = false;
-                }
-            }
-            $list = array_filter($list);
+//        if ($list) {
+//            /** @var TblGrade $item */
+//            foreach ($list as &$item){
+//                if (!$item->getTblGradeType()){
+//                    $item = false;
+//                }
+//            }
+//            $list = array_filter($list);
+//
+//            return empty($list) ? false : $list;
+//        } else {
+//            return false;
+//        }
 
-            return empty($list) ? false : $list;
-        } else {
-            return false;
-        }
+        return $list;
     }
 
     /**
@@ -425,18 +430,20 @@ class Data extends AbstractData
             TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId()
         ));
 
-        if ($EntityList) {
-            /** @var TblGrade $item */
-            foreach ($EntityList as &$item) {
-                // filter deleted persons
-                if (!$item->getServiceTblPerson() || !$item->getTblGradeType()) {
-                    $item = false;
-                }
-            }
-            $EntityList = array_filter($EntityList);
-        }
+//        if ($EntityList) {
+//            /** @var TblGrade $item */
+//            foreach ($EntityList as &$item) {
+//                // filter deleted persons
+//                if (!$item->getServiceTblPerson() || !$item->getTblGradeType()) {
+//                    $item = false;
+//                }
+//            }
+//            $EntityList = array_filter($EntityList);
+//        }
+//
+//        return empty($EntityList) ? false : $EntityList;
 
-        return empty($EntityList) ? false : $EntityList;
+        return $EntityList;
     }
 
     /**
