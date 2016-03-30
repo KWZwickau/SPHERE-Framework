@@ -6,12 +6,10 @@
     {% set City = Address.getTblCity %}
     {% if(City) %}
         {{ City.getCode }}
-        {{ City.getName }}
-        {{ City.getDistrict }}
+        {{ City.getDisplayName }}
     {% endif %}
-    <br/>
-    {% set State = Address.getTblState %}
-    {% if(State) %}
-        {{ State.getName }}
+    {% if(Address.getLocation) %}
+        <br/>
+        {{ Address.getLocation }}
     {% endif %}
 {% endif %}

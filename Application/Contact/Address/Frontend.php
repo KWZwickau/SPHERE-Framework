@@ -66,10 +66,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array $City
      * @param int $State
      * @param array $Type
+     * @param null $County
+     * @param null $Nation
      *
      * @return Stage
      */
-    public function frontendCreateToPerson($Id, $Street, $City, $State, $Type)
+    public function frontendCreateToPerson($Id, $Street, $City, $State, $Type, $County = null, $Nation = null)
     {
 
         $tblPerson = Person::useService()->getPersonById($Id);
@@ -104,7 +106,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formAddress()
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblPerson, $Street, $City, $State, $Type
+                                    , $tblPerson, $Street, $City, $State, $Type, $County, $Nation
                                 )
                             )
                         )
@@ -152,9 +154,15 @@ class Frontend extends Extension implements IFrontendInterface
                             new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil',
                                 array('District' => $tblCity), new MapMarker()
                             ),
+                            new AutoCompleter('County', 'Landkreis', 'Landkreis',
+                                array('County' => $tblAddress), new Map()
+                            ),
                             new SelectBox('State', 'Bundesland',
                                 array('Name' => $tblState), new Map()
-                            )
+                            ),
+                            new AutoCompleter('Nation', 'Land', 'Land',
+                                array('Nation' => $tblAddress), new Map()
+                            ),
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
@@ -173,10 +181,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array $City
      * @param int $State
      * @param array $Type
+     * @param null $County
+     * @param null $Nation
      *
      * @return Stage
      */
-    public function frontendCreateToCompany($Id, $Street, $City, $State, $Type)
+    public function frontendCreateToCompany($Id, $Street, $City, $State, $Type, $County = null, $Nation = null)
     {
 
         $tblCompany = Company::useService()->getCompanyById($Id);
@@ -207,7 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $this->formAddress()
                                             ->appendFormButton(new Primary('Speichern', new Save()))
                                             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                        , $tblCompany, $Street, $City, $State, $Type
+                                        , $tblCompany, $Street, $City, $State, $Type, $County, $Nation
                                     )
                                 )
                             )
@@ -229,10 +239,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array $City
      * @param int $State
      * @param array $Type
+     * @param null $County
+     * @param null $Nation
      *
      * @return Stage
      */
-    public function frontendUpdateToPerson($Id, $Street, $City, $State, $Type)
+    public function frontendUpdateToPerson($Id, $Street, $City, $State, $Type, $County = null, $Nation = null)
     {
 
         $tblToPerson = Address::useService()->getAddressToPersonById($Id);
@@ -258,6 +270,8 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblToPerson->getTblAddress()->getTblState()) {
                 $Global->POST['State'] = $tblToPerson->getTblAddress()->getTblState()->getId();
             }
+            $Global->POST['County'] = $tblToPerson->getTblAddress()->getCounty();
+            $Global->POST['Nation'] = $tblToPerson->getTblAddress()->getNation();
             $Global->savePost();
         }
 
@@ -283,7 +297,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formAddress()
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblToPerson, $Street, $City, $State, $Type
+                                    , $tblToPerson, $Street, $City, $State, $Type, $County, $Nation
                                 )
                             )
                         )
@@ -300,10 +314,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array $City
      * @param int $State
      * @param array $Type
+     * @param null $County
+     * @param null $Nation
      *
      * @return Stage
      */
-    public function frontendUpdateToCompany($Id, $Street, $City, $State, $Type)
+    public function frontendUpdateToCompany($Id, $Street, $City, $State, $Type, $County = null, $Nation = null)
     {
 
         $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
@@ -326,6 +342,8 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblToCompany->getTblAddress()->getTblState()) {
                     $Global->POST['State'] = $tblToCompany->getTblAddress()->getTblState()->getId();
                 }
+                $Global->POST['County'] = $tblToCompany->getTblAddress()->getCounty();
+                $Global->POST['Nation'] = $tblToCompany->getTblAddress()->getNation();
                 $Global->savePost();
             }
 
@@ -351,7 +369,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $this->formAddress()
                                             ->appendFormButton(new Primary('Speichern', new Save()))
                                             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                        , $tblToCompany, $Street, $City, $State, $Type
+                                        , $tblToCompany, $Street, $City, $State, $Type, $County, $Nation
                                     )
                                 )
                             )

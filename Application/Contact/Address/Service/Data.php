@@ -207,11 +207,12 @@ class Data extends AbstractData
 
     /**
      * @param TblState $tblState
-     * @param TblCity  $tblCity
-     * @param string   $StreetName
-     * @param string   $StreetNumber
-     * @param string   $PostOfficeBox
-     *
+     * @param TblCity $tblCity
+     * @param string $StreetName
+     * @param string $StreetNumber
+     * @param string $PostOfficeBox
+     * @param $County
+     * @param $Nation
      * @return TblAddress
      */
     public function createAddress(
@@ -219,7 +220,9 @@ class Data extends AbstractData
         TblCity $tblCity,
         $StreetName,
         $StreetNumber,
-        $PostOfficeBox
+        $PostOfficeBox,
+        $County,
+        $Nation
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -229,7 +232,9 @@ class Data extends AbstractData
                 TblAddress::ATTR_TBL_CITY        => $tblCity->getId(),
                 TblAddress::ATTR_STREET_NAME     => $StreetName,
                 TblAddress::ATTR_STREET_NUMBER   => $StreetNumber,
-                TblAddress::ATTR_POST_OFFICE_BOX => $PostOfficeBox
+                TblAddress::ATTR_POST_OFFICE_BOX => $PostOfficeBox,
+                TblAddress::ATTR_COUNTY => $County,
+                TblAddress::ATTR_NATION => $Nation,
             ));
         if (null === $Entity) {
             $Entity = new TblAddress();
@@ -238,6 +243,8 @@ class Data extends AbstractData
             $Entity->setPostOfficeBox($PostOfficeBox);
             $Entity->setTblState($tblState);
             $Entity->setTblCity($tblCity);
+            $Entity->setCounty($County);
+            $Entity->setNation($Nation);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
