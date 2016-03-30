@@ -276,16 +276,20 @@ abstract class Certificate extends Extension
 
         if ($this->tblStudent) {
             $tblStudentSubjectAll = Student::useService()->getStudentSubjectAllByStudent($this->tblStudent);
-            $this->Grade['Data'] = array_merge(
-                $this->Grade['Data'], $this->fetchStudentSubjectGrades($tblStudentSubjectAll)
-            );
+            if ($tblStudentSubjectAll) {
+                $this->Grade['Data'] = array_merge(
+                    $this->Grade['Data'], $this->fetchStudentSubjectGrades($tblStudentSubjectAll)
+                );
+            }
         }
 
         if ($this->tblDivision) {
             $tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($this->tblDivision);
-            $this->Grade['Data'] = array_merge(
-                $this->Grade['Data'], $this->fetchDivisionSubjectGrades($tblDivisionSubjectAll)
-            );
+            if ($tblDivisionSubjectAll) {
+                $this->Grade['Data'] = array_merge(
+                    $this->Grade['Data'], $this->fetchDivisionSubjectGrades($tblDivisionSubjectAll)
+                );
+            }
         }
 
         return $this;

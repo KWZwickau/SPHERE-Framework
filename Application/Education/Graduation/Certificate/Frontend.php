@@ -204,6 +204,42 @@ class Frontend extends Extension implements IFrontendInterface
                             'Certificate' => 'MsAbsHs'
                         ), 'Auswählen')
                     );
+                    $TemplateTable[] = array(
+                        'Template' => 'Grundschule Halbjahresinformation',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GsHjInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Grundschule Jahreszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GsJ'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Grundschule Halbjahresinformation der ersten Klasse',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GsHjOneInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Grundschule Jahreszeugnis der ersten Klasse',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GsJOne'
+                        ), 'Auswählen')
+                    );
 
                     $Content = new TableData($TemplateTable);
 
@@ -273,8 +309,9 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormField = array(
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
 
-                            'Content.Input.Remark' => 'TextArea',
-                            'Content.Input.Date'   => 'DatePicker',
+                            'Content.Input.Remark'   => 'TextArea',
+                            'Content.Input.Date'     => 'DatePicker',
+                            'Content.Input.Transfer' => 'TextField',
                         );
                         $FormLabel = array(
                             'Content.Person.Data.Name.Salutation'       => 'Anrede',
@@ -287,8 +324,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Division.Data.Level.Name' => 'Klassenstufe',
                             'Content.Division.Data.Name'       => 'Klassengruppe',
 
-                            'Content.Input.Remark' => 'Bemerkungen',
-                            'Content.Input.Date'   => 'Datum',
+                            'Content.Input.Remark'   => 'Bemerkungen',
+                            'Content.Input.Date'     => 'Datum',
+                            'Content.Input.Transfer' => 'Versetzungsvermerk'
                         );
 
                         // Create Form, Additional Information from Template
