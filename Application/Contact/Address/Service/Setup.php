@@ -98,6 +98,12 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblAddress', 'PostOfficeBox')) {
             $Table->addColumn('PostOfficeBox', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblAddress', 'County')) {
+            $Table->addColumn('County', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblAddress', 'Nation')) {
+            $Table->addColumn('Nation', 'string');
+        }
         $this->getConnection()->addForeignKey($Table, $tblCity);
         $this->getConnection()->addForeignKey($Table, $tblState, true);
         return $Table;

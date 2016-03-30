@@ -23,6 +23,8 @@ class TblAddress extends Element
     const ATTR_POST_OFFICE_BOX = 'PostOfficeBox';
     const ATTR_TBL_CITY = 'tblCity';
     const ATTR_TBL_STATE = 'tblState';
+    const ATTR_COUNTY = 'County';
+    const ATTR_NATION = 'Nation';
 
     /**
      * @Column(type="string")
@@ -41,9 +43,17 @@ class TblAddress extends Element
      */
     protected $tblCity;
     /**
+     * @Column(type="string")
+     */
+    protected $County;
+    /**
      * @Column(type="bigint")
      */
     protected $tblState;
+    /**
+     * @Column(type="string")
+     */
+    protected $Nation;
 
     /**
      * @return string
@@ -70,7 +80,7 @@ class TblAddress extends Element
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ( $Return = $Cache->getValue($this->getId(), __METHOD__) )) {
+        if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
             $Return = new LayoutAddress($this);
             $Cache->setValue($this->getId(), (string)$Return, 0, __METHOD__);
         }
@@ -84,13 +94,13 @@ class TblAddress extends Element
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ( $Return = $Cache->getValue($this->getId(), __METHOD__) )) {
+        if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
 
             $Return = $this->getStreetName()
-                .' '.$this->getStreetNumber()
-                .', '.$this->getTblCity()->getCode()
-                .' '.$this->getTblCity()->getName()
-                .( $this->getTblState() ? ' ('.$this->getTblState()->getName().')' : '' );
+                . ' ' . $this->getStreetNumber()
+                . ', ' . $this->getTblCity()->getCode()
+                . ' ' . $this->getTblCity()->getDisplayName()
+                . ($this->getLocation() ? ' (' . $this->getLocation() . ')' : '');
 
             $Cache->setValue($this->getId(), $Return, 0, __METHOD__);
         }
@@ -152,7 +162,7 @@ class TblAddress extends Element
     public function setTblCity(TblCity $tblCity = null)
     {
 
-        $this->tblCity = ( null === $tblCity ? null : $tblCity->getId() );
+        $this->tblCity = (null === $tblCity ? null : $tblCity->getId());
     }
 
     /**
@@ -174,6 +184,57 @@ class TblAddress extends Element
     public function setTblState(TblState $tblState = null)
     {
 
-        $this->tblState = ( null === $tblState ? null : $tblState->getId() );
+        $this->tblState = (null === $tblState ? null : $tblState->getId());
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCounty()
+    {
+        return $this->County;
+    }
+
+    /**
+     * @param mixed $County
+     */
+    public function setCounty($County)
+    {
+        $this->County = trim($County);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getNation()
+    {
+        return $this->Nation;
+    }
+
+    /**
+     * @param mixed $Nation
+     */
+    public function setNation($Nation)
+    {
+        $this->Nation = trim($Nation);
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getLocation()
+    {
+        $result = array();
+        if ($this->County !== '') {
+            $result[] = $this->County;
+        }
+        if ($this->getTblState()) {
+            $result[] = $this->getTblState()->getName();
+        }
+        if ($this->Nation !== '') {
+            $result[] = $this->Nation;
+        }
+
+        return empty($result) ? false : implode(', ', $result);
     }
 }
