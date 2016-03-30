@@ -190,7 +190,6 @@ class Data extends AbstractData
         return false;
     }
 
-
     /**
      * @param $Id
      *
@@ -465,7 +464,6 @@ class Data extends AbstractData
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroup');
     }
-
 
     /**
      * @param $Id
@@ -757,7 +755,6 @@ class Data extends AbstractData
 
         return $Entity;
     }
-
 
     /**
      * @param TblScoreRule $tblScoreRule

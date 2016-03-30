@@ -107,9 +107,9 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         );
 
         $TypeColor = array(
-            'Bug'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
-            'Feature' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
-            'Aufgabe' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning'
+            'Bug'         => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
+            'Feature'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
+            'Optimierung' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning'
         );
 
         $SubsystemColor = array(
@@ -308,7 +308,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
 
         $Parser = new Parser(
             new Credentials(),
-            'Typ: Feature,Bug,Aufgabe Teilsystem: {10*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
+            'Typ: Feature,Bug,Optimierung Teilsystem: {10*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
         );
         return $Parser->getMap();
     }

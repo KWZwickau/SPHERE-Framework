@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
@@ -21,6 +20,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -365,7 +365,7 @@ class Service extends AbstractService
         $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
         if ($tblDivisionSubjectList) {
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                if ($tblDivisionSubject->getServiceTblSubject()->getId()) {
+                if ($tblDivisionSubject->getServiceTblSubject()) {
                     if ($tblDivisionSubject->getServiceTblSubject()->getId() === $tblSubject->getId()) {
                         (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
                         (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
@@ -538,6 +538,11 @@ class Service extends AbstractService
 
             // Remove old Link
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
+            if (!$tblDivision) {
+                return new Danger('Klasse nicht gefunden.', new Ban())
+                . new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+            }
+
             $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubject);
             $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
             if (is_array($tblSubjectStudentList)) {
@@ -628,6 +633,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblDivisionStudent
+     */
+    public function getDivisionStudentById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionStudentById($Id);
     }
 
     /**
@@ -745,8 +761,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Division['Name']) && empty($Division['Name']) &&
-            $tblDivision = Division::useService()->getDivisionById($Id)->getTblLevel() === false
+        if (isset($Division['Name']) && empty($Division['Name'])
         ) {
             $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
@@ -898,83 +913,12 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      *
-     * @return string
+     * @return bool
      */
     public function destroyDivision(TblDivision $tblDivision)
     {
 
-        if (null === $tblDivision) {
-            return '';
-        }
-        $Error = false;
-        $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-        $tblTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
-        $tblCustodyList = Division::useService()->getCustodyAllByDivision($tblDivision);
-        $tblTestList = Evaluation::useService()->getTestAllByDivision($tblDivision);
-
-        // Students
-        if (!empty($tblStudentList)) {
-//            foreach($tblStudentList as $tblStudent)
-//            {
-//                (new Data($this->getBinding()))->removeStudentToDivision($tblDivision, $tblStudent );
-//            }
-            $Error = true;
-        }
-        // Teacher
-        if (!empty($tblTeacherList)) {
-//            foreach($tblTeacherList as $tblTeacher)
-//            {
-//                (new Data($this->getBinding()))->removeTeacherToDivision($tblDivision, $tblTeacher );
-//            }
-            $Error = true;
-        }
-        // Custody
-        if (!empty($tblCustodyList)) {
-//            foreach($tblCustodyList as $tblPerson)
-//            {
-//                (new Data($this->getBinding()))->removePersonToDivision($tblDivision, $tblPerson );
-//            }
-            $Error = true;
-        }
-        if (!empty($tblTestList)) {       //ToDO eventuell noch auf Noten abprüfen
-            $Error = true;
-        }
-
-        if (!$Error) {
-
-            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
-            if (!empty($tblDivisionSubjectList)) {
-                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                    (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
-                    (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
-                    if ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) {
-                        (new Data($this->getBinding()))->removeSubjectGroup($tblSubjectGroup);
-                    }
-                }
-            }
-
-            $tblSubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
-            if (!empty($tblSubjectList)) {
-                foreach ($tblSubjectList as $tblSubject) {
-
-                    (new Data($this->getBinding()))->removeSubjectToDivision($tblDivision, $tblSubject);
-                }
-            }
-
-
-            if ((new Data($this->getBinding()))->destroyDivision($tblDivision)) {
-                return true;
-//                return new Success('Die Klassengruppe wurde erfolgreich gelöscht')
-//                .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_SUCCESS);
-            } else {
-                return false;
-//                return new Danger('Die Klassengruppe konnte nicht gelöscht werden')
-//                .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
-            }
-        }
-        return false;
-//        return new Danger('Die Klassengruppe konnte nicht gelöscht werden, da Personen zugeordnet sind')
-//        .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+        return (new Data($this->getBinding()))->destroyDivision($tblDivision);
     }
 
     /**

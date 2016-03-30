@@ -17,6 +17,7 @@ use SPHERE\Application\Transfer\Import\Chemnitz\Service\Person;
 use SPHERE\Application\Transfer\Import\Chemnitz\Service\Phone;
 use SPHERE\Application\Transfer\Import\Chemnitz\Service\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -831,9 +832,13 @@ class Service
 
         $tblDivision = Division::useService()->getDivisionById($Select['Division']);
 
+        if ($tblDivision) {
         return new Redirect('/Transfer/Import/Chemnitz/Student/Import', 0, array(
             'DivisionId' => $tblDivision->getId(),
         ));
+        } else {
+            return new Danger('Klasse nicht gefunden.', new Ban());
+        }
     }
 
     /**

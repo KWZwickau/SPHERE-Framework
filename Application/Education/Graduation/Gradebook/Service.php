@@ -1330,38 +1330,40 @@ class Service extends AbstractService
         if (isset($Data)) {
             foreach ($Data as $divisionId => $subjectItemList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
-                foreach ($subjectItemList as $subjectId => $item) {
-                    $tblSubject = Subject::useService()->getSubjectById($subjectId);
-                    if ($tblDivision && $tblSubject) {
-                        $tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
-                            $tblSubject);
-                        $tblScoreRule = Gradebook::useService()->getScoreRuleById($item['Rule']);
-                        if (!$tblScoreRule) {
-                            $tblScoreRule = null;
-                        }
-
-                        $tblScoreType = null;
-                        if (isset($item['Type'])) {
-                            $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
-                            if (!$tblScoreType) {
-                                $tblScoreType = null;
+                if ($tblDivision) {
+                    foreach ($subjectItemList as $subjectId => $item) {
+                        $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                        if ($tblDivision && $tblSubject) {
+                            $tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
+                                $tblSubject);
+                            $tblScoreRule = Gradebook::useService()->getScoreRuleById($item['Rule']);
+                            if (!$tblScoreRule) {
+                                $tblScoreRule = null;
                             }
-                        } else {
-                            if ($tblScoreRuleDivisionSubject) {
-                                if ($tblScoreRuleDivisionSubject->getTblScoreType()) {
-                                    $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
+
+                            $tblScoreType = null;
+                            if (isset($item['Type'])) {
+                                $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
+                                if (!$tblScoreType) {
+                                    $tblScoreType = null;
+                                }
+                            } else {
+                                if ($tblScoreRuleDivisionSubject) {
+                                    if ($tblScoreRuleDivisionSubject->getTblScoreType()) {
+                                        $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
+                                    }
                                 }
                             }
-                        }
 
-                        if ($tblScoreRuleDivisionSubject) {
-                            (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
-                                $tblScoreRuleDivisionSubject, $tblScoreRule, $tblScoreType
-                            );
-                        } else {
-                            (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
-                                $tblDivision, $tblSubject, $tblScoreRule, $tblScoreType
-                            );
+                            if ($tblScoreRuleDivisionSubject) {
+                                (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
+                                    $tblScoreRuleDivisionSubject, $tblScoreRule, $tblScoreType
+                                );
+                            } else {
+                                (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
+                                    $tblDivision, $tblSubject, $tblScoreRule, $tblScoreType
+                                );
+                            }
                         }
                     }
                 }

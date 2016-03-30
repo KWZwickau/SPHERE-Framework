@@ -53,6 +53,10 @@ class Data extends AbstractData
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/System/Database/Setup/Execution');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Database/Setup/Upgrade');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Api/Platform/Database/Upgrade');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         $tblRight = $this->createRight('/Platform/System/Cache');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);

@@ -21,7 +21,7 @@ class Session extends Extension
     public function __construct()
     {
 
-        $this->SessionKey = sha1(session_id().'#'.date('d.m.Y H', time()));
+        $this->SessionKey = sha1(__CLASS__);
     }
 
     /**
@@ -31,8 +31,13 @@ class Session extends Extension
     {
 
         $Cache = $this->getCache(new CookieHandler());
-        if (!( $History = $Cache->getValue($this->SessionKey, __CLASS__) )) {
+        if (!( $Stack = $Cache->getValue($this->SessionKey, __CLASS__) )) {
             $History = new History();
+        } else {
+            $History = new History();
+            foreach ($Stack as $Route) {
+                $History->setStep(new Step($Route));
+            }
         }
         return $History;
     }
@@ -46,7 +51,7 @@ class Session extends Extension
     {
 
         $Cache = $this->getCache(new CookieHandler());
-        $Cache->setValue($this->SessionKey, $History, ( 60 * 60 * 24 ), __CLASS__);
+        $Cache->setValue($this->SessionKey, $History->getStack(), ( 60 * 60 * 12 ), __CLASS__);
         return $History;
     }
 

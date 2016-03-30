@@ -313,7 +313,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblSalutationAll = Person::useService()->getSalutationAll();
-        $tblSalutationAll[] = new TblSalutation('');
 
         return new Form(
             new FormGroup(array(
