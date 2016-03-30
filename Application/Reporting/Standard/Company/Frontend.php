@@ -82,9 +82,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new Form(new FormGroup(array(
                         new FormRow(array(
                             new FormColumn(
-                                new SelectBox('Select[Group]', 'Gruppe', array(
-                                    '{{ Name }}' => $tblGroupAll
-                                )), 12
+                                new Panel('Auswahl', array(
+                                    new SelectBox('Select[Group]', 'Gruppe', array(
+                                        '{{ Name }}' => $tblGroupAll
+                                    ))
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 12
                             )
                         )),
                     )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))

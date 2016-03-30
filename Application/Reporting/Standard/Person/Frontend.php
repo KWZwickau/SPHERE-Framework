@@ -10,18 +10,23 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
@@ -50,28 +55,21 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionId
-     * @param null $Select
      *
      * @return Stage
      */
-    public function frontendClassList($DivisionId = null, $Select = null)
+    public function frontendClassList($DivisionId = null)
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten');
-
+        if (null !== $DivisionId) {
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/ClassList', new ChevronLeft()));
+        }
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
         $studentList = array();
 
         if ($DivisionId !== null) {
-
-            $Global = $this->getGlobal();
-            if (!$Global->POST) {
-                $Global->POST['Select']['Division'] = $DivisionId;
-                $Global->savePost();
-            }
-
-            //ToDo JohK Schuljahr
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
@@ -89,27 +87,56 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $TableContent = array();
+        if ($tblDivisionAll) {
+            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
+
+                $Item['Year'] = '';
+                $Item['Division'] = $tblDivision->getDisplayName();
+                $Item['Type'] = $tblDivision->getTypeName();
+                if ($tblDivision->getServiceTblYear()) {
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
+                }
+                $Item['Option'] = new Standard('', '/Reporting/Standard/Person/ClassList', new EyeOpen(),
+                    array('DivisionId' => $tblDivision->getId()));
+                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                array_push($TableContent, $Item);
+            });
+        }
+
         $Stage->setContent(
-            new Well(
-                Person::useService()->getClass(
-                    new Form(new FormGroup(array(
-                        new FormRow(array(
-                            new FormColumn(
-                                new SelectBox('Select[Division]', 'Klasse', array(
-                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                                )), 12
-                            )
-                        )),
-                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                    , $Select, '/Reporting/Standard/Person/ClassList')
-            )
-            .
-            ( $DivisionId !== null ?
+            ( $DivisionId === null ?
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($TableContent, null,
+                                    array(
+                                        'Year'     => 'Jahr',
+                                        'Division' => 'Klasse',
+                                        'Type'     => 'Schulart',
+                                        'Count'    => 'Schüler',
+                                        'Option'   => '',))
+                                , 12)
+                        ), new Title(new Listing().' Übersicht')
+                    )
+                ) : '' )
+            .( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
+                    ( $tblDivision->getServiceTblYear() ?
+                        new LayoutColumn(
+                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ) : '' ),
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_INFO), 12
+                        new Panel('Klasse', $tblDivision->getDisplayName(),
+                            Panel::PANEL_TYPE_SUCCESS), 4
                     ),
+                    ( $tblDivision->getTypeName() ?
+                        new LayoutColumn(
+                            new Panel('Schulart', $tblDivision->getTypeName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ) : '' ),
                 )))))
                 .
                 new TableData($studentList, null,
@@ -131,28 +158,22 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionId
-     * @param null $Select
      *
      * @return Stage
      */
-    public function frontendExtendedClassList($DivisionId = null, $Select = null)
+    public function frontendExtendedClassList($DivisionId = null)
     {
 
         $Stage = new Stage('Auswertung', 'erweiterte Klassenlisten');
+        if (null !== $DivisionId) {
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/ExtendedClassList', new ChevronLeft()));
+        }
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
         $studentList = array();
         $All = $Woman = $Man = '0';
 
         if ($DivisionId !== null) {
-
-            $Global = $this->getGlobal();
-            if (!$Global->POST) {
-                $Global->POST['Select']['Division'] = $DivisionId;
-                $Global->savePost();
-            }
-
-            //ToDo JohK Schuljahr
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
@@ -178,32 +199,61 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $TableContent = array();
+        if ($tblDivisionAll) {
+            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
+
+                $Item['Year'] = '';
+                $Item['Division'] = $tblDivision->getDisplayName();
+                $Item['Type'] = $tblDivision->getTypeName();
+                if ($tblDivision->getServiceTblYear()) {
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
+                }
+                $Item['Option'] = new Standard('', '/Reporting/Standard/Person/ExtendedClassList', new EyeOpen(),
+                    array('DivisionId' => $tblDivision->getId()));
+                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                array_push($TableContent, $Item);
+            });
+        }
+
         $Stage->setContent(
-            new Well(
-                Person::useService()->getClass(
-                    new Form(new FormGroup(array(
-                        new FormRow(array(
-                            new FormColumn(
-                                new SelectBox('Select[Division]', 'Klasse', array(
-                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                                )), 12
-                            )
-                        )),
-                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                    , $Select, '/Reporting/Standard/Person/ExtendedClassList')
-            )
-            .
-            ( $DivisionId !== null ?
+            ( $DivisionId === null ?
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($TableContent, null,
+                                    array(
+                                        'Year'     => 'Jahr',
+                                        'Division' => 'Klasse',
+                                        'Type'     => 'Schulart',
+                                        'Count'    => 'Schüler',
+                                        'Option'   => '',))
+                                , 12)
+                        ), new Title(new Listing().' Übersicht')
+                    )
+                ) : '' )
+            .( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
+                    ( $tblDivision->getServiceTblYear() ?
+                        new LayoutColumn(
+                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ) : '' ),
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_INFO), 12
+                        new Panel('Klasse', $tblDivision->getDisplayName(),
+                            Panel::PANEL_TYPE_SUCCESS), 4
                     ),
+                    ( $tblDivision->getTypeName() ?
+                        new LayoutColumn(
+                            new Panel('Schulart', $tblDivision->getTypeName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ) : '' ),
                 )))))
                 .
                 new TableData($studentList, null,
                     array(
-                        'Number'         => 'lfd. Nr.',
+                        'Number'         => 'Schüler-Nr.',
                         'Name'           => 'Name, Vorname',
                         'Gender'         => 'Geschlecht',
                         'Address'        => 'Adresse',
@@ -241,14 +291,16 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionId
-     * @param null $Select
      *
      * @return Stage
      */
-    public function frontendBirthdayClassList($DivisionId = null, $Select = null)
+    public function frontendBirthdayClassList($DivisionId = null)
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten Geburtstag');
+        if (null !== $DivisionId) {
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/BirthdayClassList', new ChevronLeft()));
+        }
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
         $studentList = array();
@@ -261,8 +313,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Select']['Division'] = $DivisionId;
                 $Global->savePost();
             }
-
-            //ToDo JohK Schuljahr
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
@@ -288,27 +338,56 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $TableContent = array();
+        if ($tblDivisionAll) {
+            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
+
+                $Item['Year'] = '';
+                $Item['Division'] = $tblDivision->getDisplayName();
+                $Item['Type'] = $tblDivision->getTypeName();
+                if ($tblDivision->getServiceTblYear()) {
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
+                }
+                $Item['Option'] = new Standard('', '/Reporting/Standard/Person/BirthdayClassList', new EyeOpen(),
+                    array('DivisionId' => $tblDivision->getId()));
+                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                array_push($TableContent, $Item);
+            });
+        }
+
         $Stage->setContent(
-            new Well(
-                Person::useService()->getClass(
-                    new Form(new FormGroup(array(
-                        new FormRow(array(
-                            new FormColumn(
-                                new SelectBox('Select[Division]', 'Klasse', array(
-                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                                )), 12
-                            )
-                        )),
-                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                    , $Select, '/Reporting/Standard/Person/BirthdayClassList')
-            )
-            .
-            ( $DivisionId !== null ?
+            ( $DivisionId === null ?
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($TableContent, null,
+                                    array(
+                                        'Year'     => 'Jahr',
+                                        'Division' => 'Klasse',
+                                        'Type'     => 'Schulart',
+                                        'Count'    => 'Schüler',
+                                        'Option'   => '',))
+                                , 12)
+                        ), new Title(new Listing().' Übersicht')
+                    )
+                ) : '' )
+            .( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
+                    ( $tblDivision->getServiceTblYear() ?
+                        new LayoutColumn(
+                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ) : '' ),
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_INFO), 12
+                        new Panel('Klasse', $tblDivision->getDisplayName(),
+                            Panel::PANEL_TYPE_SUCCESS), 4
                     ),
+                    ( $tblDivision->getTypeName() ?
+                        new LayoutColumn(
+                            new Panel('Schulart', $tblDivision->getTypeName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ) : '' ),
                 )))))
                 .
                 new TableData($studentList, null,
@@ -346,14 +425,16 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionId
-     * @param null $Select
      *
      * @return Stage
      */
-    public function frontendMedicalInsuranceClassList($DivisionId = null, $Select = null)
+    public function frontendMedicalInsuranceClassList($DivisionId = null)
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten Krankenkasse');
+        if (null !== $DivisionId) {
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/MedicalInsuranceClassList', new ChevronLeft()));
+        }
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
         $studentList = array();
@@ -366,8 +447,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Select']['Division'] = $DivisionId;
                 $Global->savePost();
             }
-
-            //ToDo JohK Schuljahr
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
@@ -393,32 +472,61 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $TableContent = array();
+        if ($tblDivisionAll) {
+            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
+
+                $Item['Year'] = '';
+                $Item['Division'] = $tblDivision->getDisplayName();
+                $Item['Type'] = $tblDivision->getTypeName();
+                if ($tblDivision->getServiceTblYear()) {
+                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
+                }
+                $Item['Option'] = new Standard('', '/Reporting/Standard/Person/MedicalInsuranceClassList', new EyeOpen(),
+                    array('DivisionId' => $tblDivision->getId()));
+                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                array_push($TableContent, $Item);
+            });
+        }
+
         $Stage->setContent(
-            new Well(
-                Person::useService()->getClass(
-                    new Form(new FormGroup(array(
-                        new FormRow(array(
-                            new FormColumn(
-                                new SelectBox('Select[Division]', 'Klasse', array(
-                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                                )), 12
-                            )
-                        )),
-                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                    , $Select, '/Reporting/Standard/Person/MedicalInsuranceClassList')
-            )
-            .
-            ( $DivisionId !== null ?
+            ( $DivisionId === null ?
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($TableContent, null,
+                                    array(
+                                        'Year'     => 'Jahr',
+                                        'Division' => 'Klasse',
+                                        'Type'     => 'Schulart',
+                                        'Count'    => 'Schüler',
+                                        'Option'   => '',))
+                                , 12)
+                        ), new Title(new Listing().' Übersicht')
+                    )
+                ) : '' )
+            .( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
+                    ( $tblDivision->getServiceTblYear() ?
+                        new LayoutColumn(
+                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ) : '' ),
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_INFO), 12
+                        new Panel('Klasse', $tblDivision->getDisplayName(),
+                            Panel::PANEL_TYPE_SUCCESS), 4
                     ),
+                    ( $tblDivision->getTypeName() ?
+                        new LayoutColumn(
+                            new Panel('Schulart', $tblDivision->getTypeName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ) : '' ),
                 )))))
                 .
                 new TableData($studentList, null,
                     array(
-                        'Number'              => 'lfd. Nr.',
+                        'Number'              => 'Schüler-Nr.',
                         'Name'                => 'Name,<br/>Vorname',
                         'Address'             => 'Anschrift',
                         'Birthday'            => 'Geburtsdatum<br/>Geburtsort',
@@ -474,8 +582,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            //ToDo JohK Schuljahr
-
             $tblGroup = Group::useService()->getGroupById($GroupId);
             if ($tblGroup) {
                 $groupList = Person::useService()->createGroupList($tblGroup);
@@ -505,9 +611,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new Form(new FormGroup(array(
                         new FormRow(array(
                             new FormColumn(
-                                new SelectBox('Select[Group]', 'Gruppe', array(
-                                    '{{ Name }}' => $tblGroupAll
-                                )), 12
+                                new Panel('Auswahl', array(
+                                    new SelectBox('Select[Group]', 'Gruppe', array(
+                                        '{{ Name }}' => $tblGroupAll
+                                    ))
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 12
                             )
                         )),
                     )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))

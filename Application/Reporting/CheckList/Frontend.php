@@ -503,7 +503,7 @@ class Frontend extends Extension implements IFrontendInterface
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
                                 /** @var TblDivision $tblObject */
                                 $tblYear = $tblObject->getServiceTblYear();
-                                $tblListObjectList->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
+                                $tblListObjectList->DisplayName = ( $tblYear ? $tblYear->getDisplayName().' ' : '' )
                                     . $tblObject->getDisplayName()
                                     . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblObject) . ')';
                                 $tblListObjectList->Groups = '';
@@ -759,7 +759,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $Global->POST['Option'][$tblDivision->getId()] = 1;
                                     $Global->savePost();
                                     $tblYear = $tblDivision->getServiceTblYear();
-                                    $tblDivision->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
+                                    $tblDivision->DisplayName = ( $tblYear ? $tblYear->getDisplayName().' ' : '' )
                                         . $tblDivision->getDisplayName()
                                         . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblDivision) . ')';
                                     $tblDivision->Groups = '';
