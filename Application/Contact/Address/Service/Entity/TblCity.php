@@ -92,12 +92,8 @@ class TblCity extends Element
     public function getDisplayName()
     {
         $district = trim($this->District);
-        if ($district !== ''){
-            if (strpos($district, 'OT ') === 0){
-                return $this->Name . ' ' . $district;
-            } else {
-                return $this->Name . ' OT ' . $district;
-            }
+        if ($district !== '') {
+            return $this->Name . ' OT ' . preg_replace('!^OT\s!is', '', $district);
         }
 
         return $this->Name;

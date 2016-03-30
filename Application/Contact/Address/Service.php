@@ -157,8 +157,8 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
@@ -358,8 +358,8 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
@@ -461,8 +461,8 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
@@ -564,8 +564,8 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');

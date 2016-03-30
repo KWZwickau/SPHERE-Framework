@@ -8,6 +8,8 @@
         {{ City.getCode }}
         {{ City.getDisplayName }}
     {% endif %}
-    <br/>
-    {{ Address.getLocation }}
+    {% if(Address.getLocation) %}
+        <br/>
+        {{ Address.getLocation }}
+    {% endif %}
 {% endif %}

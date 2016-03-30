@@ -235,6 +235,6 @@ class TblAddress extends Element
             $result[] = $this->Nation;
         }
 
-        return empty($result) ? false : implode(', ', $result);
+        return empty($result) ? '' : implode(', ', $result);
     }
 }
