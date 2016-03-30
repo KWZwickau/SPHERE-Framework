@@ -120,11 +120,17 @@ class Service extends AbstractService
         if (isset( $Address ) && empty( $Address )) {
             $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
             $Error = true;
+        } else {
+            $Form->setSuccess('Number');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
         }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblMail = (new Data($this->getBinding()))->createMail($Address);
 
             if ((new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
@@ -198,11 +204,17 @@ class Service extends AbstractService
         if (isset( $Address ) && empty( $Address )) {
             $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
             $Error = true;
+        } else {
+            $Form->setSuccess('Number');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
         }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblMail = (new Data($this->getBinding()))->createMail($Address);
 
             if ((new Data($this->getBinding()))->addMailToCompany($tblCompany, $tblMail, $tblType, $Type['Remark'])
@@ -246,11 +258,17 @@ class Service extends AbstractService
         if (isset( $Address ) && empty( $Address )) {
             $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
             $Error = true;
+        } else {
+            $Form->setSuccess('Number');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
         }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblMail = (new Data($this->getBinding()))->createMail($Address);
             // Remove current
             (new Data($this->getBinding()))->removeMailToPerson($tblToPerson);
@@ -304,11 +322,17 @@ class Service extends AbstractService
         if (isset( $Address ) && empty( $Address )) {
             $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
             $Error = true;
+        } else {
+            $Form->setSuccess('Number');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
         }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblMail = (new Data($this->getBinding()))->createMail($Address);
             // Remove current
             (new Data($this->getBinding()))->removeMailToCompany($tblToCompany);
