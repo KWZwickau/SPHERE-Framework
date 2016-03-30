@@ -88,8 +88,8 @@ class GsJOne extends Certificate
                             ->setContent('Vorname und Name:')
                             , '21%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Person.Data.FirstName }}
-                                          {{ Content.Person.Data.LastName }}')
+                            ->setContent('{{ Content.Person.Data.Name.First }}
+                                          {{ Content.Person.Data.Name.Last }}')
                             ->styleBorderBottom()
                             , '79%')
                     )->styleMarginTop('5px')
@@ -97,7 +97,11 @@ class GsJOne extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Input.Remark|nl2br }}')
+                            ->setContent('{% if(Content.Input.Remark is not empty) %}
+                                    {{ Content.Input.Remark|nl2br }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                         )
                     )
@@ -280,7 +284,11 @@ class GsJOne extends Certificate
                             ->setContent('Datum:')
                             , '7%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Input.Date }}')
+                            ->setContent('{% if(Content.Input.Date is not empty) %}
+                                                {{ Content.Input.Date }}
+                                            {% else %}
+                                                &nbsp;
+                                            {% endif %}')
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
                             , '23%')

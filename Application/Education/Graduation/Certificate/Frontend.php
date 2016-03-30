@@ -187,30 +187,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // TODO: Find Templates in Database (DMS)
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Abgangszeugnis',
-                        'Option'   => new Standard(
-                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
-                            'Division'    => $tblDivision->getId(),
-                            'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsAbg'
-                        ), 'Auswählen')
-                    );
-                    $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Abschlusszeugnis Hauptschule',
-                        'Option'   => new Standard(
-                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
-                            'Division'    => $tblDivision->getId(),
-                            'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsAbsHs'
-                        ), 'Auswählen')
-                    );
-                    $TemplateTable[] = array(
                         'Template' => 'Grundschule Halbjahresinformation',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
                             'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'GsHjInfo'
+                            'Certificate' => 'GSHJInfo'
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
@@ -219,7 +201,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
                             'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'GsJ'
+                            'Certificate' => 'GSJ'
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
@@ -238,6 +220,87 @@ class Frontend extends Extension implements IFrontendInterface
                             'Division'    => $tblDivision->getId(),
                             'Person'      => $tblPerson->getId(),
                             'Certificate' => 'GsJOne'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abgangszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbg'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abschlusszeugnis Hauptschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbsHs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule qualifiziertes Abschlusszeugnis Hauptschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbsHsQ'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abschlusszeugnis Realschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbsRs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Halbjahreszeugnis Hauptschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsHjHs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Halbjahreszeugnis Realschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsHjRs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Halbjahresinformation',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsHjInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Jahreszeugnis Hauptschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsJHs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Jahreszeugnis Realschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsJRs'
                         ), 'Auswählen')
                     );
 
@@ -310,6 +373,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
 
                             'Content.Input.Remark'   => 'TextArea',
+                            'Content.Input.Rating'   => 'TextArea',
                             'Content.Input.Date'     => 'DatePicker',
                             'Content.Input.Transfer' => 'TextField',
                         );
@@ -325,6 +389,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Division.Data.Name'       => 'Klassengruppe',
 
                             'Content.Input.Remark'   => 'Bemerkungen',
+                            'Content.Input.Rating'   => 'Einschätzung',
                             'Content.Input.Date'     => 'Datum',
                             'Content.Input.Transfer' => 'Versetzungsvermerk'
                         );

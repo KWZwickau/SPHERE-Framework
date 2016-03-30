@@ -188,8 +188,10 @@ abstract class Certificate extends Extension
 
         $this->Person['Address'] = array_merge($tblAddress->__toArray(),
             array('City' => $tblAddress->getTblCity()->__toArray()));
-        $this->Person['Address'] = array_merge($this->Person['Address'],
-            array('State' => $tblAddress->getTblState()->__toArray()));
+        if ($tblAddress->getTblState()) {
+            $this->Person['Address'] = array_merge($this->Person['Address'],
+                array('State' => $tblAddress->getTblState()->__toArray()));
+        }
         $this->Person['Address']['Street']['Name'] = $tblAddress->getStreetName();
         $this->Person['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
         return $this;

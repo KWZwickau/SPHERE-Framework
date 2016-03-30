@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Frame;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Page;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 class GsJ extends Certificate
 {
@@ -87,8 +88,8 @@ class GsJ extends Certificate
                             ->setContent('Vorname und Name:')
                             , '21%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Person.Data.FirstName }}
-                                          {{ Content.Person.Data.LastName }}')
+                            ->setContent('{{ Content.Person.Data.Name.First }}
+                                          {{ Content.Person.Data.Name.Last }}')
                             ->styleBorderBottom()
                             , '79%')
                     )->styleMarginTop('5px')
@@ -475,7 +476,11 @@ class GsJ extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Input.Remark|nl2br }}')
+                            ->setContent('{% if(Content.Input.Remark is not empty) %}
+                                    {{ Content.Input.Remark|nl2br }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                         )
                     )
@@ -546,7 +551,11 @@ class GsJ extends Certificate
                             ->setContent('Datum:')
                             , '7%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Input.Date }}')
+                            ->setContent('{% if(Content.Input.Date is not empty) %}
+                                                {{ Content.Input.Date }}
+                                            {% else %}
+                                                &nbsp;
+                                            {% endif %}')
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
                             , '23%')
@@ -633,9 +642,9 @@ class GsJ extends Certificate
                     )->styleMarginTop('72px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Notenerläuterung:<br/>
+                            ->setContent('Notenerläuterung:'.new Container('
                                           1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
+                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'))
                             ->styleTextSize('9.5px')
                         )
                     )
