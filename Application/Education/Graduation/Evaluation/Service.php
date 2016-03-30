@@ -25,7 +25,6 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -154,13 +153,13 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (!isset($Test['Period'])) {
+        if (!($tblPeriod = Term::useService()->getPeriodById($Test['Period']))){
+            $Stage->setError('Test[Period]', 'Bitte wählen Sie einen Zeitraum aus');
             $Error = true;
-            $Stage .= new Warning('Zeitraum nicht gefunden');
         }
-        if (!isset($Test['GradeType'])) {
+        if (!($tblGradeType = Gradebook::useService()->getGradeTypeById($Test['GradeType']))){
+            $Stage->setError('Test[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
             $Error = true;
-            $Stage .= new Warning('Zensuren-Typ nicht gefunden');
         }
         if ($Error) {
             return $Stage;
@@ -185,7 +184,6 @@ class Service extends AbstractService
                 array('DivisionSubjectId' => $tblDivisionSubject->getId()));
         }
 
-        $tblGradeType = Gradebook::useService()->getGradeTypeById($Test['GradeType']);
         if (!$tblGradeType) {
             return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
             . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_ERROR,
@@ -196,7 +194,7 @@ class Service extends AbstractService
             $tblDivisionSubject->getTblDivision(),
             $tblDivisionSubject->getServiceTblSubject(),
             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-            Term::useService()->getPeriodById($Test['Period']),
+            $tblPeriod,
             $tblGradeType,
             $this->getTestTypeByIdentifier('TEST'),
             null,
@@ -206,7 +204,7 @@ class Service extends AbstractService
             $Test['ReturnDate']
         );
 
-        return new Success('Der Test ist erfasst worden', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        return new Success('Die Leistungsüberprüfung ist angelegt worden', new \SPHERE\Common\Frontend\Icon\Repository\Success())
         . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
 
@@ -298,6 +296,10 @@ class Service extends AbstractService
         }
 
         $Error = false;
+        if (!($tblTestType = Evaluation::useService()->getTestTypeById($Task['Type']))){
+            $Stage->setError('Task[Type]', 'Bitte wählen Sie eine Kategorie aus');
+            $Error = true;
+        }
         if (isset($Task['Name']) && empty($Task['Name'])) {
             $Stage->setError('Task[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
@@ -316,7 +318,6 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            $tblTestType = $this->getTestTypeById($Task['Type']);
             $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
             $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
             (new Data($this->getBinding()))->createTask(
