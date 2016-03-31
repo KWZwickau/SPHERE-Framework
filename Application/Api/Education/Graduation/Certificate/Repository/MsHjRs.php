@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class MsHjInfo extends Certificate
+class MsHjRs extends Certificate
 {
 
     /**
@@ -22,7 +22,7 @@ class MsHjInfo extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS Halbjahres Info 3a.pdf')
+                    ->setContent('MS Halbjahreszeugnis Realschule 3e.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -59,7 +59,7 @@ class MsHjInfo extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Halbjahresinformation der Mittelschule')
+                        ->setContent('Halbjahreszeugnis der Mittelschule')
                         ->styleTextSize('18px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -108,7 +108,7 @@ class MsHjInfo extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('nahm am Unterricht mit dem Ziel des Realschulabschlusses teil.')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')
@@ -683,15 +683,6 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
                             ->setContent('Datum:')
                             , '7%')
                         ->addElementColumn((new Element())
@@ -717,6 +708,9 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleAlignCenter()
+                            ->styleBorderBottom('1px', '#000')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '40%')
@@ -728,10 +722,16 @@ class MsHjInfo extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('Schulleiter(in)')
+                            ->styleAlignCenter()
+                            ->styleTextSize('11px')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '5%')
                         ->addElementColumn((new Element())
+                            ->setContent('Dienstsiegel der Schule')
+                            ->styleAlignCenter()
+                            ->styleTextSize('11px')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '5%')
@@ -774,7 +774,7 @@ class MsHjInfo extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('47px')
+                    )->styleMarginTop('76px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'

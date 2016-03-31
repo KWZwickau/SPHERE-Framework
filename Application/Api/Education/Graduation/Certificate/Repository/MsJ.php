@@ -101,20 +101,7 @@ class MsJ extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('{% if(Content.Person.Student.Transfer is empty) %}
-                            &nbsp;
-                            {% else %}
-                                {% if(Content.Person.Student.Transfer == "Hauptschule") %}
-                                    nahm am Unterricht mit dem Ziel des Hauptschulabschlusses teil.
-                                {% else %}
-                                    {% if(Content.Person.Student.Transfer == "Realschule") %}
-                                        nahm am Unterricht mit dem Ziel des Realschulabschlusses teil.
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
-                                {% endif %}
-                            {% endif %}
-                        ')
+                        ->setContent('&nbsp;')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')

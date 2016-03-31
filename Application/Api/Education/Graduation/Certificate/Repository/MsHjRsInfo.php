@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class MsHjInfo extends Certificate
+class MsHjRsInfo extends Certificate
 {
 
     /**
@@ -22,7 +22,7 @@ class MsHjInfo extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS Halbjahres Info 3a.pdf')
+                    ->setContent('MS Halbjahres Info Realschule 3a.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -108,7 +108,7 @@ class MsHjInfo extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('nahm am Unterricht mit dem Ziel des Realschulabschlusses teil.')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')

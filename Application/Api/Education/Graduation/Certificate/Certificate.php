@@ -139,11 +139,8 @@ abstract class Certificate extends Extension
                 $this->allocatePersonCommon($Common);
             }
         }
-        if ($this->tblPerson) {
-            $Student = Student::useService()->getStudentByPerson($this->tblPerson);
-            if ($Student) {
-                $this->allocatePersonStudent($Student);
-            }
+        if ($this->tblStudent) {
+            $this->allocatePersonStudent($this->tblStudent);
         }
         /**
          * Allocate Company
@@ -226,11 +223,11 @@ abstract class Certificate extends Extension
 
         $this->Person['Student'] = $tblStudent->__toArray();
 
-        $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+        $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
         $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType);
         if ($tblTransfer) {
             if ($tblTransfer->getServiceTblCourse()) {
-                $this->Person['Student']['Transfer'] = $tblTransfer->getServiceTblCourse()->getName();
+                $this->Person['Student']['Course'] = $tblTransfer->getServiceTblCourse()->getName();
             }
         }
         return $this;
