@@ -80,8 +80,11 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $Error = false;
-
+        $Error = true;
+        if (isset( $Type['Type'] ) && $Type['Type'] == '0') {
+            $Form->setError('Type[Type]', 'Bitte geben Sie eine Schulart an');
+            $Error = true;
+        }
         if (null === $School) {
             $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Schule aus')))));
             $Error = true;
