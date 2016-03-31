@@ -81,7 +81,7 @@ class Service extends AbstractService
         }
 
         $Error = true;
-        if (isset( $Type['Type'] ) && $Type['Type'] == '0') {
+        if (!( Type::useService()->getTypeById($Type['Type']) )) {
             $Form->setError('Type[Type]', 'Bitte geben Sie eine Schulart an');
             $Error = true;
         }
