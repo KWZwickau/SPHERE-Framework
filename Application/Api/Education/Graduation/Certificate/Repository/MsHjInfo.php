@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class MsJRs extends Certificate
+class MsHjInfo extends Certificate
 {
 
     /**
@@ -22,7 +22,7 @@ class MsJRs extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS Jahreszeugnis Realschule 3c.pdf')
+                    ->setContent('MS Halbjahres Info 3a.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -43,7 +43,8 @@ class MsJRs extends Certificate
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Name der Schule:')
-                            , '18%')
+                            , '18%'
+                        )
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Company.Data.Name is not empty) %}
                                     {{ Content.Company.Data.Name }}
@@ -52,12 +53,13 @@ class MsJRs extends Certificate
                                 {% endif %}
                             ')
                             ->styleBorderBottom()
-                            , '82%')
+                            , '82%'
+                        )
                     )->styleMarginTop('20px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Jahreszeugnis der Mittelschule')
+                        ->setContent('Halbjahresinformation der Mittelschule')
                         ->styleTextSize('18px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -68,23 +70,28 @@ class MsJRs extends Certificate
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klasse:')
-                            , '7%')
+                            , '7%'
+                        )
                         ->addElementColumn((new Element())
                             ->setContent('{{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}')
                             ->styleBorderBottom()
                             ->styleAlignCenter()
-                            , '7%')
+                            , '7%'
+                        )
                         ->addElementColumn((new Element())
-                            , '55%')
+                            , '55%'
+                        )
                         ->addElementColumn((new Element())
-                            ->setContent('Schuljahr:')
+                            ->setContent('1. Schulhalbjahr:')
                             ->styleAlignRight()
-                            , '18%')
+                            , '18%'
+                        )
                         ->addElementColumn((new Element())
                             ->setContent('2015/16')
                             ->styleBorderBottom()
                             ->styleAlignCenter()
-                            , '13%')
+                            , '13%'
+                        )
                     )->styleMarginTop('20px')
                 )
                 ->addSlice((new Slice())
@@ -100,16 +107,20 @@ class MsJRs extends Certificate
                     )->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('{% if(Content.Division.Data.Level.Name is not empty ) %}
-                                {% if(Content.Division.Data.Level.Name > 6 ) %}
-                                nahm am Unterricht mit dem Ziel des Realschulabschlusses teil.
+                    ->addElement((new Element())//ToDO
+                    ->setContent('{% if(Content.Person.Student.Transfer is empty) %}
+                        &nbsp;
+                        {% else %}
+                            {% if(Content.Person.Student.Transfer == "Hauptschule") %}
+                                nahm am Unterricht mit dem Ziel des Hauptschulabschlusses teil.
+                            {% else %}
+                                {% if(Content.Person.Student.Transfer == "Realschule") %}
+                                    nahm am Unterricht mit dem Ziel des Realschulabschlusses teil.
                                 {% else %}
                                     &nbsp;
                                 {% endif %}
-                            {% else %}
-                                &nbsp;
                             {% endif %}
+                        {% endif %}
                         ')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
@@ -192,40 +203,6 @@ class MsJRs extends Certificate
                             , '9%')
                     )
                     ->styleMarginTop('3px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Einschätzung:')
-                            , '16%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Rating is not empty) %}
-                                    {{ Content.Input.Rating|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
-                            , '84%')
-                    )
-                    ->styleMarginTop('15px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -701,14 +678,27 @@ class MsJRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Versetzungsvermerk:')
-                            , '22%')
+                            ->setContent('&nbsp;')
+                            ->styleBorderBottom('1px', '#BBB')
+                        )
+                    )
+                    ->styleMarginTop('5px')
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
                             ->styleBorderBottom('1px', '#BBB')
-                            , '58%')
+                        )
+                    )
+                    ->styleMarginTop('5px')
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            , '20%')
+                            ->setContent('&nbsp;')
+                            ->styleBorderBottom('1px', '#BBB')
+                        )
                     )
                     ->styleMarginTop('5px')
                 )
@@ -740,9 +730,6 @@ class MsJRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom('1px', '#000')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '40%')
@@ -754,16 +741,10 @@ class MsJRs extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schulleiter(in)')
-                            ->styleAlignCenter()
-                            ->styleTextSize('11px')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '5%')
                         ->addElementColumn((new Element())
-                            ->setContent('Dienstsiegel der Schule')
-                            ->styleAlignCenter()
-                            ->styleTextSize('11px')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '5%')
@@ -806,12 +787,12 @@ class MsJRs extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('17px')
+                    )->styleMarginTop('47px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'
                                 .new Container('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'))
+                                                6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'))
                             ->styleTextSize('9.5px')
                             , '30%')
                     )
