@@ -75,10 +75,14 @@ class Service
         }
 
         $tblGroup = Group::useService()->getGroupById($Select['Group']);
-
-        return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
-            'GroupId' => $tblGroup->getId(),
-        ));
+        if ($tblGroup){
+            return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
+                'GroupId' => $tblGroup->getId(),
+            ));
+        } else {
+            $Stage->setError('Select[Group]', 'Bitte wählen Sie eine Gruppe aus');
+            return $Stage;
+        }
     }
 
     /**
