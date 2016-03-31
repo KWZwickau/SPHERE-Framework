@@ -92,6 +92,7 @@ class Service extends AbstractService
         if (!$Error) {
 
             if (( $tblCompany = (new Data($this->getBinding()))->createCompany($Company['Name'],
+                $Company['ExtendedName'],
                 $Company['Description']) )
             ) {
                 // Add to Group
@@ -124,7 +125,7 @@ class Service extends AbstractService
     public function insertCompany($Name, $Description = '')
     {
 
-        return (new Data($this->getBinding()))->createCompany($Name, $Description);
+        return (new Data($this->getBinding()))->createCompany($Name, '', $Description);
     }
 
     /**
@@ -166,7 +167,7 @@ class Service extends AbstractService
         if (!$Error) {
 
             if ((new Data($this->getBinding()))->updateCompany($tblCompany, $Company['Name'],
-                $Company['Description'])
+                $Company['ExtendedName'], $Company['Description'])
             ) {
                 // Change Groups
                 if (isset( $Company['Group'] )) {

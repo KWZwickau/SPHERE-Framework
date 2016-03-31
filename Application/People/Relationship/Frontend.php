@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -307,7 +308,9 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 } else {
                     $tblCompany = array(
-                        'Company' => new RadioBox('To', $tblCompany->getName() . ' ' . new Muted($tblCompany->getDescription()),
+                        'Company' => new RadioBox('To', $tblCompany->getName()
+                                .new Container(new Container($tblCompany->getExtendedName()))
+                                .new Container(new Container(new Muted($tblCompany->getDescription()))),
                                 $tblCompany->getId())
                             . new PullRight(new Standard('', '/Corporation/Company',
                                 new Building(),
@@ -326,12 +329,14 @@ class Frontend extends Extension implements IFrontendInterface
             $PanelCompany = new Panel('zu folgender Firma ' . new Building(),
                 array(
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Firma, '),
-                    new PullLeft(new RadioBox('To', $currentCompany->getName() . ' ' . new Muted($currentCompany->getDescription()),
+                    new PullLeft(new RadioBox('To', $currentCompany->getName()
+                        .new Container(new Container($currentCompany->getExtendedName()))
+                        .new Container(new Container(new Muted($currentCompany->getDescription()))),
                         $currentCompany->getId()))
                     . new PullRight(new Standard('', '/Corporation/Company',
                         new Building(),
                         array('Id' => $currentCompany->getId()),
-                        'zu ' . $currentCompany->getName() . ' wechseln')),
+                        'zu '.$currentCompany->getDisplayName().' wechseln')),
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Firma wählen: '),
                     new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen')),
                 ), Panel::PANEL_TYPE_INFO,

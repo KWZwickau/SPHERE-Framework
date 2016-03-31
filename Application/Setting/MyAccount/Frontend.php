@@ -326,7 +326,9 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $Result[] = new Panel(
                         new Bold($tblSchool->getServiceTblType()? $tblSchool->getServiceTblType()->getName() : '')
-                            .' - '.$tblCompany->getName().' '.$tblCompany->getDescription(),
+                        .' - '.$tblCompany->getName()
+                        .new Container($tblCompany->getExtendedName())
+                        .new Container(new Muted($tblCompany->getDescription())),
                         $List,
                         Panel::PANEL_TYPE_DEFAULT
                     );
@@ -380,7 +382,9 @@ class Frontend extends Extension implements IFrontendInterface
                         });
                     }
                     $Result[] = new Panel(
-                        new Bold('Schulträger: ').$tblCompany->getName().' '.$tblCompany->getDescription(), $List,
+                        new Bold('Schulträger: ').$tblCompany->getName()
+                        .new Container($tblCompany->getExtendedName())
+                        .new Container(new Muted($tblCompany->getDescription())), $List,
                         Panel::PANEL_TYPE_DEFAULT
                     );
                 }
@@ -434,7 +438,10 @@ class Frontend extends Extension implements IFrontendInterface
                             });
                         }
                         $Result[] = new Panel(
-                            new Bold('Förderverein: ').$tblCompany->getName().' '.$tblCompany->getDescription(), $List,
+                            new Bold('Förderverein: ').$tblCompany->getName()
+                            .new Container($tblCompany->getExtendedName())
+                            .new Container(new Muted($tblCompany->getDescription())),
+                            $List,
                             Panel::PANEL_TYPE_DEFAULT
                         );
                     }

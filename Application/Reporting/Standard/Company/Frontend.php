@@ -106,6 +106,7 @@ class Frontend extends Extension implements IFrontendInterface
                     array(
                         'Number'           => 'lfd. Nr.',
                         'Name'             => 'Name',
+                        'ExtendedName'     => 'Zusatz',
                         'Description'      => 'Beschreibung',
                         'Address'          => 'Anschrift',
                         'PhoneNumber'      => 'Telefon Festnetz',

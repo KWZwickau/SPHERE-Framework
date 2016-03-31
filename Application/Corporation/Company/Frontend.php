@@ -98,6 +98,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global = $this->getGlobal();
                 if (!isset($Global->POST['Company'])) {
                     $Global->POST['Company']['Name'] = $tblCompany->getName();
+                    $Global->POST['Company']['ExtendedName'] = $tblCompany->getExtendedName();
                     $Global->POST['Company']['Description'] = $tblCompany->getDescription();
                     $tblGroupAll = Group::useService()->getGroupAllByCompany($tblCompany);
                     if (!empty($tblGroupAll)) {
@@ -269,6 +270,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Firmenname', array(
                             new TextField('Company[Name]', 'Name', 'Name'),
+                            new TextField('Company[ExtendedName]', 'Zusatz', 'Zusatz'),
                             new TextField('Company[Description]', 'Beschreibung', 'Beschreibung'),
                         ), Panel::PANEL_TYPE_INFO), 8),
                     new FormColumn(
@@ -311,7 +313,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 Panel::PANEL_TYPE_INFO),
                             new Panel(new Question() . ' Diese Firma wirklich löschen?', array(
                                 $tblCompany->getName(),
-                                $tblCompany->getDescription() ? $tblCompany->getDescription() : null
+                                $tblCompany->getExtendedName(),
+                                $tblCompany->getDescription()
                             ),
                                 Panel::PANEL_TYPE_DANGER,
                                 new Standard(
