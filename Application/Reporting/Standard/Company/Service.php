@@ -149,11 +149,12 @@ class Service
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
             $export->setValue($export->getCell("1", "0"), "Name");
-            $export->setValue($export->getCell("2", "0"), "Beschreibung");
-            $export->setValue($export->getCell("3", "0"), "Anschrift");
-            $export->setValue($export->getCell("4", "0"), "Telefon Festnetz");
-            $export->setValue($export->getCell("5", "0"), "Telefon Mobil");
-            $export->setValue($export->getCell("6", "0"), "E-mail");
+            $export->setValue($export->getCell("2", "0"), "Zusatz");
+            $export->setValue($export->getCell("3", "0"), "Beschreibung");
+            $export->setValue($export->getCell("4", "0"), "Anschrift");
+            $export->setValue($export->getCell("5", "0"), "Telefon Festnetz");
+            $export->setValue($export->getCell("6", "0"), "Telefon Mobil");
+            $export->setValue($export->getCell("7", "0"), "E-mail");
 
             $Row = 1;
 
@@ -162,12 +163,13 @@ class Service
                 $export->setValue($export->getCell("0", $Row), $tblCompany->Number);
                 /** @var TblCompany $tblCompany */
                 $export->setValue($export->getCell("1", $Row), $tblCompany->getName());
-                $export->setValue($export->getCell("2", $Row), $tblCompany->getDescription());
+                $export->setValue($export->getCell("2", $Row), $tblCompany->getExtendedName());
+                $export->setValue($export->getCell("3", $Row), $tblCompany->getDescription());
                 /** @var $tblCompany */
-                $export->setValue($export->getCell("3", $Row), $tblCompany->Address);
-                $export->setValue($export->getCell("4", $Row), $tblCompany->PhoneNumber);
-                $export->setValue($export->getCell("5", $Row), $tblCompany->MobilPhoneNumber);
-                $export->setValue($export->getCell("6", $Row), $tblCompany->Mail);
+                $export->setValue($export->getCell("4", $Row), $tblCompany->Address);
+                $export->setValue($export->getCell("5", $Row), $tblCompany->PhoneNumber);
+                $export->setValue($export->getCell("6", $Row), $tblCompany->MobilPhoneNumber);
+                $export->setValue($export->getCell("7", $Row), $tblCompany->Mail);
 
                 $Row++;
             }

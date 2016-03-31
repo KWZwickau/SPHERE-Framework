@@ -82,12 +82,13 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     array_push($Result, array(
-                        'Name'        => $tblCompany->getName(),
-                        'Address'     => ( $tblAddressAll
+                        'Name'         => $tblCompany->getName(),
+                        'ExtendedName' => $tblCompany->getExtendedName(),
+                        'Address'      => ( $tblAddressAll
                             ? $tblAddressAll
                             : new Warning('Keine Adresse hinterlegt')
                         ),
-                        'Option'      => (new Standard('', '/Corporation/Company', new Pencil(), array(
+                        'Option'       => (new Standard('', '/Corporation/Company', new Pencil(), array(
                             'Id'    => $tblCompany->getId(),
                             'Group' => $tblGroup->getId()
                         ), 'Bearbeiten'))
@@ -95,7 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Id'    => $tblCompany->getId(),
                                 'Group' => $tblGroup->getId()
                             ), 'Löschen')),
-                        'Description' => $tblCompany->getDescription()
+                        'Description'  => $tblCompany->getDescription()
                     ));
                 });
                 $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__.':StopRun');
@@ -114,10 +115,11 @@ class Frontend extends Extension implements IFrontendInterface
                         new Headline('Verfügbare Firmen', 'in dieser Gruppe'),
                         new TableData($Result, null,
                             array(
-                                'Name'        => 'Name',
-                                'Address'     => 'Adresse',
-                                'Description' => 'Beschreibung',
-                                'Option'      => 'Optionen',
+                                'Name'         => 'Name',
+                                'ExtendedName' => 'Zusatz',
+                                'Address'      => 'Adresse',
+                                'Description'  => 'Beschreibung',
+                                'Option'       => 'Optionen',
                             )
                         )
                     )))

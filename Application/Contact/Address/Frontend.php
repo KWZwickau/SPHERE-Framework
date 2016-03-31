@@ -203,7 +203,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new Panel(new Building() . ' Firma',
-                                    $tblCompany->getName(),
+                                    array($tblCompany->getName(),
+                                        $tblCompany->getExtendedName()),
                                     Panel::PANEL_TYPE_INFO
                                 )
                             )
@@ -354,7 +355,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(new PersonIcon() . ' Firma',
                                     $tblToCompany->getServiceTblCompany()
-                                        ? $tblToCompany->getServiceTblCompany()->getName()
+                                        ? array($tblToCompany->getServiceTblCompany()->getName(),
+                                        $tblToCompany->getServiceTblCompany()->getExtendedName())
                                         : 'Firma nicht gefunden.',
                                     Panel::PANEL_TYPE_INFO
                                 )
@@ -478,7 +480,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new Building() . ' Company',
-                            $tblCompany->getName(),
+                            array($tblCompany->getName(),
+                                $tblCompany->getExtendedName()),
                             Panel::PANEL_TYPE_SUCCESS,
                             new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
                                 array('Id' => $tblCompany->getId())

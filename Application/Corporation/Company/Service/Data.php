@@ -20,11 +20,12 @@ class Data extends AbstractData
 
     /**
      * @param string $Name
+     * @param string $ExtendedName
      * @param string $Description
      *
-     * @return TblCompany
+     * @return null|object|TblCompany
      */
-    public function createCompany($Name, $Description = '')
+    public function createCompany($Name, $ExtendedName = '', $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -35,6 +36,7 @@ class Data extends AbstractData
         if (null === $Entity) {
             $Entity = new TblCompany();
             $Entity->setName($Name);
+            $Entity->setExtendedName($ExtendedName);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -45,13 +47,15 @@ class Data extends AbstractData
     /**
      * @param TblCompany $tblCompany
      * @param string     $Name
+     * @param string     $ExtendedName
      * @param string     $Description
      *
-     * @return TblCompany
+     * @return bool
      */
     public function updateCompany(
         TblCompany $tblCompany,
         $Name,
+        $ExtendedName = '',
         $Description = ''
     ) {
 
@@ -61,6 +65,7 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setName($Name);
+            $Entity->setExtendedName($ExtendedName);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

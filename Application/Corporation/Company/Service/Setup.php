@@ -46,6 +46,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblCompany', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblCompany', 'ExtendedName')) {
+            $Table->addColumn('ExtendedName', 'string');
+        }
         if (!$this->getConnection()->hasColumn('tblCompany', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
