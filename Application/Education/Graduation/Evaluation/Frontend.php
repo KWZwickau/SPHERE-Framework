@@ -1298,6 +1298,22 @@ class Frontend extends Extension implements IFrontendInterface
 
                     }
 
+                    /*
+                     * fix #KREDA-337
+                     * Schüler besitzt keine Noten in einem Halbjahr
+                     */
+                    if (!empty($tableColumns) && is_array($studentList) && !empty($studentList)){
+                        foreach($tableColumns as $column => $name){
+                            if (stripos($column, 'Period') !== false){
+                                foreach ($studentList as $personId => $value){
+                                    if (!isset($studentList[$personId][$column])){
+                                        $studentList[$personId][$column] = '';
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     if ($showPriority) {
                         $tableColumns['Priority'] = 'Priorität';
                     }
@@ -1331,6 +1347,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($average) {
                             $studentList[$tblPerson->getId()]['Average']
                                 = new Bold($average);
+                        } else {
+                            $studentList[$tblPerson->getId()]['Average'] = new Warning('Keine Zensuren vorhanden');
                         }
                         if ($showPriority) {
                             $studentList[$tblPerson->getId()]['Priority'] = $priority;
