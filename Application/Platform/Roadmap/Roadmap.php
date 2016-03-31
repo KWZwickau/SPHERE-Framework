@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -124,7 +125,9 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         foreach ((array)$Sprints as $Sprint) {
 
             $SprintComplete = true;
+            /** @var LayoutColumn[] $IssueList */
             $IssueList = array();
+            /** @var LayoutColumn[] $ResolvedList */
             $ResolvedList = array();
             $Issues = $Sprint->getIssues();
             /** @var Issue $Issue */
@@ -165,7 +168,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                     }
 
                     $Title = $this->sanitizeTitle($Issue->getTitle());
-                    $Description = $this->sanitizeDescription($Issue->getDescription(), 6);
+                    $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
 
                     $ColumnList[] = new LayoutColumn(array(
                         new Panel($Title.' '.$ProgressBar,
@@ -212,33 +215,89 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                             )
 
                         )
-                    ), 11);
-
-                    $ColumnList[] = new LayoutColumn('', 1);
+                    ), 4);
 
                     $IssueList = array_merge($IssueList, $ColumnList);
                 }
             }
 
+            // Create Sprint-Content Layout
             if ($SprintComplete) {
+
+                $LayoutRowList = array();
+                $LayoutRowCount = 0;
+                $LayoutRow = null;
+                foreach ($ResolvedList as $LayoutColumn) {
+                    if ($LayoutRowCount % 4 == 0) {
+                        $LayoutRow = new LayoutRow(array());
+                        $LayoutRowList[] = $LayoutRow;
+                    }
+                    $LayoutRow->addColumn($LayoutColumn);
+                    $LayoutRowCount++;
+                }
+
                 $SprintList = new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Layout(new LayoutGroup(new LayoutRow($ResolvedList)))
+                            new Layout(new LayoutGroup($LayoutRowList))
                         ),
                     )),
                 )));
             } else {
-                $SprintList = new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Layout(new LayoutGroup(new LayoutRow($IssueList), new Title('Offen')))
-                            , 4),
-                        new LayoutColumn(
-                            new Layout(new LayoutGroup(new LayoutRow($ResolvedList), new Title('Behoben')))
-                            , 8),
-                    )),
-                )));
+                $LayoutRowList = array();
+                $LayoutRowCount = 0;
+                $LayoutRow = null;
+                foreach ($ResolvedList as $LayoutColumn) {
+                    if ($LayoutRowCount % 4 == 0) {
+                        $LayoutRow = new LayoutRow(array());
+                        $LayoutRowList[] = $LayoutRow;
+                    }
+                    $LayoutRow->addColumn($LayoutColumn);
+                    $LayoutRowCount++;
+                }
+                /** @var LayoutRow[] $ResolvedList */
+                $ResolvedList = $LayoutRowList;
+
+                $LayoutRowList = array();
+                $LayoutRowCount = 0;
+                $LayoutRow = null;
+                foreach ($IssueList as $LayoutColumn) {
+                    if ($LayoutRowCount % 3 == 0) {
+                        $LayoutRow = new LayoutRow(array());
+                        $LayoutRowList[] = $LayoutRow;
+                    }
+                    $LayoutRow->addColumn($LayoutColumn);
+                    $LayoutRowCount++;
+                }
+                /** @var LayoutRow[] $IssueList */
+                $IssueList = $LayoutRowList;
+
+                if (empty( $ResolvedList )) {
+                    $SprintList = new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Layout(new LayoutGroup($IssueList,
+                                    new Title(new Danger('Geplante Änderungen'), 'in '.$Sprint->getVersion())))
+                            ),
+                        ))
+                    )));
+                } else {
+                    $SprintList = new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Layout(new LayoutGroup($IssueList,
+                                    new Title(new Danger('Geplante Änderungen'), 'in '.$Sprint->getVersion())))
+                            ),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Layout(new LayoutGroup($ResolvedList,
+                                    new Title(new \SPHERE\Common\Frontend\Text\Repository\Success('Neuerungen'),
+                                        'in '.$Sprint->getVersion())))
+                            ),
+                        )),
+                    )));
+                }
             }
 
             if ($SprintComplete) {
@@ -290,7 +349,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         }
 
         $Stage->setContent(
-            '<style>.panel.panel-success {margin-bottom:0;}</style>'.
+//            '<style>.panel.panel-success {margin-bottom:0;}</style>'.
             new Layout(new LayoutGroup(new LayoutRow($LayoutColumns)))
         );
 
@@ -351,10 +410,13 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         if (strlen($LongDescription) > 0) {
             return new Small(nl2br($ShortDescription))
             .(new Accordion())->addItem(
-                new Italic(new Small('[mehr anzeigen]')),
+                new Italic(new Small('[Beschreibung anzeigen]')),
                 new Small(nl2br($LongDescription))
             )->getContent();
         } else {
+            if (strlen($ShortDescription) == 0) {
+                return new Small(new Italic(new Muted('Keine Beschreibung angegeben')));
+            }
             return new Small(nl2br($ShortDescription));
         }
     }
