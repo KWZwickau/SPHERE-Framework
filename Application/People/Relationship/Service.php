@@ -118,10 +118,14 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
 
             if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
                 $Type['Remark'])
@@ -214,10 +218,14 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
 
             if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
                 $Type['Remark'])
@@ -272,9 +280,14 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
 
         if (!$Error) {
-            $tblType = $this->getTypeById($Type['Type']);
             // Remove current
             (new Data($this->getBinding()))->removePersonRelationshipToPerson($tblToPerson);
             // Add new
@@ -329,9 +342,14 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
 
         if (!$Error) {
-            $tblType = $this->getTypeById($Type['Type']);
             // Remove current
             (new Data($this->getBinding()))->removeCompanyRelationshipToPerson($tblToCompany);
             // Add new
