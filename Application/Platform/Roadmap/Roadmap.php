@@ -122,7 +122,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         $SprintCurrent = null;
         $LayoutColumns = array();
         /** @var Sprint $Sprint */
-        foreach ((array)$Sprints as $Sprint) {
+        foreach ((array)$Sprints as $SprintIndex => $Sprint) {
 
             $SprintComplete = true;
             /** @var LayoutColumn[] $IssueList */
@@ -221,8 +221,14 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                 }
             }
 
+            $FoldSprint = false;
             // Create Sprint-Content Layout
             if ($SprintComplete) {
+
+                // Fold Sprint?
+                if (isset( $Sprints[( $SprintIndex + 1 )] ) && $Sprints[( $SprintIndex + 1 )]->isDone()) {
+                    $FoldSprint = true;
+                }
 
                 $LayoutRowList = array();
                 $LayoutRowCount = 0;
@@ -342,14 +348,15 @@ class Roadmap implements IApplicationInterface, IModuleInterface
             $LayoutColumns[] = new LayoutColumn(
                 new Panel(
                     $VersionHeader,
-                    (string)$SprintList, ( $SprintComplete ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING ),
+                    ( $FoldSprint ? (new Accordion())->addItem(new Small(new Italic(new Muted('[Änderungen anzeigen]'))),
+                        (string)$SprintList) : (string)$SprintList ),
+                    ( $SprintComplete ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING ),
                     $VersionFooter
                 )
             );
         }
 
         $Stage->setContent(
-//            '<style>.panel.panel-success {margin-bottom:0;}</style>'.
             new Layout(new LayoutGroup(new LayoutRow($LayoutColumns)))
         );
 
