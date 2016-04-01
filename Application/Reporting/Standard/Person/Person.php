@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Reporting\Standard\Person;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Reporting\AbstractModule;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
@@ -10,7 +11,7 @@ use SPHERE\Common\Window\Navigation\Link;
  *
  * @package SPHERE\Application\Reporting\Standard\Person
  */
-class Person implements IModuleInterface
+class Person extends AbstractModule implements IModuleInterface
 {
 
     public static function registerModule()

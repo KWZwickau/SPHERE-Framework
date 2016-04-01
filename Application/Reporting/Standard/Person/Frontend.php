@@ -104,54 +104,77 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $Stage->setContent(
-            ( $DivisionId === null ?
+        if ($DivisionId === null) {
+            $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Year'     => 'Jahr',
-                                        'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => '',))
-                                , 12)
+                        new LayoutColumn(
+                            new TableData($TableContent, null,
+                                array(
+                                    'Year'     => 'Jahr',
+                                    'Division' => 'Klasse',
+                                    'Type'     => 'Schulart',
+                                    'Count'    => 'Schüler',
+                                    'Option'   => '',
+                                ))
+                            , 12)
                         ), new Title(new Listing().' Übersicht')
                     )
-                ) : '' )
-            .( $DivisionId !== null ?
-                (new Layout(new LayoutGroup(new LayoutRow(array(
-                    ( $tblDivision->getServiceTblYear() ?
-                        new LayoutColumn(
+                ));
+        } else {
+            $tblPersonAll = Division::useService()->getStudentAllByDivision($tblDivision);
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(new LayoutRow(array(
+                        ( $tblDivision->getServiceTblYear() ?
+                            new LayoutColumn(
                             new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                 Panel::PANEL_TYPE_SUCCESS), 4
                         ) : '' ),
-                    new LayoutColumn(
-                        new Panel('Klasse', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_SUCCESS), 4
-                    ),
-                    ( $tblDivision->getTypeName() ?
                         new LayoutColumn(
+                            new Panel('Klasse', $tblDivision->getDisplayName(),
+                                Panel::PANEL_TYPE_SUCCESS), 4
+                        ),
+                        ( $tblDivision->getTypeName() ?
+                            new LayoutColumn(
                             new Panel('Schulart', $tblDivision->getTypeName(),
                                 Panel::PANEL_TYPE_SUCCESS), 4
                         ) : '' ),
-                )))))
-                .
-                new TableData($studentList, null,
-                    array(
-                        'Salutation'   => 'Anrede',
-                        'FirstName'    => 'Vorname',
-                        'LastName'     => 'Name',
-                        'Denomination' => 'Konfession',
-                        'Birthday'     => 'Geburtsdatum',
-                        'Birthplace'   => 'Geburtsort',
-                        'Address'      => 'Adresse',
-                    ),
-                    null
-                ) : '' )
-        );
+                    ))),
+                    new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new TableData($studentList, null,
+                            array(
+                                'Salutation'   => 'Anrede',
+                                'FirstName'    => 'Vorname',
+                                'LastName'     => 'Name',
+                                'Denomination' => 'Konfession',
+                                'Birthday'     => 'Geburtsdatum',
+                                'Birthplace'   => 'Geburtsort',
+                                'Address'      => 'Adresse',
+                            ),
+                            array(
+                                "pageLength" => -1,
+                                "responsive" => false
+                            )
+                        ))
+                    ))),
+                    new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Geschlecht', array(
+                                'Female: '.Person::countFemaleGenderByPersonList($tblPersonAll),
+                                'Male: '.Person::countMaleGenderByPersonList($tblPersonAll),
+                                'Missing: '.Person::countMissingGenderByPersonList($tblPersonAll),
+                                'All: '.count($tblPersonAll),
+                            ), Panel::PANEL_TYPE_INFO)
+                        )
+                    ))),
+                ))
+            );
+        }
+
+//
 
         return $Stage;
     }
