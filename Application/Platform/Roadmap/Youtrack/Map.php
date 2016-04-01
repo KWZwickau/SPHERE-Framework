@@ -41,6 +41,7 @@ class Map
                     } else {
                         $this->VersionPreview = $Sprint->getVersion();
                     }
+                } else {
                     break;
                 }
             }
@@ -69,7 +70,12 @@ class Map
             /** @var Sprint $Sprint */
             foreach ((array)$Sprints as $Index => $Sprint) {
                 if ($Sprint->isDone()) {
-                    $this->VersionRelease = $Sprint->getVersion();
+                    if (isset( $Sprints[( $Index - 1 )] ) && $Sprints[( $Index - 1 )]->isDone()) {
+                        $this->VersionRelease = $Sprints[( $Index - 1 )]->getVersion();
+                    } else {
+                        $this->VersionRelease = $Sprint->getVersion();
+                    }
+                } else {
                     break;
                 }
             }
