@@ -67,7 +67,7 @@ class People implements IClusterInterface
                                 .new Muted(new Small('<br/>'.$tblGroup->getDescription()))
                                 , array(9, 0, 7)),
                             new LayoutColumn(
-                                new Muted(new Small(Group::useService()->countPersonAllByGroup($tblGroup).'&nbsp;Mitglieder'))
+                                new Muted(new Small(Group::useService()->countMemberAllByGroup($tblGroup).'&nbsp;Mitglieder'))
                                 , 2, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
                             new LayoutColumn(
                                 new PullRight(
