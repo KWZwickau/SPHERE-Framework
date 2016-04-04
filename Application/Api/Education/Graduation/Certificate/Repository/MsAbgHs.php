@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class MsAbsRs extends Certificate
+class MsAbgHs extends Certificate
 {
 
     /**
@@ -19,39 +19,26 @@ class MsAbsRs extends Certificate
     public function buildCertificate()
     {
 
-        $Header = (new Slice())
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('MS RS Abschlusszeugnis Realschule 3K.pdf')
-                    ->styleTextSize('12px')
-                    ->styleTextColor('#CCC')
-                    ->styleAlignCenter()
-                    , '25%')
-                ->addElementColumn((new Element\Sample())
-                    ->styleTextSize('30px')
-                )
-                ->addElementColumn((new Element())
-                    , '25%')
-            );
-
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
-                ->addSlice(
-                    $Header
-                )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            , '68%')
+                            ->setContent('MS Abgangszeugnis Hauptschule 3g.pdf')
+                            ->styleTextSize('12px')
+                            ->styleTextColor('#CCC')
+                            ->styleAlignCenter()
+                            , '25%')
+                        ->addElementColumn((new Element\Sample())
+                            ->styleTextSize('30px')
+                        )
                         ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '200px'))
                             , '25%')
-                        ->addElementColumn((new Element())
-                            , '7%')
                     )
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('ABSCHLUSSZEUGNIS')
+                        ->setContent('ABGANGSZEUGNIS')
                         ->styleTextSize('27px')
                         ->styleAlignCenter()
                         ->styleMarginTop('32%')
@@ -74,11 +61,13 @@ class MsAbsRs extends Certificate
                             ->setContent('Vorname und Name:')
                             , '22%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Person.Data.Name.First }}
-                                          {{ Content.Person.Data.Name.Last }}')
+                            ->setContent('
+                                {{ Content.Person.Data.Name.First }}
+                                {{ Content.Person.Data.Name.Last }}
+                            ')
                             ->styleBorderBottom()
                         )
-                    )->styleMarginTop('60px')
+                    )->styleMarginTop('50px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
@@ -213,23 +202,12 @@ class MsAbsRs extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('und hat nach Bestehen der Abschlussprüfung den')
+                        ->setContent('und verlässt nach Erfüllug der Vollzeitschulpflicht gemäß § 28 Abs. 1 Nr. 1 SchulG die'
+                            .new Container('Mittelschule - Hauptschulbildungsgang.')
+                        )
                         ->styleMarginTop('8px')
-                        ->styleAlignLeft()
-                    )
-                    ->addElement((new Element())
-                        ->setContent('REALSCHULABSCHLUSS')
-                        ->styleMarginTop('18px')
-                        ->styleTextSize('20px')
-                        ->styleTextBold()
-                    )
-                    ->addElement((new Element())
-                        ->setContent('erworben.')
-                        ->styleMarginTop('20px')
-                        ->styleAlignLeft()
-                    )
-                    ->styleAlignCenter()
-                    ->styleMarginTop('22%')
+                        ->styleAlignCenter()
+                    )->styleMarginTop('27%')
                 )
             )
             ->addPage((new Page())
@@ -239,8 +217,11 @@ class MsAbsRs extends Certificate
                             ->setContent('Vorname und Name:')
                             , '25%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Person.Data.Name.First }}
-                                          {{ Content.Person.Data.Name.Last }}')
+                            ->setContent('
+                                {{ Content.Person.Data.Name.Salutation }}
+                                {{ Content.Person.Data.Name.First }}
+                                {{ Content.Person.Data.Name.Last }}
+                            ')
                             ->styleBorderBottom()
                             , '45%')
                         ->addElementColumn((new Element())
@@ -248,10 +229,13 @@ class MsAbsRs extends Certificate
                             ->styleAlignCenter()
                             , '10%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}')
+                            ->setContent('
+                                {{ Content.Division.Data.Level.Name }}
+                                {{ Content.Division.Data.Name }}
+                            ')
                             ->styleBorderBottom()
                         )
-                    )->styleMarginTop('60px')
+                    )->styleMarginTop('50px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -267,11 +251,13 @@ class MsAbsRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.DE is not empty) %}
+                            ->setContent('
+                                {% if(Content.Grade.Data.DE is not empty) %}
                                     {{ Content.Grade.Data.DE }}
                                 {% else %}
                                     ---
-                                {% endif %}')
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -285,11 +271,13 @@ class MsAbsRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.MA is not empty) %}
+                            ->setContent('
+                                {% if(Content.Grade.Data.MA is not empty) %}
                                     {{ Content.Grade.Data.MA }}
                                 {% else %}
                                     ---
-                                {% endif %}')
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -297,7 +285,7 @@ class MsAbsRs extends Certificate
                             ->stylePaddingBottom()
                             , '9%')
                     )
-                    ->styleMarginTop('5px')
+                    ->styleMarginTop('7px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
@@ -306,11 +294,13 @@ class MsAbsRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.EN is not empty) %}
+                            ->setContent('
+                                {% if(Content.Grade.Data.EN is not empty) %}
                                     {{ Content.Grade.Data.EN }}
                                 {% else %}
                                     ---
-                                {% endif %}')
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -324,11 +314,13 @@ class MsAbsRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.BI is not empty) %}
+                            ->setContent('
+                                {% if(Content.Grade.Data.BI is not empty) %}
                                     {{ Content.Grade.Data.BI }}
                                 {% else %}
                                     ---
-                                {% endif %}')
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -336,32 +328,22 @@ class MsAbsRs extends Certificate
                             ->stylePaddingBottom()
                             , '9%')
                     )
-                    ->styleMarginTop('3px')
+                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.KU is not empty) %}
-                                    Kunst
-                                {% else %}
-                                    {% if(Content.Grade.Data.MU is not empty) %}
-                                        Musik
-                                    {% else %}
-                                        Kunst/Musik¹
-                                    {% endif %}
-                                {% endif %}')
+                            ->setContent('Kunst')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.KU is not empty) %}
+                            ->setContent('
+                                {% if(Content.Grade.Data.KU is not empty) %}
                                     {{ Content.Grade.Data.KU }}
                                 {% else %}
-                                    {% if(Content.Grade.Data.MU is not empty) %}
-                                        {{ Content.Grade.Data.MU }}
-                                    {% else %}
-                                        ---
-                                    {% endif %}
-                                {% endif %}')
+                                    ---
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -375,11 +357,13 @@ class MsAbsRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.CH is not empty) %}
+                            ->setContent('
+                                {% if(Content.Grade.Data.CH is not empty) %}
                                     {{ Content.Grade.Data.CH }}
                                 {% else %}
                                     ---
-                                {% endif %}')
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -387,32 +371,22 @@ class MsAbsRs extends Certificate
                             ->stylePaddingBottom()
                             , '9%')
                     )
-                    ->styleMarginTop('3px')
+                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.GE is not empty) %}
-                                    Geschichte
-                                {% else %}
-                                    {% if(Content.Grade.Data.GEO is not empty) %}
-                                        Geographie
-                                    {% else %}
-                                        Geschichte/Geographie¹
-                                    {% endif %}
-                                {% endif %}')
+                            ->setContent('Musik')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.GE is not empty) %}
-                                    {{ Content.Grade.Data.GE }}
+                            ->setContent('
+                                {% if(Content.Grade.Data.MU is not empty) %}
+                                    {{ Content.Grade.Data.MU }}
                                 {% else %}
-                                    {% if(Content.Grade.Data.GEO is not empty) %}
-                                        {{ Content.Grade.Data.GEO }}
-                                    {% else %}
-                                        ---
-                                    {% endif %}
-                                {% endif %}')
+                                    ---
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -426,11 +400,13 @@ class MsAbsRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.PH is not empty) %}
+                            ->setContent('
+                                {% if(Content.Grade.Data.PH is not empty) %}
                                     {{ Content.Grade.Data.PH }}
                                 {% else %}
                                     ---
-                                {% endif %}')
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -438,20 +414,22 @@ class MsAbsRs extends Certificate
                             ->stylePaddingBottom()
                             , '9%')
                     )
-                    ->styleMarginTop('3px')
+                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Gemeinschaftskunde/Rechtserziehung')
+                            ->setContent('Geschichte')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('
+                                {% if(Content.Grade.Data.GE is not empty) %}
+                                    {{ Content.Grade.Data.GE }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Gemeinschaftskunde/Rechtserziehung ist kein vorgegebenes Fach
+                                {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -477,18 +455,20 @@ class MsAbsRs extends Certificate
                             ->stylePaddingBottom()
                             , '9%')
                     )
-                    ->styleMarginTop('3px')
+                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('Gemeinschaftskunde/Rechtserziehung')
                             ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            ->styleBorderBottom()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }}
+                                {% else %}
+                                    ---
+                                {% endif %}')//ToDO Gemeinschaftskunde/Rechtserziehung ist kein vorgegebenes Fach
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -534,18 +514,20 @@ class MsAbsRs extends Certificate
                             ->stylePaddingBottom()
                             , '9%')
                     )
-                    ->styleMarginTop('3px')
+                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('Geographie')
                             ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            ->styleBorderBottom()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Grade.Data.GEO is not empty) %}
+                                    {{ Content.Grade.Data.GEO }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -571,7 +553,76 @@ class MsAbsRs extends Certificate
                             ->stylePaddingBottom()
                             , '9%')
                     )
-                    ->styleMarginTop('3px')
+                    ->styleMarginTop('5px')
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Wirtschaft-Technick-Haushalt/Soziales')
+                            ->stylePaddingTop()
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }}
+                                {% else %}
+                                    ---
+                                {% endif %}')//ToDO Wirtschaft-Technick-Haushalt/Soziales ist kein vorgegebenes Fach
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '9%')
+                        ->addElementColumn((new Element())
+                            , '4%')
+                        ->addElementColumn((new Element())
+                            ->styleMarginTop('16px')
+                            ->styleBorderBottom()
+                            ->stylePaddingTop()
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '9%')
+                    )
+                    ->styleMarginTop('5px')
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->styleMarginTop('16px')
+                            ->styleBorderBottom()
+                            ->stylePaddingTop()
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '9%')
+                        ->addElementColumn((new Element())
+                            , '4%')
+                        ->addElementColumn((new Element())
+                            ->styleMarginTop('16px')
+                            ->styleBorderBottom()
+                            ->stylePaddingTop()
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '9%')
+                    )
+                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -592,9 +643,9 @@ class MsAbsRs extends Certificate
                                         &nbsp;
                                     {% endif %}
                                 {% endif %}')//ToDO Wahlpflichtbereich
+                            ->styleBorderBottom()
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            ->styleBorderBottom()
                         )
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
@@ -616,96 +667,10 @@ class MsAbsRs extends Certificate
                                         &nbsp;
                                     {% endif %}
                                 {% endif %}')//ToDO Wahlpflichtbereich
-                            ->styleTextSize('10px')
+                            ->styleTextSize('11px')
                         )
                     )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Leistungen in Fächern, die in Klassenstufe 9 abgeschlossen wurden:')
-                        ->styleMarginTop('15px')
-                        ->styleTextBold()
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Kunst/Musik¹')
-                            ->stylePaddingTop()
-                            , '39%')
-                        ->addElementColumn((new Element())
-                            //ToDO Noten aus vorhergehendem Jahr
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
-                                {% else %}
-                                    ---
-                                {% endif %}')
-                            ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
-                            ->styleBorderBottom('1px', '#000')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            , '9%')
-                        ->addElementColumn((new Element())
-                            , '4%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Geschichte/Geographie¹')
-                            ->stylePaddingTop()
-                            , '39%')
-                        ->addElementColumn((new Element())
-                            //ToDO Noten aus vorhergehendem Jahr
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
-                                {% else %}
-                                    ---
-                                {% endif %}')
-                            ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
-                            ->styleBorderBottom('1px', '#000')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            , '9%')
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Wirtschaft-Technik-Haushalt/Soziales')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            , '39%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
-                                {% else %}
-                                    ---
-                                {% endif %}')//ToDO Wirtschaft-Technik-Haushalt/Soziales
-                            ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
-                            ->styleBorderBottom('1px', '#000')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            , '9%')
-                        ->addElementColumn((new Element())
-                            , '4%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            ->styleBorderBottom()
-                            , '39%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
-                            ->styleBorderBottom('1px', '#000')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            , '9%')
-                    )
-                    ->styleMarginTop('3px')
+                    ->styleMarginTop('15px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
@@ -775,10 +740,10 @@ class MsAbsRs extends Certificate
                             , '7%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Date is not empty) %}
-                                                {{ Content.Input.Date }}
-                                            {% else %}
-                                                &nbsp;
-                                            {% endif %}')
+                                    {{ Content.Input.Date }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
                             , '23%')
@@ -796,18 +761,6 @@ class MsAbsRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            , '30%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Der Prüfungsausschuss')
-                            ->styleAlignCenter()
-                            , '40%')
-                        ->addElementColumn((new Element())
-                            , '30%')
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
                             ->styleAlignCenter()
                             ->styleBorderBottom('1px', '#000')
@@ -820,12 +773,12 @@ class MsAbsRs extends Certificate
                             ->styleBorderBottom('1px', '#000')
                             , '30%')
                     )
-                    ->styleMarginTop('30px')
+                    ->styleMarginTop('25px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Vorsitzende(r)')
+                            ->setContent('Schulleiter(in)')
                             ->styleAlignCenter()
                             ->styleTextSize('11px')
                             , '30%')
@@ -839,29 +792,7 @@ class MsAbsRs extends Certificate
                         ->addElementColumn((new Element())
                             , '5%')
                         ->addElementColumn((new Element())
-                            ->setContent('Mitglied')
-                            ->styleAlignCenter()
-                            ->styleTextSize('11px')
-                            , '30%')
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            , '70%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom('1px', '#000')
-                            , '30%')
-                    )->styleMarginTop('30px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            , '70%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Mitglied')
+                            ->setContent('Klassenlehrer(in)')
                             ->styleAlignCenter()
                             ->styleTextSize('11px')
                             , '30%')
@@ -874,12 +805,12 @@ class MsAbsRs extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('169px')
+                    )->styleMarginTop('259px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'
                                 .new Container('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                          6 = ungenügend'))
+                                    6 = ungenügend'))
                             ->styleTextSize('9.5px')
                             , '30%')
                     )
@@ -887,4 +818,5 @@ class MsAbsRs extends Certificate
             )
         );
     }
+
 }

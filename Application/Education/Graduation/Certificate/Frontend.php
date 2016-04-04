@@ -223,12 +223,21 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Abgangszeugnis',
+                        'Template' => 'Mittelschule Abgangszeugnis Hauptschule',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
                             'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsAbg'
+                            'Certificate' => 'MsAbgHs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abgangszeugnis Realschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbgRs'
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
@@ -339,6 +348,51 @@ class Frontend extends Extension implements IFrontendInterface
                             'Certificate' => 'MsJRs'
                         ), 'Auswählen')
                     );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Abgangszeugnis Hauptschulabschluss Klasse 9',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymAbgHs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Abgangszeugnis Realschulabschluss Klasse 10',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymAbgRs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Halbjahreszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymHj'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Halbjahresinformation',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymHjInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Jahreszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymJ'
+                        ), 'Auswählen')
+                    );
 
                     $Content = new TableData($TemplateTable);
 
@@ -408,10 +462,13 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormField = array(
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
 
-                            'Content.Input.Remark'   => 'TextArea',
-                            'Content.Input.Rating'   => 'TextArea',
-                            'Content.Input.Date'     => 'DatePicker',
-                            'Content.Input.Transfer' => 'TextField',
+                            'Content.Input.Remark'    => 'TextArea',
+                            'Content.Input.Rating'    => 'TextArea',
+                            'Content.Input.Team'      => 'TextArea',
+                            'Content.Input.Deepening' => 'TextField',
+                            'Content.Input.Date'      => 'DatePicker',
+                            'Content.Input.Transfer'  => 'TextField',
+                            'Content.Input.Level'     => 'TextField',
                         );
                         $FormLabel = array(
                             'Content.Person.Data.Name.Salutation'       => 'Anrede',
@@ -424,10 +481,13 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Division.Data.Level.Name' => 'Klassenstufe',
                             'Content.Division.Data.Name'       => 'Klassengruppe',
 
-                            'Content.Input.Remark'   => 'Bemerkungen',
-                            'Content.Input.Rating'   => 'Einschätzung',
-                            'Content.Input.Date'     => 'Datum',
-                            'Content.Input.Transfer' => 'Versetzungsvermerk'
+                            'Content.Input.Remark'    => 'Bemerkungen',
+                            'Content.Input.Rating'    => 'Einschätzung',
+                            'Content.Input.Team'      => 'Arbeitsgemeinschaften',
+                            'Content.Input.Deepening' => 'Vertiefungsrichtung',
+                            'Content.Input.Date'      => 'Datum',
+                            'Content.Input.Transfer'  => 'Versetzungsvermerk',
+                            'Content.Input.Level'     => '2. Fremdsprache ab Klassenstufe',
                         );
 
                         // Create Form, Additional Information from Template
