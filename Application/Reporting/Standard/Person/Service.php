@@ -63,11 +63,11 @@ class Service
     public function createClassList(TblDivision $tblDivision)
     {
 
-        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
 
         $TableContent = array();
-        if (!empty( $PersonList )) {
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+        if (!empty( $tblPersonList )) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
                 if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $address = $addressList[0];
                 } else {
@@ -186,18 +186,18 @@ class Service
     public function createExtendedClassList(TblDivision $tblDivision)
     {
 
-        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
-        if (!empty( $PersonList )) {
+        if (!empty( $tblPersonList )) {
 
-            foreach ($PersonList as $key => $row) {
+            foreach ($tblPersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $tblPersonList);
 
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['Number'] = '';
                 $Item['Gender'] = '';
@@ -409,22 +409,22 @@ class Service
     public function createBirthdayClassList(TblDivision $tblDivision)
     {
 
-        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
 
         $TableContent = array();
 
-        if (!empty( $PersonList )) {
+        if (!empty( $tblPersonList )) {
 
-            foreach ($PersonList as $key => $row) {
+            foreach ($tblPersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $tblPersonList);
 
             $All = 0;
 
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
                 $All++;
                 $Item['Number'] = $All;
                 $Item['Name'] = $tblPerson->getLastFirstName();
@@ -550,19 +550,19 @@ class Service
     public function createMedicalInsuranceClassList(TblDivision $tblDivision)
     {
 
-        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
 
-        if (!empty( $PersonList )) {
+        if (!empty( $tblPersonList )) {
 
-            foreach ($PersonList as $key => $row) {
+            foreach ($tblPersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $tblPersonList);
 
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['MedicalInsurance'] = '';
                 $Item['Number'] = '';
@@ -798,21 +798,21 @@ class Service
     public function createGroupList(TblGroup $tblGroup)
     {
 
-        $PersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
         $TableContent = array();
 
-        if (!empty( $PersonList )) {
+        if (!empty( $tblPersonList )) {
 
-            foreach ($PersonList as $key => $row) {
+            foreach ($tblPersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $tblPersonList);
 
             $All = 0;
 
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
 
                 $All++;
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();

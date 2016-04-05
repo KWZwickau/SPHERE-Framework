@@ -16,64 +16,6 @@ use SPHERE\Application\People\Relationship\Relationship;
 
 class Service
 {
-    /**
-     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
-     */
-    public function createStaffList()
-    {
-
-        $staffList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
-
-        if (!empty( $staffList )) {
-            foreach ($staffList as $tblPerson) {
-
-                $tblPerson->Name = $tblPerson->getLastFirstName();
-                $common = Common::useService()->getCommonByPerson($tblPerson);
-                if ($common) {
-                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday();
-                } else {
-                    $tblPerson->Birthday = '';
-                }
-            }
-        }
-
-        return $staffList;
-    }
-
-    /**
-     * @param $staffList
-     *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
-     */
-    public function createStaffListExcel($staffList)
-    {
-
-        if (!empty( $staffList )) {
-
-            $fileLocation = Storage::useWriter()->getTemporary('xls');
-            /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Name");
-            $export->setValue($export->getCell("1", "0"), "Geburtstag");
-
-            $Row = 1;
-            foreach ($staffList as $tblPerson) {
-
-                $export->setValue($export->getCell("0", $Row), $tblPerson->Name);
-                $export->setValue($export->getCell("1", $Row), $tblPerson->Birthday);
-
-                $Row++;
-            }
-
-            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-
-            return $fileLocation;
-        }
-
-        return false;
-    }
 
     /**
      * @param TblDivision $tblDivision
@@ -83,10 +25,10 @@ class Service
     public function createClassList(TblDivision $tblDivision)
     {
 
-        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        if (!empty( $studentList )) {
-            foreach ($studentList as $tblPerson) {
+        if (!empty( $tblPersonList )) {
+            foreach ($tblPersonList as $tblPerson) {
                 $father = null;
                 $mother = null;
                 $fatherPhoneList = false;
@@ -194,20 +136,21 @@ class Service
             }
         }
 
-        return $studentList;
+        return $tblPersonList;
     }
 
     /**
-     * @param $studentList
+     * @param array $PersonList
+     * @param array $tblPersonList
      *
      * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createClassListExcel($studentList)
+    public function createClassListExcel($PersonList, $tblPersonList)
     {
 
-        if (!empty( $studentList )) {
+        if (!empty( $PersonList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -218,7 +161,7 @@ class Service
             $export->setValue($export->getCell("3", "0"), "Telefonnummer");
 
             $row = 2;
-            foreach ($studentList as $tblPerson) {
+            foreach ($PersonList as $tblPerson) {
                 $rowPerson = $row;
                 $export->setValue($export->getCell("0", $row), $tblPerson->ExcelNameRow1);
                 $export->setValue($export->getCell("1", $row), $tblPerson->Birthday);
@@ -243,13 +186,73 @@ class Service
             }
 
             $row = $row +2;
-            $export->setValue($export->getCell("0", $row++), count($studentList) . ' Schüler/innen');
+            $export->setValue($export->getCell("0", $row++), count($PersonList).' Schüler/innen');
             $export->setValue($export->getCell("0", $row), 'Stand ' . date("d.m.Y"));
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
             return $fileLocation;
         }
+        return false;
+    }
+
+    /**
+     * @return array
+     */
+    public function createStaffList()
+    {
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
+
+        if (!empty( $tblPersonList )) {
+            foreach ($tblPersonList as $tblPerson) {
+
+                $tblPerson->Name = $tblPerson->getLastFirstName();
+                $common = Common::useService()->getCommonByPerson($tblPerson);
+                if ($common) {
+                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday();
+                } else {
+                    $tblPerson->Birthday = '';
+                }
+            }
+        }
+
+        return $tblPersonList;
+    }
+
+    /**
+     * @param array $PersonList
+     * @param array $tblPersonList
+     *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createStaffListExcel($PersonList, $tblPersonList)
+    {
+
+        if (!empty( $PersonList )) {
+
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell("0", "0"), "Name");
+            $export->setValue($export->getCell("1", "0"), "Geburtstag");
+
+            $Row = 1;
+            foreach ($PersonList as $tblPerson) {
+
+                $export->setValue($export->getCell("0", $Row), $tblPerson->Name);
+                $export->setValue($export->getCell("1", $Row), $tblPerson->Birthday);
+
+                $Row++;
+            }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
         return false;
     }
 

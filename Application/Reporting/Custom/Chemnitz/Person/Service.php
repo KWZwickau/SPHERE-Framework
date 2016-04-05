@@ -34,11 +34,11 @@ class Service
     public function createClassList(TblDivision $tblDivision)
     {
 
-        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
 
-        if (!empty( $PersonList )) {
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+        if (!empty( $tblPersonList )) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
@@ -179,10 +179,10 @@ class Service
     public function createStaffList()
     {
 
-        $PersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
         $TableContent = array();
-        if (!empty( $PersonList )) {
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+        if (!empty( $tblPersonList )) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getFirstSecondName();
@@ -317,10 +317,10 @@ class Service
     public function createSchoolFeeList()
     {
 
-        $PersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
         $TableContent = array();
-        if (!empty( $PersonList )) {
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+        if (!empty( $tblPersonList )) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['DebtorNumber'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
@@ -487,10 +487,10 @@ class Service
     public function createMedicList(TblDivision $tblDivision)
     {
 
-        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
-        if (!empty( $PersonList )) {
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+        if (!empty( $tblPersonList )) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
@@ -593,10 +593,10 @@ class Service
     public function createInterestedPersonList()
     {
 
-        $PersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
         $TableContent = array();
-        if (!empty( $PersonList )) {
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+        if (!empty( $tblPersonList )) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['FirstName'] = $tblPerson->getFirstName();
                 $Item['LastName'] = $tblPerson->getLastName();
@@ -824,13 +824,13 @@ class Service
     public function createParentTeacherConferenceList(TblDivision $tblDivision)
     {
 
-        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
-        if (!empty( $PersonList )) {
+        if (!empty( $tblPersonList )) {
 //            foreach ($studentList as $tblPerson) {
 //                $tblPerson->Attendance = '';
 //            }
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
@@ -906,9 +906,9 @@ class Service
         $tblGroup = Group::useService()->getGroupByName('Verein');
         $TableContent = array();
         if ($tblGroup) {
-            $PersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-            if ($PersonList) {
-                array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            if ($tblPersonList) {
+                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                     $Item['FirstName'] = $tblPerson->getFirstSecondName();
                     $Item['LastName'] = $tblPerson->getLastName();
@@ -1027,10 +1027,10 @@ class Service
     public function createPrintClassList(TblDivision $tblDivision)
     {
 
-        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
-        if (!empty( $PersonList )) {
-            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+        if (!empty( $tblPersonList )) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['Orientation'] = '';
                 $Item['Education'] = '';
