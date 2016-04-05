@@ -88,16 +88,16 @@ class Service
     /**
      * @param TblDivision $tblDivision
      *
-     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
+     * @return array
      */
     public function createClassList(TblDivision $tblDivision)
     {
 
-        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
 
         $TableContent = array();
-        if (!empty( $studentList )) {
-            array_walk($studentList, function (TblPerson $tblPerson) use (&$TableContent) {
+        if (!empty( $PersonList )) {
+            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
                 if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $address = $addressList[0];
                 } else {
@@ -211,23 +211,23 @@ class Service
     /**
      * @param TblDivision $tblDivision
      *
-     * @return bool|TblPerson[]
+     * @return array
      */
     public function createExtendedClassList(TblDivision $tblDivision)
     {
 
-        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
-        if (!empty($studentList)) {
+        if (!empty( $PersonList )) {
 
-            foreach ($studentList as $key => $row) {
+            foreach ($PersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
 
-            array_walk($studentList, function (TblPerson $tblPerson) use (&$TableContent) {
+            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['Number'] = '';
                 $Item['Gender'] = '';
@@ -434,27 +434,27 @@ class Service
     /**
      * @param TblDivision $tblDivision
      *
-     * @return bool|TblPerson[]
+     * @return array
      */
     public function createBirthdayClassList(TblDivision $tblDivision)
     {
 
-        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
 
         $TableContent = array();
 
-        if (!empty($studentList)) {
+        if (!empty( $PersonList )) {
 
-            foreach ($studentList as $key => $row) {
+            foreach ($PersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
 
             $All = 0;
 
-            array_walk($studentList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
+            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
                 $All++;
                 $Item['Number'] = $All;
                 $Item['Name'] = $tblPerson->getLastFirstName();
@@ -575,24 +575,24 @@ class Service
     /**
      * @param TblDivision $tblDivision
      *
-     * @return bool|TblPerson[]
+     * @return array
      */
     public function createMedicalInsuranceClassList(TblDivision $tblDivision)
     {
 
-        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $PersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
 
-        if (!empty($studentList)) {
+        if (!empty( $PersonList )) {
 
-            foreach ($studentList as $key => $row) {
+            foreach ($PersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
 
-            array_walk($studentList, function (TblPerson $tblPerson) use (&$TableContent) {
+            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['MedicalInsurance'] = '';
                 $Item['Number'] = '';
@@ -823,26 +823,26 @@ class Service
     /**
      * @param TblGroup $tblGroup
      *
-     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
+     * @return array
      */
     public function createGroupList(TblGroup $tblGroup)
     {
 
-        $groupList = Group::useService()->getPersonAllByGroup($tblGroup);
+        $PersonList = Group::useService()->getPersonAllByGroup($tblGroup);
         $TableContent = array();
 
-        if (!empty($groupList)) {
+        if (!empty( $PersonList )) {
 
-            foreach ($groupList as $key => $row) {
+            foreach ($PersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $groupList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
 
             $All = 0;
 
-            array_walk($groupList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
+            array_walk($PersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
 
                 $All++;
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();

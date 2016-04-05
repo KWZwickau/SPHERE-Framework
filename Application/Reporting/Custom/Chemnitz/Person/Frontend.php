@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -207,8 +208,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('ESZC Auswertung', 'Liste der Mitarbeiter');
 
-        $staffList = Person::useService()->createStaffList();
-        if ($staffList) {
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
+        $PersonList = Person::useService()->createStaffList();
+        if ($PersonList) {
             $Stage->addButton(
                 new Primary('Herunterladen',
                     '/Api/Reporting/Custom/Chemnitz/Common/StaffList/Download', new Download())
@@ -218,11 +220,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Layout(
+            new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($staffList, null,
+                            new TableData($PersonList, null,
                                 array(
                                     'Salutation' => 'Anrede',
                                     'FirstName'  => 'Vorname',
@@ -245,8 +247,36 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                )
-            )
+                ),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: '.count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null )
+                        )
+                    )
+                ))
+            ))
         );
 
         return $Stage;
@@ -267,14 +297,15 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
 
-        $studentList = Person::useService()->createSchoolFeeList();
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        $PersonList = Person::useService()->createSchoolFeeList();
 
         $Stage->setContent(
-            new Layout(
+            new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($studentList, null,
+                            new TableData($PersonList, null,
                                 array(
                                     'DebtorNumber'  => 'Deb.-Nr.',
                                     'Reply'         => 'Bescheid geschickt',
@@ -302,8 +333,36 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                )
-            )
+                ),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: '.count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null )
+                        )
+                    )
+                ))
+            ))
         );
 
         return $Stage;
@@ -467,9 +526,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('ESZC Auswertung', 'Neuanmeldungen/Interessenten');
-
-        $interestedPersonList = Person::useService()->createInterestedPersonList();
-        if ($interestedPersonList) {
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+        $PersonList = Person::useService()->createInterestedPersonList();
+        if ($PersonList) {
             $Stage->addButton(
                 new Primary('Herunterladen',
                     '/Api/Reporting/Custom/Chemnitz/Common/InterestedPersonList/Download', new Download())
@@ -479,40 +538,76 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new TableData($interestedPersonList, null,
-                array(
-                    'RegistrationDate' => 'Anmeldedatum',
-                    'FirstName'        => 'Vorname',
-                    'LastName'         => 'Name',
-                    'SchoolYear'       => 'Schuljahr',
-                    'DivisionLevel'    => 'Klassenstufe',
-                    'TypeOptionA'      => 'Schulart 1',
-                    'TypeOptionB'      => 'Schulart 2',
-                    'Address'          => 'Adresse',
-//                    'StreetName'         => 'Straße',
-//                    'StreetNumber'         => 'Hausnummer',
-//                    'Code'         => 'PLZ',
-//                    'City'         => 'Ort',
-                    'Birthday'         => 'Geburtsdatum',
-                    'Birthplace'       => 'Geburtsort',
-                    'Nationality'      => 'Staatsangeh.',
-                    'Denomination'     => 'Bekenntnis',
-                    'Siblings'         => 'Geschwister',
-                    'Hoard'            => 'Hort',
-                    'Father'           => 'Sorgeberechtigter 1',
-//                    'FatherSalutation'         => 'Anrede V',
-//                    'FatherLastName'         => 'Name V',
-//                    'FatherFirstName'         => 'Vorname V',
-                    'Mother'           => 'Sorgeberechtigter 2',
-//                    'MotherSalutation'         => 'Anrede M',
-//                    'MotherLastName'         => 'Name M',
-//                    'MotherFirstName'         => 'Vorname M',
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'RegistrationDate' => 'Anmeldedatum',
+                                    'FirstName'        => 'Vorname',
+                                    'LastName'         => 'Name',
+                                    'SchoolYear'       => 'Schuljahr',
+                                    'DivisionLevel'    => 'Klassenstufe',
+                                    'TypeOptionA'      => 'Schulart 1',
+                                    'TypeOptionB'      => 'Schulart 2',
+                                    'Address'          => 'Adresse',
+//                                    'StreetName'         => 'Straße',
+//                                    'StreetNumber'         => 'Hausnummer',
+//                                    'Code'         => 'PLZ',
+//                                    'City'         => 'Ort',
+                                    'Birthday'         => 'Geburtsdatum',
+                                    'Birthplace'       => 'Geburtsort',
+                                    'Nationality'      => 'Staatsangeh.',
+                                    'Denomination'     => 'Bekenntnis',
+                                    'Siblings'         => 'Geschwister',
+                                    'Hoard'            => 'Hort',
+                                    'Father'           => 'Sorgeberechtigter 1',
+//                                    'FatherSalutation'         => 'Anrede V',
+//                                    'FatherLastName'         => 'Name V',
+//                                    'FatherFirstName'         => 'Vorname V',
+                                    'Mother'           => 'Sorgeberechtigter 2',
+//                                    'MotherSalutation'         => 'Anrede M',
+//                                    'MotherLastName'         => 'Name M',
+//                                    'MotherFirstName'         => 'Vorname M',
+                                ),
+                                array(
+                                    "pageLength" => -1,
+                                    "responsive" => false
+                                )
+                            )
+                        )
+                    )
                 ),
-                array(
-                    "pageLength" => -1,
-                    "responsive" => false
-                )
-            )
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: '.count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null )
+                        )
+                    )
+                ))
+            ))
         );
 
         return $Stage;
@@ -676,9 +771,13 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('ESZC Auswertung', 'Liste der Vereinsmitglieder');
-
-        $clubMemberList = Person::useService()->createClubMemberList();
-        if ($clubMemberList) {
+        $tblPersonList = array();
+        $clubGroup = Group::useService()->getGroupByName('Verein');
+        if ($clubGroup) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup($clubGroup);
+        }
+        $PersonList = Person::useService()->createClubMemberList();
+        if ($PersonList) {
             $Stage->addButton(
                 new Primary('Herunterladen',
                     '/Api/Reporting/Custom/Chemnitz/Common/ClubMemberList/Download', new Download())
@@ -688,11 +787,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Layout(
+            new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($clubMemberList, null,
+                            new TableData($PersonList, null,
                                 array(
                                     'Salutation'  => 'Anrede',
                                     'FirstName'   => 'Vorname',
@@ -713,8 +812,36 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                )
-            )
+                ),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: '.count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null )
+                        )
+                    )
+                ))
+            ))
         );
 
         return $Stage;
