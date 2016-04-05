@@ -17,8 +17,6 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Group\Group;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Window\Redirect;
 
 /**
  * Class Service
@@ -27,30 +25,6 @@ use SPHERE\Common\Window\Redirect;
  */
 class Service
 {
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param null                $Select
-     * @param string              $Redirect
-     *
-     * @return IFormInterface|Redirect
-     */
-    public function getClass(IFormInterface $Stage = null, $Select = null, $Redirect)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Select) {
-            return $Stage;
-        }
-
-        $tblDivision = Division::useService()->getDivisionById($Select['Division']);
-
-        return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
-            'DivisionId' => $tblDivision->getId(),
-        ));
-    }
 
     /**
      * @param TblDivision $tblDivision

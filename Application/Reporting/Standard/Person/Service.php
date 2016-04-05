@@ -17,8 +17,6 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Window\Redirect;
 
 /**
@@ -28,34 +26,6 @@ use SPHERE\Common\Window\Redirect;
  */
 class Service
 {
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param null $Select
-     * @param string $Redirect
-     *
-     * @return IFormInterface|Redirect
-     */
-    public function getClass(IFormInterface $Stage = null, $Select = null, $Redirect)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Select) {
-            return $Stage;
-        }
-
-        $tblDivision = Division::useService()->getDivisionById($Select['Division']);
-
-        if ($tblDivision) {
-            return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
-                'DivisionId' => $tblDivision->getId(),
-            ));
-        } else {
-            return new Danger('Klasse nicht gefunden.', new Ban());
-        }
-    }
 
     /**
      * @param IFormInterface|null $Stage
