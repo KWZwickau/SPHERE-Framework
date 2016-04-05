@@ -53,14 +53,14 @@ abstract class AbstractModule implements IModuleInterface
                         if ($tblCommonBirthDates) {
                             $Result[$tblCommonBirthDates->getGender()]++;
                         } else {
-                            if ($CountGender == TblCommonBirthDates::VALUE_GENDER_NULL) {
+//                            if ($CountGender == TblCommonBirthDates::VALUE_GENDER_NULL) {
                                 $Result[TblCommonBirthDates::VALUE_GENDER_NULL]++;
-                            }
+//                            }
                         }
                     } else {
-                        if ($CountGender == TblCommonBirthDates::VALUE_GENDER_NULL) {
+//                        if ($CountGender == TblCommonBirthDates::VALUE_GENDER_NULL) {
                             $Result[TblCommonBirthDates::VALUE_GENDER_NULL]++;
-                        }
+//                        }
                     }
                 });
 

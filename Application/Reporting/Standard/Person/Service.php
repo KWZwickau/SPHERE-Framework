@@ -95,56 +95,63 @@ class Service
 
         $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        if (!empty($studentList)) {
-            foreach ($studentList as $tblPerson) {
+        $TableContent = array();
+        if (!empty( $studentList )) {
+            array_walk($studentList, function (TblPerson $tblPerson) use (&$TableContent) {
                 if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
                 }
 
-                $tblPerson->Salutation = $tblPerson->getSalutation();
+                $Item['Salutation'] = $tblPerson->getSalutation();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['LastName'] = $tblPerson->getLastName();
 
                 if ($address !== null) {
-                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
-                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
-                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
-                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
+                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
+                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
+                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                    $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . ' ' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
-                    $tblPerson->Address = '';
+                    $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
+                    $Item['Address'] = '';
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
-                    $tblPerson->Denomination = $common->getTblCommonInformation()->getDenomination();
-                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday();
-                    $tblPerson->Birthplace = $common->getTblCommonBirthDates()->getBirthplace();
+                    $Item['Denomination'] = $common->getTblCommonInformation()->getDenomination();
+                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
+                    $Item['Birthplace'] = $common->getTblCommonBirthDates()->getBirthplace();
                 } else {
-                    $tblPerson->Birthday = $tblPerson->Birthplace = $tblPerson->Denomination = '';
+                    $Item['Denomination'] = $Item['Birthday'] = $Item['Birthplace'] = '';
                 }
-            }
+
+                array_push($TableContent, $Item);
+            });
         }
 
-        return $studentList;
+
+        return $TableContent;
     }
 
     /**
-     * @param $studentList
+     * @param array $PersonList
+     * @param array $tblPersonList
      *
      * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createClassListExcel($studentList)
+    public function createClassListExcel($PersonList, $tblPersonList)
     {
 
-        if (!empty($studentList)) {
+        if (!empty( $PersonList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -162,22 +169,36 @@ class Service
 
             $Row = 1;
 
-            foreach ($studentList as $tblPerson) {
+            foreach ($PersonList as $PersonData) {
 
-                $export->setValue($export->getCell("0", $Row), $tblPerson->Salutation);
-                /** @var TblPerson $tblPerson */
-                $export->setValue($export->getCell("1", $Row), $tblPerson->getFirstSecondName());
-                $export->setValue($export->getCell("2", $Row), $tblPerson->getLastName());
-                /** @var $tblPerson */
-                $export->setValue($export->getCell("3", $Row), $tblPerson->Denomination);
-                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->Birthplace);
-                $export->setValue($export->getCell("6", $Row), $tblPerson->StreetName);
-                $export->setValue($export->getCell("7", $Row), $tblPerson->StreetNumber);
-                $export->setValue($export->getCell("8", $Row), $tblPerson->Code);
-                $export->setValue($export->getCell("9", $Row), $tblPerson->City);
+                $export->setValue($export->getCell("0", $Row), $PersonData['Salutation']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['FirstName']);
+                $export->setValue($export->getCell("2", $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell("3", $Row), $PersonData['Denomination']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell("6", $Row), $PersonData['StreetName']);
+                $export->setValue($export->getCell("7", $Row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell("8", $Row), $PersonData['Code']);
+                $export->setValue($export->getCell("9", $Row), $PersonData['City']);
 
                 $Row++;
+            }
+
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
+            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Männlich:');
+            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
+            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
+                $Row++;
+                $export->setValue($export->getCell("0", $Row),
+                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
@@ -196,6 +217,7 @@ class Service
     {
 
         $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $TableContent = array();
         if (!empty($studentList)) {
 
             foreach ($studentList as $key => $row) {
@@ -205,70 +227,54 @@ class Service
             }
             array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
 
-            $Man = 0;
-            $Woman = 0;
-            $All = 0;
+            array_walk($studentList, function (TblPerson $tblPerson) use (&$TableContent) {
 
-            foreach ($studentList as $tblPerson) {
-                $All++;
-                $tblPerson->Number = '';
-                $tblPerson->Name = $tblPerson->getLastFirstName();
+                $Item['Number'] = '';
+                $Item['Gender'] = '';
+                $Item['Guardian1'] = '';
+                $Item['Guardian2'] = '';
+                $Item['PhoneGuardian1'] = '';
+                $Item['PhoneGuardian2'] = '';
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
+                $Item['Address'] = '';
+                $Item['Birthday'] = $Item['Birthplace'] = '';
+                $Item['Name'] = $tblPerson->getLastFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
                     if ($tblBirhdates) {
                         if ($tblBirhdates->getGender() === 1) {
-                            $tblPerson->Gender = 'männlich';
-                            $Man++;
+                            $Item['Gender'] = 'männlich';
                         } elseif ($tblBirhdates->getGender() === 2) {
-                            $tblPerson->Gender = 'weiblich';
-                            $Woman++;
-                        } else {
-                            $tblPerson->Gender = '';
+                            $Item['Gender'] = 'weiblich';
                         }
-                    } else {
-                        $tblPerson->Gender = '';
                     }
-
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if ($tblStudent) {
-                        $tblPerson->Number = $tblStudent->getIdentifier();
+                        $Item['Number'] = $tblStudent->getIdentifier();
                     }
-
-                } else {
-                    $tblPerson->Gender = '';
                 }
-
                 if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
                 }
                 if ($address !== null) {
-                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
-                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
-                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
-                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
+                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
+                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
+                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                    $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . ' ' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
-                } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
-                    $tblPerson->Address = '';
                 }
-
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
-                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday();
-                    $tblPerson->Birthplace = $common->getTblCommonBirthDates()->getBirthplace();
-                } else {
-                    $tblPerson->Birthday = $tblPerson->Birthplace = '';
+                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
+                    $Item['Birthplace'] = $common->getTblCommonBirthDates()->getBirthplace();
                 }
-
-                $tblPerson->StudentNumber = $tblPerson->getId() + 200000; //ToDO StudentNumber
-
                 $Guardian1 = null;
                 $Guardian2 = null;
                 unset($phoneListGuardian1);
@@ -292,10 +298,8 @@ class Service
                         }
                     }
                 }
-                if ($Guardian1 === null) {
-                    $tblPerson->Guardian1 = '';
-                } else {
-                    $tblPerson->Guardian1 = $Guardian1->getFullName();
+                if (isset( $Guardian1 )) {
+                    $Item['Guardian1'] = $Guardian1->getFullName();
                     $Guardian1PhoneList = Phone::useService()->getPhoneAllByPerson($Guardian1);
                     if ($Guardian1PhoneList) {
                         foreach ($Guardian1PhoneList as $Guardian1Phone) {
@@ -313,10 +317,8 @@ class Service
                         }
                     }
                 }
-                if (!isset($Guardian2)) {
-                    $tblPerson->Guardian2 = '';
-                } else {
-                    $tblPerson->Guardian2 = $Guardian2->getFullName();
+                if (isset( $Guardian2 )) {
+                    $Item['Guardian2'] = $Guardian2->getFullName();
                     $Guardian2PhoneList = Phone::useService()->getPhoneAllByPerson($Guardian2);
                     if ($Guardian2PhoneList) {
                         foreach ($Guardian2PhoneList as $Guardian2Phone) {
@@ -335,82 +337,44 @@ class Service
                     }
                 }
 
-//                if ($mother) {
-//                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
-//                    if ($motherPhoneList) {
-//                        foreach ($motherPhoneList as $motherPhone) {
-//                            if ($motherPhone->getTblType()->getName() === 'Privat' && $motherPhone->getTblType()->getDescription() === 'Mobil') {
-//                                $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
-//                            }
-//                        }
-//                        foreach ($motherPhoneList as $motherPhone) {
-//                            if ($motherPhone->getTblType()->getName() === 'Privat') {
-//                                $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
-//                            }
-//                        }
-//                        if (isset( $phoneListMother )) {
-//                            $phoneListMother = array_unique($phoneListMother);
-//                        }
-//                    }
-//                }
-//                if ($father) {
-//                    $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
-//                    if ($fatherPhoneList) {
-//                        foreach ($fatherPhoneList as $fatherPhone) {
-//                            if ($fatherPhone->getTblType()->getName() === 'Privat') {
-//                                $phoneListFather[] = $fatherPhone->getTblPhone()->getNumber();
-//                            }
-//                        }
-//                    }
-//                }
                 if (isset($phoneListGuardian1[0])) {
-                    $tblPerson->PhoneGuardian1 = $phoneListGuardian1[0];
+                    $Item['PhoneGuardian1'] = $phoneListGuardian1[0];
                     if (isset($phoneListGuardian2[0])) {
-                        if ($phoneListGuardian2[0] === $phoneListGuardian1[0]) {
+                        if ($phoneListGuardian2[0] === $phoneListGuardian1[0] && isset( $phoneListGuardian1[0] )) {
                             if (isset($phoneListGuardian2[1])) {
-                                $tblPerson->PhoneGuardian2 = $phoneListGuardian2[1];
-                            } else {
-                                $tblPerson->PhoneGuardian2 = '';
+                                $Item['PhoneGuardian2'] = $phoneListGuardian2[1];
                             }
                         } else {
                             if (isset($phoneListGuardian2[0])) {
-                                $tblPerson->PhoneGuardian2 = $phoneListGuardian2[0];
-                            } else {
-                                $tblPerson->PhoneGuardian2 = '';
+                                $Item['PhoneGuardian2'] = $phoneListGuardian2[0];
                             }
                         }
-                    } else {
-                        $tblPerson->PhoneGuardian2 = '';
                     }
                 } else {
                     $tblPerson->PhoneGuardian1 = '';
                     if (isset($phoneListGuardian2[0])) {
-                        $tblPerson->PhoneGuardian2 = $phoneListGuardian2[0];
-                    } else {
-                        $tblPerson->PhoneGuardian2 = '';
+                        $Item['PhoneGuardian2'] = $phoneListGuardian2[0];
                     }
                 }
-            }
-            $Count = count($studentList);
-            $studentList[$Count - 1]->Woman = $Woman;
-            $studentList[$Count - 1]->Man = $Man;
-            $studentList[$Count - 1]->All = $All;
+                array_push($TableContent, $Item);
+            });
         }
 
-        return $studentList;
+        return $TableContent;
     }
 
     /**
-     * @param $studentList
+     * @param array $PersonList
+     * @param array $tblPersonList
      *
      * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createExtendedClassListExcel($studentList)
+    public function createExtendedClassListExcel($PersonList, $tblPersonList)
     {
 
-        if (!empty($studentList)) {
+        if (!empty( $PersonList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -421,41 +385,44 @@ class Service
             $export->setValue($export->getCell("3", "0"), "Adresse");
             $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
             $export->setValue($export->getCell("5", "0"), "Geburtsort");
-            $export->setValue($export->getCell("6", "0"), "Schülernummer");
-            $export->setValue($export->getCell("7", "0"), "Sorgeberechtigter 1");
-            $export->setValue($export->getCell("8", "0"), "Tel. Sorgeber. 1");
-            $export->setValue($export->getCell("9", "0"), "Sorgeberechtigter 2");
-            $export->setValue($export->getCell("10", "0"), "Tel. Sorgeber. 2");
+            $export->setValue($export->getCell("6", "0"), "Sorgeberechtigter 1");
+            $export->setValue($export->getCell("7", "0"), "Tel. Sorgeber. 1");
+            $export->setValue($export->getCell("8", "0"), "Sorgeberechtigter 2");
+            $export->setValue($export->getCell("9", "0"), "Tel. Sorgeber. 2");
 
             $Row = 1;
 
-            foreach ($studentList as $tblPerson) {
+            foreach ($PersonList as $PersonData) {
 
-                $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
-                $export->setValue($export->getCell("1", $Row), $tblPerson->Name);
-                $export->setValue($export->getCell("2", $Row), $tblPerson->Gender);
-                $export->setValue($export->getCell("3", $Row), $tblPerson->Address);
-                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->Birthplace);
-                $export->setValue($export->getCell("6", $Row), $tblPerson->StudentNumber);
-                $export->setValue($export->getCell("7", $Row), $tblPerson->Guardian1);
-                $export->setValue($export->getCell("8", $Row), $tblPerson->PhoneGuardian1);
-                $export->setValue($export->getCell("9", $Row), $tblPerson->Guardian2);
-                $export->setValue($export->getCell("10", $Row), $tblPerson->PhoneGuardian2);
+                $export->setValue($export->getCell("0", $Row), $PersonData['Number']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['Name']);
+                $export->setValue($export->getCell("2", $Row), $PersonData['Gender']);
+                $export->setValue($export->getCell("3", $Row), $PersonData['Address']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell("6", $Row), $PersonData['Guardian1']);
+                $export->setValue($export->getCell("7", $Row), $PersonData['PhoneGuardian1']);
+                $export->setValue($export->getCell("8", $Row), $PersonData['Guardian2']);
+                $export->setValue($export->getCell("9", $Row), $PersonData['PhoneGuardian2']);
 
                 $Row++;
             }
 
-            $Count = count($studentList);
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Schüler:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->All);
+            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
+            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Mädchen:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->Woman);
+            $export->setValue($export->getCell("0", $Row), 'Männlich:');
+            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Jungen:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->Man);
+            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
+            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
+                $Row++;
+                $export->setValue($export->getCell("0", $Row),
+                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
+            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -474,6 +441,8 @@ class Service
 
         $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
+        $TableContent = array();
+
         if (!empty($studentList)) {
 
             foreach ($studentList as $key => $row) {
@@ -483,32 +452,26 @@ class Service
             }
             array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
 
-            $Man = 0;
-            $Woman = 0;
             $All = 0;
 
-            foreach ($studentList as $tblPerson) {
+            array_walk($studentList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
                 $All++;
-                $tblPerson->Number = $All;
-                $tblPerson->Name = $tblPerson->getLastFirstName();
+                $Item['Number'] = $All;
+                $Item['Name'] = $tblPerson->getLastFirstName();
+                $Item['Gender'] = '';
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
+                $Item['Address'] = '';
+                $Item['Birthday'] = $Item['Birthplace'] = $Item['Age'] = '';
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
                     if ($tblBirhdates) {
                         if ($tblBirhdates->getGender() === 1) {
-                            $tblPerson->Gender = 'männlich';
-                            $Man++;
+                            $Item['Gender'] = 'männlich';
                         } elseif ($tblBirhdates->getGender() === 2) {
-                            $tblPerson->Gender = 'weiblich';
-                            $Woman++;
-                        } else {
-                            $tblPerson->Gender = '';
+                            $Item['Gender'] = 'weiblich';
                         }
-                    } else {
-                        $tblPerson->Gender = '';
                     }
-                } else {
-                    $tblPerson->Gender = '';
                 }
 
                 if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
@@ -517,59 +480,50 @@ class Service
                     $address = null;
                 }
                 if ($address !== null) {
-                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
-                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
-                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
-                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
+                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
+                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
+                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                    $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . ' ' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
-                } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
-                    $tblPerson->Address = '';
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
-                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday();
-                    $tblPerson->Birthplace = $common->getTblCommonBirthDates()->getBirthplace();
+                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
+                    $Item['Birthplace'] = $common->getTblCommonBirthDates()->getBirthplace();
                     $birthDate = (new \DateTime($common->getTblCommonBirthDates()->getBirthday()));
                     $now = new \DateTime();
                     if ($birthDate->format('Y.m') != $now->format('Y.m')) {
                         if (($birthDate->format('m.d')) <= ($now->format('m.d'))) {
-                            $tblPerson->Age = $now->format('Y') - $birthDate->format('Y');
+                            $Item['Age'] = $now->format('Y') - $birthDate->format('Y');
                         } else {
-                            $tblPerson->Age = ($now->format('Y') - 1) - $birthDate->format('Y');
+                            $Item['Age'] = ( $now->format('Y') - 1 ) - $birthDate->format('Y');
                         }
-                    } else {
-                        $tblPerson->Age = '';
                     }
-                } else {
-                    $tblPerson->Birthday = $tblPerson->Birthplace = $tblPerson->Age = '';
                 }
-            }
-            $Count = count($studentList);
-            $studentList[$Count - 1]->Woman = $Woman;
-            $studentList[$Count - 1]->Man = $Man;
-            $studentList[$Count - 1]->All = $All;
+                array_push($TableContent, $Item);
+            });
         }
 
-        return $studentList;
+        return $TableContent;
     }
 
     /**
-     * @param $studentList
+     * @param array $PersonList
+     * @param array $tblPersonList
      *
      * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createBirthdayClassListExcel($studentList)
+    public function createBirthdayClassListExcel($PersonList, $tblPersonList)
     {
 
-        if (!empty($studentList)) {
+        if (!empty( $PersonList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -583,28 +537,33 @@ class Service
 
             $Row = 1;
 
-            foreach ($studentList as $tblPerson) {
+            foreach ($PersonList as $PersonData) {
 
-                $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
-                $export->setValue($export->getCell("1", $Row), $tblPerson->Name);
-                $export->setValue($export->getCell("2", $Row), $tblPerson->Address);
-                $export->setValue($export->getCell("3", $Row), $tblPerson->Birthplace);
-                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->Age);
+                $export->setValue($export->getCell("0", $Row), $PersonData['Number']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['Name']);
+                $export->setValue($export->getCell("2", $Row), $PersonData['Address']);
+                $export->setValue($export->getCell("3", $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['Age']);
 
                 $Row++;
             }
 
-            $Count = count($studentList);
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Schüler:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->All);
+            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
+            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Mädchen:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->Woman);
+            $export->setValue($export->getCell("0", $Row), 'Männlich:');
+            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Jungen:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->Man);
+            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
+            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
+                $Row++;
+                $export->setValue($export->getCell("0", $Row),
+                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
+            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -622,6 +581,7 @@ class Service
     {
 
         $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $TableContent = array();
 
         if (!empty($studentList)) {
 
@@ -632,70 +592,54 @@ class Service
             }
             array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
 
-            $Man = 0;
-            $Woman = 0;
-            $All = 0;
+            array_walk($studentList, function (TblPerson $tblPerson) use (&$TableContent) {
 
-            foreach ($studentList as $tblPerson) {
-
-                $All++;
-                $tblPerson->MedicalInsurance = '';
-                $tblPerson->Number = '';
+                $Item['MedicalInsurance'] = '';
+                $Item['Number'] = '';
+                $Item['Gender'] = '';
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
+                $Item['Address'] = '';
+                $Item['Birthday'] = '';
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
                     if ($tblBirhdates) {
                         if ($tblBirhdates->getGender() === 1) {
-                            $tblPerson->Gender = 'männlich';
-                            $Man++;
+                            $Item['Gender'] = 'männlich';
                         } elseif ($tblBirhdates->getGender() === 2) {
-                            $tblPerson->Gender = 'weiblich';
-                            $Woman++;
-                        } else {
-                            $tblPerson->Gender = '';
+                            $Item['Gender'] = 'weiblich';
                         }
-                    } else {
-                        $tblPerson->Gender = '';
                     }
 
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if ($tblStudent) {
                         if ($tblStudent->getTblStudentMedicalRecord()) {
-                            $tblPerson->MedicalInsurance = $tblStudent->getTblStudentMedicalRecord()->getInsurance();
-                        } else {
-                            $tblPerson->MedicalInsurance = '';
+                            $Item['MedicalInsurance'] = $tblStudent->getTblStudentMedicalRecord()->getInsurance();
                         }
-                        $tblPerson->Number = $tblStudent->getIdentifier();
+                        $Item['Number'] = $tblStudent->getIdentifier();
                     }
-                } else {
-                    $tblPerson->Gender = '';
                 }
-                $tblPerson->Name = $tblPerson->getLastName() . '<br/>' . $tblPerson->getFirstSecondName();
+                $Item['Name'] = $tblPerson->getLastFirstName();
                 if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
                 }
                 if ($address !== null) {
-                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
-                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
-                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
-                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
+                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
+                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
+                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                    $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . '<br/>' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
-                } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
-                    $tblPerson->Address = '';
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
-                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday() . '<br/>' . $common->getTblCommonBirthDates()->getBirthplace();
-                } else {
-                    $tblPerson->Birthday = $tblPerson->Birthplace = '';
+                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday().'<br/>'.$common->getTblCommonBirthDates()->getBirthplace();
                 }
 
                 $Guardian1 = null;
@@ -711,10 +655,11 @@ class Service
                             if ($Count === 1) {
                                 $Guardian2 = $guardian->getServiceTblPersonFrom();
                             }
-                            $Count = $Count + 1;
+                            $Count++;
                         }
                     }
                 }
+
                 $phoneListGuardian = array();
                 if ($Guardian1) {
                     $PhoneListGuardian1 = Phone::useService()->getPhoneAllByPerson($Guardian1);
@@ -738,7 +683,7 @@ class Service
                 } else {
                     $Guardian2 = '';
                 }
-                $tblPerson->Guardian = $Guardian1 . '<br/>' . $Guardian2;
+                $Item['Guardian'] = $Guardian1.'<br/>'.$Guardian2;
 
                 $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
                 $phoneArray = array();
@@ -752,36 +697,34 @@ class Service
                 } else {
                     $phoneString = '';
                 }
-                $tblPerson->PhoneNumber = $phoneString;
+                $Item['PhoneNumber'] = $phoneString;
                 $phoneListGuardian = array_unique($phoneListGuardian);
                 if (count($phoneListGuardian) >= 1) {
                     $phoneGuardianString = implode('<br/>', $phoneListGuardian);
                 } else {
                     $phoneGuardianString = '';
                 }
-                $tblPerson->PhoneGuardianNumber = $phoneGuardianString;
+                $Item['PhoneGuardianNumber'] = $phoneGuardianString;
 
-            }
-            $Count = count($studentList);
-            $studentList[$Count - 1]->Woman = $Woman;
-            $studentList[$Count - 1]->Man = $Man;
-            $studentList[$Count - 1]->All = $All;
+                array_push($TableContent, $Item);
+            });
         }
 
-        return $studentList;
+        return $TableContent;
     }
 
     /**
-     * @param $studentList
+     * @param array $PersonList
+     * @param array $tblPersonList
      *
      * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createMedicalInsuranceClassListExcel($studentList)
+    public function createMedicalInsuranceClassListExcel($PersonList, $tblPersonList)
     {
 
-        if (!empty($studentList)) {
+        if (!empty( $PersonList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -801,14 +744,14 @@ class Service
 
             $Row = 2;
 
-            foreach ($studentList as $tblPerson) {
-                $Name = explode('<br/>', $tblPerson->Name);
-                $Address = explode('<br/>', $tblPerson->Address);
-                $Birthday = explode('<br/>', $tblPerson->Birthday);
-                $KK = explode('<br/>', $tblPerson->MedicalInsurance);
-                $Guardian = explode('<br/>', $tblPerson->Guardian);
-                $PhoneNumber = explode('<br/>', $tblPerson->PhoneNumber);
-                $PhoneGuardianNumber = explode('<br/>', $tblPerson->PhoneGuardianNumber);
+            foreach ($PersonList as $PersonData) {
+                $Name = explode('<br/>', $PersonData['Name']);
+                $Address = explode('<br/>', $PersonData['Address']);
+                $Birthday = explode('<br/>', $PersonData['Birthday']);
+                $KK = explode('<br/>', $PersonData['MedicalInsurance']);
+                $Guardian = explode('<br/>', $PersonData['Guardian']);
+                $PhoneNumber = explode('<br/>', $PersonData['PhoneNumber']);
+                $PhoneGuardianNumber = explode('<br/>', $PersonData['PhoneGuardianNumber']);
 
                 $count = count($Name);
                 if (count($Address) > $count) {
@@ -827,7 +770,7 @@ class Service
                     $count = count($PhoneGuardianNumber);
                 }
 
-                $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
+                $export->setValue($export->getCell("0", $Row), $PersonData['Number']);
                 for ($i = 0; $i < $count; $i++) {
                     if (isset($Name[$i])) {
                         $export->setValue($export->getCell("1", $Row), $Name[$i]);
@@ -854,16 +797,21 @@ class Service
                 }
             }
 
-            $Count = count($studentList);
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Schüler:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->All);
+            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
+            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Mädchen:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->Woman);
+            $export->setValue($export->getCell("0", $Row), 'Männlich:');
+            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Jungen:');
-            $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->Man);
+            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
+            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
+                $Row++;
+                $export->setValue($export->getCell("0", $Row),
+                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
+            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -881,6 +829,7 @@ class Service
     {
 
         $groupList = Group::useService()->getPersonAllByGroup($tblGroup);
+        $TableContent = array();
 
         if (!empty($groupList)) {
 
@@ -891,15 +840,22 @@ class Service
             }
             array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $groupList);
 
-            $Man = 0;
-            $Woman = 0;
             $All = 0;
 
-            foreach ($groupList as $tblPerson) {
+            array_walk($groupList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
 
                 $All++;
-                $tblPerson->Number = $All;
-                $tblPerson->Salutation = $tblPerson->getSalutation();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['LastName'] = $tblPerson->getLastName();
+                $Item['Number'] = $All;
+                $Item['Salutation'] = $tblPerson->getSalutation();
+                $Item['Gender'] = '';
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
+                $Item['Address'] = '';
+                $Item['Birthday'] = '';
+                $Item['PhoneNumber'] = '';
+                $Item['MobilPhoneNumber'] = '';
+                $Item['Mail'] = '';
                 if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $address = $addressList[0];
                 } else {
@@ -911,39 +867,26 @@ class Service
                     if ($tblBirhdates) {
                         if ($tblBirhdates->getGender() === 1) {
                             $tblPerson->Gender = 'männlich';
-                            $Man++;
                         } elseif ($tblBirhdates->getGender() === 2) {
                             $tblPerson->Gender = 'weiblich';
-                            $Woman++;
-                        } else {
-                            $tblPerson->Gender = '';
                         }
-                    } else {
-                        $tblPerson->Gender = '';
                     }
-                } else {
-                    $tblPerson->Gender = '';
                 }
                 if ($address !== null) {
-                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
-                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
-                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
-                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
+                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
+                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
+                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                    $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . ' ' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
-                } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
-                    $tblPerson->Address = '';
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
-                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday();
-                } else {
-                    $tblPerson->Birthday = $tblPerson->Birthplace = '';
+                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
                 }
                 $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
 
@@ -960,14 +903,10 @@ class Service
                     }
                 }
                 if (count($phoneArray) >= 1) {
-                    $tblPerson->PhoneNumber = implode(', ', $phoneArray);
-                } else {
-                    $tblPerson->PhoneNumber = '';
+                    $Item['PhoneNumber'] = implode(', ', $phoneArray);
                 }
                 if (count($mobilePhoneArray) >= 1) {
-                    $tblPerson->MobilPhoneNumber = implode(', ', $mobilePhoneArray);
-                } else {
-                    $tblPerson->MobilPhoneNumber = '';
+                    $Item['MobilPhoneNumber'] = implode(', ', $mobilePhoneArray);
                 }
                 $mailAddressList = Mail::useService()->getMailAllByPerson($tblPerson);
                 $mailList = array();
@@ -976,33 +915,29 @@ class Service
                         $mailList[] = $mailAddress->getTblMail()->getAddress();
                     }
                 }
-
                 if (count($mailList) >= 1) {
-                    $tblPerson->Mail = $mailList[0];
-                } else {
-                    $tblPerson->Mail = '';
+                    $Item['Mail'] = $mailList[0];
                 }
-            }
-            $Count = count($groupList);
-            $groupList[$Count - 1]->Woman = $Woman;
-            $groupList[$Count - 1]->Man = $Man;
-            $groupList[$Count - 1]->All = $All;
+
+                array_push($TableContent, $Item);
+            });
         }
 
-        return $groupList;
+        return $TableContent;
     }
 
     /**
-     * @param $groupList
+     * @param array $PersonList
+     * @param array $tblPersonList
      *
      * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createGroupListExcel($groupList)
+    public function createGroupListExcel($PersonList, $tblPersonList)
     {
 
-        if (!empty($groupList)) {
+        if (!empty( $PersonList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -1019,33 +954,36 @@ class Service
 
             $Row = 1;
 
-            foreach ($groupList as $tblPerson) {
+            foreach ($PersonList as $PersonData) {
 
-                $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
-                $export->setValue($export->getCell("1", $Row), $tblPerson->Salutation);
-                /** @var TblPerson $tblPerson */
-                $export->setValue($export->getCell("2", $Row), $tblPerson->getFirstSecondName());
-                $export->setValue($export->getCell("3", $Row), $tblPerson->getLastName());
-                /** @var $tblPerson */
-                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->Address);
-                $export->setValue($export->getCell("6", $Row), $tblPerson->PhoneNumber);
-                $export->setValue($export->getCell("7", $Row), $tblPerson->MobilPhoneNumber);
-                $export->setValue($export->getCell("8", $Row), $tblPerson->Mail);
+                $export->setValue($export->getCell("0", $Row), $PersonData['Number']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['Salutation']);
+                $export->setValue($export->getCell("2", $Row), $PersonData['FirstName']);
+                $export->setValue($export->getCell("3", $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['Address']);
+                $export->setValue($export->getCell("6", $Row), $PersonData['PhoneNumber']);
+                $export->setValue($export->getCell("7", $Row), $PersonData['MobilPhoneNumber']);
+                $export->setValue($export->getCell("8", $Row), $PersonData['Mail']);
 
                 $Row++;
             }
 
-            $Count = count($groupList);
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
+            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Männlich:');
+            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), $groupList[$Count - 1]->All);
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Frauen:');
-            $export->setValue($export->getCell("1", $Row), $groupList[$Count - 1]->Woman);
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männer:');
-            $export->setValue($export->getCell("1", $Row), $groupList[$Count - 1]->Man);
+            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
+                $Row++;
+                $export->setValue($export->getCell("0", $Row),
+                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
+            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
