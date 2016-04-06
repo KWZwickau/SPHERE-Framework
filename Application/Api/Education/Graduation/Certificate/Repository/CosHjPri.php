@@ -371,13 +371,21 @@ class CosHjPri extends Certificate
                             ->setContent('Fehltage entschuldigt:')
                             , '22%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Input.Missing }}')
+                            ->setContent('{% if(Content.Input.Missing is not empty) %}
+                                    {{ Content.Input.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             , '7%')
                         ->addElementColumn((new Element())
                             ->setContent('unentschuldigt:')
                             , '15%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Input.Bad.Missing }}')
+                            ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
+                                    {{ Content.Input.Bad.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             , '7%')
                         ->addElementColumn((new Element())
                             , '49%')

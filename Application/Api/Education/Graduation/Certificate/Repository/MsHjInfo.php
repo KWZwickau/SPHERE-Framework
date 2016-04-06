@@ -618,7 +618,11 @@ class MsHjInfo extends Certificate
                             ->styleAlignRight()
                             , '25%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Input.Missing is not empty) %}
+                                    {{ Content.Input.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
                             , '10%')
@@ -628,7 +632,11 @@ class MsHjInfo extends Certificate
                             ->styleAlignRight()
                             , '25%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
+                                    {{ Content.Input.Bad.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
                             , '10%')
