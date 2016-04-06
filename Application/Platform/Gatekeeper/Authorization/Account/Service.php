@@ -17,6 +17,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\Tb
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -163,25 +164,32 @@ class Service extends AbstractService
         TblIdentification $tblIdentification
     ) {
 
-        switch ($this->isCredentialValid($CredentialName, $CredentialLock, false, $tblIdentification)) {
-            case false: {
-                if (null !== $CredentialName && empty( $CredentialName )) {
-                    $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
+        if ($tblIdentification->isActive()) {
+            switch ($this->isCredentialValid($CredentialName, $CredentialLock, false, $tblIdentification)) {
+                case false: {
+                    if (null !== $CredentialName && empty( $CredentialName )) {
+                        $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
+                    }
+                    if (null !== $CredentialName && !empty( $CredentialName )) {
+                        $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
+                    }
+                    if (null !== $CredentialLock && empty( $CredentialLock )) {
+                        $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
+                    }
+                    if (null !== $CredentialLock && !empty( $CredentialLock )) {
+                        $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
+                    }
+                    break;
                 }
-                if (null !== $CredentialName && !empty( $CredentialName )) {
-                    $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
+                case true: {
+                    return new Redirect('/', Redirect::TIMEOUT_SUCCESS);
+                    break;
                 }
-                if (null !== $CredentialLock && empty( $CredentialLock )) {
-                    $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
-                }
-                if (null !== $CredentialLock && !empty( $CredentialLock )) {
-                    $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
-                }
-                break;
             }
-            case true: {
-                return new Redirect('/', 0);
-                break;
+        } else {
+            if ($CredentialName || $CredentialLock) {
+                return new Warning('Die Anmeldung mit Benutzername und Passwort ist derzeit leider deaktiviert')
+                .new Redirect('/', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -272,33 +280,40 @@ class Service extends AbstractService
         TblIdentification $tblIdentification
     ) {
 
-        switch ($this->isCredentialValid($CredentialName, $CredentialLock, $CredentialKey, $tblIdentification)) {
-            case false: {
-                if (null !== $CredentialName && empty( $CredentialName )) {
-                    $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
+        if (!$tblIdentification->isActive()) {
+            switch ($this->isCredentialValid($CredentialName, $CredentialLock, $CredentialKey, $tblIdentification)) {
+                case false: {
+                    if (null !== $CredentialName && empty( $CredentialName )) {
+                        $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
+                    }
+                    if (null !== $CredentialName && !empty( $CredentialName )) {
+                        $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
+                    }
+                    if (null !== $CredentialLock && empty( $CredentialLock )) {
+                        $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
+                    }
+                    if (null !== $CredentialLock && !empty( $CredentialLock )) {
+                        $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
+                    }
+                    break;
                 }
-                if (null !== $CredentialName && !empty( $CredentialName )) {
-                    $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
+                case null: {
+                    $Form->setSuccess('CredentialName', '');
+                    $Form->setSuccess('CredentialLock', '');
+                    $Form->setError('CredentialKey', 'Der von Ihnen angegebene YubiKey ist nicht gültig.'
+                        .'<br/>Bitte verwenden Sie Ihren YubiKey um dieses Feld zu befüllen');
+                    break;
                 }
-                if (null !== $CredentialLock && empty( $CredentialLock )) {
-                    $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
+                case true: {
+                    return new Success('Anmeldung erfolgreich', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                    .new Redirect('/', 0);
+                    break;
                 }
-                if (null !== $CredentialLock && !empty( $CredentialLock )) {
-                    $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
-                }
-                break;
             }
-            case null: {
-                $Form->setSuccess('CredentialName', '');
-                $Form->setSuccess('CredentialLock', '');
-                $Form->setError('CredentialKey', 'Der von Ihnen angegebene YubiKey ist nicht gültig.'
-                    .'<br/>Bitte verwenden Sie Ihren YubiKey um dieses Feld zu befüllen');
-                break;
-            }
-            case true: {
-                return new Success('Anmeldung erfolgreich', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                .new Redirect('/', 0);
-                break;
+        } else {
+            if ($CredentialKey) {
+                return new Warning('Die Anmeldung mit Hardware-Token ist derzeit leider deaktiviert')
+                .new Redirect('/', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;

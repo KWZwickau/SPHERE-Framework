@@ -5,7 +5,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Form\IButtonInterface;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Form\Repository\Field;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\System\Authenticator\Authenticator as Authenticator;
@@ -87,7 +87,7 @@ class Form extends Extension implements IFormInterface
                     foreach ((array)$GridCol->getFrontend() as $GridElement) {
                         if ($GridElement instanceof Panel) {
                             foreach ((array)$GridElement->getElementList() as $PanelElement) {
-                                if ($PanelElement instanceof Field) {
+                                if ($PanelElement instanceof AbstractField) {
                                     /** @var IFieldInterface $PanelElement */
                                     if ($PanelElement->getName() == $Name) {
                                         $PanelElement->setError($Message, $Icon);
@@ -95,7 +95,7 @@ class Form extends Extension implements IFormInterface
                                 }
                             }
                         }
-                        if ($GridElement instanceof Field) {
+                        if ($GridElement instanceof AbstractField) {
                             if ($GridElement->getName() == $Name) {
                                 $GridElement->setError($Message, $Icon);
                             }
@@ -127,7 +127,7 @@ class Form extends Extension implements IFormInterface
                     foreach ((array)$GridCol->getFrontend() as $GridElement) {
                         if ($GridElement instanceof Panel) {
                             foreach ((array)$GridElement->getElementList() as $PanelElement) {
-                                if ($PanelElement instanceof Field) {
+                                if ($PanelElement instanceof AbstractField) {
                                     /** @var IFieldInterface $PanelElement */
                                     if ($PanelElement->getName() == $Name) {
                                         $PanelElement->setSuccess($Message, $Icon);
@@ -135,7 +135,7 @@ class Form extends Extension implements IFormInterface
                                 }
                             }
                         }
-                        if ($GridElement instanceof Field) {
+                        if ($GridElement instanceof AbstractField) {
                             if ($GridElement->getName() == $Name) {
                                 $GridElement->setSuccess($Message, $Icon);
                             }

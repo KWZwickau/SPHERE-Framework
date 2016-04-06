@@ -3,7 +3,7 @@ namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
 use MOC\V\Component\Captcha\Captcha;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
-use SPHERE\Common\Frontend\Form\Repository\Field;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
@@ -11,7 +11,7 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class TextCaptcha extends Field implements IFieldInterface
+class TextCaptcha extends AbstractField implements IFieldInterface
 {
 
     /**

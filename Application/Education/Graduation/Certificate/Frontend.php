@@ -9,8 +9,8 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -326,7 +326,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         } else {
                                             $Placeholder = (new TextField($FieldName, $Label, $Label));
                                         }
-                                        /** @var Field $Placeholder */
+                                        /** @var AbstractField $Placeholder */
 //                                        $Placeholder = $Placeholder->setDefaultValue($Payload,true);
 //                                        $FormPanelList[$Type][] = $Placeholder;
                                     } else {
@@ -341,7 +341,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         } else {
                                             $Placeholder = (new TextField($FieldName, $Label, $Label));
                                         }
-//                                        /** @var Field $Placeholder */
+//                                        /** @var AbstractField $Placeholder */
 //                                        $Placeholder = $Placeholder;
 
                                         $FormPanelList['Additional'][] = $Placeholder;

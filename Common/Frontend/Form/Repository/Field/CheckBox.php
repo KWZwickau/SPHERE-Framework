@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
 use SPHERE\Common\Frontend\Form\IFieldInterface;
-use SPHERE\Common\Frontend\Form\Repository\Field;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 
 /**
  * Class CheckBox
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class CheckBox extends Field implements IFieldInterface
+class CheckBox extends AbstractField implements IFieldInterface
 {
 
     /**
