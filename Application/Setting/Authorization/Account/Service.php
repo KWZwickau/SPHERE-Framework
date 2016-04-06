@@ -110,7 +110,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
                         $tblRole = GatekeeperAccess::useService()->getRoleById($Role);
-                        GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        if ($tblToken || !$tblRole->isSecure()) {
+                            GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        }
                     }
                 }
                 if (isset( $Account['User'] )) {
@@ -213,7 +215,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
                         $tblRole = GatekeeperAccess::useService()->getRoleById($Role);
-                        GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        if ($tblToken || !$tblRole->isSecure()) {
+                            GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        }
                     }
                 }
 

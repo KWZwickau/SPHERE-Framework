@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -92,8 +93,8 @@ class Frontend extends Extension implements IFrontendInterface
                 if (
                     ( $tblAccount->getServiceTblIdentification()
                         && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId() )
-                        && $tblAccount->getServiceTblConsumer()
-                        && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
+                    && $tblAccount->getServiceTblConsumer()
+                    && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {
 
                     $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
@@ -107,6 +108,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
                     if ($tblAuthorizationAll) {
                         array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
+
                             if ($tblAuthorization->getServiceTblRole()) {
                                 $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
                             } else {
@@ -250,8 +252,10 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblRole->isInternal()) {
                     $tblRole = false;
                 } else {
-                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
-                        $tblRole->getId());
+                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']',
+                        ( $tblRole->isSecure() ? new YubiKey().' ' : '' ).$tblRole->getName(),
+                        $tblRole->getId()
+                    );
                 }
             });
             $tblRoleAll = array_filter($tblRoleAll);
@@ -521,12 +525,12 @@ class Frontend extends Extension implements IFrontendInterface
                     array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
 
                         if ($tblAuthorization->getServiceTblRole()) {
-                            $tblAuthorization = new Nameplate() . ' ' . $tblAuthorization->getServiceTblRole()->getName();
+                            $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
                         } else {
                             $tblAuthorization = false;
                         }
                     });
-                    $tblAuthorizationAll = array_filter(($tblAuthorizationAll));
+                    $tblAuthorizationAll = array_filter(( $tblAuthorizationAll ));
                     $Content = array_merge($Content, $tblAuthorizationAll);
                 }
 
