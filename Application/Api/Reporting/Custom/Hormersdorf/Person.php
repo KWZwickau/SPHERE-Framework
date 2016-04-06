@@ -10,6 +10,7 @@ namespace SPHERE\Application\Api\Reporting\Custom\Hormersdorf;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Reporting\Custom\Hormersdorf\Person\Person as HormersdorfPerson;
 
 /**
@@ -21,24 +22,6 @@ class Person
 {
 
     /**
-     * @return bool|string
-     */
-    public function downloadStaffList()
-    {
-
-        $staffList = HormersdorfPerson::useService()->createStaffList();
-
-        if ($staffList) {
-            $fileLocation = HormersdorfPerson::useService()->createStaffListExcel($staffList);
-
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Mitarbeiterliste (Geburtstage) ".date("Y-m-d H:i:s").".xls")->__toString();
-        }
-
-        return false;
-    }
-
-    /**
      * @param null $DivisionId
      *
      * @return string|bool
@@ -48,13 +31,37 @@ class Person
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = HormersdorfPerson::useService()->createClassList($tblDivision);
-            if ($studentList) {
-                $fileLocation = HormersdorfPerson::useService()->createClassListExcel($studentList);
+            $PersonList = HormersdorfPerson::useService()->createClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = HormersdorfPerson::useService()->createClassListExcel($PersonList, $tblPersonList);
+
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function downloadStaffList()
+    {
+
+        $PersonList = HormersdorfPerson::useService()->createStaffList();
+
+        if ($PersonList) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
+            if ($tblPersonList) {
+                $fileLocation = HormersdorfPerson::useService()->createStaffListExcel($PersonList, $tblPersonList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Klassenliste ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    "Mitarbeiterliste (Geburtstage) ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
 
