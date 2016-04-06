@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRight;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -289,9 +290,11 @@ class Frontend
     /**
      * @param null|string $Name
      *
+     * @param bool        $IsSecure
+     *
      * @return Stage
      */
-    public function frontendRole($Name)
+    public function frontendRole($Name, $IsSecure = false)
     {
 
         $Stage = new Stage('Berechtigungen', 'Rollen');
@@ -336,11 +339,14 @@ class Frontend
                 new Form(new FormGroup(
                         new FormRow(
                             new FormColumn(
-                                new TextField('Name', 'Name', 'Name')
+                                new Panel('Rolle anlegen', array(
+                                    new TextField('Name', 'Name', 'Name'),
+                                    new CheckBox('IsSecure', 'Nur mit Hardware-Token', 1)
+                                ), Panel::PANEL_TYPE_INFO)
                             )
-                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Rolle anlegen'))
+                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Neue Rolle anlegen'))
                     , new Primary('Hinzufügen')
-                ), $Name
+                ), $Name, $IsSecure
             )
         );
         return $Stage;

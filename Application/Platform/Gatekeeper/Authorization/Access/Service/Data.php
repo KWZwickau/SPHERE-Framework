@@ -28,7 +28,7 @@ class Data extends AbstractData
          * CLOUD
          * Administrator (Setup Role)
          */
-        $tblRoleCloud = $this->createRole('Administrator', true);
+        $tblRoleCloud = $this->createRole('Administrator', true, true);
 
         // Level: Cloud - Platform
         $tblLevel = $this->createLevel('Cloud - Platform');
@@ -190,7 +190,7 @@ class Data extends AbstractData
          * SERVER
          * Schulstiftung (Setup Role)
          */
-        $tblRole = $this->createRole('Schulstiftung', true);
+        $tblRole = $this->createRole('Schulstiftung', true, true);
 
         // Level: Cloud - Roadmap
         $tblLevel = $this->createLevel('Cloud - Roadmap');
@@ -224,17 +224,19 @@ class Data extends AbstractData
 
     /**
      * @param string $Name
+     * @param bool   $IsSecure
      * @param bool   $IsInternal
      *
      * @return TblRole
      */
-    public function createRole($Name, $IsInternal = false)
+    public function createRole($Name, $IsSecure = false, $IsInternal = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblRole')->findOneBy(array(TblRole::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblRole($Name);
+            $Entity->setSecure($IsSecure);
             $Entity->setInternal($IsInternal);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
