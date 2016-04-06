@@ -7,11 +7,11 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\System\Extension\Extension;
 
 /**
- * Class Field
+ * Class AbstractField
  *
  * @package SPHERE\Common\Frontend\Form\Repository
  */
-abstract class Field extends Extension implements IFieldInterface
+abstract class AbstractField extends Extension implements IFieldInterface
 {
 
     /** @var string $Name */
@@ -43,7 +43,7 @@ abstract class Field extends Extension implements IFieldInterface
      * @param string           $RequestKey
      * @param string           $VariableName
      *
-     * @return Field
+     * @return AbstractField
      */
     protected function setPostValue(IBridgeInterface &$Template, $RequestKey, $VariableName)
     {
@@ -152,7 +152,7 @@ abstract class Field extends Extension implements IFieldInterface
      * @param mixed $Value
      * @param bool  $Force
      *
-     * @return Field
+     * @return AbstractField
      */
     public function setDefaultValue($Value, $Force = false)
     {
@@ -169,7 +169,7 @@ abstract class Field extends Extension implements IFieldInterface
     /**
      * @param mixed $Value
      *
-     * @return Field
+     * @return AbstractField
      */
     public function setPrefixValue($Value)
     {
@@ -182,7 +182,7 @@ abstract class Field extends Extension implements IFieldInterface
      * @param string           $RequestKey
      * @param                  $Value
      *
-     * @return Field
+     * @return AbstractField
      */
     public function isChecked($RequestKey, $Value)
     {
@@ -259,7 +259,7 @@ abstract class Field extends Extension implements IFieldInterface
     }
 
     /**
-     * @return Field
+     * @return AbstractField
      */
     public function setDisabled()
     {
