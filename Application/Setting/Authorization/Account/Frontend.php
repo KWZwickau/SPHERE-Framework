@@ -329,9 +329,20 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblPersonAll = \SPHERE\Application\People\Person\Person::useService()->getPersonAll();
         if ($tblPersonAll) {
-            array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson, $Global) {
 
-                if ($tblPerson === false || $tblPersonItem->getId() != $tblPerson->getId()) {
+                if (
+                    (
+                        $tblPerson === false
+                        || $tblPersonItem->getId() != $tblPerson->getId()
+                    )
+                    && (
+                        !isset( $Global->POST['Account']['User'] )
+                        || (
+                            isset( $Global->POST['Account']['User'] ) && $Global->POST['Account']['User'] != $tblPersonItem->getId()
+                        )
+                    )
+                ) {
                     $tblPersonItem = array(
                         'Person' => new RadioBox('Account[User]', $tblPersonItem->getFullName(),
                             $tblPersonItem->getId())
@@ -351,6 +362,14 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPerson) {
             $PanelPerson = new Panel(new Person().' für folgende Person', array(
                 new Danger('AKTUELL hinterlegte Person, '),
+                new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
+                new Danger('ODER eine andere Person wählen: '),
+                new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+            ), Panel::PANEL_TYPE_INFO);
+        } elseif (isset( $Global->POST['Account']['User'] )) {
+            $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
+            $PanelPerson = new Panel(new Person().' für folgende Person', array(
+                new Warning('AKTUELL selektierte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
                 new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
