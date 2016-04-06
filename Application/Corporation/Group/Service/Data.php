@@ -138,39 +138,6 @@ class Data extends AbstractData
     }
 
     /**
-     *
-     * @param TblGroup $tblGroup
-     *
-     * @return int
-     */
-    public function countCompanyAllByGroup(TblGroup $tblGroup)
-    {
-
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
-//        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
-//            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-//        ));
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
-            array(
-                TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-            ));
-
-        if ($EntityList){
-            $count = 0;
-            /** @var TblMember $item */
-            foreach ($EntityList as &$item){
-                if ($item->getServiceTblCompany()) {
-                    $count++;
-                }
-            }
-            return $count;
-        } else {
-            return 0;
-        }
-    }
-
-    /**
      * @param TblGroup $tblGroup
      *
      * @return bool|TblCompany[]
@@ -178,11 +145,7 @@ class Data extends AbstractData
     public function getCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        /** @var TblMember[] $EntityList */
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
-            array(
-                TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-            ));
+        $EntityList = $this->getMemberAllByGroup($tblGroup);
 
         $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
         if (null === ( $ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__) )
@@ -201,6 +164,20 @@ class Data extends AbstractData
         }
 
         return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return false|TblMember[]
+     */
+    public function getMemberAllByGroup(TblGroup $tblGroup)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+            array(
+                TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+            ));
     }
 
     /**

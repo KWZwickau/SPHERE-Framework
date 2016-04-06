@@ -73,4 +73,15 @@ class TblMember extends Element
 
         $this->tblGroup = ( null === $tblGroup ? null : $tblGroup->getId() );
     }
+
+    /**
+     * @param Element $Required
+     *
+     * @return \DateTime|null
+     */
+    public function getEntityRemove(Element $Required = null)
+    {
+
+        return parent::getEntityRemove(new TblPerson());
+    }
 }
