@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -447,6 +448,7 @@ class Data extends AbstractData
      * @param null $ToDate
      * @param TblPeriod|null $tblPeriod
      * @param TblScoreType $tblScoreType
+     * @param TblYear $tblYear
      *
      * @return TblTask
      */
@@ -457,7 +459,8 @@ class Data extends AbstractData
         $FromDate = null,
         $ToDate = null,
         TblPeriod $tblPeriod = null,
-        TblScoreType $tblScoreType = null
+        TblScoreType $tblScoreType = null,
+        TblYear $tblYear = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -470,6 +473,7 @@ class Data extends AbstractData
         $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
         $Entity->setServiceTblPeriod($tblPeriod);
         $Entity->setServiceTblScoreType($tblScoreType);
+        $Entity->setServiceTblYear($tblYear);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
