@@ -393,6 +393,24 @@ class Frontend extends Extension implements IFrontendInterface
                             'Certificate' => 'GymJ'
                         ), 'Auswählen')
                     );
+                    $TemplateTable[] = array(
+                        'Template' => 'Coswig Halbjahresinformation Primarstufe',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'CosHjPri'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Coswig Halbjahresinformation Sekundarstufe',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'CosHjSek'
+                        ), 'Auswählen')
+                    );
 
                     $Content = new TableData($TemplateTable);
 
@@ -462,13 +480,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormField = array(
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
 
-                            'Content.Input.Remark'    => 'TextArea',
-                            'Content.Input.Rating'    => 'TextArea',
-                            'Content.Input.Team'      => 'TextArea',
-                            'Content.Input.Deepening' => 'TextField',
-                            'Content.Input.Date'      => 'DatePicker',
-                            'Content.Input.Transfer'  => 'TextField',
-                            'Content.Input.Level'     => 'TextField',
+                            'Content.Input.Remark'      => 'TextArea',
+                            'Content.Input.Rating'      => 'TextArea',
+                            'Content.Input.Team'        => 'TextArea',
+                            'Content.Input.Deepening'   => 'TextField',
+                            'Content.Input.Date'        => 'DatePicker',
+                            'Content.Input.Transfer'    => 'TextField',
+                            'Content.Input.Level'       => 'TextField',
+                            'Content.Input.Missing'     => 'TextField',
+                            'Content.Input.Bad.Missing' => 'TextField',
                         );
                         $FormLabel = array(
                             'Content.Person.Data.Name.Salutation'       => 'Anrede',
@@ -481,13 +501,15 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Division.Data.Level.Name' => 'Klassenstufe',
                             'Content.Division.Data.Name'       => 'Klassengruppe',
 
-                            'Content.Input.Remark'    => 'Bemerkungen',
-                            'Content.Input.Rating'    => 'Einschätzung',
-                            'Content.Input.Team'      => 'Arbeitsgemeinschaften',
-                            'Content.Input.Deepening' => 'Vertiefungsrichtung',
-                            'Content.Input.Date'      => 'Datum',
-                            'Content.Input.Transfer'  => 'Versetzungsvermerk',
-                            'Content.Input.Level'     => '2. Fremdsprache ab Klassenstufe',
+                            'Content.Input.Remark'      => 'Bemerkungen',
+                            'Content.Input.Rating'      => 'Einschätzung',
+                            'Content.Input.Team'        => 'Arbeitsgemeinschaften',
+                            'Content.Input.Deepening'   => 'Vertiefungsrichtung',
+                            'Content.Input.Date'        => 'Datum',
+                            'Content.Input.Transfer'    => 'Versetzungsvermerk',
+                            'Content.Input.Level'       => '2. Fremdsprache ab Klassenstufe',
+                            'Content.Input.Missing'     => 'Fehltage entschuldigt',
+                            'Content.Input.Bad.Missing' => 'Fehltage unentschuldigt',
                         );
 
                         // Create Form, Additional Information from Template
@@ -614,11 +636,11 @@ class Frontend extends Extension implements IFrontendInterface
                             new Title('Daten für:'),
                             $Header,
                             $Form,
-                        ), 5),
+                        ), 4),
                         new LayoutColumn(array(
                             new Title('Vorschau der Daten'),
                             '<div class="cleanslate">'.$Content.'</div>',
-                        ), 7)
+                        ), 8)
                     ))
                 )
             ))

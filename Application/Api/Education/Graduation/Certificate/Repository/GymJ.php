@@ -624,7 +624,11 @@ class GymJ extends Certificate
                             , '23%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent(' {{ Content.Input.Team }} ')
+                            ->setContent('{% if(Content.Input.Team is not empty) %}
+                                    {{ Content.Input.Team|nl2br }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             , '77%')
                     )
