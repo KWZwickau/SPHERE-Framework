@@ -92,7 +92,7 @@ class Setup extends AbstractSetup
             $Table->addIndex(array('Description'));
         }
         if (!$this->getConnection()->hasColumn('tblIdentification', 'IsActive')) {
-            $Table->addColumn('IsActive', 'boolean');
+            $Table->addColumn('IsActive', 'boolean', array('default' => 1));
         }
         return $Table;
     }

@@ -280,7 +280,7 @@ class Service extends AbstractService
         TblIdentification $tblIdentification
     ) {
 
-        if (!$tblIdentification->isActive()) {
+        if ($tblIdentification->isActive()) {
             switch ($this->isCredentialValid($CredentialName, $CredentialLock, $CredentialKey, $tblIdentification)) {
                 case false: {
                     if (null !== $CredentialName && empty( $CredentialName )) {
