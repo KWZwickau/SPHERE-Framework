@@ -374,7 +374,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
 
         $Parser = new Parser(
             new Credentials(),
-            'Typ: Feature,Bug,Optimierung Teilsystem: {10*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
+            'Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
         );
         return $Parser->getMap();
     }

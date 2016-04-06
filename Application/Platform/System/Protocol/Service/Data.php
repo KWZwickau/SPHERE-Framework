@@ -127,4 +127,44 @@ class Data extends AbstractData
 
         return $Entity;
     }
+
+    /**
+     * @return TblProtocol[]|bool
+     */
+    public function getProtocolAllCreateSession()
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Builder = $Manager->getQueryBuilder();
+
+        $TwoWeeksAgo = new \DateTime(date("Ymd"));
+        $TwoWeeksAgo->sub(new \DateInterval('P'.abs(( 7 - date("N") - 14 )).'D'));
+        $LastWeek = new \DateTime(date("Ymd"));
+        $LastWeek->sub(new \DateInterval('P'.abs(( 7 - date("N") - 7 )).'D'));
+        $ThisWeek = new \DateTime(date("Ymd"));
+        $ThisWeek->add(new \DateInterval('P'.abs(( 7 - date("N") )).'D'));
+
+        $Query = $Builder
+            ->select('P')
+            ->from(__NAMESPACE__.'\Entity\TblProtocol', 'P')
+            ->where(
+                $Builder->expr()->eq('P.ProtocolDatabase', '?1')
+            )->andWhere(
+                $Builder->expr()->isNull('P.EntityFrom')
+            )->andWhere(
+                $Builder->expr()->like('P.EntityTo', '?2')
+            )->andWhere(
+                $Builder->expr()->gte('P.EntityCreate', '?3')
+            )
+            ->setParameter(1, 'PlatformGatekeeperAuthorizationAccount')
+            ->setParameter(2, '%TblSession%')
+            ->setParameter(3, $TwoWeeksAgo)
+            ->orderBy('P.EntityCreate', 'DESC')
+            ->setMaxResults(10000)
+            ->getQuery();
+
+        $EntityList = $Query->getResult();
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
 }
