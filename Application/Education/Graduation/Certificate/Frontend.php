@@ -448,6 +448,15 @@ class Frontend extends Extension implements IFrontendInterface
                             'Certificate' => 'HorJOne'
                         ), 'Auswählen')
                     );
+                    $TemplateTable[] = array(
+                        'Template' => 'Chemnitz Bildungsempfehlung',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'CheBe'
+                        ), 'Auswählen')
+                    );
 
                     $Content = new TableData($TemplateTable);
 
