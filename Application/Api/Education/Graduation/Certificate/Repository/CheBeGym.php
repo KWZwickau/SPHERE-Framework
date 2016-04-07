@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class CheBe extends Certificate
+class CheBeGym extends Certificate
 {
 
     /**
@@ -332,8 +332,8 @@ class CheBe extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('{% if(Content.Input.Remark is not empty) %}
-                                    {{ Content.Input.Remark|nl2br }}
+                        ->setContent('{% if(Content.Input.Survey is not empty) %}
+                                    {{ Content.Input.Survey|nl2br }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
@@ -362,47 +362,17 @@ class CheBe extends Certificate
                             {% endif %} empfohlen:')
                         ->styleMarginTop('15px')
                     )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if Content.Person.Common.BirthDates.Gender == 2 %}
-                                Die Schülerin
+                    ->addElement((new Element())
+                        ->setContent('{% if Content.Person.Common.BirthDates.Gender == 2 %}
+                                Die Schülerin kann ihre Ausbildung am Gymnasium fortsetzen.
                             {% else %}
                                 {% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                    Der Schüler
+                                    Der Schüler kann seine Ausbildung am Gymnasium fortsetzen.
                                 {% else %}
-                                    Die Schülerin/Der Schüler¹
+                                    Die Schülerin/Der Schüler¹ kann ihre/seine¹ Ausbildung am Gymnasium fortsetzen.
                                 {% endif %}
                             {% endif %}')
-                            ->styleMarginTop('21px')
-                            , '25%')
-                        ->addElementColumn((new Element())
-                            ->setContent('kann 
-                            {% if Content.Person.Common.BirthDates.Gender == 2 %}
-                                ihre
-                            {% else %}
-                                {% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                    seine
-                                {% else %}
-                                    ihre/seine¹
-                                {% endif %}
-                            {% endif %}
-                            Ausbildung am Gymnasium fortsetzen/'
-                                .new Container('setzt 
-                             {% if Content.Person.Common.BirthDates.Gender == 2 %}
-                                ihre
-                            {% else %}
-                                {% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                    seine
-                                {% else %}
-                                    ihre/seine¹
-                                {% endif %}
-                            {% endif %}
-                            Ausbildung an der Mittelschule fort¹.'))
-                            ->styleMarginTop('14px')
-                            ->styleBorderBottom()
-                            , '50%')
-                        ->addElementColumn((new Element())
-                            , '25%')
+                        ->styleMarginTop('21px')
 
                     )
                     ->styleHeight('100px')

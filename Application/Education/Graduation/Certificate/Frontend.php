@@ -449,12 +449,21 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
-                        'Template' => 'Chemnitz Bildungsempfehlung',
+                        'Template' => 'Chemnitz Bildungsempfehlung Mittelschule',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
                             'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'CheBe'
+                            'Certificate' => 'CheBeMi'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Chemnitz Bildungsempfehlung Gymnasium',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'CheBeGym'
                         ), 'Auswählen')
                     );
 
@@ -528,6 +537,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             'Content.Input.Remark'      => 'TextArea',
                             'Content.Input.Rating'      => 'TextArea',
+                            'Content.Input.Survey'      => 'TextArea',
                             'Content.Input.Team'        => 'TextArea',
                             'Content.Input.Deepening'   => 'TextField',
                             'Content.Input.Date'        => 'DatePicker',
@@ -547,14 +557,15 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Division.Data.Level.Name' => 'Klassenstufe',
                             'Content.Division.Data.Name'       => 'Klassengruppe',
 
-                            'Content.Input.Remark'      => 'Bemerkungen',
-                            'Content.Input.Rating'      => 'Einschätzung',
-                            'Content.Input.Team'        => 'Arbeitsgemeinschaften',
-                            'Content.Input.Deepening'   => 'Vertiefungsrichtung',
-                            'Content.Input.Date'        => 'Datum',
-                            'Content.Input.Transfer'    => 'Versetzungsvermerk',
-                            'Content.Input.Level'       => '2. Fremdsprache ab Klassenstufe',
-                            'Content.Input.Missing'     => 'Fehltage entschuldigt',
+                            'Content.Input.Remark'    => 'Bemerkungen',
+                            'Content.Input.Rating'    => 'Einschätzung',
+                            'Content.Input.Survey'    => 'Gutachten',
+                            'Content.Input.Team'      => 'Arbeitsgemeinschaften',
+                            'Content.Input.Deepening' => 'Vertiefungsrichtung',
+                            'Content.Input.Date'      => 'Datum',
+                            'Content.Input.Transfer'  => 'Versetzungsvermerk',
+                            'Content.Input.Level'     => '2. Fremdsprache ab Klassenstufe',
+                            'Content.Input.Missing'   => 'Fehltage entschuldigt',
                             'Content.Input.Bad.Missing' => 'Fehltage unentschuldigt',
                         );
 
