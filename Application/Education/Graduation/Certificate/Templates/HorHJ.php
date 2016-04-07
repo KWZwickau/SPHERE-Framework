@@ -48,7 +48,7 @@ class HorHJ extends Extension implements IFrontendInterface
                     )
                     ->addSlice((new Slice())
                         ->addSection((new Section())
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Hormersdorf_logo.png', '150px'))
+                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Hormersdorf_logo.jpg', '150px'))
                                 ->styleAlignCenter()
                                 , '25%')
                             ->addSliceColumn((new Slice())

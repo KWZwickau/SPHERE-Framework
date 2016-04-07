@@ -16,7 +16,7 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
-class HorJEins extends Extension implements IFrontendInterface
+class HorHJEins extends Extension implements IFrontendInterface
 {
 
     public function frontendCreate($Data, $Content = null)
@@ -28,7 +28,7 @@ class HorJEins extends Extension implements IFrontendInterface
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Hormersdorf Jahreszeugnis Klasse 1.pdf')
+                    ->setContent('Hormersdorf Halbjahreszeugnis Klasse 1.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -48,7 +48,7 @@ class HorJEins extends Extension implements IFrontendInterface
                     )
                     ->addSlice((new Slice())
                         ->addSection((new Section())
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Hormersdorf_logo.png', '150px'))
+                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Hormersdorf_logo.jpg', '150px'))
                                 ->styleAlignCenter()
                                 , '25%')
                             ->addSliceColumn((new Slice())
@@ -80,7 +80,7 @@ class HorJEins extends Extension implements IFrontendInterface
                     )
                     ->addSlice((new Slice())
                         ->addElement((new Element())
-                            ->setContent('JAHRESZEUGNIS')
+                            ->setContent('HALBJAHRESINFORMATION')
                             ->styleTextSize('24px')
                             ->styleTextBold()
                             ->styleAlignCenter()
@@ -106,7 +106,7 @@ class HorJEins extends Extension implements IFrontendInterface
                                 ->styleBorderBottom('1px', '#BBB')
                                 , '47%')
                             ->addElementColumn((new Element())
-                                ->setContent('Schuljahr')
+                                ->setContent('1. Schulhalbjahr')
                                 ->styleBorderBottom('1px', '#BBB')
                                 ->styleAlignRight()
                                 , '30%')
@@ -184,8 +184,6 @@ class HorJEins extends Extension implements IFrontendInterface
                     ->addSlice((new Slice())
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleBorderBottom('1px', '#BBB')
                                 , '35%')
                             ->addElementColumn((new Element())
                                 ->setContent('Dienststempel der Schule')
@@ -199,12 +197,7 @@ class HorJEins extends Extension implements IFrontendInterface
                         )
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
-                                ->setContent('Schulleiter/in')
-                                ->styleAlignCenter()
-                                ->styleTextSize('11px')
-                                , '35%')
-                            ->addElementColumn((new Element())
-                                , '30%')
+                                , '65%')
                             ->addElementColumn((new Element())
                                 ->setContent('Klassenlehrer/in')
                                 ->styleAlignCenter()
