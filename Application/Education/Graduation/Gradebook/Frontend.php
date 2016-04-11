@@ -47,7 +47,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -123,9 +122,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Description'] = $tblGradeType->getDescription();
                 $Item['Option'] = (new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
                         'Id' => $tblGradeType->getId()
-                    ), 'Zensuren-Typ bearbeiten'))
-                    . (new Standard('', '/Education/Graduation/Gradebook/GradeType/Destroy', new Remove(),
-                        array('Id' => $tblGradeType->getId()), 'Löschen'));
+                    ), 'Zensuren-Typ bearbeiten'));
+                // löschen erstmal deaktiviert, kann zu Problemen führen
+//                    . (new Standard('', '/Education/Graduation/Gradebook/GradeType/Destroy', new Remove(),
+//                        array('Id' => $tblGradeType->getId()), 'Löschen'));
 
                 array_push($TableContent, $Item);
             });
