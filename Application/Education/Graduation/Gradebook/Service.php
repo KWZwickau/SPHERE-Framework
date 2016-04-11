@@ -326,9 +326,7 @@ class Service extends AbstractService
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
                 $tblPerson = Person::useService()->getPersonById($personId);
                 $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
-//                Debugger::screenDump($gradeValue, $tblGrade);
                 if ($tblGrade && $gradeValue && empty($value['Comment']) && $gradeValue != $tblGrade->getGrade()) {
-//                    Debugger::screenDump('Error');
                     $errorEdit = true;
                     break;
                 }
