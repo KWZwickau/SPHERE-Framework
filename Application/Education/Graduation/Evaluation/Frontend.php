@@ -961,7 +961,7 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Test', Redirect::TIMEOUT_ERROR);
         }
 
-        // Klassenlehrer darf Noten editieren
+        // Klassenlehrer darf ohne Grund Noten editieren
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -982,6 +982,7 @@ class Frontend extends Extension implements IFrontendInterface
             $isEdit = true;
         } else {
             $isEdit = false;
+            $Stage->setMessage(new Warning(new Exclamation() . ' Bei einer Notenänderung muss für diese ein Grund angegeben werden.'));
         }
 
         $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Evaluation/Test', $isEdit);
@@ -1521,8 +1522,12 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         if (!$IsEdit && $tblGrade) {
-            $student = $this->setGradeDisabled($tblPerson, $student);
-        } elseif (!$IsEdit && !$IsTaskAndInPeriod) {
+            $labelComment = new Warning('Bei Notenänderung bitte einen Grund angeben');
+        } else {
+            $labelComment = '';
+        }
+
+        if (!$IsEdit && !$IsTaskAndInPeriod) {
             $student = $this->setGradeDisabled($tblPerson, $student);
         } else {
             if ($tblScoreType) {
@@ -1548,7 +1553,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new ResizeVertical()));
             }
             $student[$tblPerson->getId()]['Comment']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()));
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', $labelComment, new Comment()));
             $student[$tblPerson->getId()]['Attendance'] =
                 (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1));
         }
