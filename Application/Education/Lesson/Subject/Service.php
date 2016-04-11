@@ -433,6 +433,18 @@ class Service extends AbstractService
 
     /**
      * @param string $Acronym
+     * @param string $Name
+     * @param string $Description
+     * @return TblSubject
+     */
+    public function insertSubject($Acronym, $Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createSubject($Acronym, $Name, $Description);
+    }
+
+    /**
+     * @param string $Acronym
      *
      * @return bool|TblSubject
      */
