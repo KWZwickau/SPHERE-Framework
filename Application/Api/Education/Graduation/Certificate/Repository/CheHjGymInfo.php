@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class MsHjInfo extends Certificate
+class CheHjGymInfo extends Certificate
 {
 
     /**
@@ -22,7 +22,7 @@ class MsHjInfo extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS Halbjahres Info 3a.pdf')
+                    ->setContent('Chemnitz Halbjahresinformation Gymnasium.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -40,26 +40,29 @@ class MsHjInfo extends Certificate
                     $Header
                 )
                 ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Name der Schule:')
-                            , '18%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Company.Data.Name is not empty) %}
-                                    {{ Content.Company.Data.Name }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleBorderBottom()
-                            , '82%'
-                        )
+                    ->addElement((new Element())
+                        ->setContent('{% if(Content.Company.Data.Name is not empty) %}
+                                {{ Content.Company.Data.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderBottom()
+                        ->styleAlignCenter()
+                        ->styleTextSize('16px')
+                        ->styleTextBold()
                     )->styleMarginTop('20px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Halbjahresinformation der Mittelschule')
+                        ->setContent('Name der Schule')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('Halbjahresinformation des Gymnasiums')
                         ->styleTextSize('18px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -82,7 +85,7 @@ class MsHjInfo extends Certificate
                             , '55%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('1. Schulhalbjahr:')
+                            ->setContent('Schuljahr:')
                             ->styleAlignRight()
                             , '18%'
                         )
@@ -106,13 +109,13 @@ class MsHjInfo extends Certificate
                             , '79%')
                     )->styleMarginTop('5px')
                 )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleTextSize('11px')
-                        ->styleMarginTop('7px')
-                    )->styleMarginTop('5px')
-                )
+//                ->addSlice((new Slice())
+//                    ->addElement((new Element())
+//                        ->setContent('nahm am Unterricht mit dem Ziel des Hauptschulabschlusses teil.')
+//                        ->styleTextSize('11px')
+//                        ->styleMarginTop('7px')
+//                    )->styleMarginTop('5px')
+//                )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -279,15 +282,13 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Kunst')
+                            ->setContent('&nbsp;')
                             ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleBorderBottom()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.KU is not empty) %}
-                                    {{ Content.Grade.Data.KU }}
-                                {% else %}
-                                    ---
-                                {% endif %}')
+                            ->setContent('&nbsp;')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -314,16 +315,25 @@ class MsHjInfo extends Certificate
                             , '9%')
                     )
                     ->styleMarginTop('3px')
+                )->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('2. Fremdsprache (ab Klassenstufe {{ Content.Input.Level }} )')
+                            ->styleTextSize('9.5px')
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            , '61%')
+                    )
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Musik')
+                            ->setContent('Kunst')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.MU is not empty) %}
-                                    {{ Content.Grade.Data.MU }}
+                            ->setContent('{% if(Content.Grade.Data.KU is not empty) %}
+                                    {{ Content.Grade.Data.KU }}
                                 {% else %}
                                     ---
                                 {% endif %}')
@@ -357,12 +367,12 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Geschichte')
+                            ->setContent('Musik')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.GE is not empty) %}
-                                    {{ Content.Grade.Data.GE }}
+                            ->setContent('{% if(Content.Grade.Data.MU is not empty) %}
+                                    {{ Content.Grade.Data.MU }}
                                 {% else %}
                                     ---
                                 {% endif %}')
@@ -396,15 +406,15 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Gemeinschaftskunde/Rechtserziehung')
+                            ->setContent('Geschichte')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Grade.Data.GE is not empty) %}
+                                    {{ Content.Grade.Data.GE }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Gemeinschaftskunde/Rechtserziehung ist kein vorgegebenes Fach
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -453,17 +463,23 @@ class MsHjInfo extends Certificate
                     ->styleMarginTop('3px')
                 )
                 ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('Gemeinschaftskunde/')
+                        ->styleMarginTop('3px')
+                    )
+                )
+                ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Geographie')
+                            ->setContent('Rechtserziehung/Wirtschaft')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.GEO is not empty) %}
-                                    {{ Content.Grade.Data.GEO }}
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }}
                                 {% else %}
                                     ---
-                                {% endif %}')
+                                {% endif %}')//ToDO Gemeinschaftskunde/Rechtserziehung/Wirtschaft ist kein vorgegebenes Fach
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -476,12 +492,12 @@ class MsHjInfo extends Certificate
                             ->setContent('Technik/Computer')
                             ->stylePaddingTop()
                             , '39%')
-                        ->addElementColumn((new Element())//ToDO Technik/Computer ist kein vorgegebenes Fach
-                        ->setContent('{% if(Content.Grade.Data.GE is not empty) %}
-                                    {{ Content.Grade.Data.GE }}
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }}
                                 {% else %}
                                     ---
-                                {% endif %}')
+                                {% endif %}')//ToDO Technik/Computer ist kein vorgegebenes Fach
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -489,20 +505,19 @@ class MsHjInfo extends Certificate
                             ->stylePaddingBottom()
                             , '9%')
                     )
-                    ->styleMarginTop('3px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Wirtschaft-Technik-Haushalt/Soziales')
+                            ->setContent('Geographie')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Grade.Data.GEO is not empty) %}
+                                    {{ Content.Grade.Data.GEO }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Wirtschaft-Technik-Haushalt/Soziales
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -533,8 +548,45 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->styleMarginTop('16px')
-                            ->styleBorderBottom()
+                            ->setContent('Wahlpflichtbereich:')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleTextBold()
+                            , '20%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Input.Choose is not empty) %}
+                                    {{ Content.Input.Choose }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                            ->styleAlignLeft()
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '77%')
+                        ->addElementColumn((new Element())
+                            , '3%'
+                        )
+                    )
+                    ->styleMarginTop('5px')
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            , '30%')
+                        ->addElementColumn((new Element())
+                            ->setContent('besuchtes Profil')
+                            ->styleAlignCenter()
+                            ->styleTextSize('9.5px')
+                            , '22%')
+                        ->addElementColumn((new Element())
+                            , '48%')
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Profil')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
@@ -548,68 +600,23 @@ class MsHjInfo extends Certificate
                         ->addElementColumn((new Element())
                             , '4%')
                         ->addElementColumn((new Element())
-                            ->styleMarginTop('16px')
-                            ->styleBorderBottom()
-                            ->stylePaddingTop()
-                            , '39%')
-                        ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
-                            ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
-                            ->styleBorderBottom('1px', '#000')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            , '9%')
-                    )
-                    ->styleMarginTop('3px')
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Wahlpflichtbereich:')
-                        ->styleMarginTop('15px')
-                        ->styleTextBold()
-                    )
+                            ->styleBorderBottom()
+                            , '48%')
+                    )->styleMarginTop('15px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }} Vertiefungskurs
-                                {% else %}
-                                    {% if(Content.Person.Data.ToDO is not empty) %}
-                                        {{ Content.Grade.Data.ToDO }} 2. Fremdsprache (abschlussorientiert)
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
-                                {% endif %}')//ToDO Wahlpflichtbereich
-                            ->styleBorderBottom()
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                        )
+                            , '52%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('Fremdsprache (ab Klassenstufe 8) Im sprachlichen Profil')
+                            ->styleTextSize('9.5px')
                             ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
-                            ->styleBorderBottom('1px', '#000')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            , '9%')
+                            , '48%')
                     )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
-                                    Vertiefungskurs
-                                {% else %}
-                                    {% if(Content.Person.Data.ToDO is not empty) %}
-                                        2. Fremdsprache (abschlussorientiert)
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
-                                {% endif %}')//ToDO Wahlpflichtbereich
-                            ->styleTextSize('11px')
-                        )
-                    )
-                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
@@ -620,30 +627,30 @@ class MsHjInfo extends Certificate
                             ->setContent('Fehltage entschuldigt:')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignRight()
-                            , '25%')
+                            , '20%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Missing is not empty) %}
                                     {{ Content.Input.Missing }}
                                 {% else %}
-                                    &nbsp;
+                                    0
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
-                            , '10%')
+                            , '18%')
                         ->addElementColumn((new Element())
                             ->setContent('unentschuldigt:')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignRight()
-                            , '25%')
+                            , '14%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
                                     {{ Content.Input.Bad.Missing }}
                                 {% else %}
-                                    &nbsp;
+                                    0
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
-                            , '10%')
+                            , '18%')
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
                             ->styleBorderBottom('1px', '#BBB')
@@ -786,14 +793,15 @@ class MsHjInfo extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('47px')
+                    )->styleMarginTop('150px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'
                                 .new Container('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                                6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'))
+                                                6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
+                            )
                             ->styleTextSize('9.5px')
-                            , '30%')
+                        )
                     )
                 )
             )

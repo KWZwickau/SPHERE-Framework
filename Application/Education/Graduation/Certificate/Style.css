@@ -21,7 +21,7 @@
 /* Test */
 @media screen {
     div.Slice {
-        margin: 5px !important;
+        /*margin: 5px !important;*/
     }
 }
 

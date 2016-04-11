@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
-class MsHjInfo extends Certificate
+class CheHj extends Certificate
 {
 
     /**
@@ -22,7 +22,7 @@ class MsHjInfo extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS Halbjahres Info 3a.pdf')
+                    ->setContent('Chemnitz Halbjahreszeugnis 5-6.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -40,26 +40,29 @@ class MsHjInfo extends Certificate
                     $Header
                 )
                 ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Name der Schule:')
-                            , '18%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Company.Data.Name is not empty) %}
-                                    {{ Content.Company.Data.Name }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleBorderBottom()
-                            , '82%'
-                        )
+                    ->addElement((new Element())
+                        ->setContent('{% if(Content.Company.Data.Name is not empty) %}
+                                {{ Content.Company.Data.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderBottom()
+                        ->styleAlignCenter()
+                        ->styleTextSize('16px')
+                        ->styleTextBold()
                     )->styleMarginTop('20px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Halbjahresinformation der Mittelschule')
+                        ->setContent('Name der Schule')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('Halbjahreszeugnis der Mittelschule')
                         ->styleTextSize('18px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -82,7 +85,7 @@ class MsHjInfo extends Certificate
                             , '55%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('1. Schulhalbjahr:')
+                            ->setContent('Schuljahr:')
                             ->styleAlignRight()
                             , '18%'
                         )
@@ -108,7 +111,11 @@ class MsHjInfo extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('{% if(Content.Input.Adding is not empty) %}
+                                {{ Content.Input.Adding }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')
@@ -414,34 +421,14 @@ class MsHjInfo extends Certificate
                         ->addElementColumn((new Element())
                             , '4%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ETH is not empty) %}
-                                    Ethik
-                                {% else %}
-                                    {% if(Content.Grade.Data.RKA is not empty) %}
-                                        Kath. Religion
-                                    {% else %}
-                                        {% if(Content.Grade.Data.REV is not empty) %}
-                                            Ev. Religion
-                                        {% else %}
-                                            Ev./Kath. Religion/Ethik¹
-                                        {% endif %}
-                                    {% endif %}
-                                {% endif %}')
+                            ->setContent('Ev. Religion')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ETH is not empty) %}
-                                    {{ Content.Grade.Data.ETH }}
+                            ->setContent('{% if(Content.Grade.Data.REV is not empty) %}
+                                    {{ Content.Grade.Data.REV }}
                                 {% else %}
-                                    {% if(Content.Grade.Data.RKA is not empty) %}
-                                        {{ Content.Grade.Data.RKA }}
-                                    {% else %}
-                                        {% if(Content.Grade.Data.REV is not empty) %}
-                                        {{ Content.Grade.Data.REV }}
-                                        {% else %}
-                                            ---
-                                        {% endif %}
-                                    {% endif %}
+                                    ---
                                 {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
@@ -598,7 +585,7 @@ class MsHjInfo extends Certificate
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
-                                    Vertiefungskurs
+                                    Neigungskurs (Neigungskursbereich)
                                 {% else %}
                                     {% if(Content.Person.Data.ToDO is not empty) %}
                                         2. Fremdsprache (abschlussorientiert)
@@ -620,30 +607,30 @@ class MsHjInfo extends Certificate
                             ->setContent('Fehltage entschuldigt:')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignRight()
-                            , '25%')
+                            , '20%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Missing is not empty) %}
                                     {{ Content.Input.Missing }}
                                 {% else %}
-                                    &nbsp;
+                                    0
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
-                            , '10%')
+                            , '18%')
                         ->addElementColumn((new Element())
                             ->setContent('unentschuldigt:')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignRight()
-                            , '25%')
+                            , '14%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
                                     {{ Content.Input.Bad.Missing }}
                                 {% else %}
-                                    &nbsp;
+                                    0
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
-                            , '10%')
+                            , '18%')
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
                             ->styleBorderBottom('1px', '#BBB')
@@ -729,17 +716,24 @@ class MsHjInfo extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleBorderBottom()
                             , '30%')
                         ->addElementColumn((new Element())
+                            ->setContent('Dienstsiegel der Schule')
+                            ->styleAlignCenter()
+                            ->styleTextSize('11px')
                             , '40%')
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
-                            ->styleAlignCenter()
                             ->styleBorderBottom('1px', '#000')
                             , '30%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('Schulleiter(in)')
+                            ->styleAlignCenter()
+                            ->styleTextSize('11px')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '5%')
@@ -786,7 +780,7 @@ class MsHjInfo extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('47px')
+                    )->styleMarginTop('150px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'

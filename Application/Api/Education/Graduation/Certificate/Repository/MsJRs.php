@@ -610,12 +610,16 @@ class MsJRs extends Certificate
                                     {% endif %}
                                 {% endif %}')//ToDO Wahlpflichtbereich
                             ->styleBorderBottom()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
                         )
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
                             , '9%')
                     )
                     ->addSection((new Section())
@@ -703,7 +707,11 @@ class MsJRs extends Certificate
                             ->setContent('Versetzungsvermerk:')
                             , '22%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Input.Transfer) %}
+                                    {{ Content.Input.Transfer }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             , '58%')
                         ->addElementColumn((new Element())

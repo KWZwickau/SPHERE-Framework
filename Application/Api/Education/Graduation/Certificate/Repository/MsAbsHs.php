@@ -570,12 +570,16 @@ class MsAbsHs extends Certificate
                                     {% endif %}
                                 {% endif %}')//ToDO Wahlpflichtbereich
                             ->styleBorderBottom()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
                         )
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
                             , '9%')
                     )
                     ->addSection((new Section())
