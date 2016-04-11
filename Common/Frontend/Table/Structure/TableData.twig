@@ -1,9 +1,9 @@
 {% if( TableTitle is not empty ) %}
     {{ TableTitle }}
 {% endif %}
-<table id="{{ Hash }}" class="table table-bordered table-condensed">
+<table id="{{ Hash }}" class="table table-bordered table-condensed table-striped">
+    <thead>
     {% for TableHead in HeadList %}
-        <thead>
         {% for TableRow in TableHead.getTableRow %}
             <tr>
                 {% for TableColumn in TableRow.getTableColumn %}
@@ -20,8 +20,8 @@
                 {% endfor %}
             </tr>
         {% endfor %}
-        </thead>
     {% endfor %}
+    </thead>
     {% for TableBody in BodyList %}
         <tbody>
         {% for TableRow in TableBody.getTableRow %}
