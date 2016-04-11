@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
@@ -154,10 +155,12 @@ abstract class Certificate extends Extension
             }
         }
 
-        /**
-         * Allocate Division
-         */
-        $this->allocateDivisionData();
+        if (empty( $this->Division['Data'] )) {
+            /**
+             * Allocate Division
+             */
+            $this->allocateDivisionData();
+        }
 
         /**
          * Allocate Grade
@@ -277,10 +280,34 @@ abstract class Certificate extends Extension
 
         $Term = $this->tblDivision->getServiceTblYear();
         if ($Term) {
+            $this->Division['Data']['Year'] = $Term->__toArray();
             // TODO: Schuljahr- / Halbjahr-Übergabe
-//            $Term = $Term->getTblPeriodAll();
-//            var_dump( $Term );
-//            $this->Division['Data']['Year'] = $Term->getTblLevel()->__toArray();
+            $Term = $Term->getTblPeriodAll();
+            if (is_array($Term)) {
+                // Sort Date by ToDate
+                foreach ($Term as $key => $row) {
+                    $Date[$key] = strtoupper($row->getToDate());
+                }
+                array_multisort($Date, SORT_ASC, $Term);
+
+                $Count = count($Term);
+                $i = 0;
+                /** @var TblPeriod $Period */
+                foreach ($Term as $Period) {
+                    $i++;
+                    // until the Array isn't empty
+                    if (empty( $this->Division['Data']['Period'] )) {
+                        // Date exceeded/equal Date now
+                        if (new \DateTime($Period->getToDate()) >= new \DateTime(date('d.m.Y'))) {
+                            $this->Division['Data']['Period'] = $Period->__toArray();
+                        }
+                        // All Dates in the Past -> Take the last Period
+                        if ($Count == $i && empty( $this->Division['Data']['Period'] )) {
+                            $this->Division['Data']['Period'] = $Period->__toArray();
+                        }
+                    }
+                }
+            }
         }
 
         return $this;
