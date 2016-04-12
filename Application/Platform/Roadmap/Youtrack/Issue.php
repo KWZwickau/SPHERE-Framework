@@ -9,7 +9,7 @@ namespace SPHERE\Application\Platform\Roadmap\Youtrack;
 class Issue
 {
 
-    /** @var null|\SimpleXMLElement $Issue */
+    /** @var null|\SimpleXMLElement|string $Issue */
     private $Issue = null;
 
     /**
@@ -20,7 +20,19 @@ class Issue
     public function __construct(\SimpleXMLElement $Issue)
     {
 
-        $this->Issue = $Issue;
+        $this->writeXml($Issue);
+    }
+
+    /**
+     * @param \SimpleXMLElement $SimpleXMLElement
+     *
+     * @return $this
+     */
+    private function writeXml(\SimpleXMLElement $SimpleXMLElement)
+    {
+
+        $this->Issue = $SimpleXMLElement->asXML();
+        return $this;
     }
 
     /**
@@ -29,7 +41,16 @@ class Issue
     public function getDescription()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="description"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="description"]/value'));
+    }
+
+    /**
+     * @return \SimpleXMLElement
+     */
+    private function readXml()
+    {
+
+        return simplexml_load_string($this->Issue);
     }
 
     /**
@@ -38,7 +59,8 @@ class Issue
     public function getTimestampCreate()
     {
 
-        return date('d.m.Y H:i:s', substr((string)current($this->Issue->xpath('field[@name="created"]/value')), 0, -3));
+        return date('d.m.Y H:i:s',
+            substr((string)current($this->readXml()->xpath('field[@name="created"]/value')), 0, -3));
     }
 
     /**
@@ -47,7 +69,8 @@ class Issue
     public function getTimestampUpdate()
     {
 
-        return date('d.m.Y H:i:s', substr((string)current($this->Issue->xpath('field[@name="updated"]/value')), 0, -3));
+        return date('d.m.Y H:i:s',
+            substr((string)current($this->readXml()->xpath('field[@name="updated"]/value')), 0, -3));
     }
 
     /**
@@ -58,7 +81,7 @@ class Issue
     public function getPersonUpdate()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="updaterFullName"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="updaterFullName"]/value'));
     }
 
     /**
@@ -69,7 +92,7 @@ class Issue
     public function getPersonCreate()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="reporterFullName"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="reporterFullName"]/value'));
     }
 
     /**
@@ -78,13 +101,13 @@ class Issue
     public function getCommentCount()
     {
 
-        return (int)(string)current($this->Issue->xpath('field[@name="commentsCount"]/value'));
+        return (int)(string)current($this->readXml()->xpath('field[@name="commentsCount"]/value'));
     }
 
     public function getCommentList()
     {
 
-        return (string)current($this->Issue->xpath('comment'));
+        return (string)current($this->readXml()->xpath('comment'));
     }
 
     /**
@@ -93,7 +116,7 @@ class Issue
     public function getVoteCount()
     {
 
-        return (int)(string)current($this->Issue->xpath('field[@name="votes"]/value'));
+        return (int)(string)current($this->readXml()->xpath('field[@name="votes"]/value'));
     }
 
     /**
@@ -104,7 +127,7 @@ class Issue
     public function getAssignee()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="Assignee"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="Assignee"]/value'));
     }
 
     /**
@@ -115,7 +138,7 @@ class Issue
     public function getVersionAffected()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="Affected versions"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="Affected versions"]/value'));
     }
 
     /**
@@ -126,7 +149,7 @@ class Issue
     public function getVersionFixed()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="Fix versions"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="Fix versions"]/value'));
     }
 
     /**
@@ -153,7 +176,7 @@ class Issue
     public function getTimeEstimation()
     {
 
-        return (int)(string)current($this->Issue->xpath('field[@name="Estimation"]/value'));
+        return (int)(string)current($this->readXml()->xpath('field[@name="Estimation"]/value'));
     }
 
     /**
@@ -164,7 +187,7 @@ class Issue
     public function getTimeSpent()
     {
 
-        return (int)(string)current($this->Issue->xpath('field[@name="Spent time"]/value'));
+        return (int)(string)current($this->readXml()->xpath('field[@name="Spent time"]/value'));
     }
 
     function __toString()
@@ -195,7 +218,7 @@ class Issue
     public function getPriority()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="Priority"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="Priority"]/value'));
     }
 
     /**
@@ -204,7 +227,7 @@ class Issue
     public function getSubsystem()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="Subsystem"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="Subsystem"]/value'));
     }
 
     /**
@@ -213,7 +236,7 @@ class Issue
     public function getType()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="Type"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="Type"]/value'));
     }
 
     /**
@@ -222,7 +245,7 @@ class Issue
     public function getState()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="State"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="State"]/value'));
     }
 
     /**
@@ -233,8 +256,8 @@ class Issue
     public function getId()
     {
 
-        $Project = (string)current($this->Issue->xpath('field[@name="projectShortName"]/value'));
-        $Number = (string)current($this->Issue->xpath('field[@name="numberInProject"]/value'));
+        $Project = (string)current($this->readXml()->xpath('field[@name="projectShortName"]/value'));
+        $Number = (string)current($this->readXml()->xpath('field[@name="numberInProject"]/value'));
 
         return $Project.'-'.$Number;
     }
@@ -245,6 +268,6 @@ class Issue
     public function getTitle()
     {
 
-        return (string)current($this->Issue->xpath('field[@name="summary"]/value'));
+        return (string)current($this->readXml()->xpath('field[@name="summary"]/value'));
     }
 }
