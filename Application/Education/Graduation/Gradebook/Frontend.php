@@ -121,8 +121,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $Item['Description'] = $tblGradeType->getDescription();
                 $Item['Option'] = (new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
-                        'Id' => $tblGradeType->getId()
-                    ), 'Zensuren-Typ bearbeiten'));
+                    'Id' => $tblGradeType->getId()
+                ), 'Zensuren-Typ bearbeiten'));
                 // löschen erstmal deaktiviert, kann zu Problemen führen
 //                    . (new Standard('', '/Education/Graduation/Gradebook/GradeType/Destroy', new Remove(),
 //                        array('Id' => $tblGradeType->getId()), 'Löschen'));
@@ -384,15 +384,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     /** @var TblSubjectGroup $item */
                                     $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                                     $divisionSubjectTable[] = array(
-                                        'Year'            => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                                        'Type'            => $tblDivision->getTypeName(),
-                                        'Division'        => $tblDivision->getDisplayName(),
-                                        'Subject'         => $tblSubject->getName(),
-                                        'SubjectGroup'    => $item->getName(),
+                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                        'Type' => $tblDivision->getTypeName(),
+                                        'Division' => $tblDivision->getDisplayName(),
+                                        'Subject' => $tblSubject->getName(),
+                                        'SubjectGroup' => $item->getName(),
                                         'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                             $tblDivision, $tblSubject, $item
                                         ),
-                                        'Option'          => new Standard(
+                                        'Option' => new Standard(
                                             '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(),
                                             array(
                                                 'DivisionSubjectId' => $subValue
@@ -403,15 +403,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             } else {
                                 $divisionSubjectTable[] = array(
-                                    'Year'            => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                                    'Type'            => $tblDivision->getTypeName(),
-                                    'Division'        => $tblDivision->getDisplayName(),
-                                    'Subject'         => $tblSubject->getName(),
-                                    'SubjectGroup'    => '',
+                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                    'Type' => $tblDivision->getTypeName(),
+                                    'Division' => $tblDivision->getDisplayName(),
+                                    'Subject' => $tblSubject->getName(),
+                                    'SubjectGroup' => '',
                                     'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                         $tblDivision, $tblSubject
                                     ),
-                                    'Option'          => new Standard(
+                                    'Option' => new Standard(
                                         '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
                                         'DivisionSubjectId' => $value
                                     ),
@@ -438,6 +438,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectGroup' => 'Gruppe',
                                 'SubjectTeachers' => 'Fachlehrer',
                                 'Option' => ''
+                            ), array(
+                                'order' => array(
+                                    array('0', 'desc'),
+                                    array('2', 'asc'),
+                                    array('3', 'asc'),
+                                    array('4', 'asc')
+                                )
                             ))
                         ))
                     ))
@@ -511,15 +518,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     $item = Division::useService()->getSubjectGroupById($subjectGroupId);
 
                                     $divisionSubjectTable[] = array(
-                                        'Year'            => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                                        'Type'            => $tblDivision->getTypeName(),
-                                        'Division'        => $tblDivision->getDisplayName(),
-                                        'Subject'         => $tblSubject->getName(),
-                                        'SubjectGroup'    => $item->getName(),
+                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                        'Type' => $tblDivision->getTypeName(),
+                                        'Division' => $tblDivision->getDisplayName(),
+                                        'Subject' => $tblSubject->getName(),
+                                        'SubjectGroup' => $item->getName(),
                                         'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                             $tblDivision, $tblSubject, $item
                                         ),
-                                        'Option'          => new Standard(
+                                        'Option' => new Standard(
                                             '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
                                             new Select(),
                                             array(
@@ -531,15 +538,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             } else {
                                 $divisionSubjectTable[] = array(
-                                    'Year'            => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                                    'Type'            => $tblDivision->getTypeName(),
-                                    'Division'        => $tblDivision->getDisplayName(),
-                                    'Subject'         => $tblSubject->getName(),
-                                    'SubjectGroup'    => '',
+                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                    'Type' => $tblDivision->getTypeName(),
+                                    'Division' => $tblDivision->getDisplayName(),
+                                    'Subject' => $tblSubject->getName(),
+                                    'SubjectGroup' => '',
                                     'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
                                         $tblDivision, $tblSubject
                                     ),
-                                    'Option'          => new Standard(
+                                    'Option' => new Standard(
                                         '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
                                         new Select(),
                                         array(
@@ -568,6 +575,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectGroup' => 'Gruppe',
                                 'SubjectTeachers' => 'Fachlehrer',
                                 'Option' => ''
+                            ), array(
+                                'order' => array(
+                                    array('0', 'desc'),
+                                    array('2', 'asc'),
+                                    array('3', 'asc'),
+                                    array('4', 'asc')
+                                )
                             ))
                         ))
                     ))
@@ -2727,7 +2741,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel(
                                 new Filter() . ' Filter',
                                 array(
-                                    $filterYear ? new Bold('Schuljahr: ').$filterYear->getDisplayName()
+                                    $filterYear ? new Bold('Schuljahr: ') . $filterYear->getDisplayName()
                                         . new Small(new Muted($filterYear->getDescription())) : null,
                                     $filterType ? new Bold('Schulart: ') . $filterType->getName()
                                         . new Small(new Muted($filterType->getDescription())) : null,

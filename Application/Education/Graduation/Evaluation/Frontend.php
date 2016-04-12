@@ -1741,6 +1741,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Period' => 'Noten-Zeitraum',
                                         'EditPeriod' => 'Bearbeitungszeitraum',
                                         'Option' => '',
+                                    ), array(
+                                        'order' => array(
+                                            array(0, 'desc')
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 0)
+                                        )
                                     )
                                 )
                             )
@@ -2427,6 +2434,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Period' => 'Noten-Zeitraum',
                                         'EditPeriod' => 'Bearbeitungszeitraum',
                                         'Option' => '',
+                                    ), array(
+                                        'order' => array(
+                                            array(0, 'desc')
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 0)
+                                        )
                                     )
                                 )
                             )
