@@ -72,6 +72,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Frontend
@@ -696,7 +697,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblTestList) {
 
                         // Sortierung der Tests nach Datum
-                        $tblTestList = $this->getSorter($tblTestList)->sortObjectList('Date');
+                        $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
 
                         /** @var TblTest $tblTest */
                         foreach ($tblTestList as $tblTest) {
@@ -830,7 +831,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tableData = new TableData(
-            $dataList, null, $columnDefinition, null
+            $dataList, null, $columnDefinition, array('pageLength' => -1)
         );
 
         // oberste Tabellen-Kopf-Zeile erstellen
