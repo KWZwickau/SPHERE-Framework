@@ -649,15 +649,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $scoreRuleText[] = new Bold($tblScoreRule->getName());
                         $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
                         if ($tblScoreConditionsByRule) {
-                            $tblScoreConditionsByRule =
-                                $this->getSorter($tblScoreConditionsByRule)->sortObjectList('Priority');
-
-                            /** @var TblScoreCondition $tblScoreCondition */
-                            foreach ($tblScoreConditionsByRule as $tblScoreCondition) {
-                                $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
-                                    . $tblScoreCondition->getPriority()
-                                    . '&nbsp;&nbsp;&nbsp;' . $tblScoreCondition->getName();
-                            }
+//                            $tblScoreConditionsByRule =
+//                                $this->getSorter($tblScoreConditionsByRule)->sortObjectList('Priority');
+//
+//                            /** @var TblScoreCondition $tblScoreCondition */
+//                            foreach ($tblScoreConditionsByRule as $tblScoreCondition) {
+//                                $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
+//                                    . $tblScoreCondition->getPriority()
+//                                    . '&nbsp;&nbsp;&nbsp;' . $tblScoreCondition->getName();
+//                            }
                         } else {
                             $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
                                 new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
