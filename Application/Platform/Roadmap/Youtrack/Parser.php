@@ -66,11 +66,11 @@ class Parser extends Connection
             .'/rest/issue/byproject/KREDA'
             .'?filter='.urlencode($this->YoutrackFilter)
             .'&max='.urlencode('1000');
-        $Response = $this->requestCurl($Url);
 
         $Key = md5($Url);
         $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
         if (!( $Result = $Cache->getValue($Key, __METHOD__) )) {
+            $Response = $this->requestCurl($Url);
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Issues): '.$Url);
 
             /** @var \SimpleXMLElement $Response */

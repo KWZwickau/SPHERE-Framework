@@ -30,8 +30,10 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Extension\Extension;
 
-class Roadmap implements IApplicationInterface, IModuleInterface
+class Roadmap extends Extension implements IApplicationInterface, IModuleInterface
 {
 
     public static function registerApplication()
@@ -74,291 +76,298 @@ class Roadmap implements IApplicationInterface, IModuleInterface
 
         $Stage = new Stage('KREDA Roadmap');
 
-        try {
-            $Map = $this->getRoadmap();
-        } catch (\Exception $Exception) {
-            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
-                new LayoutColumn(new Warning('Roadmap konnte nicht abgerufen werden'))
-            ))));
-            return $Stage;
-        }
-
-        $Stage->setMessage(
-            'Aktuelle Versionen: <br/>'.
-            new Label('Preview: '.$Map->getVersionPreview(), Label::LABEL_TYPE_WARNING)
-            .' '.
-            new Label('Release: '.$Map->getVersionRelease(), Label::LABEL_TYPE_PRIMARY)
-        );
-
-        $Sprints = $Map->getSprints();
-
-        $PriorityColor = array(
-            'Kritisch' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
-            'Hoch'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
-            'Normal'   => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
-            'Niedrig'  => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
-        );
-
-        $StateColor = array(
-            'Erfasst'        => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
-            'Offen'          => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
-            'In Bearbeitung' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
-            'Behoben'        => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
-            'Zu besprechen'  => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger'
-        );
-
-        $TypeColor = array(
-            'Bug'         => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
-            'Feature'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
-            'Optimierung' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning'
-        );
-
-        $SubsystemColor = array(
-            '0' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
-            '1' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
-            '2' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info'
-        );
-
-        $SprintCurrent = null;
-        $LayoutColumns = array();
-        /** @var Sprint $Sprint */
-        foreach ((array)$Sprints as $SprintIndex => $Sprint) {
-
-            $SprintComplete = true;
-            /** @var LayoutColumn[] $IssueList */
-            $IssueList = array();
-            /** @var LayoutColumn[] $ResolvedList */
-            $ResolvedList = array();
-            $Issues = $Sprint->getIssues();
-            /** @var Issue $Issue */
-            foreach ((array)$Issues as $Issue) {
-                $ColumnList = array();
-                if ($Issue->getState() == 'Behoben') {
-
-                    $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
-                    $Title = $this->sanitizeTitle($Issue->getTitle());
-
-                    $ColumnList[] = new LayoutColumn(
-                        new Panel(
-
-                            new Small($Title), $Description,
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Label($Issue->getId()).( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
-                                ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]($Issue->getSubsystem())
-                                : $Issue->getSubsystem()
-                            )
-                            .( isset( $TypeColor[$Issue->getType()] )
-                                ? new $TypeColor[$Issue->getType()]($Issue->getType())
-                                : $Issue->getType()
-                            )
-
-                        ), 3);
-
-                    $ResolvedList = array_merge($ResolvedList, $ColumnList);
-                } else {
-                    $SprintComplete = false;
-                    if (!$SprintCurrent) {
-                        $SprintCurrent = $Sprint->getVersion();
-                    }
-
-                    if ($Issue->getState() == 'In Bearbeitung') {
-                        $ProgressBar = new ProgressBar($Issue->getTimePercent(), 100 - $Issue->getTimePercent(), 100);
-                    } else {
-                        $ProgressBar = new ProgressBar($Issue->getTimePercent(), 0, 100);
-                    }
-
-                    $Title = $this->sanitizeTitle($Issue->getTitle());
-                    $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
-
-                    $ColumnList[] = new LayoutColumn(array(
-                        new Panel($Title.' '.$ProgressBar,
-                            ( strlen($Description) == 0 ? '' : $Description ),
-                            Panel::PANEL_TYPE_INFO,
-                            new Layout(
-                                new LayoutGroup(
-                                    new LayoutRow(array(
-                                        new LayoutColumn(array(
-                                            new PullClear(
-                                                new PullLeft(
-                                                    new Label($Issue->getId())
-                                                ).
-                                                new PullLeft(
-                                                    ( isset( $PriorityColor[$Issue->getPriority()] )
-                                                        ? new $PriorityColor[$Issue->getPriority()]($Issue->getPriority())
-                                                        : $Issue->getPriority()
-                                                    )
-                                                )
-                                                .
-                                                new PullLeft(
-                                                    ( isset( $StateColor[$Issue->getState()] )
-                                                        ? new $StateColor[$Issue->getState()]($Issue->getState())
-                                                        : $Issue->getState()
-                                                    )
-                                                ).
-                                                new PullLeft(
-                                                    ( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
-                                                        ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]
-                                                        ($Issue->getSubsystem())
-                                                        : $Issue->getSubsystem()
-                                                    )
-                                                ).
-                                                new PullLeft(
-                                                    ( isset( $TypeColor[$Issue->getType()] )
-                                                        ? new $TypeColor[$Issue->getType()]($Issue->getType())
-                                                        : $Issue->getType()
-                                                    )
-                                                )
-                                            )
-                                        ))
-                                    ))
-                                )
-                            )
-
-                        )
-                    ), 4);
-
-                    $IssueList = array_merge($IssueList, $ColumnList);
-                }
+        $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
+        if (!( $Content = $Cache->getValue('Roadmap', __METHOD__) )) {
+            try {
+                $Map = $this->getRoadmap();
+            } catch (\Exception $Exception) {
+                $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(new Warning('Roadmap konnte nicht abgerufen werden'))
+                ))));
+                return $Stage;
             }
 
-            $FoldSprint = false;
-            // Create Sprint-Content Layout
-            if ($SprintComplete) {
-
-                // Fold Sprint?
-                if (isset( $Sprints[( $SprintIndex + 1 )] ) && $Sprints[( $SprintIndex + 1 )]->isDone()) {
-                    $FoldSprint = true;
-                }
-
-                $LayoutRowList = array();
-                $LayoutRowCount = 0;
-                $LayoutRow = null;
-                foreach ($ResolvedList as $LayoutColumn) {
-                    if ($LayoutRowCount % 4 == 0) {
-                        $LayoutRow = new LayoutRow(array());
-                        $LayoutRowList[] = $LayoutRow;
-                    }
-                    $LayoutRow->addColumn($LayoutColumn);
-                    $LayoutRowCount++;
-                }
-
-                $SprintList = new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Layout(new LayoutGroup($LayoutRowList))
-                        ),
-                    )),
-                )));
-            } else {
-                $LayoutRowList = array();
-                $LayoutRowCount = 0;
-                $LayoutRow = null;
-                foreach ($ResolvedList as $LayoutColumn) {
-                    if ($LayoutRowCount % 4 == 0) {
-                        $LayoutRow = new LayoutRow(array());
-                        $LayoutRowList[] = $LayoutRow;
-                    }
-                    $LayoutRow->addColumn($LayoutColumn);
-                    $LayoutRowCount++;
-                }
-                /** @var LayoutRow[] $ResolvedList */
-                $ResolvedList = $LayoutRowList;
-
-                $LayoutRowList = array();
-                $LayoutRowCount = 0;
-                $LayoutRow = null;
-                foreach ($IssueList as $LayoutColumn) {
-                    if ($LayoutRowCount % 3 == 0) {
-                        $LayoutRow = new LayoutRow(array());
-                        $LayoutRowList[] = $LayoutRow;
-                    }
-                    $LayoutRow->addColumn($LayoutColumn);
-                    $LayoutRowCount++;
-                }
-                /** @var LayoutRow[] $IssueList */
-                $IssueList = $LayoutRowList;
-
-                if (empty( $ResolvedList )) {
-                    $SprintList = new Layout(new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Layout(new LayoutGroup($IssueList,
-                                    new Title(new Danger('Geplante Änderungen'), 'in '.$Sprint->getVersion())))
-                            ),
-                        ))
-                    )));
-                } else {
-                    $SprintList = new Layout(new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Layout(new LayoutGroup($IssueList,
-                                    new Title(new Danger('Geplante Änderungen'), 'in '.$Sprint->getVersion())))
-                            ),
-                        )),
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Layout(new LayoutGroup($ResolvedList,
-                                    new Title(new \SPHERE\Common\Frontend\Text\Repository\Success('Neuerungen'),
-                                        'in '.$Sprint->getVersion())))
-                            ),
-                        )),
-                    )));
-                }
-            }
-
-            if ($SprintComplete) {
-                $VersionHeader = new Success(new PullClear(
-                    new PullLeft('Änderungen in '.$Sprint->getVersion())
-                    .new PullRight(
-                        new Label('Freigabe Demo @ '.date('m / Y',
-                                strtotime($Sprint->getTimestampFinish().' +1 day')),
-                            Label::LABEL_TYPE_WARNING)
-                        .new Label('Freigabe Live @ '.date('m / Y',
-                                strtotime($Sprint->getTimestampFinish().' +2 month')),
-                            Label::LABEL_TYPE_PRIMARY)
-                    )
-                ));
-                if (!$Sprint->isDone()) {
-                    $SprintPercent = $this->getDatePercent($Sprint->getTimestampStart(), $Sprint->getTimestampFinish());
-                    $VersionHeader .= new ProgressBar($SprintPercent, 100 - $SprintPercent, 100);
-                }
-                $VersionFooter = null;
-            } else {
-                $SprintColor = ( $Sprint->getVersion() == $SprintCurrent
-                    ? '\SPHERE\Common\Frontend\Message\Repository\Info'
-                    : '\SPHERE\Common\Frontend\Message\Repository\Warning'
-                );
-
-                $VersionHeader = new $SprintColor(new PullClear(
-                    new PullLeft('Version '.$Sprint->getVersion())
-                    .new PullRight(
-                        new Label('Freigabe Demo @ '.date('m / Y',
-                                strtotime($Sprint->getTimestampFinish().' +1 day')),
-                            Label::LABEL_TYPE_WARNING)
-                        .new Label('Freigabe Live @ '.date('m / Y',
-                                strtotime($Sprint->getTimestampFinish().' +2 month')),
-                            Label::LABEL_TYPE_PRIMARY)
-                    )
-                ));
-                $VersionHeader .= new ProgressBar($this->getDatePercent($Sprint->getTimestampStart(),
-                    $Sprint->getTimestampFinish()), 0, 100);
-                $VersionFooter = new Muted(new Small($Sprint->getTimestampStart().' - '.$Sprint->getTimestampFinish()));
-            }
-
-            $LayoutColumns[] = new LayoutColumn(
-                new Panel(
-                    $VersionHeader,
-                    ( $FoldSprint ? (new Accordion())->addItem(new Small(new Italic(new Muted('[Änderungen anzeigen]'))),
-                        (string)$SprintList) : (string)$SprintList ),
-                    ( $SprintComplete ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING ),
-                    $VersionFooter
-                )
+            $Stage->setMessage(
+                'Aktuelle Versionen: <br/>'.
+                new Label('Preview: '.$Map->getVersionPreview(), Label::LABEL_TYPE_WARNING)
+                .' '.
+                new Label('Release: '.$Map->getVersionRelease(), Label::LABEL_TYPE_PRIMARY)
             );
+
+            $Sprints = $Map->getSprints();
+
+            $PriorityColor = array(
+                'Kritisch' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
+                'Hoch'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
+                'Normal'   => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
+                'Niedrig'  => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
+            );
+
+            $StateColor = array(
+                'Erfasst'        => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
+                'Offen'          => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
+                'In Bearbeitung' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
+                'Behoben'        => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
+                'Zu besprechen'  => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger'
+            );
+
+            $TypeColor = array(
+                'Bug'         => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
+                'Feature'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
+                'Optimierung' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning'
+            );
+
+            $SubsystemColor = array(
+                '0' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
+                '1' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
+                '2' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info'
+            );
+
+            $SprintCurrent = null;
+            $LayoutColumns = array();
+            /** @var Sprint $Sprint */
+            foreach ((array)$Sprints as $SprintIndex => $Sprint) {
+
+                $SprintComplete = true;
+                /** @var LayoutColumn[] $IssueList */
+                $IssueList = array();
+                /** @var LayoutColumn[] $ResolvedList */
+                $ResolvedList = array();
+                $Issues = $Sprint->getIssues();
+                /** @var Issue $Issue */
+                foreach ((array)$Issues as $Issue) {
+                    $ColumnList = array();
+                    if ($Issue->getState() == 'Behoben') {
+
+                        $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
+                        $Title = $this->sanitizeTitle($Issue->getTitle());
+
+                        $ColumnList[] = new LayoutColumn(
+                            new Panel(
+
+                                new Small($Title), $Description,
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Label($Issue->getId()).( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0,
+                                        1)] )
+                                    ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]($Issue->getSubsystem())
+                                    : $Issue->getSubsystem()
+                                )
+                                .( isset( $TypeColor[$Issue->getType()] )
+                                    ? new $TypeColor[$Issue->getType()]($Issue->getType())
+                                    : $Issue->getType()
+                                )
+
+                            ), 3);
+
+                        $ResolvedList = array_merge($ResolvedList, $ColumnList);
+                    } else {
+                        $SprintComplete = false;
+                        if (!$SprintCurrent) {
+                            $SprintCurrent = $Sprint->getVersion();
+                        }
+
+                        if ($Issue->getState() == 'In Bearbeitung') {
+                            $ProgressBar = new ProgressBar($Issue->getTimePercent(), 100 - $Issue->getTimePercent(),
+                                100);
+                        } else {
+                            $ProgressBar = new ProgressBar($Issue->getTimePercent(), 0, 100);
+                        }
+
+                        $Title = $this->sanitizeTitle($Issue->getTitle());
+                        $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
+
+                        $ColumnList[] = new LayoutColumn(array(
+                            new Panel($Title.' '.$ProgressBar,
+                                ( strlen($Description) == 0 ? '' : $Description ),
+                                Panel::PANEL_TYPE_INFO,
+                                new Layout(
+                                    new LayoutGroup(
+                                        new LayoutRow(array(
+                                            new LayoutColumn(array(
+                                                new PullClear(
+                                                    new PullLeft(
+                                                        new Label($Issue->getId())
+                                                    ).
+                                                    new PullLeft(
+                                                        ( isset( $PriorityColor[$Issue->getPriority()] )
+                                                            ? new $PriorityColor[$Issue->getPriority()]($Issue->getPriority())
+                                                            : $Issue->getPriority()
+                                                        )
+                                                    )
+                                                    .
+                                                    new PullLeft(
+                                                        ( isset( $StateColor[$Issue->getState()] )
+                                                            ? new $StateColor[$Issue->getState()]($Issue->getState())
+                                                            : $Issue->getState()
+                                                        )
+                                                    ).
+                                                    new PullLeft(
+                                                        ( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
+                                                            ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]
+                                                            ($Issue->getSubsystem())
+                                                            : $Issue->getSubsystem()
+                                                        )
+                                                    ).
+                                                    new PullLeft(
+                                                        ( isset( $TypeColor[$Issue->getType()] )
+                                                            ? new $TypeColor[$Issue->getType()]($Issue->getType())
+                                                            : $Issue->getType()
+                                                        )
+                                                    )
+                                                )
+                                            ))
+                                        ))
+                                    )
+                                )
+
+                            )
+                        ), 4);
+
+                        $IssueList = array_merge($IssueList, $ColumnList);
+                    }
+                }
+
+                $FoldSprint = false;
+                // Create Sprint-Content Layout
+                if ($SprintComplete) {
+
+                    // Fold Sprint?
+                    if (isset( $Sprints[( $SprintIndex + 1 )] ) && $Sprints[( $SprintIndex + 1 )]->isDone()) {
+                        $FoldSprint = true;
+                    }
+
+                    $LayoutRowList = array();
+                    $LayoutRowCount = 0;
+                    $LayoutRow = null;
+                    foreach ($ResolvedList as $LayoutColumn) {
+                        if ($LayoutRowCount % 4 == 0) {
+                            $LayoutRow = new LayoutRow(array());
+                            $LayoutRowList[] = $LayoutRow;
+                        }
+                        $LayoutRow->addColumn($LayoutColumn);
+                        $LayoutRowCount++;
+                    }
+
+                    $SprintList = new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Layout(new LayoutGroup($LayoutRowList))
+                            ),
+                        )),
+                    )));
+                } else {
+                    $LayoutRowList = array();
+                    $LayoutRowCount = 0;
+                    $LayoutRow = null;
+                    foreach ($ResolvedList as $LayoutColumn) {
+                        if ($LayoutRowCount % 4 == 0) {
+                            $LayoutRow = new LayoutRow(array());
+                            $LayoutRowList[] = $LayoutRow;
+                        }
+                        $LayoutRow->addColumn($LayoutColumn);
+                        $LayoutRowCount++;
+                    }
+                    /** @var LayoutRow[] $ResolvedList */
+                    $ResolvedList = $LayoutRowList;
+
+                    $LayoutRowList = array();
+                    $LayoutRowCount = 0;
+                    $LayoutRow = null;
+                    foreach ($IssueList as $LayoutColumn) {
+                        if ($LayoutRowCount % 3 == 0) {
+                            $LayoutRow = new LayoutRow(array());
+                            $LayoutRowList[] = $LayoutRow;
+                        }
+                        $LayoutRow->addColumn($LayoutColumn);
+                        $LayoutRowCount++;
+                    }
+                    /** @var LayoutRow[] $IssueList */
+                    $IssueList = $LayoutRowList;
+
+                    if (empty( $ResolvedList )) {
+                        $SprintList = new Layout(new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Layout(new LayoutGroup($IssueList,
+                                        new Title(new Danger('Geplante Änderungen'), 'in '.$Sprint->getVersion())))
+                                ),
+                            ))
+                        )));
+                    } else {
+                        $SprintList = new Layout(new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Layout(new LayoutGroup($IssueList,
+                                        new Title(new Danger('Geplante Änderungen'), 'in '.$Sprint->getVersion())))
+                                ),
+                            )),
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Layout(new LayoutGroup($ResolvedList,
+                                        new Title(new \SPHERE\Common\Frontend\Text\Repository\Success('Neuerungen'),
+                                            'in '.$Sprint->getVersion())))
+                                ),
+                            )),
+                        )));
+                    }
+                }
+
+                if ($SprintComplete) {
+                    $VersionHeader = new Success(new PullClear(
+                        new PullLeft('Änderungen in '.$Sprint->getVersion())
+                        .new PullRight(
+                            new Label('Freigabe Demo @ '.date('m / Y',
+                                    strtotime($Sprint->getTimestampFinish().' +1 day')),
+                                Label::LABEL_TYPE_WARNING)
+                            .new Label('Freigabe Live @ '.date('m / Y',
+                                    strtotime($Sprint->getTimestampFinish().' +2 month')),
+                                Label::LABEL_TYPE_PRIMARY)
+                        )
+                    ));
+                    if (!$Sprint->isDone()) {
+                        $SprintPercent = $this->getDatePercent($Sprint->getTimestampStart(),
+                            $Sprint->getTimestampFinish());
+                        $VersionHeader .= new ProgressBar($SprintPercent, 100 - $SprintPercent, 100);
+                    }
+                    $VersionFooter = null;
+                } else {
+                    $SprintColor = ( $Sprint->getVersion() == $SprintCurrent
+                        ? '\SPHERE\Common\Frontend\Message\Repository\Info'
+                        : '\SPHERE\Common\Frontend\Message\Repository\Warning'
+                    );
+
+                    $VersionHeader = new $SprintColor(new PullClear(
+                        new PullLeft('Version '.$Sprint->getVersion())
+                        .new PullRight(
+                            new Label('Freigabe Demo @ '.date('m / Y',
+                                    strtotime($Sprint->getTimestampFinish().' +1 day')),
+                                Label::LABEL_TYPE_WARNING)
+                            .new Label('Freigabe Live @ '.date('m / Y',
+                                    strtotime($Sprint->getTimestampFinish().' +2 month')),
+                                Label::LABEL_TYPE_PRIMARY)
+                        )
+                    ));
+                    $VersionHeader .= new ProgressBar($this->getDatePercent($Sprint->getTimestampStart(),
+                        $Sprint->getTimestampFinish()), 0, 100);
+                    $VersionFooter = new Muted(new Small($Sprint->getTimestampStart().' - '.$Sprint->getTimestampFinish()));
+                }
+
+                $LayoutColumns[] = new LayoutColumn(
+                    new Panel(
+                        $VersionHeader,
+                        ( $FoldSprint ? (new Accordion())->addItem(new Small(new Italic(new Muted('[Änderungen anzeigen]'))),
+                            (string)$SprintList) : (string)$SprintList ),
+                        ( $SprintComplete ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING ),
+                        $VersionFooter
+                    )
+                );
+            }
+
+            $Content = (new Layout(new LayoutGroup(new LayoutRow($LayoutColumns))))->__toString();
+            $Cache->setValue('Roadmap', $Content, ( 60 * 60 * 4 ), __METHOD__);
         }
 
-        $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow($LayoutColumns)))
-        );
+        $Stage->setContent($Content);
 
         return $Stage;
     }

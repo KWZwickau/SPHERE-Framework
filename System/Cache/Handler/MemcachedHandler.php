@@ -135,13 +135,13 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
             // 0 = MEMCACHED_SUCCESS
             if (0 == ( $Code = $this->Connection->getResultCode() )) {
                 return $Value;
-            } else {
-                (new DebuggerFactory())->createLogger(new ErrorLogger())
-                    ->addLog(__METHOD__.' Error: '
-                        .$Region.'->'.$Key.' - '
-                        .$Code.' - '
-                        .$this->Connection->getResultMessage()
-                    );
+//            } else {
+//                (new DebuggerFactory())->createLogger(new ErrorLogger())
+//                    ->addLog(__METHOD__.' Error: '
+//                        .$Region.'->'.$Key.' - '
+//                        .$Code.' - '
+//                        .$this->Connection->getResultMessage()
+//                    );
             }
         }
         return null;
