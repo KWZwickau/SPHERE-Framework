@@ -72,6 +72,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
@@ -844,7 +845,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $headTableColumnList[] = new TableColumn($tblPeriod->getDisplayName(), $count);
                 }
             }
-            $headTableColumnList[] = new TableColumn('GJ');
+            $headTableColumnList[] = new TableColumn('Gesamt');
         }
         $tableData->prependHead(
             new TableHead(
