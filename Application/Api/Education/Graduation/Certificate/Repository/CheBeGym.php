@@ -106,7 +106,7 @@ class CheBeGym extends Certificate
                             ->styleBorderRight()
                             , '15%')
                         ->addElementColumn((new Element())
-                            ->setContent('2015/16')
+                            ->setContent('{{ Content.Division.Data.Year }}')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->stylePaddingLeft('5px')

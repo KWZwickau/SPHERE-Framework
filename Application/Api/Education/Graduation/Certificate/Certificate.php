@@ -280,7 +280,7 @@ abstract class Certificate extends Extension
 
         $Term = $this->tblDivision->getServiceTblYear();
         if ($Term) {
-            $this->Division['Data']['Year'] = $Term->__toArray();
+            $this->Division['Data']['Year'] = $Term->getYear();
             // TODO: Schuljahr- / Halbjahr-Übergabe
             $Term = $Term->getTblPeriodAll();
             if (is_array($Term)) {

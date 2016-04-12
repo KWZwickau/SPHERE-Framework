@@ -92,7 +92,7 @@ class CosHjSek extends Certificate
                             ->setContent('1. Schulhalbjahr')
                             , '16%')
                         ->addElementColumn((new Element())
-                            ->setContent('2015/16')
+                            ->setContent('{{ Content.Division.Data.Year }}')
                             ->styleBorderBottom()
                             ->styleAlignCenter()
                             , '32%')

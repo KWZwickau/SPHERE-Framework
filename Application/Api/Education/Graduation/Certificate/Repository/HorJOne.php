@@ -103,7 +103,7 @@ class HorJOne extends Certificate
                             ->styleAlignRight()
                             , '30%')
                         ->addElementColumn((new Element())
-                            ->setContent('2015/16')
+                            ->setContent('{{ Content.Division.Data.Year }}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
                             , '15%')

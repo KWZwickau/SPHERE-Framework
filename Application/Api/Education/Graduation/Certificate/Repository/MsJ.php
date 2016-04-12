@@ -81,7 +81,7 @@ class MsJ extends Certificate
                             ->styleAlignRight()
                             , '18%')
                         ->addElementColumn((new Element())
-                            ->setContent('2015/16')
+                            ->setContent('{{ Content.Division.Data.Year }}')
                             ->styleBorderBottom()
                             ->styleAlignCenter()
                             , '13%')
