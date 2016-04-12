@@ -689,29 +689,25 @@ class GymAbgRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Wahlpflichtbereich²:')
+                            ->setContent('Wahlpflichtbereich¹:')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->styleTextBold()
-                            , '30%')
+                            , '20%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }} Vertiefungskurs
+                            ->setContent('{% if(Content.Input.Choose is not empty) %}
+                                    {{ Content.Input.Choose }}
                                 {% else %}
-                                    {% if(Content.Person.Data.ToDO is not empty) %}
-                                        {{ Content.Grade.Data.ToDO }} 2. Fremdsprache (abschlussorientiert)
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
-                                {% endif %}')//ToDO Wahlpflichtbereich
-                            ->styleAlignCenter()
+                                    &nbsp;
+                                {% endif %}')
+                            ->styleAlignLeft()
                             ->styleBorderBottom('1px', '#000')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            , '22%')
+                            , '77%')
                         ->addElementColumn((new Element())
-                            ->setContent('Profil mit informatischer Bildung³')
-                            , '48%')
+                            , '3%'
+                        )
                     )
                     ->styleMarginTop('5px')
                 )
@@ -720,7 +716,7 @@ class GymAbgRs extends Certificate
                         ->addElementColumn((new Element())
                             , '30%')
                         ->addElementColumn((new Element())
-                            ->setContent('besuchtes Profil²')
+                            ->setContent('besuchtes Profil¹')
                             ->styleAlignCenter()
                             ->styleTextSize('9.5px')
                             , '22%')
@@ -750,7 +746,7 @@ class GymAbgRs extends Certificate
                             ->stylePaddingBottom()
                             ->styleBorderBottom()
                             , '48%')
-                    )
+                    )->styleMarginTop('15px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
@@ -766,7 +762,7 @@ class GymAbgRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Vertiefungsrichtung⁴:')
+                            ->setContent('Vertiefungsrichtung²:')
                             ->styleTextBold()
                             , '20%'
                         )
@@ -941,11 +937,9 @@ class GymAbgRs extends Certificate
                             ->setContent('Notenerläuterung:'
                                 .new Container('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
-                                .new Container('¹ &nbsp;&nbsp;&nbsp; Zutreffendes ist zu unterstreichen.')
-                                .new Container('² &nbsp;&nbsp;&nbsp; Gilt nicht an Gymnasien mit vertiefter Ausbildung gemäß § 4 SOGYA')
-                                .new Container('³ &nbsp;&nbsp;&nbsp; In Klassenstufe 8 ist der Zusatz " mit informatischer Bildung" zu streichen.')
-                                .new Container('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Beim spreachlichen Profil ist der Zusatz "mit informatischer Bildung" zu streichen und die Fremdsprache anzugeben.')
-                                .new Container('⁴ &nbsp;&nbsp;&nbsp; Nur für Schüler mit vertiefter Ausbildung gemäß § 4 SOGYA'))
+                                .new Container('&nbsp;')
+                                .new Container('¹ Gilt nicht an Gymnasien mit vertiefter Ausbildung gemäß § 4 SOGYA.')
+                                .new Container('² Nur für Schüler mit vertiefter Ausbildung gemäß § 4 SOGYA'))
                             ->styleTextSize('9.5px')
                             , '30%')
                     )

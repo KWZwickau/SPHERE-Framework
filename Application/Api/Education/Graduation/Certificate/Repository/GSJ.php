@@ -182,7 +182,11 @@ class GsJ extends Certificate
                             ->setContent('Einschätzung:')
                             , '16%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('{% if(Content.Input.Rating is not empty) %}
+                                    {{ Content.Input.Rating }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             , '84%')
                     )
@@ -655,7 +659,7 @@ class GsJ extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('72px')
+                    )->styleMarginTop('142px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'.new Container('

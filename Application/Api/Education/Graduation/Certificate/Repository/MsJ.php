@@ -101,7 +101,11 @@ class MsJ extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('{% if(Content.Input.Adding is not empty) %}
+                                {{ Content.Input.Adding }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')
@@ -813,7 +817,7 @@ class MsJ extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('17px')
+                    )->styleMarginTop('160px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'

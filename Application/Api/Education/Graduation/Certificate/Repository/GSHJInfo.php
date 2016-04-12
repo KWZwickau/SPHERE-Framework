@@ -603,7 +603,7 @@ class GsHjInfo extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('142px')
+                    )->styleMarginTop('212px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'.new Container('

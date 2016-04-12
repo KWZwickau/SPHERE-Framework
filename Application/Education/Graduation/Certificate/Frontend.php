@@ -270,7 +270,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Halbjahreszeugnis Klasse 5-6',
+                        'Template' => 'Mittelschule Halbjahreszeugnis',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
@@ -279,25 +279,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Halbjahreszeugnis Hauptschule',
-                        'Option'   => new Standard(
-                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
-                            'Division'    => $tblDivision->getId(),
-                            'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsHjHs'
-                        ), 'Auswählen')
-                    );
-                    $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Halbjahreszeugnis Realschule',
-                        'Option'   => new Standard(
-                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
-                            'Division'    => $tblDivision->getId(),
-                            'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsHjRs'
-                        ), 'Auswählen')
-                    );
-                    $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Halbjahresinformation Klasse 5-6',
+                        'Template' => 'Mittelschule Halbjahresinformation',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
@@ -306,48 +288,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Halbjahresinformation Hauptschule',
-                        'Option'   => new Standard(
-                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
-                            'Division'    => $tblDivision->getId(),
-                            'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsHjHsInfo'
-                        ), 'Auswählen')
-                    );
-                    $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Halbjahresinformation Realschule',
-                        'Option'   => new Standard(
-                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
-                            'Division'    => $tblDivision->getId(),
-                            'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsHjRsInfo'
-                        ), 'Auswählen')
-                    );
-                    $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Jahreszeugnis Klasse 5-6',
+                        'Template' => 'Mittelschule Jahreszeugnis',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
                             'Person'      => $tblPerson->getId(),
                             'Certificate' => 'MsJ'
-                        ), 'Auswählen')
-                    );
-                    $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Jahreszeugnis Hauptschule',
-                        'Option'   => new Standard(
-                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
-                            'Division'    => $tblDivision->getId(),
-                            'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsJHs'
-                        ), 'Auswählen')
-                    );
-                    $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Jahreszeugnis Realschule',
-                        'Option'   => new Standard(
-                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
-                            'Division'    => $tblDivision->getId(),
-                            'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsJRs'
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(

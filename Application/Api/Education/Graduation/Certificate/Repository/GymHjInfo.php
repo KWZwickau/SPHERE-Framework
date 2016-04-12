@@ -537,17 +537,21 @@ class GymHjInfo extends Certificate
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->styleTextBold()
-                            , '30%')
+                            , '20%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleAlignCenter()
+                            ->setContent('{% if(Content.Input.Choose is not empty) %}
+                                    {{ Content.Input.Choose }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                            ->styleAlignLeft()
                             ->styleBorderBottom('1px', '#000')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            , '22%')
+                            , '77%')
                         ->addElementColumn((new Element())
-                            ->setContent('Profil mit informatischer Bildung²')
-                            , '48%')
+                            , '3%'
+                        )
                     )
                     ->styleMarginTop('5px')
                 )
@@ -556,7 +560,7 @@ class GymHjInfo extends Certificate
                         ->addElementColumn((new Element())
                             , '30%')
                         ->addElementColumn((new Element())
-                            ->setContent('besuchtes Profil²')
+                            ->setContent('besuchtes Profil')
                             ->styleAlignCenter()
                             ->styleTextSize('9.5px')
                             , '22%')
@@ -586,7 +590,7 @@ class GymHjInfo extends Certificate
                             ->stylePaddingBottom()
                             ->styleBorderBottom()
                             , '48%')
-                    )
+                    )->styleMarginTop('15px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
@@ -770,12 +774,7 @@ class GymHjInfo extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'
                                 .new Container('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
-                                .new Container('¹ &nbsp;&nbsp;&nbsp; Zutreffendes ist zu unterstreichen.')
-                                .new Container('² &nbsp;&nbsp;&nbsp; In Klassenstufe 8 ist der Zusatz " mit informatischer
-                                    Bildung" zu streichen.')
-                                .new Container('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Beim spreachlichen Profil ist der Zusatz
-                                    "mit informatischer Bildung" zu streichen und die Fremdsprache anzugeben.'))
+                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'))
                             ->styleTextSize('9.5px')
                             , '30%')
                     )
