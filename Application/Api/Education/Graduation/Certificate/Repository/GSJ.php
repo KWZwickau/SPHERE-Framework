@@ -459,8 +459,8 @@ class GsJ extends Certificate
                             ->styleAlignRight()
                             , '25%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
-                                    {{ Content.Input.Bad.Missing }}
+                            ->setContent('{% if(Content.Input.Missing is not empty) %}
+                                    {{ Content.Input.Missing }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')

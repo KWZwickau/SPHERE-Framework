@@ -488,7 +488,7 @@ class MsAbsHs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Wirtschaft-Technick-Haushalt/Soziales')
+                            ->setContent('Wirtschaft-Technik-Haushalt/Soziales')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())

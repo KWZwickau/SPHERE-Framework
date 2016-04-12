@@ -560,14 +560,10 @@ class CheHj extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }} Vertiefungskurs
+                            ->setContent('{% if(Content.Input.Choose is not empty) %}
+                                    {{ Content.Input.Choose }}
                                 {% else %}
-                                    {% if(Content.Person.Data.ToDO is not empty) %}
-                                        {{ Content.Grade.Data.ToDO }} 2. Fremdsprache (abschlussorientiert)
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
+                                    &nbsp;
                                 {% endif %}')//ToDO Wahlpflichtbereich
                             ->styleBorderBottom()
                             ->stylePaddingTop()

@@ -129,6 +129,7 @@ class HorJOne extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
+                        ->styleHeight('550px')
                         ->styleMarginTop('15px')
                     )
                 )
@@ -158,7 +159,7 @@ class HorJOne extends Certificate
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             , '50%')
-                    )->styleMarginTop('300px')
+                    )->styleMarginTop('15px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())

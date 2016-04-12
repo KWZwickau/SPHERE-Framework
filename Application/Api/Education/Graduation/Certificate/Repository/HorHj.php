@@ -413,6 +413,7 @@ class HorHj extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
+                        ->styleHeight('250px')
                         ->styleMarginTop('5px')
                     )
                 )

@@ -204,7 +204,7 @@ class CheBeGym extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('1. Leistunsstand')
+                        ->setContent('1. Leistungsstand')
                         ->styleTextSize('20px')
                         ->styleHeight('24px')
                         ->styleTextBold()

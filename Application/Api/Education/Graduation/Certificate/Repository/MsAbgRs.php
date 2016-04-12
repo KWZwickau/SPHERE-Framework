@@ -202,7 +202,7 @@ class MsAbgRs extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('und verlässt nach Erfüllug der Vollzeitschulpflicht gemäß § 28 Abs. 1 Nr. 1 SchulG die'
+                        ->setContent('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß § 28 Abs. 1 Nr. 1 SchulG die'
                             .new Container('Mittelschule - Realschulbildungsgang')
                         )
                         ->styleMarginTop('8px')
@@ -558,7 +558,7 @@ class MsAbgRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Wirtschaft-Technick-Haushalt/Soziales')
+                            ->setContent('Wirtschaft-Technik-Haushalt/Soziales')
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
@@ -566,7 +566,7 @@ class MsAbgRs extends Certificate
                                     {{ Content.Grade.Data.ToDO }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Wirtschaft-Technick-Haushalt/Soziales ist kein vorgegebenes Fach
+                                {% endif %}')//ToDO Wirtschaft-Technik-Haushalt/Soziales ist kein vorgegebenes Fach
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')

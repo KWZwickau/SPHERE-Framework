@@ -552,14 +552,15 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Input.Choose'      => 'TextField',
                             'Content.Input.Date'        => 'DatePicker',
                             'Content.Input.Transfer'    => 'TextField',
-                            'Content.Input.Level'       => 'TextField',
+                            'Content.Input.LevelTwo'    => 'TextField',
+                            'Content.Input.LevelThree'  => 'TextField',
                             'Content.Input.Missing'     => 'TextField',
                             'Content.Input.Bad.Missing' => 'TextField',
                         );
                         $FormLabel = array(
-                            'Content.Person.Data.Name.Salutation'       => 'Anrede',
-                            'Content.Person.Data.Name.First'            => 'Vorname',
-                            'Content.Person.Data.Name.Last'             => 'Nachname',
+                            'Content.Person.Data.Name.Salutation' => 'Anrede',
+                            'Content.Person.Data.Name.First'      => 'Vorname',
+                            'Content.Person.Data.Name.Last'       => 'Nachname',
                             'Content.Person.Common.BirthDates.Birthday' => 'Geburtsdatum',
 
                             'Content.Company.Data.Name' => 'Name der Schule',
@@ -569,16 +570,17 @@ class Frontend extends Extension implements IFrontendInterface
 
                             'Content.Input.Adding'      => 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des [...] teil.',
                             'Content.Input.Remark'      => 'Bemerkungen',
-                            'Content.Input.Rating'      => 'Einschätzung',
-                            'Content.Input.Survey'      => 'Gutachten',
-                            'Content.Input.Team'        => 'Arbeitsgemeinschaften',
-                            'Content.Input.Deepening'   => 'Vertiefungsrichtung',
-                            'Content.Input.Choose'      => 'Wahlpflichtbereich',
-                            'Content.Input.Date'        => 'Datum',
-                            'Content.Input.Transfer'    => 'Versetzungsvermerk',
-                            'Content.Input.Level'       => '2. Fremdsprache ab Klassenstufe',
-                            'Content.Input.Missing'     => 'Fehltage entschuldigt',
-                            'Content.Input.Bad.Missing' => 'Fehltage unentschuldigt',
+                            'Content.Input.Rating'                => 'Einschätzung',
+                            'Content.Input.Survey'                => 'Gutachten',
+                            'Content.Input.Team'                  => 'Arbeitsgemeinschaften',
+                            'Content.Input.Deepening'             => 'Vertiefungsrichtung',
+                            'Content.Input.Choose'                => 'Wahlpflichtbereich',
+                            'Content.Input.Date'                  => 'Datum',
+                            'Content.Input.Transfer'              => 'Versetzungsvermerk',
+                            'Content.Input.LevelTwo'              => '2. Fremdsprache ab Klassenstufe',
+                            'Content.Input.LevelThree'            => '3. Fremdsprache ab Klassenstufe',
+                            'Content.Input.Missing'               => 'Fehltage entschuldigt',
+                            'Content.Input.Bad.Missing'           => 'Fehltage unentschuldigt',
                         );
 
                         // Create Form, Additional Information from Template
