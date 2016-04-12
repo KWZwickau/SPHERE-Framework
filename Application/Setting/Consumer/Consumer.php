@@ -11,6 +11,7 @@ use SPHERE\Application\Setting\Consumer\SponsorAssociation\SponsorAssociation;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -66,8 +67,11 @@ class Consumer implements IApplicationInterface
                     $tblSchoolAll[$tblSchool->getServiceTblCompany()->getName() . $tblSchool->getServiceTblType()->getName()] =
                         new Layout(new LayoutGroup(new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Muted(new Small($tblSchool->getServiceTblCompany()->getDescription())) . '<br/>'
-                                    . $tblSchool->getServiceTblCompany()->getName()
+                                    $tblSchool->getServiceTblCompany()->getName()
+                                    .( $tblSchool->getServiceTblCompany()->getExtendedName() != '' ?
+                                        new Container($tblSchool->getServiceTblCompany()->getExtendedName()) : null )
+                                    .( $tblSchool->getServiceTblCompany()->getDescription() != '' ?
+                                        new Container(new Muted(new Small($tblSchool->getServiceTblCompany()->getDescription()))) : null )
                                     , 12),
                             )
                         )));
@@ -106,7 +110,10 @@ class Consumer implements IApplicationInterface
                         new Layout(new LayoutGroup(new LayoutRow(array(
                                 new LayoutColumn(
                                     $tblResponsibility->getServiceTblCompany()->getName()
-                                    . new Muted(new Small('<br/>' . $tblResponsibility->getServiceTblCompany()->getDescription()))
+                                    .( $tblResponsibility->getServiceTblCompany()->getExtendedName() != '' ?
+                                        new Container($tblResponsibility->getServiceTblCompany()->getExtendedName()) : null )
+                                    .( $tblResponsibility->getServiceTblCompany()->getDescription() != '' ?
+                                        new Container(new Muted(new Small($tblResponsibility->getServiceTblCompany()->getDescription()))) : null )
                                     , 12),
                             )
                         )));
@@ -144,7 +151,10 @@ class Consumer implements IApplicationInterface
                         new Layout(new LayoutGroup(new LayoutRow(array(
                                 new LayoutColumn(
                                     $tblSponsorAssociation->getServiceTblCompany()->getName()
-                                    . new Muted(new Small('<br/>' . $tblSponsorAssociation->getServiceTblCompany()->getDescription()))
+                                    .( $tblSponsorAssociation->getServiceTblCompany()->getExtendedName() != '' ?
+                                        new Container($tblSponsorAssociation->getServiceTblCompany()->getExtendedName()) : null )
+                                    .( $tblSponsorAssociation->getServiceTblCompany()->getDescription() != '' ?
+                                        new Container(new Muted(new Small($tblSponsorAssociation->getServiceTblCompany()->getDescription()))) : null )
                                     , 12),
                             )
                         )));

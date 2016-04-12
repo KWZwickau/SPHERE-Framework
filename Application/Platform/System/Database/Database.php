@@ -403,8 +403,10 @@ class Database extends Extension implements IModuleInterface
                 } else {
                     if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
                         /** @var IModuleInterface $Class */
-                        $Class = $Inspection->newInstance();
-                        $Class = $Class->useService();
+                        if (!$Inspection->isAbstract()) {
+                            $Class = $Inspection->newInstance();
+                            $Class = $Class->useService();
+                        }
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
                             if (!array_key_exists(get_class($Class), self::$SetupRegister)) {
@@ -435,8 +437,10 @@ class Database extends Extension implements IModuleInterface
                 } else {
                     if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
                         /** @var IModuleInterface $Class */
-                        $Class = $Inspection->newInstance();
-                        $Class = $Class->useService();
+                        if (!$Inspection->isAbstract()) {
+                            $Class = $Inspection->newInstance();
+                            $Class = $Class->useService();
+                        }
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
                             if (!array_key_exists(get_class($Class), self::$SetupRegister)) {
@@ -466,8 +470,10 @@ class Database extends Extension implements IModuleInterface
                 } else {
                     if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
                         /** @var IModuleInterface $Class */
-                        $Class = $Inspection->newInstance();
-                        $Class = $Class->useService();
+                        if (!$Inspection->isAbstract()) {
+                            $Class = $Inspection->newInstance();
+                            $Class = $Class->useService();
+                        }
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
                             if (!array_key_exists(get_class($Class), self::$SetupRegister)) {

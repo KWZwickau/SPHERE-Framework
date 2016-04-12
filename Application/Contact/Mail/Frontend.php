@@ -173,7 +173,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new Panel(new PersonIcon() . ' Firma',
-                                    $tblCompany->getName(),
+                                    array($tblCompany->getName(),
+                                        $tblCompany->getExtendedName()),
                                     Panel::PANEL_TYPE_INFO
                                 )
                             )
@@ -306,8 +307,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new Building() . ' Firma',
+                            new Panel(new Building().' Firma', array(
                                 $tblToCompany->getServiceTblCompany()->getName(),
+                                $tblToCompany->getServiceTblCompany()->getExtendedName()),
                                 Panel::PANEL_TYPE_INFO
                             )
                         )
@@ -574,7 +576,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Firma',
-                            $tblCompany->getName(),
+                            array($tblCompany->getName(),
+                                $tblCompany->getExtendedName()),
                             Panel::PANEL_TYPE_INFO
                         ),
                         new Panel(new Question() . ' Diese E-Mail Adresse wirklich löschen?', array(

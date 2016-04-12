@@ -4,8 +4,10 @@ namespace SPHERE\Application\Transfer\Import;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
+use SPHERE\Application\Transfer\Import\Coswig\Coswig;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
 use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
+use SPHERE\Application\Transfer\Import\Muldental\Muldental;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -28,6 +30,10 @@ class Import implements IApplicationInterface
             Chemnitz::registerModule();
         } elseif ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
             Hormersdorf::registerModule();
+        } elseif ($consumerAcronym === 'EVSC'){
+            Coswig::registerModule();
+        } elseif ($consumerAcronym === 'EVAMTL'){
+            Muldental::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

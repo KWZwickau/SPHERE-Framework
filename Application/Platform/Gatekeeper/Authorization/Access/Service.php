@@ -288,9 +288,11 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param null|string    $Name
      *
+     * @param bool           $IsSecure
+     *
      * @return IFormInterface|Redirect
      */
-    public function createRole(IFormInterface $Form, $Name)
+    public function createRole(IFormInterface $Form, $Name, $IsSecure = false)
     {
 
         if (null !== $Name && empty( $Name )) {
@@ -298,8 +300,8 @@ class Service extends AbstractService
         }
         if (!empty( $Name )) {
             $Form->setSuccess('Name', 'Die Rolle wurde hinzugefügt');
-            (new Data($this->getBinding()))->createRole($Name);
-            return new Redirect('/Platform/Gatekeeper/Authorization/Access/Role', 0);
+            (new Data($this->getBinding()))->createRole($Name, $IsSecure);
+            return new Redirect('/Platform/Gatekeeper/Authorization/Access/Role', Redirect::TIMEOUT_SUCCESS);
         }
         return $Form;
     }

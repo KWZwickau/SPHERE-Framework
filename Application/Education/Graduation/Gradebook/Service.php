@@ -86,11 +86,15 @@ class Service extends AbstractService
 
         $Error = false;
         if (isset($GradeType['Name']) && empty($GradeType['Name'])) {
-            $Stage->setError('GradeType[Name]', 'Bitte geben sie einen Namen an');
+            $Stage->setError('GradeType[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
         if (isset($GradeType['Code']) && empty($GradeType['Code'])) {
-            $Stage->setError('GradeType[Code]', 'Bitte geben sie eine Abk&uuml;rzung an');
+            $Stage->setError('GradeType[Code]', 'Bitte geben Sie eine Abk&uuml;rzung an');
+            $Error = true;
+        }
+        if (!($tblTestType = Evaluation::useService()->getTestTypeById($GradeType['Type']))){
+            $Stage->setError('GradeType[Type]', 'Bitte wählen Sie eine Kategorie aus');
             $Error = true;
         }
 
@@ -100,7 +104,7 @@ class Service extends AbstractService
                 $GradeType['Code'],
                 $GradeType['Description'],
                 isset($GradeType['IsHighlighted']) ? true : false,
-                Evaluation::useService()->getTestTypeById($GradeType['Type'])
+                $tblTestType
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfasst worden')
             . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_SUCCESS);

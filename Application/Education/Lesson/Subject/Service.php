@@ -68,7 +68,7 @@ class Service extends AbstractService
                 });
             }
         }
-        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+        return (empty($tblSubjectList) ? false : $tblSubjectList);
     }
 
     /**
@@ -103,7 +103,7 @@ class Service extends AbstractService
                 });
             }
         }
-        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+        return (empty($tblSubjectList) ? false : $tblSubjectList);
     }
 
     /**
@@ -124,7 +124,7 @@ class Service extends AbstractService
                 });
             }
         }
-        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+        return (empty($tblSubjectList) ? false : $tblSubjectList);
     }
 
     /**
@@ -145,7 +145,7 @@ class Service extends AbstractService
                 });
             }
         }
-        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+        return (empty($tblSubjectList) ? false : $tblSubjectList);
     }
 
     /**
@@ -166,7 +166,7 @@ class Service extends AbstractService
                 });
             }
         }
-        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+        return (empty($tblSubjectList) ? false : $tblSubjectList);
     }
 
     /**
@@ -190,7 +190,7 @@ class Service extends AbstractService
                 });
             }
         }
-        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+        return (empty($tblSubjectList) ? false : $tblSubjectList);
     }
 
     /**
@@ -204,22 +204,14 @@ class Service extends AbstractService
         if (null === $tblSubject) {
             return '';
         }
-        $Error = false;
 
-        if ($this->getSubjectActiveState($tblSubject)) {
-            $Error = true;
+        if ((new Data($this->getBinding()))->destroySubject($tblSubject)) {
+            return new Success('Das Fach wurde erfolgreich gelöscht')
+            . new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_SUCCESS);
+        } else {
+            return new Danger('Das Fach konnte nicht gelöscht werden')
+            . new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
         }
-        if (!$Error) {
-            if ((new Data($this->getBinding()))->destroySubject($tblSubject)) {
-                return new Success('Das Fach wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_SUCCESS);
-            } else {
-                return new Danger('Das Fach konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
-            }
-        }
-        return new Danger('Das Fach wird benutzt!')
-        .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
     }
 
     /**
@@ -271,20 +263,20 @@ class Service extends AbstractService
         if (!$Error) {
             if ((new Data($this->getBinding()))->destroyCategory($tblCategory)) {
                 return new Success('Die Kategorie wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_SUCCESS);
+                . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Die Kategorie konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
             }
         }
         return new Danger('Die Kategorie wurde benutzt!')
-        .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
+        . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
 
     }
 
     /**
      * @param TblCategory $tblCategory
-     * @param TblSubject  $tblSubject
+     * @param TblSubject $tblSubject
      *
      * @return bool
      */
@@ -306,7 +298,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblGroup    $tblGroup
+     * @param TblGroup $tblGroup
      * @param TblCategory $tblCategory
      *
      * @return bool
@@ -390,7 +382,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param null|array     $Subject
+     * @param null|array $Subject
      *
      * @return IFormInterface|string
      */
@@ -408,7 +400,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Subject['Acronym'] ) && empty( $Subject['Acronym'] )) {
+        if (isset($Subject['Acronym']) && empty($Subject['Acronym'])) {
             $Form->setError('Subject[Acronym]', 'Bitte geben Sie ein eineindeutiges Kürzel an');
             $Error = true;
         } else {
@@ -418,7 +410,7 @@ class Service extends AbstractService
             }
         }
 
-        if (isset( $Subject['Name'] ) && empty( $Subject['Name'] )) {
+        if (isset($Subject['Name']) && empty($Subject['Name'])) {
             $Form->setError('Subject[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
@@ -430,10 +422,10 @@ class Service extends AbstractService
             )
             ) {
                 return new Success('Das Fach wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
+                . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Das Fach konnte nicht hinzugefügt werden')
-                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
+                . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -469,7 +461,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Subject['Acronym'] ) && empty( $Subject['Acronym'] )) {
+        if (isset($Subject['Acronym']) && empty($Subject['Acronym'])) {
             $Form->setError('Subject[Acronym]', 'Bitte geben Sie ein eineindeutiges Kürzel an');
             $Error = true;
         } else {
@@ -482,7 +474,7 @@ class Service extends AbstractService
             }
         }
 
-        if (isset( $Subject['Name'] ) && empty( $Subject['Name'] )) {
+        if (isset($Subject['Name']) && empty($Subject['Name'])) {
             $Form->setError('Subject[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
@@ -495,14 +487,14 @@ class Service extends AbstractService
                 )
                 ) {
                     return new Success('Das Fach wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_SUCCESS);
+                    . new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_SUCCESS);
                 } else {
                     return new Danger('Das Fach konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
+                    . new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
                 }
             } else {
                 return new Danger('Das Fach wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -538,7 +530,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Category['Name'] ) && empty( $Category['Name'] )) {
+        if (isset($Category['Name']) && empty($Category['Name'])) {
             $Form->setError('Category[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         } else {
@@ -556,14 +548,14 @@ class Service extends AbstractService
                 )
                 ) {
                     return new Success('Die Kategorie wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_SUCCESS);
+                    . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_SUCCESS);
                 } else {
                     return new Danger('Die Kategorie konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
+                    . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
                 }
             } else {
                 return new Danger('Die Kategorie wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -611,7 +603,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param null|array     $Category
+     * @param null|array $Category
      *
      * @return IFormInterface|string
      */
@@ -629,7 +621,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Category['Name'] ) && empty( $Category['Name'] )) {
+        if (isset($Category['Name']) && empty($Category['Name'])) {
             $Form->setError('Category[Name]', 'Bitte geben Sie einen eineindeutigen Namen an');
             $Error = true;
         } else {
@@ -646,10 +638,10 @@ class Service extends AbstractService
             )
             ) {
                 return new Success('Die Kategorie wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
+                . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Die Kategorie konnte nicht hinzugefügt werden')
-                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
+                . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -657,8 +649,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblGroup       $tblGroup
-     * @param null|array     $Category
+     * @param TblGroup $tblGroup
+     * @param null|array $Category
      *
      * @return IFormInterface|string
      */
@@ -697,17 +689,17 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Die Kategorien wurden erfolgreich geändert')
-                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
+                . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Einige Kategorien konnte nicht geändert werden')
-                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
+                . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
     }
 
     /**
-     * @param TblGroup    $tblGroup
+     * @param TblGroup $tblGroup
      * @param TblCategory $tblCategory
      *
      * @return TblGroupCategory
@@ -720,8 +712,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblCategory    $tblCategory
-     * @param null|array     $Subject
+     * @param TblCategory $tblCategory
+     * @param null|array $Subject
      *
      * @return IFormInterface|string
      */
@@ -736,7 +728,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (!isset( $Global->POST['Button']['Submit'] )) {
+        if (!isset($Global->POST['Button']['Submit'])) {
             return $Form;
         }
 
@@ -766,10 +758,10 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Die Fächer wurden erfolgreich geändert')
-                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
+                . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Einige Fächer konnte nicht geändert werden')
-                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
+                . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -777,7 +769,7 @@ class Service extends AbstractService
 
     /**
      * @param TblCategory $tblCategory
-     * @param TblSubject  $tblSubject
+     * @param TblSubject $tblSubject
      *
      * @return TblCategorySubject
      */

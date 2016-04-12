@@ -127,7 +127,9 @@ class Service extends AbstractService
         $Street,
         $City,
         $State,
-        $Type
+        $Type,
+        $County,
+        $Nation
     ) {
 
         /**
@@ -146,7 +148,7 @@ class Service extends AbstractService
             $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
-            $Form->setSuccess('Street[Number]');
+            $Form->setSuccess('Street[Name]');
         }
         if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
             $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
@@ -155,8 +157,8 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
@@ -167,10 +169,14 @@ class Service extends AbstractService
         } else {
             $Form->setSuccess('City[Name]');
         }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             if ($State) {
                 $tblState = $this->getStateById($State);
             } else {
@@ -180,7 +186,7 @@ class Service extends AbstractService
                 $City['Code'], $City['Name'], $City['District']
             );
             $tblAddress = (new Data($this->getBinding()))->createAddress(
-                $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
+                $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
             );
 
             if ((new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
@@ -222,12 +228,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param           $StreetName
-     * @param           $StreetNumber
-     * @param           $CityCode
-     * @param           $CityName
-     * @param           $CityDistrict
-     * @param           $PostOfficeBox
+     * @param $StreetName
+     * @param $StreetNumber
+     * @param $CityCode
+     * @param $CityName
+     * @param $CityDistrict
+     * @param $PostOfficeBox
+     * @param string $County
+     * @param string $Nation
      *
      * @return TblToPerson
      */
@@ -238,7 +246,9 @@ class Service extends AbstractService
         $CityCode,
         $CityName,
         $CityDistrict,
-        $PostOfficeBox
+        $PostOfficeBox,
+        $County = '',
+        $Nation = ''
     ) {
 
         $tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, $CityDistrict);
@@ -249,7 +259,9 @@ class Service extends AbstractService
             $tblCity,
             $StreetName,
             $StreetNumber,
-            $PostOfficeBox
+            $PostOfficeBox,
+            $County,
+            $Nation
         );
 
         return (new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress,
@@ -264,6 +276,8 @@ class Service extends AbstractService
      * @param $CityName
      * @param $CityDistrict
      * @param $PostOfficeBox
+     * @param string $County
+     * @param string $Nation
      *
      * @return TblToCompany
      */
@@ -274,7 +288,9 @@ class Service extends AbstractService
         $CityCode,
         $CityName,
         $CityDistrict,
-        $PostOfficeBox
+        $PostOfficeBox,
+        $County = '',
+        $Nation = ''
     ) {
 
         $tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, $CityDistrict);
@@ -285,7 +301,9 @@ class Service extends AbstractService
             $tblCity,
             $StreetName,
             $StreetNumber,
-            $PostOfficeBox
+            $PostOfficeBox,
+            $County,
+            $Nation
         );
 
         return (new Data($this->getBinding()))->addAddressToCompany($tblCompany, $tblAddress,
@@ -294,11 +312,13 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToPerson    $tblToPerson
-     * @param array          $Street
-     * @param array          $City
-     * @param int            $State
-     * @param array          $Type
+     * @param TblToPerson $tblToPerson
+     * @param array $Street
+     * @param array $City
+     * @param int $State
+     * @param array $Type
+     * @param $County
+     * @param $Nation
      *
      * @return IFormInterface|string
      */
@@ -308,7 +328,9 @@ class Service extends AbstractService
         $Street,
         $City,
         $State,
-        $Type
+        $Type,
+        $County,
+        $Nation
     ) {
 
         /**
@@ -327,7 +349,7 @@ class Service extends AbstractService
             $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
-            $Form->setSuccess('Street[Number]');
+            $Form->setSuccess('Street[Name]');
         }
         if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
             $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
@@ -336,8 +358,8 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
@@ -348,10 +370,14 @@ class Service extends AbstractService
         } else {
             $Form->setSuccess('City[Name]');
         }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblState = $this->getStateById($State);
             if (!$tblState) {
                 $tblState = null;
@@ -360,7 +386,7 @@ class Service extends AbstractService
                 $City['Code'], $City['Name'], $City['District']
             );
             $tblAddress = (new Data($this->getBinding()))->createAddress(
-                $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
+                $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
             );
             // Remove current
             (new Data($this->getBinding()))->removeAddressToPerson($tblToPerson);
@@ -389,11 +415,13 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToCompany   $tblToCompany
-     * @param array          $Street
-     * @param array          $City
-     * @param int            $State
-     * @param array          $Type
+     * @param TblToCompany $tblToCompany
+     * @param array $Street
+     * @param array $City
+     * @param int $State
+     * @param array $Type
+     * @param $County
+     * @param $Nation
      *
      * @return IFormInterface|string
      */
@@ -403,7 +431,9 @@ class Service extends AbstractService
         $Street,
         $City,
         $State,
-        $Type
+        $Type,
+        $County,
+        $Nation
     ) {
 
         /**
@@ -422,7 +452,7 @@ class Service extends AbstractService
             $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
-            $Form->setSuccess('Street[Number]');
+            $Form->setSuccess('Street[Name]');
         }
         if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
             $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
@@ -431,8 +461,8 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
@@ -443,10 +473,14 @@ class Service extends AbstractService
         } else {
             $Form->setSuccess('City[Name]');
         }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblState = $this->getStateById($State);
             if (!$tblState) {
                 $tblState = null;
@@ -455,7 +489,7 @@ class Service extends AbstractService
                 $City['Code'], $City['Name'], $City['District']
             );
             $tblAddress = (new Data($this->getBinding()))->createAddress(
-                $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
+                $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
             );
             // Remove current
             (new Data($this->getBinding()))->removeAddressToCompany($tblToCompany);
@@ -484,11 +518,13 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany     $tblCompany
-     * @param array          $Street
-     * @param array          $City
-     * @param integer        $State
-     * @param array          $Type
+     * @param TblCompany $tblCompany
+     * @param array $Street
+     * @param array $City
+     * @param integer $State
+     * @param array $Type
+     * @param $County
+     * @param $Nation
      *
      * @return IFormInterface|string
      */
@@ -498,7 +534,9 @@ class Service extends AbstractService
         $Street,
         $City,
         $State,
-        $Type
+        $Type,
+        $County,
+        $Nation
     ) {
 
         /**
@@ -517,7 +555,7 @@ class Service extends AbstractService
             $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
-            $Form->setSuccess('Street[Number]');
+            $Form->setSuccess('Street[Name]');
         }
         if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
             $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
@@ -526,8 +564,8 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
@@ -538,10 +576,14 @@ class Service extends AbstractService
         } else {
             $Form->setSuccess('City[Name]');
         }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             if ($State) {
                 $tblState = $this->getStateById($State);
             } else {
@@ -551,7 +593,7 @@ class Service extends AbstractService
                 $City['Code'], $City['Name'], $City['District']
             );
             $tblAddress = (new Data($this->getBinding()))->createAddress(
-                $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
+                $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
             );
 
             if ((new Data($this->getBinding()))->addAddressToCompany($tblCompany, $tblAddress, $tblType,

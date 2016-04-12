@@ -114,6 +114,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblRole', 'IsInternal')) {
             $Table->addColumn('IsInternal', 'boolean');
         }
+        if (!$this->getConnection()->hasColumn('tblRole', 'IsSecure')) {
+            $Table->addColumn('IsSecure', 'boolean');
+        }
         return $Table;
     }
 

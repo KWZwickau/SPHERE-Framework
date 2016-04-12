@@ -191,7 +191,8 @@ class Service extends AbstractService
     }
 
     /**
-     *
+     * @deprecated countCompanyAllByGroup -> countMemberAllByGroup
+     *             
      * @param TblGroup $tblGroup
      *
      * @return int
@@ -199,7 +200,18 @@ class Service extends AbstractService
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return (new Data($this->getBinding()))->countCompanyAllByGroup($tblGroup);
+        return $this->countMemberAllByGroup($tblGroup);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return int
+     */
+    public function countMemberAllByGroup(TblGroup $tblGroup)
+    {
+
+        return $this->countEntityList((new Data($this->getBinding()))->getMemberAllByGroup($tblGroup));
     }
 
     /**

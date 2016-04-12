@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Reporting\Custom\Chemnitz;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person;
 
 /**
@@ -23,13 +24,16 @@ class Common
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = Person::useService()->createClassList($tblDivision);
-            if ($studentList) {
-                $fileLocation = Person::useService()->createClassListExcel($studentList);
+            $PersonList = Person::useService()->createClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = Person::useService()->createClassListExcel($PersonList, $tblPersonList);
 
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Klassenliste ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Chemnitz Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 
@@ -42,13 +46,16 @@ class Common
     public function downloadStaffList()
     {
 
-        $staffList = Person::useService()->createStaffList();
+        $PersonList = Person::useService()->createStaffList();
 
-        if ($staffList) {
-            $fileLocation = Person::useService()->createStaffListExcel($staffList);
+        if ($PersonList) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
+            if ($tblPersonList) {
+                $fileLocation = Person::useService()->createStaffListExcel($PersonList, $tblPersonList);
 
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Chemnitz Mitarbeiterliste ".date("Y-m-d H:i:s").".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Chemnitz Mitarbeiterliste ".date("Y-m-d H:i:s").".xls")->__toString();
+            }
         }
 
         return false;
@@ -64,13 +71,16 @@ class Common
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = Person::useService()->createMedicList($tblDivision);
-            if ($studentList) {
-                $fileLocation = Person::useService()->createMedicListExcel($studentList);
+            $PersonList = Person::useService()->createMedicList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = Person::useService()->createMedicListExcel($PersonList, $tblPersonList);
 
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Arztliste ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Chemnitz Arztliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 
@@ -87,13 +97,16 @@ class Common
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = Person::useService()->createParentTeacherConferenceList($tblDivision);
-            if ($studentList) {
-                $fileLocation = Person::useService()->createParentTeacherConferenceListExcel($studentList);
+            $PersonList = Person::useService()->createParentTeacherConferenceList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = Person::useService()->createParentTeacherConferenceListExcel($PersonList, $tblPersonList);
 
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Elternabende ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Chemnitz Elternabende ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 
@@ -106,13 +119,19 @@ class Common
     public function downloadClubMemberList()
     {
 
-        $clubMemberList = Person::useService()->createClubMemberList();
+        $PersonList = Person::useService()->createClubMemberList();
 
-        if ($clubMemberList) {
-            $fileLocation = Person::useService()->createClubMemberListExcel($clubMemberList);
+        if ($PersonList) {
+            $tblGroup = Group::useService()->getGroupByName('Verein');
+            if ($tblGroup) {
+                $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+                if ($tblPersonList) {
+                    $fileLocation = Person::useService()->createClubMemberListExcel($PersonList, $tblPersonList);
 
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Chemnitz Vereinsmitgliederliste ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Chemnitz Vereinsmitgliederliste ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
+            }
         }
 
         return false;
@@ -124,12 +143,15 @@ class Common
     public function downloadInterestedPersonList()
     {
 
-        $interestedPersonList = Person::useService()->createInterestedPersonList();
-        if ($interestedPersonList) {
-            $fileLocation = Person::useService()->createInterestedPersonListExcel($interestedPersonList);
+        $PersonList = Person::useService()->createInterestedPersonList();
+        if ($PersonList) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+            if ($tblPersonList) {
+                $fileLocation = Person::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList);
 
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Chemnitz Interessentenliste ".date("Y-m-d H:i:s").".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Chemnitz Interessentenliste ".date("Y-m-d H:i:s").".xls")->__toString();
+            }
         }
 
         return false;
@@ -141,12 +163,15 @@ class Common
     public function downloadSchoolFeeList()
     {
 
-        $studentList = Person::useService()->createSchoolFeeList();
-        if ($studentList) {
-            $fileLocation = Person::useService()->createSchoolFeeListExcel($studentList);
+        $PersonList = Person::useService()->createSchoolFeeList();
+        if ($PersonList) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+            if ($tblPersonList) {
+                $fileLocation = Person::useService()->createSchoolFeeListExcel($PersonList, $tblPersonList);
 
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Chemnitz Schulgeldliste ".date("Y-m-d H:i:s").".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Chemnitz Schulgeldliste ".date("Y-m-d H:i:s").".xls")->__toString();
+            }
         }
 
         return false;
@@ -162,13 +187,16 @@ class Common
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = Person::useService()->createPrintClassList($tblDivision);
-            if ($studentList) {
-                $fileLocation = Person::useService()->createPrintClassListExcel($studentList);
+            $PersonList = Person::useService()->createPrintClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = Person::useService()->createPrintClassListExcel($PersonList, $tblPersonList);
 
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Klassenliste ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Chemnitz Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 

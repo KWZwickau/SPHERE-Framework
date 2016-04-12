@@ -110,7 +110,7 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
-                    new Panel('Schuljahr:', $tblYear ? $tblYear->getName() : '',
+                    new Panel('Schuljahr:', $tblYear ? $tblYear->getDisplayName() : '',
                         Panel::PANEL_TYPE_INFO), 6),
                 new LayoutColumn(
                     new Panel('Schulart:', $tblType ? $tblType->getName() : '',
@@ -256,7 +256,7 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
-                    new Panel('Schuljahr:', $tblYear ? $tblYear->getName() : '',
+                    new Panel('Schuljahr:', $tblYear ? $tblYear->getDisplayName() : '',
                         Panel::PANEL_TYPE_INFO), 6),
                 new LayoutColumn(
                     new Panel('Schulart:', $tblType ? $tblType->getName() : '',

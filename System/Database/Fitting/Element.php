@@ -101,12 +101,43 @@ abstract class Element extends Extension
     }
 
     /**
-     * @return null|\DateTime
+     * @param Element $Required
+     *
+     * @return \DateTime|null
      */
-    public function getEntityRemove()
+    public function getEntityRemove(Element $Required = null)
     {
 
-        return $this->EntityRemove;
+        // Default
+        if ($this->EntityRemove) {
+            return $this->EntityRemove;
+        }
+
+        // Joined Element Overload
+        if (null === $Required) {
+            // No Overload
+            return $this->EntityRemove;
+        } else {
+            $Method = 'getService'.(new \ReflectionClass($Required))->getShortName();
+            if (method_exists($this, $Method)) {
+                /** @var bool|Element $tblJoin */
+                $tblJoin = $this->$Method();
+                if ($tblJoin) {
+                    // Exists
+                    if ($tblJoin->getEntityRemove()) {
+                        return $tblJoin->getEntityRemove();
+                    } else {
+                        return $this->EntityRemove;
+                    }
+                } else {
+                    // Missing Element
+                    return new \DateTime();
+                }
+            } else {
+                // Missing Method
+                return $this->EntityRemove;
+            }
+        }
     }
 
     /**

@@ -20,12 +20,13 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -154,13 +155,13 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (!isset($Test['Period'])) {
+        if (!($tblPeriod = Term::useService()->getPeriodById($Test['Period']))) {
+            $Stage->setError('Test[Period]', 'Bitte wählen Sie einen Zeitraum aus');
             $Error = true;
-            $Stage .= new Warning('Zeitraum nicht gefunden');
         }
-        if (!isset($Test['GradeType'])) {
+        if (!($tblGradeType = Gradebook::useService()->getGradeTypeById($Test['GradeType']))) {
+            $Stage->setError('Test[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
             $Error = true;
-            $Stage .= new Warning('Zensuren-Typ nicht gefunden');
         }
         if ($Error) {
             return $Stage;
@@ -170,7 +171,7 @@ class Service extends AbstractService
 
         if (!$tblDivisionSubject) {
             return new Danger(new Ban() . ' Fach-Klasse nicht gefunden')
-            . new Redirect($BasicRoute , Redirect::TIMEOUT_ERROR);
+            . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
         if (!$tblDivisionSubject->getTblDivision()) {
@@ -185,7 +186,6 @@ class Service extends AbstractService
                 array('DivisionSubjectId' => $tblDivisionSubject->getId()));
         }
 
-        $tblGradeType = Gradebook::useService()->getGradeTypeById($Test['GradeType']);
         if (!$tblGradeType) {
             return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
             . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_ERROR,
@@ -196,7 +196,7 @@ class Service extends AbstractService
             $tblDivisionSubject->getTblDivision(),
             $tblDivisionSubject->getServiceTblSubject(),
             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-            Term::useService()->getPeriodById($Test['Period']),
+            $tblPeriod,
             $tblGradeType,
             $this->getTestTypeByIdentifier('TEST'),
             null,
@@ -206,7 +206,8 @@ class Service extends AbstractService
             $Test['ReturnDate']
         );
 
-        return new Success('Der Test ist erfasst worden', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        return new Success('Die Leistungsüberprüfung ist angelegt worden',
+            new \SPHERE\Common\Frontend\Icon\Repository\Success())
         . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
 
@@ -283,11 +284,12 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param                     $Task
+     * @param $Task
+     * @param TblYear $tblYear
      *
      * @return IFormInterface|string
      */
-    public function createTask(IFormInterface $Stage = null, $Task)
+    public function createTask(IFormInterface $Stage = null, $Task, TblYear $tblYear = null)
     {
 
         /**
@@ -297,7 +299,15 @@ class Service extends AbstractService
             return $Stage;
         }
 
+        if (null === $tblYear) {
+            return new Danger('Kein Schuljahr ausgewählt', new Exclamation());
+        }
+
         $Error = false;
+        if (!($tblTestType = Evaluation::useService()->getTestTypeById($Task['Type']))) {
+            $Stage->setError('Task[Type]', 'Bitte wählen Sie eine Kategorie aus');
+            $Error = true;
+        }
         if (isset($Task['Name']) && empty($Task['Name'])) {
             $Stage->setError('Task[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
@@ -313,15 +323,26 @@ class Service extends AbstractService
         if (isset($Task['ToDate']) && empty($Task['ToDate'])) {
             $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
+        } else {
+            $nowDate = (new \DateTime('now'))->format("Y-m-d");
+            $toDate = new \DateTime($Task['ToDate']);
+            $toDate = $toDate->format('Y-m-d');
+            if ($nowDate && $toDate) {
+                if ($nowDate < $toDate) {
+
+                } else {
+                    $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
+                    $Error = true;
+                }
+            }
         }
 
         if (!$Error) {
-            $tblTestType = $this->getTestTypeById($Task['Type']);
             $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
             $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
             (new Data($this->getBinding()))->createTask(
                 $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'], $Task['ToDate'],
-                $tblPeriod ? $tblPeriod : null, $tblScoreType ? $tblScoreType : null
+                $tblPeriod ? $tblPeriod : null, $tblScoreType ? $tblScoreType : null, $tblYear ? $tblYear : null
             );
             $Stage .= new Success('Notenauftrag erfolgreich angelegt',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -358,24 +379,60 @@ class Service extends AbstractService
         if (null === $Task) {
             return $Stage;
         }
+        $Error = false;
+        if (!($tblTestType = Evaluation::useService()->getTestTypeById($Task['Type']))) {
+            $Stage->setError('Task[Type]', 'Bitte wählen Sie eine Kategorie aus');
+            $Error = true;
+        }
+        if (isset($Task['Name']) && empty($Task['Name'])) {
+            $Stage->setError('Task[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+        if (isset($Task['Date']) && empty($Task['Date'])) {
+            $Stage->setError('Task[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+        if (isset($Task['FromDate']) && empty($Task['FromDate'])) {
+            $Stage->setError('Task[FromDate]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+        if (isset($Task['ToDate']) && empty($Task['ToDate'])) {
+            $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        } else {
+            $nowDate = (new \DateTime('now'))->format("Y-m-d");
+            $toDate = new \DateTime($Task['ToDate']);
+            $toDate = $toDate->format('Y-m-d');
+            if ($nowDate && $toDate) {
+                if ($nowDate < $toDate) {
 
-        $tblTask = $this->getTaskById($Id);
-        $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
-        $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
-        (new Data($this->getBinding()))->updateTask(
-            $tblTask,
-            $this->getTestTypeById($Task['Type']),
-            $Task['Name'],
-            $Task['Date'],
-            $Task['FromDate'],
-            $Task['ToDate'],
-            $tblPeriod ? $tblPeriod : null,
-            $tblScoreType ? $tblScoreType : null
-        );
+                } else {
+                    $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum in der Zukunft an');
+                    $Error = true;
+                }
+            }
+        }
 
-        $Stage .= new Success('Notenauftrag erfolgreich geändert',
-                new \SPHERE\Common\Frontend\Icon\Repository\Success())
-            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
+        if (!$Error) {
+            $tblTask = $this->getTaskById($Id);
+            $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
+            $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
+            (new Data($this->getBinding()))->updateTask(
+                $tblTask,
+                $this->getTestTypeById($Task['Type']),
+                $Task['Name'],
+                $Task['Date'],
+                $Task['FromDate'],
+                $Task['ToDate'],
+                $tblPeriod ? $tblPeriod : null,
+                $tblScoreType ? $tblScoreType : null
+            );
+
+            $Stage .= new Success('Notenauftrag erfolgreich geändert',
+                    new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
+
+        }
 
         return $Stage;
     }
@@ -703,4 +760,32 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->destroyTask($tblTask);
     }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param null $Select
+     *
+     * @return IFormInterface|Redirect
+     */
+    public function getYear(IFormInterface $Stage = null, $Select = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Select) {
+            return $Stage;
+        }
+
+        $tblYear = Term::useService()->getYearById($Select['Year']);
+        if (!$tblYear) {
+            $Stage->setError('Select[Year]', new Exclamation() . ' Bitte wählen Sie ein Schuljahr aus');
+            return $Stage;
+        }
+
+        return new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS, array(
+            'YearId' => $tblYear->getId(),
+        ));
+    }
+
 }

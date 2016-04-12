@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -615,7 +616,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         } else {
                                             $Placeholder = (new TextField($FieldName, $Label, $Label));
                                         }
-                                        /** @var Field $Placeholder */
+                                        /** @var AbstractField $Placeholder */
 //                                        $Placeholder = $Placeholder->setDefaultValue($Payload,true);
 //                                        $FormPanelList[$Type][] = $Placeholder;
                                     } else {
@@ -630,7 +631,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         } else {
                                             $Placeholder = (new TextField($FieldName, $Label, $Label));
                                         }
-//                                        /** @var Field $Placeholder */
+//                                        /** @var AbstractField $Placeholder */
 //                                        $Placeholder = $Placeholder;
 
                                         $FormPanelList['Additional'][] = $Placeholder;
@@ -704,11 +705,11 @@ class Frontend extends Extension implements IFrontendInterface
                             new Title('Daten für:'),
                             $Header,
                             $Form,
-                        ), 4),
+                        ), 5),
                         new LayoutColumn(array(
                             new Title('Vorschau der Daten'),
                             '<div class="cleanslate">'.$Content.'</div>',
-                        ), 8)
+                        ), 7)
                     ))
                 )
             ))

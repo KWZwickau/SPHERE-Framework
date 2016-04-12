@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -471,7 +472,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
                                 /** @var TblCompany $tblObject */
-                                $tblListObjectList->DisplayName = $tblObject->getName();
+                                $tblListObjectList->DisplayName = $tblObject->getName().new Container($tblObject->getExtendedName());
 
                                 // display groups
                                 $groups = array();
@@ -503,7 +504,7 @@ class Frontend extends Extension implements IFrontendInterface
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
                                 /** @var TblDivision $tblObject */
                                 $tblYear = $tblObject->getServiceTblYear();
-                                $tblListObjectList->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
+                                $tblListObjectList->DisplayName = ( $tblYear ? $tblYear->getDisplayName().' ' : '' )
                                     . $tblObject->getDisplayName()
                                     . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblObject) . ')';
                                 $tblListObjectList->Groups = '';
@@ -614,7 +615,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             if ($tblCompanyAll) {
                                 foreach ($tblCompanyAll as $tblCompany) {
-                                    $tblCompany->DisplayName = $tblCompany->getName();
+                                    $tblCompany->DisplayName = $tblCompany->getName().new Container($tblCompany->getExtendedName());
 
                                     // display groups
                                     $groups = array();
@@ -759,7 +760,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $Global->POST['Option'][$tblDivision->getId()] = 1;
                                     $Global->savePost();
                                     $tblYear = $tblDivision->getServiceTblYear();
-                                    $tblDivision->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
+                                    $tblDivision->DisplayName = ( $tblYear ? $tblYear->getDisplayName().' ' : '' )
                                         . $tblDivision->getDisplayName()
                                         . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblDivision) . ')';
                                     $tblDivision->Groups = '';
@@ -1356,7 +1357,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblCompany = Company::useService()->getCompanyById($objectId);
                                 if ($tblCompany) {
                                     $countCompany++;
-                                    $list[$count]['Name'] = $tblCompany->getName()
+                                    $list[$count]['Name'] = $tblCompany->getName().new Container($tblCompany->getExtendedName())
                                         . new PullClear(new PullRight(new Standard('', '/Corporation/Company',
                                             new Building(),
                                             array('Id' => $tblCompany->getId()), 'Zur Firma')));

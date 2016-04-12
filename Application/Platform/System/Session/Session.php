@@ -3,15 +3,22 @@ namespace SPHERE\Application\Platform\System\Session;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
+use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
@@ -20,18 +27,21 @@ use SPHERE\System\Extension\Extension;
 
 /**
  * Class Session
+ *
  * @package SPHERE\Application\Platform\System\Session
  */
 class Session extends Extension implements IModuleInterface
 {
+
     public static function registerModule()
     {
+
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Aktive Sessions'))
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
-                __CLASS__ . '::frontendSession'
+                __CLASS__.'::frontendSession'
             )
         );
     }
@@ -57,12 +67,12 @@ class Session extends Extension implements IModuleInterface
      */
     public function frontendSession()
     {
-        $Stage = new Stage('Aktive Sessions', 'der aktuell angemeldete Benutzer');
 
-        $tblSessionAll = Account::useService()->getSessionAll();
+        $Stage = new Stage('Aktive Sessions', 'der aktuell angemeldete Benutzer');
 
         $Result = array();
 
+        $tblSessionAll = Account::useService()->getSessionAll();
         if ($tblSessionAll) {
             array_walk($tblSessionAll, function (TblSession $tblSession) use (&$Result) {
 
@@ -74,10 +84,10 @@ class Session extends Extension implements IModuleInterface
                     'Id'         => $tblSession->getId(),
                     'Consumer'   => ( $tblAccount->getServiceTblConsumer() ?
                         $tblAccount->getServiceTblConsumer()->getAcronym()
-                        . '&nbsp;' . new Muted($tblAccount->getServiceTblConsumer()->getName())
+                        .'&nbsp;'.new Muted($tblAccount->getServiceTblConsumer()->getName())
                         : '-NA-'
                     ),
-                    'Account'    => ($tblAccount ? $tblAccount->getUsername() : '-NA-'),
+                    'Account'    => ( $tblAccount ? $tblAccount->getUsername() : '-NA-' ),
                     'TTL'        => gmdate("H:i:s", $tblSession->getTimeout() - time()),
                     'ActiveTime' => gmdate('H:i:s', $Interval),
                     'LoginTime'  => $tblSession->getEntityCreate(),
@@ -88,21 +98,76 @@ class Session extends Extension implements IModuleInterface
             });
         }
 
+        $History = array();
+
+        $tblProtocolAll = Protocol::useService()->getProtocolAllCreateSession();
+        if ($tblProtocolAll) {
+            array_walk($tblProtocolAll, function (TblProtocol $tblProtocol) use (&$History) {
+
+                $tblAccount = $tblProtocol->getServiceTblAccount();
+                /** @var null|TblPerson|TblPerson[] $tblPerson */
+                $tblPerson = null;
+                if ($tblAccount) {
+                    $tblPerson = Account::useService()->getPersonAllByAccount($tblAccount);
+                    if (!empty( $tblPerson )) {
+                        $tblPerson = current($tblPerson);
+                    } else {
+                        $tblPerson = null;
+                    }
+                }
+
+                array_push($History, array(
+                    'Consumer'  => $tblProtocol->getConsumerAcronym().'&nbsp;'.new Muted($tblProtocol->getConsumerName()),
+                    'LoginTime' => $tblProtocol->getEntityCreate(),
+                    'Account'   =>
+                        new Muted('Account: ').$tblProtocol->getConsumerAcronym().'-'.$tblProtocol->getAccountUsername()
+                        .new Muted('&nbsp;&nbsp;Person: ').( $tblPerson ? ' '.$tblPerson->getFullName() : new Small(new Italic('-NA-')) )
+                ,
+                ));
+
+            });
+        }
+
         $Stage->setContent(
-            new Layout(
+            new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            new TableData(
-                                $Result, null, array(), true
-                            ),
+                            new TableData($Result, null, array(
+                                'Id'         => '#',
+                                'Consumer'   => 'Mandant',
+                                'Account'    => 'Benutzer',
+                                'LoginTime'  => 'Anmeldung',
+                                'LastAction' => 'Aktivität',
+                                'ActiveTime' => 'Dauer',
+                                'TTL'        => 'Timeout',
+                                'Identifier' => 'Session'
+                            )),
+                        ))
+                    ), new Title('Aktive Benutzer')
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new TableData($History, null, array(
+                                'LoginTime' => 'Zeitpunkt',
+                                'Account'   => 'Benutzer',
+                                'Consumer'  => 'Mandant',
+                            ), array(
+                                'order'      => array(array(0, 'desc')),
+                                'columnDefs' => array(
+                                    array('width' => '10%', 'targets' => 0),
+                                    array('width' => '45%', 'targets' => 1),
+                                    array('width' => '45%', 'targets' => 2)
+                                )
+                            )),
                             new Redirect(
                                 '/Platform/System/Session', 30
                             )
                         ))
-                    )
+                    ), new Title('Protokoll der Anmeldungen')
                 )
-            )
+            ))
         );
 
         return $Stage;

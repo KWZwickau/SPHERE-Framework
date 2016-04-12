@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -50,7 +51,6 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -100,7 +100,7 @@ class Frontend extends Extension implements IFrontendInterface
                             (new Title(new TagList() . ' ' .
                                 new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSchool->getServiceTblType()
                                     ? $tblSchool->getServiceTblType()->getName() : ' ') . ' '
-                                . $tblCompany->getName(), ' Kontaktdaten'
+                                .$tblCompany->getDisplayName(), ' Kontaktdaten'
                             ))
                         ),
                     ));
@@ -217,6 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Panel = array(
                         $tblToCompany->getServiceTblPerson()->getFullName(),
                         $tblToCompany->getServiceTblCompany()->getName()
+                        .new Container($tblToCompany->getServiceTblCompany()->getExtendedName()),
                     );
                     if ($tblToCompany->getRemark()) {
                         array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
@@ -342,7 +343,9 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblCompanyAll, function (TblCompany $tblCompany) use (&$TableContent) {
 
                 $temp = new PullClear(new RadioBox('School',
-                    $tblCompany->getName().' '.new SuccessText($tblCompany->getDescription()),
+                    $tblCompany->getName()
+                    .new Container($tblCompany->getExtendedName())
+                    .new Container(new Muted($tblCompany->getDescription())),
                     $tblCompany->getId()));
                 array_push($TableContent, $temp);
             });
@@ -389,23 +392,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCompany = $tblSchool->getServiceTblCompany();
                 if ($tblCompany) {
                     $Address = array();
+                    $Address[] = $tblCompany->getName().new Container($tblCompany->getExtendedName());
                     $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
                     if ($tblAddressAll) {
                         foreach ($tblAddressAll as $tblAddress) {
-                            $Address[] = $tblAddress->getTblAddress()->getStreetName() . ' '
+                            $Address[] = new Muted(new Small($tblAddress->getTblAddress()->getStreetName().' '
                                 . $tblAddress->getTblAddress()->getStreetNumber() . ' '
-                                . $tblAddress->getTblAddress()->getTblCity()->getName();
+                                .$tblAddress->getTblAddress()->getTblCity()->getName()));
                         }
                     }
-                    $Content = array(
-                        ($tblCompany->getName() ? $tblCompany->getName() : false),
-                        (isset($Address[0]) ? new Small(new Muted($Address[0])) : false),
-                        (isset($Address[1]) ? new Small(new Muted($Address[1])) : false),
-                        (isset($Address[2]) ? new Small(new Muted($Address[2])) : false),
-                        (new Standard('', '/Setting/Consumer/School/Destroy', new Remove(),
-                            array('Id' => $tblSchool->getId())))
-                    );
-                    $Content = array_filter($Content);
+                    $Address[] = (new Standard('', '/Setting/Consumer/School/Destroy', new Remove(),
+                        array('Id' => $tblSchool->getId())));
+                    $Content = array_filter($Address);
                     $Type = Panel::PANEL_TYPE_WARNING;
                     $tblSchool = new LayoutColumn(
                         new Panel($tblSchool->getServiceTblType()
@@ -465,13 +463,18 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
 
                 $Address = array();
+
                 if ($tblSchool->getServiceTblCompany()) {
+                    $Address[] = $tblSchool->getServiceTblCompany()->getName()
+                        .new Container($tblSchool->getServiceTblCompany()->getExtendedName())
+                        .new Container(new Muted($tblSchool->getServiceTblCompany()->getDescription()));
+
                     $tblAddressAll = Address::useService()->getAddressAllByCompany($tblSchool->getServiceTblCompany());
                     if ($tblAddressAll) {
                         foreach ($tblAddressAll as $tblAddress) {
-                            $Address[] = $tblAddress->getTblAddress()->getStreetName() . ' '
+                            $Address[] = new Muted(new Small($tblAddress->getTblAddress()->getStreetName().' '
                                 . $tblAddress->getTblAddress()->getStreetNumber() . ' '
-                                . $tblAddress->getTblAddress()->getTblCity()->getName();
+                                .$tblAddress->getTblAddress()->getTblCity()->getName()));
                         }
                     }
                 }
@@ -479,13 +482,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                         new Panel(new Question().' Diese Schule mit der Schulart "'
                             . ($tblSchool->getServiceTblType() ? $tblSchool->getServiceTblType()->getName() : '')
-                            .'" wirklich löschen?',
-                            array(
-                                $tblSchool->getServiceTblCompany()->getName().' '.$tblSchool->getServiceTblCompany()->getDescription(),
-                                ( isset( $Address[0] ) ? new Muted(new Small($Address[0])) : false ),
-                                ( isset( $Address[1] ) ? new Muted(new Small($Address[1])) : false ),
-                                ( isset( $Address[2] ) ? new Muted(new Small($Address[2])) : false ),
-                            ),
+                            .'" wirklich löschen?', $Address,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/Consumer/School/Destroy', new Ok(),

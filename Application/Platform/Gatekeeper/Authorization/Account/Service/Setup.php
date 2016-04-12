@@ -91,6 +91,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasIndex($Table, array('Description'))) {
             $Table->addIndex(array('Description'));
         }
+        if (!$this->getConnection()->hasColumn('tblIdentification', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => 1));
+        }
         return $Table;
     }
 
