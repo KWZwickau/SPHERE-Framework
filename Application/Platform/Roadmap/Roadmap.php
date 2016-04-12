@@ -438,6 +438,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
 
         $Value = preg_replace('!Account: [0-9]+!is', '[Support-System Report]', $Value);
         $Value = preg_replace('!^Error!is', 'Anwendungsfehler', $Value);
+        $Value = preg_replace('!^Exception!is', 'Absturz der Anwendung', $Value);
         $Value = preg_replace('!^Shutdown!is', 'Absturz der Anwendung', $Value);
         $Value = preg_replace('!\bBug\b!is', 'Fehler', $Value);
         $Value = preg_replace('!\s+?[\-]+\>!is', ': ', $Value);
