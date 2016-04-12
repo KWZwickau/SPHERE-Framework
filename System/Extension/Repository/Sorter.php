@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\System\Extension\Repository;
 
+use SPHERE\System\Extension\Repository\Sorter\AbstractSorter;
+use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
+
 /**
  * Class Sorter
  *
@@ -27,23 +30,41 @@ class Sorter
     }
 
     /**
+     * Natural String Compare
+     *
      * @param string|array $PropertyList
      * @param int          $Order
      *
+     * @deprecated use sortObjectBy with Sorter
      * @return array
      */
     public function sortObjectList($PropertyList, $Order = Sorter::ORDER_ASC)
     {
 
-        usort($this->List, function ($A, $B) use ($PropertyList, $Order) {
+        return $this->sortObjectBy($PropertyList, new StringNaturalOrderSorter(), $Order);
+    }
 
-            if (method_exists($A, 'get'.$PropertyList) && method_exists($B, 'get'.$PropertyList)) {
-                switch ($Order) {
-                    case self::ORDER_ASC:
-                        return strnatcmp($A->{'get'.$PropertyList}(), $B->{'get'.$PropertyList}());
-                    case self::ORDER_DESC:
-                        return strnatcmp($B->{'get'.$PropertyList}(), $A->{'get'.$PropertyList}());
-                }
+    /**
+     * @param string              $Property Entity-Attribute (Getter)
+     * @param AbstractSorter|null $Sorter
+     * @param int                 $Order
+     *
+     * @return array
+     */
+    public function sortObjectBy($Property, AbstractSorter $Sorter = null, $Order = Sorter::ORDER_ASC)
+    {
+
+        if (null === $Sorter) {
+            $Sorter = new StringNaturalOrderSorter();
+        }
+
+        usort($this->List, function ($A, $B) use ($Property, $Order, $Sorter) {
+
+            switch ($Order) {
+                case self::ORDER_ASC:
+                    return $Sorter->sortAsc($Property, $A, $B);
+                case self::ORDER_DESC:
+                    return $Sorter->sortDesc($Property, $A, $B);
             }
             return 0;
         });
