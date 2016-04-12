@@ -26,7 +26,7 @@ class DateTimeSorter extends AbstractSorter
             $ValueFirst = $this->getDateTime($Property, $First);
             $ValueSecond = $this->getDateTime($Property, $Second);
 
-            return ( $ValueFirst < $ValueSecond ? -1 : ( $ValueFirst > $ValueSecond ) ? 1 : 0 );
+            return ( $ValueFirst < $ValueSecond ? -1 : ( $ValueFirst > $ValueSecond ? 1 : 0 ) );
         }
         return 0;
     }
@@ -42,7 +42,7 @@ class DateTimeSorter extends AbstractSorter
 
         $Value = $this->getValue($Property, $Element);
         if (!$Value instanceof \DateTime) {
-            $Value = new \DateTime(strtotime($Value));
+            return new \DateTime('@'.strtotime($Value));
         }
         return $Value;
     }
@@ -62,7 +62,7 @@ class DateTimeSorter extends AbstractSorter
             $ValueFirst = $this->getDateTime($Property, $First);
             $ValueSecond = $this->getDateTime($Property, $Second);
 
-            return ( $ValueFirst > $ValueSecond ? -1 : ( $ValueFirst < $ValueSecond ) ? 1 : 0 );
+            return ( $ValueFirst > $ValueSecond ? -1 : ( $ValueFirst < $ValueSecond ? 1 : 0 ) );
         }
         return 0;
     }
