@@ -10,9 +10,11 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -174,6 +176,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Zeugnisvorlage', 'wählen');
         $Stage->addButton(new Backward());
         $Header = '';
+        $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
 
         if ($Division && $Person) {
             $tblDivision = Division::useService()->getDivisionById($Division);
@@ -191,12 +194,57 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // TODO: Find Templates in Database (DMS)
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule Abgangszeugnis',
+                        'Template' => 'Grundschule Halbjahresinformation',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
                             'Person'      => $tblPerson->getId(),
-                            'Certificate' => 'MsAbg'
+                            'Certificate' => 'GSHJInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Grundschule Jahreszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GSJ'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Grundschule Halbjahresinformation der ersten Klasse',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GsHjOneInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Grundschule Jahreszeugnis der ersten Klasse',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GsJOne'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abgangszeugnis Hauptschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbgHs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abgangszeugnis Realschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbgRs'
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
@@ -208,6 +256,228 @@ class Frontend extends Extension implements IFrontendInterface
                             'Certificate' => 'MsAbsHs'
                         ), 'Auswählen')
                     );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule qualifiziertes Abschlusszeugnis Hauptschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbsHsQ'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Abschlusszeugnis Realschule',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsAbsRs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Halbjahreszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsHj'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Halbjahresinformation',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsHjInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Mittelschule Jahreszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'MsJ'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Abgangszeugnis Hauptschulabschluss Klasse 9',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymAbgHs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Abgangszeugnis Realschulabschluss Klasse 10',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymAbgRs'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Halbjahreszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymHj'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Halbjahresinformation',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymHjInfo'
+                        ), 'Auswählen')
+                    );
+                    $TemplateTable[] = array(
+                        'Template' => 'Gymnasium Jahreszeugnis',
+                        'Option'   => new Standard(
+                            'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                            'Division'    => $tblDivision->getId(),
+                            'Person'      => $tblPerson->getId(),
+                            'Certificate' => 'GymJ'
+                        ), 'Auswählen')
+                    );
+                    if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'DEMO') {
+                        $TemplateTable[] = array(
+                            'Template' => 'Coswig Halbjahresinformation Primarstufe',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CosHjPri'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Coswig Halbjahresinformation Sekundarstufe',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CosHjSek'
+                            ), 'Auswählen')
+                        );
+                    }
+                    if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'DEMO') {
+                        $TemplateTable[] = array(
+                            'Template' => 'Hormersdorf Halbjahresinformation',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'HorHj'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Hormersdorf Halbjahresinformation 1. Klasse',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'HorHjOne'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Hormersdorf Jahreszeugnis',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'HorJ'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Hormersdorf Jahreszeugnis 1. Klasse',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'HorJOne'
+                            ), 'Auswählen')
+                        );
+                    }
+                    if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'DEMO') {
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Bildungsempfehlung Mittelschule',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheBeMi'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Bildungsempfehlung Gymnasium',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheBeGym'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Halbjahresinformation',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheHjInfo'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Halbjahreszeugnis',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheHj'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Jahreszeugnis',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheJ'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Halbjahresinfromation Gymnasium',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheHjGymInfo'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Halbjahreszeugnis Gymnasium',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheHjGym'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Jahreszeugnis Gymnasium',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheJGym'
+                            ), 'Auswählen')
+                        );
+                    }
 
                     $Content = new TableData($TemplateTable);
 
@@ -287,13 +557,24 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormField = array(
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
 
-                            'Content.Input.Remark' => 'TextArea',
-                            'Content.Input.Date'   => 'DatePicker',
+                            'Content.Input.Adding'      => 'TextField',
+                            'Content.Input.Remark'      => 'TextArea',
+                            'Content.Input.Rating'      => 'TextArea',
+                            'Content.Input.Survey'      => 'TextArea',
+                            'Content.Input.Team'        => 'TextArea',
+                            'Content.Input.Deepening'   => 'TextField',
+                            'Content.Input.Choose'      => 'TextField',
+                            'Content.Input.Date'        => 'DatePicker',
+                            'Content.Input.Transfer'    => 'TextField',
+                            'Content.Input.LevelTwo'    => 'TextField',
+                            'Content.Input.LevelThree'  => 'TextField',
+                            'Content.Input.Missing'     => 'TextField',
+                            'Content.Input.Bad.Missing' => 'TextField',
                         );
                         $FormLabel = array(
-                            'Content.Person.Data.Name.Salutation'       => 'Anrede',
-                            'Content.Person.Data.Name.First'            => 'Vorname',
-                            'Content.Person.Data.Name.Last'             => 'Nachname',
+                            'Content.Person.Data.Name.Salutation' => 'Anrede',
+                            'Content.Person.Data.Name.First'      => 'Vorname',
+                            'Content.Person.Data.Name.Last'       => 'Nachname',
                             'Content.Person.Common.BirthDates.Birthday' => 'Geburtsdatum',
 
                             'Content.Company.Data.Name' => 'Name der Schule',
@@ -301,8 +582,19 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Division.Data.Level.Name' => 'Klassenstufe',
                             'Content.Division.Data.Name'       => 'Klassengruppe',
 
-                            'Content.Input.Remark' => 'Bemerkungen',
-                            'Content.Input.Date'   => 'Datum',
+                            'Content.Input.Adding'      => 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des [...] teil.',
+                            'Content.Input.Remark'      => 'Bemerkungen',
+                            'Content.Input.Rating'                => 'Einschätzung',
+                            'Content.Input.Survey'                => 'Gutachten',
+                            'Content.Input.Team'                  => 'Arbeitsgemeinschaften',
+                            'Content.Input.Deepening'             => 'Vertiefungsrichtung',
+                            'Content.Input.Choose'                => 'Wahlpflichtbereich',
+                            'Content.Input.Date'                  => 'Datum',
+                            'Content.Input.Transfer'              => 'Versetzungsvermerk',
+                            'Content.Input.LevelTwo'              => '2. Fremdsprache ab Klassenstufe',
+                            'Content.Input.LevelThree'            => '3. Fremdsprache ab Klassenstufe',
+                            'Content.Input.Missing'               => 'Fehltage entschuldigt',
+                            'Content.Input.Bad.Missing'           => 'Fehltage unentschuldigt',
                         );
 
                         // Create Form, Additional Information from Template
@@ -457,22 +749,22 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         // TODO: Error
                         $Content = new Danger('Keine Schulklasse gewählt')
-                            .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                            .new Standard('Zurück', '/Education/Graduation/Certificate/Select/Division', new ChevronLeft());
                     }
                 } else {
                     // TODO: Error
                     $Content = new Danger('Keine Schulklasse gewählt')
-                        .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                        .new Standard('Zurück', '/Education/Graduation/Certificate/Select/Division', new ChevronLeft());
                 }
             } else {
                 // TODO: Error
                 $Content = new Danger('Keine Schulklasse gewählt')
-                    .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                    .new Standard('Zurück', '/Education/Graduation/Certificate/Select/Division', new ChevronLeft());
             }
         } else {
             // TODO: Error
             $Content = new Danger('Keine Schulklasse gewählt')
-                .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                .new Standard('Zurück', '/Education/Graduation/Certificate/Select/Division', new ChevronLeft());
         }
 
         $Stage->setContent(

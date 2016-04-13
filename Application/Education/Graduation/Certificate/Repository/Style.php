@@ -123,6 +123,34 @@ abstract class Style extends Extension
 
     /**
      * @param string $Size
+     * @param string $Color
+     * @param string $Style
+     *
+     * @return $this
+     */
+    public function styleBorderLeft($Size = '1px', $Color = '#000', $Style = 'solid')
+    {
+
+        $this->Style[] = 'border-left: '.$Size.' '.$Style.' '.$Color.' !important;';
+        return $this;
+    }
+
+    /**
+     * @param string $Size
+     * @param string $Color
+     * @param string $Style
+     *
+     * @return $this
+     */
+    public function styleBorderRight($Size = '1px', $Color = '#000', $Style = 'solid')
+    {
+
+        $this->Style[] = 'border-right: '.$Size.' '.$Style.' '.$Color.' !important;';
+        return $this;
+    }
+
+    /**
+     * @param string $Size
      *
      * @return $this
      */
@@ -142,6 +170,30 @@ abstract class Style extends Extension
     {
 
         $this->Style[] = 'padding-top: '.$Size.' !important;';
+        return $this;
+    }
+
+    /**
+     * @param string $Size
+     *
+     * @return $this
+     */
+    public function stylePaddingLeft($Size = '2px')
+    {
+
+        $this->Style[] = 'padding-left: '.$Size.' !important;';
+        return $this;
+    }
+
+    /**
+     * @param string $Size
+     *
+     * @return $this
+     */
+    public function stylePaddingRight($Size = '2px')
+    {
+
+        $this->Style[] = 'padding-right: '.$Size.' !important;';
         return $this;
     }
 
@@ -174,4 +226,18 @@ abstract class Style extends Extension
         $this->Design[] = 'Align Center';
         return $this;
     }
+
+    /**
+     * @param string $Height
+     *
+     * @return $this
+     */
+    public function styleHeight($Height = '15px')
+    {
+
+        $this->Style[] = 'height: '.$Height.' !important;';
+        return $this;
+    }
+    
+    
 }
