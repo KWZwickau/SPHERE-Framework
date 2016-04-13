@@ -395,10 +395,12 @@ abstract class Certificate extends Extension
 
         $Result = array();
         $tblSubjectAll = array();
-        array_walk($tblDivisionSubjectAll, function (TblDivisionSubject $tblDivisionSubject) use (&$tblSubjectAll) {
+        if (is_array($tblDivisionSubjectAll)) {
+            array_walk($tblDivisionSubjectAll, function (TblDivisionSubject $tblDivisionSubject) use (&$tblSubjectAll) {
 
-            $tblSubjectAll[] = $tblDivisionSubject->getServiceTblSubject();
-        });
+                $tblSubjectAll[] = $tblDivisionSubject->getServiceTblSubject();
+            });
+        }
 
         if (!empty( $tblSubjectAll )) {
             array_walk($tblSubjectAll, function (TblSubject $tblSubject) use (&$Result) {

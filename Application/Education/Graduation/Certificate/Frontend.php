@@ -681,22 +681,22 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         // TODO: Error
                         $Content = new Danger('Keine Schulklasse gewählt')
-                            .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                            .new Standard('Zurück', '/Education/Graduation/Certificate/Select/Division', new ChevronLeft());
                     }
                 } else {
                     // TODO: Error
                     $Content = new Danger('Keine Schulklasse gewählt')
-                        .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                        .new Standard('Zurück', '/Education/Graduation/Certificate/Select/Division', new ChevronLeft());
                 }
             } else {
                 // TODO: Error
                 $Content = new Danger('Keine Schulklasse gewählt')
-                    .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                    .new Standard('Zurück', '/Education/Graduation/Certificate/Select/Division', new ChevronLeft());
             }
         } else {
             // TODO: Error
             $Content = new Danger('Keine Schulklasse gewählt')
-                .new Standard('Zurück', '/Education/Graduation/Certificate', new ChevronLeft());
+                .new Standard('Zurück', '/Education/Graduation/Certificate/Select/Division', new ChevronLeft());
         }
 
         $Stage->setContent(
