@@ -74,7 +74,9 @@ abstract class Certificate extends Extension
         if ($tblStudentTransferType && $this->tblStudent) {
             $tblStudentTransfer = Student::useService()->getStudentTransferByType($this->tblStudent,
                 $tblStudentTransferType);
-            return $tblStudentTransfer->getServiceTblCompany();
+            if ($tblStudentTransfer) {
+                return $tblStudentTransfer->getServiceTblCompany();
+            }
         }
         return false;
     }
