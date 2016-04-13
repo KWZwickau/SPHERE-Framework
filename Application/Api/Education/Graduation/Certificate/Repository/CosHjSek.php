@@ -9,13 +9,20 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Page;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 
+/**
+ * Class CosHjSek
+ *
+ * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
+ */
 class CosHjSek extends Certificate
 {
 
     /**
+     * @param bool $IsSample
+     *
      * @return Frame
      */
-    public function buildCertificate()
+    public function buildCertificate($IsSample = true)
     {
 
         $Header = (new Slice())

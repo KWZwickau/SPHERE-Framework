@@ -10,13 +10,20 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
+/**
+ * Class CheHjGym
+ *
+ * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
+ */
 class CheHjGym extends Certificate
 {
 
     /**
+     * @param bool $IsSample
+     *
      * @return Frame
      */
-    public function buildCertificate()
+    public function buildCertificate($IsSample = true)
     {
 
         $Header = (new Slice())

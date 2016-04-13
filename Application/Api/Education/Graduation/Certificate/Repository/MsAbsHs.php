@@ -10,6 +10,11 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
+/**
+ * Class MsAbsHs
+ *
+ * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
+ */
 class MsAbsHs extends Certificate
 {
 

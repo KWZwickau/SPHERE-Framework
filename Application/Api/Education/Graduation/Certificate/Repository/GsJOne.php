@@ -9,13 +9,20 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Page;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Section;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 
+/**
+ * Class GsJOne
+ *
+ * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
+ */
 class GsJOne extends Certificate
 {
 
     /**
+     * @param bool $IsSample
+     *
      * @return Frame
      */
-    public function buildCertificate()
+    public function buildCertificate($IsSample = true)
     {
 
         $Header = (new Slice())
