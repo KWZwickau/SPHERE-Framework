@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -29,6 +30,7 @@ class TblTask extends Element
 
     const ATTR_TBL_TEST_TYPE = 'tblTestType';
     const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
+    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
 
     /**
      * @Column(type="string")
@@ -59,6 +61,11 @@ class TblTask extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPeriod;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblYear;
 
     /**
      * @Column(type="bigint")
@@ -257,6 +264,28 @@ class TblTask extends Element
     {
 
         $this->serviceTblScoreType = ( null === $tblScoreType ? null : $tblScoreType->getId() );
+    }
+
+    /**
+     * @return bool|TblYear
+     */
+    public function getServiceTblYear()
+    {
+
+        if (null === $this->serviceTblYear) {
+            return false;
+        } else {
+            return Term::useService()->getYearById($this->serviceTblYear);
+        }
+    }
+
+    /**
+     * @param TblYear|null $tblYear
+     */
+    public function setServiceTblYear(TblYear $tblYear = null)
+    {
+
+        $this->serviceTblYear = ( null === $tblYear ? null : $tblYear->getId() );
     }
 
 }

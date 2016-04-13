@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
 use SPHERE\Common\Frontend\Form\IFieldInterface;
-use SPHERE\Common\Frontend\Form\Repository\Field;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 
 /**
  * Class RadioBox
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class RadioBox extends Field implements IFieldInterface
+class RadioBox extends AbstractField implements IFieldInterface
 {
 
     /**

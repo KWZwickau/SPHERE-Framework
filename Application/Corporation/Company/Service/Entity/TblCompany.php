@@ -20,12 +20,17 @@ class TblCompany extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_EXTENDED_NAME = 'ExtendedNameName';
     const ATTR_DESCRIPTION = 'Description';
 
     /**
      * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $ExtendedName;
     /**
      * @Column(type="string")
      */
@@ -47,6 +52,24 @@ class TblCompany extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExtendedName()
+    {
+
+        return $this->ExtendedName;
+    }
+
+    /**
+     * @param string $ExtendedName
+     */
+    public function setExtendedName($ExtendedName)
+    {
+
+        $this->ExtendedName = $ExtendedName;
     }
 
     /**
@@ -76,6 +99,12 @@ class TblCompany extends Element
         $this->Description = $Description;
     }
 
+    public function getDisplayName()
+    {
+
+        return $this->Name.( $this->ExtendedName != '' ? ' '.$this->ExtendedName : null );
+    }
+    
     /**
      * @return bool|TblAddress
      */

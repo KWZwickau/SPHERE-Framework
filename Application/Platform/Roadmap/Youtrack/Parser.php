@@ -30,6 +30,8 @@ class Parser extends Connection
         $Response = $this->requestCurl(
             $this->getCredentials()->getHost().'/rest/admin/agile'
         );
+
+        /** @var \SimpleXMLElement $Response */
         $Response = simplexml_load_string($Response);
         $Board = (string)current($Response->xpath('//agileSettings/@id'));
 
@@ -60,20 +62,31 @@ class Parser extends Connection
     private function getIssues()
     {
 
-        $Response = $this->requestCurl(
-            $this->getCredentials()->getHost().'/rest/issue/byproject/KREDA'
+        $Url = $this->getCredentials()->getHost()
+            .'/rest/issue/byproject/KREDA'
             .'?filter='.urlencode($this->YoutrackFilter)
-            .'&max='.urlencode('1000')
-        );
-        $Response = simplexml_load_string($Response);
-        $Issues = $Response->xpath('//issues/issue');
+            .'&max='.urlencode('1000');
+        $Response = $this->requestCurl($Url);
 
-        /** @var Issue[] $Result */
-        $Result = array();
-        foreach ((array)$Issues as $Issue) {
-            $Result[] = new Issue($Issue);
+        $Key = md5($Url);
+        $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
+        if (!( $Result = $Cache->getValue($Key, __METHOD__) )) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Issues): '.$Url);
+
+            /** @var \SimpleXMLElement $Response */
+            $Response = simplexml_load_string($Response);
+            $Issues = $Response->xpath('//issues/issue');
+
+            /** @var Issue[] $Result */
+            $Result = array();
+            foreach ((array)$Issues as $Issue) {
+                $Result[] = new Issue($Issue);
+            }
+
+            $Cache->setValue($Key, $Result, ( 60 * 60 * 1 ), __METHOD__);
+        } else {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Cache:Issues): '.$Url);
         }
-
         return $Result;
     }
 
@@ -106,7 +119,7 @@ class Parser extends Connection
             curl_close($CurlHandler);
             $Cache->setValue($Key, $Response, ( 60 * 60 * 1 ), __METHOD__);
         } else {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Cache): '.$Url);
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Cache:Request): '.$Url);
         }
         return $Response;
     }

@@ -300,33 +300,35 @@ abstract class Certificate extends Extension
     {
 
         $Result = array();
-        array_walk($tblStudentSubjectAll, function (TblStudentSubject $tblStudentSubject) use (&$Result) {
+        if (!empty( $tblStudentSubjectAll )) {
+            array_walk($tblStudentSubjectAll, function (TblStudentSubject $tblStudentSubject) use (&$Result) {
 
-            $tblSubject = $tblStudentSubject->getServiceTblSubject();
-            $tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking();
-            $tblStudentSubjectType = $tblStudentSubject->getTblStudentSubjectType();
+                $tblSubject = $tblStudentSubject->getServiceTblSubject();
+                $tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking();
+                $tblStudentSubjectType = $tblStudentSubject->getTblStudentSubjectType();
 
-            if ($tblSubject && $tblStudentSubjectRanking && $tblStudentSubjectType) {
-                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
-                if ($tblTestType) {
+                if ($tblSubject && $tblStudentSubjectRanking && $tblStudentSubjectType) {
+                    $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+                    if ($tblTestType) {
 
-                    $tblGradeAll = Gradebook::useService()->getGradesByStudent(
-                        $this->tblPerson, $this->tblDivision, $tblSubject, $tblTestType
-                    );
-                    if ($tblGradeAll) {
-                        // TODO: Nach Zeit, Durchschnitt, etc... ??
-                        /** @var TblGrade $tblGrade */
-                        $tblGrade = end($tblGradeAll);
+                        $tblGradeAll = Gradebook::useService()->getGradesByStudent(
+                            $this->tblPerson, $this->tblDivision, $tblSubject, $tblTestType
+                        );
+                        if ($tblGradeAll) {
+                            // TODO: Nach Zeit, Durchschnitt, etc... ??
+                            /** @var TblGrade $tblGrade */
+                            $tblGrade = end($tblGradeAll);
 
-                        $Result
-                        [$tblStudentSubjectType->getIdentifier()]
-                        [$tblSubject->getAcronym()]
-                        [$tblStudentSubjectRanking->getIdentifier()]
-                            = $tblGrade->getGrade();
+                            $Result
+                            [$tblStudentSubjectType->getIdentifier()]
+                            [$tblSubject->getAcronym()]
+                            [$tblStudentSubjectRanking->getIdentifier()]
+                                = $tblGrade->getGrade();
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
         return $Result;
     }
 

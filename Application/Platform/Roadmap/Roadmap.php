@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -121,10 +122,12 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         $SprintCurrent = null;
         $LayoutColumns = array();
         /** @var Sprint $Sprint */
-        foreach ((array)$Sprints as $Sprint) {
+        foreach ((array)$Sprints as $SprintIndex => $Sprint) {
 
             $SprintComplete = true;
+            /** @var LayoutColumn[] $IssueList */
             $IssueList = array();
+            /** @var LayoutColumn[] $ResolvedList */
             $ResolvedList = array();
             $Issues = $Sprint->getIssues();
             /** @var Issue $Issue */
@@ -165,7 +168,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                     }
 
                     $Title = $this->sanitizeTitle($Issue->getTitle());
-                    $Description = $this->sanitizeDescription($Issue->getDescription(), 6);
+                    $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
 
                     $ColumnList[] = new LayoutColumn(array(
                         new Panel($Title.' '.$ProgressBar,
@@ -212,33 +215,95 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                             )
 
                         )
-                    ), 11);
-
-                    $ColumnList[] = new LayoutColumn('', 1);
+                    ), 4);
 
                     $IssueList = array_merge($IssueList, $ColumnList);
                 }
             }
 
+            $FoldSprint = false;
+            // Create Sprint-Content Layout
             if ($SprintComplete) {
+
+                // Fold Sprint?
+                if (isset( $Sprints[( $SprintIndex + 1 )] ) && $Sprints[( $SprintIndex + 1 )]->isDone()) {
+                    $FoldSprint = true;
+                }
+
+                $LayoutRowList = array();
+                $LayoutRowCount = 0;
+                $LayoutRow = null;
+                foreach ($ResolvedList as $LayoutColumn) {
+                    if ($LayoutRowCount % 4 == 0) {
+                        $LayoutRow = new LayoutRow(array());
+                        $LayoutRowList[] = $LayoutRow;
+                    }
+                    $LayoutRow->addColumn($LayoutColumn);
+                    $LayoutRowCount++;
+                }
+
                 $SprintList = new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Layout(new LayoutGroup(new LayoutRow($ResolvedList)))
+                            new Layout(new LayoutGroup($LayoutRowList))
                         ),
                     )),
                 )));
             } else {
-                $SprintList = new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Layout(new LayoutGroup(new LayoutRow($IssueList), new Title('Offen')))
-                            , 4),
-                        new LayoutColumn(
-                            new Layout(new LayoutGroup(new LayoutRow($ResolvedList), new Title('Behoben')))
-                            , 8),
-                    )),
-                )));
+                $LayoutRowList = array();
+                $LayoutRowCount = 0;
+                $LayoutRow = null;
+                foreach ($ResolvedList as $LayoutColumn) {
+                    if ($LayoutRowCount % 4 == 0) {
+                        $LayoutRow = new LayoutRow(array());
+                        $LayoutRowList[] = $LayoutRow;
+                    }
+                    $LayoutRow->addColumn($LayoutColumn);
+                    $LayoutRowCount++;
+                }
+                /** @var LayoutRow[] $ResolvedList */
+                $ResolvedList = $LayoutRowList;
+
+                $LayoutRowList = array();
+                $LayoutRowCount = 0;
+                $LayoutRow = null;
+                foreach ($IssueList as $LayoutColumn) {
+                    if ($LayoutRowCount % 3 == 0) {
+                        $LayoutRow = new LayoutRow(array());
+                        $LayoutRowList[] = $LayoutRow;
+                    }
+                    $LayoutRow->addColumn($LayoutColumn);
+                    $LayoutRowCount++;
+                }
+                /** @var LayoutRow[] $IssueList */
+                $IssueList = $LayoutRowList;
+
+                if (empty( $ResolvedList )) {
+                    $SprintList = new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Layout(new LayoutGroup($IssueList,
+                                    new Title(new Danger('Geplante Änderungen'), 'in '.$Sprint->getVersion())))
+                            ),
+                        ))
+                    )));
+                } else {
+                    $SprintList = new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Layout(new LayoutGroup($IssueList,
+                                    new Title(new Danger('Geplante Änderungen'), 'in '.$Sprint->getVersion())))
+                            ),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Layout(new LayoutGroup($ResolvedList,
+                                    new Title(new \SPHERE\Common\Frontend\Text\Repository\Success('Neuerungen'),
+                                        'in '.$Sprint->getVersion())))
+                            ),
+                        )),
+                    )));
+                }
             }
 
             if ($SprintComplete) {
@@ -283,14 +348,15 @@ class Roadmap implements IApplicationInterface, IModuleInterface
             $LayoutColumns[] = new LayoutColumn(
                 new Panel(
                     $VersionHeader,
-                    (string)$SprintList, ( $SprintComplete ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING ),
+                    ( $FoldSprint ? (new Accordion())->addItem(new Small(new Italic(new Muted('[Änderungen anzeigen]'))),
+                        (string)$SprintList) : (string)$SprintList ),
+                    ( $SprintComplete ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING ),
                     $VersionFooter
                 )
             );
         }
 
         $Stage->setContent(
-            '<style>.panel.panel-success {margin-bottom:0;}</style>'.
             new Layout(new LayoutGroup(new LayoutRow($LayoutColumns)))
         );
 
@@ -308,7 +374,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
 
         $Parser = new Parser(
             new Credentials(),
-            'Typ: Feature,Bug,Optimierung Teilsystem: {10*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
+            'Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
         );
         return $Parser->getMap();
     }
@@ -351,10 +417,13 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         if (strlen($LongDescription) > 0) {
             return new Small(nl2br($ShortDescription))
             .(new Accordion())->addItem(
-                new Italic(new Small('[mehr anzeigen]')),
+                new Italic(new Small('[Beschreibung anzeigen]')),
                 new Small(nl2br($LongDescription))
             )->getContent();
         } else {
+            if (strlen($ShortDescription) == 0) {
+                return new Small(new Italic(new Muted('Keine Beschreibung angegeben')));
+            }
             return new Small(nl2br($ShortDescription));
         }
     }

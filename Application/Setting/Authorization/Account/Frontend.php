@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -92,8 +93,8 @@ class Frontend extends Extension implements IFrontendInterface
                 if (
                     ( $tblAccount->getServiceTblIdentification()
                         && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId() )
-                        && $tblAccount->getServiceTblConsumer()
-                        && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
+                    && $tblAccount->getServiceTblConsumer()
+                    && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {
 
                     $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
@@ -107,6 +108,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
                     if ($tblAuthorizationAll) {
                         array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
+
                             if ($tblAuthorization->getServiceTblRole()) {
                                 $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
                             } else {
@@ -250,8 +252,10 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblRole->isInternal()) {
                     $tblRole = false;
                 } else {
-                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
-                        $tblRole->getId());
+                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']',
+                        ( $tblRole->isSecure() ? new YubiKey().' ' : '' ).$tblRole->getName(),
+                        $tblRole->getId()
+                    );
                 }
             });
             $tblRoleAll = array_filter($tblRoleAll);
@@ -325,9 +329,20 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblPersonAll = \SPHERE\Application\People\Person\Person::useService()->getPersonAll();
         if ($tblPersonAll) {
-            array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson, $Global) {
 
-                if ($tblPerson === false || $tblPersonItem->getId() != $tblPerson->getId()) {
+                if (
+                    (
+                        $tblPerson === false
+                        || $tblPersonItem->getId() != $tblPerson->getId()
+                    )
+                    && (
+                        !isset( $Global->POST['Account']['User'] )
+                        || (
+                            isset( $Global->POST['Account']['User'] ) && $Global->POST['Account']['User'] != $tblPersonItem->getId()
+                        )
+                    )
+                ) {
                     $tblPersonItem = array(
                         'Person' => new RadioBox('Account[User]', $tblPersonItem->getFullName(),
                             $tblPersonItem->getId())
@@ -347,6 +362,14 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPerson) {
             $PanelPerson = new Panel(new Person().' für folgende Person', array(
                 new Danger('AKTUELL hinterlegte Person, '),
+                new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
+                new Danger('ODER eine andere Person wählen: '),
+                new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+            ), Panel::PANEL_TYPE_INFO);
+        } elseif (isset( $Global->POST['Account']['User'] )) {
+            $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
+            $PanelPerson = new Panel(new Person().' für folgende Person', array(
+                new Warning('AKTUELL selektierte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
                 new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
@@ -521,12 +544,12 @@ class Frontend extends Extension implements IFrontendInterface
                     array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
 
                         if ($tblAuthorization->getServiceTblRole()) {
-                            $tblAuthorization = new Nameplate() . ' ' . $tblAuthorization->getServiceTblRole()->getName();
+                            $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
                         } else {
                             $tblAuthorization = false;
                         }
                     });
-                    $tblAuthorizationAll = array_filter(($tblAuthorizationAll));
+                    $tblAuthorizationAll = array_filter(( $tblAuthorizationAll ));
                     $Content = array_merge($Content, $tblAuthorizationAll);
                 }
 

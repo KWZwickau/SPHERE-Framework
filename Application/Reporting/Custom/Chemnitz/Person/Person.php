@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Reporting\AbstractModule;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -11,7 +12,7 @@ use SPHERE\Common\Window\Navigation\Link;
  *
  * @package SPHERE\Application\Reporting\Custom\Chemnitz\Person
  */
-class Person implements IModuleInterface
+class Person extends AbstractModule implements IModuleInterface
 {
 
     public static function registerModule()

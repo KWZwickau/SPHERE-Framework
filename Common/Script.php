@@ -89,6 +89,11 @@ class Script extends Extension
             '/Library/jQuery.DataTables/1.10.7/extensions/Responsive/js/dataTables.responsive.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
         );
+        $this->setSource(
+            'jQuery.DataTable.Plugin.Sorting.DateTime',
+            '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/date-de.js',
+            "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['de_datetime-asc']"
+        );
 //        $this->setSource(
 //            'jQuery.DataTable.Plugin.Sorting.Weekday',
 //            '/Library/jQuery.DataTables.Plugins/1.0.1/sorting/weekday.js',
@@ -150,6 +155,7 @@ class Script extends Extension
             'ModTable',
             array(
 //                'jQuery.DataTable.Plugin.Sorting.Weekday',
+                'jQuery.DataTable.Plugin.Sorting.DateTime',
                 'Bootstrap.DataTable',
                 'jQuery.DataTable.Responsive',
                 'jQuery.DataTable',

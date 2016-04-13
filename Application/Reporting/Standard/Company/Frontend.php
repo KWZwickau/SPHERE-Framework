@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -26,6 +27,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
@@ -40,12 +42,11 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param null $GroupId
      * @param null $Select
      *
      * @return Stage
      */
-    public function frontendGroupList($GroupId = null, $Select = null)
+    public function frontendGroupList($Select = null)
     {
 
         $Stage = new Stage('Auswertung', 'Firmengruppenlisten');
@@ -53,15 +54,12 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroup = new TblGroup('');
         $groupList = array();
 
-        if ($GroupId !== null) {
+        if (isset( $Select['Group'] ) && $Select['Group'] != 0) {
+            $Stage->addButton(
+                new Standard('Zurück', '/Reporting/Standard/Company/GroupList', new ChevronLeft())
+            );
 
-            $Global = $this->getGlobal();
-            if (!$Global->POST) {
-                $Global->POST['Select']['Group'] = $GroupId;
-                $Global->savePost();
-            }
-
-            $tblGroup = Group::useService()->getGroupById($GroupId);
+            $tblGroup = Group::useService()->getGroupById($Select['Group']);
             if ($tblGroup) {
                 $groupList = Company::useService()->createGroupList($tblGroup);
                 if ($groupList) {
@@ -74,49 +72,74 @@ class Frontend extends Extension implements IFrontendInterface
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
+        } else {
+            $Select = null;
         }
 
-        $Stage->setContent(
-            new Well(
-                Company::useService()->getGroup(
-                    new Form(new FormGroup(array(
-                        new FormRow(array(
-                            new FormColumn(
-                                new Panel('Auswahl', array(
-                                    new SelectBox('Select[Group]', 'Gruppe', array(
-                                        '{{ Name }}' => $tblGroupAll
-                                    ))
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 12
-                            )
-                        )),
-                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                    , $Select, '/Reporting/Standard/Company/GroupList')
-            )
-            .
-            ( $GroupId !== null ?
-                (new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        new Panel('Gruppe:', $tblGroup->getName(),
-                            Panel::PANEL_TYPE_INFO), 12
-                    ),
-                )))))
-                .
-                new TableData($groupList, null,
-                    array(
-                        'Number'           => 'lfd. Nr.',
-                        'Name'             => 'Name',
-                        'Description'      => 'Beschreibung',
-                        'Address'          => 'Anschrift',
-                        'PhoneNumber'      => 'Telefon Festnetz',
-                        'MobilPhoneNumber' => 'Telefon Mobil',
-                        'Mail'             => 'E-mail',
-                    ),
-                    null
+        if ($Select === null) {
+            $Stage->setContent(
+                new Well(
+                    Company::useService()->getGroup(
+                        new Form(new FormGroup(array(
+                            new FormRow(array(
+                                new FormColumn(
+                                    new Panel('Auswahl', array(
+                                        new SelectBox('Select[Group]', 'Gruppe', array(
+                                            '{{ Name }}' => $tblGroupAll
+                                        ))
+                                    ), Panel::PANEL_TYPE_INFO)
+                                    , 12
+                                )
+                            )),
+                        )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                        , $Select, '/Reporting/Standard/Company/GroupList')
                 )
-                : ''
-            )
-        );
+            );
+        } else {
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Panel('Gruppe:', $tblGroup->getName(),
+                                    Panel::PANEL_TYPE_SUCCESS), 12
+                            )
+                        )
+                    ),
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($groupList, null,
+                                    array(
+                                        'Number'           => 'lfd. Nr.',
+                                        'Name'             => 'Name',
+                                        'ExtendedName'     => 'Zusatz',
+                                        'Description'      => 'Beschreibung',
+                                        'Address'          => 'Anschrift',
+                                        'PhoneNumber'      => 'Telefon Festnetz',
+                                        'MobilPhoneNumber' => 'Telefon Mobil',
+                                        'Mail'             => 'E-mail',
+                                    ),
+                                    array(
+                                        "pageLength" => -1,
+                                        "responsive" => false
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Anzahl', array(
+                                    'Gesamt: '.count($groupList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4)
+                        ))
+                    )
+                ))
+            );
+        }
 
         return $Stage;
     }

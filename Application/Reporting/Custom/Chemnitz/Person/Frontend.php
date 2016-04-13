@@ -3,7 +3,9 @@ namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -18,6 +20,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -36,11 +39,11 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendPerson()
     {
 
-        $View = new Stage();
-        $View->setTitle('ESZC Auswertung');
-        $View->setDescription('Bitte wählen Sie eine Liste zur Auswertung');
+        $Stage = new Stage();
+        $Stage->setTitle('ESZC Auswertung');
+        $Stage->setDescription('Bitte wählen Sie eine Liste zur Auswertung');
 
-        return $View;
+        return $Stage;
     }
 
     /**
@@ -51,13 +54,13 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList($DivisionId = null)
     {
 
-        $View = new Stage('ESZC Auswertung', 'Klassenliste');
+        $Stage = new Stage('ESZC Auswertung', 'Klassenliste');
         if (null !== $DivisionId) {
-            $View->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/ClassList', new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/ClassList', new ChevronLeft()));
         }
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
-        $studentList = array();
+        $PersonList = array();
 
         if ($DivisionId !== null) {
 
@@ -69,14 +72,14 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
-                $studentList = Person::useService()->createClassList($tblDivision);
-                if ($studentList) {
-                    $View->addButton(
+                $PersonList = Person::useService()->createClassList($tblDivision);
+                if ($PersonList) {
+                    $Stage->addButton(
                         new Primary('Herunterladen',
                             '/Api/Reporting/Custom/Chemnitz/Common/ClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
-                    $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
@@ -99,8 +102,8 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $View->setContent(
-            ( $DivisionId === null ?
+        if ($DivisionId === null) {
+            $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(
@@ -115,42 +118,86 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 12)
                         ), new Title(new Listing().' Übersicht')
                     )
-                ) : '' )
-            .( $DivisionId !== null ?
-                (new Layout(new LayoutGroup(new LayoutRow(array(
-                    ( $tblDivision->getServiceTblYear() ?
-                        new LayoutColumn(
-                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ) : '' ),
-                    new LayoutColumn(
-                        new Panel('Klasse', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_SUCCESS), 4
-                    ),
-                    ( $tblDivision->getTypeName() ?
-                        new LayoutColumn(
-                            new Panel('Schulart', $tblDivision->getTypeName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ) : '' ),
-                )))))
-                .
-                new TableData($studentList, null,
-                    array(
-                        'Salutation'   => 'Anrede',
-                        'Father'       => 'Vorname Sorgeberechtigter 1',
-                        'Mother'       => 'Vorname Sorgeberechtigter 2',
-                        'LastName'     => 'Name',
-                        'Denomination' => 'Konfession',
-                        'Address'      => 'Adresse',
-                        'FirstName'    => 'Schüler',
-                        'Birthday'     => 'Geburtsdatum',
-                        'Birthplace'   => 'Geburtsort',
-                    ),
-                    null
-                ) : '' )
-        );
+                )
+            );
+        } else {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        return $View;
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            ( $tblDivision->getServiceTblYear() ?
+                                new LayoutColumn(
+                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : '' ),
+                            new LayoutColumn(
+                                new Panel('Klasse', $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_SUCCESS), 4
+                            ),
+                            ( $tblDivision->getTypeName() ?
+                                new LayoutColumn(
+                                    new Panel('Schulart', $tblDivision->getTypeName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : '' ),
+                        ))
+                    ),
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($PersonList, null,
+                                    array(
+                                        'Salutation'   => 'Anrede',
+                                        'Father'       => 'Vorname Sorgeberechtigter 1',
+                                        'Mother'       => 'Vorname Sorgeberechtigter 2',
+                                        'LastName'     => 'Name',
+                                        'Denomination' => 'Konfession',
+                                        'Address'      => 'Adresse',
+                                        'FirstName'    => 'Schüler',
+                                        'Birthday'     => 'Geburtsdatum',
+                                        'Birthplace'   => 'Geburtsort',
+                                    ),
+                                    array(
+                                        "pageLength" => -1,
+                                        "responsive" => false
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Weiblich', array(
+                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Männlich', array(
+                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Gesamt', array(
+                                    'Anzahl: '.count($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4)
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn(
+                                ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                    null )
+                            )
+                        )
+                    ))
+                ))
+            );
+        }
+        return $Stage;
     }
 
     /**
@@ -159,42 +206,166 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendStaffList()
     {
 
-        $View = new Stage();
-        $View->setTitle('ESZC Auswertung');
-        $View->setDescription('Liste der Mitarbeiter');
+        $Stage = new Stage('ESZC Auswertung', 'Liste der Mitarbeiter');
 
-        $staffList = Person::useService()->createStaffList();
-        if ($staffList) {
-            $View->addButton(
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
+        $PersonList = Person::useService()->createStaffList();
+        if ($PersonList) {
+            $Stage->addButton(
                 new Primary('Herunterladen',
                     '/Api/Reporting/Custom/Chemnitz/Common/StaffList/Download', new Download())
             );
-            $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
-        $View->setContent(
-            new TableData($staffList, null,
-                array(
-                    'Salutation' => 'Anrede',
-                    'FirstName'  => 'Vorname',
-                    'LastName'   => 'Name',
-                    'Birthday'   => 'Geburtsdatum',
-                    'Division'   => 'Unterbereich',
-                    'Address'    => 'Adresse',
-//                    'StreetName'         => 'Straße',
-//                    'StreetNumber'         => 'Hausnr.',
-//                    'Code'         => 'PLZ',
-//                    'City'         => 'Ort',
-                    'Phone1'     => 'Telefon 1',
-                    'Phone2'     => 'Telefon 2',
-                    'Mail'       => 'Mail',
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'Salutation' => 'Anrede',
+                                    'FirstName'  => 'Vorname',
+                                    'LastName'   => 'Name',
+                                    'Birthday'   => 'Geburtsdatum',
+                                    'Division'   => 'Unterbereich',
+                                    'Address'    => 'Adresse',
+//                                    'StreetName'         => 'Straße',
+//                                    'StreetNumber'         => 'Hausnr.',
+//                                    'Code'         => 'PLZ',
+//                                    'City'         => 'Ort',
+                                    'Phone1'     => 'Telefon 1',
+                                    'Phone2'     => 'Telefon 2',
+                                    'Mail'       => 'Mail',
+                                ),
+                                array(
+                                    "pageLength" => -1,
+                                    "responsive" => false
+                                )
+                            )
+                        )
+                    )
                 ),
-                null
-            )
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: '.count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null )
+                        )
+                    )
+                ))
+            ))
         );
 
-        return $View;
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendSchoolFeeList()
+    {
+
+        $Stage = new Stage('ESZC Auswertung', 'Schulgeldliste');
+
+        $Stage->addButton(
+            new Primary('Herunterladen',
+                '/Api/Reporting/Custom/Chemnitz/Common/SchoolFeeList/Download', new Download())
+        );
+        $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        $PersonList = Person::useService()->createSchoolFeeList();
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'DebtorNumber'  => 'Deb.-Nr.',
+                                    'Reply'         => 'Bescheid geschickt',
+                                    'Father'        => 'Sorgeberechtigter 1',
+//                                    'FatherSalutation'     => 'Anrede V',
+//                                    'FatherLastName'       => 'Name V',
+//                                    'FatherFirstName'      => 'Vorname V',
+                                    'Mother'        => 'Sorgeberechtigter 2',
+//                                    'MotherSalutation'     => 'Anrede M',
+//                                    'MotherLastName'       => 'Name M',
+//                                    'MotherFirstName'      => 'Vorname M',
+                                    'Records'       => 'Unterlagen eingereicht',
+                                    'LastSchoolFee' => 'SG Vorjahr',
+                                    'Remarks'       => 'Bemerkungen',
+                                    'Address'       => 'Adresse',
+//                                    'StreetName'           => 'Straße',
+//                                    'StreetNumber'         => 'Hausnummer',
+//                                    'Code'                 => 'PLZ',
+//                                    'City'                 => 'Ort',
+                                ),
+                                array(
+                                    "pageLength" => -1,
+                                    "responsive" => false
+                                )
+                            )
+                        )
+                    )
+                ),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: '.count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null )
+                        )
+                    )
+                ))
+            ))
+        );
+
+        return $Stage;
     }
 
     /**
@@ -205,14 +376,14 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendMedicList($DivisionId = null)
     {
 
-        $View = new Stage('ESZC Auswertung', 'Arztliste');
+        $Stage = new Stage('ESZC Auswertung', 'Arztliste');
         if (null !== $DivisionId) {
-            $View->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/MedicList', new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/MedicList', new ChevronLeft()));
         }
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
-        $studentList = array();
+        $PersonList = array();
 
         if ($DivisionId !== null) {
 
@@ -224,14 +395,14 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
-                $studentList = Person::useService()->createMedicList($tblDivision);
-                if ($studentList) {
-                    $View->addButton(
+                $PersonList = Person::useService()->createMedicList($tblDivision);
+                if ($PersonList) {
+                    $Stage->addButton(
                         new Primary('Herunterladen',
                             '/Api/Reporting/Custom/Chemnitz/Common/MedicList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
-                    $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
@@ -254,8 +425,8 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $View->setContent(
-            ( $DivisionId === null ?
+        if ($DivisionId === null) {
+            $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(
@@ -270,37 +441,176 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 12)
                         ), new Title(new Listing().' Übersicht')
                     )
-                ) : '' )
-            .( $DivisionId !== null ?
-                (new Layout(new LayoutGroup(new LayoutRow(array(
-                    ( $tblDivision->getServiceTblYear() ?
-                        new LayoutColumn(
-                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ) : '' ),
-                    new LayoutColumn(
-                        new Panel('Klasse', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_SUCCESS), 4
+                )
+            );
+        } else {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            ( $tblDivision->getServiceTblYear() ?
+                                new LayoutColumn(
+                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : '' ),
+                            new LayoutColumn(
+                                new Panel('Klasse', $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_SUCCESS), 4
+                            ),
+                            ( $tblDivision->getTypeName() ?
+                                new LayoutColumn(
+                                    new Panel('Schulart', $tblDivision->getTypeName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : '' ),
+                        ))
                     ),
-                    ( $tblDivision->getTypeName() ?
-                        new LayoutColumn(
-                            new Panel('Schulart', $tblDivision->getTypeName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ) : '' ),
-                )))))
-                .
-                new TableData($studentList, null,
-                    array(
-                        'LastName'  => 'Name',
-                        'FirstName' => 'Vorname',
-                        'Birthday'  => 'Geburtsdatum',
-                        'Address'   => 'Adresse',
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($PersonList, null,
+                                    array(
+                                        'LastName'  => 'Name',
+                                        'FirstName' => 'Vorname',
+                                        'Birthday'  => 'Geburtsdatum',
+                                        'Address'   => 'Adresse',
+                                    ),
+                                    array(
+                                        "pageLength" => -1,
+                                        "responsive" => false
+                                    )
+                                )
+                            )
+                        )
                     ),
-                    null
-                ) : '' )
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Weiblich', array(
+                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Männlich', array(
+                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Gesamt', array(
+                                    'Anzahl: '.count($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4)
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn(
+                                ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                    null )
+                            )
+                        )
+                    ))
+                ))
+            );
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendInterestedPersonList()
+    {
+
+        $Stage = new Stage('ESZC Auswertung', 'Neuanmeldungen/Interessenten');
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+        $PersonList = Person::useService()->createInterestedPersonList();
+        if ($PersonList) {
+            $Stage->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Custom/Chemnitz/Common/InterestedPersonList/Download', new Download())
+            );
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'RegistrationDate' => 'Anmeldedatum',
+                                    'FirstName'        => 'Vorname',
+                                    'LastName'         => 'Name',
+                                    'SchoolYear'       => 'Schuljahr',
+                                    'DivisionLevel'    => 'Klassenstufe',
+                                    'TypeOptionA'      => 'Schulart 1',
+                                    'TypeOptionB'      => 'Schulart 2',
+                                    'Address'          => 'Adresse',
+//                                    'StreetName'         => 'Straße',
+//                                    'StreetNumber'         => 'Hausnummer',
+//                                    'Code'         => 'PLZ',
+//                                    'City'         => 'Ort',
+                                    'Birthday'         => 'Geburtsdatum',
+                                    'Birthplace'       => 'Geburtsort',
+                                    'Nationality'      => 'Staatsangeh.',
+                                    'Denomination'     => 'Bekenntnis',
+                                    'Siblings'         => 'Geschwister',
+                                    'Hoard'            => 'Hort',
+                                    'Father'           => 'Sorgeberechtigter 1',
+//                                    'FatherSalutation'         => 'Anrede V',
+//                                    'FatherLastName'         => 'Name V',
+//                                    'FatherFirstName'         => 'Vorname V',
+                                    'Mother'           => 'Sorgeberechtigter 2',
+//                                    'MotherSalutation'         => 'Anrede M',
+//                                    'MotherLastName'         => 'Name M',
+//                                    'MotherFirstName'         => 'Vorname M',
+                                ),
+                                array(
+                                    "pageLength" => -1,
+                                    "responsive" => false
+                                )
+                            )
+                        )
+                    )
+                ),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: '.count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null )
+                        )
+                    )
+                ))
+            ))
         );
 
-        return $View;
+        return $Stage;
     }
 
     /**
@@ -311,14 +621,14 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendParentTeacherConferenceList($DivisionId = null)
     {
 
-        $View = new Stage('ESZC Auswertung', 'Liste für Elternabende');
+        $Stage = new Stage('ESZC Auswertung', 'Liste für Elternabende');
         if (null !== $DivisionId) {
-            $View->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList', new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList', new ChevronLeft()));
         }
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
-        $studentList = array();
+        $PersonList = array();
 
         if ($DivisionId !== null) {
 
@@ -330,15 +640,15 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
-                $studentList = Person::useService()->createParentTeacherConferenceList($tblDivision);
-                if ($studentList) {
-                    $View->addButton(
+                $PersonList = Person::useService()->createParentTeacherConferenceList($tblDivision);
+                if ($PersonList) {
+                    $Stage->addButton(
                         new Primary('Herunterladen',
                             '/Api/Reporting/Custom/Chemnitz/Common/ParentTeacherConferenceList/Download',
                             new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
-                    $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
@@ -361,8 +671,8 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $View->setContent(
-            ( $DivisionId === null ?
+        if ($DivisionId === null) {
+            $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(
@@ -377,36 +687,81 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 12)
                         ), new Title(new Listing().' Übersicht')
                     )
-                ) : '' )
-            .( $DivisionId !== null ?
-                (new Layout(new LayoutGroup(new LayoutRow(array(
-                    ( $tblDivision->getServiceTblYear() ?
-                        new LayoutColumn(
-                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ) : '' ),
-                    new LayoutColumn(
-                        new Panel('Klasse', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_SUCCESS), 4
-                    ),
-                    ( $tblDivision->getTypeName() ?
-                        new LayoutColumn(
-                            new Panel('Schulart', $tblDivision->getTypeName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ) : '' ),
-                )))))
-                .
-                new TableData($studentList, null,
-                    array(
-                        'LastName'   => 'Name',
-                        'FirstName'  => 'Vorname',
-                        'Attendance' => 'Anwesenheit',
-                    ),
-                    null
-                ) : '' )
-        );
+                )
+            );
+        } else {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        return $View;
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            ( $tblDivision->getServiceTblYear() ?
+                                new LayoutColumn(
+                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : '' ),
+                            new LayoutColumn(
+                                new Panel('Klasse', $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_SUCCESS), 4
+                            ),
+                            ( $tblDivision->getTypeName() ?
+                                new LayoutColumn(
+                                    new Panel('Schulart', $tblDivision->getTypeName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : '' ),
+                        ))
+                    ),
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($PersonList, null,
+                                    array(
+                                        'LastName'   => 'Name',
+                                        'FirstName'  => 'Vorname',
+                                        'Attendance' => 'Anwesenheit',
+                                    ),
+                                    array(
+                                        "pageLength" => -1,
+                                        "responsive" => false
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Weiblich', array(
+                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Männlich', array(
+                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Gesamt', array(
+                                    'Anzahl: '.count($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4)
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn(
+                                ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                    null )
+                            )
+                        )
+                    ))
+                ))
+            );
+        }
+
+        return $Stage;
     }
 
     /**
@@ -415,145 +770,81 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClubMemberList()
     {
 
-        $View = new Stage();
-        $View->setTitle('ESZC Auswertung');
-        $View->setDescription('Liste der Vereinsmitglieder');
-
-        $clubMemberList = Person::useService()->createClubMemberList();
-        if ($clubMemberList) {
-            $View->addButton(
+        $Stage = new Stage('ESZC Auswertung', 'Liste der Vereinsmitglieder');
+        $tblPersonList = array();
+        $clubGroup = Group::useService()->getGroupByName('Verein');
+        if ($clubGroup) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup($clubGroup);
+        }
+        $PersonList = Person::useService()->createClubMemberList();
+        if ($PersonList) {
+            $Stage->addButton(
                 new Primary('Herunterladen',
                     '/Api/Reporting/Custom/Chemnitz/Common/ClubMemberList/Download', new Download())
             );
-            $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
-        $View->setContent(
-            new TableData($clubMemberList, null,
-                array(
-                    'Salutation'  => 'Anrede',
-                    'FirstName'   => 'Vorname',
-                    'LastName'    => 'Name',
-                    'Address'     => 'Adresse',
-//                    'StreetName'         => 'Straße',
-//                    'StreetNumber'         => 'Hausnr.',
-//                    'Code'         => 'PLZ',
-//                    'City'         => 'Ort',
-                    'Phone'       => 'Telefon',
-                    'Mail'        => 'Mail',
-                    'Directorate' => 'Vorstand'
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'Salutation'  => 'Anrede',
+                                    'FirstName'   => 'Vorname',
+                                    'LastName'    => 'Name',
+                                    'Address'     => 'Adresse',
+//                                    'StreetName'         => 'Straße',
+//                                    'StreetNumber'         => 'Hausnr.',
+//                                    'Code'         => 'PLZ',
+//                                    'City'         => 'Ort',
+                                    'Phone'       => 'Telefon',
+                                    'Mail'        => 'Mail',
+                                    'Directorate' => 'Vorstand'
+                                ),
+                                array(
+                                    "pageLength" => -1,
+                                    "responsive" => false
+                                )
+                            )
+                        )
+                    )
                 ),
-                null
-            )
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: '.count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null )
+                        )
+                    )
+                ))
+            ))
         );
 
-        return $View;
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendInterestedPersonList()
-    {
-
-        $View = new Stage();
-        $View->setTitle('ESZC Auswertung');
-        $View->setDescription('Neuanmeldungen/Interessenten');
-
-        $interestedPersonList = Person::useService()->createInterestedPersonList();
-        if ($interestedPersonList) {
-            $View->addButton(
-                new Primary('Herunterladen',
-                    '/Api/Reporting/Custom/Chemnitz/Common/InterestedPersonList/Download', new Download())
-            );
-            $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-        }
-
-        $View->setContent(
-            new TableData($interestedPersonList, null,
-                array(
-                    'RegistrationDate' => 'Anmeldedatum',
-                    'FirstName'        => 'Vorname',
-                    'LastName'         => 'Name',
-                    'SchoolYear'       => 'Schuljahr',
-                    'DivisionLevel'    => 'Klassenstufe',
-                    'TypeOptionA'      => 'Schulart 1',
-                    'TypeOptionB'      => 'Schulart 2',
-                    'Address'          => 'Adresse',
-//                    'StreetName'         => 'Straße',
-//                    'StreetNumber'         => 'Hausnummer',
-//                    'Code'         => 'PLZ',
-//                    'City'         => 'Ort',
-                    'Birthday'         => 'Geburtsdatum',
-                    'Birthplace'       => 'Geburtsort',
-                    'Nationality'      => 'Staatsangeh.',
-                    'Denomination'     => 'Bekenntnis',
-                    'Siblings'         => 'Geschwister',
-                    'Hoard'            => 'Hort',
-                    'Father'           => 'Sorgeberechtigter 1',
-//                    'FatherSalutation'         => 'Anrede V',
-//                    'FatherLastName'         => 'Name V',
-//                    'FatherFirstName'         => 'Vorname V',
-                    'Mother'           => 'Sorgeberechtigter 2',
-//                    'MotherSalutation'         => 'Anrede M',
-//                    'MotherLastName'         => 'Name M',
-//                    'MotherFirstName'         => 'Vorname M',
-                ),
-                null
-            )
-        );
-
-        return $View;
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendSchoolFeeList()
-    {
-
-        $View = new Stage();
-        $View->setTitle('ESZC Auswertung');
-        $View->setDescription('Schulgeldliste');
-
-        $View->addButton(
-            new Primary('Herunterladen',
-                '/Api/Reporting/Custom/Chemnitz/Common/SchoolFeeList/Download', new Download())
-        );
-        $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-
-        $studentList = Person::useService()->createSchoolFeeList();
-
-        $View->setContent(
-            new TableData($studentList, null,
-                array(
-                    'DebtorNumber'  => 'Deb.-Nr.',
-                    'Reply'         => 'Bescheid geschickt',
-                    'Father'        => 'Sorgeberechtigter 1',
-//                    'FatherSalutation'     => 'Anrede V',
-//                    'FatherLastName'         => 'Name V',
-//                    'FatherFirstName'         => 'Vorname V',
-                    'Mother'        => 'Sorgeberechtigter 2',
-//                    'MotherSalutation'         => 'Anrede M',
-//                    'MotherLastName'         => 'Name M',
-//                    'MotherFirstName'         => 'Vorname M',
-                    'Records'       => 'Unterlagen eingereicht',
-                    'LastSchoolFee' => 'SG Vorjahr',
-                    'Remarks'       => 'Bemerkungen',
-                    'Address'       => 'Adresse',
-//                    'StreetName'         => 'Straße',
-//                    'StreetNumber'         => 'Hausnummer',
-//                    'Code'         => 'PLZ',
-//                    'City'         => 'Ort',
-                ),
-                null
-            )
-        );
-
-        return $View;
+        return $Stage;
     }
 
     /**
@@ -564,14 +855,14 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendPrintClassList($DivisionId = null)
     {
 
-        $View = new Stage('ESZC Auswertung', 'Klassenliste zum Ausdrucken');
+        $Stage = new Stage('ESZC Auswertung', 'Klassenliste zum Ausdrucken');
         if (null !== $DivisionId) {
-            $View->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/PrintClassList', new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/PrintClassList', new ChevronLeft()));
         }
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
-        $studentList = array();
+        $PersonList = array();
 
         if ($DivisionId !== null) {
 
@@ -583,31 +874,19 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
-                $studentList = Person::useService()->createPrintClassList($tblDivision);
-                if ($studentList) {
-                    $View->addButton(
+                $PersonList = Person::useService()->createPrintClassList($tblDivision);
+                if ($PersonList) {
+                    $Stage->addButton(
                         new Primary('Herunterladen',
                             '/Api/Reporting/Custom/Chemnitz/Common/PrintClassList/Download',
                             new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
-                    $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
         }
-
-        $tableData = ( $tableData = new TableData($studentList, null,
-            array(
-                'DisplayName'  => 'Name',
-                'Birthday'     => 'Geb.-Datum',
-                'Address'      => 'Adresse',
-                'PhoneNumbers' => 'Telefonnummer',
-                'Education'    => 'Bildungsgang',
-                'Orientation'  => 'NK',
-            ),
-            null
-        ) );
 
         $TableContent = array();
         if ($tblDivisionAll) {
@@ -626,8 +905,8 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $View->setContent(
-            ( $DivisionId === null ?
+        if ($DivisionId === null) {
+            $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(
@@ -642,38 +921,83 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 12)
                         ), new Title(new Listing().' Übersicht')
                     )
-                ) : '' )
-            .( $DivisionId !== null ?
-                (new Layout(new LayoutGroup(new LayoutRow(array(
-                    ( $tblDivision->getServiceTblYear() ?
-                        new LayoutColumn(
-                            new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ) : '' ),
-                    new LayoutColumn(
-                        new Panel('Klasse', $tblDivision->getDisplayName(),
-                            Panel::PANEL_TYPE_SUCCESS), 4
+                )
+            );
+        } else {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            ( $tblDivision->getServiceTblYear() ?
+                                new LayoutColumn(
+                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : '' ),
+                            new LayoutColumn(
+                                new Panel('Klasse', $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_SUCCESS), 4
+                            ),
+                            ( $tblDivision->getTypeName() ?
+                                new LayoutColumn(
+                                    new Panel('Schulart', $tblDivision->getTypeName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : '' ),
+                        ))
                     ),
-                    ( $tblDivision->getTypeName() ?
-                        new LayoutColumn(
-                            new Panel('Schulart', $tblDivision->getTypeName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ) : '' ),
-                )))))
-                .$tableData
-                : '' )
-        );
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($PersonList, null,
+                                    array(
+                                        'DisplayName'  => 'Name',
+                                        'Birthday'     => 'Geb.-Datum',
+                                        'Address'      => 'Adresse',
+                                        'PhoneNumbers' => 'Telefonnummer',
+                                        'Education'    => 'Bildungsgang',
+                                        'Orientation'  => 'NK',
+                                    ),
+                                    array(
+                                        "pageLength" => -1,
+                                        "responsive" => false
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Weiblich', array(
+                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Männlich', array(
+                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Gesamt', array(
+                                    'Anzahl: '.count($tblPersonList),
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4)
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn(
+                                ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                    null )
+                            )
+                        )
+                    ))
+                ))
+            );
+        }
 
-//        if ($DivisionId !== null) {
-//            /** @var DomPdf $Document */
-//            $Document = Document::getDocument('Roadmap.pdf');
-//            $Document->setContent(
-//                Template::getTwigTemplateString($tableData)
-//            );
-//
-//            $Document->saveFile();
-//        }
-
-        return $View;
+        return $Stage;
     }
 }

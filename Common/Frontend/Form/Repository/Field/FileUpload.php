@@ -3,7 +3,7 @@ namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
-use SPHERE\Common\Frontend\Form\Repository\Field;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
@@ -11,7 +11,7 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class FileUpload extends Field implements IFieldInterface
+class FileUpload extends AbstractField implements IFieldInterface
 {
 
     /** @var string $Name */

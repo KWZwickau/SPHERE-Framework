@@ -19,8 +19,9 @@ class Repository extends EntityRepository implements ObjectRepository, Selectabl
     public function count()
     {
 
-        $Query = $this->createQueryBuilder('e')->select('count(e)')->getQuery()
-            ->useQueryCache(true);
+        $Builder = $this->createQueryBuilder('e');
+        $Condition = $Builder->expr()->isNull('e.EntityRemove');
+        $Query = $Builder->select('count(e)')->where($Condition)->getQuery()->useQueryCache(true);
         return $Query->getSingleScalarResult();
     }
 
@@ -32,6 +33,9 @@ class Repository extends EntityRepository implements ObjectRepository, Selectabl
     public function countBy($Criteria = array())
     {
 
+        if (is_array($Criteria)) {
+            $Criteria['EntityRemove'] = null;
+        }
         $EntityPersister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
         return $EntityPersister->count($Criteria);
     }

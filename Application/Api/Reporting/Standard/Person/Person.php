@@ -24,13 +24,16 @@ class Person
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = ReportingPerson::useService()->createClassList($tblDivision);
-            if ($studentList) {
-                $fileLocation = ReportingPerson::useService()->createClassListExcel($studentList);
+            $PersonList = ReportingPerson::useService()->createClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = ReportingPerson::useService()->createClassListExcel($PersonList, $tblPersonList);
 
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Klassenliste ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 
@@ -47,13 +50,15 @@ class Person
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = ReportingPerson::useService()->createExtendedClassList($tblDivision);
-            if ($studentList) {
-                $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($studentList);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Erweiterte_Klassenliste ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+            $PersonList = ReportingPerson::useService()->createExtendedClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($PersonList, $tblPersonList);
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Erweiterte_Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 
@@ -70,13 +75,16 @@ class Person
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = ReportingPerson::useService()->createBirthdayClassList($tblDivision);
-            if ($studentList) {
-                $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($studentList);
+            $PersonList = ReportingPerson::useService()->createBirthdayClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($PersonList, $tblPersonList);
 
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Birthday_Klassenliste ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Birthday_Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 
@@ -93,13 +101,16 @@ class Person
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
-            $studentList = ReportingPerson::useService()->createMedicalInsuranceClassList($tblDivision);
-            if ($studentList) {
-                $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($studentList);
+            $PersonList = ReportingPerson::useService()->createMedicalInsuranceClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($PersonList, $tblPersonList);
 
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Krankenkasse_Klassenliste ".$tblDivision->getDisplayName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Krankenkasse_Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 
@@ -116,13 +127,16 @@ class Person
 
         $tblGroup = Group::useService()->getGroupById($GroupId);
         if ($tblGroup) {
-            $groupList = ReportingPerson::useService()->createGroupList($tblGroup);
-            if ($groupList) {
-                $fileLocation = ReportingPerson::useService()->createGroupListExcel($groupList);
+            $PersonList = ReportingPerson::useService()->createGroupList($tblGroup);
+            if ($PersonList) {
+                $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+                if ($tblPersonList) {
+                    $fileLocation = ReportingPerson::useService()->createGroupListExcel($PersonList, $tblPersonList);
 
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Gruppenliste ".$tblGroup->getName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Gruppenliste ".$tblGroup->getName()
+                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                }
             }
         }
 

@@ -3,6 +3,7 @@ namespace SPHERE\System\Database\Binding;
 
 use SPHERE\Application\IServiceInterface;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
@@ -50,5 +51,22 @@ abstract class AbstractService extends Extension implements IServiceInterface
     {
 
         return $this->Binding;
+    }
+
+    /**
+     * @param Element[] $EntityList
+     *
+     * @return int
+     */
+    final protected function countEntityList($EntityList)
+    {
+
+        if (empty( $EntityList )) {
+            return 0;
+        }
+        return count(array_filter($EntityList, function (Element $Element) {
+
+            return !$Element->getEntityRemove();
+        }));
     }
 }
