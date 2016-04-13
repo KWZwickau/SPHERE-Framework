@@ -40,8 +40,12 @@ abstract class Certificate extends Extension
     private $Company = array('Data' => array());
     private $Division = array('Data' => array());
     private $Grade = array('Data' => array());
+    /**
+     * @var bool
+     */
+    private $IsSample;
 
-    public function __construct(TblPerson $tblPerson, TblDivision $tblDivision)
+    public function __construct(TblPerson $tblPerson, TblDivision $tblDivision, $IsSample = true)
     {
 
         $this->getCache(new TwigHandler())->clearCache();
@@ -51,7 +55,8 @@ abstract class Certificate extends Extension
         $this->tblStudent = $this->fetchStudentByPerson();
         $this->tblCompany = $this->fetchCompanyByStudent();
 
-        $this->Certificate = $this->buildCertificate();
+        $this->IsSample = (bool)$IsSample;
+        $this->Certificate = $this->buildCertificate($this->IsSample);
     }
 
     /**
@@ -79,9 +84,11 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param bool $IsSample
+     *
      * @return Frame
      */
-    abstract public function buildCertificate();
+    abstract public function buildCertificate($IsSample = true);
 
     /**
      * @return null|Frame

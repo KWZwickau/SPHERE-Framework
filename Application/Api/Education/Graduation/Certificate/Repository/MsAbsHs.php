@@ -13,9 +13,11 @@ class MsAbsHs extends Certificate
 {
 
     /**
+     * @param bool $IsSample
+     *
      * @return Frame
      */
-    public function buildCertificate()
+    public function buildCertificate($IsSample = true)
     {
 
         return (new Frame())->addDocument(

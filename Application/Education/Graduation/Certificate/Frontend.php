@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Graduation\Certificate;
 
+use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Element;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -11,12 +12,14 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Blackboard;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
@@ -29,6 +32,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -108,7 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblDivision) {
                 $Header = new Panel(new Blackboard().' '.$tblDivision->getDisplayName(), array(
                     $tblDivision->getServiceTblYear()->getName()
-                ), Panel::PANEL_TYPE_INFO);
+                ), Panel::PANEL_TYPE_SUCCESS);
 
                 $tblPersonAll = Division::useService()->getStudentAllByDivision($tblDivision);
                 $PersonList = array();
@@ -179,10 +183,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $Header = array(
                         new Panel(new Blackboard().' '.$tblDivision->getDisplayName(), array(
                             $tblDivision->getServiceTblYear()->getName()
-                        ), Panel::PANEL_TYPE_INFO),
+                        ), Panel::PANEL_TYPE_SUCCESS),
                         new Panel(new Education().' '.$tblPerson->getFullName(), array(
                             ( $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '' )
-                        ), Panel::PANEL_TYPE_INFO),
+                        ), Panel::PANEL_TYPE_SUCCESS),
                     );
 
                     // TODO: Find Templates in Database (DMS)
@@ -240,11 +244,22 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendSelectContent($Division = null, $Person = null, $Certificate = null, $Content = array())
-    {
+    public function frontendSelectContent(
+        $Division = null,
+        $Person = null,
+        $Certificate = null,
+        $Content = array(),
+        $SaveAs = null
+    ) {
 
         $Stage = new Stage('Zeugnisdaten', 'überprüfen');
         $Stage->addButton(new Backward(true));
+
+        if (!$SaveAs) {
+            $Global = $this->getGlobal();
+            $Global->POST['SaveAs'] = 0;
+            $Global->savePost();
+        }
 
         $Form = '';
         $Header = '';
@@ -257,18 +272,17 @@ class Frontend extends Extension implements IFrontendInterface
                     $Header = implode(array(
                         new Panel(new Education().' '.$tblPerson->getFullName(), array(
                             ( $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '' )
-                        ), Panel::PANEL_TYPE_INFO),
+                        ), Panel::PANEL_TYPE_SUCCESS),
                         new Panel(new Blackboard().' '.$tblDivision->getDisplayName(), array(
                             $tblDivision->getServiceTblYear()->getName()
-                        ), Panel::PANEL_TYPE_INFO),
+                        ), Panel::PANEL_TYPE_SUCCESS),
                     ));
 
-                    if (class_exists('\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Certificate)) {
-
-                        $Certificate = '\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Certificate;
+                    $CertificateClass = '\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Certificate;
+                    if (class_exists($CertificateClass)) {
 
                         /** @var \SPHERE\Application\Api\Education\Graduation\Certificate\Certificate $Template */
-                        $Template = new $Certificate($tblPerson, $tblDivision);
+                        $Template = new $CertificateClass($tblPerson, $tblDivision);
 
                         $FormField = array(
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
@@ -311,20 +325,20 @@ class Frontend extends Extension implements IFrontendInterface
                                             if (isset( $Payload[$Key] )) {
                                                 $Payload = $Payload[$Key];
                                             } else {
-                                                $Payload = '';
+//                                                $Payload = '';
                                                 break;
                                             }
                                         }
                                         if (isset( $FormLabel[$Placeholder] )) {
-                                            $Label = $FormLabel[$Placeholder];
+//                                            $Label = $FormLabel[$Placeholder];
                                         } else {
-                                            $Label = $Placeholder;
+//                                            $Label = $Placeholder;
                                         }
                                         if (isset( $FormField[$Placeholder] )) {
-                                            $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\'.$FormField[$Placeholder];
-                                            $Placeholder = (new $Field($FieldName, $Label, $Label));
+//                                            $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\'.$FormField[$Placeholder];
+//                                            $Placeholder = (new $Field($FieldName, $Label, $Label));
                                         } else {
-                                            $Placeholder = (new TextField($FieldName, $Label, $Label));
+//                                            $Placeholder = (new TextField($FieldName, $Label, $Label));
                                         }
                                         /** @var AbstractField $Placeholder */
 //                                        $Placeholder = $Placeholder->setDefaultValue($Payload,true);
@@ -369,23 +383,77 @@ class Frontend extends Extension implements IFrontendInterface
                                 default:
                                     $Title = 'Informationen';
                             }
-                            $FormPanelList[] = new FormColumn(new Panel($Title, $Payload));
+                            $FormPanelList[] = new FormColumn(new Panel($Title, $Payload, Panel::PANEL_TYPE_INFO));
                         }
 
                         $Form = new Form(
-                            new FormGroup(
+                            new FormGroup(array(
                                 new FormRow(
                                     $FormPanelList
+                                ),
+                                new FormRow(
+                                    new FormColumn(
+                                        new Panel('Daten verwenden für', array(
+                                            new RadioBox('SaveAs', 'Vorschau aktualisieren', 0),
+                                            new RadioBox('SaveAs', 'Als Entwurf speichern', 1),
+                                            new RadioBox('SaveAs', 'Zeugnis erstellen', 2),
+                                        ), Panel::PANEL_TYPE_WARNING)
+                                    )
                                 )
-                            )
+                            ))
                         );
 
                         $Form->appendFormButton(
-                            new Primary('Vorschau aktualisieren')
+                            new Primary('Absenden')
                         );
 
-                        // Create Certificate, Preview
-                        $Content = $Template->createCertificate($Content)->getContent();
+                        // Create Certificate, Preview, Draft, Live
+                        switch ($SaveAs) {
+                            case 0: {
+                                $Content = $Template->createCertificate($Content)->getContent();
+                                break;
+                            }
+                            case 1: {
+
+//                                $Draft = new Draft($Person, $Division, $Certificate, $Content);
+
+//                                $Store = Storage::useWriter()->getDatabase();
+//                                $Store->setName( 'Zeugnis-Entwurf' );
+//                                $Store->setDescription( json_encode( array( 'Person' => $Draft->getPerson(), 'Division' => $Draft->getDivision() ) ) );
+//                                $Store->setFileContent( $Draft );
+//                                $Store->saveFile();
+
+                                $Store = Storage::useWriter()->getDatabase(3);
+
+                                $Draft = new Draft();
+                                $Load = $Draft->decodeDraft($Store->getFileContent());
+
+                                $CertificateClass = '\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Load->getCertificate();
+                                if (class_exists($CertificateClass)) {
+                                    $tblDivision = Division::useService()->getDivisionById($Load->getDivision());
+                                    $tblPerson = Person::useService()->getPersonById($Load->getPerson());
+                                    /** @var \SPHERE\Application\Api\Education\Graduation\Certificate\Certificate $Template */
+                                    $Template = new $CertificateClass($tblPerson, $tblDivision);
+                                }
+                                $Content = $Template->createCertificate($Load->getData())->getContent();
+                                break;
+                            }
+                            case 2: {
+                                $Content = new External(
+                                    'Zeugnis erstellen bestätigen',
+                                    '/Api/Education/Graduation/Certificate',
+                                    new Check(),
+                                    array(
+                                        'Person'      => $Person,
+                                        'Division'    => $Division,
+                                        'Certificate' => $Certificate,
+                                        'Data'        => $Content
+                                    ), false
+                                );
+                                break;
+                            }
+                        }
+
                     } else {
                         // TODO: Error
                         $Content = new Danger('Keine Schulklasse gewählt')
@@ -418,7 +486,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 5),
                         new LayoutColumn(array(
                             new Title('Vorschau der Daten'),
-                            '<div class="cleanslate">'.$Content.'</div>',
+                            ( $SaveAs == 2 ? $Content : '<div class="cleanslate">'.$Content.'</div>' ),
                         ), 7)
                     ))
                 )

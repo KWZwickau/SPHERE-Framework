@@ -1,27 +1,27 @@
 /* Test */
 @media screen {
     div.Document {
-        width: 21cm !important;
+        /*width: 794px !important;*/
 
-        border: 1px dotted #CCC !important;
-        margin: 5px auto 5px auto !important;
+        /*border: 1px dotted #CCC !important;*/
+        /*margin: 5px auto 5px auto !important;*/
     }
 }
 
 /* Test */
 @media screen {
     div.Page {
-        height: 29cm !important;
+        /*height: 1123px !important;*/
 
-        border: 1px dashed blue !important;
-        margin: 5px !important;
+        /*border: 1px dashed blue !important;*/
+        /*margin: 5px !important;*/
     }
 }
 
 /* Test */
 @media screen {
     div.Slice {
-        margin: 5px !important;
+        /*margin: 5px !important;*/
     }
 }
 
@@ -41,7 +41,7 @@
 
 div.Document {
     position: relative !important;
-    width: 21cm !important;
+    /*width: 794px !important;*/
 
     font-family: Helvetica, serif !important;
 }
@@ -50,7 +50,8 @@ div.Document {
 
 div.Page {
     position: relative !important;
-    height: 29cm !important;
+    /*height: 1123px !important;*/
+    /*height: 1000px !important;*/
 
     font-size: 14px !important;
     page-break-after: always !important;

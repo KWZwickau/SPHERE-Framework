@@ -13,35 +13,49 @@ class MsAbg extends Certificate
 {
 
     /**
+     * @param bool $IsSample
+     *
      * @return Frame
      */
-    public function buildCertificate()
+    public function buildCertificate($IsSample = true)
     {
+
+        if ($IsSample) {
+            $Header = (new Slice())
+                ->addSection(
+                    (new Section())
+                        ->addElementColumn(
+                            (new Element())
+                                ->setContent('MS HS/RS Abgangszeugnis 3g.pdf')
+                                ->styleTextSize('12px')
+                                ->styleTextColor('#CCC')
+                                ->styleAlignCenter()
+                            , '25%'
+                        )->addElementColumn(
+                            (new Element\Sample())
+                                ->styleTextSize('30px')
+                        )->addElementColumn(
+                            (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                                '200px')), '25%'
+                        )
+                );
+        } else {
+            $Header = (new Slice())
+                ->addSection(
+                    (new Section())
+                        ->addElementColumn(new Element(), '25%')
+                        ->addElementColumn(new Element())
+                        ->addElementColumn(
+                            new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '200px'), '25%'
+                        )
+                );
+        }
 
         return (new Frame())->addDocument(
             (new Document())
                 ->addPage(
                     (new Page())
-                        ->addSlice(
-                            (new Slice())
-                                ->addSection(
-                                    (new Section())
-                                        ->addElementColumn(
-                                            (new Element())
-                                                ->setContent('MS HS/RS Abgangszeugnis 3g.pdf')
-                                                ->styleTextSize('12px')
-                                                ->styleTextColor('#CCC')
-                                                ->styleAlignCenter()
-                                            , '25%'
-                                        )->addElementColumn(
-                                            (new Element\Sample())
-                                                ->styleTextSize('30px')
-                                        )->addElementColumn(
-                                            (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                                                '200px')), '25%'
-                                        )
-                                )
-                        )
+                        ->addSlice($Header)
                         ->addSlice(
                             (new Slice())
                                 ->addElement(
