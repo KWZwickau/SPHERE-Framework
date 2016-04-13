@@ -93,7 +93,7 @@ class Service extends AbstractService
             $Stage->setError('GradeType[Code]', 'Bitte geben Sie eine Abk&uuml;rzung an');
             $Error = true;
         }
-        if (!($tblTestType = Evaluation::useService()->getTestTypeById($GradeType['Type']))){
+        if (!($tblTestType = Evaluation::useService()->getTestTypeById($GradeType['Type']))) {
             $Stage->setError('GradeType[Type]', 'Bitte wählen Sie eine Kategorie aus');
             $Error = true;
         }
@@ -304,32 +304,55 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        // check if grade is in grade range
+        $tblTest = Evaluation::useService()->getTestById($TestId);
+
+        $errorRange = false;
+        // check if grade is in grade range + grund bei Noten-Änderung angeben
         if ($minRange !== null && $maxRange !== null && !empty($Grade)) {
-            $error = false;
             foreach ($Grade as $personId => $value) {
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
                 if (!isset($value['Attendance']) && $gradeValue !== '') {
                     if (!is_numeric($gradeValue) || $gradeValue < $minRange || $gradeValue > $maxRange) {
-                        $error = true;
+                        $errorRange = true;
                         break;
                     }
                 }
             }
+        }
 
-            if ($error) {
+        $errorEdit = false;
+        if (!$IsEdit && !empty($Grade)) {
+            foreach ($Grade as $personId => $value) {
+                $gradeValue = str_replace(',', '.', trim($value['Grade']));
+                $tblPerson = Person::useService()->getPersonById($personId);
+                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
+                if ($tblGrade && $gradeValue && empty($value['Comment']) && $gradeValue != $tblGrade->getGrade()) {
+                    $errorEdit = true;
+                    break;
+                }
+            }
+        }
+
+
+        if ($errorRange || $errorEdit) {
+            if ($errorRange) {
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
                             'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
                         Bitte geben sie für die Zensuren eine Zahl zwischen ' . $minRange . ' und ' . $maxRange . ' ein.
                         Die Daten wurden nicht gespeichert.', new Exclamation())
                     ))));
-
-                return $Stage;
             }
+            if ($errorEdit) {
+                $Stage->prependGridGroup(
+                    new FormGroup(new FormRow(new FormColumn(new Danger(
+                            'Bei den Notenänderungen wurde nicht in jedem Fall ein Grund angegeben.', new Exclamation())
+                    ))));
+            }
+
+            return $Stage;
         }
 
-        $tblTest = Evaluation::useService()->getTestById($TestId);
 
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
@@ -376,7 +399,7 @@ class Service extends AbstractService
                                 $trend
                             );
                         }
-                    } elseif ($IsEdit && $tblGrade) {
+                    } elseif ($tblGrade) {
 
                         if (isset($value['Attendance'])) {
                             (new Data($this->getBinding()))->updateGrade(

@@ -41,7 +41,7 @@ class DateTimeSorter extends AbstractSorter
     {
 
         $Value = $this->getValue($Property, $Element);
-        if (!$Value instanceof \DateTime) {
+        if ($Value && !$Value instanceof \DateTime) {
             return new \DateTime('@'.strtotime($Value));
         }
         return $Value;

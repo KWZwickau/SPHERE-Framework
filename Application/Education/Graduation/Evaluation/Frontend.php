@@ -39,7 +39,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
-use SPHERE\Common\Frontend\Icon\Repository\Dice;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
@@ -50,7 +49,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Quote;
-use SPHERE\Common\Frontend\Icon\Repository\Rate15;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -251,6 +249,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Subject' => 'Fach',
                                 'SubjectGroup' => 'Gruppe',
                                 'Option' => ''
+                            ), array(
+                                'order' => array(
+                                    array('0', 'desc'),
+                                    array('2', 'asc'),
+                                    array('3', 'asc'),
+                                    array('4', 'asc')
+                                )
                             ))
                         ))
                     ))
@@ -372,6 +377,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Subject' => 'Fach',
                                 'SubjectGroup' => 'Gruppe',
                                 'Option' => ''
+                            ), array(
+                                'order' => array(
+                                    array('0', 'desc'),
+                                    array('2', 'asc'),
+                                    array('3', 'asc'),
+                                    array('4', 'asc')
+                                )
                             ))
                         ))
                     ))
@@ -543,16 +555,23 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($tblTestList, null, array(
+                                'Date' => 'Datum',
                                 'Division' => 'Klasse',
                                 'Subject' => 'Fach',
                                 'DisplayPeriod' => 'Zeitraum',
                                 'GradeType' => 'Zensuren-Typ',
                                 'DisplayDescription' => 'Beschreibung',
-                                'Date' => 'Datum',
                                 'CorrectionDate' => 'Korrekturdatum',
                                 'ReturnDate' => 'R&uuml;ckgabedatum',
                                 'Grades' => 'Noten eingetragen',
                                 'Option' => ''
+                            ), array(
+                                'order' => array(
+                                    array(0, 'desc')
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'de_date', 'targets' => 0)
+                                )
                             ))
                         ))
                     ))
@@ -961,7 +980,7 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Test', Redirect::TIMEOUT_ERROR);
         }
 
-        // Klassenlehrer darf Noten editieren
+        // Klassenlehrer darf ohne Grund Noten editieren
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -982,6 +1001,7 @@ class Frontend extends Extension implements IFrontendInterface
             $isEdit = true;
         } else {
             $isEdit = false;
+            $Stage->setMessage(new Warning(new Exclamation() . ' Bei einer Notenänderung muss für diese ein Grund angegeben werden.'));
         }
 
         $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Evaluation/Test', $isEdit);
@@ -1203,12 +1223,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $average = false;
                         $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                             . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
-                        $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                            $tblPerson);
-
-                        $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                            $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
-                        );
+//                        $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+//                            $tblPerson);
+//
+//                        $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
+//                            $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
+//                        );
                     }
                 }
             }
@@ -1220,12 +1240,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $average = false;
                     $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                         . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
-                    $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                        $tblPerson);
-
-                    $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                        $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
-                    );
+//                    $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+//                        $tblPerson);
+//
+//                    $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
+//                        $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
+//                    );
                 }
             }
         }
@@ -1347,6 +1367,13 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($average) {
                             $studentList[$tblPerson->getId()]['Average']
                                 = new Bold($average);
+
+                            // Zensuren voreintragen bei Stichtagsnotenauftrag
+                            $Global = $this->getGlobal();
+                            $Global->POST['Grade'][$tblPerson->getId()]['Grade'] =
+                                str_replace('.', ',', round($average, 0));
+                            $Global->savePost();
+
                         } else {
                             $studentList[$tblPerson->getId()]['Average'] = new Warning('Keine Zensuren vorhanden');
                         }
@@ -1411,6 +1438,17 @@ class Frontend extends Extension implements IFrontendInterface
                 'Comment' => 'Optionaler Grund',
                 'Attendance' => 'Nicht teilgenommen'
             );
+        }
+
+        if ($studentList){
+            foreach ($studentList as $personId => $value){
+                $tblPerson = Person::useService()->getPersonById($personId);
+                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                    $tblPerson);
+                $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
+                    $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
+                );
+            }
         }
 
         $Stage->setContent(
@@ -1521,8 +1559,12 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         if (!$IsEdit && $tblGrade) {
-            $student = $this->setGradeDisabled($tblPerson, $student);
-        } elseif (!$IsEdit && !$IsTaskAndInPeriod) {
+            $labelComment = new Warning('Bei Notenänderung bitte einen Grund angeben');
+        } else {
+            $labelComment = '';
+        }
+
+        if (!$IsEdit && !$IsTaskAndInPeriod) {
             $student = $this->setGradeDisabled($tblPerson, $student);
         } else {
             if ($tblScoreType) {
@@ -1534,21 +1576,21 @@ class Frontend extends Extension implements IFrontendInterface
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''));
                 } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Rate15()));
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''));
                 } else {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Dice()))
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))
                         . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
                             new ResizeVertical()));
                 }
             } else {
                 $student[$tblPerson->getId()]['Grade']
-                    = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Dice()))
+                    = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))
                     . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
                         new ResizeVertical()));
             }
             $student[$tblPerson->getId()]['Comment']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()));
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', $labelComment, new Comment()));
             $student[$tblPerson->getId()]['Attendance'] =
                 (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1));
         }
@@ -1699,6 +1741,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Period' => 'Noten-Zeitraum',
                                         'EditPeriod' => 'Bearbeitungszeitraum',
                                         'Option' => '',
+                                    ), array(
+                                        'order' => array(
+                                            array(0, 'desc')
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 0)
+                                        )
                                     )
                                 )
                             )
@@ -1966,7 +2015,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $schoolTypeList = array();
-        if ($tblTask->getServiceTblYear()){
+        if ($tblTask->getServiceTblYear()) {
             $tblDivisionAllByYear = Division::useService()->getDivisionByYear($tblTask->getServiceTblYear());
             if ($tblDivisionAllByYear) {
                 foreach ($tblDivisionAllByYear as $tblDivision) {
@@ -2385,6 +2434,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Period' => 'Noten-Zeitraum',
                                         'EditPeriod' => 'Bearbeitungszeitraum',
                                         'Option' => '',
+                                    ), array(
+                                        'order' => array(
+                                            array(0, 'desc')
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 0)
+                                        )
                                     )
                                 )
                             )
