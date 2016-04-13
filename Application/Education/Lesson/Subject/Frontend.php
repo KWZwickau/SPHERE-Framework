@@ -617,6 +617,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $Id
+     * @param bool $Confirm
      *
      * @return Stage|string
      */

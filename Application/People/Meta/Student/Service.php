@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
@@ -566,11 +567,26 @@ class Service extends Integration
                             $tblStudentSubjectRanking = $this->getStudentSubjectRankingById($Ranking);
                             $tblSubject = Subject::useService()->getSubjectById($Type);
                             if ($tblSubject) {
+                                // From & Till
+                                $tblLevelFrom = null;
+                                $tblLevelTill = null;
+                                if (isset( $Meta['SubjectLevelFrom'] ) && isset( $Meta['SubjectLevelFrom'][$Category][$Ranking] )) {
+                                    if ($Meta['SubjectLevelFrom'][$Category][$Ranking]) {
+                                        $tblLevelFrom = Division::useService()->getLevelById($Meta['SubjectLevelFrom'][$Category][$Ranking]);
+                                    }
+                                }
+                                if (isset( $Meta['SubjectLevelTill'] ) && isset( $Meta['SubjectLevelTill'][$Category][$Ranking] )) {
+                                    if ($Meta['SubjectLevelTill'][$Category][$Ranking]) {
+                                        $tblLevelTill = Division::useService()->getLevelById($Meta['SubjectLevelTill'][$Category][$Ranking]);
+                                    }
+                                }
+
                                 (new Data($this->getBinding()))->addStudentSubject(
                                     $tblStudent,
                                     $tblStudentSubjectType,
                                     $tblStudentSubjectRanking ? $tblStudentSubjectRanking : null,
-                                    $tblSubject
+                                    $tblSubject,
+                                    $tblLevelFrom, $tblLevelTill
                                 );
                             }
                         }
