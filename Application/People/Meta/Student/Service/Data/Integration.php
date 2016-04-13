@@ -106,6 +106,18 @@ abstract class Integration extends Subject
     }
 
     /**
+     * @param $Name
+     * @return bool|TblStudentFocusType
+     */
+    public function getStudentFocusTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentFocusType', array(TblStudentFocusType::ATTR_NAME => $Name)
+        );
+    }
+
+    /**
      * @return bool|TblStudentFocusType[]
      */
     public function getStudentFocusTypeAll()
@@ -164,6 +176,18 @@ abstract class Integration extends Subject
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentDisorderType', $Id
+        );
+    }
+
+    /**
+     * @param $Name
+     * @return bool|TblStudentDisorderType
+     */
+    public function getStudentDisorderTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentDisorderType', array(TblStudentDisorderType::ATTR_NAME => $Name)
         );
     }
 

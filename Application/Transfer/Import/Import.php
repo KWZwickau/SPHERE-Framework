@@ -6,6 +6,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\Coswig\Coswig;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
+use SPHERE\Application\Transfer\Import\Herrnhut\Herrnhut;
 use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
 use SPHERE\Application\Transfer\Import\Muldental\Muldental;
 use SPHERE\Common\Main;
@@ -34,6 +35,8 @@ class Import implements IApplicationInterface
             Coswig::registerModule();
         } elseif ($consumerAcronym === 'EVAMTL'){
             Muldental::registerModule();
+        } elseif ($consumerAcronym === 'EZGH'){
+            Herrnhut::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

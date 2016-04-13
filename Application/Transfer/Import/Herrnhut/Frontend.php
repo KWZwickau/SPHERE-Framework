@@ -38,7 +38,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendStudentImport($File = null)
     {
 
-        $View = new Stage('Import Muldental', 'Schüler-Daten');
+        $View = new Stage('Import Herrnhut', 'Schüler-Daten');
         $View->setContent(
             new Layout(
                 new LayoutGroup(

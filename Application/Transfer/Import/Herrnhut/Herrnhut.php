@@ -54,8 +54,8 @@ class Herrnhut implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Muldental', 'Schüler-Daten',
-            new Standard('', '/Transfer/Import/Muldental/Student', new Upload(), array(), 'Upload')
+            'Herrnhut', 'Schüler-Daten',
+            new Standard('', '/Transfer/Import/Herrnhut/Student', new Upload(), array(), 'Upload')
         );
     }
 }

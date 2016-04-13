@@ -11,7 +11,6 @@ namespace SPHERE\Application\Transfer\Import\Herrnhut;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -91,7 +90,6 @@ class Service
                     'FS2' => null,
                     'FS3' => null,
                     'Profil' => null,
-                    'Sportbefreiung' => null,
                     'Förderschwerpunkt' => null,
                     'Förderung Hinweise' => null,
                     'Geburtsd.' => null,
@@ -112,11 +110,8 @@ class Service
                     'Sorg1 Vorname' => null,
                     'Sorg2 Name' => null,
                     'Sorg2 Vorname' => null,
-                    'Einstiegstelle' => null,
-                    'Fahrausweis' => null,
-                    'Fahrschüler' => null,
+                    'Einsteigestelle' => null,
                     'Beförderung Hinweise' => null,
-                    'Schulweg' => null,
                     'Verkehrsmittel' => null,
                     'Religionsunterricht' => null,
                     'Email1' => null,
@@ -124,14 +119,10 @@ class Service
                     'Fax' => null,
                     'Abgang am' => null,
                     'abg. Schule ID' => null,
-                    'Bankleitzahl' => null,
-                    'Bankname' => null,
                     'Einschulung am' => null,
                     'Einschulungsart Zusatz' => null,
                     'Geschw.' => null,
                     'Schüler_Integr_Förderschüler' => null,
-                    'Kontoinhaber' => null,
-                    'Kontonummer' => null,
                     'Landkreis' => null,
                     'letzte Schulart' => null,
                 );
@@ -163,9 +154,6 @@ class Service
                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
                         } else {
 
-//                            $mainGroup = trim($Document->getValue($Document->getCell($Location['Stammgruppe'], $RunY)));
-//                            $mainGroup = $mainGroup !== '' ? Group::useService()->insertGroup($mainGroup) : false;
-
                             $tblPerson = Person::useService()->insertPerson(
                                 Person::useService()->getSalutationById(3),    //Schüler
                                 '',
@@ -182,11 +170,6 @@ class Service
                                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte nicht angelegt werden.';
                             } else {
                                 $countStudent++;
-
-//                                // Stammgruppe
-//                                if ($mainGroup) {
-//                                    Group::useService()->addGroupPerson($mainGroup, $tblPerson);
-//                                }
 
                                 $cityCode = str_pad(
                                     trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
@@ -226,55 +209,66 @@ class Service
                                 $year = 15;
                                 $division = trim($Document->getValue($Document->getCell($Location['Kl.'],
                                     $RunY)));
-                                $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
-                                if ($tblYear) {
-                                    $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
-                                    if (!$tblPeriodList) {
-                                        // firstTerm
-                                        $tblPeriod = Term::useService()->insertPeriod(
-                                            '1. Halbjahr',
-                                            '01.08.20' . $year,
-                                            '31.01.20' . ($year + 1)
-                                        );
-                                        if ($tblPeriod) {
-                                            Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
-                                        }
-
-                                        // secondTerm
-                                        $tblPeriod = Term::useService()->insertPeriod(
-                                            '2. Halbjahr',
-                                            '01.02.20' . ($year + 1),
-                                            '31.07.20' . ($year + 1)
-                                        );
-                                        if ($tblPeriod) {
-                                            Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
-                                        }
+                                if (stripos($division, 'A') !== false || stripos($division, 'U') !== false){
+                                    $tblInactiveGroup = Group::useService()->insertGroup('Inaktive Schüler');
+                                    if ($tblInactiveGroup) {
+                                        Group::useService()->addGroupPerson($tblInactiveGroup, $tblPerson);
                                     }
-
-                                    // ToDo JohK division
-                                    $tblSchoolType = Type::useService()->getTypeById(7); // Gymnasium
-                                    if ($tblSchoolType) {
-                                        $division = trim(str_replace('A', '', $division));
-                                        $division = trim(str_replace('U', '', $division));
-                                        if (($pos = stripos($division, '-'))){
-                                            $level = substr($division, 0, $pos);
-                                            $division = substr($division, $pos + 1);
-                                        } else {
-                                            $level = $division;
-                                            $division = '';
-                                        }
-                                        $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
-                                        if ($tblLevel) {
-                                            $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
-                                                $division);
-                                        }
-                                    }
-                                }
-
-                                if ($tblDivision) {
-                                    Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
                                 } else {
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
+                                    $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
+                                    if ($tblYear) {
+                                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                                        if (!$tblPeriodList) {
+                                            // firstTerm
+                                            $tblPeriod = Term::useService()->insertPeriod(
+                                                '1. Halbjahr',
+                                                '01.08.20' . $year,
+                                                '31.01.20' . ($year + 1)
+                                            );
+                                            if ($tblPeriod) {
+                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                            }
+
+                                            // secondTerm
+                                            $tblPeriod = Term::useService()->insertPeriod(
+                                                '2. Halbjahr',
+                                                '01.02.20' . ($year + 1),
+                                                '31.07.20' . ($year + 1)
+                                            );
+                                            if ($tblPeriod) {
+                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                            }
+                                        }
+
+                                        $tblSchoolType = Type::useService()->getTypeById(7); // Gymnasium
+                                        if ($tblSchoolType) {
+                                            if (($pos = stripos($division, '-'))) {
+                                                $level = substr($division, 0, $pos);
+                                                $division = substr($division, $pos + 1);
+                                                $tblGroup = Group::useService()->insertGroup((2020 - $level) . '-' . $division);
+                                            } else {
+                                                $level = $division;
+                                                $division = '';
+                                                $tblGroup = Group::useService()->insertGroup((2020 - $level));
+                                            }
+                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                            if ($tblLevel) {
+                                                $tblDivision = Division::useService()->insertDivision($tblYear,
+                                                    $tblLevel,
+                                                    $division);
+                                            }
+                                            // Stammgruppe
+                                            if ($tblGroup){
+                                                Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                                            }
+                                        }
+                                    }
+
+                                    if ($tblDivision) {
+                                        Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+                                    } else {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
+                                    }
                                 }
 
                                 $tblRelationshipTypeCustody = Relationship::useService()->getTypeById(1);
@@ -499,7 +493,7 @@ class Service
                                 }
 
                                 if ($tblPersonFather !== null) {
-                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Mutter mobil'],
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Vater mobil'],
                                         $RunY)));
                                     if ($phoneNumber != '') {
                                         $tblType = Phone::useService()->getTypeById(1);
@@ -582,39 +576,39 @@ class Service
                                     );
                                 }
 
-
-                                $mailAddress = trim($Document->getValue($Document->getCell($Location['E-Mail'],
-                                    $RunY)));
-                                if ($mailAddress != '') {
-                                    Mail::useService()->insertMailToPerson(
-                                        $tblPerson,
-                                        $mailAddress,
-                                        Mail::useService()->getTypeById(1),
-                                        ''
-                                    );
-                                }
-
-                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Email1'],
-                                    $RunY)));
-                                if ($mailAddress != '') {
-                                    Mail::useService()->insertMailToPerson(
-                                        $tblPerson,
-                                        $mailAddress,
-                                        Mail::useService()->getTypeById(1),
-                                        ''
-                                    );
-                                }
-
-                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Email2'],
-                                    $RunY)));
-                                if ($mailAddress != '') {
-                                    Mail::useService()->insertMailToPerson(
-                                        $tblPerson,
-                                        $mailAddress,
-                                        Mail::useService()->getTypeById(1),
-                                        ''
-                                    );
-                                }
+                                // Herrnhut will Emailadressen manuell nacharbeiten
+//                                $mailAddress = trim($Document->getValue($Document->getCell($Location['E-Mail'],
+//                                    $RunY)));
+//                                if ($mailAddress != '') {
+//                                    Mail::useService()->insertMailToPerson(
+//                                        $tblPerson,
+//                                        $mailAddress,
+//                                        Mail::useService()->getTypeById(1),
+//                                        ''
+//                                    );
+//                                }
+//
+//                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Email1'],
+//                                    $RunY)));
+//                                if ($mailAddress != '') {
+//                                    Mail::useService()->insertMailToPerson(
+//                                        $tblPerson,
+//                                        $mailAddress,
+//                                        Mail::useService()->getTypeById(1),
+//                                        ''
+//                                    );
+//                                }
+//
+//                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Email2'],
+//                                    $RunY)));
+//                                if ($mailAddress != '') {
+//                                    Mail::useService()->insertMailToPerson(
+//                                        $tblPerson,
+//                                        $mailAddress,
+//                                        Mail::useService()->getTypeById(1),
+//                                        ''
+//                                    );
+//                                }
 
                                 /*
                                  * student
@@ -675,8 +669,19 @@ class Service
                                     $tblStudentMedicalRecord = null;
                                 }
 
+                                $transport = trim($Document->getValue($Document->getCell($Location['Verkehrsmittel'],
+                                    $RunY)));
+                                $tblStudentTransport = Student::useService()->insertStudentTransport(
+                                    trim($Document->getValue($Document->getCell($Location['Beförderung Hinweise'],
+                                        $RunY))),
+                                    trim($Document->getValue($Document->getCell($Location['Einsteigestelle'],
+                                        $RunY))),
+                                    '',
+                                    $transport !== '' ? 'Verkehrsmittel: ' . $transport : ''
+                                );
+
                                 $tblStudent = Student::useService()->insertStudent($tblPerson, '',
-                                    $tblStudentMedicalRecord, null,
+                                    $tblStudentMedicalRecord, $tblStudentTransport,
                                     $tblStudentBilling, null, null, $tblStudentIntegration);
                                 if ($tblStudent) {
 
@@ -735,7 +740,7 @@ class Service
                                             ''
                                         );
                                     }
-                                    $leaveDate = trim($Document->getValue($Document->getCell($Location['Schulabgang am'],
+                                    $leaveDate = trim($Document->getValue($Document->getCell($Location['Abgang am'],
                                         $RunY)));
                                     if ($leaveDate !== '' && date_create($leaveDate) !== false) {
                                         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
@@ -792,6 +797,7 @@ class Service
                                     /*
                                      * Fächer
                                      */
+                                    // Religion
                                     $subjectReligion = trim($Document->getValue($Document->getCell($Location['Religionsunterricht'],
                                         $RunY)));
                                     $tblSubject = false;
@@ -804,13 +810,44 @@ class Service
                                         if ($tblSubject) {
                                             Student::useService()->addStudentSubject(
                                                 $tblStudent,
-                                                Student::useService()->getStudentSubjectTypeByIdentifier('Religion'),
+                                                Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION'),
                                                 Student::useService()->getStudentSubjectRankingByIdentifier('1'),
                                                 $tblSubject
                                             );
                                         }
                                     }
-
+                                    // Profil
+                                    $subjectProfile = trim($Document->getValue($Document->getCell($Location['Profil'],
+                                        $RunY)));
+                                    $tblSubject = false;
+                                    if ($subjectProfile !== '') {
+                                        if ($subjectProfile === 'P/gw-WED') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('WED');
+                                            if (!$tblSubject) {
+                                                $tblSubject = Subject::useService()->insertSubject('WED',
+                                                    'gesellschaftswissenschaftliches Profil / Wirtschaftsethik und Diakonie');
+                                                $tblCategory = Subject::useService()->getCategoryByIdentifier('PROFILE');
+                                                Subject::useService()->addCategorySubject($tblCategory, $tblSubject);
+                                            }
+                                        } elseif ($subjectProfile === 'P/nw-WDS') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('WDS');
+                                            if (!$tblSubject) {
+                                                $tblSubject = Subject::useService()->insertSubject('WDS',
+                                                    'naturwissenschaftlich-mathematisches Profil / "Welt der Sinne"');
+                                                $tblCategory = Subject::useService()->getCategoryByIdentifier('PROFILE');
+                                                Subject::useService()->addCategorySubject($tblCategory, $tblSubject);
+                                            }
+                                        }
+                                        if ($tblSubject) {
+                                            Student::useService()->addStudentSubject(
+                                                $tblStudent,
+                                                Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'),
+                                                Student::useService()->getStudentSubjectRankingByIdentifier('1'),
+                                                $tblSubject
+                                            );
+                                        }
+                                    }
+                                    // Fremdsprachen
                                     for ($i = 1; $i <= 3; $i++) {
                                         $subjectLanguage = trim($Document->getValue($Document->getCell($Location['FS' . $i],
                                             $RunY)));
@@ -833,10 +870,10 @@ class Service
                                                     Subject::useService()->addCategorySubject($tblCategory, $tblSubject);
                                                 }
                                             } elseif ($subjectLanguage === 'fort. TSC') {
-                                                $tblSubject = Subject::useService()->getSubjectByAcronym('TSC');
+                                                $tblSubject = Subject::useService()->getSubjectByAcronym('TSC-f');
                                                 if (!$tblSubject) {
-                                                    $tblSubject = Subject::useService()->insertSubject('TSCF',
-                                                        'Fortgeschrittenes Tschechisch');
+                                                    $tblSubject = Subject::useService()->insertSubject('TSC-f',
+                                                        'Tschechisch, fortgeführt');
                                                     $tblCategory = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE');
                                                     Subject::useService()->addCategorySubject($tblCategory, $tblSubject);
                                                 }
@@ -851,12 +888,34 @@ class Service
                                             }
                                         }
                                     }
+
+                                    /*
+                                     * Förderungsbedarf
+                                     */
+                                    $integration = trim($Document->getValue($Document->getCell($Location['Förderschwerpunkt'],
+                                        $RunY)));
+                                    if ($integration !== ''){
+                                        if ($integration === 'Diskalkulie'){
+                                            $tblStudentDisorderType = Student::useService()->getStudentDisorderTypeByName('Dyskalkulie');
+                                            Student::useService()->addStudentDisorder($tblStudent, $tblStudentDisorderType);
+                                        } elseif ($integration === 'LRS'){
+                                            $tblStudentDisorderType = Student::useService()->getStudentDisorderTypeByName('LRS');
+                                            Student::useService()->addStudentDisorder($tblStudent, $tblStudentDisorderType);
+                                        } elseif ($integration === 'KME'){
+                                            $tblStudentFocusType = Student::useService()->getStudentFocusTypeByName('Körperlich-motorische Entwicklung');
+                                            Student::useService()->addStudentFocus($tblStudent, $tblStudentFocusType);
+                                        } elseif ($integration === 'ESE'){
+                                            $tblStudentFocusType = Student::useService()->getStudentFocusTypeByName('Sozial-emotionale Entwicklung');
+                                            Student::useService()->addStudentFocus($tblStudent, $tblStudentFocusType);
+                                        }
+                                    }
+
                                 }
                             }
                         }
                     }
 
-                    Debugger::screenDump($error);
+//                    Debugger::screenDump($error);
 
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
