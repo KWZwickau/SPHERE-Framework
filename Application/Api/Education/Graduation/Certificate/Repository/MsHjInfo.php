@@ -772,7 +772,7 @@ class MsHjInfo extends Certificate
                             ->setContent('Zur Kenntnis genommen:')
                             , '30%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp')
+                            ->setContent('&nbsp;')
                             ->styleBorderBottom()
                             , '40px')
                         ->addElementColumn((new Element())
