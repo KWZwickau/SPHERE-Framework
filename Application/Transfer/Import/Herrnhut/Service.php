@@ -125,6 +125,12 @@ class Service
                     'Schüler_Integr_Förderschüler' => null,
                     'Landkreis' => null,
                     'letzte Schulart' => null,
+                    'FS1 von' => null,
+                    'FS1 bis' => null,
+                    'FS2 von' => null,
+                    'FS2 bis' => null,
+                    'FS3 von' => null,
+                    'FS3 bis' => null,
                 );
 
                 for ($RunX = 0; $RunX < $X; $RunX++) {
@@ -879,11 +885,40 @@ class Service
                                                 }
                                             }
                                             if ($tblSubject) {
+                                                $tblSchoolType = Type::useService()->getTypeById(7); // Gymnasium
+                                                $tblFromLevel = false;
+                                                $fromLevel = trim($Document->getValue($Document->getCell($Location['FS' . $i . ' von'],
+                                                    $RunY)));
+                                                if ($fromLevel !== ''){
+                                                    if (strlen($fromLevel) == 2){
+                                                        $fromLevel = ltrim($fromLevel,'0');
+                                                        $tblFromLevel = Division::useService()->insertLevel(
+                                                            $tblSchoolType,
+                                                            $fromLevel
+                                                        );
+                                                    }
+                                                }
+
+                                                $tblToLevel = false;
+                                                $toLevel = trim($Document->getValue($Document->getCell($Location['FS' . $i . ' bis'],
+                                                    $RunY)));
+                                                if ($toLevel !== ''){
+                                                    if (strlen($toLevel) == 2){
+                                                        $toLevel = ltrim($toLevel,'0');
+                                                        $tblToLevel = Division::useService()->insertLevel(
+                                                            $tblSchoolType,
+                                                            $toLevel
+                                                        );
+                                                    }
+                                                }
+
                                                 Student::useService()->addStudentSubject(
                                                     $tblStudent,
                                                     Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'),
                                                     Student::useService()->getStudentSubjectRankingByIdentifier($i),
-                                                    $tblSubject
+                                                    $tblSubject,
+                                                    $tblFromLevel ? $tblFromLevel : null,
+                                                    $tblToLevel ? $tblToLevel: null
                                                 );
                                             }
                                         }
@@ -915,7 +950,7 @@ class Service
                         }
                     }
 
-//                    Debugger::screenDump($error);
+                    Debugger::screenDump($error);
 
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
