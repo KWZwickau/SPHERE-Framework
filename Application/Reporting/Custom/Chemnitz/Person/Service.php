@@ -328,8 +328,14 @@ class Service
                 $Item['FatherSalutation'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
                 $Item['MotherSalutation'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
                 $Item['Reply'] = $Item['Records'] = $Item['LastSchoolFee'] = $Item['Remarks'] = '';
-                if (( $debtorList = Banking::useService()->getDebtorAllByPerson($tblPerson) )) {
-                    $Item['DebtorNumber'] = $debtorList[0]->getDebtorNumber();
+
+                $tblDebtorList = Banking::useService()->getDebtorByPerson($tblPerson);  //ToDO Debitornummern auch von Bezahlen holen
+                $DebtorArray = array();
+                if ($tblDebtorList) {
+                    foreach ($tblDebtorList as $tblDebtor) {
+                        $DebtorArray[] = $tblDebtor->getDebtorNumber();
+                    }
+                    $Item['DebtorNumber'] = implode(', ', $DebtorArray);
                 }
 
                 if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {

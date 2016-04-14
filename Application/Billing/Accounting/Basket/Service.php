@@ -236,7 +236,7 @@ class Service extends AbstractService
             return new Warning('Keine Artikel im Warenkorb')
             .new Redirect('/Billing/Accounting/Basket/Content', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
-        $PersonCount = Count($tblPersonList);
+        $PersonCount = count($tblPersonList);
 
         foreach ($tblPersonList as $tblPerson) {
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
