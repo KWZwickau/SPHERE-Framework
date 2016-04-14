@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Graduation;
 
+use SPHERE\Application\Education\Graduation\Certificate\Certificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\IApplicationInterface;
@@ -28,7 +29,7 @@ class Graduation implements IApplicationInterface
 
         Gradebook::registerModule();
         Evaluation::registerModule();
-//        Certificate::registerModule();
+        Certificate::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Zensuren'))

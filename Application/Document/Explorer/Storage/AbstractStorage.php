@@ -123,7 +123,7 @@ abstract class AbstractStorage
     public function setFileContent($FileContent)
     {
 
-        $this->FileContent = $FileContent;
+        $this->FileContent = (string)$FileContent;
     }
 
     /**

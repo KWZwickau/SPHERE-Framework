@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api;
 
+use SPHERE\Application\Api\Education\Education;
 use SPHERE\Application\Api\Platform\Platform;
 use SPHERE\Application\Api\Reporting\Reporting;
 use SPHERE\Application\Api\Test\Test;
@@ -20,5 +21,6 @@ class Api implements IClusterInterface
         Test::registerApplication();
         Reporting::registerApplication();
         Platform::registerApplication();
+        Education::registerApplication();
     }
 }

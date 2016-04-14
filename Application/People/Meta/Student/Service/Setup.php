@@ -207,6 +207,22 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentRelease(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentRelease');
+        if (!$this->getConnection()->hasColumn('tblStudentRelease', 'SportRelease')) {
+            $Table->addColumn('SportRelease', 'smallint', array('notnull' => 0));
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
      * @param Table $tblStudentMedicalRecord
      * @param Table $tblStudentTransport
      * @param Table $tblStudentBilling
@@ -412,6 +428,12 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentSubject', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblStudentSubject', 'serviceTblLevelFrom')) {
+            $Table->addColumn('serviceTblLevelFrom', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentSubject', 'serviceTblLevelTill')) {
+            $Table->addColumn('serviceTblLevelTill', 'bigint', array('notnull' => false));
+        }
         return $Table;
     }
 
@@ -486,22 +508,6 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblStudentFocus');
         $this->getConnection()->addForeignKey($Table, $tblStudent);
         $this->getConnection()->addForeignKey($Table, $tblStudentFocusType);
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableStudentRelease(Schema &$Schema)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentRelease');
-        if (!$this->getConnection()->hasColumn('tblStudentRelease', 'SportRelease')) {
-            $Table->addColumn('SportRelease', 'smallint', array('notnull' => 0));
-        }
-
         return $Table;
     }
 

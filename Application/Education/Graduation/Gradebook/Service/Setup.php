@@ -66,6 +66,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeType', 'Code')) {
             $Table->addColumn('Code', 'string');
         }
+        if (!$this->getConnection()->hasIndex($Table, array('Code'))) {
+            $Table->addUniqueIndex(array('Code'));
+        }
         if (!$this->getConnection()->hasColumn('tblGradeType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }

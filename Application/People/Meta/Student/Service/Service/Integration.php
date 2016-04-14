@@ -51,6 +51,16 @@ abstract class Integration extends Subject
     }
 
     /**
+     * @param $Name
+     * @return bool|TblStudentFocusType
+     */
+    public function getStudentFocusTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getStudentFocusTypeByName($Name);
+    }
+
+    /**
      * @return bool|TblStudentFocusType[]
      */
     public function getStudentFocusTypeAll()
@@ -102,6 +112,16 @@ abstract class Integration extends Subject
     }
 
     /**
+     * @param $Name
+     * @return bool|TblStudentDisorderType
+     */
+    public function getStudentDisorderTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getStudentDisorderTypeByName($Name);
+    }
+
+    /**
      * @return bool|TblStudentDisorderType[]
      */
     public function getStudentDisorderTypeAll()
@@ -128,5 +148,33 @@ abstract class Integration extends Subject
     {
 
         return (new Data($this->getBinding()))->getStudentDisorderAll();
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentDisorderType $tblStudentDisorderType
+     *
+     * @return TblStudentDisorder
+     */
+    public function addStudentDisorder(
+        TblStudent $tblStudent,
+        TblStudentDisorderType $tblStudentDisorderType
+    ) {
+
+        return (new Data($this->getBinding()))->addStudentDisorder($tblStudent, $tblStudentDisorderType);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentFocusType $tblStudentFocusType
+     *
+     * @return TblStudentFocus
+     */
+    public function addStudentFocus(
+        TblStudent $tblStudent,
+        TblStudentFocusType $tblStudentFocusType
+    ) {
+
+        return (new Data($this->getBinding()))->addStudentFocus($tblStudent, $tblStudentFocusType);
     }
 }

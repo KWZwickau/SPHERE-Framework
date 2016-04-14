@@ -25,6 +25,10 @@ class TblIdentification extends Element
      * @Column(type="string")
      */
     protected $Description;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsActive;
 
     /**
      * @param string $Name
@@ -69,5 +73,23 @@ class TblIdentification extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isActive()
+    {
+
+        return (bool)$this->IsActive;
+    }
+
+    /**
+     * @param bool $IsActive
+     */
+    public function setActive($IsActive)
+    {
+
+        $this->IsActive = (bool)$IsActive;
     }
 }

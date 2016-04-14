@@ -44,6 +44,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return TblProtocol[]|bool
+     */
+    public function getProtocolAllCreateSession()
+    {
+
+        return (new Data($this->getBinding()))->getProtocolAllCreateSession();
+    }
+
+    /**
      * @param string  $DatabaseName
      * @param Element $Entity
      *

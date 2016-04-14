@@ -61,7 +61,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Id) ' . $EntityName . ' ' . $__METHOD__ . ' > ' . $Id);
+//        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Id) ' . $EntityName . ' ' . $__METHOD__ . ' > ' . $Id);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 
@@ -196,7 +196,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
+//        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 
@@ -231,7 +231,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $EntityList, 0, $__METHOD__);
             return ( empty( $EntityList ) ? false : $EntityList );
         }
-        $this->getLogger(new BenchmarkLogger())->addLog('Memory-List (Criteria) ' . $EntityName . ' ' . $__METHOD__);
+//        $this->getLogger(new BenchmarkLogger())->addLog('Memory-List (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -265,7 +265,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $EntityList, 0, $__METHOD__);
             return ( empty( $EntityList ) ? false : $EntityList );
         }
-        $this->getLogger(new BenchmarkLogger())->addLog('Memory-List ' . $EntityName . ' ' . $__METHOD__);
+//        $this->getLogger(new BenchmarkLogger())->addLog('Memory-List ' . $EntityName . ' ' . $__METHOD__);
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -303,7 +303,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
+//        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 }

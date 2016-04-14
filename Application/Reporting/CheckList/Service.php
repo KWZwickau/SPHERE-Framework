@@ -384,14 +384,22 @@ class Service extends AbstractService
 
         $Error = false;
         if (isset($Element['Name']) && empty($Element['Name'])) {
-            $Stage->setError('List[Name]', 'Bitte geben sie einen Namen an');
+            $Stage->setError('Element[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
+        } else {
+            $Stage->setSuccess('Element[Name]');
+        }
+        if (!($tblElementType = $this->getElementTypeById($Element['Type']))){
+            $Stage->setError('Element[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Stage->setSuccess('Element[Type]');
         }
 
         if (!$Error) {
             (new Data($this->getBinding()))->addElementToList(
                 $this->getListById($Id),
-                $this->getElementTypeById($Element['Type']),
+                $tblElementType,
                 $Element['Name']
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Das Element ist zur Check-Liste hingefügt worden.')

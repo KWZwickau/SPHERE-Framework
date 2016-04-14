@@ -2,10 +2,14 @@
 namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Data;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
@@ -17,6 +21,7 @@ use SPHERE\Application\People\Meta\Student\Service\Setup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -66,6 +71,18 @@ class Service extends Integration
     }
 
     /**
+     * @param TblSiblingRank $tblSiblingRank
+     * @return TblStudentBilling
+     */
+    public function insertStudentBilling(TblSiblingRank $tblSiblingRank)
+    {
+
+        return (new Data($this->getBinding()))->createStudentBilling(
+            $tblSiblingRank
+        );
+    }
+
+    /**
      * @param                $Disease
      * @param                $Medication
      * @param                $Insurance
@@ -92,6 +109,19 @@ class Service extends Integration
     }
 
     /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentAgreementType $tblStudentAgreementType
+     * @return Service\Entity\TblStudentAgreement
+     */
+    public function insertStudentAgreement(
+        TblStudent $tblStudent,
+        TblStudentAgreementType $tblStudentAgreementType
+    ) {
+
+        return (new Data($this->getBinding()))->addStudentAgreement($tblStudent, $tblStudentAgreementType);
+    }
+
+    /**
      * @param        $Route
      * @param        $StationEntrance
      * @param        $StationExit
@@ -115,6 +145,41 @@ class Service extends Integration
     }
 
     /**
+     * @param TblPerson|null $IntegrationPerson
+     * @param TblCompany|null $IntegrationCompany
+     * @param $CoachingRequestDate
+     * @param $CoachingCounselDate
+     * @param $CoachingDecisionDate
+     * @param $CoachingRequired
+     * @param $CoachingTime
+     * @param string $CoachingRemark
+     * @return Service\Entity\TblStudentIntegration
+     */
+    public function insertStudentIntegration(
+        TblPerson $IntegrationPerson = null,
+        TblCompany $IntegrationCompany = null,
+        $CoachingRequestDate,
+        $CoachingCounselDate,
+        $CoachingDecisionDate,
+        $CoachingRequired,
+        $CoachingTime = '',
+        $CoachingRemark = ''
+    ) {
+
+        return (new Data($this->getBinding()))->createStudentIntegration(
+            $IntegrationPerson ? $IntegrationPerson : null,
+            $IntegrationCompany ? $IntegrationCompany : null,
+            $CoachingRequestDate,
+            $CoachingCounselDate,
+            $CoachingDecisionDate,
+            $CoachingRequired,
+            $CoachingTime,
+            $CoachingRemark
+        );
+    }
+
+
+        /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta
@@ -502,11 +567,26 @@ class Service extends Integration
                             $tblStudentSubjectRanking = $this->getStudentSubjectRankingById($Ranking);
                             $tblSubject = Subject::useService()->getSubjectById($Type);
                             if ($tblSubject) {
+                                // From & Till
+                                $tblLevelFrom = null;
+                                $tblLevelTill = null;
+                                if (isset( $Meta['SubjectLevelFrom'] ) && isset( $Meta['SubjectLevelFrom'][$Category][$Ranking] )) {
+                                    if ($Meta['SubjectLevelFrom'][$Category][$Ranking]) {
+                                        $tblLevelFrom = Division::useService()->getLevelById($Meta['SubjectLevelFrom'][$Category][$Ranking]);
+                                    }
+                                }
+                                if (isset( $Meta['SubjectLevelTill'] ) && isset( $Meta['SubjectLevelTill'][$Category][$Ranking] )) {
+                                    if ($Meta['SubjectLevelTill'][$Category][$Ranking]) {
+                                        $tblLevelTill = Division::useService()->getLevelById($Meta['SubjectLevelTill'][$Category][$Ranking]);
+                                    }
+                                }
+
                                 (new Data($this->getBinding()))->addStudentSubject(
                                     $tblStudent,
                                     $tblStudentSubjectType,
                                     $tblStudentSubjectRanking ? $tblStudentSubjectRanking : null,
-                                    $tblSubject
+                                    $tblSubject,
+                                    $tblLevelFrom, $tblLevelTill
                                 );
                             }
                         }

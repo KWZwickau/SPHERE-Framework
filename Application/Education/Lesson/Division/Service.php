@@ -92,6 +92,11 @@ class Service extends AbstractService
 
         $Error = false;
 
+        if (!( Type::useService()->getTypeById($Level['Type']) )) {
+            $Form->setError('Level[Type]', 'Schulart erforderlich! Bitte auswählen');
+            $Error = true;
+        }
+
         // Year
         if (!isset($Division['Year']) || empty($Division['Year'])) {
             $Form->setError('Division[Year]', 'Jahr erforderlich! Bitte zuerst einpflegen');
@@ -633,6 +638,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblDivisionStudent
+     */
+    public function getDivisionStudentById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionStudentById($Id);
     }
 
     /**

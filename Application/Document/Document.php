@@ -24,6 +24,7 @@ class Document extends Extension implements IClusterInterface
         Search::registerApplication();
         Explorer::registerApplication();
         Designer::registerApplication();
+//        Storage::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Dokumente'))

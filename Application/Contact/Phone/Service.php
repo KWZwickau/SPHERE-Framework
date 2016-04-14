@@ -118,11 +118,17 @@ class Service extends AbstractService
         if (isset( $Number ) && empty( $Number )) {
             $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $Error = true;
+        } else {
+            $Form->setSuccess('Number');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
         }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
 
             if ((new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'])
@@ -210,11 +216,17 @@ class Service extends AbstractService
         if (isset( $Number ) && empty( $Number )) {
             $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $Error = true;
+        } else {
+            $Form->setSuccess('Number');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
         }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
 
             if ((new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'])
@@ -256,11 +268,17 @@ class Service extends AbstractService
         if (isset( $Number ) && empty( $Number )) {
             $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $Error = true;
+        } else {
+            $Form->setSuccess('Number');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
         }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
             // Remove current
             (new Data($this->getBinding()))->removePhoneToPerson($tblToPerson);
@@ -312,11 +330,17 @@ class Service extends AbstractService
         if (isset( $Number ) && empty( $Number )) {
             $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $Error = true;
+        } else {
+            $Form->setSuccess('Number');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))){
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
         }
 
         if (!$Error) {
-
-            $tblType = $this->getTypeById($Type['Type']);
             $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
             // Remove current
             (new Data($this->getBinding()))->removePhoneToCompany($tblToCompany);

@@ -5,6 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -22,7 +24,9 @@ class TblStudentSubject extends Element
     const ATTR_TBL_STUDENT_SUBJECT_TYPE = 'tblStudentSubjectType';
     const ATTR_TBL_STUDENT_SUBJECT_RANKING = 'tblStudentSubjectRanking';
     const SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-
+    const SERVICE_TBL_LEVEL_FROM = 'serviceTblLevelFrom';
+    const SERVICE_TBL_LEVEL_TILL = 'serviceTblLevelTill';
+    
     /**
      * @Column(type="bigint")
      */
@@ -39,7 +43,15 @@ class TblStudentSubject extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblSubject;
-
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblLevelFrom;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblLevelTill;
+    
     /**
      * @return bool|TblStudent
      */
@@ -126,5 +138,49 @@ class TblStudentSubject extends Element
     {
 
         $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
+    }
+
+    /**
+     * @return bool|TblLevel
+     */
+    public function getServiceTblLevelFrom()
+    {
+
+        if (null === $this->serviceTblLevelFrom) {
+            return false;
+        } else {
+            return Division::useService()->getLevelById($this->serviceTblLevelFrom);
+        }
+    }
+
+    /**
+     * @param TblLevel|null $tblLevel
+     */
+    public function setServiceTblLevelFrom(TblLevel $tblLevel = null)
+    {
+
+        $this->serviceTblLevelFrom = ( null === $tblLevel ? null : $tblLevel->getId() );
+    }
+
+    /**
+     * @return bool|TblLevel
+     */
+    public function getServiceTblLevelTill()
+    {
+
+        if (null === $this->serviceTblLevelTill) {
+            return false;
+        } else {
+            return Division::useService()->getLevelById($this->serviceTblLevelTill);
+        }
+    }
+
+    /**
+     * @param TblLevel|null $tblLevel
+     */
+    public function setServiceTblLevelTill(TblLevel $tblLevel = null)
+    {
+
+        $this->serviceTblLevelTill = ( null === $tblLevel ? null : $tblLevel->getId() );
     }
 }

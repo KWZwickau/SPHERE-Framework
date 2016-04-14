@@ -3,9 +3,12 @@ namespace SPHERE\Application\Education\Lesson\Term;
 
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -21,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -67,7 +71,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblYearAll, function (TblYear &$tblYear) use (&$TableContent) {
 
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
-                $Temp['Name'] = $tblYear->getName();
+                $Temp['Year'] = $tblYear->getYear();
                 $Temp['Description'] = $tblYear->getDescription();
                 $Temp['Option'] =
                     new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
@@ -88,7 +92,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
-                                'Name'        => 'Name',
+                                'Year'        => 'Jahr',
                                 'Description' => 'Beschreibung',
                                 'Option'      => '',
                             ))
@@ -125,19 +129,39 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblYearAll = Term::useService()->getYearAll();
         $acNameAll = array();
+
+        $YearList[] = '';
+//        $YearList[(date('Y') - 4).'/'.(date('y') - 3)] = (date('Y') - 4).'/'.(date('y') - 3);
+//        $YearList[(date('Y') - 3).'/'.(date('y') - 2)] = (date('Y') - 3).'/'.(date('y') - 2);
+        $YearList[( date('Y') - 2 ).'/'.( date('y') - 1 )] = ( date('Y') - 2 ).'/'.( date('y') - 1 );
+        $YearList[date('Y') - 1 .'/'.date('y')] = date('Y') - 1 .'/'.date('y');
+        $YearList[date('Y').'/'.( date('y') + 1 )] = date('Y').'/'.( date('y') + 1 );
+        $YearList[( date('Y') + 1 ).'/'.( date('y') + 2 )] = ( date('Y') + 1 ).'/'.( date('y') + 2 );
+        $YearList[( date('Y') + 2 ).'/'.( date('y') + 3 )] = ( date('Y') + 2 ).'/'.( date('y') + 3 );
+        $YearList[( date('Y') + 3 ).'/'.( date('y') + 4 )] = ( date('Y') + 3 ).'/'.( date('y') + 4 );
+        $YearList[( date('Y') + 4 ).'/'.( date('y') + 5 )] = ( date('Y') + 4 ).'/'.( date('y') + 5 );
+//        $YearList[(date('Y') + 5).'/'.(date('y') + 6)] = (date('Y') + 5).'/'.(date('y') + 6);
+
+        $TypeList = Type::useService()->getTypeAll();
+        $TypeList[] = new TblType('');
+
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear $tblYear) use (&$acNameAll) {
 
-                if (!in_array($tblYear->getName(), $acNameAll)) {
-                    array_push($acNameAll, $tblYear->getName());
+                if (!in_array($tblYear->getDisplayName(), $acNameAll)) {
+                    array_push($acNameAll, $tblYear->getDisplayName());
                 }
             });
         }
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Year'] ) && $tblYear) {
-            $Global->POST['Year']['Name'] = $tblYear->getName();
+            $Global->POST['Year']['Year'] = $tblYear->getYear();
             $Global->POST['Year']['Description'] = $tblYear->getDescription();
+            $Global->savePost();
+        }
+        if (!isset( $Global->POST['Year'] )) {
+            $Global->POST['Year']['Year'] = date('Y').'/'.( date('y') + 1 );
             $Global->savePost();
         }
 
@@ -145,16 +169,13 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Schuljahr',
-                            new AutoCompleter('Year[Name]', 'Name',
-                                'z.B: '.date('Y').'/'.( date('Y') + 1 ).' Gymnasium',
-                                $acNameAll, new Pencil())
-
+                        new Panel('Schuljahr', array(
+                                new SelectBox('Year[Year]', 'Jahr', $YearList, new Select()))
                             , Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(
-                        new Panel('Sonstiges',
-                            new TextField('Year[Description]', 'z.B: für Gymnasium', 'Beschreibung', new Pencil())
+                        new Panel('Sonstiges', array(
+                                new TextField('Year[Description]', 'z.B: für Gymnasium', 'Beschreibung', new Pencil()))
                             , Panel::PANEL_TYPE_INFO
                         )
                         , 6)
@@ -286,122 +307,121 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendChoosePeriod($Id, $Period = null, $Remove = null)
+    public function frontendChoosePeriod($Id = null, $Period = null, $Remove = null)
     {
 
-        $tblYear = Term::useService()->getYearById($Id);
+        $tblYear = $Id === null ? false : Term::useService()->getYearById($Id);
         if ($tblYear) {
-            $Stage = new Stage('Zeitraum', 'Bearbeiten');
-            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
-
-            if ($tblYear && null !== $Period && ( $Period = Term::useService()->getPeriodById($Period) )) {
-                if ($Remove) {
-                    Term::useService()->removeYearPeriod($tblYear->getId(), $Period);
-                    $Stage->setContent(
-                        new Success('Zeitraum erfolgreich entfernt')
-                        .new Redirect('/Education/Lesson/Term/Choose/Period', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id))
-                    );
-                    return $Stage;
-                } else {
-                    Term::useService()->addYearPeriod($tblYear->getId(), $Period);
-                    $Stage->setContent(
-                        new Success('Zeitraum erfolgreich hinzugefügt')
-                        .new Redirect('/Education/Lesson/Term/Choose/Period', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id))
-                    );
-                    return $Stage;
-                }
-            }
-
-            $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear);
-
-            $tblPeriodAll = Term::useService()->getPeriodAll();
-
-            if (is_array($tblPeriodUsedList)) {
-                $tblPeriodAvailable = array_udiff($tblPeriodAll, $tblPeriodUsedList,
-                    function (TblPeriod $ObjectA, TblPeriod $ObjectB) {
-
-                        return $ObjectA->getId() - $ObjectB->getId();
-                    }
-                );
-            } else {
-                $tblPeriodAvailable = $tblPeriodAll;
-            }
-
-            /** @noinspection PhpUnusedParameterInspection */
-            if (is_array($tblPeriodUsedList)) {
-                array_walk($tblPeriodUsedList, function (TblPeriod &$Entity) use ($Id) {
-
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $Entity->Option = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                            '/Education/Lesson/Term/Choose/Period', new Minus(),
-                            array(
-                                'Id'     => $Id,
-                                'Period' => $Entity->getId(),
-                                'Remove' => true
-                            ))
-                    );
-                }, $Id);
-            }
-
-            /** @noinspection PhpUnusedParameterInspection */
-            if (isset( $tblPeriodAvailable ) && is_array($tblPeriodAvailable)) {
-                array_walk($tblPeriodAvailable, function (TblPeriod &$Entity) use ($Id) {
-
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $Entity->Option = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                            '/Education/Lesson/Term/Choose/Period', new Plus(),
-                            array(
-                                'Id'     => $Id,
-                                'Period' => $Entity->getId()
-                            ))
-                    );
-                });
-            }
-
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            new LayoutColumn(array(
-                                new Title('Zeiträume', 'Zugewiesen'),
-                                ( empty( $tblPeriodUsedList )
-                                    ? new Warning('Kein Zeitraum zugewiesen')
-                                    : new TableData($tblPeriodUsedList, null,
-                                        array(
-                                            'Name'        => 'Fach',
-                                            'FromDate'    => 'Von',
-                                            'ToDate'      => 'Bis',
-                                            'Description' => 'Beschreibung',
-                                            'Option'      => ''
-                                        ))
-                                )
-                            ), 6),
-                            new LayoutColumn(array(
-                                new Title('Zeiträume', 'Verfügbar'),
-                                ( empty( $tblPeriodAvailable )
-                                    ? new Info('Keine weiteren Zeiträume verfügbar')
-                                    : new TableData($tblPeriodAvailable, null,
-                                        array(
-                                            'Name'        => 'Fach',
-                                            'FromDate'    => 'Von',
-                                            'ToDate'      => 'Bis',
-                                            'Description' => 'Beschreibung',
-                                            'Option'      => ''
-                                        ))
-                                )
-                            ), 6)
-                        ))
-                    )
-                )
-            );
-
-        } else {
             $Stage = new Stage('Zeiträume', 'Bearbeiten');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
             $Stage->setContent(new Warning('Jahr nicht gefunden'));
         }
+        $Stage = new Stage('Zeitraum', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
+
+        if ($tblYear && null !== $Period && ( $Period = Term::useService()->getPeriodById($Period) )) {
+            if ($Remove) {
+                Term::useService()->removeYearPeriod($tblYear->getId(), $Period);
+                $Stage->setContent(
+                    new Success('Zeitraum erfolgreich entfernt')
+                    .new Redirect('/Education/Lesson/Term/Choose/Period', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id))
+                );
+                return $Stage;
+            } else {
+                Term::useService()->addYearPeriod($tblYear->getId(), $Period);
+                $Stage->setContent(
+                    new Success('Zeitraum erfolgreich hinzugefügt')
+                    .new Redirect('/Education/Lesson/Term/Choose/Period', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id))
+                );
+                return $Stage;
+            }
+        }
+
+        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear);
+
+        $tblPeriodAll = Term::useService()->getPeriodAll();
+
+        if (is_array($tblPeriodUsedList)) {
+            $tblPeriodAvailable = array_udiff($tblPeriodAll, $tblPeriodUsedList,
+                function (TblPeriod $ObjectA, TblPeriod $ObjectB) {
+
+                    return $ObjectA->getId() - $ObjectB->getId();
+                }
+            );
+        } else {
+            $tblPeriodAvailable = $tblPeriodAll;
+        }
+
+        /** @noinspection PhpUnusedParameterInspection */
+        if (is_array($tblPeriodUsedList)) {
+            array_walk($tblPeriodUsedList, function (TblPeriod &$Entity) use ($Id) {
+
+                /** @noinspection PhpUndefinedFieldInspection */
+                $Entity->Option = new PullRight(
+                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                        '/Education/Lesson/Term/Choose/Period', new Minus(),
+                        array(
+                            'Id'     => $Id,
+                            'Period' => $Entity->getId(),
+                            'Remove' => true
+                        ))
+                );
+            }, $Id);
+        }
+
+        /** @noinspection PhpUnusedParameterInspection */
+        if (isset( $tblPeriodAvailable ) && is_array($tblPeriodAvailable)) {
+            array_walk($tblPeriodAvailable, function (TblPeriod &$Entity) use ($Id) {
+
+                /** @noinspection PhpUndefinedFieldInspection */
+                $Entity->Option = new PullRight(
+                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
+                        '/Education/Lesson/Term/Choose/Period', new Plus(),
+                        array(
+                            'Id'     => $Id,
+                            'Period' => $Entity->getId()
+                        ))
+                );
+            });
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Title('Zeiträume', 'Zugewiesen'),
+                            ( empty( $tblPeriodUsedList )
+                                ? new Warning('Kein Zeitraum zugewiesen')
+                                : new TableData($tblPeriodUsedList, null,
+                                    array(
+                                        'Name'        => 'Fach',
+                                        'FromDate'    => 'Von',
+                                        'ToDate'      => 'Bis',
+                                        'Description' => 'Beschreibung',
+                                        'Option'      => ''
+                                    ))
+                            )
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Title('Zeiträume', 'Verfügbar'),
+                            ( empty( $tblPeriodAvailable )
+                                ? new Info('Keine weiteren Zeiträume verfügbar')
+                                : new TableData($tblPeriodAvailable, null,
+                                    array(
+                                        'Name'        => 'Fach',
+                                        'FromDate'    => 'Von',
+                                        'ToDate'      => 'Bis',
+                                        'Description' => 'Beschreibung',
+                                        'Option'      => ''
+                                    ))
+                            )
+                        ), 6)
+                    ))
+                )
+            )
+        );
+
         return $Stage;
     }
 
@@ -416,139 +436,142 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblYear) {
             $Panel = new Panel('<b>'.( ( $tblYear->getDescription() ) ? ( $tblYear->getDescription() ) : 'Schuljahr' ).'&nbsp'
-                .$tblYear->getName().'</b>', '', Panel::PANEL_TYPE_INFO);
+                .$tblYear->getDisplayName().'</b>', '', Panel::PANEL_TYPE_INFO);
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Panel, 6))));
         }
         return false;
     }
 
     /**
-     * @param $PeriodId
-     * @param $Id
+     * @param null $PeriodId
+     * @param null $Id
      *
      * @return \SPHERE\Common\Frontend\Message\Repository\Success
      */
-    public function frontendRemovePeriod($PeriodId, $Id)
+    public function frontendRemovePeriod($PeriodId = null, $Id = null)
     {
 
         $Stage = new Stage('Zeitraum', 'entfernen');
+        if ($PeriodId === null || $Id === null) {
+            $Stage->setContent(new Warning('Zeitraum nicht gefunden'));
+            return $Stage.new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_ERROR);
+        }
         $Stage->setContent(Term::useService()->removeYearPeriod($Id, $PeriodId));
         return $Stage;
     }
 
     /**
-     * @param $Id
-     * @param $Year
+     * @param null $Id
+     * @param null $Year
      *
      * @return Stage
      */
-    public function frontendEditYear($Id, $Year)
+    public function frontendEditYear($Id = null, $Year = null)
     {
 
         $Stage = new Stage('Schuljahr', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term/Create/Year', new ChevronLeft()));
-        $tblYear = Term::useService()->getYearById($Id);
+        $tblYear = $Id === null ? false : Term::useService()->getYearById($Id);
+        if (!$tblYear) {
+            $Stage->setContent(new Warning('Jahr nicht gefunden!'));
+            return $Stage.new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_ERROR);
+        }
+        $Form = $this->formYear($tblYear)
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-        if ($tblYear) {
-            $Form = $this->formYear($tblYear)
-                ->appendFormButton(new Primary('Speichern', new Save()))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                array(
-                                    new Panel('Jahr',
-                                        $tblYear->getName().' '.new Small(new Muted($tblYear->getDescription())),
-                                        Panel::PANEL_TYPE_INFO).
-                                    new Headline(new Edit().' Bearbeiten'),
-                                    new Well(Term::useService()->changeYear($Form, $tblYear, $Year)),
-                                ), 6)
-                        )
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            array(
+                                new Panel('Jahr',
+                                    $tblYear->getDisplayName().' '.new Small(new Muted($tblYear->getDescription())),
+                                    Panel::PANEL_TYPE_INFO).
+                                new Headline(new Edit().' Bearbeiten'),
+                                new Well(Term::useService()->changeYear($Form, $tblYear, $Year)),
+                            ), 12)
                     )
                 )
-            );
+            )
+        );
 //            $Stage->setContent( Term::useService()->changeYear($this->formYear($tblYear)
 //            ->appendFormButton(new Primary('Änderungen speichern'))
 //            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
 //            ,$tblYear, $Year)
 //            );
-        } else {
-            $Stage->setContent(new Warning('Jahr nicht gefunden!'));
-        }
         return $Stage;
     }
 
     /**
-     * @param int $Id
+     * @param null $Id
      *
      * @return Stage|string
      */
-    public function frontendDestroyYear($Id)
+    public function frontendDestroyYear($Id = null)
     {
 
         $Stage = new Stage('Jahr', 'Entfernen');
-        $tblYear = Term::useService()->getYearById($Id);
-        if ($tblYear) {
-            $Stage->setContent(Term::useService()->destroyYear($tblYear));
-        } else {
-            return $Stage.new Warning('Jahr nicht gefunden!')
-            .new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_ERROR);
+        $tblYear = $Id === null ? false : Term::useService()->getYearById($Id);
+        if (!$tblYear) {
+            $Stage->setContent(new Warning('Jahr nicht gefunden!'));
+            return $Stage.new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_ERROR);
         }
+        $Stage->setContent(Term::useService()->destroyYear($tblYear));
+
         return $Stage;
     }
 
     /**
-     * @param $Id
-     * @param $Period
+     * @param null $Id
+     * @param null $Period
      *
      * @return Stage
      */
-    public function frontendEditPeriod($Id, $Period)
+    public function frontendEditPeriod($Id = null, $Period = null)
     {
 
         $Stage = new Stage('Zeitraum', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term/Create/Period', new ChevronLeft()));
-        $tblPeriod = Term::useService()->getPeriodById($Id);
+        $tblPeriod = $Id === null ? false : Term::useService()->getPeriodById($Id);
 
-        if ($tblPeriod) {
-            $PeriodName = $tblPeriod->getName();
-            $PeriodDescription = $tblPeriod->getDescription();
-            $PeriodFrom = $tblPeriod->getFromDate();
-            $PeriodTo = $tblPeriod->getToDate();
-            $Panel = new Layout(
+        if (!$tblPeriod) {
+            $Stage->setContent(new Warning('Zeitraum nicht gefunden!'));
+            return $Stage.new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_ERROR);
+        }
+        $PeriodName = $tblPeriod->getName();
+        $PeriodDescription = $tblPeriod->getDescription();
+        $PeriodFrom = $tblPeriod->getFromDate();
+        $PeriodTo = $tblPeriod->getToDate();
+        $Panel = new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Panel('Zeitraum', array(
+                            $PeriodName.' '.new Muted(new Small($PeriodDescription)),
+                            'Zeitraum '.$PeriodFrom.' - '.$PeriodTo
+                        ), Panel::PANEL_TYPE_INFO)
+                    )
+                )
+            )
+        );
+
+        $Form = $this->formPeriod($tblPeriod)
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent($Panel.
+            new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Zeitraum', array(
-                                $PeriodName.' '.new Muted(new Small($PeriodDescription)),
-                                'Zeitraum '.$PeriodFrom.' - '.$PeriodTo
-                            ), Panel::PANEL_TYPE_INFO)
+                            new Well(Term::useService()->changePeriod($Form, $tblPeriod, $Period))
                         )
-                    )
+                    ), new Title(new Edit().' Bearbeiten')
                 )
-            );
-
-            $Form = $this->formPeriod($tblPeriod)
-                ->appendFormButton(new Primary('Speichern', new Save()))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-            $Stage->setContent($Panel.
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Well(Term::useService()->changePeriod($Form, $tblPeriod, $Period))
-                            )
-                        ), new Title(new Edit().' Bearbeiten')
-                    )
-                )
-            );
-        } else {
-            $Stage->setContent(new Warning('Zeitraum nicht gefunden!'));
-        }
+            )
+        );
         return $Stage;
     }
 
@@ -557,17 +580,16 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendDestroyPeriod($Id)
+    public function frontendDestroyPeriod($Id = null)
     {
 
         $Stage = new Stage('Zeitraum', 'Entfernen');
-        $tblPeriod = Term::useService()->getPeriodById($Id);
-        if ($tblPeriod) {
-            $Stage->setContent(Term::useService()->destroyPeriod($tblPeriod));
-        } else {
+        $tblPeriod = $Id === null ? false : Term::useService()->getPeriodById($Id);
+        if (!$tblPeriod) {
             return $Stage.new Warning('Zeitraum nicht gefunden!')
             .new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_ERROR);
         }
+        $Stage->setContent(Term::useService()->destroyPeriod($tblPeriod));
         return $Stage;
     }
 }

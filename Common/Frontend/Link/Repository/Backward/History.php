@@ -31,6 +31,22 @@ class History
     }
 
     /**
+     * @return array
+     */
+    public function getStack()
+    {
+
+        $Result = array();
+        if (!empty( $this->StepStack )) {
+            array_walk($this->StepStack, function (Step $Step) use (&$Result) {
+
+                $Result[] = $Step->getRoute();
+            });
+        }
+        return $Result;
+    }
+
+    /**
      * Add Step if not equals last History-Step
      *
      * @param Step $Step

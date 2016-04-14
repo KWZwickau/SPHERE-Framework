@@ -30,23 +30,6 @@ class Authentication implements IModuleInterface
             ));
         }
 
-//        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Student'),
-//            new Link\Name('Schüler'), new Link\Icon(new Lock())),
-//            new Link\Route('/Platform/Gatekeeper/Authentication')
-//        );
-//        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Teacher'),
-//            new Link\Name('Lehrer'), new Link\Icon(new Lock())),
-//            new Link\Route('/Platform/Gatekeeper/Authentication')
-//        );
-        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Staff'),
-            new Link\Name('Personal'), new Link\Icon(new Lock())),
-            new Link\Route('/Platform/Gatekeeper/Authentication')
-        );
-        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/System'),
-            new Link\Name('System'), new Link\Icon(new Lock())),
-            new Link\Route('/Platform/Gatekeeper/Authentication')
-        );
-
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendIdentification'
         )
@@ -56,33 +39,6 @@ class Authentication implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Offline', __NAMESPACE__.'\Frontend::frontendDestroySession'
-        )
-            ->setParameterDefault('CredentialName', null)
-            ->setParameterDefault('CredentialLock', null)
-            ->setParameterDefault('CredentialKey', null)
-        );
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__.'/Student', __NAMESPACE__.'\Frontend::frontendCreateSessionStudent'
-//        )
-//            ->setParameterDefault('CredentialName', null)
-//            ->setParameterDefault('CredentialLock', null)
-//        );
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__.'/Teacher', __NAMESPACE__.'\Frontend::frontendCreateSessionTeacher'
-//        )
-//            ->setParameterDefault('CredentialName', null)
-//            ->setParameterDefault('CredentialLock', null)
-//            ->setParameterDefault('CredentialKey', null)
-//        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Staff', __NAMESPACE__.'\Frontend::frontendCreateSessionStaff'
-        )
-            ->setParameterDefault('CredentialName', null)
-            ->setParameterDefault('CredentialLock', null)
-            ->setParameterDefault('CredentialKey', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/System', __NAMESPACE__.'\Frontend::frontendCreateSessionSystem'
         )
             ->setParameterDefault('CredentialName', null)
             ->setParameterDefault('CredentialLock', null)

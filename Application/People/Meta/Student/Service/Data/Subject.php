@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -159,13 +160,18 @@ abstract class Subject extends Transfer
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
      * @param TblSubject               $tblSubject
      *
+     * @param TblLevel                 $tblLevelFrom
+     * @param TblLevel                 $tblLevelTill
+     *
      * @return TblStudentSubject
      */
     public function addStudentSubject(
         TblStudent $tblStudent,
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking,
-        TblSubject $tblSubject
+        TblSubject $tblSubject,
+        TblLevel $tblLevelFrom = null,
+        TblLevel $tblLevelTill = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -183,6 +189,8 @@ abstract class Subject extends Transfer
             $Entity->setTblStudentSubjectType($tblStudentSubjectType);
             $Entity->setTblStudentSubjectRanking($tblStudentSubjectRanking);
             $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblLevelFrom($tblLevelFrom);
+            $Entity->setServiceTblLevelTill($tblLevelTill);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -192,6 +200,8 @@ abstract class Subject extends Transfer
             $Entity->setTblStudentSubjectType($tblStudentSubjectType);
             $Entity->setTblStudentSubjectRanking($tblStudentSubjectRanking);
             $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblLevelFrom($tblLevelFrom);
+            $Entity->setServiceTblLevelTill($tblLevelTill);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

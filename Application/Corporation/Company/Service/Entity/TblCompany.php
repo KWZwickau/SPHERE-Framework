@@ -5,6 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\System\Database\Fitting\Element;
@@ -18,12 +20,17 @@ class TblCompany extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_EXTENDED_NAME = 'ExtendedNameName';
     const ATTR_DESCRIPTION = 'Description';
 
     /**
      * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $ExtendedName;
     /**
      * @Column(type="string")
      */
@@ -45,6 +52,24 @@ class TblCompany extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExtendedName()
+    {
+
+        return $this->ExtendedName;
+    }
+
+    /**
+     * @param string $ExtendedName
+     */
+    public function setExtendedName($ExtendedName)
+    {
+
+        $this->ExtendedName = $ExtendedName;
     }
 
     /**
@@ -72,5 +97,20 @@ class TblCompany extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    public function getDisplayName()
+    {
+
+        return $this->Name.( $this->ExtendedName != '' ? ' '.$this->ExtendedName : null );
+    }
+    
+    /**
+     * @return bool|TblAddress
+     */
+    public function fetchMainAddress()
+    {
+
+        return Address::useService()->getAddressByCompany($this);
     }
 }

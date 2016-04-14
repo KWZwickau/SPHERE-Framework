@@ -44,7 +44,22 @@ Install
 Config
 ------
 - a2enmod rewrite headers
-- File: /etc/php5/mods-available/apcu.conf
+
+- File: /etc/apache2/apache2.conf
+
+
+    <Directory /var/www/>
+            Options Indexes FollowSymLinks
+            AllowOverride All
+            Require all granted
+    </Directory>
+
+- File: /etc/apache2/sites-available/000-default.conf
+
+
+    DocumentRoot /var/www
+
+- File: /etc/php5/mods-available/apcu.ini
 
 
     apc.shm_segments=1
@@ -62,6 +77,95 @@ Config
     [Session]
     session.save_handler = memcached
     session.save_path = "<server>:11211"
+
+- File /etc/proftpd/proftpd.conf
+
+
+    ServerType standalone
+    DefaultServer on
+    Umask 002
+    ServerName "0.0.0.0"
+    ServerIdent on "Sphere-Development-Server"
+    ServerAdmin gerdchristian.kunze@haus-der-edv.de
+    IdentLookups off
+    UseReverseDNS off
+    Port 21
+    PassivePorts 49152 65534
+    TimesGMT off
+    MaxInstances 30
+    MaxLoginAttempts 3
+    TimeoutLogin 300
+    TimeoutNoTransfer 120
+    TimeoutIdle 120
+    DisplayLogin welcome.msg
+    DisplayChdir .message
+    User nobody
+    Group www-data
+    DirFakeUser off nobody
+    DirFakeGroup off nobody
+    DefaultTransferMode binary
+    AllowForeignAddress off
+    AllowRetrieveRestart on
+    AllowStoreRestart on
+    DeleteAbortedStores off
+    TransferRate RETR 0
+    TransferRate STOR 0
+    TransferRate STOU 0
+    TransferRate APPE 0
+    SystemLog /var/log/secure
+    RequireValidShell off
+    <IfModule mod_tls.c>
+    TLSEngine off
+    TLSRequired off
+    TLSVerifyClient off
+    TLSProtocol SSLv23
+    TLSLog /var/log/proftpd_tls.log
+    TLSRSACertificateFile /etc/gadmin-proftpd/certs/cert.pem
+    TLSRSACertificateKeyFile /etc/gadmin-proftpd/certs/key.pem
+    TLSCACertificateFile /etc/gadmin-proftpd/certs/cacert.pem
+    TLSRenegotiate required off
+    TLSOptions AllowClientRenegotiation
+    </IfModule>
+    <IfModule mod_ratio.c>
+    Ratios off
+    SaveRatios off
+    RatioFile "/restricted/proftpd_ratios"
+    RatioTempFile "/restricted/proftpd_ratios_temp"
+    CwdRatioMsg "Please upload first!"
+    FileRatioErrMsg "FileRatio limit exceeded, upload something first..."
+    ByteRatioErrMsg "ByteRatio limit exceeded, upload something first..."
+    LeechRatioMsg "Your ratio is unlimited."
+    </IfModule>
+    <Limit LOGIN>
+      AllowUser administrator
+      DenyALL
+    </Limit>
+    
+    <Anonymous /var/www>
+    User administrator
+    Group www-data
+    AnonRequirePassword on
+    MaxClients 10 "The server is full, hosting %m users"
+    DisplayLogin welcome.msg
+    DisplayChdir .msg
+    <Limit LOGIN>
+    Allow from All
+    Deny from all
+    </Limit>
+    AllowOverwrite on
+    <Limit LIST NLST  STOR STOU  APPE  RETR  RNFR RNTO  DELE  MKD XMKD SITE_MKDIR  RMD XRMD SITE_RMDIR  SITE  SITE_CHMOD  SITE_CHGRP  MTDM  PWD XPWD  SIZE  STAT  CWD XCWD  CDUP XCUP >
+     AllowAll
+    </Limit>
+    <Limit NOTHING >
+     DenyAll
+    </Limit>
+    </Anonymous>
+
+- Access
+
+
+    chown -R administrator:www-data /var/www
+    chmod -R 0775 /var/www
 
 Data
 ====
@@ -89,7 +193,6 @@ Cache
 Install
 -------
 - memcached
-- couchbase
 
 Config
 ------
@@ -97,8 +200,3 @@ Config
 
 
     # -l 127.0.0.1
-
-
-- Couchbase
-- php5-dev
-- 
