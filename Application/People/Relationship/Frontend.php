@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Relationship;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Person;
@@ -72,14 +73,14 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Backward(true));
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
             . '<br/>Beispiel: Die Person (Vater) > hat folgende Beziehung (Sorgeberechtigt), Bemerkung: Vater > zu folgender Person (Kind)'
         );
 
         $tblPerson = Person::useService()->getPersonById($Id);
-        if(!$tblPerson){
+        if (!$tblPerson) {
             return $Stage . new Danger('Person nicht gefunden', new Ban())
             . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
@@ -146,9 +147,20 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($currentPerson) {
 
+                // alle Hauptadressen
+                $tblAddressToPersonList = Address::useService()->getAddressAllByPersonAndType($tblPerson,
+                    Address::useService()->getTypeById(1));
+                if ($tblAddressToPersonList) {
+                    /** @var \SPHERE\Application\Contact\Address\Service\Entity\TblToPerson $tblAddressToPerson */
+                    $tblAddressToPerson = reset($tblAddressToPersonList);
+                } else {
+                    $tblAddressToPerson = false;
+                }
+
                 if ($currentPerson && $currentPerson->getId() == $tblPerson->getId()) {
                     $tblPerson = array(
-                        'Person' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getFullName()) . ' (Aktuell hinterlegt)'
+                        'Person' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getFullName()) . ' (Aktuell hinterlegt)',
+                        'Address' => $tblAddressToPerson ? $tblAddressToPerson->getTblAddress()->getGuiString() : ''
                     );
                 } else {
                     $tblPerson = array(
@@ -156,7 +168,8 @@ class Frontend extends Extension implements IFrontendInterface
                             . new PullRight(new Standard('', '/People/Person',
                                 new PersonIcon(),
                                 array('Id' => $tblPerson->getId()),
-                                'zu ' . $tblPerson->getFullName() . ' wechseln'))
+                                'zu ' . $tblPerson->getFullName() . ' wechseln')),
+                        'Address' => $tblAddressToPerson ? $tblAddressToPerson->getTblAddress()->getGuiString() : ''
                     );
                 }
             });
@@ -176,7 +189,7 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id' => $currentPerson->getId()),
                         'zu ' . $currentPerson->getFullName() . ' wechseln')),
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Person wählen: '),
-                    new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                    new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
                 ), Panel::PANEL_TYPE_INFO,
                 new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
                     , array(), 'Die aktuell gewählte Person verlassen'
@@ -185,7 +198,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
                 array(
-                    new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                    new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
                 ), Panel::PANEL_TYPE_INFO,
                 new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
                     , array(), 'Die aktuell gewählte Person verlassen'
@@ -230,13 +243,13 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Backward(true));
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
         );
 
         $tblPerson = Person::useService()->getPersonById($Id);
-        if(!$tblPerson){
+        if (!$tblPerson) {
             return $Stage . new Danger('Person nicht gefunden', new Ban())
             . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
@@ -302,20 +315,32 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblCompanyAll) {
             array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($currentCompany) {
 
+                // alle Hauptadressen
+                $tblAddressToCompanyList = Address::useService()->getAddressAllByCompanyAndType($tblCompany,
+                    Address::useService()->getTypeById(1));
+                if ($tblAddressToCompanyList) {
+                    /** @var \SPHERE\Application\Contact\Address\Service\Entity\TblToCompany $tblAddressToCompany */
+                    $tblAddressToCompany = reset($tblAddressToCompanyList);
+                } else {
+                    $tblAddressToCompany = false;
+                }
+
                 if ($currentCompany && $currentCompany->getId() == $tblCompany->getId()) {
                     $tblCompany = array(
-                        'Company' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblCompany->getName()) . ' (Aktuell hinterlegt)'
+                        'Company' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblCompany->getName()) . ' (Aktuell hinterlegt)',
+                        'Address' => $tblAddressToCompany ? $tblAddressToCompany->getTblAddress()->getGuiString() : ''
                     );
                 } else {
                     $tblCompany = array(
                         'Company' => new RadioBox('To', $tblCompany->getName()
-                                .new Container(new Container($tblCompany->getExtendedName()))
-                                .new Container(new Container(new Muted($tblCompany->getDescription()))),
+                                . new Container(new Container($tblCompany->getExtendedName()))
+                                . new Container(new Container(new Muted($tblCompany->getDescription()))),
                                 $tblCompany->getId())
                             . new PullRight(new Standard('', '/Corporation/Company',
                                 new Building(),
                                 array('Id' => $tblCompany->getId()),
-                                'zu ' . $tblCompany->getName() . ' wechseln'))
+                                'zu ' . $tblCompany->getName() . ' wechseln')),
+                        'Address' => $tblAddressToCompany ? $tblAddressToCompany->getTblAddress()->getGuiString() : ''
                     );
                 }
             });
@@ -330,15 +355,15 @@ class Frontend extends Extension implements IFrontendInterface
                 array(
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Firma, '),
                     new PullLeft(new RadioBox('To', $currentCompany->getName()
-                        .new Container(new Container($currentCompany->getExtendedName()))
-                        .new Container(new Container(new Muted($currentCompany->getDescription()))),
+                        . new Container(new Container($currentCompany->getExtendedName()))
+                        . new Container(new Container(new Muted($currentCompany->getDescription()))),
                         $currentCompany->getId()))
                     . new PullRight(new Standard('', '/Corporation/Company',
                         new Building(),
                         array('Id' => $currentCompany->getId()),
-                        'zu '.$currentCompany->getDisplayName().' wechseln')),
+                        'zu ' . $currentCompany->getDisplayName() . ' wechseln')),
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Firma wählen: '),
-                    new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen')),
+                    new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen', 'Address' => 'Adresse')),
                 ), Panel::PANEL_TYPE_INFO,
                 new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
                     , array(), 'Die aktuell gewählte Person verlassen'
@@ -347,7 +372,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $PanelCompany = new Panel('zu folgender Firma ' . new Building(),
                 array(
-                    new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen')),
+                    new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen', 'Address' => 'Adresse')),
                 ), Panel::PANEL_TYPE_INFO,
                 new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
                     , array(), 'Die aktuell gewählte Person verlassen'
@@ -393,14 +418,14 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Bearbeiten');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Backward(true));
         $Stage->setMessage('Eine Beziehungen der gewählten Person ändern');
 
         /** @Var TblToPerson $tblToPerson */
         $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
 
-        if (!$tblToPerson->getServiceTblPersonFrom()){
-            return $Stage . new Danger('Person nicht gefunden' , new Ban())
+        if (!$tblToPerson->getServiceTblPersonFrom()) {
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
             . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
@@ -447,14 +472,14 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Bearbeiten');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Backward(true));
         $Stage->setMessage('Eine Beziehungen der gewählten Person ändern');
 
         /** @Var TblToPerson $tblToPerson */
         $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
 
-        if (!$tblToCompany->getServiceTblPerson()){
-            return $Stage . new Danger('Person nicht gefunden' , new Ban())
+        if (!$tblToCompany->getServiceTblPerson()) {
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
             . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
@@ -505,7 +530,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
 
                 if ($tblToPerson->getServiceTblPersonFrom() && $tblToPerson->getServiceTblPersonTo()) {
-                    if ($tblToPerson->getTblType()->isBidirectional()){
+                    if ($tblToPerson->getTblType()->isBidirectional()) {
                         $sign = ' ' . new ChevronLeft() . new ChevronRight() . ' ';
                     } else {
                         $sign = ' ' . new ChevronRight() . ' ';
@@ -525,9 +550,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
                             $Panel,
                             ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                                || $tblToPerson->getTblType()->isBidirectional()
-                                    ? Panel::PANEL_TYPE_SUCCESS
-                                    : Panel::PANEL_TYPE_DEFAULT
+                            || $tblToPerson->getTblType()->isBidirectional()
+                                ? Panel::PANEL_TYPE_SUCCESS
+                                : Panel::PANEL_TYPE_DEFAULT
                             ),
                             ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                                 ? new Standard(
@@ -551,7 +576,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             )
                         )
-                    , 3);
+                        , 3);
                 } else {
                     $tblToPerson = false;
                 }
@@ -684,12 +709,12 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehung', 'Löschen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Backward(true));
         if ($Id) {
             $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
             $tblPersonFrom = $tblToPerson->getServiceTblPersonFrom();
-            if (!$tblToPerson || !$tblPersonFrom){
-                return $Stage . new Danger('Person nicht gefunden' , new Ban())
+            if (!$tblToPerson || !$tblPersonFrom) {
+                return $Stage . new Danger('Person nicht gefunden', new Ban())
                 . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
@@ -754,16 +779,16 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehung', 'Löschen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Backward(true));
         if ($Id) {
             $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
-            if (!$tblToCompany){
-                return $Stage . new Danger('Firma nicht gefunden' , new Ban())
+            if (!$tblToCompany) {
+                return $Stage . new Danger('Firma nicht gefunden', new Ban())
                 . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
             $tblPerson = $tblToCompany->getServiceTblPerson();
-            if (!$tblPerson){
-                return $Stage . new Danger('Person nicht gefunden' , new Ban())
+            if (!$tblPerson) {
+                return $Stage . new Danger('Person nicht gefunden', new Ban())
                 . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 

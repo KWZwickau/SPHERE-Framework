@@ -349,6 +349,22 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType $tblType
+     *
+     * @return bool|Entity\TblToPerson[]
+     */
+    public function getAddressAllByPersonAndType(TblPerson $tblPerson, TblType $tblType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+            array(
+                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblToPerson::ATT_TBL_TYPE => $tblType->getId()
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      *
      * @return bool|TblAddress
      */
@@ -417,6 +433,22 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
             array(
                 TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+            ));
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param TblType $tblType
+     *
+     * @return bool|Entity\TblToCompany[]
+     */
+    public function getAddressAllByCompanyAndType(TblCompany $tblCompany, TblType $tblType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
+            array(
+                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId(),
+                TblToCompany::ATT_TBL_TYPE => $tblType->getId()
             ));
     }
 

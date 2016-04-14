@@ -624,6 +624,19 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType $tblType
+     *
+     * @return bool|TblToPerson[]
+     */
+    public function getAddressAllByPersonAndType(TblPerson $tblPerson, TblType $tblType)
+    {
+
+        return (new Data($this->getBinding()))->getAddressAllByPersonAndType($tblPerson, $tblType);
+    }
+
+
+    /**
+     * @param TblPerson $tblPerson
      *
      * @return bool|TblAddress
      */
@@ -656,6 +669,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCompany $tblCompany
+     * @param TblType $tblType
+     *
+     * @return bool|TblToCompany[]
+     */
+    public function getAddressAllByCompanyAndType(TblCompany $tblCompany, TblType $tblType)
+    {
+
+        return (new Data($this->getBinding()))->getAddressAllByCompanyAndType($tblCompany, $tblType);
+    }
+
+        /**
      * @param integer $Id
      *
      * @return bool|TblToPerson
