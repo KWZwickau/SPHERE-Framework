@@ -18,7 +18,7 @@ class Section
     public function __construct()
     {
 
-        $this->Template = Template::getTwigTemplateString('<table class="Section"><tbody><tr>{{ Columns }}</tr></tbody></table>');
+        $this->Template = Template::getTwigTemplateString('<table cellspacing="0" cellpadding="0" class="Section"><tbody><tr>{{ Columns }}</tr></tbody></table>');
     }
 
     /**
