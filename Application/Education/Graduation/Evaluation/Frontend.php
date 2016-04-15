@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -532,6 +533,84 @@ class Frontend extends Extension implements IFrontendInterface
             $Form = false;
         }
 
+        // Vorschau Test
+        $tblTestAllByDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision(Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+            $tblDivision);
+        $testArray = array();
+        if ($tblTestAllByDivision) {
+            $tblTestAllByDivision = $this->getSorter($tblTestAllByDivision)->sortObjectBy('Date', new DateTimeSorter());
+
+            $nowWeek = date('W');
+            $nowYear = (new \DateTime('now'))->format('Y');
+            /** @var TblTest $item */
+            foreach ($tblTestAllByDivision as $item) {
+                if ($item->getDate()) {
+                    $dateWeek = date('W', strtotime($item->getDate()));
+                    $dateYear = (new \DateTime($item->getDate()))->format('Y');
+                    if ($dateWeek !== false && (($dateYear == $nowYear && $dateWeek >= $nowWeek) || $dateYear > $nowYear)) {
+                        $testArray[$dateWeek][$item->getId()] = $item;
+                    }
+                }
+            }
+        }
+
+        // ToDo JohK bessere Möglichkeit finden
+//        setlocale(LC_TIME,'de_DE');
+//        strftime("%a",mktime(0, 0, 0, $x, 1, date("Y")));
+        $trans = array(
+            'Mon' => 'Mo',
+            'Tue' => 'Di',
+            'Wed' => 'Mi',
+            'Thu' => 'Do',
+            'Fri' => 'Fr',
+            'Sat' => 'Sa',
+            'Sun' => 'So',
+        );
+
+        $preview = array();
+        if (!empty($testArray)) {
+            $columnCount = 0;
+            $row = array();
+            foreach ($testArray as $calendarWeek => $testList) {
+                $panelData = array();
+                $date = new \DateTime();
+                if (!empty($testList)) {
+                    foreach ($testList as $item) {
+                        if ($item->getServiceTblSubject() && $item->getServiceTblGradeType()) {
+                            $content = $item->getServiceTblSubject()->getAcronym() . ' '
+                                . $item->getServiceTblGradeType()->getCode() . ' '
+                                . $item->getDescription() . ' ('
+                                . strtr(date('D', strtotime($item->getDate())), $trans) . ' ' . date('d.m.y', strtotime($item->getDate())) . ')';
+                            $panelData[] = $item->getServiceTblGradeType()->isHighlighted()
+                                ? new Bold($content) : $content;
+                            $date = new \DateTime($item->getDate());
+                        }
+                    }
+                }
+
+                $year = $date->format('Y');
+                $week = $date->format('W');
+                $monday = date('d.m.y', strtotime("$year-W{$week}"));
+                $friday = date('d.m.y', strtotime("$year-W{$week}-5"));;
+
+                $panel = new Panel(
+                    new Bold('KW: ' . $calendarWeek) . new Muted(' &nbsp;&nbsp;&nbsp;(' . $monday . ' - ' . $friday . ')'),
+                    $panelData,
+                    $calendarWeek == date('W') ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT
+                );
+                $columnCount++;
+                if ($columnCount > 4) {
+                    $preview[] = new LayoutRow($row);
+                    $row = array();
+                    $columnCount = 1;
+                }
+                $row[] = new LayoutColumn($panel, 3);
+            }
+            if (!empty($row)) {
+                $preview[] = new LayoutRow($row);
+            }
+        }
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -582,7 +661,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new Danger('Schuljahr nicht gefunden', new Ban())
                         ))
                     ))
-                ), new Title(new PlusSign() . ' Hinzufügen'))
+                ), new Title(new PlusSign() . ' Hinzufügen')),
+                new LayoutGroup(
+                    $preview
+                    , new Title(new Clock() . ' Planung'))
             ))
         );
 
@@ -1404,7 +1486,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
 
                                         // Zensuren voreintragen bei Stichtagsnotenauftrag, wenn noch keine vergeben ist
-                                        if ($average && !Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson)) {
+                                        if ($average && !Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                                $tblPerson)
+                                        ) {
                                             $Global = $this->getGlobal();
                                             $Global->POST['Grade'][$tblPerson->getId()]['Grade'] =
                                                 str_replace('.', ',', round($average, 0));
