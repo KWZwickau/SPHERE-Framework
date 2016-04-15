@@ -136,7 +136,7 @@ class HorJOne extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleHeight('550px')
+                        ->styleMinHeight('550px')
                         ->styleMarginTop('15px')
                     )
                 )
