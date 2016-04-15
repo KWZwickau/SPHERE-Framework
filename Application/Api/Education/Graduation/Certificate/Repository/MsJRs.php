@@ -11,11 +11,11 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class MsJ
+ * Class MsJRs
  *
  * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
  */
-class MsJ extends Certificate
+class MsJRs extends Certificate
 {
 
     /**
@@ -29,7 +29,7 @@ class MsJ extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('MS Jahreszeugnis Klasse 5-6 3c.pdf')
+                    ->setContent('MS Jahreszeugnis Realschule 3c.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -108,8 +108,8 @@ class MsJ extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('&nbsp;')
-//                        ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des [...] teil.')
+//                        ->setContent('&nbsp;')
+                        ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')
