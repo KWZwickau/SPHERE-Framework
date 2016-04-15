@@ -1145,8 +1145,8 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
                     $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
                     if ($tblScoreRule) {
-                        if ($isTestAppointedDateTask) {
-                            $scoreRuleText[] = new Bold($tblScoreRule->getName());
+//                        if ($isTestAppointedDateTask) {
+                            $scoreRuleText[] = $tblScoreRule->getName();
                             $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
                             if ($tblScoreConditionsByRule) {
 
@@ -1154,7 +1154,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $scoreRuleText[] = new Bold(new Warning(
                                     new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
                                 ));
-                            }
+//                            }
                         }
                     }
                 }
@@ -1620,20 +1620,20 @@ class Frontend extends Extension implements IFrontendInterface
                                 $gradeType,
                                 Panel::PANEL_TYPE_INFO), 3
                         ),
-                        new LayoutColumn(
-                            new Panel(
-                                'Beschreibung',
-                                $tblTest->getTblTask() ? $tblTest->getTblTask()->getName() : $tblTest->getDescription(),
-                                Panel::PANEL_TYPE_INFO
-                            ), 3
-                        ),
-                        ($isTestAppointedDateTask ? new LayoutColumn(new Panel(
+                        new LayoutColumn(new Panel(
                             'Berechnungsvorschrift',
                             $tblScoreRule ? $scoreRuleText : new Bold(new Warning(
                                 new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
                             )),
                             Panel::PANEL_TYPE_INFO
-                        ), 12) : null),
+                        ), 3),
+                        new LayoutColumn(
+                            new Panel(
+                                'Beschreibung',
+                                $tblTest->getTblTask() ? $tblTest->getTblTask()->getName() : $tblTest->getDescription(),
+                                Panel::PANEL_TYPE_INFO
+                            ), 12
+                        ),
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
