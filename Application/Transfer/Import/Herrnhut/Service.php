@@ -152,7 +152,7 @@ class Service
 
                     $error = array();
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-
+                        set_time_limit(300);
                         // Student
                         $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
                         $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));

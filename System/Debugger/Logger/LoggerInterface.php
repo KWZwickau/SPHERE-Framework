@@ -45,4 +45,9 @@ interface LoggerInterface extends DebuggerInterface
      * @return LoggerInterface
      */
     public function disableLog();
+
+    /**
+     * @return bool
+     */
+    public function isEnabled();
 }
