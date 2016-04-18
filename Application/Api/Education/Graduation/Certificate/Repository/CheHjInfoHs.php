@@ -11,11 +11,11 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class CheHjInfo
+ * Class CheHjInfoHs
  *
  * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
  */
-class CheHjInfo extends Certificate
+class CheHjInfoHs extends Certificate
 {
 
     /**
@@ -29,7 +29,7 @@ class CheHjInfo extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Chemnitz Halbjahresinformation Klasse 5-6.pdf')
+                    ->setContent('Chemnitz Halbjahresinformation Hauptschule.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -118,8 +118,8 @@ class CheHjInfo extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-//                        ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des [...] teil.')
-                        ->setContent('&nbsp;')
+                        ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Hauptschulabschlusses teil.')
+//                        ->setContent('&nbsp;')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')
