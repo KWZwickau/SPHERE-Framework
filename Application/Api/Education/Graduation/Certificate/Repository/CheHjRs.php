@@ -11,11 +11,11 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class CheHjInfoRs
+ * Class CheHjRs
  *
  * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
  */
-class CheHjInfoRs extends Certificate
+class CheHjRs extends Certificate
 {
 
     /**
@@ -29,7 +29,7 @@ class CheHjInfoRs extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Chemnitz Halbjahresinformation Realschule.pdf')
+                    ->setContent('Chemnitz Halbjahreszeugnis Realschule.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -69,7 +69,7 @@ class CheHjInfoRs extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Halbjahresinformation der Mittelschule')
+                        ->setContent('Halbjahreszeugnis der Mittelschule')
                         ->styleTextSize('18px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -681,25 +681,44 @@ class CheHjInfoRs extends Certificate
                             ->styleAlignCenter()
                             , '23%')
                         ->addElementColumn((new Element())
-                            , '70%')
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            , '30%')
+                        ->addElementColumn((new Element())
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            , '30%')
                     )
                     ->styleMarginTop('25px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleBorderBottom()
                             , '30%')
                         ->addElementColumn((new Element())
+                            ->setContent('Dienstsiegel der Schule')
+                            ->styleAlignCenter()
+                            ->styleTextSize('11px')
                             , '40%')
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
-                            ->styleAlignCenter()
                             ->styleBorderBottom('1px', '#000')
                             , '30%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            , '70%')
+                            ->setContent('Schulleiter(in)')
+                            ->styleAlignCenter()
+                            ->styleTextSize('11px')
+                            , '30%')
+                        ->addElementColumn((new Element())
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            , '30%')
+                        ->addElementColumn((new Element())
+                            , '5%')
                         ->addElementColumn((new Element())
                             ->setContent('Klassenlehrer(in)')
                             ->styleAlignCenter()

@@ -523,12 +523,30 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 'Auswählen')
                         );
                         $TemplateTable[] = array(
-                            'Template' => 'Chemnitz Halbjahreszeugnis',
+                            'Template' => 'Chemnitz Halbjahreszeugnis Klasse 5-6',
                             'Option'   => new Standard(
                                 'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                                 'Division'    => $tblDivision->getId(),
                                 'Person'      => $tblPerson->getId(),
                                 'Certificate' => 'CheHj'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Halbjahreszeugnis Hauptschule',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheHjHs'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Chemnitz Halbjahreszeugnis Realschule',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CheHjRs'
                             ), 'Auswählen')
                         );
                         $TemplateTable[] = array(

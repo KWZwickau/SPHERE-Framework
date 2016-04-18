@@ -530,6 +530,7 @@ class CheHjInfoHs extends Certificate
                             ->styleMarginTop('3px')
                             , '9%')
                     )
+                    ->styleHeight('215px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -738,7 +739,7 @@ class CheHjInfoHs extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('75px')
+                    )->styleMarginTop('65px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'
