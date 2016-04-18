@@ -68,7 +68,7 @@ class CosHjPri extends Certificate
                             ->styleBorderBottom()
                             ->styleMarginTop('80px')
                             , '40%')
-                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Coswig_logo.png', '120px'))
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Coswig_logo.jpg', '120px'))
                             ->styleAlignCenter()
                             , '30%')
                     )

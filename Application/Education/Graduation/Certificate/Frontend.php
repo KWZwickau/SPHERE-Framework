@@ -419,6 +419,24 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Certificate' => 'CosHjSek'
                             ), 'Auswählen')
                         );
+                        $TemplateTable[] = array(
+                            'Template' => 'Coswig Jahreszeugnis Primarstufe',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CosJPri'
+                            ), 'Auswählen')
+                        );
+                        $TemplateTable[] = array(
+                            'Template' => 'Coswig Jahreszeugnis Sekundarstufe',
+                            'Option'   => new Standard(
+                                'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
+                                'Division'    => $tblDivision->getId(),
+                                'Person'      => $tblPerson->getId(),
+                                'Certificate' => 'CosJSek'
+                            ), 'Auswählen')
+                        );
                     }
                     if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'DEMO') {
                         $TemplateTable[] = array(
