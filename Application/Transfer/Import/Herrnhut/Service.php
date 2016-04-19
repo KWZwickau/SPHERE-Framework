@@ -285,60 +285,62 @@ class Service
                                     $RunY)));
                                 $fatherFirstName = trim($Document->getValue($Document->getCell($Location['Sorg2 Vorname'],
                                     $RunY)));
+                                if ($fatherLastName != '') {
 
-                                $tblPersonFatherExists = Person::useService()->existsPerson(
-                                    $fatherFirstName,
-                                    $fatherLastName,
-                                    $cityCode
-                                );
-
-                                if (!$tblPersonFatherExists) {
-                                    $tblPersonFather = Person::useService()->insertPerson(
-                                        Person::useService()->getSalutationById(1),
-                                        '',
+                                    $tblPersonFatherExists = Person::useService()->existsPerson(
                                         $fatherFirstName,
-                                        '',
                                         $fatherLastName,
-                                        array(
-                                            0 => Group::useService()->getGroupByMetaTable('COMMON'),
-                                            1 => Group::useService()->getGroupByMetaTable('CUSTODY')
-                                        )
+                                        $cityCode
                                     );
 
-                                    if ($tblPersonFather) {
-                                        Common::useService()->insertMeta(
+                                    if (!$tblPersonFatherExists) {
+                                        $tblPersonFather = Person::useService()->insertPerson(
+                                            Person::useService()->getSalutationById(1),
+                                            '',
+                                            $fatherFirstName,
+                                            '',
+                                            $fatherLastName,
+                                            array(
+                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY')
+                                            )
+                                        );
+
+                                        if ($tblPersonFather) {
+                                            Common::useService()->insertMeta(
+                                                $tblPersonFather,
+                                                '',
+                                                '',
+                                                TblCommonBirthDates::VALUE_GENDER_MALE,
+                                                '',
+                                                '',
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
+                                        Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonFather,
-                                            '',
-                                            '',
-                                            TblCommonBirthDates::VALUE_GENDER_MALE,
-                                            '',
-                                            '',
-                                            TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
-                                            '',
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
                                             ''
                                         );
+
+                                        $countFather++;
+                                    } else {
+
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPersonFatherExists,
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
+                                            ''
+                                        );
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+
+                                        $countFatherExists++;
                                     }
-
-                                    Relationship::useService()->insertRelationshipToPerson(
-                                        $tblPersonFather,
-                                        $tblPerson,
-                                        $tblRelationshipTypeCustody,
-                                        ''
-                                    );
-
-                                    $countFather++;
-                                } else {
-
-                                    Relationship::useService()->insertRelationshipToPerson(
-                                        $tblPersonFatherExists,
-                                        $tblPerson,
-                                        $tblRelationshipTypeCustody,
-                                        ''
-                                    );
-
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
-
-                                    $countFatherExists++;
                                 }
 
                                 // Mother
@@ -348,59 +350,62 @@ class Service
                                 $motherFirstName = trim($Document->getValue($Document->getCell($Location['Sorg1 Vorname'],
                                     $RunY)));
 
-                                $tblPersonMotherExists = Person::useService()->existsPerson(
-                                    $motherFirstName,
-                                    $motherLastName,
-                                    $cityCode
-                                );
+                                if ($motherLastName != '') {
 
-                                if (!$tblPersonMotherExists) {
-                                    $tblPersonMother = Person::useService()->insertPerson(
-                                        Person::useService()->getSalutationById(2),
-                                        '',
+                                    $tblPersonMotherExists = Person::useService()->existsPerson(
                                         $motherFirstName,
-                                        '',
                                         $motherLastName,
-                                        array(
-                                            0 => Group::useService()->getGroupByMetaTable('COMMON'),
-                                            1 => Group::useService()->getGroupByMetaTable('CUSTODY')
-                                        )
+                                        $cityCode
                                     );
 
-                                    if ($tblPersonMother) {
-                                        Common::useService()->insertMeta(
+                                    if (!$tblPersonMotherExists) {
+                                        $tblPersonMother = Person::useService()->insertPerson(
+                                            Person::useService()->getSalutationById(2),
+                                            '',
+                                            $motherFirstName,
+                                            '',
+                                            $motherLastName,
+                                            array(
+                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY')
+                                            )
+                                        );
+
+                                        if ($tblPersonMother) {
+                                            Common::useService()->insertMeta(
+                                                $tblPersonMother,
+                                                '',
+                                                '',
+                                                TblCommonBirthDates::VALUE_GENDER_FEMALE,
+                                                '',
+                                                '',
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
+                                        Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonMother,
-                                            '',
-                                            '',
-                                            TblCommonBirthDates::VALUE_GENDER_FEMALE,
-                                            '',
-                                            '',
-                                            TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
-                                            '',
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
                                             ''
                                         );
+
+                                        $countMother++;
+                                    } else {
+
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPersonMotherExists,
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
+                                            ''
+                                        );
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+
+                                        $countMotherExists++;
                                     }
-
-                                    Relationship::useService()->insertRelationshipToPerson(
-                                        $tblPersonMother,
-                                        $tblPerson,
-                                        $tblRelationshipTypeCustody,
-                                        ''
-                                    );
-
-                                    $countMother++;
-                                } else {
-
-                                    Relationship::useService()->insertRelationshipToPerson(
-                                        $tblPersonMotherExists,
-                                        $tblPerson,
-                                        $tblRelationshipTypeCustody,
-                                        ''
-                                    );
-
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
-
-                                    $countMotherExists++;
                                 }
 
                                 // Addresses
