@@ -27,8 +27,9 @@ class Creator
             return (new Response())->addError('Template not found', 'Parameter: '.$Certificate, 0);
         }
 
+        // TODO: Sample On/Off
         /** @var \SPHERE\Application\Api\Education\Graduation\Certificate\Certificate $Template */
-        $Template = new $Template($tblPerson, $tblDivision, false);
+        $Template = new $Template($tblPerson, $tblDivision, true);
 
         $FileLocation = Storage::useWriter()->getTemporary('pdf', 'Zeugnis-Test-'.date('Ymd-His'));
         /** @var DomPdf $Document */

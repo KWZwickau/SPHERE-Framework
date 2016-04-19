@@ -784,33 +784,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $Test
-     *
-     * @return Stage|string
-     */
-    public function frontendHeadmasterEditTest(
-        $Id = null,
-        $Test = null
-    ) {
-
-        $Stage = new Stage('Leistungsüberprüfung', 'Bearbeiten');
-
-        $error = false;
-        if ($Id == null) {
-            $error = true;
-        } elseif (!($tblTest = Evaluation::useService()->getTestById($Id))) {
-            $error = true;
-        }
-        if ($error) {
-            return $Stage . new Danger('Test nicht gefunden.', new Ban())
-            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', Redirect::TIMEOUT_ERROR);
-        }
-
-        return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Evaluation/Headmaster/Test');
-    }
-
-    /**
      * @param Stage $Stage
      * @param        $Id
      * @param        $Test
@@ -922,6 +895,33 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $Id
+     * @param $Test
+     *
+     * @return Stage|string
+     */
+    public function frontendHeadmasterEditTest(
+        $Id = null,
+        $Test = null
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung', 'Bearbeiten');
+
+        $error = false;
+        if ($Id == null) {
+            $error = true;
+        } elseif (!( $tblTest = Evaluation::useService()->getTestById($Id) )) {
+            $error = true;
+        }
+        if ($error) {
+            return $Stage . new Danger('Test nicht gefunden.', new Ban())
+            .new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', Redirect::TIMEOUT_ERROR);
+        }
+
+        return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Evaluation/Headmaster/Test');
+    }
+
+    /**
      * @param null $Id
      * @param bool|false $Confirm
      *
@@ -936,32 +936,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!Evaluation::useService()->getTestById($Id)) {
             return $Stage . new Danger('Test nicht gefunden.', new Ban())
-            . new Redirect('/Education/Graduation/Evaluation/Test', Redirect::TIMEOUT_ERROR);
+            .new Redirect('/Education/Graduation/Evaluation/Test', Redirect::TIMEOUT_ERROR);
         }
 
         return $this->contentDestroyTest($Stage, $Id, $Confirm, '/Education/Graduation/Evaluation/Test');
     }
-
-    /**
-     * @param null $Id
-     * @param bool|false $Confirm
-     * @return Stage
-     */
-    public function frontendHeadmasterDestroyTest(
-        $Id = null,
-        $Confirm = false
-    ) {
-
-        $Stage = new Stage('Leistungsüberprüfung', 'Löschen');
-
-        if (!Evaluation::useService()->getTestById($Id)) {
-            return $Stage . new Danger('Test nicht gefunden.', new Ban())
-            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', Redirect::TIMEOUT_ERROR);
-        }
-
-        return $this->contentDestroyTest($Stage, $Id, $Confirm, '/Education/Graduation/Evaluation/Headmaster/Test');
-    }
-
 
     public function contentDestroyTest(Stage $Stage, $Id, $Confirm, $BasicRoute)
     {
@@ -1031,6 +1010,26 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param null       $Id
+     * @param bool|false $Confirm
+     * @return Stage
+     */
+    public function frontendHeadmasterDestroyTest(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung', 'Löschen');
+
+        if (!Evaluation::useService()->getTestById($Id)) {
+            return $Stage.new Danger('Test nicht gefunden.', new Ban())
+            .new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', Redirect::TIMEOUT_ERROR);
+        }
+
+        return $this->contentDestroyTest($Stage, $Id, $Confirm, '/Education/Graduation/Evaluation/Headmaster/Test');
     }
 
     /**
@@ -2361,6 +2360,179 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblTask $tblTask
+     * @param         $divisionList
+     * @param         $tableHeaderList
+     * @param         $studentList
+     * @param         $tableList
+     * @return LayoutGroup[]
+     */
+    private function setGradeOverviewForTask(
+        TblTask $tblTask,
+        $divisionList,
+        $tableHeaderList,
+        $studentList,
+        $tableList
+    ) {
+
+        foreach ($divisionList as $divisionId => $testList) {
+            $tblDivision = Division::useService()->getDivisionById($divisionId);
+            if ($tblDivision) {
+                // Stichtagsnote
+                if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
+                    if (!empty( $testList )) {
+                        /** @var TblTest $tblTest */
+                        foreach ($testList as $tblTest) {
+                            $tblSubject = $tblTest->getServiceTblSubject();
+                            if ($tblSubject && $tblTest->getServiceTblDivision()) {
+                                $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
+                                $tableHeaderList[$tblDivision->getId()]['Subject'.$tblSubject->getId()] = $tblSubject->getAcronym();
+
+                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                    $tblTest->getServiceTblDivision(),
+                                    $tblSubject,
+                                    $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+                                );
+
+                                if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                    $tblSubjectStudentAllByDivisionSubject =
+                                        Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                    if ($tblSubjectStudentAllByDivisionSubject) {
+                                        foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
+
+                                            $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+                                            if ($tblPerson) {
+                                                $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                    $tblTest, $tblSubject, $tblPerson, $studentList);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
+                                    if ($tblDivisionStudentAll) {
+                                        foreach ($tblDivisionStudentAll as $tblPerson) {
+
+                                            $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                $tblTest, $tblSubject, $tblPerson, $studentList);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
+                    if (!empty( $studentList )) {
+                        foreach ($studentList as $divisionListId => $students) {
+                            if (is_array($students)) {
+                                foreach ($students as $studentId => $student) {
+                                    foreach ($tableHeaderList[$divisionListId] as $key => $value) {
+                                        if (!isset( $student[$key] )) {
+                                            $studentList[$divisionId][$studentId][$key] = "";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } else {
+
+                    // Kopfnoten
+                    $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
+                    $grades = array();
+
+                    if (!empty( $testList )) {
+                        /** @var TblTest $tblTest */
+                        foreach ($testList as $tblTest) {
+                            $tblGradeType = $tblTest->getServiceTblGradeType();
+                            if ($tblGradeType && $tblTest->getServiceTblDivision() && $tblTest->getServiceTblSubject()) {
+
+                                $tableHeaderList[$tblDivision->getId()]['Type'.$tblGradeType->getId()]
+                                    = $tblGradeType->getCode().' ('.$tblGradeType->getName().')';
+
+                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                    $tblTest->getServiceTblDivision(),
+                                    $tblTest->getServiceTblSubject(),
+                                    $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+                                );
+
+                                if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                    $tblSubjectStudentAllByDivisionSubject =
+                                        Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                    if ($tblSubjectStudentAllByDivisionSubject) {
+                                        foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
+
+                                            $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+                                            if ($tblPerson) {
+                                                list( $studentList, $grades ) = $this->setTableContentForBehaviourTask($tblDivision,
+                                                    $tblTest, $tblPerson, $studentList, $grades);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
+                                    if ($tblDivisionStudentAll) {
+                                        foreach ($tblDivisionStudentAll as $tblPerson) {
+
+                                            list( $studentList, $grades ) = $this->setTableContentForBehaviourTask($tblDivision,
+                                                $tblTest, $tblPerson, $studentList, $grades);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // calc Average
+                        if (isset( $studentList[$tblDivision->getId()] )) {
+                            foreach ($studentList[$tblDivision->getId()] as $personId => $studentListByDivision) {
+                                $tblPerson = Person::useService()->getPersonById($personId);
+                                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+                                $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+                                if ($tblPerson && $tblGradeTypeAllWhereBehavior) {
+                                    foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
+                                        $gradeTypeId = $tblGradeType->getId();
+                                        if (isset( $grades[$personId][$gradeTypeId] ) && $grades[$personId][$gradeTypeId]['Count'] > 0) {
+                                            $studentList[$tblDivision->getId()][$personId]['Type'.$gradeTypeId] =
+                                                new Bold('&#216; '.
+                                                    round(floatval($grades[$personId][$gradeTypeId]['Sum']) / floatval($grades[$personId][$gradeTypeId]['Count']),
+                                                        2).' | ').$studentListByDivision['Type'.$gradeTypeId];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty( $tableHeaderList )) {
+            foreach ($tableHeaderList as $divisionId => $tableHeader) {
+                $tblDivision = Division::useService()->getDivisionById($divisionId);
+                if ($tblDivision) {
+                    $tableList[] =
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(array(
+                                    new Title('Klasse', $tblDivision->getDisplayName()),
+                                    new TableData(
+                                        isset( $studentList[$tblDivision->getId()] ) ? $studentList[$tblDivision->getId()] : array(),
+                                        null,
+                                        $tableHeader,
+                                        null
+                                    )
+                                ))
+                            )
+                        );
+                }
+            }
+            return $tableList;
+        }
+        return $tableList;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param TblTest $tblTest
      * @param TblSubject $tblSubject
@@ -2687,178 +2859,6 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
-    }
-
-    /**
-     * @param TblTask $tblTask
-     * @param $divisionList
-     * @param $tableHeaderList
-     * @param $studentList
-     * @param $tableList
-     * @return array
-     */
-    private function setGradeOverviewForTask(
-        TblTask $tblTask,
-        $divisionList,
-        $tableHeaderList,
-        $studentList,
-        $tableList
-    ) {
-        foreach ($divisionList as $divisionId => $testList) {
-            $tblDivision = Division::useService()->getDivisionById($divisionId);
-            if ($tblDivision) {
-                // Stichtagsnote
-                if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
-                    if (!empty($testList)) {
-                        /** @var TblTest $tblTest */
-                        foreach ($testList as $tblTest) {
-                            $tblSubject = $tblTest->getServiceTblSubject();
-                            if ($tblSubject && $tblTest->getServiceTblDivision()) {
-                                $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
-                                $tableHeaderList[$tblDivision->getId()]['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
-
-                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                                    $tblTest->getServiceTblDivision(),
-                                    $tblSubject,
-                                    $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-                                );
-
-                                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                                    $tblSubjectStudentAllByDivisionSubject =
-                                        Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-                                    if ($tblSubjectStudentAllByDivisionSubject) {
-                                        foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
-
-                                            $tblPerson = $tblSubjectStudent->getServiceTblPerson();
-                                            if ($tblPerson) {
-                                                $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                    $tblTest, $tblSubject, $tblPerson, $studentList);
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
-                                    if ($tblDivisionStudentAll) {
-                                        foreach ($tblDivisionStudentAll as $tblPerson) {
-
-                                            $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
-                    if (!empty($studentList)) {
-                        foreach ($studentList as $divisionListId => $students) {
-                            if (is_array($students)) {
-                                foreach ($students as $studentId => $student) {
-                                    foreach ($tableHeaderList[$divisionListId] as $key => $value) {
-                                        if (!isset($student[$key])) {
-                                            $studentList[$divisionId][$studentId][$key] = "";
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                } else {
-
-                    // Kopfnoten
-                    $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
-                    $grades = array();
-
-                    if (!empty($testList)) {
-                        /** @var TblTest $tblTest */
-                        foreach ($testList as $tblTest) {
-                            $tblGradeType = $tblTest->getServiceTblGradeType();
-                            if ($tblGradeType && $tblTest->getServiceTblDivision() && $tblTest->getServiceTblSubject()) {
-
-                                $tableHeaderList[$tblDivision->getId()]['Type' . $tblGradeType->getId()]
-                                    = $tblGradeType->getCode() . ' (' . $tblGradeType->getName() . ')';
-
-                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                                    $tblTest->getServiceTblDivision(),
-                                    $tblTest->getServiceTblSubject(),
-                                    $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-                                );
-
-                                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                                    $tblSubjectStudentAllByDivisionSubject =
-                                        Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-                                    if ($tblSubjectStudentAllByDivisionSubject) {
-                                        foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
-
-                                            $tblPerson = $tblSubjectStudent->getServiceTblPerson();
-                                            if ($tblPerson) {
-                                                list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                    $tblTest, $tblPerson, $studentList, $grades);
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
-                                    if ($tblDivisionStudentAll) {
-                                        foreach ($tblDivisionStudentAll as $tblPerson) {
-
-                                            list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                $tblTest, $tblPerson, $studentList, $grades);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // calc Average
-                        if (isset($studentList[$tblDivision->getId()])) {
-                            foreach ($studentList[$tblDivision->getId()] as $personId => $studentListByDivision) {
-                                $tblPerson = Person::useService()->getPersonById($personId);
-                                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-                                $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
-                                if ($tblPerson && $tblGradeTypeAllWhereBehavior) {
-                                    foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
-                                        $gradeTypeId = $tblGradeType->getId();
-                                        if (isset($grades[$personId][$gradeTypeId]) && $grades[$personId][$gradeTypeId]['Count'] > 0) {
-                                            $studentList[$tblDivision->getId()][$personId]['Type' . $gradeTypeId] =
-                                                new Bold('&#216; ' .
-                                                    round(floatval($grades[$personId][$gradeTypeId]['Sum']) / floatval($grades[$personId][$gradeTypeId]['Count']),
-                                                        2) . ' | ') . $studentListByDivision['Type' . $gradeTypeId];
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!empty($tableHeaderList)) {
-            foreach ($tableHeaderList as $divisionId => $tableHeader) {
-                $tblDivision = Division::useService()->getDivisionById($divisionId);
-                if ($tblDivision) {
-                    $tableList[] =
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(array(
-                                    new Title('Klasse', $tblDivision->getDisplayName()),
-                                    new TableData(
-                                        isset($studentList[$tblDivision->getId()]) ? $studentList[$tblDivision->getId()] : array(),
-                                        null,
-                                        $tableHeader,
-                                        null
-                                    )
-                                ))
-                            )
-                        );
-                }
-            }
-            return $tableList;
-        }
-        return $tableList;
     }
 
     /**

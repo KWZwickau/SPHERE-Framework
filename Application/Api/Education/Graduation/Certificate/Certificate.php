@@ -343,6 +343,16 @@ abstract class Certificate extends Extension
             $tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($this->tblDivision);
             if ($tblDivisionSubjectAll) {
                 $this->Grade['Data'] = array_merge(
+                    $this->Grade['Data'],
+                    array('BEHAVIOR' => $this->fetchDivisionBehaviorGrades($tblDivisionSubjectAll))
+                );
+            }
+        }
+
+        if ($this->tblDivision) {
+            $tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($this->tblDivision);
+            if ($tblDivisionSubjectAll) {
+                $this->Grade['Data'] = array_merge(
                     $this->Grade['Data'], $this->fetchDivisionSubjectGrades($tblDivisionSubjectAll)
                 );
             }
@@ -387,6 +397,61 @@ abstract class Certificate extends Extension
                         }
                     }
                 }
+            });
+        }
+        return $Result;
+    }
+
+    /**
+     * @param TblDivisionSubject[] $tblDivisionSubjectAll
+     *
+     * @return array
+     */
+    private function fetchDivisionBehaviorGrades($tblDivisionSubjectAll)
+    {
+
+        $Result = array();
+        $tblSubjectAll = array();
+        if (is_array($tblDivisionSubjectAll)) {
+            array_walk($tblDivisionSubjectAll, function (TblDivisionSubject $tblDivisionSubject) use (&$tblSubjectAll) {
+
+                $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                if ($tblSubject) {
+                    $tblSubjectAll[$tblSubject->getId()] = $tblSubject;
+                }
+            });
+        }
+
+        if (!empty( $tblSubjectAll )) {
+            array_walk($tblSubjectAll, function (TblSubject $tblSubject) use (&$Result) {
+
+                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+                if ($tblTestType) {
+                    $tblGradeAll = Gradebook::useService()->getGradesByStudent(
+                        $this->tblPerson, $this->tblDivision, $tblSubject, $tblTestType
+                    );
+                    if ($tblGradeAll) {
+                        array_walk($tblGradeAll, function (TblGrade $tblGrade) use (&$Result) {
+
+                            $Grade = $tblGrade->getGrade();
+                            $Trend = $tblGrade->getTrend();
+                            switch ($Trend) {
+                                case 1:
+                                    $Grade -= 0.25;
+                                    break;
+                                case 2:
+                                    $Grade += 0.25;
+                                    break;
+                            }
+                            $Result[$tblGrade->getTblGradeType()->getCode()][] = $Grade;
+                        });
+                    }
+                }
+            });
+
+            array_walk($Result, function (&$GradeList) {
+
+                $GradeList = round(array_sum($GradeList) / count($GradeList), 1);
             });
         }
         return $Result;

@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Graduation\Certificate;
 
 use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Certificate\Repository\Element;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -13,8 +14,8 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -661,6 +662,19 @@ class Frontend extends Extension implements IFrontendInterface
 
                         /** @var \SPHERE\Application\Api\Education\Graduation\Certificate\Certificate $Template */
                         $Template = new $CertificateClass($tblPerson, $tblDivision);
+
+                        $GradeList = $Template->getGrade();
+                        $HeaderBehavior = array();
+                        if (isset( $GradeList['Data']['BEHAVIOR'] )) {
+                            foreach ($GradeList['Data']['BEHAVIOR'] as $Acronym => $Value) {
+                                $tblGradeType = Gradebook::useService()->getGradeTypeByCode($Acronym);
+                                array_push($HeaderBehavior, $tblGradeType->getName().': '.$Value);
+                            }
+                        }
+                        sort($HeaderBehavior);
+                        $Header .= new Panel(new Education().' Kopfnoten (Durchschnitt)',
+                            $HeaderBehavior
+                            , Panel::PANEL_TYPE_SUCCESS);
 
                         $FormField = array(
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
