@@ -11,11 +11,11 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class CheJ
+ * Class CheHjRs
  *
  * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
  */
-class CheJ extends Certificate
+class CheHjRs extends Certificate
 {
 
     /**
@@ -29,7 +29,7 @@ class CheJ extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Chemnitz Jahreszeugnis.pdf')
+                    ->setContent('Chemnitz Halbjahreszeugnis Realschule.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -69,7 +69,7 @@ class CheJ extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Jahreszeugnis der Mittelschule')
+                        ->setContent('Halbjahreszeugnis der Mittelschule')
                         ->styleTextSize('18px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -116,13 +116,14 @@ class CheJ extends Certificate
                             , '79%')
                     )->styleMarginTop('5px')
                 )
-//                ->addSlice((new Slice())
-//                    ->addElement((new Element())
-//                        ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Hauptschulabschlusses teil.')
-//                        ->styleTextSize('11px')
-//                        ->styleMarginTop('7px')
-//                    )->styleMarginTop('5px')
-//                )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.')
+//                        ->setContent('&nbsp;')
+                        ->styleTextSize('11px')
+                        ->styleMarginTop('7px')
+                    )->styleMarginTop('5px')
+                )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -200,40 +201,6 @@ class CheJ extends Certificate
                             , '9%')
                     )
                     ->styleMarginTop('3px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Einschätzung:')
-                            , '16%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Rating is not empty) %}
-                                    {{ Content.Input.Rating|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
-                            , '84%')
-                    )
-                    ->styleMarginTop('15px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -693,18 +660,9 @@ class CheJ extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Versetzungsvermerk:')
-                            , '22%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Transfer) %}
-                                    {{ Content.Input.Transfer }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
+                            ->setContent('&nbsp;')
                             ->styleBorderBottom('1px', '#BBB')
-                            , '58%')
-                        ->addElementColumn((new Element())
-                            , '20%')
+                        )
                     )
                     ->styleMarginTop('5px')
                 )
@@ -723,7 +681,13 @@ class CheJ extends Certificate
                             ->styleAlignCenter()
                             , '23%')
                         ->addElementColumn((new Element())
-                            , '70%')
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            , '30%')
+                        ->addElementColumn((new Element())
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            , '30%')
                     )
                     ->styleMarginTop('25px')
                 )
@@ -794,7 +758,7 @@ class CheJ extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('11px')
+                    )->styleMarginTop('65px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'

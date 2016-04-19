@@ -11,11 +11,11 @@ use SPHERE\Application\Education\Graduation\Certificate\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class CheJ
+ * Class MsHjInfo
  *
  * @package SPHERE\Application\Api\Education\Graduation\Certificate\Repository
  */
-class CheJ extends Certificate
+class MsHjInfoHs extends Certificate
 {
 
     /**
@@ -29,7 +29,7 @@ class CheJ extends Certificate
         $Header = (new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Chemnitz Jahreszeugnis.pdf')
+                    ->setContent('MS Halbjahres Info Hauptschule 3a.pdf')
                     ->styleTextSize('12px')
                     ->styleTextColor('#CCC')
                     ->styleAlignCenter()
@@ -47,29 +47,26 @@ class CheJ extends Certificate
                     $Header
                 )
                 ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('{% if(Content.Company.Data.Name is not empty) %}
-                                {{ Content.Company.Data.Name }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBorderBottom()
-                        ->styleAlignCenter()
-                        ->styleTextSize('16px')
-                        ->styleTextBold()
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Name der Schule:')
+                            , '18%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Company.Data.Name is not empty) %}
+                                    {{ Content.Company.Data.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleBorderBottom()
+                            , '82%'
+                        )
                     )->styleMarginTop('20px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Name der Schule')
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Jahreszeugnis der Mittelschule')
+                        ->setContent('Halbjahresinformation der Mittelschule')
                         ->styleTextSize('18px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -92,7 +89,7 @@ class CheJ extends Certificate
                             , '55%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Schuljahr:')
+                            ->setContent('1. Schulhalbjahr:')
                             ->styleAlignRight()
                             , '18%'
                         )
@@ -116,13 +113,14 @@ class CheJ extends Certificate
                             , '79%')
                     )->styleMarginTop('5px')
                 )
-//                ->addSlice((new Slice())
-//                    ->addElement((new Element())
-//                        ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Hauptschulabschlusses teil.')
-//                        ->styleTextSize('11px')
-//                        ->styleMarginTop('7px')
-//                    )->styleMarginTop('5px')
-//                )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+//                        ->setContent('&nbsp;')
+                        ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Hauptschulabschlusses teil.')
+                        ->styleTextSize('11px')
+                    )
+                    ->styleMarginTop('5px')
+                )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -202,40 +200,6 @@ class CheJ extends Certificate
                     ->styleMarginTop('3px')
                 )
                 ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Einschätzung:')
-                            , '16%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Rating is not empty) %}
-                                    {{ Content.Input.Rating|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
-                            , '84%')
-                    )
-                    ->styleMarginTop('15px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('Leistungen in den einzelnen Fächern:')
                         ->styleMarginTop('15px')
@@ -247,7 +211,7 @@ class CheJ extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent('Deutsch')
                             ->stylePaddingTop()
-                            ->styleMarginTop('5px')
+                            ->styleMarginTop('3px')
                             , '39%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Grade.Data.DE is not empty) %}
@@ -260,14 +224,14 @@ class CheJ extends Certificate
                             ->styleBorderBottom('1px', '#000')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            ->styleMarginTop('5px')
+                            ->styleMarginTop('3px')
                             , '9%')
                         ->addElementColumn((new Element())
                             , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('Mathematik')
                             ->stylePaddingTop()
-                            ->styleMarginTop('5px')
+                            ->styleMarginTop('3px')
                             , '39%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Grade.Data.MA is not empty) %}
@@ -280,7 +244,7 @@ class CheJ extends Certificate
                             ->styleBorderBottom('1px', '#000')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            ->styleMarginTop('5px')
+                            ->styleMarginTop('3px')
                             , '9%')
                     )
                     ->addSection((new Section())
@@ -465,15 +429,35 @@ class CheJ extends Certificate
                         ->addElementColumn((new Element())
                             , '4%')
                         ->addElementColumn((new Element())
-                            ->setContent('Ev. Religion')
+                            ->setContent('{% if(Content.Grade.Data.ETH is not empty) %}
+                                    Ethik
+                                {% else %}
+                                    {% if(Content.Grade.Data.RKA is not empty) %}
+                                        Kath. Religion
+                                    {% else %}
+                                        {% if(Content.Grade.Data.REV is not empty) %}
+                                            Ev. Religion
+                                        {% else %}
+                                            Ev./Kath. Religion/Ethik¹
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}')
                             ->stylePaddingTop()
                             ->styleMarginTop('3px')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.REV is not empty) %}
-                                    {{ Content.Grade.Data.REV }}
+                            ->setContent('{% if(Content.Grade.Data.ETH is not empty) %}
+                                    {{ Content.Grade.Data.ETH }}
                                 {% else %}
-                                    ---
+                                    {% if(Content.Grade.Data.RKA is not empty) %}
+                                        {{ Content.Grade.Data.RKA }}
+                                    {% else %}
+                                        {% if(Content.Grade.Data.REV is not empty) %}
+                                        {{ Content.Grade.Data.REV }}
+                                        {% else %}
+                                            ---
+                                        {% endif %}
+                                    {% endif %}
                                 {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
@@ -562,8 +546,9 @@ class CheJ extends Certificate
                             ->stylePaddingBottom()
                             ->styleMarginTop('3px')
                             , '9%')
+
                     )
-                    ->styleHeight('215px')
+                    ->styleHeight('240px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -575,10 +560,14 @@ class CheJ extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Choose is not empty) %}
-                                    {{ Content.Input.Choose }}
+                            ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
+                                    {{ Content.Grade.Data.ToDO }} Vertiefungskurs
                                 {% else %}
-                                    &nbsp;
+                                    {% if(Content.Person.Data.ToDO is not empty) %}
+                                        {{ Content.Grade.Data.ToDO }} 2. Fremdsprache (abschlussorientiert)
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
                                 {% endif %}')//ToDO Wahlpflichtbereich
                             ->styleBorderBottom()
                             ->stylePaddingTop()
@@ -596,7 +585,7 @@ class CheJ extends Certificate
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
-                                    Neigungskurs (Neigungskursbereich)
+                                    Vertiefungskurs
                                 {% else %}
                                     {% if(Content.Person.Data.ToDO is not empty) %}
                                         2. Fremdsprache (abschlussorientiert)
@@ -618,30 +607,30 @@ class CheJ extends Certificate
                             ->setContent('Fehltage entschuldigt:')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignRight()
-                            , '20%')
+                            , '25%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Missing is not empty) %}
                                     {{ Content.Input.Missing }}
                                 {% else %}
-                                    0
+                                    &nbsp;
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
-                            , '18%')
+                            , '10%')
                         ->addElementColumn((new Element())
                             ->setContent('unentschuldigt:')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignRight()
-                            , '14%')
+                            , '25%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
                                     {{ Content.Input.Bad.Missing }}
                                 {% else %}
-                                    0
+                                    &nbsp;
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleAlignCenter()
-                            , '18%')
+                            , '10%')
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
                             ->styleBorderBottom('1px', '#BBB')
@@ -693,24 +682,6 @@ class CheJ extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Versetzungsvermerk:')
-                            , '22%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Transfer) %}
-                                    {{ Content.Input.Transfer }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
-                            , '58%')
-                        ->addElementColumn((new Element())
-                            , '20%')
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
                             ->setContent('Datum:')
                             , '7%')
                         ->addElementColumn((new Element())
@@ -723,31 +694,30 @@ class CheJ extends Certificate
                             ->styleAlignCenter()
                             , '23%')
                         ->addElementColumn((new Element())
-                            , '70%')
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            , '30%')
+                        ->addElementColumn((new Element())
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            , '30%')
                     )
                     ->styleMarginTop('25px')
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom()
                             , '30%')
                         ->addElementColumn((new Element())
-                            ->setContent('Dienstsiegel der Schule')
-                            ->styleAlignCenter()
-                            ->styleTextSize('11px')
                             , '40%')
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#000')
+                            ->styleAlignCenter()
+                            ->styleBorderBottom()
                             , '30%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schulleiter(in)')
-                            ->styleAlignCenter()
-                            ->styleTextSize('11px')
                             , '30%')
                         ->addElementColumn((new Element())
                             , '5%')
@@ -794,7 +764,7 @@ class CheJ extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('11px')
+                    )->styleMarginTop('75px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:'

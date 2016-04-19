@@ -232,12 +232,23 @@ abstract class Style extends Extension
      *
      * @return $this
      */
+    public function styleMinHeight($Height = '15px')
+    {
+
+        $this->Style[] = 'min-height: '.$Height.' !important;';
+        return $this;
+    }
+
+    /**
+     * @param string $Height
+     *
+     * @return $this
+     */
     public function styleHeight($Height = '15px')
     {
 
         $this->Style[] = 'height: '.$Height.' !important;';
         return $this;
     }
-    
     
 }
