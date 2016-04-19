@@ -494,7 +494,7 @@ class CosHjSek extends Certificate
                             , '85%')
                     )
                     ->styleMarginTop('30px')
-                    ->styleHeight('100px')
+                    ->styleHeight('80px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())

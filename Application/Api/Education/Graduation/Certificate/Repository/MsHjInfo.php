@@ -549,10 +549,6 @@ class MsHjInfo extends Certificate
 
                     )
                     ->styleHeight('240px')
-                    ->styleBorderTop()//ToDO Optischer Slice noch auszubauen
-                    ->styleBorderBottom()
-                    ->styleBorderRight()
-                    ->styleBorderLeft()
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())

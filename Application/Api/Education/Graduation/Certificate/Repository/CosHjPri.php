@@ -365,7 +365,7 @@ class CosHjPri extends Certificate
                             , '85%')
                     )
                     ->styleMarginTop('30px')
-                    ->styleHeight('114px')
+                    ->styleHeight('95px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
