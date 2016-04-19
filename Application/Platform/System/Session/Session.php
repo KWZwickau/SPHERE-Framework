@@ -104,7 +104,8 @@ class Session extends Extension implements IModuleInterface
                 array_push($History, array(
                     'Consumer'  => $tblProtocol->getConsumerAcronym().'&nbsp;'.new Muted($tblProtocol->getConsumerName()),
                     'LoginTime' => $tblProtocol->getEntityCreate(),
-                    'Account'   => $tblProtocol->getAccountUsername()
+                    'Account'   => $tblProtocol->getAccountUsername(),
+                    'AccountId' => ( $tblProtocol->getServiceTblAccount() ? $tblProtocol->getServiceTblAccount()->getId() : '-NA-' )
                 ));
 
             });
@@ -133,14 +134,15 @@ class Session extends Extension implements IModuleInterface
                         new LayoutColumn(array(
                             new TableData($History, null, array(
                                 'LoginTime' => 'Zeitpunkt',
+                                'AccountId' => 'Account',
                                 'Account'   => 'Benutzer',
                                 'Consumer'  => 'Mandant',
                             ), array(
                                 'order'      => array(array(0, 'desc')),
                                 'columnDefs' => array(
                                     array('type' => 'de_datetime', 'width' => '10%', 'targets' => 0),
-                                    array('width' => '45%', 'targets' => 1),
-                                    array('width' => '45%', 'targets' => 2)
+                                    array('width' => '45%', 'targets' => 2),
+                                    array('width' => '45%', 'targets' => 3)
                                 )
                             )),
                             new Redirect(

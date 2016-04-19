@@ -14,7 +14,7 @@ abstract class AbstractLogger implements LoggerInterface
     /** @var array $LogCache */
     private $LogCache = array();
     /** @var bool $LogEnabled */
-    private $LogEnabled = true;
+    private $LogEnabled = false;
 
     /**
      * @param string $Content
