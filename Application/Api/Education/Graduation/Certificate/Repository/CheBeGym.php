@@ -49,7 +49,7 @@ class CheBeGym extends Certificate
                                                 {{ Content.Company.Address.Street.Number }}')
                                 .new Container('{{ Content.Company.Address.City.Code }}
                                                 {{ Content.Company.Address.City.Name }}'))
-                            ->stylePaddingBottom('15px')
+                            ->stylePaddingBottom('5px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderBottom()
                             ->styleBorderRight()
@@ -213,7 +213,6 @@ class CheBeGym extends Certificate
                     ->addElement((new Element())
                         ->setContent('1. Leistungsstand')
                         ->styleTextSize('20px')
-                        ->styleMinHeight('24px')
                         ->styleTextBold()
                         ->styleMarginTop('5px')
                     )
@@ -221,8 +220,9 @@ class CheBeGym extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->styleMinHeight('50px')
+                            ->styleHeight('25px')
                             ->styleMarginTop('5px')
+                            ->setContent('&nbsp;')
                         )
                     )
                     ->addSection((new Section())
@@ -280,7 +280,15 @@ class CheBeGym extends Certificate
                             , '80%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Grade.Data.DE is not empty) %}
-                                    {{ ((Content.Grade.Data.DE + Content.Grade.Data.MA + Content.Grade.Data.EN) / 3)|round(2, "floor") }}
+                                    {% if(Content.Grade.Data.MA is not empty) %}
+                                        {% if(Content.Grade.Data.EN is not empty) %}
+                                            {{ ((Content.Grade.Data.DE + Content.Grade.Data.MA + Content.Grade.Data.EN) / 3)|round(2, "floor") }}
+                                        {% else %}
+                                            ---
+                                        {% endif %}
+                                    {% else %}
+                                        ---
+                                    {% endif %}
                                 {% else %}
                                     ---
                                 {% endif %}')
@@ -317,7 +325,6 @@ class CheBeGym extends Certificate
                             ->stylePaddingTop()
                             ->setContent('(in Ziffern)')
                             ->styleTextSize('9px')
-                            ->styleMinHeight('20px')
                             , '20%')
                     )
                     ->stylePaddingLeft('5px')
@@ -332,7 +339,6 @@ class CheBeGym extends Certificate
                     ->addElement((new Element())
                         ->setContent('2. Gutachten³')
                         ->styleTextSize('20px')
-                        ->styleMinHeight('24px')
                         ->styleTextBold()
                         ->styleMarginTop('5px')
                     )
@@ -344,7 +350,7 @@ class CheBeGym extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleMinHeight('250px')
+                        ->styleHeight('200px')
                         ->stylePaddingTop()
                         ->stylePaddingLeft('5px')
                         ->stylePaddingRight('5px')
@@ -357,7 +363,7 @@ class CheBeGym extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Auf Grund des Leitungsstandes und des Gutachtens wird 
+                        ->setContent('Auf Grund des Leitungsstandes und des Gutachtens wird
                         {% if Content.Person.Common.BirthDates.Gender == 2 %}
                                 der Schülerin
                             {% else %}
@@ -382,7 +388,7 @@ class CheBeGym extends Certificate
                         ->styleMarginTop('21px')
 
                     )
-                    ->styleMinHeight('100px')
+                    ->styleHeight('85px')
                     ->stylePaddingTop()
                     ->stylePaddingLeft('5px')
                     ->stylePaddingRight('5px')
@@ -453,7 +459,7 @@ class CheBeGym extends Certificate
                             ->stylePaddingTop()
                             , '40%')
                     )
-                    ->styleMinHeight('100px')
+                    ->styleHeight('100px')
                     ->stylePaddingTop()
                     ->stylePaddingLeft('5px')
                     ->stylePaddingRight('5px')
