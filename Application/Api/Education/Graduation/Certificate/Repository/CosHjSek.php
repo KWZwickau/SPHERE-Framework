@@ -128,11 +128,11 @@ class CosHjSek extends Certificate
                             ->setContent('Betragen')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KBE is not empty) %}
+                                    {{ Content.Input.KBE }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#F1F1F1')
                             , '9%')
@@ -142,11 +142,11 @@ class CosHjSek extends Certificate
                             ->setContent('Mitarbeit')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KMI is not empty) %}
+                                    {{ Content.Input.KMI }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#F1F1F1')
                             , '9%')
@@ -159,11 +159,11 @@ class CosHjSek extends Certificate
                             ->setContent('Fleiß')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KFL is not empty) %}
+                                    {{ Content.Input.KFL }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#F1F1F1')
                             , '9%')
@@ -173,11 +173,11 @@ class CosHjSek extends Certificate
                             ->setContent('Ordnung')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KOR is not empty) %}
+                                    {{ Content.Input.KOR }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#F1F1F1')
                             , '9%')

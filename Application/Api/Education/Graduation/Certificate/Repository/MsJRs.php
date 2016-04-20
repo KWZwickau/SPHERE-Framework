@@ -108,7 +108,6 @@ class MsJRs extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-//                        ->setContent('&nbsp;')
                         ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.')
                         ->styleTextSize('11px')
                         ->styleMarginTop('7px')
@@ -121,11 +120,11 @@ class MsJRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                                {{ Content.Grade.Data.ToDO }}
-                                            {% else %}
-                                                ---
-                                            {% endif %}')//ToDO Kopfnoten
+                            ->setContent('{% if(Content.Input.KBE is not empty) %}
+                                    {{ Content.Input.KBE }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -139,11 +138,11 @@ class MsJRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                                {{ Content.Grade.Data.ToDO }}
-                                            {% else %}
-                                                ---
-                                            {% endif %}')//ToDO Kopfnoten
+                            ->setContent('{% if(Content.Input.KMI is not empty) %}
+                                    {{ Content.Input.KMI }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -160,11 +159,11 @@ class MsJRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                                {{ Content.Grade.Data.ToDO }}
-                                            {% else %}
-                                                ---
-                                            {% endif %}')//ToDO Kopfnoten
+                            ->setContent('{% if(Content.Input.KFL is not empty) %}
+                                    {{ Content.Input.KFL }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -178,11 +177,11 @@ class MsJRs extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                                {{ Content.Grade.Data.ToDO }}
-                                            {% else %}
-                                                ---
-                                            {% endif %}')//ToDO Kopfnoten
+                            ->setContent('{% if(Content.Input.KOR is not empty) %}
+                                    {{ Content.Input.KOR }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -587,14 +586,10 @@ class MsJRs extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Person.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }} Vertiefungskurs
+                            ->setContent('{% if(Content.Input.Choose is not empty) %}
+                                    {{ Content.Input.Choose }}
                                 {% else %}
-                                    {% if(Content.Person.Data.ToDO is not empty) %}
-                                        {{ Content.Grade.Data.ToDO }} 2. Fremdsprache (abschlussorientiert)
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
+                                    &nbsp;
                                 {% endif %}')//ToDO Wahlpflichtbereich
                             ->styleBorderBottom()
                             ->stylePaddingTop()

@@ -679,7 +679,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormField = array(
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
 
-                            'Content.Input.Adding'    => 'TextField',     //ToDO <- deleting after rebuild
+                            'Content.Input.KBE'       => 'TextField',
+                            'Content.Input.KFL'       => 'TextField',
+                            'Content.Input.KMI'       => 'TextField',
+                            'Content.Input.KOR'       => 'TextField',
                             'Content.Input.Remark'    => 'TextArea',
                             'Content.Input.Rating'    => 'TextArea',
                             'Content.Input.Survey'    => 'TextArea',
@@ -704,15 +707,17 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Division.Data.Level.Name' => 'Klassenstufe',
                             'Content.Division.Data.Name'       => 'Klassengruppe',
 
-                            'Content.Input.Adding'    => 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des [...] teil.',
-                            //ToDO <- deleting after rebuild
+                            'Content.Input.KBE'       => 'Betragen',
+                            'Content.Input.KFL'       => 'Fleiß',
+                            'Content.Input.KMI'       => 'Mitarbeit',
+                            'Content.Input.KOR'       => 'Ordnung',
                             'Content.Input.Remark'    => 'Bemerkungen',
                             'Content.Input.Rating'    => 'Einschätzung',
                             'Content.Input.Survey'    => 'Gutachten',
                             'Content.Input.Team'      => 'Arbeitsgemeinschaften',
                             'Content.Input.Deepening' => 'Vertiefungsrichtung',
                             'Content.Input.Choose'    => 'Wahlpflichtbereich',
-                            'Content.Input.Date'                  => 'Datum',
+                            'Content.Input.Date'      => 'Datum',
                             'Content.Input.Transfer'              => 'Versetzungsvermerk',
                             'Content.Input.LevelTwo'              => '2. Fremdsprache ab Klassenstufe',
                             'Content.Input.LevelThree'            => '3. Fremdsprache ab Klassenstufe',
