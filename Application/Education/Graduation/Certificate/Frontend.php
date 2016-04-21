@@ -258,7 +258,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule qualifiziertes Abschlusszeugnis Hauptschule',
+                        'Template' => 'Mittelschule Abschlusszeugnis Hauptschule qualifiziert',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
