@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
@@ -331,6 +332,16 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson, $Global) {
 
+                // alle Hauptadressen
+                $tblAddressToPersonList = Address::useService()->getAddressAllByPersonAndType($tblPersonItem,
+                    Address::useService()->getTypeById(1));
+                if ($tblAddressToPersonList) {
+                    /** @var \SPHERE\Application\Contact\Address\Service\Entity\TblToPerson $tblAddressToPerson */
+                    $tblAddressToPerson = reset($tblAddressToPersonList);
+                } else {
+                    $tblAddressToPerson = false;
+                }
+
                 if (
                     (
                         $tblPerson === false
@@ -345,11 +356,13 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $tblPersonItem = array(
                         'Person' => new RadioBox('Account[User]', $tblPersonItem->getFullName(),
-                            $tblPersonItem->getId())
+                            $tblPersonItem->getId()),
+                        'Address' => $tblAddressToPerson ? $tblAddressToPerson->getTblAddress()->getGuiString() : ''
                     );
                 } else {
                     $tblPersonItem = array(
-                        'Person' => new Warning($tblPersonItem->getFullName()).' (Aktuell hinterlegt)'
+                        'Person' => new Warning($tblPersonItem->getFullName()).' (Aktuell hinterlegt)',
+                        'Address' => $tblAddressToPerson ? $tblAddressToPerson->getTblAddress()->getGuiString() : ''
                     );
                 }
             });
@@ -364,7 +377,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Danger('AKTUELL hinterlegte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         } elseif (isset( $Global->POST['Account']['User'] )) {
             $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
@@ -372,11 +385,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new Warning('AKTUELL selektierte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         } else {
             $PanelPerson = new Panel(new Person().' für folgende Person', array(
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         }
 
@@ -415,18 +428,16 @@ class Frontend extends Extension implements IFrontendInterface
                         $UsernamePanel,
                         new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
                             Panel::PANEL_TYPE_INFO),
-                        $PanelToken,
                     ), 4),
                     new FormColumn(array(
-                        $PanelPerson,
+                        $PanelToken,
                     ), 4),
                     new FormColumn(array(
                         new Panel(new Nameplate().' Berechtigungen zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
                     ), 4),
                 )),
                 new FormRow(array(
-                    new FormColumn(array(), 4),
-                    new FormColumn(array(), 4),
+                    new FormColumn($PanelPerson),
                 )),
             )),
         ));
