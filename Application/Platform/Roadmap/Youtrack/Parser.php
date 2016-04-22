@@ -124,4 +124,18 @@ class Parser extends Connection
         return $Response;
     }
 
+    public function getPool()
+    {
+
+        $Map = new Map();
+        $Issues = $this->getIssues();
+
+        // Add Issues to Map
+        foreach ((array)$Issues as $Issue) {
+            $Map->addIssue($Issue);
+        }
+
+        return $Map;
+    }
+
 }

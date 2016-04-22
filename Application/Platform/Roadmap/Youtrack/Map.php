@@ -16,6 +16,8 @@ class Map extends Extension
 
     /** @var Sprint[] $Sprints */
     private $Sprints = array();
+    /** @var Issue[] $Pool */
+    private $Pool = array();
     /** @var null|string $VersionPreview */
     private $VersionPreview = null;
     /** @var null|string $VersionRelease */
@@ -28,6 +30,12 @@ class Map extends Extension
     {
 
         $this->Sprints[] = $Sprint;
+    }
+
+    public function addIssue(Issue $Issue)
+    {
+
+        $this->Pool[] = $Issue;
     }
 
     /**
@@ -70,6 +78,15 @@ class Map extends Extension
 
         Utility::orderIssuesBy($this->Sprints, 'getVersion() ASC');
         return $this->Sprints;
+    }
+
+    /**
+     * @return Issue[]
+     */
+    public function getPool()
+    {
+
+        return $this->Pool;
     }
 
     /**

@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Roadmap;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Roadmap\Youtrack\Credentials;
 use SPHERE\Application\Platform\Roadmap\Youtrack\Issue;
 use SPHERE\Application\Platform\Roadmap\Youtrack\Parser;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
@@ -78,8 +80,20 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
 
         $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
         if (!( $Content = $Cache->getValue('Roadmap', __METHOD__) )) {
+
+            // Is System-Account
+            $SystemLink = false;
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($tblAccount) {
+                $tblIdentification = $tblAccount->getServiceTblIdentification();
+                if ($tblIdentification) {
+                    $SystemLink = ( $tblIdentification->getName() == 'System' );
+                }
+            }
+
             try {
                 $Map = $this->getRoadmap();
+                $Pool = $this->getPool();
             } catch (\Exception $Exception) {
                 $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Warning('Roadmap konnte nicht abgerufen werden'))
@@ -104,12 +118,13 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
             );
 
             $StateColor = array(
-                'Erfasst'        => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
-                'Offen'          => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
-                'In Bearbeitung' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
-                'Behoben'        => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
-                'Integriert'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
-                'Zu besprechen'  => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger'
+                'Erfasst'            => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
+                'Offen'              => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
+                'In Bearbeitung'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
+                'Behoben'            => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
+                'Integriert'         => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
+                'Zu besprechen'      => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
+                'Wird nicht behoben' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger'
             );
 
             $TypeColor = array(
@@ -214,6 +229,13 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                                                             ? new $TypeColor[$Issue->getType()]($Issue->getType())
                                                             : $Issue->getType()
                                                         )
+                                                    ).( $SystemLink
+                                                        ? new PullRight(
+                                                            new External($Issue->getId(),
+                                                                'https://ticket.swe.haus-der-edv.de/issue/'.$Issue->getId()
+                                                            )
+                                                        )
+                                                        : ''
                                                     )
                                                 )
                                             ))
@@ -364,6 +386,102 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                 );
             }
 
+            // Pool
+            $Issues = $Pool->getPool();
+            /** @var LayoutColumn[] $PoolList */
+            $PoolList = array();
+            /** @var Issue $Issue */
+            foreach ((array)$Issues as $Issue) {
+                $ColumnList = array();
+
+                $Title = $this->sanitizeTitle($Issue->getTitle());
+                $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
+
+                $ColumnList[] = new LayoutColumn(array(
+                    new Panel($Title,
+                        ( strlen($Description) == 0 ? '' : $Description ),
+                        Panel::PANEL_TYPE_INFO,
+                        new Layout(
+                            new LayoutGroup(
+                                new LayoutRow(array(
+                                    new LayoutColumn(array(
+                                        new PullClear(
+                                            new PullLeft(
+                                                new Label($Issue->getId())
+                                            ).
+                                            new PullLeft(
+                                                ( isset( $PriorityColor[$Issue->getPriority()] )
+                                                    ? new $PriorityColor[$Issue->getPriority()]($Issue->getPriority())
+                                                    : $Issue->getPriority()
+                                                )
+                                            )
+                                            .
+                                            new PullLeft(
+                                                ( isset( $StateColor[$Issue->getState()] )
+                                                    ? new $StateColor[$Issue->getState()]($Issue->getState())
+                                                    : $Issue->getState()
+                                                )
+                                            ).
+                                            new PullLeft(
+                                                ( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
+                                                    ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]
+                                                    ($Issue->getSubsystem())
+                                                    : $Issue->getSubsystem()
+                                                )
+                                            ).
+                                            new PullLeft(
+                                                ( isset( $TypeColor[$Issue->getType()] )
+                                                    ? new $TypeColor[$Issue->getType()]($Issue->getType())
+                                                    : $Issue->getType()
+                                                )
+                                            ).( $SystemLink
+                                                ? new PullRight(
+                                                    new External($Issue->getId(),
+                                                        'https://ticket.swe.haus-der-edv.de/issue/'.$Issue->getId()
+                                                    )
+                                                )
+                                                : ''
+                                            )
+                                        )
+                                    ))
+                                ))
+                            )
+                        )
+
+                    )
+                ), 4);
+
+                $PoolList = array_merge($PoolList, $ColumnList);
+            }
+
+            $LayoutRowList = array();
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
+            foreach ($PoolList as $LayoutColumn) {
+                if ($LayoutRowCount % 3 == 0) {
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn($LayoutColumn);
+                $LayoutRowCount++;
+            }
+
+            $SprintList = new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Layout(new LayoutGroup($LayoutRowList))
+                    ),
+                )),
+            )));
+
+            $LayoutColumns[] = new LayoutColumn(
+                new Panel(
+                    new \SPHERE\Common\Frontend\Message\Repository\Danger('Ideen & Feedback'),
+                    (string)$SprintList,
+                    Panel::PANEL_TYPE_DANGER
+                )
+            );
+
             $Content = (new Layout(new LayoutGroup(new LayoutRow($LayoutColumns))))->__toString();
             $Cache->setValue('Roadmap', $Content, ( 60 * 60 * 4 ), __METHOD__);
         }
@@ -384,9 +502,19 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
 
         $Parser = new Parser(
             new Credentials(),
-            'Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen},Integriert'
+            'Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst, Offen,{In Bearbeitung},Behoben,{Zu besprechen},Integriert Beheben in: -{Nicht definiert}'
         );
         return $Parser->getMap();
+    }
+
+    public function getPool()
+    {
+
+        $Parser = new Parser(
+            new Credentials(),
+            'Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst, Offen,{In Bearbeitung} ,{Zu besprechen}, {Wird nicht behoben} Beheben in: {Nicht definiert}'
+        );
+        return $Parser->getPool();
     }
 
     /**
