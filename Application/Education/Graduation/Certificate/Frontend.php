@@ -666,12 +666,26 @@ class Frontend extends Extension implements IFrontendInterface
                         $GradeList = $Template->getGrade();
                         $HeaderBehavior = array();
                         if (isset( $GradeList['Data']['BEHAVIOR'] )) {
+                            // sorted like Inputfields
                             foreach ($GradeList['Data']['BEHAVIOR'] as $Acronym => $Value) {
                                 $tblGradeType = Gradebook::useService()->getGradeTypeByCode($Acronym);
-                                array_push($HeaderBehavior, $tblGradeType->getName().': '.$Value);
+                                if ($tblGradeType) {
+                                    if (strpos($tblGradeType->getName(), "Betragen") !== false) {
+                                        $HeaderBehavior[0] = $tblGradeType->getName().': '.$Value;
+                                    }
+                                    if (strpos($tblGradeType->getName(), "Mitarbeit") !== false) {
+                                        $HeaderBehavior[1] = $tblGradeType->getName().': '.$Value;
+                                    }
+                                    if (strpos($tblGradeType->getName(), "Fleiß") !== false) {
+                                        $HeaderBehavior[2] = $tblGradeType->getName().': '.$Value;
+                                    }
+                                    if (strpos($tblGradeType->getName(), "Ordnung") !== false) {
+                                        $HeaderBehavior[3] = $tblGradeType->getName().': '.$Value;
+                                    }
+                                }
                             }
                         }
-                        sort($HeaderBehavior);
+                        ksort($HeaderBehavior);
                         $Header .= new Panel(new Education().' Kopfnoten (Durchschnitt)',
                             $HeaderBehavior
                             , Panel::PANEL_TYPE_SUCCESS);
