@@ -56,21 +56,24 @@ class CosHjSek extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            , '10%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Name der Schule')
-                            ->styleAlignCenter()
-                            ->styleMarginTop('80px')
-                            , '20%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Evangelische Schule Coswig')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom()
-                            ->styleMarginTop('80px')
-                            , '40%')
+                            , '25%')
+                        ->addSliceColumn((new Slice())
+                            ->addElement((new Element())
+                                ->setContent('Evangelische Schule Coswig')
+                                ->styleTextSize('22px')
+                                ->styleTextBold()
+                                ->styleAlignCenter()
+                                ->styleMarginTop('65px')
+                            )
+                            ->addElement((new Element())
+                                ->setContent('staatlich anerkannte Ersatzschule')
+                                ->styleTextSize('16px')
+                                ->styleAlignCenter()
+                            )
+                        )
                         ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Coswig_logo.jpg', '120px'))
                             ->styleAlignCenter()
-                            , '30%')
+                            , '25%')
                     )
                 )
                 ->addSlice((new Slice())
@@ -128,11 +131,11 @@ class CosHjSek extends Certificate
                             ->setContent('Betragen')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KBE is not empty) %}
+                                    {{ Content.Input.KBE }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#F1F1F1')
                             , '9%')
@@ -142,11 +145,11 @@ class CosHjSek extends Certificate
                             ->setContent('Mitarbeit')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KMI is not empty) %}
+                                    {{ Content.Input.KMI }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#F1F1F1')
                             , '9%')
@@ -159,11 +162,11 @@ class CosHjSek extends Certificate
                             ->setContent('Fleiß')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KFL is not empty) %}
+                                    {{ Content.Input.KFL }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#F1F1F1')
                             , '9%')
@@ -173,11 +176,11 @@ class CosHjSek extends Certificate
                             ->setContent('Ordnung')
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KOR is not empty) %}
+                                    {{ Content.Input.KOR }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#F1F1F1')
                             , '9%')

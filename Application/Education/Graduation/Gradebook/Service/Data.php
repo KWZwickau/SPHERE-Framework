@@ -38,6 +38,14 @@ class Data extends AbstractData
         $this->createScoreType('Punkte (0-15)', 'POINTS');
         $this->createScoreType('Verbale Bewertung', 'VERBAL');
         $this->createScoreType('Noten (1-5) mit Komma', 'GRADES_V1');
+
+        $TestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+        if ($TestType) {
+            $this->createGradeType('Betragen', 'KBE', 'Kopfnote Betragen', 0, $TestType);
+            $this->createGradeType('Fleiß', 'KFL', 'Kopfnote Fleiß', 0, $TestType);
+            $this->createGradeType('Mitarbeit', 'KMI', 'Kopfnote Mitarbeit', 0, $TestType);
+            $this->createGradeType('Ordnung', 'KOR', 'Kopfnote Ordnung', 0, $TestType);
+        }
     }
 
     /**

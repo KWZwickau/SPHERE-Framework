@@ -112,11 +112,11 @@ class GymJ extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KBE is not empty) %}
+                                    {{ Content.Input.KBE }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -130,11 +130,11 @@ class GymJ extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KMI is not empty) %}
+                                    {{ Content.Input.KMI }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -151,11 +151,11 @@ class GymJ extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KFL is not empty) %}
+                                    {{ Content.Input.KFL }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -169,11 +169,11 @@ class GymJ extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.Grade.Data.ToDO }}
+                            ->setContent('{% if(Content.Input.KOR is not empty) %}
+                                    {{ Content.Input.KOR }}
                                 {% else %}
                                     ---
-                                {% endif %}')//ToDO Kopfnoten
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -194,19 +194,10 @@ class GymJ extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
+                            ->styleHeight('40px')
                             , '84%')
                     )
                     ->styleMarginTop('15px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -651,15 +642,8 @@ class GymJ extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
+                            ->styleHeight('30px')
                             , '77%')
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleBorderBottom('1px', '#BBB')
                     )
                     ->styleMarginTop('5px')
                 )
@@ -712,16 +696,7 @@ class GymJ extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
+                            ->styleHeight('50px')
                         )
                     )
                     ->styleMarginTop('5px')

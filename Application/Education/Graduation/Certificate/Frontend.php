@@ -258,7 +258,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 'Auswählen')
                     );
                     $TemplateTable[] = array(
-                        'Template' => 'Mittelschule qualifiziertes Abschlusszeugnis Hauptschule',
+                        'Template' => 'Mittelschule Abschlusszeugnis Hauptschule qualifiziert',
                         'Option'   => new Standard(
                             'Weiter', '/Education/Graduation/Certificate/Select/Content', new ChevronRight(), array(
                             'Division'    => $tblDivision->getId(),
@@ -666,12 +666,26 @@ class Frontend extends Extension implements IFrontendInterface
                         $GradeList = $Template->getGrade();
                         $HeaderBehavior = array();
                         if (isset( $GradeList['Data']['BEHAVIOR'] )) {
+                            // sorted like Inputfields
                             foreach ($GradeList['Data']['BEHAVIOR'] as $Acronym => $Value) {
                                 $tblGradeType = Gradebook::useService()->getGradeTypeByCode($Acronym);
-                                array_push($HeaderBehavior, $tblGradeType->getName().': '.$Value);
+                                if ($tblGradeType) {
+                                    if (strpos($tblGradeType->getName(), "Betragen") !== false) {
+                                        $HeaderBehavior[0] = $tblGradeType->getName().': '.$Value;
+                                    }
+                                    if (strpos($tblGradeType->getName(), "Mitarbeit") !== false) {
+                                        $HeaderBehavior[1] = $tblGradeType->getName().': '.$Value;
+                                    }
+                                    if (strpos($tblGradeType->getName(), "Fleiß") !== false) {
+                                        $HeaderBehavior[2] = $tblGradeType->getName().': '.$Value;
+                                    }
+                                    if (strpos($tblGradeType->getName(), "Ordnung") !== false) {
+                                        $HeaderBehavior[3] = $tblGradeType->getName().': '.$Value;
+                                    }
+                                }
                             }
                         }
-                        sort($HeaderBehavior);
+                        ksort($HeaderBehavior);
                         $Header .= new Panel(new Education().' Kopfnoten (Durchschnitt)',
                             $HeaderBehavior
                             , Panel::PANEL_TYPE_SUCCESS);
@@ -679,7 +693,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormField = array(
                             'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
 
-                            'Content.Input.Adding'    => 'TextField',     //ToDO <- deleting after rebuild
+                            'Content.Input.KBE'       => 'TextField',
+                            'Content.Input.KFL'       => 'TextField',
+                            'Content.Input.KMI'       => 'TextField',
+                            'Content.Input.KOR'       => 'TextField',
                             'Content.Input.Remark'    => 'TextArea',
                             'Content.Input.Rating'    => 'TextArea',
                             'Content.Input.Survey'    => 'TextArea',
@@ -704,15 +721,17 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Division.Data.Level.Name' => 'Klassenstufe',
                             'Content.Division.Data.Name'       => 'Klassengruppe',
 
-                            'Content.Input.Adding'    => 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des [...] teil.',
-                            //ToDO <- deleting after rebuild
+                            'Content.Input.KBE'       => 'Betragen',
+                            'Content.Input.KFL'       => 'Fleiß',
+                            'Content.Input.KMI'       => 'Mitarbeit',
+                            'Content.Input.KOR'       => 'Ordnung',
                             'Content.Input.Remark'    => 'Bemerkungen',
                             'Content.Input.Rating'    => 'Einschätzung',
                             'Content.Input.Survey'    => 'Gutachten',
                             'Content.Input.Team'      => 'Arbeitsgemeinschaften',
                             'Content.Input.Deepening' => 'Vertiefungsrichtung',
                             'Content.Input.Choose'    => 'Wahlpflichtbereich',
-                            'Content.Input.Date'                  => 'Datum',
+                            'Content.Input.Date'      => 'Datum',
                             'Content.Input.Transfer'              => 'Versetzungsvermerk',
                             'Content.Input.LevelTwo'              => '2. Fremdsprache ab Klassenstufe',
                             'Content.Input.LevelThree'            => '3. Fremdsprache ab Klassenstufe',

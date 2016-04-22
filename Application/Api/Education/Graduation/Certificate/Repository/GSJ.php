@@ -112,11 +112,11 @@ class GsJ extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                                {{ Content.Grade.Data.ToDO }}
-                                            {% else %}
-                                                ---
-                                            {% endif %}')//ToDO Kopfnoten
+                            ->setContent('{% if(Content.Input.KBE is not empty) %}
+                                    {{ Content.Input.KBE }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -130,11 +130,11 @@ class GsJ extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                                {{ Content.Grade.Data.ToDO }}
-                                            {% else %}
-                                                ---
-                                            {% endif %}')//ToDO Kopfnoten
+                            ->setContent('{% if(Content.Input.KMI is not empty) %}
+                                    {{ Content.Input.KMI }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -151,11 +151,11 @@ class GsJ extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                                {{ Content.Grade.Data.ToDO }}
-                                            {% else %}
-                                                ---
-                                            {% endif %}')//ToDO Kopfnoten
+                            ->setContent('{% if(Content.Input.KFL is not empty) %}
+                                    {{ Content.Input.KFL }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -169,11 +169,11 @@ class GsJ extends Certificate
                             ->stylePaddingTop()
                             , '39%')
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Grade.Data.ToDO is not empty) %}
-                                                {{ Content.Grade.Data.ToDO }}
-                                            {% else %}
-                                                ---
-                                            {% endif %}')//ToDO Kopfnoten
+                            ->setContent('{% if(Content.Input.KOR is not empty) %}
+                                    {{ Content.Input.KOR }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
@@ -194,46 +194,10 @@ class GsJ extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
+                            ->styleHeight('110px')
                             , '84%')
                     )
                     ->styleMarginTop('15px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -496,52 +460,7 @@ class GsJ extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom('1px', '#BBB')
+                            ->styleHeight('130px')
                         )
                     )
                     ->styleMarginTop('5px')
@@ -558,9 +477,7 @@ class GsJ extends Certificate
                                       &nbsp;
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#BBB')
-                            , '58%')
-                        ->addElementColumn((new Element())
-                            , '20%')
+                            , '78%')
                     )
                     ->styleMarginTop('5px')
                 )
