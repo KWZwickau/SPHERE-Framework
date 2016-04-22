@@ -538,31 +538,40 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutPerson(TblPerson $tblPerson)
     {
 
+        $addressExistsList = array();
         $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
         if ($tblAddressAll !== false) {
-            array_walk($tblAddressAll, function (TblToPerson &$tblToPerson) {
+            array_walk($tblAddressAll, function (TblToPerson &$tblToPerson) use ($addressExistsList) {
 
-                $Panel = array($tblToPerson->getTblAddress()->getGuiLayout());
-                if ($tblToPerson->getRemark()) {
-                    array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
+                if (array_key_exists($tblToPerson->getId(), $addressExistsList)){
+                    $tblToPerson = false;
+                } else {
+                    $addressExistsList[$tblToPerson->getId()] = $tblToPerson;
+
+                    $Panel = array($tblToPerson->getTblAddress()->getGuiLayout());
+                    if ($tblToPerson->getRemark()) {
+                        array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
+                    }
+
+                    $tblToPerson = new LayoutColumn(
+                        new Panel(
+                            new MapMarker() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
+                            Panel::PANEL_TYPE_SUCCESS,
+                            new Standard(
+                                '', '/People/Person/Address/Edit', new Edit(),
+                                array('Id' => $tblToPerson->getId()),
+                                'Bearbeiten'
+                            )
+                            . new Standard(
+                                '', '/People/Person/Address/Destroy', new Remove(),
+                                array('Id' => $tblToPerson->getId()), 'Löschen'
+                            )
+                        )
+                        , 3);
                 }
-
-                $tblToPerson = new LayoutColumn(
-                    new Panel(
-                        new MapMarker() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
-                        Panel::PANEL_TYPE_SUCCESS,
-                        new Standard(
-                            '', '/People/Person/Address/Edit', new Edit(),
-                            array('Id' => $tblToPerson->getId()),
-                            'Bearbeiten'
-                        )
-                        . new Standard(
-                            '', '/People/Person/Address/Destroy', new Remove(),
-                            array('Id' => $tblToPerson->getId()), 'Löschen'
-                        )
-                    )
-                    , 3);
             });
+
+            $tblAddressAll = array_filter($tblAddressAll);
         }
 
         $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
@@ -573,30 +582,33 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblRelationshipAddressAll = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonFrom());
                         if ($tblRelationshipAddressAll) {
                             foreach ($tblRelationshipAddressAll as $tblAddress) {
+                                if (!array_key_exists($tblAddress->getId(), $addressExistsList)) {
+                                    $addressExistsList[$tblAddress->getId()] = $tblAddress;
 
-                                $Panel = array($tblAddress->getTblAddress()->getGuiLayout());
-                                if ($tblAddress->getRemark()) {
-                                    array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
-                                }
+                                    $Panel = array($tblAddress->getTblAddress()->getGuiLayout());
+                                    if ($tblAddress->getRemark()) {
+                                        array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
+                                    }
 
-                                $tblAddress = new LayoutColumn(
-                                    new Panel(
-                                        new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
-                                        Panel::PANEL_TYPE_DEFAULT,
-                                        new Standard(
-                                            '', '/People/Person', new PersonIcon(),
-                                            array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
-                                            'Zur Person'
+                                    $tblAddress = new LayoutColumn(
+                                        new Panel(
+                                            new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
+                                            Panel::PANEL_TYPE_DEFAULT,
+                                            new Standard(
+                                                '', '/People/Person', new PersonIcon(),
+                                                array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
+                                                'Zur Person'
+                                            )
+                                            . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
                                         )
-                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                    )
-                                    , 3);
+                                        , 3);
 
-                                if ($tblAddressAll !== false) {
-                                    $tblAddressAll[] = $tblAddress;
-                                } else {
-                                    $tblAddressAll = array();
-                                    $tblAddressAll[] = $tblAddress;
+                                    if ($tblAddressAll !== false) {
+                                        $tblAddressAll[] = $tblAddress;
+                                    } else {
+                                        $tblAddressAll = array();
+                                        $tblAddressAll[] = $tblAddress;
+                                    }
                                 }
                             }
                         }
@@ -606,30 +618,33 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblRelationshipAddressAll = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonTo());
                         if ($tblRelationshipAddressAll) {
                             foreach ($tblRelationshipAddressAll as $tblAddress) {
+                                if (!array_key_exists($tblAddress->getId(), $addressExistsList)) {
+                                    $addressExistsList[$tblAddress->getId()] = $tblAddress;
 
-                                $Panel = array($tblAddress->getTblAddress()->getGuiLayout());
-                                if ($tblAddress->getRemark()) {
-                                    array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
-                                }
+                                    $Panel = array($tblAddress->getTblAddress()->getGuiLayout());
+                                    if ($tblAddress->getRemark()) {
+                                        array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
+                                    }
 
-                                $tblAddress = new LayoutColumn(
-                                    new Panel(
-                                        new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
-                                        Panel::PANEL_TYPE_DEFAULT,
-                                        new Standard(
-                                            '', '/People/Person', new PersonIcon(),
-                                            array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
-                                            'Zur Person'
+                                    $tblAddress = new LayoutColumn(
+                                        new Panel(
+                                            new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
+                                            Panel::PANEL_TYPE_DEFAULT,
+                                            new Standard(
+                                                '', '/People/Person', new PersonIcon(),
+                                                array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
+                                                'Zur Person'
+                                            )
+                                            . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
                                         )
-                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                    )
-                                    , 3);
+                                        , 3);
 
-                                if ($tblAddressAll !== false) {
-                                    $tblAddressAll[] = $tblAddress;
-                                } else {
-                                    $tblAddressAll = array();
-                                    $tblAddressAll[] = $tblAddress;
+                                    if ($tblAddressAll !== false) {
+                                        $tblAddressAll[] = $tblAddress;
+                                    } else {
+                                        $tblAddressAll = array();
+                                        $tblAddressAll[] = $tblAddress;
+                                    }
                                 }
                             }
                         }
@@ -645,6 +660,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         }
+
 
         $LayoutRowList = array();
         $LayoutRowCount = 0;
