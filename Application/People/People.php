@@ -56,7 +56,7 @@ class People implements IClusterInterface
     public static function widgetPersonGroupList()
     {
 
-        $tblGroupAll = Group::useService()->getGroupAll();
+        $tblGroupAll = Group::useService()->getGroupAllSorted();
         if ($tblGroupAll) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {

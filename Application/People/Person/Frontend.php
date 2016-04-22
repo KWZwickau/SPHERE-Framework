@@ -10,7 +10,6 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -278,13 +277,14 @@ class Frontend extends Extension implements IFrontendInterface
     private function formPerson()
     {
 
-        $tblGroupList = Group::useService()->getGroupAll();
+        $tblGroupList = Group::useService()->getGroupAllSorted();
         if ($tblGroupList) {
             // Sort by Name
-            usort($tblGroupList, function (TblGroup $ObjectA, TblGroup $ObjectB) {
+//            usort($tblGroupList, function (TblGroup $ObjectA, TblGroup $ObjectB) {
+//
+//                return strnatcmp($ObjectA->getName(), $ObjectB->getName());
+//            });
 
-                return strnatcmp($ObjectA->getName(), $ObjectB->getName());
-            });
             // Create CheckBoxes
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupList, function (TblGroup &$tblGroup) {

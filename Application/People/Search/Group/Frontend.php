@@ -53,7 +53,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Suche', 'nach Gruppe');
         $Stage->addButton( new Backward() );
 
-        $tblGroupAll = Group::useService()->getGroupAll();
+        $tblGroupAll = Group::useService()->getGroupAllSorted();
         if (!empty($tblGroupAll)) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) use ($Stage) {
