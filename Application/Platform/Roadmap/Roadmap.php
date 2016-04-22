@@ -108,6 +108,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                 'Offen'          => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
                 'In Bearbeitung' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
                 'Behoben'        => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
+                'Integriert'     => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
                 'Zu besprechen'  => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger'
             );
 
@@ -137,7 +138,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                 /** @var Issue $Issue */
                 foreach ((array)$Issues as $Issue) {
                     $ColumnList = array();
-                    if ($Issue->getState() == 'Behoben') {
+                    if ($Issue->getState() == 'Behoben' || $Issue->getState() == 'Integriert') {
 
                         $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
                         $Title = $this->sanitizeTitle($Issue->getTitle());
@@ -383,7 +384,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
 
         $Parser = new Parser(
             new Credentials(),
-            'Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
+            'Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen},Integriert'
         );
         return $Parser->getMap();
     }

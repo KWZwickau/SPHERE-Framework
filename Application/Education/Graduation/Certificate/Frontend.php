@@ -176,7 +176,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zeugnisvorlage', 'wählen');
         $Stage->addButton(new Backward());
-        $Header = '';
+        $Header = array();
         $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
 
         if ($Division && $Person) {
