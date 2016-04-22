@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
@@ -332,16 +331,6 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson, $Global) {
 
-                // alle Hauptadressen
-                $tblAddressToPersonList = Address::useService()->getAddressAllByPersonAndType($tblPersonItem,
-                    Address::useService()->getTypeById(1));
-                if ($tblAddressToPersonList) {
-                    /** @var \SPHERE\Application\Contact\Address\Service\Entity\TblToPerson $tblAddressToPerson */
-                    $tblAddressToPerson = reset($tblAddressToPersonList);
-                } else {
-                    $tblAddressToPerson = false;
-                }
-
                 if (
                     (
                         $tblPerson === false
@@ -355,14 +344,14 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ) {
                     $tblPersonItem = array(
-                        'Person' => new RadioBox('Account[User]', $tblPersonItem->getFullName(),
+                        'Person'  => new RadioBox('Account[User]', $tblPersonItem->getFullName(),
                             $tblPersonItem->getId()),
-                        'Address' => $tblAddressToPerson ? $tblAddressToPerson->getTblAddress()->getGuiString() : ''
+                        'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiString() : ''
                     );
                 } else {
                     $tblPersonItem = array(
-                        'Person' => new Warning($tblPersonItem->getFullName()).' (Aktuell hinterlegt)',
-                        'Address' => $tblAddressToPerson ? $tblAddressToPerson->getTblAddress()->getGuiString() : ''
+                        'Person'  => new Warning($tblPersonItem->getFullName()).' (Aktuell hinterlegt)',
+                        'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiString() : ''
                     );
                 }
             });
@@ -428,16 +417,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $UsernamePanel,
                         new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
                             Panel::PANEL_TYPE_INFO),
+                        $PanelToken
                     ), 4),
                     new FormColumn(array(
-                        $PanelToken,
-                    ), 4),
-                    new FormColumn(array(
-                        new Panel(new Nameplate().' Berechtigungen zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                )),
-                new FormRow(array(
-                    new FormColumn($PanelPerson),
+                        $PanelPerson,
+                        new Panel(new Nameplate().' mit folgenden Berechtigungen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
+                    ), 8),
                 )),
             )),
         ));
