@@ -3,6 +3,7 @@ namespace MOC\V\Component\Document\Component\Bridge\Repository;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Cell;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\File;
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Style;
 
 /**
  * Class PhpExcel
@@ -64,6 +65,18 @@ class PhpExcel extends File
 
         return $this->Source->getActiveSheet()->getCellByColumnAndRow($Cell->getColumn(),
             $Cell->getRow())->getValue();
+    }
+
+    /**
+     * @param Cell      $Cell  Single Cell or Top-Left
+     * @param Cell|null $Range Bottom-Right
+     *
+     * @return Style
+     */
+    public function setStyle(Cell $Cell, Cell $Range = null)
+    {
+
+        return new Style($this->Source->getActiveSheet(), $Cell, $Range);
     }
 
     /**

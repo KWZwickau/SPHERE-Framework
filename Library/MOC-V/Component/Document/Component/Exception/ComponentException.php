@@ -1,14 +1,14 @@
 <?php
 namespace MOC\V\Component\Document\Component\Exception;
 
-use MOC\V\Component\Documentation\Exception\DocumentationException;
+use MOC\V\Component\Document\Exception\DocumentException;
 
 /**
  * Class ComponentException
  *
  * @package MOC\V\Component\Document\Component\Exception
  */
-class ComponentException extends DocumentationException
+class ComponentException extends DocumentException
 {
 
     /**
