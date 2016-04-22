@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 02.11.2015
- * Time: 10:32
- */
-
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 use Doctrine\DBAL\Schema\Schema;
@@ -196,6 +189,25 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableScoreType(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreType');
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
      * @param Table  $tblScoreRule
      * @param Table  $tblScoreCondition
      *
@@ -283,25 +295,6 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblScoreRule, true);
         $this->getConnection()->addForeignKey($Table, $tblScoreType, true);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableScoreType(Schema &$Schema)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblScoreType');
-        if (!$this->getConnection()->hasColumn('tblScoreType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblScoreType', 'Identifier')) {
-            $Table->addColumn('Identifier', 'string');
-        }
 
         return $Table;
     }

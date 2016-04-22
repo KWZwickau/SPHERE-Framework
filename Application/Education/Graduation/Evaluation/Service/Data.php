@@ -1,18 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 15.12.2015
- * Time: 09:39
- */
-
 namespace SPHERE\Application\Education\Graduation\Evaluation\Service;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
@@ -37,6 +30,32 @@ class Data extends AbstractData
         $this->createTestType('Kopfnote', 'BEHAVIOR');
         $this->createTestType('Stichtagsnotenauftrag', 'APPOINTED_DATE_TASK');
         $this->createTestType('Kopfnotenauftrag', 'BEHAVIOR_TASK');
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return null|TblGradeType
+     */
+    public function createTestType($Name, $Identifier)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblTestType')
+            ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => $Identifier));
+
+        if (null === $Entity) {
+            $Entity = new TblTestType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier(strtoupper($Identifier));
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 
     /**
@@ -193,32 +212,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblTask $tblTask
-     * @param TblDivision $tblDivision
-     *
-     * @return bool|Entity\TblTest[]
-     */
-    public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
-    {
-
-        if ($tblDivision === null) {
-
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
-                array(
-                    TblTest::ATTR_TBL_TASK => $tblTask->getId()
-                )
-            );
-        } else {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
-                array(
-                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
-                    TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
-                )
-            );
-        }
-    }
-
-    /**
      * @param $Id
      *
      * @return bool|TblTask
@@ -352,33 +345,6 @@ class Data extends AbstractData
 
     /**
      * @param TblTest $tblTest
-     *
-     * @return bool
-     */
-    public function destroyTest(TblTest $tblTest)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblTest $Entity */
-        $Entity = $Manager->getEntityById('TblTest', $tblTest->getId());
-        if (null !== $Entity) {
-
-            $tblGradeAllByTest = Gradebook::useService()->getGradeAllByTest($tblTest);
-            if ($tblGradeAllByTest) {
-                foreach ($tblGradeAllByTest as $tblGrade) {
-                    Gradebook::useService()->destroyGrade($tblGrade);
-                }
-            }
-
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
-            $Manager->killEntity($Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param TblTest $tblTest
      * @param string $Description
      * @param null $Date
      * @param null $CorrectionDate
@@ -412,32 +378,6 @@ class Data extends AbstractData
         }
 
         return false;
-    }
-
-    /**
-     * @param $Name
-     * @param $Identifier
-     *
-     * @return null|TblGradeType
-     */
-    public function createTestType($Name, $Identifier)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblTestType')
-            ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => $Identifier));
-
-        if (null === $Entity) {
-            $Entity = new TblTestType();
-            $Entity->setName($Name);
-            $Entity->setIdentifier(strtoupper($Identifier));
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
     }
 
     /**
@@ -542,7 +482,6 @@ class Data extends AbstractData
         return false;
     }
 
-
     /**
      * @param TblDivision $tblDivision
      *
@@ -643,6 +582,59 @@ class Data extends AbstractData
             if ($tblTestAllByTask) {
                 foreach ($tblTestAllByTask as $tblTest) {
                     $this->destroyTest($tblTest);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblTask     $tblTask
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|Entity\TblTest[]
+     */
+    public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
+    {
+
+        if ($tblDivision === null) {
+
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId()
+                )
+            );
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK             => $tblTask->getId(),
+                    TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+                )
+            );
+        }
+    }
+
+    /**
+     * @param TblTest $tblTest
+     *
+     * @return bool
+     */
+    public function destroyTest(TblTest $tblTest)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblTest $Entity */
+        $Entity = $Manager->getEntityById('TblTest', $tblTest->getId());
+        if (null !== $Entity) {
+
+            $tblGradeAllByTest = Gradebook::useService()->getGradeAllByTest($tblTest);
+            if ($tblGradeAllByTest) {
+                foreach ($tblGradeAllByTest as $tblGrade) {
+                    Gradebook::useService()->destroyGrade($tblGrade);
                 }
             }
 

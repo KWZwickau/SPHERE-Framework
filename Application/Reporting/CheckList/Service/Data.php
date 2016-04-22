@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 01.12.2015
- * Time: 10:39
- */
+
 
 namespace SPHERE\Application\Reporting\CheckList\Service;
 
@@ -38,6 +33,68 @@ class Data extends AbstractData
         $this->createElementType('CheckBox', 'CHECKBOX');
         $this->createElementType('Datum', 'DATE');
         $this->createElementType('Text', 'TEXT');
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return TblObjectType
+     */
+    public function createObjectType(
+        $Name,
+        $Identifier
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblObjectType')
+            ->findOneBy(array(
+                TblObjectType::ATTR_NAME       => $Name,
+                TblObjectType::ATTR_IDENTIFIER => $Identifier
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblObjectType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return TblElementType
+     */
+    public function createElementType(
+        $Name,
+        $Identifier
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblElementType')
+            ->findOneBy(array(
+                TblElementType::ATTR_NAME       => $Name,
+                TblElementType::ATTR_IDENTIFIER => $Identifier
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblElementType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 
     /**
@@ -298,7 +355,7 @@ class Data extends AbstractData
     public function countListObjectListByList(TblList $tblList)
     {
 
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknï¿½pfungstabelle
 //        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
 //            array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
 //
@@ -321,68 +378,6 @@ class Data extends AbstractData
         } else {
             return 0;
         }
-    }
-
-    /**
-     * @param $Name
-     * @param $Identifier
-     *
-     * @return TblObjectType
-     */
-    public function createObjectType(
-        $Name,
-        $Identifier
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblObjectType')
-            ->findOneBy(array(
-                TblObjectType::ATTR_NAME       => $Name,
-                TblObjectType::ATTR_IDENTIFIER => $Identifier
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblObjectType();
-            $Entity->setName($Name);
-            $Entity->setIdentifier($Identifier);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
-    }
-
-    /**
-     * @param $Name
-     * @param $Identifier
-     *
-     * @return TblElementType
-     */
-    public function createElementType(
-        $Name,
-        $Identifier
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblElementType')
-            ->findOneBy(array(
-                TblElementType::ATTR_NAME       => $Name,
-                TblElementType::ATTR_IDENTIFIER => $Identifier
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblElementType();
-            $Entity->setName($Name);
-            $Entity->setIdentifier($Identifier);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
     }
 
     /**

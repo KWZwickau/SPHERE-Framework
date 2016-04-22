@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 30.11.2015
- * Time: 15:46
- */
 
 namespace SPHERE\Application\Reporting\Standard\Company;
 

@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 01.12.2015
- * Time: 10:33
- */
+
 
 namespace SPHERE\Application\Reporting\CheckList;
 
@@ -13,12 +8,16 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
+use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Group as PersonGroup;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -40,10 +39,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\Application\People\Group\Group as PersonGroup;
-use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
-use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
 
 /**
  * Class Service
@@ -70,28 +65,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblList
-     */
-    public function getListById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getListById($Id);
-    }
-
-    /**
-     * @param $Name
-     *
-     * @return bool|TblList
-     */
-    public function getListByName($Name)
-    {
-
-        return (new Data($this->getBinding()))->getListByName($Name);
-    }
-
-    /**
      * @return bool|TblList[]
      */
     public function getListAll()
@@ -101,78 +74,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblObjectType
-     */
-    public function getObjectTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getObjectTypeById($Id);
-    }
-
-    /**
-     * @param $Identifier
-     *
-     * @return bool|TblObjectType
-     */
-    public function getObjectTypeByIdentifier($Identifier)
-    {
-
-        return (new Data($this->getBinding()))->getObjectTypeByIdentifier($Identifier);
-    }
-
-    /**
      * @return false|TblObjectType[]
      */
     public function getObjectTypeAll()
     {
 
         return (new Data($this->getBinding()))->getObjectTypeAll();
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblListElementList
-     */
-    public function getListElementListById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getListElementListById($Id);
-    }
-
-    /**
-     * @param TblList $tblList
-     *
-     * @return bool|TblListElementList[]
-     */
-    public function getListElementListByList(TblList $tblList)
-    {
-
-        return (new Data($this->getBinding()))->getListElementListByList($tblList);
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblListObjectList
-     */
-    public function getListObjectListById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getListObjectListById($Id);
-    }
-
-    /**
-     * @param TblList $tblList
-     *
-     * @return bool|TblListObjectList[]
-     */
-    public function getListObjectListByList(TblList $tblList)
-    {
-
-        return (new Data($this->getBinding()))->getListObjectListByList($tblList);
     }
 
     /**
@@ -195,35 +102,6 @@ class Service extends AbstractService
 
     /**
      * @param TblList $tblList
-     *
-     * @return bool|TblListObjectElementList[]
-     */
-    public function getListObjectElementListByList(TblList $tblList)
-    {
-
-        return (new Data($this->getBinding()))->getListObjectElementListByList($tblList);
-    }
-
-    /**
-     * @param TblList $tblList
-     * @param TblObjectType $tblObjectType
-     * @param Element $tblObject
-     *
-     * @return bool|TblListObjectElementList[]
-     */
-    public function getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-        TblList $tblList,
-        TblObjectType $tblObjectType,
-        Element $tblObject
-    ) {
-
-        return (new Data($this->getBinding()))->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-            $tblList, $tblObjectType, $tblObject
-        );
-    }
-
-    /**
-     * @param TblList $tblList
      * @param TblObjectType $tblObjectType
      *
      * @return bool|Element[]
@@ -232,17 +110,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getObjectAllByListAndObjectType($tblList, $tblObjectType);
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblElementType
-     */
-    public function getElementTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getElementTypeById($Id);
     }
 
     /**
@@ -325,6 +192,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Name
+     *
+     * @return bool|TblList
+     */
+    public function getListByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getListByName($Name);
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param $Id
      * @param $List
@@ -363,6 +241,17 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblList
+     */
+    public function getListById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getListById($Id);
     }
 
     /**
@@ -410,6 +299,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblElementType
+     */
+    public function getElementTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getElementTypeById($Id);
+    }
+
+    /**
      * @param null $Id
      *
      * @return string
@@ -440,6 +340,17 @@ class Service extends AbstractService
             . new Redirect('/Reporting/CheckList/Element/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblList->getId()));
         }
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblListElementList
+     */
+    public function getListElementListById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getListElementListById($Id);
     }
 
     /**
@@ -480,6 +391,17 @@ class Service extends AbstractService
         } else {
             return $Stage . new Warning('Bitte wählen Sie einen Typ aus', new Exclamation());
         }
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblObjectType
+     */
+    public function getObjectTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getObjectTypeById($Id);
     }
 
     /**
@@ -531,6 +453,17 @@ class Service extends AbstractService
             . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
                 array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
         }
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblListObjectList
+     */
+    public function getListObjectListById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectListById($Id);
     }
 
     /**
@@ -664,6 +597,46 @@ class Service extends AbstractService
             'LevelPersonId' => $LevelPersonId,
             'SchoolOptionId' => $SchoolOptionId
         ));
+    }
+
+    /**
+     * @param TblList $tblList
+     *
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectElementListByList($tblList);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblObjectType
+     */
+    public function getObjectTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getObjectTypeByIdentifier($Identifier);
+    }
+
+    /**
+     * @param TblList       $tblList
+     * @param TblObjectType $tblObjectType
+     * @param Element       $tblObject
+     *
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        Element $tblObject
+    ) {
+
+        return (new Data($this->getBinding()))->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+            $tblList, $tblObjectType, $tblObject
+        );
     }
 
     /**
@@ -906,29 +879,25 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param null $ListId
-     * @param null $Filter
+     * @param TblList $tblList
      *
-     * @return IFormInterface|Redirect
+     * @return bool|TblListElementList[]
      */
-    public function getFilteredCheckList(IFormInterface $Stage = null, $ListId = null, $Filter = null)
+    public function getListElementListByList(TblList $tblList)
     {
-        /**
-         * Skip to Frontend
-         */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit'])) {
-            return $Stage;
-        }
 
-        return new Redirect('/Reporting/CheckList/Object/Element/Edit', Redirect::TIMEOUT_SUCCESS, array(
-            'Id' => $ListId,
-            'YearPersonId' => $Filter['Year'],
-            'LevelPersonId' => $Filter['Level'],
-            'SchoolOption1Id' => $Filter['SchoolOption1'],
-            'SchoolOption2Id' => $Filter['SchoolOption2']
-        ));
+        return (new Data($this->getBinding()))->getListElementListByList($tblList);
+    }
+
+    /**
+     * @param TblList $tblList
+     *
+     * @return bool|TblListObjectList[]
+     */
+    public function getListObjectListByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectListByList($tblList);
     }
 
     /**
@@ -982,20 +951,6 @@ class Service extends AbstractService
             }
 
             return $objectList;
-        }
-
-        return $objectList;
-    }
-
-
-    public function sortObjectList($objectList)
-    {
-        if (!empty($objectList)){
-            foreach ($objectList as $objectTypeId => &$objects) {
-                if (!empty($objects)) {
-                    asort($objects);
-                }
-            }
         }
 
         return $objectList;
@@ -1136,6 +1091,47 @@ class Service extends AbstractService
         }
 
         return $resultList;
+    }
+
+    public function sortObjectList($objectList)
+    {
+
+        if (!empty( $objectList )) {
+            foreach ($objectList as $objectTypeId => &$objects) {
+                if (!empty( $objects )) {
+                    asort($objects);
+                }
+            }
+        }
+
+        return $objectList;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param null                $ListId
+     * @param null                $Filter
+     *
+     * @return IFormInterface|Redirect
+     */
+    public function getFilteredCheckList(IFormInterface $Stage = null, $ListId = null, $Filter = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Button']['Submit'] )) {
+            return $Stage;
+        }
+
+        return new Redirect('/Reporting/CheckList/Object/Element/Edit', Redirect::TIMEOUT_SUCCESS, array(
+            'Id'              => $ListId,
+            'YearPersonId'    => $Filter['Year'],
+            'LevelPersonId'   => $Filter['Level'],
+            'SchoolOption1Id' => $Filter['SchoolOption1'],
+            'SchoolOption2Id' => $Filter['SchoolOption2']
+        ));
     }
 
     /**

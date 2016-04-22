@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 15.12.2015
- * Time: 09:39
- */
-
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use DateTime;

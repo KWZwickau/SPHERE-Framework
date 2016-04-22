@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 25.01.2016
- * Time: 16:34
- */
-
 namespace SPHERE\Application\Api\Reporting\Custom\Hormersdorf;
 
 use MOC\V\Core\FileSystem\FileSystem;

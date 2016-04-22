@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 15.12.2015
- * Time: 09:39
- */
-
 namespace SPHERE\Application\Education\Graduation\Evaluation\Service;
 
 use Doctrine\DBAL\Schema\Schema;
@@ -66,6 +59,43 @@ class Setup extends AbstractSetup
     /**
      * @param Schema $Schema
      * @param Table  $tblTestType
+     *
+     * @return Table
+     */
+    private function setTableTask(Schema &$Schema, Table $tblTestType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblTask');
+        if (!$this->getConnection()->hasColumn('tblTask', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'Date')) {
+            $Table->addColumn('Date', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'FromDate')) {
+            $Table->addColumn('FromDate', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'ToDate')) {
+            $Table->addColumn('ToDate', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblPeriod')) {
+            $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblScoreType')) {
+            $Table->addColumn('serviceTblScoreType', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblYear')) {
+            $Table->addColumn('serviceTblYear', 'bigint', array('notnull' => false));
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblTestType
      * @param Table  $tblTask
      *
      * @return Table
@@ -104,43 +134,6 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
         $this->getConnection()->addForeignKey($Table, $tblTask, true);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblTestType
-     *
-     * @return Table
-     */
-    private function setTableTask(Schema &$Schema, Table $tblTestType)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblTask');
-        if (!$this->getConnection()->hasColumn('tblTask', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblTask', 'Date')) {
-            $Table->addColumn('Date', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTask', 'FromDate')) {
-            $Table->addColumn('FromDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTask', 'ToDate')) {
-            $Table->addColumn('ToDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblPeriod')) {
-            $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblScoreType')) {
-            $Table->addColumn('serviceTblScoreType', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblYear')) {
-            $Table->addColumn('serviceTblYear', 'bigint', array('notnull' => false));
-        }
-
-        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
 
         return $Table;
     }

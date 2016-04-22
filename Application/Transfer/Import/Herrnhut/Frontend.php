@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 01.04.2016
- * Time: 07:50
- */
 
 namespace SPHERE\Application\Transfer\Import\Herrnhut;
 

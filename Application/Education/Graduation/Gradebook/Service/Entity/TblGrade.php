@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 03.11.2015
- * Time: 14:35
- */
-
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -102,24 +95,6 @@ class TblGrade extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblDivision;
-
-    /**
-     * @return string
-     */
-    public function getGrade()
-    {
-
-        return $this->Grade;
-    }
-
-    /**
-     * @param string $Grade
-     */
-    public function setGrade($Grade)
-    {
-
-        $this->Grade = $Grade;
-    }
 
     /**
      * @return string
@@ -316,22 +291,6 @@ class TblGrade extends Element
     }
 
     /**
-     * @return int
-     */
-    public function getTrend()
-    {
-        return $this->Trend;
-    }
-
-    /**
-     * @param int $Trend
-     */
-    public function setTrend($Trend)
-    {
-        $this->Trend = $Trend;
-    }
-
-    /**
      * @return string
      */
     public function getDisplayGrade()
@@ -347,5 +306,41 @@ class TblGrade extends Element
         }
 
         return $gradeValue ? $gradeValue : '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getGrade()
+    {
+
+        return $this->Grade;
+    }
+
+    /**
+     * @param string $Grade
+     */
+    public function setGrade($Grade)
+    {
+
+        $this->Grade = $Grade;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTrend()
+    {
+
+        return $this->Trend;
+    }
+
+    /**
+     * @param int $Trend
+     */
+    public function setTrend($Trend)
+    {
+
+        $this->Trend = $Trend;
     }
 }
