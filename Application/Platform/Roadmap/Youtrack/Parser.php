@@ -68,7 +68,7 @@ class Parser extends Connection
             .'&max='.urlencode('1000');
 
         $Key = md5($Url);
-        $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
+        $Cache = $this->getCache(new MemcachedHandler());
         if (!( $Result = $Cache->getValue($Key, __METHOD__) )) {
             $Response = $this->requestCurl($Url);
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Issues): '.$Url);
@@ -100,7 +100,7 @@ class Parser extends Connection
     {
 
         $Key = md5($Url);
-        $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
+        $Cache = $this->getCache(new MemcachedHandler());
         if (!( $Response = $Cache->getValue($Key, __METHOD__) )) {
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Request): '.$Url);
             if (!$this->Authenticated) {

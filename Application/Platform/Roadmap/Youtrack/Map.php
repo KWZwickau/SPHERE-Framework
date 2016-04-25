@@ -45,7 +45,7 @@ class Map extends Extension
     {
 
         if ($this->VersionPreview === null) {
-            $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
+            $Cache = $this->getCache(new MemcachedHandler());
             if (!( $Result = $Cache->getValue(__METHOD__, __CLASS__) )) {
                 $Sprints = $this->getSprints();
                 /** @var Sprint $Sprint */
@@ -96,7 +96,7 @@ class Map extends Extension
     {
 
         if ($this->VersionRelease === null) {
-            $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
+            $Cache = $this->getCache(new MemcachedHandler());
             if (!( $Result = $Cache->getValue(__METHOD__, __CLASS__) )) {
                 $Sprints = $this->getSprints();
                 /** @var Sprint $Sprint */
