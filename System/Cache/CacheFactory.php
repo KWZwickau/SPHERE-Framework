@@ -27,7 +27,9 @@ class CacheFactory extends Extension
      */
     public function __construct()
     {
-        self::$Configuration = (new ConfigFactory())->createReader( __DIR__.'/Configuration.ini', new IniReader() );
+        if (null === self::$Configuration) {
+            self::$Configuration = (new ConfigFactory())->createReader(__DIR__ . '/Configuration.ini', new IniReader());
+        }
     }
 
     /**
@@ -56,7 +58,7 @@ class CacheFactory extends Extension
     private function isAvailable($Handler)
     {
 
-        return isset( self::$InstanceCache[$this->getHash($Handler)] );
+        return isset(self::$InstanceCache[$this->getHash($Handler)]);
     }
 
     /**
@@ -72,8 +74,8 @@ class CacheFactory extends Extension
 
     /**
      * @param HandlerInterface $Handler
-     * @param string           $Name
-     * @param ConfigInterface  $Config
+     * @param string $Name
+     * @param ConfigInterface $Config
      */
     private function setHandler(HandlerInterface $Handler, $Name, ConfigInterface $Config = null)
     {

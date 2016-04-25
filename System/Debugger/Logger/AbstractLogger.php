@@ -60,7 +60,7 @@ abstract class AbstractLogger implements LoggerInterface
 
         if ($Config) {
             $Value = $Config->getValue($Name);
-            if ($Value->getContainer('Enabled')->getValue()) {
+            if ($Value && $Value->getContainer('Enabled')->getValue()) {
                 $this->enableLog();
             } else {
                 $this->disableLog();

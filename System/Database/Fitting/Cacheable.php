@@ -8,6 +8,8 @@ use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\CacheLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -103,7 +105,7 @@ abstract class Cacheable extends Extension
     {
 
         if ($this->useDebugger()) {
-            $this->getLogger(new BenchmarkLogger())->addLog(
+            $this->getLogger(new CacheLogger())->addLog(
                 'System: '.$__METHOD__.' ['.$Type.']'
             );
         }
@@ -115,17 +117,7 @@ abstract class Cacheable extends Extension
     private function useDebugger()
     {
         if ($this->Debug === null) {
-            $DebuggerConfig = (new ConfigFactory())
-                ->createReader(__DIR__ . '/../../../System/Debugger/Configuration.ini', new IniReader());
-            if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
-                if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('DatabaseCache')->getValue()) {
-                    $this->Debug = true;
-                } else {
-                    $this->Debug = false;
-                }
-            } else {
-                $this->Debug = false;
-            }
+            $this->Debug = $this->getLogger(new CacheLogger())->isEnabled();
         }
         return $this->Debug;
     }
@@ -139,7 +131,7 @@ abstract class Cacheable extends Extension
     {
 
         if ($this->useDebugger()) {
-            $this->getLogger(new BenchmarkLogger())->addLog(
+            $this->getLogger(new CacheLogger())->addLog(
                 'Factory: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
                 $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );
@@ -155,7 +147,7 @@ abstract class Cacheable extends Extension
     {
 
         if ($this->useDebugger()) {
-            $this->getLogger(new BenchmarkLogger())->addLog(
+            $this->getLogger(new CacheLogger())->addLog(
                 'Cache: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
                 $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );

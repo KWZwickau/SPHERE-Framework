@@ -2,7 +2,7 @@
 namespace SPHERE\System\Database\Fitting;
 
 use Doctrine\DBAL\Logging\SQLLogger;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -18,9 +18,9 @@ class Logger extends Extension implements SQLLogger
     /**
      * Logs a SQL statement somewhere.
      *
-     * @param string     $sql    The SQL to be executed.
+     * @param string $sql The SQL to be executed.
      * @param array|null $params The SQL parameters.
-     * @param array|null $types  The SQL parameter types.
+     * @param array|null $types The SQL parameter types.
      *
      * @return void
      */
@@ -35,21 +35,15 @@ class Logger extends Extension implements SQLLogger
         if (is_array($params)) {
             foreach ($params as $param) {
                 if (!is_object($param) && !is_array($param)) {
-                    $Parsed = preg_replace($placeholder, "'".$param."'", $Parsed, 1);
+                    $Parsed = preg_replace($placeholder, "'" . $param . "'", $Parsed, 1);
                 } elseif (is_array($param) && count($param) == 1) {
-                    $Parsed = preg_replace($placeholder, "'".current($param)."'", $Parsed, 1);
+                    $Parsed = preg_replace($placeholder, "'" . current($param) . "'", $Parsed, 1);
                 } else {
-                    $Parsed = preg_replace($placeholder, "'".json_encode($param)."'", $Parsed, 1);
+                    $Parsed = preg_replace($placeholder, "'" . json_encode($param) . "'", $Parsed, 1);
                 }
             }
         }
-        $this->getLogger(new BenchmarkLogger())->addLog(
-            'Query: '.$Parsed
-        );
-
-        $this->getDebugger()->addProtocol('Parameter: '.print_r($params, true));
-        $this->getDebugger()->addProtocol('Types: '.print_r($types, true));
-        $this->getDebugger()->addProtocol('Query: '.highlight_string($sql, true));
+        $this->Data[4] = $Parsed;
     }
 
     /**
@@ -60,10 +54,11 @@ class Logger extends Extension implements SQLLogger
     public function stopQuery()
     {
 
-        $this->getDebugger()->addProtocol(
-            'Query Timing: '
-            .number_format(( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, ',', '')
-            .'ms'
+        $this->getLogger(new QueryLogger())->addLog(
+            $this->Data[4].
+            '<br/>Timing: '
+            . number_format(($this->getDebugger()->getTimeGap() - $this->Data[3]) * 1000, 3, '.', ',')
+            . 'ms'
         );
     }
 }

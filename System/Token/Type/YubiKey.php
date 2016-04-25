@@ -3,6 +3,8 @@ namespace SPHERE\System\Token\Type;
 
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Proxy\Proxy;
 use SPHERE\System\Proxy\Type\Http;
 use SPHERE\System\Token\ITypeInterface;
@@ -218,7 +220,7 @@ class YubiKey implements ITypeInterface
         $Address = gethostbyname($Host);
 
         if ($Address == $Host) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Offline! (DNS: '.$Host.')');
+            (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Offline! (DNS: '.$Host.')');
             return false;
         }
 
@@ -227,10 +229,10 @@ class YubiKey implements ITypeInterface
 
         $Handler = fsockopen($Host, 80, $ErrorNumber, $ErrorMessage, 10);
         if (!$Handler) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api offline! '.$ErrorMessage);
+            (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Offline! '.$ErrorMessage);
             return false;
         } else {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('YubiKey-Api Online '.$Host.' > '.$Address);
+            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog('YubiKey-Api Online '.$Host.' > '.$Address);
             return (string)$Address;
         }
     }

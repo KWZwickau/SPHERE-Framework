@@ -4,6 +4,8 @@ namespace SPHERE\Application\Platform\Roadmap\Youtrack;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\CacheLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -32,6 +34,9 @@ class Map extends Extension
         $this->Sprints[] = $Sprint;
     }
 
+    /**
+     * @param Issue $Issue
+     */
     public function addIssue(Issue $Issue)
     {
 
@@ -60,11 +65,10 @@ class Map extends Extension
                         break;
                     }
                 }
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Version-Preview): '.$this->VersionPreview);
+                (new DebuggerFactory())->createLogger(new QueryLogger())->addLog( __METHOD__.' '.$this->VersionPreview);
                 $Cache->setValue(__METHOD__, $this->VersionPreview, 0, __CLASS__);
             } else {
                 $this->VersionPreview = $Result;
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Cache:Version-Preview): '.$this->VersionPreview);
             }
         }
         return $this->VersionPreview;
@@ -111,11 +115,10 @@ class Map extends Extension
                         break;
                     }
                 }
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Version-Release): '.$this->VersionRelease);
+                (new DebuggerFactory())->createLogger(new QueryLogger())->addLog( __METHOD__.' '.$this->VersionRelease);
                 $Cache->setValue(__METHOD__, $this->VersionRelease, 0, __CLASS__);
             } else {
                 $this->VersionRelease = $Result;
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Cache:Version-Release): '.$this->VersionRelease);
             }
         }
         return $this->VersionRelease;

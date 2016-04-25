@@ -1,7 +1,9 @@
 <?php
 namespace SPHERE\System\Debugger;
 
+use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\ConfigInterface;
+use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\LoggerInterface;
 
@@ -13,26 +15,34 @@ use SPHERE\System\Debugger\Logger\LoggerInterface;
 class DebuggerFactory
 {
 
+    /** @var LoggerInterface[] $Instance */
+    private static $Instance = array();
+    /** @var null|\SPHERE\System\Config\Reader\ReaderInterface $Configuration */
+    private static $Configuration = null;
+
     /**
-     * @var LoggerInterface
+     * DebuggerFactory constructor.
      */
-    private static $InstanceCache = array();
+    public function __construct()
+    {
+        if (null === self::$Configuration) {
+            self::$Configuration = (new ConfigFactory())->createReader(__DIR__ . '/Configuration.ini', new IniReader());
+        }
+    }
 
     /**
      * @param LoggerInterface $Logger
-     * @param ConfigInterface $Config
-     * @param string $Name
-     *
      * @return LoggerInterface
      */
-    public function createLogger(LoggerInterface $Logger = null, ConfigInterface $Config = null, $Name = 'Debugger')
+    public function createLogger(LoggerInterface $Logger = null)
     {
 
-        if (null === $Logger) {
-            $Logger = new BenchmarkLogger();
-        }
         if (!$this->isAvailable($Logger)) {
-            $this->setLogger($Logger, $Name, $Config);
+            if (null === $Logger) {
+                $Logger = new BenchmarkLogger();
+            }
+            $Setting = (new \ReflectionClass($Logger))->getShortName();
+            $this->setLogger($Logger, $Setting, self::$Configuration);
         }
         return $this->getLogger($Logger);
     }
@@ -45,7 +55,7 @@ class DebuggerFactory
     private function isAvailable($Logger)
     {
 
-        return isset( self::$InstanceCache[$this->getHash($Logger)] );
+        return isset(self::$Instance[$this->getHash($Logger)]);
     }
 
     /**
@@ -61,13 +71,13 @@ class DebuggerFactory
 
     /**
      * @param LoggerInterface $Logger
-     * @param $Name
+     * @param string $Name
      * @param ConfigInterface $Config
      */
     private function setLogger(LoggerInterface $Logger, $Name, ConfigInterface $Config = null)
     {
 
-        self::$InstanceCache[$this->getHash($Logger)] = $Logger->setConfig($Name, $Config);
+        self::$Instance[$this->getHash($Logger)] = $Logger->setConfig($Name, $Config);
     }
 
     /**
@@ -78,6 +88,6 @@ class DebuggerFactory
     private function getLogger(LoggerInterface $Logger)
     {
 
-        return self::$InstanceCache[$this->getHash($Logger)];
+        return self::$Instance[$this->getHash($Logger)];
     }
 }

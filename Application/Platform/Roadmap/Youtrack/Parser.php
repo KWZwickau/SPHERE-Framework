@@ -4,6 +4,8 @@ namespace SPHERE\Application\Platform\Roadmap\Youtrack;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\CacheLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 
 class Parser extends Connection
 {
@@ -71,7 +73,7 @@ class Parser extends Connection
         $Cache = $this->getCache(new MemcachedHandler());
         if (!( $Result = $Cache->getValue($Key, __METHOD__) )) {
             $Response = $this->requestCurl($Url);
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Issues): '.$Url);
+            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog(__METHOD__.' '.$Url);
 
             /** @var \SimpleXMLElement $Response */
             $Response = simplexml_load_string($Response);
@@ -84,8 +86,6 @@ class Parser extends Connection
             }
 
             $Cache->setValue($Key, $Result, ( 60 * 60 * 1 ), __METHOD__);
-        } else {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Cache:Issues): '.$Url);
         }
         return $Result;
     }
@@ -102,7 +102,7 @@ class Parser extends Connection
         $Key = md5($Url);
         $Cache = $this->getCache(new MemcachedHandler());
         if (!( $Response = $Cache->getValue($Key, __METHOD__) )) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Request): '.$Url);
+            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog(__METHOD__.' '.$Url);
             if (!$this->Authenticated) {
                 $this->doLogin();
                 $this->Authenticated = true;
@@ -118,8 +118,6 @@ class Parser extends Connection
             $Response = curl_exec($CurlHandler);
             curl_close($CurlHandler);
             $Cache->setValue($Key, $Response, ( 60 * 60 * 1 ), __METHOD__);
-        } else {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Cache:Request): '.$Url);
         }
         return $Response;
     }

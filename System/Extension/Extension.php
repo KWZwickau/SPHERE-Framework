@@ -28,11 +28,6 @@ use SPHERE\System\Extension\Repository\Upload;
 class Extension
 {
 
-    /** @var null|ReaderInterface $LoggerConfig */
-    private static $LoggerConfig = null;
-    /** @var LoggerInterface[] $LoggerRegister */
-    private static $LoggerRegister = array();
-
     /**
      * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
      */
@@ -54,28 +49,12 @@ class Extension
 
     /**
      * @param LoggerInterface $Logger
-     * @param string $Name
-     *
      * @return LoggerInterface
      */
-    public function getLogger(LoggerInterface $Logger, $Name = 'Debugger')
+    public function getLogger(LoggerInterface $Logger)
     {
 
-        if (null === self::$LoggerConfig) {
-            self::$LoggerConfig = (new ConfigFactory())->createReader(
-                __DIR__ . '/../Debugger/Configuration.ini',
-                new IniReader()
-            );
-        }
-
-        $Key = get_class($Logger) . $Name;
-        if (isset(self::$LoggerRegister[$Key])) {
-            $Logger = self::$LoggerRegister[$Key];
-        } else {
-            $Logger = (new DebuggerFactory())->createLogger($Logger, self::$LoggerConfig, $Name);
-            self::$LoggerRegister[$Key] = $Logger;
-        }
-        return $Logger;
+        return (new DebuggerFactory())->createLogger($Logger);
     }
 
     /**
