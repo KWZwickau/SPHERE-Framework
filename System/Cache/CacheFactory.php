@@ -3,7 +3,9 @@ namespace SPHERE\System\Cache;
 
 use SPHERE\System\Cache\Handler\DefaultHandler;
 use SPHERE\System\Cache\Handler\HandlerInterface;
+use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\ConfigInterface;
+use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -15,27 +17,33 @@ use SPHERE\System\Extension\Extension;
 class CacheFactory extends Extension
 {
 
-    /**
-     * @var HandlerInterface
-     */
+    /** @var HandlerInterface $InstanceCache */
     private static $InstanceCache = array();
+    /** @var null|\SPHERE\System\Config\Reader\ReaderInterface $Configuration */
+    private static $Configuration = null;
+
+    /**
+     * CacheFactory constructor.
+     */
+    public function __construct()
+    {
+        self::$Configuration = (new ConfigFactory())->createReader( __DIR__.'/Configuration.ini', new IniReader() );
+    }
 
     /**
      * @param HandlerInterface $Handler
-     * @param ConfigInterface  $Config
-     * @param string           $Name
-     *
      * @return HandlerInterface
      */
-    public function createHandler(HandlerInterface $Handler = null, ConfigInterface $Config = null, $Name = 'Memcached')
+    public function createHandler(HandlerInterface $Handler = null)
     {
 
         if (!$this->isAvailable($Handler)) {
             if (null === $Handler) {
                 $Handler = new DefaultHandler();
             }
+            $Setting = (new \ReflectionClass($Handler))->getShortName();
             $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ': ' . get_class($Handler));
-            $this->setHandler($Handler, $Name, $Config);
+            $this->setHandler($Handler, $Setting, self::$Configuration);
         }
         return $this->getHandler($Handler);
     }

@@ -90,7 +90,7 @@ abstract class Cacheable extends Extension
 
         if (null === self::$CacheSystem || !self::$CacheSystem instanceof MemcachedHandler) {
             $this->debugSystem($__METHOD__, 'Memcached');
-            self::$CacheSystem = $this->getCache(new MemcachedHandler(), 'Memcached');
+            self::$CacheSystem = $this->getCache(new MemcachedHandler());
         }
         return self::$CacheSystem;
     }
