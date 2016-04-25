@@ -78,6 +78,23 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
 
         $Stage = new Stage('KREDA Roadmap');
 
+        try {
+            $Map = $this->getRoadmap();
+            $Pool = $this->getPool();
+        } catch (\Exception $Exception) {
+            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(new Warning('Roadmap konnte nicht abgerufen werden'))
+            ))));
+            return $Stage;
+        }
+
+        $Stage->setMessage(
+            'Aktuelle Versionen: <br/>'.
+            new Label('Preview: '.$Map->getVersionPreview(), Label::LABEL_TYPE_WARNING)
+            .' '.
+            new Label('Release: '.$Map->getVersionRelease(), Label::LABEL_TYPE_PRIMARY)
+        );
+
         $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
         if (!( $Content = $Cache->getValue('Roadmap', __METHOD__) )) {
 
@@ -90,23 +107,6 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                     $SystemLink = ( $tblIdentification->getName() == 'System' );
                 }
             }
-
-            try {
-                $Map = $this->getRoadmap();
-                $Pool = $this->getPool();
-            } catch (\Exception $Exception) {
-                $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
-                    new LayoutColumn(new Warning('Roadmap konnte nicht abgerufen werden'))
-                ))));
-                return $Stage;
-            }
-
-            $Stage->setMessage(
-                'Aktuelle Versionen: <br/>'.
-                new Label('Preview: '.$Map->getVersionPreview(), Label::LABEL_TYPE_WARNING)
-                .' '.
-                new Label('Release: '.$Map->getVersionRelease(), Label::LABEL_TYPE_PRIMARY)
-            );
 
             $Sprints = $Map->getSprints();
 
