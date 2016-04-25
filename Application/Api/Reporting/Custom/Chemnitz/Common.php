@@ -191,7 +191,7 @@ class Common
             if ($PersonList) {
                 $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createPrintClassListExcel($PersonList, $tblPersonList);
+                    $fileLocation = Person::useService()->createPrintClassListExcel($PersonList, $tblPersonList, $DivisionId);
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Chemnitz Klassenliste ".$tblDivision->getDisplayName()
