@@ -159,12 +159,6 @@ class Service
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
 
-            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
-                $Row++;
-                $export->setValue($export->getCell("0", $Row),
-                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
-            }
-
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
             return $fileLocation;
@@ -296,12 +290,6 @@ class Service
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
-
-            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
-                $Row++;
-                $export->setValue($export->getCell("0", $Row),
-                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
-            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -466,12 +454,6 @@ class Service
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
 
-            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
-                $Row++;
-                $export->setValue($export->getCell("0", $Row),
-                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
-            }
-
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
             return $fileLocation;
@@ -572,12 +554,6 @@ class Service
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
-
-            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
-                $Row++;
-                $export->setValue($export->getCell("0", $Row),
-                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
-            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -803,12 +779,6 @@ class Service
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
 
-            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
-                $Row++;
-                $export->setValue($export->getCell("0", $Row),
-                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
-            }
-
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
             return $fileLocation;
@@ -882,12 +852,6 @@ class Service
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
-
-            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
-                $Row++;
-                $export->setValue($export->getCell("0", $Row),
-                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
-            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -1005,12 +969,6 @@ class Service
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
-
-            if (Person::countMissingGenderByPersonList($tblPersonList) >= 1) {
-                $Row++;
-                $export->setValue($export->getCell("0", $Row),
-                    'Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes in den Stammdaten der Personen.');
-            }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

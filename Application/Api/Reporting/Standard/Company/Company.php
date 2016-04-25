@@ -28,7 +28,7 @@ class Company
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Firmengruppenliste ".$tblGroup->getName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }
 
