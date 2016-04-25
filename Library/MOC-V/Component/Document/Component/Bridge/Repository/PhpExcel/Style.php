@@ -269,91 +269,130 @@ class Style
     }
 
     /**
+     * @param int $Size 0 = None, 1 = Thin, 2 = Medium, 3 = Thick
+     *
      * @return $this
+     * @throws \PHPExcel_Exception
      */
-    public function setBorderAll()
+    public function setBorderAll($Size = 1)
     {
 
-        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getAllBorders()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getAllBorders()->setBorderStyle($this->getBorderSize($Size));
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getAllBorders()->setColor(new \PHPExcel_Style_Color());
         return $this;
     }
 
     /**
-     * @return $this
+     * @param $Value
+     *
+     * @return string
      */
-    public function setBorderVertical()
+    private function getBorderSize($Value)
     {
 
-        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getVertical()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        switch ((int)$Value) {
+            case 0:
+                return \PHPExcel_Style_Border::BORDER_NONE;
+            case 1:
+                return \PHPExcel_Style_Border::BORDER_THIN;
+            case 2:
+                return \PHPExcel_Style_Border::BORDER_MEDIUM;
+            case 3:
+                return \PHPExcel_Style_Border::BORDER_THICK;
+            default:
+                return \PHPExcel_Style_Border::BORDER_THIN;
+        }
+    }
+
+    /**
+     * @param int $Size 0 = None, 1 = Thin, 2 = Medium, 3 = Thick
+     *
+     * @return $this
+     */
+    public function setBorderVertical($Size = 1)
+    {
+
+        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getVertical()->setBorderStyle($this->getBorderSize($Size));
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getVertical()->setColor(new \PHPExcel_Style_Color());
         return $this;
     }
 
     /**
+     * @param int $Size 0 = None, 1 = Thin, 2 = Medium, 3 = Thick
+     *
      * @return $this
      */
-    public function setBorderHorizontal()
+    public function setBorderHorizontal($Size = 1)
     {
 
-        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getHorizontal()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getHorizontal()->setBorderStyle($this->getBorderSize($Size));
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getHorizontal()->setColor(new \PHPExcel_Style_Color());
         return $this;
     }
 
     /**
+     * @param int $Size 0 = None, 1 = Thin, 2 = Medium, 3 = Thick
+     *
      * @return $this
      */
-    public function setBorderOutline()
+    public function setBorderOutline($Size = 1)
     {
 
-        $this->setBorderTop();
-        $this->setBorderRight();
-        $this->setBorderBottom();
-        $this->setBorderLeft();
+        $this->setBorderTop($Size);
+        $this->setBorderRight($Size);
+        $this->setBorderBottom($Size);
+        $this->setBorderLeft($Size);
         return $this;
     }
 
     /**
+     * @param int $Size 0 = None, 1 = Thin, 2 = Medium, 3 = Thick
+     *
      * @return $this
      */
-    public function setBorderTop()
+    public function setBorderTop($Size = 1)
     {
 
-        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getTop()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getTop()->setBorderStyle($this->getBorderSize($Size));
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getTop()->setColor(new \PHPExcel_Style_Color());
         return $this;
     }
 
     /**
+     * @param int $Size 0 = None, 1 = Thin, 2 = Medium, 3 = Thick
+     *
      * @return $this
      */
-    public function setBorderRight()
+    public function setBorderRight($Size = 1)
     {
 
-        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getRight()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getRight()->setBorderStyle($this->getBorderSize($Size));
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getRight()->setColor(new \PHPExcel_Style_Color());
         return $this;
     }
 
     /**
+     * @param int $Size 0 = None, 1 = Thin, 2 = Medium, 3 = Thick
+     *
      * @return $this
      */
-    public function setBorderBottom()
+    public function setBorderBottom($Size = 1)
     {
 
-        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getBottom()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getBottom()->setBorderStyle($this->getBorderSize($Size));
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getBottom()->setColor(new \PHPExcel_Style_Color());
         return $this;
     }
 
     /**
+     * @param int $Size 0 = None, 1 = Thin, 2 = Medium, 3 = Thick
+     *
      * @return $this
      */
-    public function setBorderLeft()
+    public function setBorderLeft($Size = 1)
     {
 
-        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getLeft()->setBorderStyle(\PHPExcel_Style_Border::BORDER_THIN);
+        $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getLeft()->setBorderStyle($this->getBorderSize($Size));
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getLeft()->setColor(new \PHPExcel_Style_Color());
         return $this;
     }

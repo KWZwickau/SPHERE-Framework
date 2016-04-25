@@ -162,6 +162,10 @@ class BridgeTest extends AbstractTestCase
         $Style->setBorderVertical();
         $Style->setBorderHorizontal();
         $Style->setBorderAll();
+        $Style->setBorderAll(1);
+        $Style->setBorderAll(2);
+        $Style->setBorderAll(3);
+        $Style->setBorderAll(0);
 
         // Alignment
         $Style->setAlignmentLeft();
@@ -211,6 +215,10 @@ class BridgeTest extends AbstractTestCase
         $Style->setBorderVertical();
         $Style->setBorderHorizontal();
         $Style->setBorderAll();
+        $Style->setBorderAll(1);
+        $Style->setBorderAll(2);
+        $Style->setBorderAll(3);
+        $Style->setBorderAll(0);
 
         // Alignment
         $Style->setAlignmentLeft();
