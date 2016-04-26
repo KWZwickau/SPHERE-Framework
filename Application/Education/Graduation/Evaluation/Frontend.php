@@ -1502,7 +1502,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList = $dataList;
 
                 $columnDefinition['Grade'] = 'Zensur';
-                $columnDefinition['Comment'] = 'Optionaler Grund';
+                $columnDefinition['Comment'] = 'Vermerk Notenänderung';
             } else {
                 // Kopfnote
                 $gradeType = 'Kopfnote: ' . ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
@@ -1535,7 +1535,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
                 $tableColumns['Grade'] = 'Zensur';
-                $tableColumns['Comment'] = 'Optionaler Grund';
+                $tableColumns['Comment'] = 'Vermerk Notenänderung';
             }
         } else {
             $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
@@ -1544,7 +1544,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array(
                 'Name' => 'Schüler',
                 'Grade' => 'Zensur',
-                'Comment' => 'Optionaler Grund',
+                'Comment' => 'Vermerk Notenänderung',
                 'Attendance' => 'Nicht teilgenommen'
             );
         }
