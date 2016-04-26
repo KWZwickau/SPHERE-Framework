@@ -212,8 +212,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                             $TemplateTable[] = array_merge($tblCertificate->__toArray(), array(
                                     'Typ'    => '<div class="text-center">'.( $tblCertificate->getServiceTblConsumer()
-                                            ? new Star().new Small(new Muted($tblCertificate->getServiceTblConsumer()->getAcronym()))
-                                            : new Document().new Small(new Muted('Standard'))
+                                            ? new Star().'<br/>'.new Small(new Muted($tblCertificate->getServiceTblConsumer()->getAcronym()))
+                                            : new Document().'<br/>'.new Small(new Muted('Standard'))
                                         ).'</div>',
                                     'Option' => new Standard(
                                         'Weiter', '/Education/Certificate/Generator/Select/Content', new ChevronRight(),
@@ -232,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Description' => 'Beschreibung',
                         'Option'      => 'Option'
                     ), array(
-                        'order'      => array(array(0, 'desc')),
+                        'order'      => array(array(0, 'asc')),
                         'columnDefs' => array(
                             array('width' => '1%', 'targets' => 0),
                             array('width' => '1%', 'targets' => 3),

@@ -32,7 +32,8 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\CacheLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -91,7 +92,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Result = array();
                 if ($tblPersonAll) {
-                    $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
+                    $this->getLogger(new QueryLogger())->addLog(__METHOD__);
                     array_walk($tblPersonAll,
                         function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList) {
 
@@ -185,10 +186,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SchoolOption' => ($option ? $option : '')
                             ));
                         });
-                    $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
                 }
-
-                $Cache->setValue($Key, $Result, 10, __METHOD__);
+                $Cache->setValue($Key, $Result, 300, __METHOD__);
+            } else {
+                $this->getLogger(new CacheLogger())->addLog(__METHOD__);
             }
 
             if ($Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY') {
