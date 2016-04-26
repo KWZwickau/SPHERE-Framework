@@ -26,7 +26,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Blackboard;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Document;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
+use SPHERE\Common\Frontend\Icon\Repository\Star;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -40,6 +42,8 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -207,6 +211,10 @@ class Frontend extends Extension implements IFrontendInterface
                         function (TblCertificate $tblCertificate) use (&$TemplateTable, $tblDivision, $tblPerson) {
 
                             $TemplateTable[] = array_merge($tblCertificate->__toArray(), array(
+                                    'Typ'    => '<div class="text-center">'.( $tblCertificate->getServiceTblConsumer()
+                                            ? new Star().new Small(new Muted($tblCertificate->getServiceTblConsumer()->getAcronym()))
+                                            : new Document().new Small(new Muted('Standard'))
+                                        ).'</div>',
                                     'Option' => new Standard(
                                         'Weiter', '/Education/Certificate/Generator/Select/Content', new ChevronRight(),
                                         array(
@@ -219,9 +227,16 @@ class Frontend extends Extension implements IFrontendInterface
                         });
 
                     $Content = new TableData($TemplateTable, null, array(
+                        'Typ'         => 'Typ',
                         'Name'        => 'Name',
                         'Description' => 'Beschreibung',
                         'Option'      => 'Option'
+                    ), array(
+                        'order'      => array(array(0, 'desc')),
+                        'columnDefs' => array(
+                            array('width' => '1%', 'targets' => 0),
+                            array('width' => '1%', 'targets' => 3),
+                        )
                     ));
 
                 } else {
