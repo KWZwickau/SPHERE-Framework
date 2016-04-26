@@ -1633,7 +1633,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreGroupGradeTypes) {
                     foreach ($tblScoreGroupGradeTypes as $tblScoreGroupGradeType) {
                         if ($tblScoreGroupGradeType->getTblGradeType()) {
-                            $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName() . ', ';
+
+                            $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName()
+                                . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroupGradeType->getMultiplier() . ')')) . ', ';
                         }
                     }
                 }
