@@ -2,6 +2,7 @@
 namespace SPHERE\System\Database\Fitting;
 
 use Doctrine\DBAL\Logging\SQLLogger;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -55,10 +56,11 @@ class Logger extends Extension implements SQLLogger
     {
 
         $this->getLogger(new QueryLogger())->addLog(
-            $this->Data[4].
-            '<br/>Timing: '
-            . number_format(($this->getDebugger()->getTimeGap() - $this->Data[3]) * 1000, 3, '.', ',')
-            . 'ms'
+            new Label(
+                number_format(( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, '.', ',')
+                .'ms'
+            )
+            .' '.$this->Data[4]
         );
     }
 }

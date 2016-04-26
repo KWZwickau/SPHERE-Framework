@@ -300,28 +300,29 @@ class Display extends Extension implements ITemplateInterface
             if (!empty( $ProtocolBenchmark )) {
                 $Debugger->addItem('Debugger (Benchmark)',
                     new Listing($this->getLogger(new BenchmarkLogger())->getLog())
-                    , true);
+                    , true
+                );
             }
 
             $ProtocolError = $this->getLogger(new ErrorLogger())->getLog();
             if (!empty( $ProtocolError )) {
                 $Debugger->addItem('Debugger (Error)',
                     new Listing($this->getLogger(new ErrorLogger())->getLog())
-                    , true);
+                );
             }
 
             $ProtocolCache = $this->getLogger(new CacheLogger())->getLog();
             if (!empty( $ProtocolCache )) {
                 $Debugger->addItem('Debugger (Cache)',
                     new Listing($this->getLogger(new CacheLogger())->getLog())
-                    , true);
+                );
             }
 
             $ProtocolQuery = $this->getLogger(new QueryLogger())->getLog();
             if (!empty( $ProtocolQuery )) {
                 $Debugger->addItem('Debugger (Query)',
                     new Listing($this->getLogger(new QueryLogger())->getLog())
-                    , true);
+                );
             }
 
             $Protocol = $Debug->getProtocol();

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Debugger\Logger;
 
+use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -62,7 +63,7 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
         if (strpos($Content, 'Query') === 0) {
             $Content = new Danger($Content);
         }
-        return parent::addLog($this->getTimer().' ('.$this->getGap().') '.$Content);
+        return parent::addLog(new Label($this->getTimer()).' '.$Content);
     }
 
     /**
@@ -77,15 +78,6 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
         } else {
             return number_format($this->TimerStop - $this->TimerStart, 8);
         }
-    }
-
-    /**
-     * @return string
-     */
-    private function getGap()
-    {
-
-        return number_format(microtime(true) - $this->TimerGap, 8);
     }
 
     /**
@@ -108,8 +100,16 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
     public function getLog()
     {
 
-        $this->addLog('- Get Log -');
         $Log = parent::getLog();
         return $Log;
+    }
+
+    /**
+     * @return string
+     */
+    private function getGap()
+    {
+
+        return number_format(microtime(true) - $this->TimerGap, 8);
     }
 }
