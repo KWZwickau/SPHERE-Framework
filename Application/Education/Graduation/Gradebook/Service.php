@@ -288,7 +288,6 @@ class Service extends AbstractService
      * @param null $TestId
      * @param                     $Grade
      * @param string $BasicRoute
-     * @param bool $IsEdit
      * @param null|int $minRange
      * @param null|int $maxRange
      *
@@ -299,7 +298,6 @@ class Service extends AbstractService
         $TestId = null,
         $Grade = null,
         $BasicRoute,
-        $IsEdit,
         $minRange = null,
         $maxRange = null
     ) {
@@ -332,7 +330,7 @@ class Service extends AbstractService
         }
 
         $errorEdit = false;
-        if (!$IsEdit && !empty($Grade)) {
+        if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
                 $tblPerson = Person::useService()->getPersonById($personId);
