@@ -11,14 +11,18 @@ namespace SPHERE\Application\Reporting\SerialLetter;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -46,26 +50,33 @@ class Frontend extends Extension implements IFrontendInterface
             'Custody1' => 'Sorgeberechtigter 1',
             'Custody2' => 'Sorgeberechtigter 2'
         );
-        $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+//        $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+        $tblGroup = Group::useService()->getGroupByName('Test');
         $Global = $this->getGlobal();
         if ($tblGroup) {
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
             if ($tblPersonList) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
                 $studentCount = 0;
+                /** @var TblPerson $tblPerson */
                 foreach ($tblPersonList as $tblPerson) {
                     $addressListAll = array();
 
                     $panelData = array();
                     $tblAddressToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
-                    $Global->POST['Check'][$tblPerson->getId()]['Student'] = 1;
-                    $Global->savePost();
+
+                    // ToDo Johk gespeicherte Werte laden
+//                    $Global->POST['Check'][$tblPerson->getId()]['Student'] = 1;
+//                    $Global->savePost();
                     $panelTitle = new CheckBox('Check[' . $tblPerson->getId() . '][Student]',
                         $tblPerson->getLastFirstName(), 1);
                     if ($tblAddressToPersonList) {
 
                         // ToDo Johk erste Hauptadresse selektieren
-                        $Global->POST['RadioStudent'][$tblPerson->getId()] = reset($tblAddressToPersonList)->getId();
-                        $Global->savePost();
+                        if ($Check == null) {
+                            $Global->POST['RadioStudent'][$tblPerson->getId()] = reset($tblAddressToPersonList)->getId();
+                            $Global->savePost();
+                        }
 
                         foreach ($tblAddressToPersonList as $tblAddressToPerson) {
                             $addressListAll[$tblAddressToPerson->getTblAddress()->getId()] = $tblAddressToPerson;
@@ -77,7 +88,8 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $panelData = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
                     }
-                    $dataList[$tblPerson->getId()]['Number'] = ++$studentCount;
+
+                    $dataList[$tblPerson->getId()]['Number'] = ++$studentCount . new HiddenField('Check[' . $tblPerson->getId() . '][Hidden]');
                     $dataList[$tblPerson->getId()]['Student'] = new Panel($panelTitle, $panelData,
                         Panel::PANEL_TYPE_INFO);
 
@@ -93,12 +105,15 @@ class Frontend extends Extension implements IFrontendInterface
                                         $panelData = array();
                                         $tblAddressToPersonList = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonFrom());
                                         $panelTitle = new CheckBox('Check[' . $tblPerson->getId() . '][Custody' . $count . ']',
-                                            $tblRelationship->getServiceTblPersonFrom()->getFullName(), 1);
+                                            $tblRelationship->getServiceTblPersonFrom()->getFullName(),
+                                            $tblRelationship->getServiceTblPersonFrom());
                                         if ($tblAddressToPersonList) {
 
                                             // ToDo Johk erste Hauptadresse selektieren
-                                            $Global->POST['RadioCustody' . $count][$tblPerson->getId()] = reset($tblAddressToPersonList)->getId();
-                                            $Global->savePost();
+                                            if ($Check == null) {
+                                                $Global->POST['RadioCustody' . $count][$tblPerson->getId()] = reset($tblAddressToPersonList)->getId();
+                                                $Global->savePost();
+                                            }
 
                                             foreach ($tblAddressToPersonList as $tblAddressToPerson) {
                                                 $addressListAll[$tblAddressToPerson->getTblAddress()->getId()] = $tblAddressToPerson;
@@ -129,13 +144,15 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Family
                     $panelData = array();
-                    $panelTitle = new CheckBox('Check[Family][' . $tblPerson->getId() . ']',
+                    $panelTitle = new CheckBox('Check[' . $tblPerson->getId() . '][Family]',
                         'Familie', 1);
                     if (!empty($addressListAll)) {
 
                         // ToDo Johk erste Hauptadresse selektieren
-                        $Global->POST['RadioFamily'][$tblPerson->getId()] = reset($addressListAll)->getId();
-                        $Global->savePost();
+                        if ($Check == null) {
+                            $Global->POST['RadioFamily'][$tblPerson->getId()] = reset($addressListAll)->getId();
+                            $Global->savePost();
+                        }
 
                         /** @var TblToPerson $tblAddressToPerson */
                         foreach ($addressListAll as $tblAddressToPerson) {
@@ -153,14 +170,16 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        // ToDo JohK Sortierung
-        // ToDo JohK Warnung bei nicht ausgewähltem Schüler, Adresse
-
-        $Stage->setContent(
-            new Form(new FormGroup(new FormRow(new FormColumn(
-                new TableData($dataList, null, $columnList, false)
-            ))))
-        );
+        $Stage->setContent(SerialLetter::useService()->setPersonAddressSelection(
+            new Form(new FormGroup(new FormRow(
+                new FormColumn(array(
+                        new TableData($dataList, null, $columnList, false)
+                    ,
+                        new Primary('Speichern', new Save())
+                    )
+                )))), $Check, $RadioStudent, $RadioCustody1, $RadioCustody2,
+            $RadioFamily
+        ));
 
         return $Stage;
     }
