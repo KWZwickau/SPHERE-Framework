@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -100,172 +101,176 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblPerson = Person::useService()->getPersonById($Id);
 
-            $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Person'] )) {
-                if ($tblPerson->getTblSalutation()) {
-                    $Global->POST['Person']['Salutation'] = $tblPerson->getTblSalutation()->getId();
+            if ($tblPerson) {
+                $Global = $this->getGlobal();
+                if (!isset($Global->POST['Person'])) {
+                    if ($tblPerson->getTblSalutation()) {
+                        $Global->POST['Person']['Salutation'] = $tblPerson->getTblSalutation()->getId();
+                    }
+                    $Global->POST['Person']['Title'] = $tblPerson->getTitle();
+                    $Global->POST['Person']['FirstName'] = $tblPerson->getFirstName();
+                    $Global->POST['Person']['SecondName'] = $tblPerson->getSecondName();
+                    $Global->POST['Person']['LastName'] = $tblPerson->getLastName();
+                    $Global->POST['Person']['BirthName'] = $tblPerson->getBirthName();
+                    $tblGroupAll = Group::useService()->getGroupAllByPerson($tblPerson);
+                    if (!empty($tblGroupAll)) {
+                        /** @var TblGroup $tblGroup */
+                        foreach ((array)$tblGroupAll as $tblGroup) {
+                            $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
+                        }
+                    }
+                    $Global->savePost();
                 }
-                $Global->POST['Person']['Title'] = $tblPerson->getTitle();
-                $Global->POST['Person']['FirstName'] = $tblPerson->getFirstName();
-                $Global->POST['Person']['SecondName'] = $tblPerson->getSecondName();
-                $Global->POST['Person']['LastName'] = $tblPerson->getLastName();
-                $Global->POST['Person']['BirthName'] = $tblPerson->getBirthName();
-                $tblGroupAll = Group::useService()->getGroupAllByPerson($tblPerson);
-                if (!empty( $tblGroupAll )) {
-                    /** @var TblGroup $tblGroup */
-                    foreach ((array)$tblGroupAll as $tblGroup) {
-                        $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
+
+                $BasicTable = Person::useService()->updatePerson(
+                    $this->formPerson()
+                        ->appendFormButton(new Primary('Speichern', new Save()))
+                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                    $tblPerson, $Person, $Group);
+
+                $MetaTabs = Group::useService()->getGroupAllByPerson($tblPerson);
+                // Sort by Name
+                usort($MetaTabs, function (TblGroup $ObjectA, TblGroup $ObjectB) {
+
+                    return strnatcmp($ObjectA->getName(), $ObjectB->getName());
+                });
+                // Create Tabs
+                /** @noinspection PhpUnusedParameterInspection */
+                array_walk($MetaTabs, function (TblGroup &$tblGroup) use ($Group, $tblPerson) {
+
+                    switch (strtoupper($tblGroup->getMetaTable())) {
+                        case 'COMMON':
+                            $tblGroup = new LayoutTab('Personendaten', $tblGroup->getMetaTable(),
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                            );
+                            break;
+                        case 'PROSPECT':
+                            $tblGroup = new LayoutTab('Interessent', $tblGroup->getMetaTable(),
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                            );
+                            break;
+                        case 'STUDENT':
+                            $tblGroup = new LayoutTab('Schülerakte', $tblGroup->getMetaTable(),
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                            );
+                            break;
+                        case 'CUSTODY':
+                            $tblGroup = new LayoutTab('Sorgerechtdaten', $tblGroup->getMetaTable(),
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                            );
+                            break;
+                        default:
+                            $tblGroup = false;
+                    }
+                });
+                /** @var LayoutTab[] $MetaTabs */
+                $MetaTabs = array_filter($MetaTabs);
+                // Folded ?
+                if (!empty($MetaTabs)) {
+                    if (!$TabActive || $TabActive == '#') {
+                        array_unshift($MetaTabs, new LayoutTab('&nbsp;' . new ChevronRight() . '&nbsp;', '#',
+                            array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                        ));
+                        $MetaTabs[0]->setActive();
+                    } else {
+                        if ($TabActive == 'Common') {
+                            array_unshift($MetaTabs, new LayoutTab('&nbsp;' . new ChevronUp() . '&nbsp;', '#',
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                            ));
+                            $MetaTabs[1]->setActive();
+                        } else {
+                            array_unshift($MetaTabs, new LayoutTab('&nbsp;' . new ChevronUp() . '&nbsp;', '#',
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                            ));
+                        }
                     }
                 }
-                $Global->savePost();
-            }
 
-            $BasicTable = Person::useService()->updatePerson(
-                $this->formPerson()
-                    ->appendFormButton(new Primary('Speichern', new Save()))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $tblPerson, $Person, $Group);
-
-            $MetaTabs = Group::useService()->getGroupAllByPerson($tblPerson);
-            // Sort by Name
-            usort($MetaTabs, function (TblGroup $ObjectA, TblGroup $ObjectB) {
-
-                return strnatcmp($ObjectA->getName(), $ObjectB->getName());
-            });
-            // Create Tabs
-            /** @noinspection PhpUnusedParameterInspection */
-            array_walk($MetaTabs, function (TblGroup &$tblGroup) use ($Group, $tblPerson) {
-
-                switch (strtoupper($tblGroup->getMetaTable())) {
+                switch (strtoupper($TabActive)) {
                     case 'COMMON':
-                        $tblGroup = new LayoutTab('Personendaten', $tblGroup->getMetaTable(),
-                            array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                        );
+                        $MetaTable = Common::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                         break;
                     case 'PROSPECT':
-                        $tblGroup = new LayoutTab('Interessent', $tblGroup->getMetaTable(),
-                            array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                        );
+                        $MetaTable = Prospect::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                         break;
                     case 'STUDENT':
-                        $tblGroup = new LayoutTab('Schülerakte', $tblGroup->getMetaTable(),
-                            array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                        );
+                        $MetaTable = Student::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                         break;
                     case 'CUSTODY':
-                        $tblGroup = new LayoutTab('Sorgerechtdaten', $tblGroup->getMetaTable(),
-                            array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                        );
+                        $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                         break;
                     default:
-                        $tblGroup = false;
+                        if (!empty($MetaTabs)) {
+                            $MetaTable = new Muted('Bitte wählen Sie eine Rubrik');
+                        } else {
+                            $MetaTable = new Warning('Keine Informationen verfügbar');
+                        }
                 }
-            });
-            /** @var LayoutTab[] $MetaTabs */
-            $MetaTabs = array_filter($MetaTabs);
-            // Folded ?
-            if (!empty( $MetaTabs )) {
-                if (!$TabActive || $TabActive == '#') {
-                    array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronRight().'&nbsp;', '#',
-                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                    ));
-                    $MetaTabs[0]->setActive();
-                } else {
-                    if ($TabActive == 'Common') {
-                        array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronUp().'&nbsp;', '#',
-                            array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                        ));
-                        $MetaTabs[1]->setActive();
-                    } else {
-                        array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronUp().'&nbsp;', '#',
-                            array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                        ));
-                    }
-                }
+                $MetaTable = new Well($MetaTable);
+
+                $Stage->setContent(
+                    new Layout(array(
+                        new LayoutGroup(
+                            new LayoutRow(new LayoutColumn(array(
+                                new Well($BasicTable)
+                            ))),
+                            new Title(new PersonParent() . ' Grunddaten', 'der Person')
+                        ),
+                        new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(new LayoutTabs($MetaTabs))),
+                            new LayoutRow(new LayoutColumn($MetaTable)),
+                        ), new Title(new Tag() . ' Informationen', 'zur Person')),
+                        new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(
+                                Address::useFrontend()->frontendLayoutPerson($tblPerson)
+                            )),
+                        ), (new Title(new TagList() . ' Adressdaten', 'der Person'))
+                            ->addButton(
+                                new Standard('Adresse hinzufügen', '/People/Person/Address/Create',
+                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                )
+                            )
+                        ),
+                        new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(
+                                Phone::useFrontend()->frontendLayoutPerson($tblPerson)
+                                . Mail::useFrontend()->frontendLayoutPerson($tblPerson)
+                            )),
+                        ), (new Title(new TagList() . ' Kontaktdaten', 'der Person'))
+                            ->addButton(
+                                new Standard('Telefonnummer hinzufügen', '/People/Person/Phone/Create',
+                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                )
+                            )
+                            ->addButton(
+                                new Standard('E-Mail Adresse hinzufügen', '/People/Person/Mail/Create',
+                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                )
+                            )
+                        ),
+                        new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(array(
+                                Relationship::useFrontend()->frontendLayoutPerson($tblPerson),
+                                Relationship::useFrontend()->frontendLayoutCompany($tblPerson)
+                            ))),
+                        ), (new Title(new TagList() . ' Beziehungen', 'zu Personen und Firmen'))
+                            ->addButton(
+                                new Standard('Personenbeziehung hinzufügen', '/People/Person/Relationship/Create',
+                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                )
+                            )
+                            ->addButton(
+                                new Standard('Firmenbeziehung hinzufügen', '/Corporation/Company/Relationship/Create',
+                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                )
+                            )
+                        ),
+                    ))
+                );
+
+            } else {
+                return $Stage . new Danger('Person nicht gefunden', new Exclamation());
             }
-
-            switch (strtoupper($TabActive)) {
-                case 'COMMON':
-                    $MetaTable = Common::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
-                    break;
-                case 'PROSPECT':
-                    $MetaTable = Prospect::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
-                    break;
-                case 'STUDENT':
-                    $MetaTable = Student::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
-                    break;
-                case 'CUSTODY':
-                    $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
-                    break;
-                default:
-                    if (!empty( $MetaTabs )) {
-                        $MetaTable = new Muted('Bitte wählen Sie eine Rubrik');
-                    } else {
-                        $MetaTable = new Warning('Keine Informationen verfügbar');
-                    }
-            }
-            $MetaTable = new Well($MetaTable);
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(new LayoutColumn(array(
-                            new Well($BasicTable)
-                        ))),
-                        new Title(new PersonParent().' Grunddaten', 'der Person')
-                    ),
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(new LayoutTabs($MetaTabs))),
-                        new LayoutRow(new LayoutColumn($MetaTable)),
-                    ), new Title(new Tag().' Informationen', 'zur Person')),
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            Address::useFrontend()->frontendLayoutPerson($tblPerson)
-                        )),
-                    ), (new Title(new TagList().' Adressdaten', 'der Person'))
-                        ->addButton(
-                            new Standard('Adresse hinzufügen', '/People/Person/Address/Create',
-                                new ChevronDown(), array('Id' => $tblPerson->getId())
-                            )
-                        )
-                    ),
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            Phone::useFrontend()->frontendLayoutPerson($tblPerson)
-                            .Mail::useFrontend()->frontendLayoutPerson($tblPerson)
-                        )),
-                    ), (new Title(new TagList().' Kontaktdaten', 'der Person'))
-                        ->addButton(
-                            new Standard('Telefonnummer hinzufügen', '/People/Person/Phone/Create',
-                                new ChevronDown(), array('Id' => $tblPerson->getId())
-                            )
-                        )
-                        ->addButton(
-                            new Standard('E-Mail Adresse hinzufügen', '/People/Person/Mail/Create',
-                                new ChevronDown(), array('Id' => $tblPerson->getId())
-                            )
-                        )
-                    ),
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
-                            Relationship::useFrontend()->frontendLayoutPerson($tblPerson),
-                            Relationship::useFrontend()->frontendLayoutCompany($tblPerson)
-                        ))),
-                    ), (new Title(new TagList().' Beziehungen', 'zu Personen und Firmen'))
-                        ->addButton(
-                            new Standard('Personenbeziehung hinzufügen', '/People/Person/Relationship/Create',
-                                new ChevronDown(), array('Id' => $tblPerson->getId())
-                            )
-                        )
-                        ->addButton(
-                            new Standard('Firmenbeziehung hinzufügen', '/Corporation/Company/Relationship/Create',
-                                new ChevronDown(), array('Id' => $tblPerson->getId())
-                            )
-                        )
-                    ),
-                ))
-            );
-
         }
 
         return $Stage;
