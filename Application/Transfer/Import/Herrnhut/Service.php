@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 01.04.2016
- * Time: 07:50
- */
 
 namespace SPHERE\Application\Transfer\Import\Herrnhut;
 
@@ -125,6 +119,12 @@ class Service
                     'Schüler_Integr_Förderschüler' => null,
                     'Landkreis' => null,
                     'letzte Schulart' => null,
+                    'FS1 von' => null,
+                    'FS1 bis' => null,
+                    'FS2 von' => null,
+                    'FS2 bis' => null,
+                    'FS3 von' => null,
+                    'FS3 bis' => null,
                 );
 
                 for ($RunX = 0; $RunX < $X; $RunX++) {
@@ -146,7 +146,7 @@ class Service
 
                     $error = array();
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-
+                        set_time_limit(300);
                         // Student
                         $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
                         $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
@@ -279,60 +279,62 @@ class Service
                                     $RunY)));
                                 $fatherFirstName = trim($Document->getValue($Document->getCell($Location['Sorg2 Vorname'],
                                     $RunY)));
+                                if ($fatherLastName != '') {
 
-                                $tblPersonFatherExists = Person::useService()->existsPerson(
-                                    $fatherFirstName,
-                                    $fatherLastName,
-                                    $cityCode
-                                );
-
-                                if (!$tblPersonFatherExists) {
-                                    $tblPersonFather = Person::useService()->insertPerson(
-                                        Person::useService()->getSalutationById(1),
-                                        '',
+                                    $tblPersonFatherExists = Person::useService()->existsPerson(
                                         $fatherFirstName,
-                                        '',
                                         $fatherLastName,
-                                        array(
-                                            0 => Group::useService()->getGroupByMetaTable('COMMON'),
-                                            1 => Group::useService()->getGroupByMetaTable('CUSTODY')
-                                        )
+                                        $cityCode
                                     );
 
-                                    if ($tblPersonFather) {
-                                        Common::useService()->insertMeta(
+                                    if (!$tblPersonFatherExists) {
+                                        $tblPersonFather = Person::useService()->insertPerson(
+                                            Person::useService()->getSalutationById(1),
+                                            '',
+                                            $fatherFirstName,
+                                            '',
+                                            $fatherLastName,
+                                            array(
+                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY')
+                                            )
+                                        );
+
+                                        if ($tblPersonFather) {
+                                            Common::useService()->insertMeta(
+                                                $tblPersonFather,
+                                                '',
+                                                '',
+                                                TblCommonBirthDates::VALUE_GENDER_MALE,
+                                                '',
+                                                '',
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
+                                        Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonFather,
-                                            '',
-                                            '',
-                                            TblCommonBirthDates::VALUE_GENDER_MALE,
-                                            '',
-                                            '',
-                                            TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
-                                            '',
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
                                             ''
                                         );
+
+                                        $countFather++;
+                                    } else {
+
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPersonFatherExists,
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
+                                            ''
+                                        );
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+
+                                        $countFatherExists++;
                                     }
-
-                                    Relationship::useService()->insertRelationshipToPerson(
-                                        $tblPersonFather,
-                                        $tblPerson,
-                                        $tblRelationshipTypeCustody,
-                                        ''
-                                    );
-
-                                    $countFather++;
-                                } else {
-
-                                    Relationship::useService()->insertRelationshipToPerson(
-                                        $tblPersonFatherExists,
-                                        $tblPerson,
-                                        $tblRelationshipTypeCustody,
-                                        ''
-                                    );
-
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
-
-                                    $countFatherExists++;
                                 }
 
                                 // Mother
@@ -342,59 +344,62 @@ class Service
                                 $motherFirstName = trim($Document->getValue($Document->getCell($Location['Sorg1 Vorname'],
                                     $RunY)));
 
-                                $tblPersonMotherExists = Person::useService()->existsPerson(
-                                    $motherFirstName,
-                                    $motherLastName,
-                                    $cityCode
-                                );
+                                if ($motherLastName != '') {
 
-                                if (!$tblPersonMotherExists) {
-                                    $tblPersonMother = Person::useService()->insertPerson(
-                                        Person::useService()->getSalutationById(2),
-                                        '',
+                                    $tblPersonMotherExists = Person::useService()->existsPerson(
                                         $motherFirstName,
-                                        '',
                                         $motherLastName,
-                                        array(
-                                            0 => Group::useService()->getGroupByMetaTable('COMMON'),
-                                            1 => Group::useService()->getGroupByMetaTable('CUSTODY')
-                                        )
+                                        $cityCode
                                     );
 
-                                    if ($tblPersonMother) {
-                                        Common::useService()->insertMeta(
+                                    if (!$tblPersonMotherExists) {
+                                        $tblPersonMother = Person::useService()->insertPerson(
+                                            Person::useService()->getSalutationById(2),
+                                            '',
+                                            $motherFirstName,
+                                            '',
+                                            $motherLastName,
+                                            array(
+                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY')
+                                            )
+                                        );
+
+                                        if ($tblPersonMother) {
+                                            Common::useService()->insertMeta(
+                                                $tblPersonMother,
+                                                '',
+                                                '',
+                                                TblCommonBirthDates::VALUE_GENDER_FEMALE,
+                                                '',
+                                                '',
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
+                                        Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonMother,
-                                            '',
-                                            '',
-                                            TblCommonBirthDates::VALUE_GENDER_FEMALE,
-                                            '',
-                                            '',
-                                            TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
-                                            '',
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
                                             ''
                                         );
+
+                                        $countMother++;
+                                    } else {
+
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPersonMotherExists,
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
+                                            ''
+                                        );
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+
+                                        $countMotherExists++;
                                     }
-
-                                    Relationship::useService()->insertRelationshipToPerson(
-                                        $tblPersonMother,
-                                        $tblPerson,
-                                        $tblRelationshipTypeCustody,
-                                        ''
-                                    );
-
-                                    $countMother++;
-                                } else {
-
-                                    Relationship::useService()->insertRelationshipToPerson(
-                                        $tblPersonMotherExists,
-                                        $tblPerson,
-                                        $tblRelationshipTypeCustody,
-                                        ''
-                                    );
-
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
-
-                                    $countMotherExists++;
                                 }
 
                                 // Addresses
@@ -879,11 +884,40 @@ class Service
                                                 }
                                             }
                                             if ($tblSubject) {
+                                                $tblSchoolType = Type::useService()->getTypeById(7); // Gymnasium
+                                                $tblFromLevel = false;
+                                                $fromLevel = trim($Document->getValue($Document->getCell($Location['FS' . $i . ' von'],
+                                                    $RunY)));
+                                                if ($fromLevel !== ''){
+                                                    if (strlen($fromLevel) == 2){
+                                                        $fromLevel = ltrim($fromLevel,'0');
+                                                        $tblFromLevel = Division::useService()->insertLevel(
+                                                            $tblSchoolType,
+                                                            $fromLevel
+                                                        );
+                                                    }
+                                                }
+
+                                                $tblToLevel = false;
+                                                $toLevel = trim($Document->getValue($Document->getCell($Location['FS' . $i . ' bis'],
+                                                    $RunY)));
+                                                if ($toLevel !== ''){
+                                                    if (strlen($toLevel) == 2){
+                                                        $toLevel = ltrim($toLevel,'0');
+                                                        $tblToLevel = Division::useService()->insertLevel(
+                                                            $tblSchoolType,
+                                                            $toLevel
+                                                        );
+                                                    }
+                                                }
+
                                                 Student::useService()->addStudentSubject(
                                                     $tblStudent,
                                                     Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'),
                                                     Student::useService()->getStudentSubjectRankingByIdentifier($i),
-                                                    $tblSubject
+                                                    $tblSubject,
+                                                    $tblFromLevel ? $tblFromLevel : null,
+                                                    $tblToLevel ? $tblToLevel: null
                                                 );
                                             }
                                         }
@@ -915,7 +949,7 @@ class Service
                         }
                     }
 
-//                    Debugger::screenDump($error);
+                    Debugger::screenDump($error);
 
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .

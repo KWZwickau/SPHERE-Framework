@@ -174,6 +174,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Code
+     *
+     * @return bool|Service\Entity\TblGradeType
+     */
+    public function getGradeTypeByCode($Code)
+    {
+
+        return (new Data($this->getBinding()))->getGradeTypeByCode($Code);
+    }
+    
+    /**
      * @param IFormInterface|null $Stage
      * @param null $DivisionSubjectId
      * @param null $Select
@@ -467,17 +478,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreConditionAll();
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblScoreRule
-     */
-    public function getScoreRuleById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getScoreRuleById($Id);
     }
 
     /**
@@ -1031,6 +1031,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool|TblScoreCondition[]
+     */
+    public function getScoreConditionsByRule(TblScoreRule $tblScoreRule)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionsByRule($tblScoreRule);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGradeTypeList[]
+     */
+    public function getScoreConditionGradeTypeListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
+    }
+
+    /**
      * @param TblScoreCondition $tblScoreCondition
      *
      * @return bool|TblScoreConditionGroupList[]
@@ -1053,14 +1075,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblScoreCondition $tblScoreCondition
+     * @param $Id
      *
-     * @return bool|TblScoreConditionGradeTypeList[]
+     * @return bool|TblScoreGroup
      */
-    public function getScoreConditionGradeTypeListByCondition(TblScoreCondition $tblScoreCondition)
+    public function getScoreGroupById($Id)
     {
 
-        return (new Data($this->getBinding()))->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
+        return (new Data($this->getBinding()))->getScoreGroupById($Id);
     }
 
     /**
@@ -1072,28 +1094,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreRuleConditionListByRule($tblScoreRule);
-    }
-
-    /**
-     * @param TblScoreRule $tblScoreRule
-     *
-     * @return bool|TblScoreCondition[]
-     */
-    public function getScoreConditionsByRule(TblScoreRule $tblScoreRule)
-    {
-
-        return (new Data($this->getBinding()))->getScoreConditionsByRule($tblScoreRule);
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblScoreGroup
-     */
-    public function getScoreGroupById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getScoreGroupById($Id);
     }
 
     /**
@@ -1289,12 +1289,12 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return bool|TblScoreType
+     * @return bool|TblScoreRule
      */
-    public function getScoreTypeById($Id)
+    public function getScoreRuleById($Id)
     {
 
-        return (new Data($this->getBinding()))->getScoreTypeById($Id);
+        return (new Data($this->getBinding()))->getScoreRuleById($Id);
     }
 
     /**
@@ -1315,19 +1315,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreTypeAll();
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     *
-     * @return bool|TblScoreRuleDivisionSubject
-     */
-    public function getScoreRuleDivisionSubjectByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
-    {
-
-        return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
-            $tblSubject);
     }
 
     /**
@@ -1403,6 +1390,30 @@ class Service extends AbstractService
             'TypeDivisionSubjectId' => $TypeDivisionSubjectId,
             'LevelDivisionSubjectId' => $LevelDivisionSubjectId
         ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject  $tblSubject
+     *
+     * @return bool|TblScoreRuleDivisionSubject
+     */
+    public function getScoreRuleDivisionSubjectByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
+            $tblSubject);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblScoreType
+     */
+    public function getScoreTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getScoreTypeById($Id);
     }
 
     /**

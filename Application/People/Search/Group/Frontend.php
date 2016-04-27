@@ -31,7 +31,9 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Debugger\Logger\CacheLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -53,7 +55,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Suche', 'nach Gruppe');
         $Stage->addButton( new Backward() );
 
-        $tblGroupAll = Group::useService()->getGroupAll();
+        $tblGroupAll = Group::useService()->getGroupAllSorted();
         if (!empty($tblGroupAll)) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) use ($Stage) {
@@ -76,116 +78,118 @@ class Frontend extends Extension implements IFrontendInterface
 //            $tblPersonAll = Person::useService()->fetchPersonAllByIdList($idPersonAll);
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
 
-//            $Cache = $this->getCache(new MemcachedHandler());
-//            if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
-
-            // Check ESZC
+            // Consumer + Group Cache
             $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
+            $Key = $Acronym.':'.$Id.':'.$tblGroup->getMetaTable();
+            $Cache = $this->getCache(new MemcachedHandler());
+            if (null === ($Result = $Cache->getValue($Key, __METHOD__))) {
 
-            if ($tblGroup->getMetaTable() == 'STUDENT') {
-                $tblYearList = Term::useService()->getYearByNow();
-            } else {
-                $tblYearList = false;
-            }
+                if ($tblGroup->getMetaTable() == 'STUDENT') {
+                    $tblYearList = Term::useService()->getYearByNow();
+                } else {
+                    $tblYearList = false;
+                }
 
-            $Result = array();
-            if ($tblPersonAll) {
-                $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
-                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList) {
+                $Result = array();
+                if ($tblPersonAll) {
+                    $this->getLogger(new QueryLogger())->addLog(__METHOD__);
+                    array_walk($tblPersonAll,
+                        function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList) {
 
-                    $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
-                    $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                    if (!empty($tblAddressAll)) {
-                        $tblAddress = current($tblAddressAll)->getGuiString();
-                    } else {
-                        $tblAddress = false;
-                    }
+                            $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
+                            $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                            if (!empty($tblAddressAll)) {
+                                $tblAddress = current($tblAddressAll)->getGuiString();
+                            } else {
+                                $tblAddress = false;
+                            }
 
-                    // Division && Identification
-                    $tblDivision = false;
-                    $identification = '';
-                    if ($tblGroup->getMetaTable() == 'STUDENT'){
-                        if ($tblYearList) {
-                            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-                            if ($tblDivisionStudentList) {
-                                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                                    foreach ($tblYearList as $tblYear){
-                                        if ($tblDivisionStudent->getTblDivision()) {
-                                            $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                                            if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
-                                                $tblDivision = $tblDivisionStudent->getTblDivision();
+                            // Division && Identification
+                            $tblDivision = false;
+                            $identification = '';
+                            if ($tblGroup->getMetaTable() == 'STUDENT') {
+                                if ($tblYearList) {
+                                    $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                                    if ($tblDivisionStudentList) {
+                                        foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                                            foreach ($tblYearList as $tblYear) {
+                                                if ($tblDivisionStudent->getTblDivision()) {
+                                                    $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                                                    if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                                                        $tblDivision = $tblDivisionStudent->getTblDivision();
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            if ($tblDivision) {
                                                 break;
                                             }
                                         }
                                     }
+                                }
 
-                                    if ($tblDivision){
-                                        break;
+                                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                                if ($tblStudent) {
+                                    $identification = $tblStudent->getIdentifier();
+                                }
+
+                            }
+
+                            // Prospect
+                            $level = false;
+                            $year = false;
+                            $option = false;
+                            if ($tblGroup->getMetaTable() == 'PROSPECT') {
+                                $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                                if ($tblProspect) {
+                                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                                    if ($tblProspectReservation) {
+                                        $level = $tblProspectReservation->getReservationDivision();
+                                        $year = $tblProspectReservation->getReservationYear();
+                                        $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
+                                        $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
+                                        if ($optionA && $optionB) {
+                                            $option = $optionA->getName() . ', ' . $optionB->getName();
+                                        } elseif ($optionA) {
+                                            $option = $optionA->getName();
+                                        } elseif ($optionB) {
+                                            $option = $optionB->getName();
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        if ($tblStudent){
-                            $identification = $tblStudent->getIdentifier();
-                        }
-
-                    }
-
-                    // Prospect
-                    $level = false;
-                    $year = false;
-                    $option = false;
-                    if ($tblGroup->getMetaTable() == 'PROSPECT'){
-                        $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
-                        if ($tblProspect){
-                            $tblProspectReservation = $tblProspect->getTblProspectReservation();
-                            if ($tblProspectReservation){
-                                $level = $tblProspectReservation->getReservationDivision();
-                                $year = $tblProspectReservation->getReservationYear();
-                                $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
-                                $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
-                                if ($optionA && $optionB){
-                                    $option = $optionA->getName() . ', ' . $optionB->getName();
-                                } elseif ($optionA) {
-                                    $option = $optionA->getName();
-                                } elseif ($optionB) {
-                                    $option = $optionB->getName();
-                                }
-                            }
-                        }
-                    }
-
-                    array_push($Result, array(
-                        'FullName' => $tblPerson->getLastFirstName(),
-                        'Address' => ($tblAddress
-                            ? $tblAddress
-                            : new Warning('Keine Adresse hinterlegt')
-                        ),
-                        'Option' => (new Standard('', '/People/Person', new Edit(), array(
-                            'Id' => $tblPerson->getId(),
-                            'Group' => $tblGroup->getId()
-                        ), 'Bearbeiten'))
-                            . (new Standard('',
-                                '/People/Person/Destroy', new Remove(),
-                                array('Id' => $tblPerson->getId(), 'Group' => $tblGroup->getId()), 'Person löschen')),
-                        'Remark' => (
-                        $Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY'
-                            ? (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
-                            : ''
-                        ),
-                        'Division' => ($tblDivision ? $tblDivision->getDisplayName() : ''),
-                        'Identification' => $identification,
-                        'Year' => ($year ? $year :''),
-                        'Level' => ($level ? $level :''),
-                        'SchoolOption' => ($option ? $option : '')
-                    ));
-                });
-                $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
-
-//                    $Cache->setValue($Id, $Result, 0, __METHOD__);
-//                }
+                            array_push($Result, array(
+                                'FullName' => $tblPerson->getLastFirstName(),
+                                'Address' => ($tblAddress
+                                    ? $tblAddress
+                                    : new Warning('Keine Adresse hinterlegt')
+                                ),
+                                'Option' => (new Standard('', '/People/Person', new Edit(), array(
+                                        'Id' => $tblPerson->getId(),
+                                        'Group' => $tblGroup->getId()
+                                    ), 'Bearbeiten'))
+                                    . (new Standard('',
+                                        '/People/Person/Destroy', new Remove(),
+                                        array('Id' => $tblPerson->getId(), 'Group' => $tblGroup->getId()),
+                                        'Person löschen')),
+                                'Remark' => (
+                                $Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY'
+                                    ? (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
+                                    : ''
+                                ),
+                                'Division' => ($tblDivision ? $tblDivision->getDisplayName() : ''),
+                                'Identification' => $identification,
+                                'Year' => ($year ? $year : ''),
+                                'Level' => ($level ? $level : ''),
+                                'SchoolOption' => ($option ? $option : '')
+                            ));
+                        });
+                }
+                $Cache->setValue($Key, $Result, 300, __METHOD__);
+            } else {
+                $this->getLogger(new CacheLogger())->addLog(__METHOD__);
             }
 
             if ($Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY') {

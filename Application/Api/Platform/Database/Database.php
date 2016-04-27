@@ -54,7 +54,7 @@ class Database extends Extension implements IModuleInterface
             Account::useService()->changeConsumer($tblConsumer);
 
             $this->getCache(new CookieHandler())->clearCache();
-            $this->getCache(new MemcachedHandler(), 'Memcached')->clearCache();
+            $this->getCache(new MemcachedHandler())->clearCache();
             $this->getCache(new APCuHandler())->clearCache();
             $this->getCache(new MemoryHandler())->clearCache();
             $this->getCache(new OpCacheHandler())->clearCache();

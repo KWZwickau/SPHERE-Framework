@@ -27,7 +27,7 @@
         {
             var guiSelect = jQuery('select[name="{{ ElementName }}"]');
             guiSelect.find('option[value="{{ ElementValue }}"]').attr('selected', 'selected');
-            guiSelect.on('change', function(Event)
+            guiSelect.on('change keyup blur', function(Event)
             {
                 var noSelection = jQuery(Event.currentTarget);
                 var useColor = noSelection.parent().find('span.selecter-selected');

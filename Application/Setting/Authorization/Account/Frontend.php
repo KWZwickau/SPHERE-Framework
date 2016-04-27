@@ -344,12 +344,14 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ) {
                     $tblPersonItem = array(
-                        'Person' => new RadioBox('Account[User]', $tblPersonItem->getFullName(),
-                            $tblPersonItem->getId())
+                        'Person'  => new RadioBox('Account[User]', $tblPersonItem->getFullName(),
+                            $tblPersonItem->getId()),
+                        'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiString() : ''
                     );
                 } else {
                     $tblPersonItem = array(
-                        'Person' => new Warning($tblPersonItem->getFullName()).' (Aktuell hinterlegt)'
+                        'Person'  => new Warning($tblPersonItem->getFullName()).' (Aktuell hinterlegt)',
+                        'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiString() : ''
                     );
                 }
             });
@@ -364,7 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Danger('AKTUELL hinterlegte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         } elseif (isset( $Global->POST['Account']['User'] )) {
             $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
@@ -372,11 +374,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new Warning('AKTUELL selektierte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         } else {
             $PanelPerson = new Panel(new Person().' für folgende Person', array(
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         }
 
@@ -415,18 +417,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $UsernamePanel,
                         new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
                             Panel::PANEL_TYPE_INFO),
-                        $PanelToken,
+                        $PanelToken
                     ), 4),
                     new FormColumn(array(
                         $PanelPerson,
-                    ), 4),
-                    new FormColumn(array(
-                        new Panel(new Nameplate().' Berechtigungen zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(), 4),
-                    new FormColumn(array(), 4),
+                        new Panel(new Nameplate().' mit folgenden Berechtigungen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
+                    ), 8),
                 )),
             )),
         ));

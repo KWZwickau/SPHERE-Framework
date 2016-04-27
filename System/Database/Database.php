@@ -34,6 +34,7 @@ use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Database\Link\Register;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -213,17 +214,7 @@ class Database extends Extension
     private function useDebugger()
     {
         if ($this->Debug === null) {
-            $DebuggerConfig = (new ConfigFactory())
-                ->createReader(__DIR__ . '/../../System/Debugger/Configuration.ini', new IniReader());
-            if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
-                if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('DatabaseQuery')->getValue()) {
-                    $this->Debug = true;
-                } else {
-                    $this->Debug = false;
-                }
-            } else {
-                $this->Debug = false;
-            }
+            $this->Debug = $this->getLogger(new QueryLogger())->isEnabled();
         }
         return $this->Debug;
     }

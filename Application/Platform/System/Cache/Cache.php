@@ -84,7 +84,7 @@ class Cache extends Extension implements IModuleInterface
 
         if ($Clear) {
             $this->getCache(new CookieHandler())->clearCache();
-            $this->getCache(new MemcachedHandler(), 'Memcached')->clearCache();
+            $this->getCache(new MemcachedHandler())->clearCache();
             $this->getCache(new APCuHandler())->clearCache();
             $this->getCache(new MemoryHandler())->clearCache();
             $this->getCache(new OpCacheHandler())->clearCache();
@@ -100,7 +100,7 @@ class Cache extends Extension implements IModuleInterface
                 ), new Title('Cookie')),
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
-                        $this->getCache(new MemcachedHandler(), 'Memcached')->getStatus()
+                        $this->getCache(new MemcachedHandler())->getStatus()
                     ))
                 ), new Title('Memcached')),
                 new LayoutGroup(new LayoutRow(

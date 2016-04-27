@@ -45,7 +45,25 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Willkommen', 'KREDA Professional');
         $Stage->addButton(new Backward(true));
         $Stage->setMessage(date('d.m.Y - H:i:s'));
+
+        $Stage->setContent($this->getCleanLocalStorage());
+
         return $Stage;
+    }
+
+    private function getCleanLocalStorage()
+    {
+
+        return '<script language=javascript>
+            //noinspection JSUnresolvedFunction
+            executeScript(function()
+            {
+                Client.Use("ModCleanStorage", function()
+                {
+                    jQuery().ModCleanStorage();
+                });
+            });
+        </script>';
     }
 
     /**
@@ -130,19 +148,19 @@ class Frontend extends Extension implements IFrontendInterface
 
         $View->setContent(
             new Well(
-            new Layout(new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        ''
-                        , 2),
-                    new LayoutColumn(
-                        $FormService
-                        , 8),
-                    new LayoutColumn(
-                        ''
-                        , 2),
-                )),
-            ), new Title('Anmelden', 'Bitte geben Sie Ihre Benutzerdaten ein')))
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            ''
+                            , 2),
+                        new LayoutColumn(
+                            $FormService
+                            , 8),
+                        new LayoutColumn(
+                            ''
+                            , 2),
+                    )),
+                ), new Title('Anmelden', 'Bitte geben Sie Ihre Benutzerdaten ein')))
             )
         );
         return $View;
@@ -157,19 +175,7 @@ class Frontend extends Extension implements IFrontendInterface
         $View = new Stage('Abmelden', 'Bitte warten...');
         $View->setContent(Account::useService()->destroySession(
                 new Redirect('/Platform/Gatekeeper/Authentication', 5)
-            ).'
-        <script language=javascript>
-        //noinspection JSUnresolvedFunction
-            executeScript(function()
-            {
-                Client.Use(\'ModCleanStorage\', function()
-                {
-                    jQuery().ModCleanStorage();
-                });
-            });
-        </script>
-        ');
+            ).$this->getCleanLocalStorage());
         return $View;
-
     }
 }

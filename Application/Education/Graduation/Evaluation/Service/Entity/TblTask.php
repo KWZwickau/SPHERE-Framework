@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 17.12.2015
- * Time: 15:25
- */
-
 namespace SPHERE\Application\Education\Graduation\Evaluation\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -118,60 +111,6 @@ class TblTask extends Element
     }
 
     /**
-     * @return string
-     */
-    public function getFromDate()
-    {
-
-        if (null === $this->Date) {
-            return false;
-        }
-        /** @var \DateTime $Date */
-        $Date = $this->FromDate;
-        if ($Date instanceof \DateTime) {
-            return $Date->format('d.m.Y');
-        } else {
-            return (string)$Date;
-        }
-    }
-
-    /**
-     * @param null|\DateTime $Date
-     */
-    public function setFromDate(\DateTime $Date = null)
-    {
-
-        $this->FromDate = $Date;
-    }
-
-    /**
-     * @return string
-     */
-    public function getToDate()
-    {
-
-        if (null === $this->Date) {
-            return false;
-        }
-        /** @var \DateTime $Date */
-        $Date = $this->ToDate;
-        if ($Date instanceof \DateTime) {
-            return $Date->format('d.m.Y');
-        } else {
-            return (string)$Date;
-        }
-    }
-
-    /**
-     * @param null|\DateTime $Date
-     */
-    public function setToDate(\DateTime $Date = null)
-    {
-
-        $this->ToDate = $Date;
-    }
-
-    /**
      * @return bool|TblTestType
      */
     public function getTblTestType()
@@ -242,6 +181,60 @@ class TblTask extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFromDate()
+    {
+
+        if (null === $this->Date) {
+            return false;
+        }
+        /** @var \DateTime $Date */
+        $Date = $this->FromDate;
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|\DateTime $Date
+     */
+    public function setFromDate(\DateTime $Date = null)
+    {
+
+        $this->FromDate = $Date;
+    }
+
+    /**
+     * @return string
+     */
+    public function getToDate()
+    {
+
+        if (null === $this->Date) {
+            return false;
+        }
+        /** @var \DateTime $Date */
+        $Date = $this->ToDate;
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|\DateTime $Date
+     */
+    public function setToDate(\DateTime $Date = null)
+    {
+
+        $this->ToDate = $Date;
     }
 
     /**

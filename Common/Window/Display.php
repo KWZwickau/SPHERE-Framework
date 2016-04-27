@@ -8,12 +8,15 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Roadmap\Roadmap;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\CacheLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Debugger;
 
@@ -292,18 +295,36 @@ class Display extends Extension implements ITemplateInterface
 
         if (Debugger::$Enabled) {
             $Debugger = new Accordion();
+
             $ProtocolBenchmark = $this->getLogger(new BenchmarkLogger())->getLog();
             if (!empty( $ProtocolBenchmark )) {
                 $Debugger->addItem('Debugger (Benchmark)',
-                    implode('<br/>', $this->getLogger(new BenchmarkLogger())->getLog())
-                    , true);
+                    new Listing($this->getLogger(new BenchmarkLogger())->getLog())
+                    , true
+                );
             }
+
             $ProtocolError = $this->getLogger(new ErrorLogger())->getLog();
             if (!empty( $ProtocolError )) {
                 $Debugger->addItem('Debugger (Error)',
-                    implode('<br/>', $this->getLogger(new ErrorLogger())->getLog())
-                    , true);
+                    new Listing($this->getLogger(new ErrorLogger())->getLog())
+                );
             }
+
+            $ProtocolCache = $this->getLogger(new CacheLogger())->getLog();
+            if (!empty( $ProtocolCache )) {
+                $Debugger->addItem('Debugger (Cache)',
+                    new Listing($this->getLogger(new CacheLogger())->getLog())
+                );
+            }
+
+            $ProtocolQuery = $this->getLogger(new QueryLogger())->getLog();
+            if (!empty( $ProtocolQuery )) {
+                $Debugger->addItem('Debugger (Query)',
+                    new Listing($this->getLogger(new QueryLogger())->getLog())
+                );
+            }
+
             $Protocol = $Debug->getProtocol();
             if (!empty( $Protocol )) {
                 $Debugger->addItem('Debug Protocol '.$Runtime, $Protocol);

@@ -14,7 +14,7 @@ abstract class AbstractLogger implements LoggerInterface
     /** @var array $LogCache */
     private $LogCache = array();
     /** @var bool $LogEnabled */
-    private $LogEnabled = true;
+    private $LogEnabled = false;
 
     /**
      * @param string $Content
@@ -50,16 +50,17 @@ abstract class AbstractLogger implements LoggerInterface
     }
 
     /**
-     * @param string $Name
+     * @param string          $Name
      * @param ReaderInterface $Config
      *
      * @return LoggerInterface
      */
     public function setConfig($Name, ReaderInterface $Config = null)
     {
+
         if ($Config) {
             $Value = $Config->getValue($Name);
-            if ($Value->getContainer('Enabled')->getValue()) {
+            if ($Value && $Value->getContainer('Enabled')->getValue()) {
                 $this->enableLog();
             } else {
                 $this->disableLog();
@@ -74,6 +75,7 @@ abstract class AbstractLogger implements LoggerInterface
     public function enableLog()
     {
 
+        ini_set('display_errors', 1);
         $this->LogEnabled = true;
         return $this;
     }
@@ -88,5 +90,12 @@ abstract class AbstractLogger implements LoggerInterface
         return $this;
     }
 
+    /**
+     * @return bool
+     */
+    public function isEnabled()
+    {
 
+        return $this->LogEnabled;
+    }
 }

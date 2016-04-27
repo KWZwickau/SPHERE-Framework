@@ -4,8 +4,6 @@ namespace SPHERE\System\Config;
 use SPHERE\System\Config\Reader\ArrayReader;
 use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Config\Reader\ReaderInterface;
-use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
  * Class ConfigFactory
@@ -18,7 +16,7 @@ class ConfigFactory implements ConfigInterface
     /**
      * @var ReaderInterface
      */
-    private static $InstanceCache = array();
+    private static $Instance = array();
 
     /**
      * @param string|array    $Content
@@ -41,18 +39,14 @@ class ConfigFactory implements ConfigInterface
             $Source = realpath($Content);
             if ($Source) {
                 if (!$this->isAvailable($Source)) {
-                    (new DebuggerFactory())->createLogger()->addLog(__METHOD__.': '.$Source);
                     $this->setReader($Reader, $Source);
                 }
                 return $this->getReader($Source);
             } else {
-                (new DebuggerFactory())->createLogger(new ErrorLogger())
-                    ->addLog(__METHOD__.' Error: File not available ('.$Content.')');
                 return $Reader;
             }
         } else {
             if (!$this->isAvailable($Content)) {
-                (new DebuggerFactory())->createLogger()->addLog(__METHOD__.': '.json_encode($Content));
                 $this->setReader($Reader, $Content);
             }
             return $this->getReader($Content);
@@ -67,7 +61,7 @@ class ConfigFactory implements ConfigInterface
     private function isAvailable($File)
     {
 
-        return isset( self::$InstanceCache[$this->getHash($File)] );
+        return isset( self::$Instance[$this->getHash($File)] );
     }
 
     /**
@@ -88,7 +82,7 @@ class ConfigFactory implements ConfigInterface
     private function setReader(ReaderInterface $Reader, $File)
     {
 
-        self::$InstanceCache[$this->getHash($File)] = $Reader->setConfig($File);
+        self::$Instance[$this->getHash($File)] = $Reader->setConfig($File);
     }
 
     /**
@@ -99,6 +93,6 @@ class ConfigFactory implements ConfigInterface
     private function getReader($File)
     {
 
-        return self::$InstanceCache[$this->getHash($File)];
+        return self::$Instance[$this->getHash($File)];
     }
 }

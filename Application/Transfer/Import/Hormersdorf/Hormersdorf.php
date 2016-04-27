@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 22.01.2016
- * Time: 15:00
- */
 
 namespace SPHERE\Application\Transfer\Import\Hormersdorf;
 

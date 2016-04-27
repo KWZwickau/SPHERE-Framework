@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 16.03.2016
- * Time: 10:00
- */
 
 namespace SPHERE\Application\Transfer\Import\Coswig;
 

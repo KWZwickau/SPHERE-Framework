@@ -5,6 +5,8 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -29,6 +31,10 @@ class Redirect extends Extension implements ITemplateInterface
      */
     public function __construct($Route, $Timeout = Redirect::TIMEOUT_WAIT, $Data = array())
     {
+
+        if ((new DebuggerFactory())->createLogger(new ErrorLogger())->isEnabled()) {
+            $Timeout = 300;
+        }
 
         if (!empty( $Data )) {
             $Data = '?'.http_build_query(

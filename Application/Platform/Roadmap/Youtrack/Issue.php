@@ -1,16 +1,20 @@
 <?php
 namespace SPHERE\Application\Platform\Roadmap\Youtrack;
 
+use SPHERE\System\Extension\Extension;
+
 /**
  * Class Issue
  *
  * @package SPHERE\Application\Platform\Roadmap\Youtrack
  */
-class Issue
+class Issue extends Extension
 {
 
     /** @var null|\SimpleXMLElement|string $Issue */
     private $Issue = null;
+
+    private $Xml = null;
 
     /**
      * Issue constructor.
@@ -50,7 +54,10 @@ class Issue
     private function readXml()
     {
 
-        return simplexml_load_string($this->Issue);
+        if (null === $this->Xml) {
+            $this->Xml = simplexml_load_string($this->Issue);
+        }
+        return $this->Xml;
     }
 
     /**
@@ -104,6 +111,9 @@ class Issue
         return (int)(string)current($this->readXml()->xpath('field[@name="commentsCount"]/value'));
     }
 
+    /**
+     * @return string
+     */
     public function getCommentList()
     {
 
@@ -162,9 +172,9 @@ class Issue
             if ($this->getTimeSpent() >= $this->getTimeEstimation()) {
                 return (float)100;
             }
-            return (float)( 100 / $this->getTimeEstimation() * $this->getTimeSpent() );
+            return (float)(100 / $this->getTimeEstimation() * $this->getTimeSpent());
         } else {
-            return (float)( 0 );
+            return (float)(0);
         }
     }
 
@@ -190,26 +200,19 @@ class Issue
         return (int)(string)current($this->readXml()->xpath('field[@name="Spent time"]/value'));
     }
 
-    function __toString()
+    /**
+     * @return string
+     */
+    public function __toString()
     {
 
         return
-            str_pad($this->getPriority(), 10, ' ', STR_PAD_RIGHT).
-//            str_pad( $this->getVersionAffected(), 8, ' ', STR_PAD_RIGHT ).
-            str_pad($this->getSubsystem(), 20, ' ', STR_PAD_RIGHT).
-            str_pad($this->getType(), 12, ' ', STR_PAD_BOTH).
-            str_pad($this->getState(), 22, ' ', STR_PAD_BOTH).
-            str_pad($this->getId(), 12, ' ', STR_PAD_RIGHT).
-            $this->getTitle();//.' # '.
-//            $this->getAssignee().' # '.
-//            $this->getPersonCreate().' # '.
-//            $this->getPersonUpdate().' # '.
-//            $this->getTimeEstimation().' # '.
-//            $this->getTimeSpent().' # '.
-//            $this->getTimestampCreate().' # '.
-//            $this->getTimestampUpdate().' # '.
-//            $this->getCommentCount().' # '.
-//            $this->getVoteCount();
+            str_pad($this->getPriority(), 10, ' ', STR_PAD_RIGHT) .
+            str_pad($this->getSubsystem(), 20, ' ', STR_PAD_RIGHT) .
+            str_pad($this->getType(), 12, ' ', STR_PAD_BOTH) .
+            str_pad($this->getState(), 22, ' ', STR_PAD_BOTH) .
+            str_pad($this->getId(), 12, ' ', STR_PAD_RIGHT) .
+            $this->getTitle();
     }
 
     /**
@@ -259,7 +262,7 @@ class Issue
         $Project = (string)current($this->readXml()->xpath('field[@name="projectShortName"]/value'));
         $Number = (string)current($this->readXml()->xpath('field[@name="numberInProject"]/value'));
 
-        return $Project.'-'.$Number;
+        return $Project . '-' . $Number;
     }
 
     /**

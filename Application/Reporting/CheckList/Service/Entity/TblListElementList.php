@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 01.12.2015
- * Time: 10:54
- */
 
 namespace SPHERE\Application\Reporting\CheckList\Service\Entity;
 

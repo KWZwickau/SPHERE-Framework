@@ -32,7 +32,7 @@ class Person
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
                 }
             }
         }
@@ -57,7 +57,7 @@ class Person
                     $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($PersonList, $tblPersonList);
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Erweiterte_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
                 }
             }
         }
@@ -83,7 +83,7 @@ class Person
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Birthday_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
                 }
             }
         }
@@ -109,7 +109,7 @@ class Person
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Krankenkasse_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
                 }
             }
         }
@@ -135,7 +135,7 @@ class Person
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Gruppenliste ".$tblGroup->getName()
-                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
                 }
             }
         }
