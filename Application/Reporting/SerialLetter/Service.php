@@ -11,6 +11,10 @@ namespace SPHERE\Application\Reporting\SerialLetter;
 
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Reporting\SerialLetter\Service\Data;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblType;
+use SPHERE\Application\Reporting\SerialLetter\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -19,9 +23,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
-class Service // extends AbstractService
+class Service extends AbstractService
 {
 
     /**
@@ -30,15 +33,37 @@ class Service // extends AbstractService
      *
      * @return string
      */
-//    public function setupService($Simulate, $withData)
-//    {
-//
-//        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($Simulate);
-//        if (!$Simulate && $withData) {
-//            (new Data($this->getBinding()))->setupDatabaseContent();
-//        }
-//        return $Protocol;
-//    }
+    public function setupService($Simulate, $withData)
+    {
+
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($Simulate);
+        if (!$Simulate && $withData) {
+            (new Data($this->getBinding()))->setupDatabaseContent();
+        }
+        return $Protocol;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblSerialLetter
+     */
+    public function getSerialLetterById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getSerialLetterById($Id);
+    }
+
+    /**
+     * @param $Identifier
+     * @return bool|TblType
+     */
+    public function getTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getTypeByIdentifier($Identifier);
+    }
+
 
     /**
      * @param IFormInterface $Form
@@ -72,17 +97,17 @@ class Service // extends AbstractService
             'Person' => 'Person',
             'Address' => 'Adresse'
         );
-        if (!empty($Check)){
-            foreach ($Check as $personId => $item){
+        if (!empty($Check)) {
+            foreach ($Check as $personId => $item) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 $isPersonSelected = false;
 
-                if (isset($item['Student'])){
+                if (isset($item['Student'])) {
                     $isPersonSelected = true;
                     $data = array();
                     $data['Student'] = $tblPerson->getLastFirstName();
                     $data['Person'] = $tblPerson->getLastFirstName();
-                    if (isset($RadioStudent[$personId])){
+                    if (isset($RadioStudent[$personId])) {
                         $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioStudent[$personId]);
                         $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
                     } else {
@@ -91,12 +116,12 @@ class Service // extends AbstractService
                     $dataList[] = $data;
                 }
 
-                if (isset($item['Family'])){
+                if (isset($item['Family'])) {
                     $isPersonSelected = true;
                     $data = array();
                     $data['Student'] = $tblPerson->getLastFirstName();
                     $data['Person'] = 'Familie';
-                    if (isset($RadioFamily[$personId])){
+                    if (isset($RadioFamily[$personId])) {
                         $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioFamily[$personId]);
                         $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
                     } else {
@@ -105,13 +130,13 @@ class Service // extends AbstractService
                     $dataList[] = $data;
                 }
 
-                if (isset($item['Custody1'])){
+                if (isset($item['Custody1'])) {
                     $isPersonSelected = true;
                     $data = array();
                     $data['Student'] = $tblPerson->getLastFirstName();
                     $tblPersonCustody = Person::useService()->getPersonById($item['Custody1']);
                     $data['Person'] = $tblPersonCustody->getLastFirstName();
-                    if (isset($RadioCustody1[$personId])){
+                    if (isset($RadioCustody1[$personId])) {
                         $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioCustody1[$personId]);
                         $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
                     } else {
@@ -120,13 +145,13 @@ class Service // extends AbstractService
                     $dataList[] = $data;
                 }
 
-                if (isset($item['Custody2'])){
+                if (isset($item['Custody2'])) {
                     $isPersonSelected = true;
                     $data = array();
                     $data['Student'] = $tblPerson->getLastFirstName();
                     $tblPersonCustody = Person::useService()->getPersonById($item['Custody2']);
                     $data['Person'] = $tblPersonCustody->getLastFirstName();
-                    if (isset($RadioCustody2[$personId])){
+                    if (isset($RadioCustody2[$personId])) {
                         $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioCustody2[$personId]);
                         $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
                     } else {
@@ -135,7 +160,7 @@ class Service // extends AbstractService
                     $dataList[] = $data;
                 }
 
-                if (!$isPersonSelected){
+                if (!$isPersonSelected) {
                     $data = array();
                     $data['Student'] = new Warning($tblPerson->getLastFirstName());
                     $data['Person'] = new Warning(new Exclamation() . ' Keine Person ausgewählt.');
@@ -144,8 +169,6 @@ class Service // extends AbstractService
                 }
             }
         }
-
-        // ToDo JohK Warnung keine Person ausgewählt
 
         $Form->appendGridGroup(
             new FormGroup(
