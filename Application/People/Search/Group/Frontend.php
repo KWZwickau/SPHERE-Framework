@@ -1,15 +1,18 @@
 <?php
 namespace SPHERE\Application\People\Search\Group;
 
-use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Cache;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -31,9 +34,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
-use SPHERE\System\Debugger\Logger\CacheLogger;
-use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -62,7 +62,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Stage->addButton(
                     new Standard(
-                        $tblGroup->getName() . '&nbsp;&nbsp;' . new Label(Group::useService()->countPersonAllByGroup($tblGroup)),
+                        $tblGroup->getName().'&nbsp;&nbsp;'.new Label(Group::useService()->countMemberAllByGroup($tblGroup)),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Id' => $tblGroup->getId()
@@ -74,15 +74,18 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroup = Group::useService()->getGroupById($Id);
         if ($tblGroup) {
 
-//            $idPersonAll = Group::useService()->fetchIdPersonAllByGroup($tblGroup);
-//            $tblPersonAll = Person::useService()->fetchPersonAllByIdList($idPersonAll);
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
 
             // Consumer + Group Cache
             $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
-            $Key = $Acronym.':'.$Id.':'.$tblGroup->getMetaTable();
-            $Cache = $this->getCache(new MemcachedHandler());
-            if (null === ($Result = $Cache->getValue($Key, __METHOD__))) {
+
+            $Cache = new Cache($Acronym.':'.$Id.':'.$tblGroup->getMetaTable(), array(
+                new TblPerson(),
+                new TblAddress(),
+                new TblStudent(),
+                new TblDivision()
+            ));
+            if (null === ( $Result = $Cache->getData() )) {
 
                 if ($tblGroup->getMetaTable() == 'STUDENT') {
                     $tblYearList = Term::useService()->getYearByNow();
@@ -92,17 +95,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Result = array();
                 if ($tblPersonAll) {
-                    $this->getLogger(new QueryLogger())->addLog(__METHOD__);
                     array_walk($tblPersonAll,
                         function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList) {
-
-                            $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
-                            $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                            if (!empty($tblAddressAll)) {
-                                $tblAddress = current($tblAddressAll)->getGuiString();
-                            } else {
-                                $tblAddress = false;
-                            }
 
                             // Division && Identification
                             $tblDivision = false;
@@ -161,12 +155,12 @@ class Frontend extends Extension implements IFrontendInterface
                             }
 
                             array_push($Result, array(
-                                'FullName' => $tblPerson->getLastFirstName(),
-                                'Address' => ($tblAddress
-                                    ? $tblAddress
+                                'FullName'       => $tblPerson->getLastFirstName(),
+                                'Address'        => ( $tblPerson->fetchMainAddress()
+                                    ? $tblPerson->fetchMainAddress()->getGuiString()
                                     : new Warning('Keine Adresse hinterlegt')
                                 ),
-                                'Option' => (new Standard('', '/People/Person', new Edit(), array(
+                                'Option'         => (new Standard('', '/People/Person', new Edit(), array(
                                         'Id' => $tblPerson->getId(),
                                         'Group' => $tblGroup->getId()
                                     ), 'Bearbeiten'))
@@ -174,22 +168,20 @@ class Frontend extends Extension implements IFrontendInterface
                                         '/People/Person/Destroy', new Remove(),
                                         array('Id' => $tblPerson->getId(), 'Group' => $tblGroup->getId()),
                                         'Person löschen')),
-                                'Remark' => (
+                                'Remark'         => (
                                 $Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY'
                                     ? (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
                                     : ''
                                 ),
-                                'Division' => ($tblDivision ? $tblDivision->getDisplayName() : ''),
+                                'Division'       => ($tblDivision ? $tblDivision->getDisplayName() : ''),
                                 'Identification' => $identification,
-                                'Year' => ($year ? $year : ''),
-                                'Level' => ($level ? $level : ''),
-                                'SchoolOption' => ($option ? $option : '')
+                                'Year'           => ($year ? $year : ''),
+                                'Level'          => ($level ? $level : ''),
+                                'SchoolOption'   => ($option ? $option : '')
                             ));
                         });
                 }
-                $Cache->setValue($Key, $Result, 300, __METHOD__);
-            } else {
-                $this->getLogger(new CacheLogger())->addLog(__METHOD__);
+                $Cache->setData($Result);
             }
 
             if ($Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY') {
