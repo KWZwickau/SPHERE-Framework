@@ -1659,7 +1659,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             ),
                                         ))
                                         , new Primary('Speichern', new Save()))
-                                    , $tblTest->getId(), $Grade, $BasicRoute, $IsEdit, $minRange, $maxRange
+                                    , $tblTest->getId(), $Grade, $BasicRoute, $minRange, $maxRange
                                 )
                                 : new \SPHERE\Common\Frontend\Message\Repository\Warning('Kein Bewertungssystem hinterlegt.
                                 Zensuren können erst vergeben werden nachdem für diese Fach-Klasse ein Bewertungssystem
@@ -1702,7 +1702,7 @@ class Frontend extends Extension implements IFrontendInterface
             TblGrade::VALUE_TREND_MINUS => 'Minus'
         );
 
-        if (!$IsEdit && $tblGrade) {
+        if ($tblGrade) {
             $labelComment = new Warning('Bei Notenänderung bitte einen Grund angeben');
         } else {
             $labelComment = '';
