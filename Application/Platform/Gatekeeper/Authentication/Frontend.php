@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -21,7 +22,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
-use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -80,15 +81,18 @@ class Frontend extends Extension implements IFrontendInterface
         // Prepare Environment
         switch (strtolower($this->getRequest()->getHost())) {
             case 'www.kreda.schule':
-                $Environment = new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(),
+                $Environment = new Standard('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', new Transfer(),
+                    array(),
                     false);
                 break;
             case 'demo.kreda.schule':
-                $Environment = new External('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', null, array(),
+                $Environment = new Standard('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', new Transfer(),
+                    array(),
                     false);
                 break;
             default:
-                $Environment = new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(),
+                $Environment = new Standard('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', new Transfer(),
+                    array(),
                     false);
         }
 
