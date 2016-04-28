@@ -10,8 +10,12 @@ namespace SPHERE\Application\Reporting\SerialLetter;
 
 
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Data;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblType;
 use SPHERE\Application\Reporting\SerialLetter\Service\Setup;
@@ -20,8 +24,10 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 class Service extends AbstractService
@@ -55,6 +61,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblSerialLetter[]
+     */
+    public function getSerialLetterAll()
+    {
+
+        return (new Data($this->getBinding()))->getSerialLetterAll();
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblType
+     */
+    public function getTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getTypeById($Id);
+    }
+
+    /**
      * @param $Identifier
      * @return bool|TblType
      */
@@ -64,9 +90,68 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getTypeByIdentifier($Identifier);
     }
 
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson $tblPerson
+     * @param TblToPerson $tblToPerson
+     * @param TblType $tblType
+     *
+     * @return bool|TblAddressPerson
+     */
+    public function getAddressPerson(
+        TblSerialLetter $tblSerialLetter,
+        TblPerson $tblPerson,
+        TblToPerson $tblToPerson,
+        TblType $tblType
+    ) {
+
+        return (new Data($this->getBinding()))->getAddressPerson($tblSerialLetter, $tblPerson,
+            $tblToPerson, $tblType);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param                     $SerialLetter
+     *
+     * @return IFormInterface|string
+     */
+    public function createSerialLetter(IFormInterface $Stage = null, $SerialLetter)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $SerialLetter) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($SerialLetter['Name']) && empty($SerialLetter['Name'])) {
+            $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+        if (!($tblGroup = Group::useService()->getGroupById($SerialLetter['Group']))) {
+            $Stage->setError('SerialLetter[Group]', 'Bitte wählen Sie eine Personengruppe aus');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createSerialLetter(
+                $SerialLetter['Name'],
+                $tblGroup,
+                $SerialLetter['Description']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adressliste für Serienbriefe ist erfasst worden')
+            . new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
 
     /**
      * @param IFormInterface $Form
+     * @param TblSerialLetter $tblSerialLetter
      * @param $Check
      * @param $RadioStudent
      * @param $RadioCustody1
@@ -77,6 +162,7 @@ class Service extends AbstractService
      */
     public function setPersonAddressSelection(
         IFormInterface $Form,
+        TblSerialLetter $tblSerialLetter,
         $Check,
         $RadioStudent,
         $RadioCustody1,
@@ -97,6 +183,10 @@ class Service extends AbstractService
             'Person' => 'Person',
             'Address' => 'Adresse'
         );
+
+        // alle Einträge zum Serienbrief löschen
+        (new Data($this->getBinding()))->destroyAddressPersonAllBySerialLetter($tblSerialLetter);
+
         if (!empty($Check)) {
             foreach ($Check as $personId => $item) {
                 $tblPerson = Person::useService()->getPersonById($personId);
@@ -107,12 +197,18 @@ class Service extends AbstractService
                     $data = array();
                     $data['Student'] = $tblPerson->getLastFirstName();
                     $data['Person'] = $tblPerson->getLastFirstName();
+
+
                     if (isset($RadioStudent[$personId])) {
                         $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioStudent[$personId]);
                         $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
                     } else {
+                        $tblAddressToPerson = null;
                         $data['Address'] = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
                     }
+
+                    $this->createAddressPerson($tblSerialLetter, $tblPerson, $tblAddressToPerson,
+                        $this->getTypeByIdentifier('PERSON'));
                     $dataList[] = $data;
                 }
 
@@ -125,8 +221,12 @@ class Service extends AbstractService
                         $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioFamily[$personId]);
                         $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
                     } else {
+                        $tblAddressToPerson = null;
                         $data['Address'] = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
                     }
+
+                    $this->createAddressPerson($tblSerialLetter, $tblPerson, $tblAddressToPerson,
+                        $this->getTypeByIdentifier('FAMILY'));
                     $dataList[] = $data;
                 }
 
@@ -140,8 +240,12 @@ class Service extends AbstractService
                         $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioCustody1[$personId]);
                         $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
                     } else {
+                        $tblAddressToPerson = null;
                         $data['Address'] = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
                     }
+
+                    $this->createAddressPerson($tblSerialLetter, $tblPerson, $tblAddressToPerson,
+                        $this->getTypeByIdentifier('CUSTODY'));
                     $dataList[] = $data;
                 }
 
@@ -155,8 +259,11 @@ class Service extends AbstractService
                         $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioCustody2[$personId]);
                         $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
                     } else {
+                        $tblAddressToPerson = null;
                         $data['Address'] = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
                     }
+                    $this->createAddressPerson($tblSerialLetter, $tblPerson, $tblAddressToPerson,
+                        $this->getTypeByIdentifier('CUSTODY'));
                     $dataList[] = $data;
                 }
 
@@ -181,6 +288,25 @@ class Service extends AbstractService
         );
 
         return $Form;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson $tblPerson
+     * @param TblToPerson $tblToPerson
+     * @param TblType $tblType
+     *
+     * @return TblAddressPerson
+     */
+    private function createAddressPerson(
+        TblSerialLetter $tblSerialLetter,
+        TblPerson $tblPerson,
+        TblToPerson $tblToPerson = null,
+        TblType $tblType
+    ) {
+
+        return (new Data($this->getBinding()))->createAddressPerson($tblSerialLetter, $tblPerson, $tblToPerson,
+            $tblType);
     }
 
 }

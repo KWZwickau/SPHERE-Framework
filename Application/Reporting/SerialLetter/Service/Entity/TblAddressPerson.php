@@ -21,7 +21,7 @@ use Doctrine\ORM\Mapping\Table;
 
 /**
  * @Entity()
- * @Table(name="tblSerialLetter")
+ * @Table(name="tblAddressPerson")
  * @Cache(usage="READ_ONLY")
  */
 class TblAddressPerson extends Element
@@ -30,7 +30,7 @@ class TblAddressPerson extends Element
     const ATTR_TBL_SERIAL_LETTER = 'tblSerialLetter';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_TO_PERSON = 'serviceTblToPerson';
-    const ATTR_TBL_TYPE = 'serviceTblType';
+    const ATTR_TBL_TYPE = 'tblType';
 
     /**
      * @Column(type="bigint")
