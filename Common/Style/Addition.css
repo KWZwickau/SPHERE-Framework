@@ -69,3 +69,13 @@ nav, .navbar {
         content: "";
     }
 }
+
+/** DataTable FormGroup Input-Size **/
+
+table.dataTable tbody tr td div.form-group {
+    width: 100%
+}
+
+table.dataTable tbody tr td div.form-group .form-control {
+    width: inherit;
+}
