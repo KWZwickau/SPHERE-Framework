@@ -42,6 +42,7 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
@@ -212,7 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             $TemplateTable[] = array_merge($tblCertificate->__toArray(), array(
                                     'Typ'    => '<div class="text-center">'.( $tblCertificate->getServiceTblConsumer()
-                                            ? new Star().'<br/>'.new Small(new Muted($tblCertificate->getServiceTblConsumer()->getAcronym()))
+                                            ? new Small(new Muted($tblCertificate->getServiceTblConsumer()->getAcronym())).'<br/>'.new Star()
                                             : new Document().'<br/>'.new Small(new Muted('Standard'))
                                         ).'</div>',
                                     'Option' => new Standard(
@@ -339,9 +340,33 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
                             ksort($HeaderBehavior);
+                            $HeaderBehavior = implode(', ', $HeaderBehavior);
                             $Header .= new Panel(new Education().' Kopfnoten (Durchschnitt)',
-                                $HeaderBehavior
+                                array($HeaderBehavior)
                                 , Panel::PANEL_TYPE_SUCCESS);
+
+                            $GradeList = $Template->getGrade();
+                            $GradeList = $GradeList['Data'];
+                            $GradeList['ORIENTATION'] = false;
+                            $GradeList['ADVANCED'] = false;
+                            $GradeList['PROFILE'] = false;
+                            $GradeList['RELIGION'] = false;
+                            $GradeList['FOREIGN_LANGUAGE'] = false;
+                            $GradeList['ELECTIVE'] = false;
+                            $GradeList['TRACK_INTENSIVE'] = false;
+                            $GradeList['TRACK_BASIC'] = false;
+                            $GradeList['BEHAVIOR'] = false;
+                            $GradeList = array_filter($GradeList);
+
+                            array_walk($GradeList, function (&$N, $F) {
+
+                                $N = new Bold($F).': '.$N;
+                            });
+                            $GradeList = implode(', ', $GradeList);
+                            $Header .= new Panel(new Education().' Fachnoten (Letzter Stichtag)',
+                                array($GradeList)
+                                , Panel::PANEL_TYPE_SUCCESS);
+
 
                             $FormField = array(
                                 'Content.Person.Common.BirthDates.Birthday' => 'DatePicker',
@@ -390,6 +415,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Content.Input.LevelThree'  => '3. Fremdsprache ab Klassenstufe',
                                 'Content.Input.Missing'     => 'Fehltage entschuldigt',
                                 'Content.Input.Bad.Missing' => 'Fehltage unentschuldigt',
+
+                                'Content.Input.CHO' => 'Wahlpflichtbereich: Note'
                             );
 
                             // Create Form, Additional Information from Template
@@ -482,7 +509,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormColumn(
                                             new Panel('Daten verwenden für', array(
                                                 new RadioBox('SaveAs', 'Vorschau aktualisieren', 0),
-//                                            new RadioBox('SaveAs', 'Als Entwurf speichern', 1),
+                                                (new RadioBox('SaveAs', 'Als Entwurf speichern', 1))->setDisabled(),
                                                 new RadioBox('SaveAs', 'Zeugnis erstellen', 2),
                                             ), Panel::PANEL_TYPE_WARNING)
                                         )
@@ -526,17 +553,31 @@ class Frontend extends Extension implements IFrontendInterface
                                     break;
                                 }
                                 case 2: {
-                                    $Content = new External(
-                                        'Zeugnis erstellen bestätigen',
-                                        '/Api/Education/Certificate/Generator',
-                                        new Check(),
-                                        array(
-                                            'Person'      => $Person,
-                                            'Division'    => $Division,
-                                            'Certificate' => $Certificate,
-                                            'Data'        => $Content
-                                        ), false
-                                    );
+
+                                    $Global = $this->getGlobal();
+                                    $Global->POST['Art'] = 0;
+                                    $Global->savePost();
+
+                                    $Content = new Layout(new LayoutGroup(array(
+                                        new LayoutRow(new LayoutColumn(new Panel('Art der Erstellung', array(
+                                            new RadioBox('Art', 'Musterzeugnis erstellen (Probedruck)', 0),
+                                            (new RadioBox('Art', 'Revisionssicheres Zeugnis erstellen', 1))
+                                                ->setDisabled(),
+                                        )))),
+                                        new LayoutRow(new LayoutColumn(array(
+                                            new External(
+                                                'Zeugnis erstellen bestätigen',
+                                                '/Api/Education/Certificate/Generator',
+                                                new Check(),
+                                                array(
+                                                    'Person'      => $Person,
+                                                    'Division'    => $Division,
+                                                    'Certificate' => $Certificate,
+                                                    'Data'        => $Content
+                                                ), false
+                                            )
+                                        )))
+                                    )));
                                     break;
                                 }
                             }

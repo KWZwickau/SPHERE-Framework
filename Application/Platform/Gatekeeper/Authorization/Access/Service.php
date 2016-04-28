@@ -90,13 +90,17 @@ class Service extends AbstractService
                                 /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel */
                                 foreach ($tblLevelAll as $tblLevel) {
                                     $tblPrivilegeAll = $tblLevel->getTblPrivilegeAll();
-                                    /** @var TblPrivilege $tblPrivilege */
-                                    foreach ($tblPrivilegeAll as $tblPrivilege) {
-                                        $tblRightAll = $tblPrivilege->getTblRightAll();
-                                        /** @var TblRight $tblRight */
-                                        foreach ($tblRightAll as $tblRight) {
-                                            if (!in_array($tblRight->getRoute(), self::$AuthorizationCache)) {
-                                                array_push(self::$AuthorizationCache, $tblRight->getRoute());
+                                    if ($tblPrivilegeAll) {
+                                        /** @var TblPrivilege $tblPrivilege */
+                                        foreach ($tblPrivilegeAll as $tblPrivilege) {
+                                            $tblRightAll = $tblPrivilege->getTblRightAll();
+                                            if ($tblRightAll) {
+                                                /** @var TblRight $tblRight */
+                                                foreach ($tblRightAll as $tblRight) {
+                                                    if (!in_array($tblRight->getRoute(), self::$AuthorizationCache)) {
+                                                        array_push(self::$AuthorizationCache, $tblRight->getRoute());
+                                                    }
+                                                }
                                             }
                                         }
                                     }
