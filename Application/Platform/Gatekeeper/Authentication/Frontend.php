@@ -15,7 +15,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -97,7 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Environment
         );
 
-        $View->setMessage('');
+        $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
 
         // Get Identification-Type (Credential,Token,System)
         $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
@@ -128,7 +127,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new Panel('Hardware-Schlüssel *', array(
                                 new PasswordField('CredentialKey', 'Yubi-Key', 'Yubi-Key', new YubiKey())
-                            ), Panel::PANEL_TYPE_WARNING, new Small('* Optional'))
+                            ), Panel::PANEL_TYPE_INFO, new Small('* Optional'))
                         )
                     ))
                 )
@@ -147,21 +146,19 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $View->setContent(
-            new Well(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
                             ''
-                            , 2),
+                            , 3),
                         new LayoutColumn(
-                            $FormService
-                            , 8),
+                            new Well($FormService)
+                            , 6),
                         new LayoutColumn(
                             ''
-                            , 2),
+                            , 3),
                     )),
-                ), new Title('Anmelden', 'Bitte geben Sie Ihre Benutzerdaten ein')))
-            )
+                )))
         );
         return $View;
     }
