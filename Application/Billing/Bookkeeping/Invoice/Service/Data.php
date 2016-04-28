@@ -178,7 +178,7 @@ class Data extends AbstractData
      *
      * @return TblItem
      */
-    public function createTblItem(TblBasketVerification $tblBasketVerification)
+    public function createItem(TblBasketVerification $tblBasketVerification)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -189,8 +189,7 @@ class Data extends AbstractData
                       TblItem::ATTR_DESCRIPTION      => $tblBasketVerification->getServiceTblItem()->getDescription(),
                       TblItem::ATTR_VALUE            => $tblBasketVerification->getValue(),
                       TblItem::ATTR_QUANTITY         => $tblBasketVerification->getQuantity(),
-                      TblItem::ATTR_SERVICE_TBL_ITEM => $tblBasketVerification->getServiceTblItem()->getId(),
-                ));
+                      TblItem::ATTR_SERVICE_TBL_ITEM => $tblBasketVerification->getServiceTblItem()->getId()));
         }
 
         if ($Entity === null) {

@@ -43,7 +43,7 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    public function setTableDebtor(Schema $Schema)
+    private function setTableDebtor(Schema $Schema)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblDebtor');
@@ -89,7 +89,7 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    public function setTableItem(Schema $Schema)
+    private function setTableItem(Schema $Schema)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblItem');
@@ -162,7 +162,7 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    public function setTableInvoiceItem(Schema $Schema, Table $tblInvoice, Table $tblItem)
+    private function setTableInvoiceItem(Schema $Schema, Table $tblInvoice, Table $tblItem)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblInvoiceItem');

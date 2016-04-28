@@ -114,7 +114,7 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    public function setTableInvoicePayment(Schema &$Schema, Table $tblInvoice, Table $tblPayment)
+    private function setTableInvoicePayment(Schema &$Schema, Table $tblInvoice, Table $tblPayment)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblInvoicePayment');

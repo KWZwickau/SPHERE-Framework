@@ -127,7 +127,7 @@ class Service extends AbstractService
                     $tblDebtorInvoice = (new Data($this->getBinding()))->createDebtor($tblDebtor, $tblBankReference);
                 }
             }
-            $tblItemInvoice = (new Data($this->getBinding()))->createTblItem($tblBasketVerification);
+            $tblItemInvoice = (new Data($this->getBinding()))->createItem($tblBasketVerification);
         }
 
         return true;
