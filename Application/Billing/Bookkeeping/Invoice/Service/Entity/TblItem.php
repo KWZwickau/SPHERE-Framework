@@ -18,6 +18,10 @@ class TblItem extends Element
 {
 
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
+    const ATTR_NAME = 'Name';
+    const ATTR_DESCRIPTION = 'Description';
+    const ATTR_VALUE = 'Value';
+    const ATTR_QUANTITY = 'Quantity';
 
     /**
      * @Column(type="string")
@@ -92,6 +96,24 @@ class TblItem extends Element
     {
 
         $this->Value = $Value;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getQuantity()
+    {
+
+        return $this->Name;
+    }
+
+    /**
+     * @param integer $Quantity
+     */
+    public function setQuantity($Quantity)
+    {
+
+        $this->Quantity = $Quantity;
     }
 
     /**

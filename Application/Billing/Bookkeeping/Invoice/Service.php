@@ -2,6 +2,9 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
+use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\Billing\Accounting\Basket\Basket;
+use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
@@ -91,5 +94,42 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getItemByInvoice($tblInvoice);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool
+     */
+    public function createInvoice(TblBasket $tblBasket)
+    {
+
+        $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+        if (!$tblBasketVerificationList) {
+            return false;
+        }
+
+        foreach ($tblBasketVerificationList as $tblBasketVerification) {
+            $tblDebtorInvoice = false;
+            $tblItemInvoice = false;
+
+            $tblPerson = $tblBasketVerification->getServiceTblPerson();
+            $tblItem = $tblBasketVerification->getServiceTblItem();
+//            $Quantity = $tblBasketVerification->getQuantity();
+//            $Price = $tblBasketVerification->getValue();
+
+            $tblDebtorSelect = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
+            if ($tblDebtorSelect) {
+                $tblBankReference = $tblDebtorSelect->getTblBankReference();
+                $tblDebtor = $tblDebtorSelect->getTblDebtor();
+
+                if ($tblBankReference && $tblDebtor) {
+                    $tblDebtorInvoice = (new Data($this->getBinding()))->createDebtor($tblDebtor, $tblBankReference);
+                }
+            }
+            $tblItemInvoice = (new Data($this->getBinding()))->createTblItem($tblBasketVerification);
+        }
+
+        return true;
     }
 }

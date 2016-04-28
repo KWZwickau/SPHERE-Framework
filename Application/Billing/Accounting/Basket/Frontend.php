@@ -6,6 +6,7 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -980,6 +981,8 @@ class Frontend extends Extension implements IFrontendInterface
             , array('BasketId' => $tblBasket->getId())));
         $Stage->addButton(new Standard('Zahlung fakturieren', '/Billing/Accounting/Pay/Selection', new Ok()
             , array('Id' => $tblBasket->getId())));
+        $Stage->addButton(new Standard('Rechnung Test', '/Billing/Accounting/Basket/Invoice/Create', new EyeOpen()
+            , array('Id' => $tblBasket->getId())));
 
         $tblPersonList = Basket::useService()->getPersonAllByBasket($tblBasket);
         if (!$tblPersonList) {
@@ -1186,6 +1189,33 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )
         );
+        return $Stage;
+    }
+
+    public function frontendCreateInvoice($Id = null)
+    {
+
+        $Stage = new Stage('Rechnungen', 'erstellen');
+        $Stage->addButton(new Backward());
+
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
+        if (!$tblBasket) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Invoice::useService()->createInvoice($tblBasket)
+                        )
+                    )
+                )
+            )
+        );
+
         return $Stage;
     }
 

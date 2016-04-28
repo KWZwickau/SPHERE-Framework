@@ -26,9 +26,9 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblDebtor = $this->setTableDebtor($Schema);
-        $tblInvoice = $this->setTableInvoice($Schema, $tblDebtor);
         $tblItem = $this->setTableItem($Schema);
-        $this->setTableInvoiceItem($Schema, $tblInvoice, $tblItem);
+//        $tblInvoice = $this->setTableInvoice($Schema, $tblDebtor);
+//        $this->setTableInvoiceItem($Schema, $tblInvoice, $tblItem);
 
         /**
          * Migration & Protocol
@@ -53,8 +53,32 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDebtor', 'DebtorPerson')) {
             $Table->addColumn('DebtorPerson', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'Reference')) {
-            $Table->addColumn('Reference', 'string');
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'BankReference')) {
+            $Table->addColumn('BankReference', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'Owner')) {
+            $Table->addColumn('Owner', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'BankName')) {
+            $Table->addColumn('BankName', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'IBAN')) {
+            $Table->addColumn('IBAN', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'BIC')) {
+            $Table->addColumn('BIC', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'CashSign')) {
+            $Table->addColumn('CashSign', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'CreditorId')) {
+            $Table->addColumn('CreditorId', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblDebtor')) {
+            $Table->addColumn('serviceTblDebtor', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblBankReference')) {
+            $Table->addColumn('serviceTblBankReference', 'bigint', array('notnull' => false));
         }
 
         return $Table;
@@ -79,7 +103,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         if (!$this->getConnection()->hasColumn('tblItem', 'Quantity')) {
-            $Table->addColumn('Quantity', 'int');
+            $Table->addColumn('Quantity', 'integer');
         }
         if (!$this->getConnection()->hasColumn('tblItem', 'serviceTblItem')) {
             $Table->addColumn('serviceTblItem', 'bigint', array('notnull' => false));

@@ -2,7 +2,9 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service;
 
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as TblDebtorBook;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as TblDebtorAccounting;
+use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
@@ -112,22 +114,97 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDebtorBook $tblDebtor
+     * @param TblDebtor $tblDebtor
      *
      * @return TblInvoice
      */
-    public function createInvoice(TblDebtorBook $tblDebtor) // Todo
+    public function createInvoice(TblDebtor $tblDebtor) // Todo
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblInvoice();
         $Entity->setInvoiceNumber('?!?');
-        $Entity->setServiceTblPerson($tblDebtor->getServiceTblPerson());
+        $Entity->setServiceTblPerson($tblDebtor->getServiceTblDebtor()->getServiceTblPerson());
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblDebtorAccounting $tblDebtor
+     * @param TblBankReference    $tblBankReference
+     *
+     * @return TblDebtor
+     */
+    public function createDebtor(
+        TblDebtorAccounting $tblDebtor,
+        TblBankReference $tblBankReference
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = null;
+        $Entity = $Manager->getEntity('TblDebtor')->findOneBy(
+            array(TblDebtor::ATTR_DEBTOR_NUMBER => $tblDebtor->getDebtorNumber(),
+                  TblDebtor::ATTR_IBAN          => $tblBankReference->getIBAN()));
+
+        if ($Entity === null) {
+            $Entity = new TblDebtor();
+            $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
+            $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
+            $Entity->setBankReference($tblBankReference->getReference());
+            $Entity->setOwner($tblBankReference->getOwner());
+            $Entity->setBankName($tblBankReference->getBankName());
+            $Entity->setIBAN($tblBankReference->getIBAN());
+            $Entity->setBIC($tblBankReference->getBIC());
+            $Entity->setCashSign($tblBankReference->getCashSign());
+            $Entity->setCreditorId($tblBankReference->getCreditorId());
+            $Entity->setServiceTblDebtor($tblDebtor);
+            $Entity->setServiceTblBankReference($tblBankReference);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblBasketVerification $tblBasketVerification
+     *
+     * @return TblItem
+     */
+    public function createTblItem(TblBasketVerification $tblBasketVerification)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = null;
+        if ($tblBasketVerification->getServiceTblItem()) {
+            $Entity = $Manager->getEntity('TblItem')->findOneBy(
+                array(TblItem::ATTR_NAME             => $tblBasketVerification->getServiceTblItem()->getName(),
+                      TblItem::ATTR_DESCRIPTION      => $tblBasketVerification->getServiceTblItem()->getDescription(),
+                      TblItem::ATTR_VALUE            => $tblBasketVerification->getValue(),
+                      TblItem::ATTR_QUANTITY         => $tblBasketVerification->getQuantity(),
+                      TblItem::ATTR_SERVICE_TBL_ITEM => $tblBasketVerification->getServiceTblItem()->getId(),
+                ));
+        }
+
+        if ($Entity === null) {
+            $Entity = new TblItem();
+            $Entity->setName($tblBasketVerification->getServiceTblItem()->getName());
+            $Entity->setDescription($tblBasketVerification->getServiceTblItem()->getDescription());
+            $Entity->setValue($tblBasketVerification->getValue());
+            $Entity->setQuantity($tblBasketVerification->getQuantity());
+            $Entity->setServiceTblItem($tblBasketVerification->getServiceTblItem());
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
 
         return $Entity;
     }

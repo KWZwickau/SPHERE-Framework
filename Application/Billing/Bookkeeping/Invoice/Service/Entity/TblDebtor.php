@@ -20,6 +20,7 @@ class TblDebtor extends Element
 {
 
     const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
+    const ATTR_IBAN = 'IBAN';
 
     /**
      * @Column(type="string")
@@ -32,7 +33,31 @@ class TblDebtor extends Element
     /**
      * @Column(type="string")
      */
-    protected $Reference;
+    protected $BankReference;
+    /**
+     * @Column(type="string")
+     */
+    protected $Owner;
+    /**
+     * @Column(type="string")
+     */
+    protected $BankName;
+    /**
+     * @Column(type="string")
+     */
+    protected $IBAN;
+    /**
+     * @Column(type="string")
+     */
+    protected $BIC;
+    /**
+     * @Column(type="string")
+     */
+    protected $CashSign;
+    /**
+     * @Column(type="string")
+     */
+    protected $CreditorId;
     /**
      * @Column(type="bigint")
      */
@@ -81,19 +106,127 @@ class TblDebtor extends Element
     /**
      * @return string
      */
-    public function getReference()
+    public function getBankReference()
     {
 
-        $this->Reference;
+        $this->BankReference;
     }
 
     /**
-     * @param $Reference
+     * @param $BankReference
      */
-    public function setReference($Reference)
+    public function setBankReference($BankReference)
     {
 
-        $this->Reference = $Reference;
+        $this->BankReference = $BankReference;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOwner()
+    {
+
+        $this->Owner;
+    }
+
+    /**
+     * @param $Owner
+     */
+    public function setOwner($Owner)
+    {
+
+        $this->Owner = $Owner;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBankName()
+    {
+
+        $this->BankName;
+    }
+
+    /**
+     * @param $BankName
+     */
+    public function setBankName($BankName)
+    {
+
+        $this->BankName = $BankName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIBAN()
+    {
+
+        $this->IBAN;
+    }
+
+    /**
+     * @param $IBAN
+     */
+    public function setIBAN($IBAN)
+    {
+
+        $this->IBAN = $IBAN;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBIC()
+    {
+
+        $this->BIC;
+    }
+
+    /**
+     * @param $BIC
+     */
+    public function setBIC($BIC)
+    {
+
+        $this->BIC = $BIC;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCashSign()
+    {
+
+        $this->CashSign;
+    }
+
+    /**
+     * @param $CashSign
+     */
+    public function setCashSign($CashSign)
+    {
+
+        $this->CashSign = $CashSign;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCreditorId()
+    {
+
+        $this->CreditorId;
+    }
+
+    /**
+     * @param $CreditorId
+     */
+    public function setCreditorId($CreditorId)
+    {
+
+        $this->CreditorId = $CreditorId;
     }
 
     /**

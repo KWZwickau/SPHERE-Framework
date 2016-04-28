@@ -94,6 +94,10 @@ class Basket implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Verification/Destroy',
                 __NAMESPACE__.'\Frontend::frontendDestroyVerification'
             ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Invoice/Create',
+                __NAMESPACE__.'\Frontend::frontendCreateInvoice'
+            ));
     }
 
     /**
