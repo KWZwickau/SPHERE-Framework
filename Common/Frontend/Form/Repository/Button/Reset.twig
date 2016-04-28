@@ -1,4 +1,4 @@
-<button type="reset" class="btn btn-warning">
+<button type="reset" class="btn btn-warning" {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}>
     {% if( Icon is not empty ) %}{{ Icon }}{% endif %}
     {{ Name }}
 </button>

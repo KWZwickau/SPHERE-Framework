@@ -4,7 +4,7 @@
     <div class="radio radio-primary">
         <input id="{{ ElementHash }}" type="radio" name="{{ ElementName }}"
                value="{{ ElementValue }}"
-               autocomplete="off" {{ ElementChecked }} {% if( Disabled is not empty ) %}disabled{% endif %}/>
+               autocomplete="off" {{ ElementChecked }} {% if( Disabled is not empty ) %}disabled{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}/>
         {% if( ElementLabel is not empty ) %}
             <label class="sphere-label" for="{{ ElementHash }}">{{ ElementLabel }}</label>
         {% endif %}
