@@ -185,4 +185,13 @@ abstract class Element extends Extension
 
         $this->Id = $Id;
     }
+
+    /**
+     * @return string
+     */
+    final public function getEntityShortName()
+    {
+
+        return (new \ReflectionClass($this))->getShortName();
+    }
 }

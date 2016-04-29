@@ -9,6 +9,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class AbstractCriteria
@@ -32,8 +33,10 @@ abstract class AbstractCriteria
     public function findBy($PropertySearch)
     {
 
+        Debugger::screenDump($PropertySearch);
         if (isset( $PropertySearch[$this->getCriteriaName()] )) {
             $PropertySearch = $this->sanitizeSearch($PropertySearch[$this->getCriteriaName()]);
+            Debugger::screenDump($PropertySearch);
             $EntityList = $this->Service->{$this->GetterAll}();
             if ($EntityList) {
                 array_walk($EntityList, function (Element &$Entity) use ($PropertySearch) {

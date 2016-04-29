@@ -39,12 +39,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @return bool|TblGroup[]
+     * @return bool|TblMember[]
      */
-    public function getGroupAll()
+    public function getMemberAll()
     {
 
-        return (new Data($this->getBinding()))->getGroupAll();
+        return (new Data($this->getBinding()))->getMemberAll();
     }
 
     /**
@@ -73,6 +73,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAll()
+    {
+
+        return (new Data($this->getBinding()))->getGroupAll();
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblGroup
@@ -83,6 +92,17 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getGroupById($Id);
     }
 
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblMember
+     */
+    public function getMemberById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getMemberById($Id);
+    }
+    
     /**
      * @param IFormInterface $Form
      * @param array $Group
