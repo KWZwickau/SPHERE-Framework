@@ -107,7 +107,6 @@ class Frontend extends Extension implements IFrontendInterface
             ksort($IconList);
         }
 
-
         $Stage->setContent(
             (new Form(
                 new FormGroup(array(
@@ -428,6 +427,70 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblTestPicture = Test::useService()->getTestPictureById($Id);
         $Stage->setContent(Test::useService()->deleteTblTestPicture($tblTestPicture));
+
+        return $Stage;
+    }
+
+    public function frontendDynamicFilter($Root = 0, $Designer = array(), $Search = array())
+    {
+
+        $Stage = new Stage('DynamicFilter', 'Test');
+
+        $Stage->addButton(new Standard('Start bei Person', '/Platform/System/Test/DynamicFilter', null,
+            array('Root' => 1)));
+        $Stage->addButton(new Standard('Start bei Adresse', '/Platform/System/Test/DynamicFilter', null,
+            array('Root' => 2)));
+
+        switch ($Root) {
+            case 1:
+                $RootCriteria = new \SPHERE\System\Database\Filter\Criteria\Person();
+                break;
+            case 2:
+                $RootCriteria = new \SPHERE\System\Database\Filter\Criteria\Address();
+                break;
+            default:
+                $RootCriteria = new \SPHERE\System\Database\Filter\Criteria\Person();
+                break;
+        }
+
+        $DesignerSetup = $Designer;
+        $SearchSetup = $Search;
+
+        $Designer = $RootCriteria->getDesignerGui();
+        array_walk($Designer, function (&$Panel) {
+
+            $Panel = new FormColumn($Panel, 3);
+        });
+
+        $Search = $RootCriteria->getSearchGui($DesignerSetup);
+        array_walk($Search, function (&$Panel) {
+
+            $Panel = new FormColumn($Panel, 3);
+        });
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(
+                        new Form(new FormGroup(new FormRow(
+                            $Designer
+                        )), new Primary('Speichern'))
+                    )
+                ), new Title('Designer')),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(
+                        new Form(new FormGroup(new FormRow(
+                            $Search
+                        )), new Primary('Suchen'))
+                    )
+                ), new Title('Search')),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($RootCriteria->findBy($SearchSetup))
+                    )
+                ), new Title('Result'))
+            ))
+        );
 
         return $Stage;
     }
