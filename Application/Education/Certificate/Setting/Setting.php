@@ -136,7 +136,7 @@ class Setting extends Extension implements IModuleInterface
 
         $Result = array();
 
-        for ($Run = 1; $Run < 2/* $LaneLength*/; $Run++) {
+        for ($Run = 1; $Run < $LaneLength; $Run++) {
             array_push($Result,
                 new Panel(( $Run == 1 ? $LaneTitle : '' ), array(
                     new SelectBox('Subject['.$LaneIndex.']['.$Run.']', 'Fach',

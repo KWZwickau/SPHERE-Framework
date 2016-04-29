@@ -12,17 +12,17 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
-use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -81,15 +81,18 @@ class Frontend extends Extension implements IFrontendInterface
         // Prepare Environment
         switch (strtolower($this->getRequest()->getHost())) {
             case 'www.kreda.schule':
-                $Environment = new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(),
+                $Environment = new Standard('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', new Transfer(),
+                    array(),
                     false);
                 break;
             case 'demo.kreda.schule':
-                $Environment = new External('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', null, array(),
+                $Environment = new Standard('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', new Transfer(),
+                    array(),
                     false);
                 break;
             default:
-                $Environment = new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(),
+                $Environment = new Standard('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', new Transfer(),
+                    array(),
                     false);
         }
 
@@ -97,7 +100,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Environment
         );
 
-        $View->setMessage('');
+        $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
 
         // Get Identification-Type (Credential,Token,System)
         $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
@@ -128,7 +131,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new Panel('Hardware-Schlüssel *', array(
                                 new PasswordField('CredentialKey', 'Yubi-Key', 'Yubi-Key', new YubiKey())
-                            ), Panel::PANEL_TYPE_WARNING, new Small('* Optional'))
+                            ), Panel::PANEL_TYPE_INFO, new Small('* Optional'))
                         )
                     ))
                 )
@@ -147,21 +150,19 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $View->setContent(
-            new Well(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
                             ''
-                            , 2),
+                            , 3),
                         new LayoutColumn(
-                            $FormService
-                            , 8),
+                            new Well($FormService)
+                            , 6),
                         new LayoutColumn(
                             ''
-                            , 2),
+                            , 3),
                     )),
-                ), new Title('Anmelden', 'Bitte geben Sie Ihre Benutzerdaten ein')))
-            )
+                )))
         );
         return $View;
     }

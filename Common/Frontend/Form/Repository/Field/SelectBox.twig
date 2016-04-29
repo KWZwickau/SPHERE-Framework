@@ -8,7 +8,8 @@
             {{ ElementIcon }}
         </span>
         {% endif %}
-        <select id="{{ ElementName }}" name="{{ ElementName }}">
+        <select id="{{ ElementName }}" name="{{ ElementName }}"
+                {% if( Disabled is not empty ) %}disabled{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}>
             {% for Value, Title in ElementData %}
                 <option value="{{ Value }}">{{ Title }}</option>
             {% endfor %}

@@ -267,4 +267,18 @@ abstract class AbstractField extends Extension implements IFieldInterface
         $this->Template->setVariable('Disabled', true);
         return $this;
     }
+
+    /**
+     * Set Tabulator-Order (Index)
+     *
+     * @param int $Index
+     *
+     * @return AbstractField
+     */
+    public function setTabIndex($Index = 1)
+    {
+
+        $this->Template->setVariable('TabIndex', (int)$Index);
+        return $this;
+    }
 }

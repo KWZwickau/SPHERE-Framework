@@ -23,7 +23,7 @@ class Image extends Element
 
         $PathBase = $this->getRequest()->getPathBase();
         if (empty( $PathBase )) {
-            $PathBase = 'http://'.$_SERVER['SERVER_NAME'];
+            $PathBase = 'https://'.$_SERVER['SERVER_NAME'];
         }
         return $PathBase.'/'.trim($Location, '/\\');
     }

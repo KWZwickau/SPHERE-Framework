@@ -569,7 +569,13 @@ class MsHjInfoHs extends Certificate
                             ->stylePaddingBottom()
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('
+                            {% if(Content.Input.CHO is not empty) %}
+                                                                {{ Content.Input.CHO }}
+                                                            {% else %}
+                                                                ---
+                                                            {% endif %}
+                            ')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom('1px', '#000')
