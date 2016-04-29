@@ -194,4 +194,13 @@ abstract class Element extends Extension
 
         return (new \ReflectionClass($this))->getShortName();
     }
+
+    /**
+     * @return string
+     */
+    final public function getEntityFullName()
+    {
+
+        return (new \ReflectionClass($this))->getName();
+    }
 }

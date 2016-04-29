@@ -1,12 +1,20 @@
 <?php
 namespace SPHERE\System\Database\Filter\Repository;
 
-use SPHERE\System\Database\Filter\Link\AbstractLink;
-use SPHERE\System\Database\Filter\Link\MultipleLink;
-use SPHERE\System\Database\Filter\Link\Probe;
-use SPHERE\System\Database\Fitting\Element;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Group\Service\Entity\TblMember;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
+use SPHERE\System\Database\Filter\Link\ConnectLink;
+use SPHERE\System\Database\Filter\Link\SingleLink;
 use SPHERE\System\Extension\Repository\Debugger;
 
+/**
+ * Class Test
+ * @package SPHERE\System\Database\Filter\Repository
+ */
 class Test
 {
 
@@ -16,70 +24,33 @@ class Test
     public function __construct()
     {
 
-        $GroupToPerson = new MultipleLink();
-        $GroupToPerson
-            ->setupProbeLeft(\SPHERE\Application\People\Group\Group::useService(), 'getGroupAll', 'getGroupById')
-            ->setupProbeCenter(\SPHERE\Application\People\Group\Group::useService(), 'getMemberAll', 'getMemberById')
-            ->setupProbeRight(\SPHERE\Application\People\Person\Person::useService(), 'getPersonAll', 'getPersonById');
+        $Link = new ConnectLink();
+        $Link
+            ->setupProbeLeft(Group::useService(), new TblGroup(''))
+            ->addLinkPath('Id')
+            ->setupProbeCenter(Group::useService(), new TblMember())
+            ->addLinkPath('tblGroup')
+            ->addLinkPath('serviceTblPerson')
+            ->setupProbeRight(Person::useService(), new TblPerson())
+            ->addLinkPath('Id');
 
-        Debugger::screenDump($this->searchData($GroupToPerson, array('Name' => 'a'), array('LastName' => '')));
-    }
+        Debugger::screenDump($Link->searchData(
+            array('Name' => array('er','ü')),
+            array('LastName' => '', 'FirstName' => 'l')
+        ));
 
-    /**
-     * @param AbstractLink|MultipleLink $Link
-     * @param array                     $SearchLeft
-     * @param array                     $SearchRight
-     *
-     * @return bool|Element[]
-     */
-    public function searchData(AbstractLink $Link, $SearchLeft = array(), $SearchRight = array())
-    {
+        $Link = new SingleLink();
+        $Link
+            ->setupProbeLeft(Person::useService(), new TblPerson())
+            ->addLinkPath('tblSalutation')
+            ->setupProbeRight(Person::useService(), new TblSalutation(''))
+            ->addLinkPath('Id');
 
-        $EntityListLeft = $Link->getProbeLeft()->findAll($SearchLeft);
-//        Debugger::screenDump($EntityListLeft);
-        $SearchCenter = array(
-            'tblGroup' => implode(' ', array_map(function (Element $Entity) {
+        Debugger::screenDump($Link->searchData(
+            array('LastName' => 'g', 'FirstName' => array('w','l')),
+            array('Salutation' => 'ü')
+        ));
 
-                $Entity = $Entity->__toArray();
-                return $Entity['Id'];
-            }, $EntityListLeft))
-        );
-        $EntityListCenter = $Link->getProbeCenter()->findAll($SearchCenter, Probe::LOGIC_OR);
-//        Debugger::screenDump($EntityListCenter);
-        $SearchId = array(
-            'Id' => implode(' ', array_map(function (Element $Entity) {
-
-                $Entity = $Entity->__toArray();
-                return $Entity['serviceTblPerson'];
-            }, $EntityListCenter))
-        );
-        $SearchRight = array(Probe::LOGIC_OR => $SearchId, Probe::LOGIC_AND => $SearchRight);
-        $EntityListRight = $Link->getProbeRight()->findAll($SearchRight);
-//        Debugger::screenDump($EntityListRight);
-
-        $Result = array();
-        array_walk($EntityListRight, function (Element $Right) use (&$Result, $EntityListCenter, $EntityListLeft) {
-
-            array_walk($EntityListCenter, function (Element $Center) use (&$Result, $EntityListLeft, $Right) {
-
-                array_walk($EntityListLeft, function (Element $Left) use (&$Result, $Right, $Center) {
-
-                    $LeftData = $Left->__toArray();
-                    $CenterData = $Center->__toArray();
-                    $RightData = $Right->__toArray();
-
-                    if ($LeftData['Id'] == $CenterData['tblGroup'] && $CenterData['serviceTblPerson'] == $RightData['Id']) {
-                        $Result[] = array(
-                            $Left->getEntityShortName()   => $Left,
-                            $Center->getEntityShortName() => $Center,
-                            $Right->getEntityShortName()  => $Right,
-                        );
-                    }
-
-                });
-            });
-        });
-
-        return $Result;
+        // TODO: Connect Links to Graph
     }
 }

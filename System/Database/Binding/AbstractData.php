@@ -1,8 +1,10 @@
 <?php
 namespace SPHERE\System\Database\Binding;
 
+use SPHERE\System\Database\Filter\Logic\AbstractLogic;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class AbstractData
@@ -28,6 +30,28 @@ abstract class AbstractData extends Cacheable
      * @return void
      */
     abstract public function setupDatabaseContent();
+
+    /**
+     * Internal
+     *
+     * @param Element $Entity
+     * @param AbstractLogic $Logic
+     * @return bool|Element[]
+     */
+    protected function getAllByLogic(Element $Entity, $Logic)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Builder = $Manager->getQueryBuilder();
+
+        $Builder->select('E')->from( $Entity->getEntityFullName(), 'E' );
+        $Builder->andWhere( $Logic->getExpression() );
+        $Query = $Builder->getQuery();
+
+        $this->getDebugger()->screenDump( $Query->getSQL() );
+
+        return $Query->getResult();
+    }
 
     /**
      * @return Binding

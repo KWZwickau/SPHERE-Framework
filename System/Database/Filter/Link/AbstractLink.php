@@ -2,6 +2,9 @@
 namespace SPHERE\System\Database\Filter\Link;
 
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Database\Filter\Logic\AndLogic;
+use SPHERE\System\Database\Filter\Logic\OrLogic;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class AbstractLink
@@ -12,7 +15,7 @@ abstract class AbstractLink
 {
 
     /** @var array $LinkPath */
-    protected $LinkPath = array();
+    private $LinkPath = array();
     /** @var null|Probe $ProbeLeft */
     private $ProbeLeft = null;
     /** @var null|Probe $ProbeRight */
@@ -20,29 +23,29 @@ abstract class AbstractLink
 
     /**
      * @param AbstractService $Service
-     * @param string          $GetterMethodAll
-     * @param string          $GetterMethodId
+     * @param Element          $Entity
+
      *
      * @return $this
      */
-    public function setupProbeLeft(AbstractService $Service, $GetterMethodAll, $GetterMethodId)
+    public function setupProbeLeft(AbstractService $Service, Element $Entity)
     {
 
-        $this->ProbeLeft = new Probe($Service, $GetterMethodAll, $GetterMethodId);
+        $this->ProbeLeft = new Probe($Service, $Entity);
         return $this;
     }
 
     /**
      * @param AbstractService $Service
-     * @param string          $GetterMethodAll
-     * @param string          $GetterMethodId
+     * @param Element          $Entity
+
      *
      * @return $this
      */
-    public function setupProbeRight(AbstractService $Service, $GetterMethodAll, $GetterMethodId)
+    public function setupProbeRight(AbstractService $Service, Element $Entity)
     {
 
-        $this->ProbeRight = new Probe($Service, $GetterMethodAll, $GetterMethodId);
+        $this->ProbeRight = new Probe($Service, $Entity);
         return $this;
     }
 
@@ -65,7 +68,8 @@ abstract class AbstractLink
     }
 
     /**
-     * @return array
+     * @param int $Index
+     * @return string
      */
     public function getLinkPath($Index)
     {
@@ -74,12 +78,32 @@ abstract class AbstractLink
     }
 
     /**
-     * @param string $Left  Property
-     * @param string $Right Property
+     * @param string $Property Property
+     * @return $this
      */
-    public function setLinkPath($Left, $Right)
+    public function addLinkPath($Property)
     {
 
-        $this->LinkPath = array($Left, $Right);
+        array_push($this->LinkPath, $Property);
+        return $this;
     }
+
+    /**
+     * @param int $IndexFrom
+     * @param int $IndexTo
+     * @param Element[] $EntityList
+     * @return array
+     */
+    protected function getLinkPathCritria($IndexFrom, $IndexTo, $EntityList)
+    {
+        return array(
+            $IndexTo => array_map(function (Element $Entity) use ($IndexFrom) {
+
+                $Entity = $Entity->__toArray();
+                return $Entity[$IndexFrom];
+            }, $EntityList)
+        );
+    }
+
+
 }
