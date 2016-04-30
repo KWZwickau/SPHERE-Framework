@@ -47,6 +47,8 @@ abstract class AbstractData extends Cacheable
         $Builder->select('E')->from( $Entity->getEntityFullName(), 'E' );
         $Builder->andWhere( $Logic->getExpression() );
         $Query = $Builder->getQuery();
+        $Query->useQueryCache(true);
+        $Query->useResultCache(true,300);
 
         $this->getDebugger()->screenDump( $Query->getSQL() );
 

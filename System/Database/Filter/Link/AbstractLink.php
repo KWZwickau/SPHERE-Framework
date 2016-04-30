@@ -2,8 +2,6 @@
 namespace SPHERE\System\Database\Filter\Link;
 
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Database\Filter\Logic\AndLogic;
-use SPHERE\System\Database\Filter\Logic\OrLogic;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -23,8 +21,7 @@ abstract class AbstractLink
 
     /**
      * @param AbstractService $Service
-     * @param Element          $Entity
-
+     * @param Element $Entity
      *
      * @return $this
      */
@@ -37,8 +34,7 @@ abstract class AbstractLink
 
     /**
      * @param AbstractService $Service
-     * @param Element          $Entity
-
+     * @param Element $Entity
      *
      * @return $this
      */
@@ -98,7 +94,7 @@ abstract class AbstractLink
     {
         return array(
             $IndexTo => array_map(function (Element $Entity) use ($IndexFrom) {
-
+                // TODO: Performance, avoid __toArray
                 $Entity = $Entity->__toArray();
                 return $Entity[$IndexFrom];
             }, $EntityList)

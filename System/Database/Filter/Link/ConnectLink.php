@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Database\Filter\Link;
 
+use SPHERE\System\Cache\Handler\DataCacheHandler;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Filter\Logic\AndLogic;
 use SPHERE\System\Database\Filter\Logic\OrLogic;
@@ -38,85 +39,102 @@ class ConnectLink extends AbstractLink
      */
     public function searchData($SearchLeft = array(), $SearchRight = array())
     {
-        $Result = array();
 
-        $LeftLogic = (new AndLogic($this->getProbeLeft()->useBuilder()))
-            ->addLogic(
-                (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
-                    $SearchLeft, OrLogic::COMPARISON_LIKE
-                )
-            )->addLogic(
-                (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteria(
-                    'EntityRemove', null, AndLogic::COMPARISON_EXACT
-                )
-            );
-        $EntityListLeft = $this->getProbeLeft()->findLogic($LeftLogic);
+        $Key = array(
+            $this->getProbeLeft()->getEntity()->getEntityFullName(),
+            $this->getProbeCenter()->getEntity()->getEntityFullName(),
+            $this->getProbeRight()->getEntity()->getEntityFullName(),
+            $SearchLeft,
+            $SearchRight
+        );
+        $Cache = new DataCacheHandler(json_encode($Key), array(
+            $this->getProbeLeft()->getEntity(),
+            $this->getProbeCenter()->getEntity(),
+            $this->getProbeRight()->getEntity()
+        ));
 
-        if ($EntityListLeft) {
+        if (null === ($Result = $Cache->getData())) {
+            $Result = array();
 
-            $SearchCenter = $this->getLinkPathCritria($this->getLinkPath(0), $this->getLinkPath(1), $EntityListLeft);
-            $CenterLogic = (new AndLogic($this->getProbeLeft()->useBuilder()))
+            $LeftLogic = (new AndLogic($this->getProbeLeft()->useBuilder()))
                 ->addLogic(
-                    (new OrLogic($this->getProbeCenter()->useBuilder()))->addCriteriaList(
-                        $SearchCenter, OrLogic::COMPARISON_EXACT
+                    (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
+                        $SearchLeft, OrLogic::COMPARISON_LIKE
                     )
                 )->addLogic(
                     (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteria(
                         'EntityRemove', null, AndLogic::COMPARISON_EXACT
                     )
                 );
-            $EntityListCenter = $this->getProbeCenter()->findLogic($CenterLogic);
+            $EntityListLeft = $this->getProbeLeft()->findLogic($LeftLogic);
 
-            if ($EntityListCenter) {
-                $SearchConnect = $this->getLinkPathCritria($this->getLinkPath(2), $this->getLinkPath(3),
-                    $EntityListCenter);
-                $RightLogic = (new AndLogic($this->getProbeLeft()->useBuilder()))
+            if ($EntityListLeft) {
+
+                $SearchCenter = $this->getLinkPathCritria($this->getLinkPath(0), $this->getLinkPath(1),
+                    $EntityListLeft);
+                $CenterLogic = (new AndLogic($this->getProbeLeft()->useBuilder()))
                     ->addLogic(
-                        (new OrLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
-                            $SearchConnect, OrLogic::COMPARISON_EXACT
-                        )
-                    )->addLogic(
-                        (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
-                            $SearchRight, OrLogic::COMPARISON_LIKE
+                        (new OrLogic($this->getProbeCenter()->useBuilder()))->addCriteriaList(
+                            $SearchCenter, OrLogic::COMPARISON_EXACT
                         )
                     )->addLogic(
                         (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteria(
                             'EntityRemove', null, AndLogic::COMPARISON_EXACT
                         )
                     );
-                $EntityListRight = $this->getProbeRight()->findLogic($RightLogic);
-                if ($EntityListRight) {
-                    array_walk($EntityListRight,
-                        function (Element $Right) use (&$Result, $EntityListCenter, $EntityListLeft) {
+                $EntityListCenter = $this->getProbeCenter()->findLogic($CenterLogic);
 
-                            array_walk($EntityListCenter,
-                                function (Element $Center) use (&$Result, $EntityListLeft, $Right) {
+                if ($EntityListCenter) {
+                    $SearchConnect = $this->getLinkPathCritria($this->getLinkPath(2), $this->getLinkPath(3),
+                        $EntityListCenter);
+                    $RightLogic = (new AndLogic($this->getProbeLeft()->useBuilder()))
+                        ->addLogic(
+                            (new OrLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
+                                $SearchConnect, OrLogic::COMPARISON_EXACT
+                            )
+                        )->addLogic(
+                            (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
+                                $SearchRight, OrLogic::COMPARISON_LIKE
+                            )
+                        )->addLogic(
+                            (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteria(
+                                'EntityRemove', null, AndLogic::COMPARISON_EXACT
+                            )
+                        );
+                    $EntityListRight = $this->getProbeRight()->findLogic($RightLogic);
+                    if ($EntityListRight) {
+                        array_walk($EntityListRight,
+                            function (Element $Right) use (&$Result, $EntityListCenter, $EntityListLeft) {
 
-                                    array_walk($EntityListLeft,
-                                        function (Element $Left) use (&$Result, $Right, $Center) {
+                                array_walk($EntityListCenter,
+                                    function (Element $Center) use (&$Result, $EntityListLeft, $Right) {
 
-                                            $LeftData = $Left->__toArray();
-                                            $CenterData = $Center->__toArray();
-                                            $RightData = $Right->__toArray();
+                                        array_walk($EntityListLeft,
+                                            function (Element $Left) use (&$Result, $Right, $Center) {
 
-                                            if (
-                                                ($LeftData[$this->getLinkPath(0)] == $CenterData[$this->getLinkPath(1)])
-                                                && ($CenterData[$this->getLinkPath(2)] == $RightData[$this->getLinkPath(3)])
-                                            ) {
-                                                $Result[] = array(
-                                                    $Left->getEntityFullName() => $Left,
-                                                    $Center->getEntityFullName() => $Center,
-                                                    $Right->getEntityFullName() => $Right,
-                                                );
-                                            }
+                                                $LeftData = $Left->__toArray();
+                                                $CenterData = $Center->__toArray();
+                                                $RightData = $Right->__toArray();
 
-                                        });
-                                });
-                        });
+                                                if (
+                                                    ($LeftData[$this->getLinkPath(0)] == $CenterData[$this->getLinkPath(1)])
+                                                    && ($CenterData[$this->getLinkPath(2)] == $RightData[$this->getLinkPath(3)])
+                                                ) {
+                                                    $Result[] = array(
+                                                        $Left->getEntityFullName() => $Left,
+                                                        $Center->getEntityFullName() => $Center,
+                                                        $Right->getEntityFullName() => $Right,
+                                                    );
+                                                }
+
+                                            });
+                                    });
+                            });
+                    }
                 }
             }
+            $Cache->setData($Result);
         }
-
         return $Result;
     }
 

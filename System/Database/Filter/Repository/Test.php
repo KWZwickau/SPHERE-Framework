@@ -34,10 +34,13 @@ class Test
             ->setupProbeRight(Person::useService(), new TblPerson())
             ->addLinkPath('Id');
 
-        Debugger::screenDump($Link->searchData(
-            array('Name' => array('er','ü')),
-            array('LastName' => '', 'FirstName' => 'l')
-        ));
+        $Result = $Link->searchData(
+            array('Name' => array('e')),
+            array('LastName' => array('a', 'l'), 'FirstName' => 'la')
+        );
+
+        Debugger::screenDump($Result);
+
 
         $Link = new SingleLink();
         $Link
@@ -46,10 +49,13 @@ class Test
             ->setupProbeRight(Person::useService(), new TblSalutation(''))
             ->addLinkPath('Id');
 
-        Debugger::screenDump($Link->searchData(
-            array('LastName' => 'g', 'FirstName' => array('w','l')),
+        $Result = $Link->searchData(
+            array('LastName' => array('g', 'a'), 'FirstName' => array('w', 'l')),
             array('Salutation' => 'ü')
-        ));
+        );
+
+        Debugger::screenDump($Result);
+
 
         // TODO: Connect Links to Graph
     }

@@ -2,6 +2,7 @@
 namespace SPHERE\System\Database\Filter\Link;
 
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Database\Filter\Logic\AbstractLogic;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -62,12 +63,12 @@ class Probe
     }
 
     /**
-     * @param $Logic
+     * @param AbstractLogic $Logic
      * @return bool|Element[]
      */
     final public function findLogic($Logic)
     {
-        return $EntityList = $this->useBinding()->getAllByLogic($this->Entity, $Logic);
+        return $this->useBinding()->getAllByLogic($this->getEntity(), $Logic);
     }
 
     /**
@@ -84,5 +85,13 @@ class Probe
     final public function useBuilder()
     {
         return $this->useBinding()->getConnection()->getEntityManager()->getQueryBuilder();
+    }
+
+    /**
+     * @return null|Element
+     */
+    public function getEntity()
+    {
+        return $this->Entity;
     }
 }
