@@ -6,9 +6,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
-use SPHERE\System\Database\Filter\Link\ConnectLink;
-use SPHERE\System\Database\Filter\Link\SingleLink;
+use SPHERE\System\Database\Filter\Link\RecursiveLink;
 use SPHERE\System\Extension\Repository\Debugger;
 
 /**
@@ -24,37 +22,52 @@ class Test
     public function __construct()
     {
 
-        $Link = new ConnectLink();
-        $Link
-            ->setupProbeLeft(Group::useService(), new TblGroup(''))
-            ->addLinkPath('Id')
-            ->setupProbeCenter(Group::useService(), new TblMember())
-            ->addLinkPath('tblGroup')
-            ->addLinkPath('serviceTblPerson')
-            ->setupProbeRight(Person::useService(), new TblPerson())
-            ->addLinkPath('Id');
+//        $Link = new ConnectLink();
+//        $Link
+//            ->addProbe(Group::useService(), new TblGroup(''))
+//            ->addPath('Id')
+//            ->addProbe(Group::useService(), new TblMember())
+//            ->addPath('tblGroup')
+//            ->addPath('serviceTblPerson')
+//            ->addProbe(Person::useService(), new TblPerson())
+//            ->addPath('Id');
+//
+//        $Result = $Link->searchData(
+//            array('Name' => array('ü')),
+//            array('LastName' => array('me','na'))
+//        );
+//
+//        Debugger::screenDump($Result);
 
-        $Result = $Link->searchData(
-            array('Name' => array('e')),
-            array('LastName' => array('a', 'l'), 'FirstName' => 'la')
-        );
+        $Link = new RecursiveLink();
+        $Link
+            ->addProbe(Group::useService(), new TblGroup(''))
+            ->addPath(null, 'Id')
+            ->addProbe(Group::useService(), new TblMember())
+            ->addPath('tblGroup', 'serviceTblPerson')
+            ->addProbe(Person::useService(), new TblPerson())
+            ->addPath('Id', null);
+
+        $Result = $Link->searchData(array(
+            0 => array('Name' => array('ü')),
+            2 => array('LastName' => array('me', 'na'))
+        ));
 
         Debugger::screenDump($Result);
 
-
-        $Link = new SingleLink();
-        $Link
-            ->setupProbeLeft(Person::useService(), new TblPerson())
-            ->addLinkPath('tblSalutation')
-            ->setupProbeRight(Person::useService(), new TblSalutation(''))
-            ->addLinkPath('Id');
-
-        $Result = $Link->searchData(
-            array('LastName' => array('g', 'a'), 'FirstName' => array('w', 'l')),
-            array('Salutation' => 'ü')
-        );
-
-        Debugger::screenDump($Result);
+//        $Link = new SingleLink();
+//        $Link
+//            ->addProbe(Person::useService(), new TblPerson())
+//            ->addPath('tblSalutation')
+//            ->addProbe(Person::useService(), new TblSalutation(''))
+//            ->addPath('Id');
+//
+//        $Result = $Link->searchData(
+//            array('LastName' => array('me','na')),
+//            array('Salutation' => '')
+//        );
+//
+//        Debugger::screenDump($Result);
 
 
         // TODO: Connect Links to Graph

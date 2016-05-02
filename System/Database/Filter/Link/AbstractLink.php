@@ -12,94 +12,76 @@ use SPHERE\System\Database\Fitting\Element;
 abstract class AbstractLink
 {
 
-    /** @var array $LinkPath */
-    private $LinkPath = array();
-    /** @var null|Probe $ProbeLeft */
-    private $ProbeLeft = null;
-    /** @var null|Probe $ProbeRight */
-    private $ProbeRight = null;
+    protected static $Cache = false;
+    /** @var array $PathList */
+    private $PathList = array();
+    /** @var Probe[] $ProbeList */
+    private $ProbeList = array();
 
     /**
+     *
      * @param AbstractService $Service
-     * @param Element $Entity
+     * @param Element         $Entity
      *
      * @return $this
      */
-    public function setupProbeLeft(AbstractService $Service, Element $Entity)
+    public function addProbe(AbstractService $Service, Element $Entity)
     {
 
-        $this->ProbeLeft = new Probe($Service, $Entity);
+        array_push($this->ProbeList, new Probe($Service, $Entity));
         return $this;
-    }
-
-    /**
-     * @param AbstractService $Service
-     * @param Element $Entity
-     *
-     * @return $this
-     */
-    public function setupProbeRight(AbstractService $Service, Element $Entity)
-    {
-
-        $this->ProbeRight = new Probe($Service, $Entity);
-        return $this;
-    }
-
-    /**
-     * @return null|Probe
-     */
-    public function getProbeLeft()
-    {
-
-        return $this->ProbeLeft;
-    }
-
-    /**
-     * @return null|Probe
-     */
-    public function getProbeRight()
-    {
-
-        return $this->ProbeRight;
     }
 
     /**
      * @param int $Index
-     * @return string
+     *
+     * @return Probe
      */
-    public function getLinkPath($Index)
+    public function getProbe($Index)
     {
 
-        return $this->LinkPath[$Index];
+        return $this->ProbeList[$Index];
     }
 
     /**
-     * @param string $Property Property
-     * @return $this
+     * @return Probe[]
      */
-    public function addLinkPath($Property)
+    public function getProbeList()
     {
 
-        array_push($this->LinkPath, $Property);
+        return $this->ProbeList;
+    }
+
+    /**
+     * @param int $Index
+     *
+     * @return array
+     */
+    public function getPath($Index)
+    {
+
+        return $this->PathList[$Index];
+    }
+
+    /**
+     * @param null|string $ParentProperty
+     * @param null|string $ChildProperty
+     *
+     * @return $this
+     */
+    public function addPath($ParentProperty = null, $ChildProperty = null)
+    {
+
+        array_push($this->PathList, array($ParentProperty, $ChildProperty));
         return $this;
     }
 
     /**
-     * @param int $IndexFrom
-     * @param int $IndexTo
-     * @param Element[] $EntityList
      * @return array
      */
-    protected function getLinkPathCritria($IndexFrom, $IndexTo, $EntityList)
+    public function getPathList()
     {
-        return array(
-            $IndexTo => array_map(function (Element $Entity) use ($IndexFrom) {
-                // TODO: Performance, avoid __toArray
-                $Entity = $Entity->__toArray();
-                return $Entity[$IndexFrom];
-            }, $EntityList)
-        );
+
+        return $this->PathList;
     }
-
-
 }

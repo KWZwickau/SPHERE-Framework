@@ -22,7 +22,7 @@ class Probe
      * Probe constructor.
      *
      * @param AbstractService $Service
-     * @param Element $Entity
+     * @param Element         $Entity
      *
      * @throws \Exception
      */
@@ -45,7 +45,7 @@ class Probe
         if ($this->isValidService($Service)) {
             $this->Service = $Service;
         } else {
-            throw new \Exception('Invalid Service ' . get_class($Service));
+            throw new \Exception('Invalid Service '.get_class($Service));
         }
         return $this;
     }
@@ -64,11 +64,13 @@ class Probe
 
     /**
      * @param AbstractLogic $Logic
-     * @return bool|Element[]
+     *
+     * @return Element[]
      */
-    final public function findLogic($Logic)
+    final public function findLogic(AbstractLogic $Logic)
     {
-        return $this->useBinding()->getAllByLogic($this->getEntity(), $Logic);
+
+        return $this->useBinding()->getEntityAllByLogic($this->getEntity(), $Logic);
     }
 
     /**
@@ -76,15 +78,8 @@ class Probe
      */
     final public function useBinding()
     {
-        return new Data($this->Service->getBinding());
-    }
 
-    /**
-     * @return \Doctrine\ORM\QueryBuilder
-     */
-    final public function useBuilder()
-    {
-        return $this->useBinding()->getConnection()->getEntityManager()->getQueryBuilder();
+        return new Data($this->Service->getBinding());
     }
 
     /**
@@ -92,6 +87,28 @@ class Probe
      */
     public function getEntity()
     {
+
         return $this->Entity;
+    }
+
+    /**
+     * @param AbstractLogic $Logic
+     * @param string        $Column
+     *
+     * @return array
+     */
+    final public function findLogicColumn(AbstractLogic $Logic, $Column = 'Id')
+    {
+
+        return $this->useBinding()->getColumnAllByLogic($this->getEntity(), $Logic, $Column);
+    }
+
+    /**
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    final public function useBuilder()
+    {
+
+        return $this->useBinding()->getConnection()->getEntityManager()->getQueryBuilder();
     }
 }

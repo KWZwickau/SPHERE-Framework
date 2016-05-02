@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Search\Group;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -82,6 +83,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Cache = new DataCacheHandler($Acronym.':'.$Id.':'.$tblGroup->getMetaTable(), array(
                 new TblPerson(),
                 new TblAddress(),
+                new TblToPerson(),
                 new TblStudent(),
                 new TblDivision()
             ));

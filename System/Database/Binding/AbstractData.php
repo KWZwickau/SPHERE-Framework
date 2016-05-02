@@ -4,6 +4,7 @@ namespace SPHERE\System\Database\Binding;
 use SPHERE\System\Database\Filter\Logic\AbstractLogic;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Fitting\ColumnHydrator;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -36,9 +37,10 @@ abstract class AbstractData extends Cacheable
      *
      * @param Element $Entity
      * @param AbstractLogic $Logic
-     * @return bool|Element[]
+     *
+     * @return Element[]
      */
-    protected function getAllByLogic(Element $Entity, $Logic)
+    protected function getEntityAllByLogic(Element $Entity, AbstractLogic $Logic)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -48,7 +50,6 @@ abstract class AbstractData extends Cacheable
         $Builder->andWhere( $Logic->getExpression() );
         $Query = $Builder->getQuery();
         $Query->useQueryCache(true);
-        $Query->useResultCache(true,300);
 
         $this->getDebugger()->screenDump( $Query->getSQL() );
 
@@ -62,5 +63,30 @@ abstract class AbstractData extends Cacheable
     {
 
         return $this->Connection;
+    }
+
+    /**
+     * Internal
+     *
+     * @param Element       $Entity
+     * @param AbstractLogic $Logic
+     * @param string        $Column
+     *
+     * @return array
+     */
+    protected function getColumnAllByLogic(Element $Entity, AbstractLogic $Logic, $Column = 'Id')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Builder = $Manager->getQueryBuilder();
+
+        $Builder->select('E.'.$Column)->from($Entity->getEntityFullName(), 'E');
+        $Builder->andWhere($Logic->getExpression());
+        $Query = $Builder->getQuery();
+        $Query->useQueryCache(true);
+
+        $this->getDebugger()->screenDump($Query->getSQL());
+
+        return $Query->getResult(ColumnHydrator::HYDRATION_MODE);
     }
 }

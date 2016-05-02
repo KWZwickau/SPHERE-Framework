@@ -13,6 +13,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class SingleLink extends AbstractLink
 {
+
     /**
      * @param array $SearchLeft
      * @param array $SearchRight
@@ -23,51 +24,53 @@ class SingleLink extends AbstractLink
     {
 
         $Key = array(
-            $this->getProbeLeft()->getEntity()->getEntityFullName(),
-            $this->getProbeRight()->getEntity()->getEntityFullName(),
+            $this->getProbe(0)->getEntity()->getEntityFullName(),
+            $this->getProbe(1)->getEntity()->getEntityFullName(),
             $SearchLeft,
             $SearchRight
         );
         $Cache = new DataCacheHandler(json_encode($Key), array(
-            $this->getProbeLeft()->getEntity(),
-            $this->getProbeRight()->getEntity()
+            $this->getProbe(0)->getEntity(),
+            $this->getProbe(1)->getEntity()
         ));
 
-        if (null === ($Result = $Cache->getData())) {
+        if (!self::$Cache || null === ( $Result = $Cache->getData() )) {
             $Result = array();
 
-            $LeftLogic = (new AndLogic($this->getProbeLeft()->useBuilder()))
+            $LeftLogic = (new AndLogic($this->getProbe(0)->useBuilder()))
                 ->addLogic(
-                    (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
+                    (new AndLogic($this->getProbe(0)->useBuilder()))->addCriteriaList(
                         $SearchLeft, OrLogic::COMPARISON_LIKE
                     )
                 )->addLogic(
-                    (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteria(
-                        'EntityRemove', null
+                    (new AndLogic($this->getProbe(0)->useBuilder()))->addCriteria(
+                        'EntityRemove', null, AndLogic::COMPARISON_EXACT
                     )
                 );
-            $EntityListLeft = $this->getProbeLeft()->findLogic($LeftLogic);
+            $EntityListLeft = $this->getProbe(0)->findLogic($LeftLogic);
 
             if ($EntityListLeft) {
 
-                $SearchConnect = $this->getLinkPathCritria($this->getLinkPath(0), $this->getLinkPath(1),
-                    $EntityListLeft);
-                $RightLogic = (new AndLogic($this->getProbeLeft()->useBuilder()))
+                $RestrictionRight = array(
+                    $this->getPath(1) => $this->getProbe(0)->findLogicColumn($LeftLogic, $this->getPath(0))
+                );
+
+                $RightLogic = (new AndLogic($this->getProbe(1)->useBuilder()))
                     ->addLogic(
-                        (new OrLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
-                            $SearchConnect, OrLogic::COMPARISON_EXACT
+                        (new OrLogic($this->getProbe(1)->useBuilder()))->addCriteriaList(
+                            $RestrictionRight, OrLogic::COMPARISON_EXACT
                         )
                     )->addLogic(
-                        (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteriaList(
+                        (new AndLogic($this->getProbe(1)->useBuilder()))->addCriteriaList(
                             $SearchRight, OrLogic::COMPARISON_LIKE
                         )
                     )->addLogic(
-                        (new AndLogic($this->getProbeLeft()->useBuilder()))->addCriteria(
-                            'EntityRemove', null
+                        (new AndLogic($this->getProbe(1)->useBuilder()))->addCriteria(
+                            'EntityRemove', null, AndLogic::COMPARISON_EXACT
                         )
                     );
 
-                $EntityListRight = $this->getProbeRight()->findLogic($RightLogic);
+                $EntityListRight = $this->getProbe(1)->findLogic($RightLogic);
                 if ($EntityListRight) {
                     array_walk($EntityListRight,
                         function (Element $Right) use (&$Result, $EntityListLeft) {
@@ -79,7 +82,7 @@ class SingleLink extends AbstractLink
                                     $RightData = $Right->__toArray();
 
                                     if (
-                                    ($LeftData[$this->getLinkPath(0)] == $RightData[$this->getLinkPath(1)])
+                                    ( $LeftData[$this->getPath(0)] == $RightData[$this->getPath(1)] )
                                     ) {
                                         $Result[] = array(
                                             $Left->getEntityFullName() => $Left,

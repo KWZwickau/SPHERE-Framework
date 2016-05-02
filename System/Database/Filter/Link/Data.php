@@ -7,10 +7,12 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
+ *
  * @package SPHERE\System\Database\Filter\Link
  */
 class Data extends AbstractData
 {
+
     /**
      * @return void
      */
@@ -22,12 +24,29 @@ class Data extends AbstractData
     /**
      * Internal
      *
-     * @param Element $Entity
+     * @param Element       $Entity
      * @param AbstractLogic $Logic
-     * @return bool|Element[]
+     *
+     * @return Element[]
      */
-    public function getAllByLogic(Element $Entity, $Logic)
+    public function getEntityAllByLogic(Element $Entity, AbstractLogic $Logic)
     {
-        return parent::getAllByLogic($Entity, $Logic);
+
+        return parent::getEntityAllByLogic($Entity, $Logic);
+    }
+
+    /**
+     * Internal
+     *
+     * @param Element       $Entity
+     * @param AbstractLogic $Logic
+     * @param string        $Column
+     *
+     * @return array
+     */
+    public function getColumnAllByLogic(Element $Entity, AbstractLogic $Logic, $Column = 'Id')
+    {
+
+        return parent::getColumnAllByLogic($Entity, $Logic, $Column);
     }
 }
