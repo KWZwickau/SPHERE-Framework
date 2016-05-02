@@ -216,21 +216,20 @@ class Frontend extends Extension implements IFrontendInterface
                         $panelData = array();
                         $tblAddressToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
 
+                        $addressPerson = false;
                         if ($tblAddressToPersonList) {
+                            foreach ($tblAddressToPersonList as $tblAddressToPerson) {
+                                if (($addressPerson = SerialLetter::useService()->getAddressPerson(
+                                    $tblSerialLetter, $tblPerson, $tblAddressToPerson,
+                                    SerialLetter::useService()->getTypeByIdentifier('PERSON')
+                                ))
+                                ) {
+                                    break;
+                                }
+                            }
 
                             // Werte aus der Datenbank laden bzw. vorselektieren der Adressen
                             if ($Check == null) {
-                                $addressPerson = false;
-                                foreach ($tblAddressToPersonList as $tblAddressToPerson) {
-                                    if (($addressPerson = SerialLetter::useService()->getAddressPerson(
-                                        $tblSerialLetter, $tblPerson, $tblAddressToPerson,
-                                        SerialLetter::useService()->getTypeByIdentifier('PERSON')
-                                    ))
-                                    ) {
-                                        break;
-                                    }
-                                }
-
                                 if ($addressPerson) {
                                     $Global->POST['Check'][$tblPerson->getId()]['Student'] = 1;
                                     $Global->POST['RadioStudent'][$tblPerson->getId()] = $addressPerson->getServiceTblToPerson()->getId();
@@ -255,7 +254,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblPerson->getLastFirstName(), 1);
                         $dataList[$tblPerson->getId()]['Number'] = ++$personCount . new HiddenField('Check[' . $tblPerson->getId() . '][Hidden]');
                         $dataList[$tblPerson->getId()]['Student'] = new Panel($panelTitle, $panelData,
-                            Panel::PANEL_TYPE_INFO);
+                            $addressPerson ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT);
 
                         if ($isStudentList || $isProspectList) {
                             // Sorgeberechtigte
@@ -269,21 +268,20 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $count++;
                                                 $panelData = array();
                                                 $tblAddressToPersonList = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonFrom());
+                                                $addressPerson = false;
                                                 if ($tblAddressToPersonList) {
+                                                    foreach ($tblAddressToPersonList as $tblAddressToPerson) {
+                                                        if (($addressPerson = SerialLetter::useService()->getAddressPerson(
+                                                            $tblSerialLetter, $tblPerson, $tblAddressToPerson,
+                                                            SerialLetter::useService()->getTypeByIdentifier('CUSTODY')
+                                                        ))
+                                                        ) {
+                                                            break;
+                                                        }
+                                                    }
 
                                                     // Werte aus der Datenbank laden bzw. vorselektieren der Adressen
                                                     if ($Check == null) {
-                                                        $addressPerson = false;
-                                                        foreach ($tblAddressToPersonList as $tblAddressToPerson) {
-                                                            if (($addressPerson = SerialLetter::useService()->getAddressPerson(
-                                                                $tblSerialLetter, $tblPerson, $tblAddressToPerson,
-                                                                SerialLetter::useService()->getTypeByIdentifier('CUSTODY')
-                                                            ))
-                                                            ) {
-                                                                break;
-                                                            }
-                                                        }
-
                                                         if ($addressPerson) {
                                                             $Global->POST['Check'][$tblPerson->getId()]['Custody' . $count]
                                                                 = $addressPerson->getServiceTblToPerson()->getServiceTblPerson()->getId();
@@ -311,7 +309,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblRelationship->getServiceTblPersonFrom()->getId());
                                                 $dataList[$tblPerson->getId()]['Custody' . $count] = new Panel($panelTitle,
                                                     $panelData,
-                                                    Panel::PANEL_TYPE_INFO);
+                                                    $addressPerson ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT);
                                             }
                                         }
                                     }
@@ -327,23 +325,21 @@ class Frontend extends Extension implements IFrontendInterface
 
                             // Family
                             $panelData = array();
-
+                            $addressPerson = false;
                             if (!empty($addressListAll)) {
+                                /** @var TblToPerson $tblAddressToPerson */
+                                foreach ($addressListAll as $tblAddressToPerson) {
+                                    if (($addressPerson = SerialLetter::useService()->getAddressPerson(
+                                        $tblSerialLetter, $tblPerson, $tblAddressToPerson,
+                                        SerialLetter::useService()->getTypeByIdentifier('FAMILY')
+                                    ))
+                                    ) {
+                                        break;
+                                    }
+                                }
 
                                 // Werte aus der Datenbank laden bzw. vorselektieren der Adressen
                                 if ($Check == null) {
-                                    $addressPerson = false;
-                                    /** @var TblToPerson $tblAddressToPerson */
-                                    foreach ($addressListAll as $tblAddressToPerson) {
-                                        if (($addressPerson = SerialLetter::useService()->getAddressPerson(
-                                            $tblSerialLetter, $tblPerson, $tblAddressToPerson,
-                                            SerialLetter::useService()->getTypeByIdentifier('FAMILY')
-                                        ))
-                                        ) {
-                                            break;
-                                        }
-                                    }
-
                                     if ($addressPerson) {
                                         $Global->POST['Check'][$tblPerson->getId()]['Family'] = 1;
                                         $Global->POST['RadioFamily'][$tblPerson->getId()]
@@ -368,7 +364,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $panelTitle = new CheckBox('Check[' . $tblPerson->getId() . '][Family]',
                                 'Familie', 1);
                             $dataList[$tblPerson->getId()]['Family'] = new Panel($panelTitle, $panelData,
-                                Panel::PANEL_TYPE_INFO);
+                                $addressPerson ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT);
                         }
                     }
                 }
