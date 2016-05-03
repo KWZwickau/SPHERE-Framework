@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 01.12.2015
- * Time: 10:41
- */
+
 
 namespace SPHERE\Application\Reporting\CheckList\Service\Entity;
 
@@ -13,9 +8,9 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group as PersonGroup;
-use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Reporting\CheckList\CheckList;
 use SPHERE\System\Database\Fitting\Element;

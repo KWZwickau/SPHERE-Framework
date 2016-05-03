@@ -258,7 +258,7 @@ class Database extends Extension implements IModuleInterface
                 function (TblConsumer $tblConsumer) use (&$ConsumerRequestList, $Authenticator) {
 
                     $ConsumerRequestList[$tblConsumer->getAcronym()] =
-                        'http://'.$this->getRequest()->getHost()
+                        'https://'.$this->getRequest()->getHost()
                         .'/Api/Platform/Database/Upgrade'
                         .'?'.http_build_query($Authenticator->createSignature(array(
                             'Consumer' => $tblConsumer->getAcronym()

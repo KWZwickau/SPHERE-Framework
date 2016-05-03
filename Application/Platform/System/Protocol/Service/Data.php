@@ -138,6 +138,10 @@ class Data extends AbstractData
 
         $Builder = $Manager->getQueryBuilder();
 
+        $OneMonthAgo = new \DateTime(date("Ymd"));
+        $OneMonthAgo->sub(new \DateInterval('P'.abs(( 7 - date("N") - 31 )).'D'));
+        $FourWeeksAgo = new \DateTime(date("Ymd"));
+        $FourWeeksAgo->sub(new \DateInterval('P'.abs(( 7 - date("N") - 28 )).'D'));
         $TwoWeeksAgo = new \DateTime(date("Ymd"));
         $TwoWeeksAgo->sub(new \DateInterval('P'.abs(( 7 - date("N") - 14 )).'D'));
         $LastWeek = new \DateTime(date("Ymd"));
@@ -159,7 +163,7 @@ class Data extends AbstractData
             )
             ->setParameter(1, 'PlatformGatekeeperAuthorizationAccount')
             ->setParameter(2, '%TblSession%')
-            ->setParameter(3, $TwoWeeksAgo)
+            ->setParameter(3, $OneMonthAgo)
             ->orderBy('P.EntityCreate', 'DESC')
             ->setMaxResults(10000)
             ->getQuery();

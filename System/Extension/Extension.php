@@ -28,15 +28,6 @@ use SPHERE\System\Extension\Repository\Upload;
 class Extension
 {
 
-    /** @var null|ReaderInterface $CacheConfig */
-    private static $CacheConfig = null;
-    /** @var HandlerInterface[] $CacheRegister */
-    private static $CacheRegister = array();
-    /** @var null|ReaderInterface $LoggerConfig */
-    private static $LoggerConfig = null;
-    /** @var LoggerInterface[] $LoggerRegister */
-    private static $LoggerRegister = array();
-
     /**
      * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
      */
@@ -48,54 +39,22 @@ class Extension
 
     /**
      * @param HandlerInterface $Handler
-     * @param string           $Name
-     *
      * @return HandlerInterface
      */
-    public function getCache(HandlerInterface $Handler, $Name = 'Memcached')
+    public function getCache(HandlerInterface $Handler)
     {
 
-        if (null === self::$CacheConfig) {
-            self::$CacheConfig = (new ConfigFactory())->createReader(
-                __DIR__.'/../Cache/Configuration.ini',
-                new IniReader()
-            );
-        }
-
-        $Key = get_class($Handler).$Name;
-        if (isset( self::$CacheRegister[$Key] )) {
-            $Handler = self::$CacheRegister[$Key];
-        } else {
-            $Handler = (new CacheFactory())->createHandler($Handler, self::$CacheConfig, $Name);
-            self::$CacheRegister[$Key] = $Handler;
-        }
-        return $Handler;
+        return (new CacheFactory())->createHandler($Handler);
     }
 
     /**
      * @param LoggerInterface $Logger
-     * @param string $Name
-     *
      * @return LoggerInterface
      */
-    public function getLogger(LoggerInterface $Logger, $Name = 'Debugger')
+    public function getLogger(LoggerInterface $Logger)
     {
 
-        if (null === self::$LoggerConfig) {
-            self::$LoggerConfig = (new ConfigFactory())->createReader(
-                __DIR__ . '/../Debugger/Configuration.ini',
-                new IniReader()
-            );
-        }
-
-        $Key = get_class($Logger) . $Name;
-        if (isset(self::$LoggerRegister[$Key])) {
-            $Logger = self::$LoggerRegister[$Key];
-        } else {
-            $Logger = (new DebuggerFactory())->createLogger($Logger, self::$LoggerConfig, $Name);
-            self::$LoggerRegister[$Key] = $Logger;
-        }
-        return $Logger;
+        return (new DebuggerFactory())->createLogger($Logger);
     }
 
     /**
@@ -138,7 +97,7 @@ class Extension
     public function getTemplate($Location)
     {
         $Key = md5($Location);
-        $Cache = $this->getCache( new MemoryHandler() );
+        $Cache = $this->getCache(new MemoryHandler());
         if( !($Template = $Cache->getValue( $Key, __METHOD__ )) ) {
             $Template = Template::getTemplate($Location);
             $Cache->setValue( $Key, $Template, 0, __METHOD__ );

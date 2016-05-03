@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.11.2015
- * Time: 13:28
- */
+
 
 namespace SPHERE\Application\Transfer\Import\FuxMedia;
 
@@ -20,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\FuxMedia\Service\Person;
@@ -32,7 +28,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use SPHERE\Application\People\Meta\Student\Student;
 
 /**
  * Class Service
@@ -41,18 +36,6 @@ use SPHERE\Application\People\Meta\Student\Student;
  */
 class Service
 {
-
-    /**
-     * @return Person
-     */
-    public static function usePeoplePerson()
-    {
-
-        return new Person(
-            new Identifier('People', 'Person', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
-        );
-    }
 
     /**
      * @param IFormInterface|null $Stage
@@ -659,6 +642,18 @@ class Service
             }
         }
         return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @return Person
+     */
+    public static function usePeoplePerson()
+    {
+
+        return new Person(
+            new Identifier('People', 'Person', null, null, Consumer::useService()->getConsumerBySession()),
+            __DIR__.'/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
+        );
     }
 
     /**

@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 25.01.2016
- * Time: 16:34
- */
-
 namespace SPHERE\Application\Api\Reporting\Custom\Hormersdorf;
 
 use MOC\V\Core\FileSystem\FileSystem;
@@ -39,7 +32,7 @@ class Person
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
                 }
             }
         }
@@ -61,7 +54,7 @@ class Person
                 $fileLocation = HormersdorfPerson::useService()->createStaffListExcel($PersonList, $tblPersonList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Mitarbeiterliste (Geburtstage) ".date("Y-m-d H:i:s").".xls")->__toString();
+                    "Mitarbeiterliste (Geburtstage) ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }
 

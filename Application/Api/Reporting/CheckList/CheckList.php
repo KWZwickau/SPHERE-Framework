@@ -63,7 +63,7 @@ class CheckList implements IModuleInterface
                 ->createCheckListExcel($tblList, $YearPersonId, $LevelPersonId, $SchoolOption1Id, $SchoolOption2Id);
             if ($fileLocation) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Check-List ".$tblList->getName()." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    "Check-List ".$tblList->getName()." ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }
 

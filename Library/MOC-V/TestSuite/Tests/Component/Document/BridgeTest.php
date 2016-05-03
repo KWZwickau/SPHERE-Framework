@@ -73,6 +73,13 @@ class BridgeTest extends AbstractTestCase
         );
 
         /**
+         * Sheet Size
+         */
+
+        $this->assertEquals(1, $Bridge->getSheetColumnCount());
+        $this->assertEquals(1, $Bridge->getSheetRowCount());
+
+        /**
          * Cell Index
          */
 
@@ -115,7 +122,117 @@ class BridgeTest extends AbstractTestCase
         $this->assertEquals('öäüß', $Bridge->getValue($Cell));
 
         /**
-         * Save File
+         * Cell Style
+         */
+
+        /** Single Cell */
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Style',
+            $Style = $Bridge->setStyle($Bridge->getCell('A1'))
+        );
+
+        // Font Size
+        $this->assertEquals(11, $Style->getFontSize());
+        $Style->setFontSize();
+        $this->assertEquals(11, $Style->getFontSize());
+        $Style->setFontSize(12);
+        $this->assertEquals(12, $Style->getFontSize());
+
+        // Font Bold
+        $this->assertEquals(false, $Style->getFontBold());
+        $Style->setFontBold();
+        $this->assertEquals(true, $Style->getFontBold());
+        $Style->setFontBold(false);
+        $this->assertEquals(false, $Style->getFontBold());
+        $Style->setFontBold(true);
+        $this->assertEquals(true, $Style->getFontBold());
+
+        // Column Width
+        $this->assertEquals(-1, $Style->getColumnWidth());
+        $Style->setColumnWidth();
+        $this->assertEquals(-1, $Style->getColumnWidth());
+        $Style->setColumnWidth(10.0);
+        $this->assertEquals(10.0, $Style->getColumnWidth());
+
+        // Border
+        $Style->setBorderTop();
+        $Style->setBorderRight();
+        $Style->setBorderBottom();
+        $Style->setBorderLeft();
+        $Style->setBorderOutline();
+        $Style->setBorderVertical();
+        $Style->setBorderHorizontal();
+        $Style->setBorderAll();
+        $Style->setBorderAll(1);
+        $Style->setBorderAll(2);
+        $Style->setBorderAll(3);
+        $Style->setBorderAll(0);
+
+        // Alignment
+        $Style->setAlignmentLeft();
+        $Style->setAlignmentCenter();
+        $Style->setAlignmentRight();
+        $Style->setAlignmentTop();
+        $Style->setAlignmentMiddle();
+        $Style->setAlignmentBottom();
+
+        // Merge
+        $Style->mergeCells();
+
+        /** Cell Range **/
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Style',
+            $Style = $Bridge->setStyle($Bridge->getCell('B1'), $Bridge->getCell('C2'))
+        );
+
+        // Font Size
+        $this->assertEquals(array('B1' => 11, 'B2' => 11, 'C1' => 11, 'C2' => 11), $Style->getFontSize());
+        $Style->setFontSize();
+        $this->assertEquals(array('B1' => 11, 'B2' => 11, 'C1' => 11, 'C2' => 11), $Style->getFontSize());
+        $Style->setFontSize(12);
+        $this->assertEquals(array('B1' => 12, 'B2' => 12, 'C1' => 12, 'C2' => 12), $Style->getFontSize());
+
+        // Font Bold
+        $this->assertEquals(array('B1' => false, 'B2' => false, 'C1' => false, 'C2' => false), $Style->getFontBold());
+        $Style->setFontBold();
+        $this->assertEquals(array('B1' => true, 'B2' => true, 'C1' => true, 'C2' => true), $Style->getFontBold());
+        $Style->setFontBold(false);
+        $this->assertEquals(array('B1' => false, 'B2' => false, 'C1' => false, 'C2' => false), $Style->getFontBold());
+        $Style->setFontBold(true);
+        $this->assertEquals(array('B1' => true, 'B2' => true, 'C1' => true, 'C2' => true), $Style->getFontBold());
+
+        // Column Width
+        $this->assertEquals(array('B' => -1, 'C' => -1), $Style->getColumnWidth());
+        $Style->setColumnWidth();
+        $this->assertEquals(array('B' => -1, 'C' => -1), $Style->getColumnWidth());
+        $Style->setColumnWidth(10);
+        $this->assertEquals(array('B' => 10.0, 'C' => 10.0), $Style->getColumnWidth());
+
+        // Border
+        $Style->setBorderTop();
+        $Style->setBorderRight();
+        $Style->setBorderBottom();
+        $Style->setBorderLeft();
+        $Style->setBorderOutline();
+        $Style->setBorderVertical();
+        $Style->setBorderHorizontal();
+        $Style->setBorderAll();
+        $Style->setBorderAll(1);
+        $Style->setBorderAll(2);
+        $Style->setBorderAll(3);
+        $Style->setBorderAll(0);
+
+        // Alignment
+        $Style->setAlignmentLeft();
+        $Style->setAlignmentCenter();
+        $Style->setAlignmentRight();
+        $Style->setAlignmentTop();
+        $Style->setAlignmentMiddle();
+        $Style->setAlignmentBottom();
+
+        // Merge
+        $Style->mergeCells();
+
+        /**
+         * Save/Load File
          */
 
         $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface',

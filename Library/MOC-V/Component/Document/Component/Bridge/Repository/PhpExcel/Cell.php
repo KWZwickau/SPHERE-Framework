@@ -26,6 +26,24 @@ class Cell
     }
 
     /**
+     * @return string
+     */
+    public function getCellName()
+    {
+
+        return $this->getColumnName().$this->getRow();
+    }
+
+    /**
+     * @return string
+     */
+    public function getColumnName()
+    {
+
+        return \PHPExcel_Cell::stringFromColumnIndex($this->getColumn());
+    }
+
+    /**
      * @return int
      */
     public function getColumn()

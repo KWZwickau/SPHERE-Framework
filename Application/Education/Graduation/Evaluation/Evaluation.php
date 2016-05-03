@@ -1,20 +1,13 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 15.12.2015
- * Time: 09:40
- */
-
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
 use SPHERE\Common\Frontend\Icon\Repository\Document;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 
 /**
  * Class Evaluation

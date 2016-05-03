@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 24.11.2015
- * Time: 09:11
- */
+
 
 namespace SPHERE\Application\Transfer\Import\FuxMedia\Service;
 
@@ -20,18 +15,6 @@ use SPHERE\Application\People\Person\Service;
  */
 class Person extends Service
 {
-
-    /**
-     * @param $FirstName
-     * @param $LastName
-     *
-     * @return bool|Service\Entity\TblPerson[]
-     */
-    public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
-    {
-
-        return (new Service\Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
-    }
 
     /**
      * @param string $FirstName
@@ -57,6 +40,18 @@ class Person extends Service
         }
 
         return $exists;
+    }
+
+    /**
+     * @param $FirstName
+     * @param $LastName
+     *
+     * @return bool|Service\Entity\TblPerson[]
+     */
+    public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
+    {
+
+        return (new Service\Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
     }
 
     /**

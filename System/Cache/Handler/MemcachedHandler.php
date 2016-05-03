@@ -187,4 +187,43 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
             return new CacheStatus();
         }
     }
+
+    /**
+     * Internal
+     *
+     * Get all cache Keys
+     *
+     * @return array
+     */
+    public function fetchKeys()
+    {
+
+        return $this->Connection->getAllKeys();
+    }
+
+    /**
+     * Internal
+     *
+     * Remove cache by Key
+     *
+     * @param $List
+     */
+    public function removeKeys($List)
+    {
+
+        $this->Connection->deleteMulti($List);
+    }
+
+    /**
+     * Internal
+     *
+     * Memcached exists
+     *
+     * @return bool
+     */
+    public function isEnabled()
+    {
+
+        return $this->isValid();
+    }
 }

@@ -8,11 +8,22 @@ use MOC\V\Core\FileSystem\Component\Bridge\Repository\UniversalFileWriter;
 use MOC\V\Core\FileSystem\Component\Parameter\Repository\FileParameter;
 use MOC\V\TestSuite\AbstractTestCase;
 
+/**
+ * Class BridgeTest
+ *
+ * @package MOC\V\TestSuite\Tests\Core\FileSystem
+ */
 class BridgeTest extends AbstractTestCase
 {
 
     public function testSymfonyFinder()
     {
+
+        if (isset( $_ENV['CI'] )) {
+            $this->markTestSkipped(
+                'Finder is not available on CircleCI'
+            );
+        }
 
         new SymfonyFinder(
             new FileParameter(__FILE__)

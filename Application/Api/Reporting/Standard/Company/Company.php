@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 01.12.2015
- * Time: 08:21
- */
-
 namespace SPHERE\Application\Api\Reporting\Standard\Company;
 
 use MOC\V\Core\FileSystem\FileSystem;
@@ -35,7 +28,7 @@ class Company
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Firmengruppenliste ".$tblGroup->getName()
-                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
+                    ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }
 

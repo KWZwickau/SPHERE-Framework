@@ -3,7 +3,7 @@
     {% endif %}
     <div class="checkbox checkbox-primary">
         <input id="{{ ElementHash }}" type="checkbox" name="{{ ElementName }}"
-               value="{{ ElementValue }}" {{ ElementChecked }} {% if( Disabled is not empty ) %}disabled{% endif %}/>
+               value="{{ ElementValue }}" {{ ElementChecked }} {% if( Disabled is not empty ) %}disabled{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}/>
         {% if( ElementLabel is not empty ) %}
             <label class="sphere-label" for="{{ ElementHash }}">{{ ElementLabel }}</label>
         {% endif %}

@@ -6,9 +6,10 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
+use SPHERE\Common\Frontend\Cache;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\CacheLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -85,6 +86,7 @@ class Manager extends Extension
 
         $this->EntityManager->remove($Entity);
         $this->flushCache(get_class($Entity));
+        (new Cache(__METHOD__))->addDependency($Entity)->clearData();
         return $this;
     }
 
@@ -99,7 +101,7 @@ class Manager extends Extension
         /** @var MemcachedHandler $Cache */
         $Cache = $this->getCache(new MemcachedHandler());
         if (preg_match('!Gatekeeper!', $this->Namespace)) {
-            $this->getLogger(new BenchmarkLogger())->addLog(
+            $this->getLogger(new CacheLogger())->addLog(
                 'Manager Full-Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
             );
             $KeyList = $Cache->getCache()->getAllKeys();
@@ -123,7 +125,7 @@ class Manager extends Extension
                     /** @var MemcachedHandler $Cache */
                     $KeyList = $Cache->getCache()->getAllKeys();
                     $ClearList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*/is", $KeyList);
-                    $this->getLogger(new BenchmarkLogger())->addLog(
+                    $this->getLogger(new CacheLogger())->addLog(
                         'Manager Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
                     );
                     $Cache->getCache()->deleteMulti($ClearList);
@@ -146,7 +148,7 @@ class Manager extends Extension
                     foreach ($RegionList as $Region) {
                         $ClearList = preg_grep("/^".preg_quote($Region, '/').".*/is", $KeyList);
                         if (!empty( $ClearList ) && substr_count($Region, '\\') > 1) {
-                            $this->getLogger(new BenchmarkLogger())->addLog(
+                            $this->getLogger(new CacheLogger())->addLog(
                                 'Manager Region-Flush '.$Cache->getSlot().' '.$Region.' Trigger: '.$this->Namespace
                             );
                             $Cache->getCache()->deleteMulti($ClearList);
@@ -184,6 +186,7 @@ class Manager extends Extension
 
         $this->EntityManager->persist($Entity);
         $this->flushCache(get_class($Entity));
+        (new Cache(__METHOD__))->addDependency($Entity)->clearData();
         return $this;
     }
 

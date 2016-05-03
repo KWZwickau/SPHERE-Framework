@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 25.01.2016
- * Time: 15:47
- */
 
 namespace SPHERE\Application\Reporting\Custom\Hormersdorf\Person;
 

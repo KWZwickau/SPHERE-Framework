@@ -47,14 +47,13 @@ if (false) {
 
 // Clear Cache
 if (false) {
-    $CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
-    (new CacheFactory())->createHandler(new CookieHandler(), $CacheConfig)->clearCache();
-    (new CacheFactory())->createHandler(new MemcachedHandler(), $CacheConfig, 'Memcached')->clearCache();
-    (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
-    (new CacheFactory())->createHandler(new MemoryHandler(), $CacheConfig)->clearCache();
-    (new CacheFactory())->createHandler(new OpCacheHandler(), $CacheConfig)->clearCache();
-    (new CacheFactory())->createHandler(new TwigHandler(), $CacheConfig)->clearCache();
-    (new CacheFactory())->createHandler(new SmartyHandler(), $CacheConfig)->clearCache();
+    (new CacheFactory())->createHandler(new CookieHandler())->clearCache();
+    (new CacheFactory())->createHandler(new MemcachedHandler())->clearCache();
+    (new CacheFactory())->createHandler(new APCuHandler())->clearCache();
+    (new CacheFactory())->createHandler(new MemoryHandler())->clearCache();
+    (new CacheFactory())->createHandler(new OpCacheHandler())->clearCache();
+    (new CacheFactory())->createHandler(new TwigHandler())->clearCache();
+    (new CacheFactory())->createHandler(new SmartyHandler())->clearCache();
 }
 
 // Debugger

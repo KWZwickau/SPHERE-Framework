@@ -343,32 +343,44 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutPerson(TblPerson $tblPerson)
     {
 
+        $mailExistsList = array();
         $tblMailAll = Mail::useService()->getMailAllByPerson($tblPerson);
         if ($tblMailAll !== false) {
-            array_walk($tblMailAll, function (TblToPerson &$tblToPerson) {
+            array_walk($tblMailAll, function (TblToPerson &$tblToPerson) use ($mailExistsList) {
 
-                $Panel = array(new Mailto($tblToPerson->getTblMail()->getAddress()
-                    , $tblToPerson->getTblMail()->getAddress(), new Envelope()));
-                if ($tblToPerson->getRemark()) {
-                    array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
+                if (array_key_exists($tblToPerson->getId(), $mailExistsList)){
+                    $tblToPerson = false;
+                } else {
+                    $mailExistsList[$tblToPerson->getId()] = $tblToPerson;
+
+                    $Panel = array(
+                        new Mailto($tblToPerson->getTblMail()->getAddress()
+                            , $tblToPerson->getTblMail()->getAddress(), new Envelope())
+                    );
+                    if ($tblToPerson->getRemark()) {
+                        array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
+                    }
+
+                    $tblToPerson = new LayoutColumn(
+                        new Panel(
+                            new MailIcon() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
+                            Panel::PANEL_TYPE_SUCCESS,
+
+                            new Standard(
+                                '', '/People/Person/Mail/Edit', new Edit(),
+                                array('Id' => $tblToPerson->getId()),
+                                'Bearbeiten'
+                            )
+                            . new Standard(
+                                '', '/People/Person/Mail/Destroy', new Remove(),
+                                array('Id' => $tblToPerson->getId()), 'Löschen'
+                            )
+                        )
+                        , 3);
                 }
-
-                $tblToPerson = new LayoutColumn(
-                    new Panel(
-                        new MailIcon() . ' ' . $tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_SUCCESS,
-
-                        new Standard(
-                            '', '/People/Person/Mail/Edit', new Edit(),
-                            array('Id' => $tblToPerson->getId()),
-                            'Bearbeiten'
-                        )
-                        . new Standard(
-                            '', '/People/Person/Mail/Destroy', new Remove(),
-                            array('Id' => $tblToPerson->getId()), 'Löschen'
-                        )
-                    )
-                    , 3);
             });
+
+            $tblMailAll = array_filter($tblMailAll);
         }
 
         $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
@@ -380,33 +392,38 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblRelationship->getServiceTblPersonFrom());
                         if ($tblRelationshipMailAll) {
                             foreach ($tblRelationshipMailAll as $tblMail) {
+                                if (!array_key_exists($tblMail->getId(), $mailExistsList)) {
+                                    $mailExistsList[$tblMail->getId()] = $tblMail;
 
-                                $Panel = array(new Mailto($tblMail->getTblMail()->getAddress()
-                                    , $tblMail->getTblMail()->getAddress(), new Envelope()));
-                                if ($tblMail->getRemark()) {
-                                    array_push($Panel, new Muted(new Small($tblMail->getRemark())));
-                                }
+                                    $Panel = array(
+                                        new Mailto($tblMail->getTblMail()->getAddress()
+                                            , $tblMail->getTblMail()->getAddress(), new Envelope())
+                                    );
+                                    if ($tblMail->getRemark()) {
+                                        array_push($Panel, new Muted(new Small($tblMail->getRemark())));
+                                    }
 
-                                $tblMail = new LayoutColumn(
-                                    new Panel(
-                                        new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
-                                        Panel::PANEL_TYPE_DEFAULT,
-                                        new Standard(
-                                            '', '/People/Person', new PersonIcon(),
-                                            array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
-                                            'Zur Person'
+                                    $tblMail = new LayoutColumn(
+                                        new Panel(
+                                            new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
+                                            Panel::PANEL_TYPE_DEFAULT,
+                                            new Standard(
+                                                '', '/People/Person', new PersonIcon(),
+                                                array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
+                                                'Zur Person'
+                                            )
+                                            . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
                                         )
-                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                )
-                                    , 3);
+                                        , 3);
 
-                                if ($tblMailAll !== false) {
-                                    $tblMailAll[] = $tblMail;
-                                } else {
-                                    $tblMailAll = array();
-                                    $tblMailAll[] = $tblMail;
+                                    if ($tblMailAll !== false) {
+                                        $tblMailAll[] = $tblMail;
+                                    } else {
+                                        $tblMailAll = array();
+                                        $tblMailAll[] = $tblMail;
+                                    }
+
                                 }
-
                             }
                         }
                     }
@@ -415,33 +432,38 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblRelationship->getServiceTblPersonTo());
                         if ($tblRelationshipMailAll) {
                             foreach ($tblRelationshipMailAll as $tblMail) {
+                                if (!array_key_exists($tblMail->getId(), $mailExistsList)) {
+                                    $mailExistsList[$tblMail->getId()] = $tblMail;
 
-                                $Panel = array(new Mailto($tblMail->getTblMail()->getAddress()
-                                    , $tblMail->getTblMail()->getAddress(), new Envelope()));
-                                if ($tblMail->getRemark()) {
-                                    array_push($Panel, new Muted(new Small($tblMail->getRemark())));
-                                }
+                                    $Panel = array(
+                                        new Mailto($tblMail->getTblMail()->getAddress()
+                                            , $tblMail->getTblMail()->getAddress(), new Envelope())
+                                    );
+                                    if ($tblMail->getRemark()) {
+                                        array_push($Panel, new Muted(new Small($tblMail->getRemark())));
+                                    }
 
-                                $tblMail = new LayoutColumn(
-                                    new Panel(
-                                        new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
-                                        Panel::PANEL_TYPE_DEFAULT,
-                                        new Standard(
-                                            '', '/People/Person', new PersonIcon(),
-                                            array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
-                                            'Zur Person'
+                                    $tblMail = new LayoutColumn(
+                                        new Panel(
+                                            new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
+                                            Panel::PANEL_TYPE_DEFAULT,
+                                            new Standard(
+                                                '', '/People/Person', new PersonIcon(),
+                                                array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
+                                                'Zur Person'
+                                            )
+                                            . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
                                         )
-                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                    )
-                                    , 3);
+                                        , 3);
 
-                                if ($tblMailAll !== false) {
-                                    $tblMailAll[] = $tblMail;
-                                } else {
-                                    $tblMailAll = array();
-                                    $tblMailAll[] = $tblMail;
+                                    if ($tblMailAll !== false) {
+                                        $tblMailAll[] = $tblMail;
+                                    } else {
+                                        $tblMailAll = array();
+                                        $tblMailAll[] = $tblMail;
+                                    }
+
                                 }
-
                             }
                         }
                     }

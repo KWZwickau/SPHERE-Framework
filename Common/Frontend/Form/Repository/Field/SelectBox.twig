@@ -8,7 +8,8 @@
             {{ ElementIcon }}
         </span>
         {% endif %}
-        <select id="{{ ElementName }}" name="{{ ElementName }}">
+        <select id="{{ ElementName }}" name="{{ ElementName }}"
+                {% if( Disabled is not empty ) %}disabled{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}>
             {% for Value, Title in ElementData %}
                 <option value="{{ Value }}">{{ Title }}</option>
             {% endfor %}
@@ -27,7 +28,7 @@
         {
             var guiSelect = jQuery('select[name="{{ ElementName }}"]');
             guiSelect.find('option[value="{{ ElementValue }}"]').attr('selected', 'selected');
-            guiSelect.on('change', function(Event)
+            guiSelect.on('change keyup blur', function(Event)
             {
                 var noSelection = jQuery(Event.currentTarget);
                 var useColor = noSelection.parent().find('span.selecter-selected');

@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 05.11.2015
- * Time: 13:51
- */
-
 namespace SPHERE\Application\Education\Graduation\Evaluation\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;

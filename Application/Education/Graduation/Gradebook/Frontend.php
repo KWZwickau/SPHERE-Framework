@@ -1444,6 +1444,31 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $Stage
+     */
+    private function setScoreStageMenuButtons(Stage $Stage)
+    {
+
+        $Stage->addButton(
+            new Standard('Berechnungsvorschriften', '/Education/Graduation/Gradebook/Score', new ListingTable(), null,
+                'Erstellen/Berarbeiten')
+        );
+        $Stage->addButton(
+            new Standard('Berechnungsvarianten', '/Education/Graduation/Gradebook/Score/Condition', new ListingTable(),
+                null,
+                'Erstellen/Berarbeiten')
+        );
+        $Stage->addButton(
+            new Standard('Zensuren-Gruppen', '/Education/Graduation/Gradebook/Score/Group', new ListingTable(), null,
+                'Erstellen/Berarbeiten')
+        );
+        $Stage->addButton(
+            new Standard('Fach-Klassen', '/Education/Graduation/Gradebook/Score/Division', new ListingTable(), null,
+                'Erstellen/Berarbeiten')
+        );
+    }
+
+    /**
      * @return Form
      */
     private function formScoreRule()
@@ -1608,7 +1633,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreGroupGradeTypes) {
                     foreach ($tblScoreGroupGradeTypes as $tblScoreGroupGradeType) {
                         if ($tblScoreGroupGradeType->getTblGradeType()) {
-                            $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName() . ', ';
+
+                            $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName()
+                                . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroupGradeType->getMultiplier() . ')')) . ', ';
                         }
                     }
                 }
@@ -2187,31 +2214,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Stage
-     */
-    private function setScoreStageMenuButtons(Stage $Stage)
-    {
-
-        $Stage->addButton(
-            new Standard('Berechnungsvorschriften', '/Education/Graduation/Gradebook/Score', new ListingTable(), null,
-                'Erstellen/Berarbeiten')
-        );
-        $Stage->addButton(
-            new Standard('Berechnungsvarianten', '/Education/Graduation/Gradebook/Score/Condition', new ListingTable(),
-                null,
-                'Erstellen/Berarbeiten')
-        );
-        $Stage->addButton(
-            new Standard('Zensuren-Gruppen', '/Education/Graduation/Gradebook/Score/Group', new ListingTable(), null,
-                'Erstellen/Berarbeiten')
-        );
-        $Stage->addButton(
-            new Standard('Fach-Klassen', '/Education/Graduation/Gradebook/Score/Division', new ListingTable(), null,
-                'Erstellen/Berarbeiten')
-        );
-    }
-
-    /**
      * @param $Id
      *
      * @return Stage
@@ -2777,7 +2779,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblDivisionSubject $tblDivisionSubject */
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                 if (($tblDivision = $tblDivisionSubject->getTblDivision())) {
-                    if (($tblLevel = $tblDivision->getTblLevel())) {
+                    if (( $tblLevel = $tblDivision->getTblLevel() ) && !$tblDivision->getTblLevel()->getIsChecked()) {
                         $levelAll[$tblDivisionSubject->getId()] = $tblLevel->getName();
                         if ($tblLevel->getServiceTblType()) {
                             $typeAll[$tblDivisionSubject->getId()] = $tblLevel->getServiceTblType()->getName();

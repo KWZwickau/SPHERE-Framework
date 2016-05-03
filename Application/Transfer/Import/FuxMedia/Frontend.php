@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.11.2015
- * Time: 13:28
- */
 
 namespace SPHERE\Application\Transfer\Import\FuxMedia;
 

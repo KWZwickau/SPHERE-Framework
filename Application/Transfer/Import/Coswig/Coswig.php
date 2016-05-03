@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 16.03.2016
- * Time: 10:00
- */
 
 namespace SPHERE\Application\Transfer\Import\Coswig;
 
@@ -54,7 +48,7 @@ class Coswig implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Coswig', 'Schüler-Daten',
+            'Coswig', 'Schï¿½ler-Daten',
             new Standard('', '/Transfer/Import/Coswig/Student', new Upload(), array(), 'Upload')
         );
     }

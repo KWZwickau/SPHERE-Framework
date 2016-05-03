@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 02.11.2015
- * Time: 10:31
- */
-
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
@@ -45,6 +38,45 @@ class Data extends AbstractData
         $this->createScoreType('Punkte (0-15)', 'POINTS');
         $this->createScoreType('Verbale Bewertung', 'VERBAL');
         $this->createScoreType('Noten (1-5) mit Komma', 'GRADES_V1');
+
+        $TestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+        if ($TestType) {
+            $this->createGradeType('Betragen', 'KBE', 'Kopfnote Betragen', 0, $TestType);
+            $this->createGradeType('Fleiß', 'KFL', 'Kopfnote Fleiß', 0, $TestType);
+            $this->createGradeType('Mitarbeit', 'KMI', 'Kopfnote Mitarbeit', 0, $TestType);
+            $this->createGradeType('Ordnung', 'KOR', 'Kopfnote Ordnung', 0, $TestType);
+        }
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     * @return TblScoreType
+     */
+    public function createScoreType(
+        $Name,
+        $Identifier
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Identifier = strtoupper($Identifier);
+
+        $Entity = $Manager->getEntity('TblScoreType')
+            ->findOneBy(array(
+                TblScoreType::ATTR_IDENTIFIER => $Identifier,
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 
     /**
@@ -200,6 +232,19 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGradeType', $Id);
         return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param string $Code
+     *
+     * @return bool|TblGradeType
+     */
+    public function getGradeTypeByCode($Code)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGradeType')
+            ->findOneBy(array(TblGradeType::ATTR_CODE => $Code));
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
@@ -627,20 +672,6 @@ class Data extends AbstractData
     /**
      * @param TblScoreRule $tblScoreRule
      *
-     * @return bool|TblScoreRuleConditionList[]
-     */
-    public function getScoreRuleConditionListByRule(TblScoreRule $tblScoreRule)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblScoreRuleConditionList',
-            array(TblScoreRuleConditionList::ATTR_TBL_SCORE_RULE => $tblScoreRule->getId())
-        );
-    }
-
-    /**
-     * @param TblScoreRule $tblScoreRule
-     *
      * @return array|TblScoreCondition[]
      */
     public function getScoreConditionsByRule(TblScoreRule $tblScoreRule)
@@ -658,6 +689,20 @@ class Data extends AbstractData
         }
 
         return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool|TblScoreRuleConditionList[]
+     */
+    public function getScoreRuleConditionListByRule(TblScoreRule $tblScoreRule)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreRuleConditionList',
+            array(TblScoreRuleConditionList::ATTR_TBL_SCORE_RULE => $tblScoreRule->getId())
+        );
     }
 
     /**
@@ -1083,37 +1128,6 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreType');
-    }
-
-    /**
-     * @param $Name
-     * @param $Identifier
-     * @return TblScoreType
-     */
-    public function createScoreType(
-        $Name,
-        $Identifier
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Identifier = strtoupper($Identifier);
-
-        $Entity = $Manager->getEntity('TblScoreType')
-            ->findOneBy(array(
-                TblScoreType::ATTR_IDENTIFIER => $Identifier,
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblScoreType();
-            $Entity->setName($Name);
-            $Entity->setIdentifier($Identifier);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
     }
 
     /**

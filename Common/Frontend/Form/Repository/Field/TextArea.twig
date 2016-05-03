@@ -9,7 +9,8 @@
         </span>
         {% endif %}
         <textarea name="{{ ElementName }}" class="form-control" placeholder="{{ ElementPlaceholder }}"
-                  rows="5">{{ ElementValue }}</textarea>
+                  rows="5"
+                  {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}>{{ ElementValue }}</textarea>
         {{ ElementFeedbackIcon }}
         {% if( ElementIcon is not empty ) %}
     </div>
