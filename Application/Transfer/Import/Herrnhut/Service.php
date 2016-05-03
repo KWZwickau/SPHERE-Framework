@@ -512,31 +512,49 @@ class Service
                                     $phoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon' . $i],
                                         $RunY)));
                                     if ($phoneNumber != '') {
-                                        $tblType = Phone::useService()->getTypeById(1);
-                                        if (0 === strpos($phoneNumber, '01')) {
-                                            $tblType = Phone::useService()->getTypeById(2);
+                                        if ($i !== 3 && $i !== 4) {
+                                            $tblType = Phone::useService()->getTypeById(1);
+                                        } else {
+                                            $tblType = Phone::useService()->getTypeById(3);
                                         }
-                                        if (($pos = stripos($phoneNumber, ' '))) {
-                                            $remark = substr($phoneNumber, $pos + 1);
-                                            $phoneNumber = substr($phoneNumber, 0, $pos);
+                                        if (0 === strpos($phoneNumber, '01')) {
+                                            if ($i !== 3 && $i !== 4) {
+                                                $tblType = Phone::useService()->getTypeById(2);
+                                            } else {
+                                                $tblType = Phone::useService()->getTypeById(4);
+                                            }
+                                        }
+
+                                        if ($i == 2 || $i == 5 || $i == 6) {
+                                            $remark = 'Telefon' . $i . ' ';
                                         } else {
                                             $remark = '';
                                         }
+                                        if (($pos = stripos($phoneNumber, ' '))) {
+                                            $remark .= substr($phoneNumber, $pos + 1);
+                                            $phoneNumber = substr($phoneNumber, 0, $pos);
+                                        } else {
+                                            $remark .= '';
+                                        }
 
                                         if ($i == 3) {
-                                            Phone::useService()->insertPhoneToPerson(
-                                                $tblPersonMother ? $tblPersonMother : $tblPerson,
-                                                $phoneNumber,
-                                                $tblType,
-                                                $remark
-                                            );
+                                            if ($tblPersonMother) {
+                                                Phone::useService()->insertPhoneToPerson(
+                                                    $tblPersonMother,
+                                                    $phoneNumber,
+                                                    $tblType,
+                                                    $remark
+                                                );
+                                            }
                                         } elseif ($i == 4) {
-                                            Phone::useService()->insertPhoneToPerson(
-                                                $tblPersonFather ? $tblPersonFather : $tblPerson,
-                                                $phoneNumber,
-                                                $tblType,
-                                                $remark
-                                            );
+                                            if ($tblPersonFather) {
+                                                Phone::useService()->insertPhoneToPerson(
+                                                    $tblPersonFather,
+                                                    $phoneNumber,
+                                                    $tblType,
+                                                    $remark
+                                                );
+                                            }
                                         } else {
                                             Phone::useService()->insertPhoneToPerson(
                                                 $tblPerson,
