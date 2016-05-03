@@ -33,6 +33,10 @@ class SerialLetter implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Select', __NAMESPACE__ . '\Frontend::frontendSerialLetterSelected')
         );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Export', __NAMESPACE__ . '\Frontend::frontendSerialLetterExport')
+        );
     }
 
     public static function registerModule()

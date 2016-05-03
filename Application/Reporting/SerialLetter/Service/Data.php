@@ -77,6 +77,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool|TblAddressPerson[]
+     */
+    public function getAddressPersonAllBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAddressPerson', array(
+            TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()
+        ));
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblType

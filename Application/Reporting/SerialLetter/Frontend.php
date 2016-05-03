@@ -24,11 +24,12 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -65,8 +66,10 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblSerialLetterAll as &$tblSerialLetter) {
                 $tblSerialLetter->Group = $tblSerialLetter->getServiceTblGroup() ? $tblSerialLetter->getServiceTblGroup()->getName() : '';
                 $tblSerialLetter->Option =
-                    (new Standard(new Select(), '/Reporting/SerialLetter/Select', null,
-                        array('Id' => $tblSerialLetter->getId()), 'Addressliste für Serienbriefe auswählen'));
+                    (new Standard(new Edit(), '/Reporting/SerialLetter/Select', null,
+                        array('Id' => $tblSerialLetter->getId()), 'Addressliste für Serienbriefe auswählen'))
+                    . (new Standard(new EyeOpen(), '/Reporting/SerialLetter/Export', null,
+                        array('Id' => $tblSerialLetter->getId()), 'Addressliste für Serienbriefe anzeigen und herunterladen'));
             }
         }
 
@@ -394,6 +397,133 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ))))
+            );
+
+            return $Stage;
+        } else {
+            return $Stage . new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation());
+        }
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendSerialLetterExport(
+        $Id = null
+    )
+    {
+        $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen herunterladen');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
+
+        if (($tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id))) {
+
+            $dataList = array();
+            $columnList = array();
+
+            // Todo JohK Warnung wenn keine Person ausgewählt ist
+            // Todo JohK einzeln Bearbeiten
+            // Todo JohK herunterladen als Excel für Serienbrief
+
+            $tblGroup = $tblSerialLetter->getServiceTblGroup();
+            if ($tblGroup) {
+                $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+                if ($tblPersonList) {
+                    $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+
+                    // is Student only List
+                    $isStudentList = true;
+                    foreach ($tblPersonList as $tblPerson) {
+                        $tblStudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                        if (Group::useService()->existsGroupPerson($tblStudentGroup, $tblPerson)) {
+                            continue;
+                        } else {
+                            $isStudentList = false;
+                            break;
+                        }
+                    }
+
+                    if (!$isStudentList) {
+                        // is Prospect only List
+                        $isProspectList = true;
+                        foreach ($tblPersonList as $tblPerson) {
+                            $tblStudentGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+                            if (Group::useService()->existsGroupPerson($tblStudentGroup, $tblPerson)) {
+                                continue;
+                            } else {
+                                $isProspectList = false;
+                                break;
+                            }
+                        }
+                    } else {
+                        $isProspectList = false;
+                    }
+
+                    if ($isStudentList) {
+                        $columnList = array(
+                            'Student' => 'Schüler',
+                            'Person' => 'Person',
+                            'Address' => 'Adresse'
+                        );
+                    } elseif ($isProspectList) {
+                        $columnList = array(
+                            'Student' => 'Interessent',
+                            'Person' => 'Person',
+                            'Address' => 'Adresse'
+                        );
+                    } else {
+                        $columnList = array(
+                            'Student' => 'Person',
+                            'Address' => 'Adresse'
+                        );
+                    }
+                }
+
+
+                $tblAddressPersonAllBySerialLetter = SerialLetter::useService()->getAddressPersonAllBySerialLetter($tblSerialLetter);
+                if ($tblAddressPersonAllBySerialLetter) {
+
+                    foreach ($tblAddressPersonAllBySerialLetter as $tblAddressPerson) {
+
+                        if ($tblAddressPerson->getServiceTblPerson()) {
+
+
+
+                            $data = array();
+                            $data['Student'] = $tblAddressPerson->getServiceTblPerson()->getLastFirstName();
+                            if ($tblAddressPerson->getTblType() == 'FAMILY') {
+                                $data['Person'] = 'Familie ' . $tblAddressPerson->getServiceTblPerson()->getLastName();
+                            } else {
+                                if ($tblAddressPerson->getServiceTblToPerson()) {
+                                    $data['Person'] = $tblAddressPerson->getServiceTblToPerson()->getServiceTblPerson()
+                                        ? $tblAddressPerson->getServiceTblToPerson()->getServiceTblPerson()->getLastFirstName()
+                                        : new Warning(new Exclamation() . ' Person nicht gefunden.');
+                                } else {
+                                    $data['Person'] = new Warning(new Exclamation() . ' Ausgewählte Person besitzt keine Adresse.');
+                                }
+                            }
+                            $data['Address'] = $tblAddressPerson->getServiceTblToPerson()
+                                ? $tblAddressPerson->getServiceTblToPerson()->getTblAddress()->getGuiString()
+                                : new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
+                            $dataList[] = $data;
+                        }
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData(
+                                    $dataList, null, $columnList
+                                )
+                            )
+                        )
+                    )
+                )
             );
 
             return $Stage;

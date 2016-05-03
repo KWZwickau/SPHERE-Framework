@@ -110,6 +110,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool|TblAddressPerson[]
+     */
+    public function getAddressPersonAllBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        return (new Data($this->getBinding()))->getAddressPersonAllBySerialLetter($tblSerialLetter);
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param                     $SerialLetter
      *
