@@ -30,13 +30,15 @@ class Service
     /**
      * @param IFormInterface|null $Form
      * @param UploadedFile|null $File
+     * @param bool $isFormerStudent
      *
      * @return IFormInterface|Danger|string
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
     public function createStudentsFromFile(
         IFormInterface $Form = null,
-        UploadedFile $File = null
+        UploadedFile $File = null,
+        $isFormerStudent = false
     ) {
 
         /**
@@ -159,6 +161,12 @@ class Service
                     $countFatherExists = 0;
                     $countMotherExists = 0;
 
+                    if ($isFormerStudent){
+                        $tblFormerStudentGroup = Group::useService()->insertGroup('Ehemalige Schüler');
+                    } else {
+                        $tblFormerStudentGroup = false;
+                    }
+
                     $error = array();
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         set_time_limit(300);
@@ -169,16 +177,25 @@ class Service
                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
                         } else {
 
+                            if ($isFormerStudent){
+                                $groups = array(
+                                    0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                    1 => $tblFormerStudentGroup,
+                                );
+                            } else {
+                                $groups = array(
+                                    0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                    1 => Group::useService()->getGroupByMetaTable('STUDENT'),
+                                );
+                            }
+
                             $tblPerson = Person::useService()->insertPerson(
                                 Person::useService()->getSalutationById(3),    //Schüler
                                 '',
                                 $firstName,
                                 '',
                                 $lastName,
-                                array(
-                                    0 => Group::useService()->getGroupByMetaTable('COMMON'),
-                                    1 => Group::useService()->getGroupByMetaTable('STUDENT'),
-                                )
+                                $groups
                             );
 
                             if ($tblPerson === false) {
@@ -225,69 +242,71 @@ class Service
                                 );
 
                                 // division
-                                $tblDivision = false;
-                                $year = 15;
-                                $division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
-                                    $RunY)));
-                                if (stripos($division, 'A') !== false || stripos($division, 'U') !== false) {
-                                    $tblInactiveGroup = Group::useService()->insertGroup('Inaktive Schüler');
-                                    if ($tblInactiveGroup) {
-                                        Group::useService()->addGroupPerson($tblInactiveGroup, $tblPerson);
-                                    }
-                                } else {
-                                    $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
-                                    if ($tblYear) {
-                                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
-                                        if (!$tblPeriodList) {
-                                            // firstTerm
-                                            $tblPeriod = Term::useService()->insertPeriod(
-                                                '1. Halbjahr',
-                                                '01.08.20' . $year,
-                                                '31.01.20' . ($year + 1)
-                                            );
-                                            if ($tblPeriod) {
-                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
-                                            }
-
-                                            // secondTerm
-                                            $tblPeriod = Term::useService()->insertPeriod(
-                                                '2. Halbjahr',
-                                                '01.02.20' . ($year + 1),
-                                                '31.07.20' . ($year + 1)
-                                            );
-                                            if ($tblPeriod) {
-                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
-                                            }
+                                if (!$isFormerStudent) {
+                                    $tblDivision = false;
+                                    $year = 15;
+                                    $division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
+                                        $RunY)));
+                                    if (stripos($division, 'A') !== false || stripos($division, 'U') !== false) {
+                                        $tblInactiveGroup = Group::useService()->insertGroup('Inaktive Schüler');
+                                        if ($tblInactiveGroup) {
+                                            Group::useService()->addGroupPerson($tblInactiveGroup, $tblPerson);
                                         }
-
-                                        $tblSchoolType = Type::useService()->getTypeById(7); // Gymnasium
-                                        if ($tblSchoolType) {
-                                            if (($pos = stripos($division, '-'))) {
-                                                $level = substr($division, 0, $pos);
-                                                $division = substr($division, $pos + 1);
-                                                $tblGroup = Group::useService()->insertGroup((2020 - $level) . '-' . $division);
-                                            } else {
-                                                $level = $division;
-                                                $division = '';
-                                                $tblGroup = Group::useService()->insertGroup((2020 - $level));
-                                            }
-                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
-                                            if ($tblLevel) {
-                                                $tblDivision = Division::useService()->insertDivision($tblYear,
-                                                    $tblLevel,
-                                                    $division);
-                                            }
-                                            // Stammgruppe
-                                            if ($tblGroup) {
-                                                Group::useService()->addGroupPerson($tblGroup, $tblPerson);
-                                            }
-                                        }
-                                    }
-
-                                    if ($tblDivision) {
-                                        Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
                                     } else {
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
+                                        $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
+                                        if ($tblYear) {
+                                            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                                            if (!$tblPeriodList) {
+                                                // firstTerm
+                                                $tblPeriod = Term::useService()->insertPeriod(
+                                                    '1. Halbjahr',
+                                                    '01.08.20' . $year,
+                                                    '31.01.20' . ($year + 1)
+                                                );
+                                                if ($tblPeriod) {
+                                                    Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                                }
+
+                                                // secondTerm
+                                                $tblPeriod = Term::useService()->insertPeriod(
+                                                    '2. Halbjahr',
+                                                    '01.02.20' . ($year + 1),
+                                                    '31.07.20' . ($year + 1)
+                                                );
+                                                if ($tblPeriod) {
+                                                    Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                                }
+                                            }
+
+                                            $tblSchoolType = Type::useService()->getTypeById(7); // Gymnasium
+                                            if ($tblSchoolType) {
+                                                if (($pos = stripos($division, '-'))) {
+                                                    $level = substr($division, 0, $pos);
+                                                    $division = substr($division, $pos + 1);
+                                                    $tblGroup = Group::useService()->insertGroup((2020 - $level) . '-' . $division);
+                                                } else {
+                                                    $level = $division;
+                                                    $division = '';
+                                                    $tblGroup = Group::useService()->insertGroup((2020 - $level));
+                                                }
+                                                $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                                if ($tblLevel) {
+                                                    $tblDivision = Division::useService()->insertDivision($tblYear,
+                                                        $tblLevel,
+                                                        $division);
+                                                }
+                                                // Stammgruppe
+                                                if ($tblGroup) {
+                                                    Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                                                }
+                                            }
+                                        }
+
+                                        if ($tblDivision) {
+                                            Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
+                                        }
                                     }
                                 }
 
@@ -452,10 +471,13 @@ class Service
                                 }
                                 $county = trim($Document->getValue($Document->getCell($Location['Schüler_Landkreis'],
                                     $RunY)));
-                                Address::useService()->insertAddressToPerson(
-                                    $tblPerson, $streetName, $streetNumber, $studentCityCode, $studentCityName,
-                                    $studentCityDistrict, '', $county
-                                );
+
+                                if ($streetName !== '' && $streetNumber !=='') {
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson, $streetName, $streetNumber, $studentCityCode, $studentCityName,
+                                        $studentCityDistrict, '', $county
+                                    );
+                                }
 
                                 if ($tblPersonFather !== null) {
                                     $streetName = '';
@@ -470,17 +492,19 @@ class Service
                                         }
                                     }
 
-                                    Address::useService()->insertAddressToPerson(
-                                        $tblPersonFather,
-                                        $streetName,
-                                        $streetNumber,
-                                        $fatherCityCode,
-                                        trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
-                                            $RunY))),
-                                        trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Ortsteil'],
-                                            $RunY))),
-                                        ''
-                                    );
+                                    if ($streetName !== '' && $streetNumber !=='') {
+                                        Address::useService()->insertAddressToPerson(
+                                            $tblPersonFather,
+                                            $streetName,
+                                            $streetNumber,
+                                            $fatherCityCode,
+                                            trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
+                                                $RunY))),
+                                            trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Ortsteil'],
+                                                $RunY))),
+                                            ''
+                                        );
+                                    }
                                 }
                                 if ($tblPersonMother !== null) {
                                     $streetName = '';
@@ -495,17 +519,19 @@ class Service
                                         }
                                     }
 
-                                    Address::useService()->insertAddressToPerson(
-                                        $tblPersonMother,
-                                        $streetName,
-                                        $streetNumber,
-                                        $motherCityCode,
-                                        trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
-                                            $RunY))),
-                                        trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Ortsteil'],
-                                            $RunY))),
-                                        ''
-                                    );
+                                    if ($streetName !== '' && $streetNumber !=='') {
+                                        Address::useService()->insertAddressToPerson(
+                                            $tblPersonMother,
+                                            $streetName,
+                                            $streetNumber,
+                                            $motherCityCode,
+                                            trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
+                                                $RunY))),
+                                            trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Ortsteil'],
+                                                $RunY))),
+                                            ''
+                                        );
+                                    }
                                 }
 
                                 for ($i = 1; $i <= 6; $i++) {
