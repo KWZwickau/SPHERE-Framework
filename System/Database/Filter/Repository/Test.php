@@ -1,16 +1,20 @@
 <?php
 namespace SPHERE\System\Database\Filter\Repository;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\System\Database\Filter\Link\RecursiveLink;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
+use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Test
+ *
  * @package SPHERE\System\Database\Filter\Repository
  */
 class Test
@@ -22,54 +26,27 @@ class Test
     public function __construct()
     {
 
-//        $Link = new ConnectLink();
-//        $Link
-//            ->addProbe(Group::useService(), new TblGroup(''))
-//            ->addPath('Id')
-//            ->addProbe(Group::useService(), new TblMember())
-//            ->addPath('tblGroup')
-//            ->addPath('serviceTblPerson')
-//            ->addProbe(Person::useService(), new TblPerson())
-//            ->addPath('Id');
-//
-//        $Result = $Link->searchData(
-//            array('Name' => array('ü')),
-//            array('LastName' => array('me','na'))
-//        );
-//
-//        Debugger::screenDump($Result);
+        Debugger::screenDump((new \SPHERE\System\Database\Filter\Preparation\Address(1))->__toArray());
 
-        $Link = new RecursiveLink();
-        $Link
-            ->addProbe(Group::useService(), new TblGroup(''))
-            ->addPath(null, 'Id')
-            ->addProbe(Group::useService(), new TblMember())
-            ->addPath('tblGroup', 'serviceTblPerson')
-            ->addProbe(Person::useService(), new TblPerson())
-            ->addPath('Id', null);
-
-        $Result = $Link->searchData(array(
-            0 => array('Name' => array('ü')),
-            2 => array('LastName' => array('me', 'na'))
-        ));
+        $Result = (new Pile())
+            ->addPile(Group::useService(), new TblGroup(''), null, 'Id')
+            ->addPile(Group::useService(), new TblMember(), 'tblGroup', 'serviceTblPerson')
+            ->addPile(Person::useService(), new TblPerson(), 'Id', 'Id')
+            ->addPile(Relationship::useService(), new TblToPerson(), 'serviceTblPersonTo', 'serviceTblPersonFrom')
+            ->addPile(Person::useService(), new TblPerson(), 'Id', 'Id')
+            ->addPile(Address::useService(), new \SPHERE\Application\Contact\Address\Service\Entity\TblToPerson(),
+                'serviceTblPerson', 'tblAddress')
+//            ->addPile(Address::useService(), new TblAddress(), 'Id', 'tblCity')
+//            ->addPile(Address::useService(), new TblCity(), 'Id', null)
+            ->searchPile(array(
+                array('Name' => 'ü'),
+                array(),
+                array(),
+                array('tblType' => '1'),
+//                array(),
+//                array()
+            ));
 
         Debugger::screenDump($Result);
-
-//        $Link = new SingleLink();
-//        $Link
-//            ->addProbe(Person::useService(), new TblPerson())
-//            ->addPath('tblSalutation')
-//            ->addProbe(Person::useService(), new TblSalutation(''))
-//            ->addPath('Id');
-//
-//        $Result = $Link->searchData(
-//            array('LastName' => array('me','na')),
-//            array('Salutation' => '')
-//        );
-//
-//        Debugger::screenDump($Result);
-
-
-        // TODO: Connect Links to Graph
     }
 }
