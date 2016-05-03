@@ -153,7 +153,7 @@ class Service
 
         if (!empty( $PersonList )) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xls');
+            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Name");
@@ -243,7 +243,7 @@ class Service
 
         if (!empty( $PersonList )) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xls');
+            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Name");

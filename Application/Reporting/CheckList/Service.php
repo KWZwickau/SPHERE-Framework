@@ -660,7 +660,7 @@ class Service extends AbstractService
 
         if ($tblList) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xls');
+            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
 
