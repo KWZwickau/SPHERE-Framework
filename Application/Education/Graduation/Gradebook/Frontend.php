@@ -1984,8 +1984,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Zensuren-Gruppen'),
                                     new TableData($tblScoreGroupAll, null,
                                         array(
-                                            'DisplayName' => 'Name',
-                                            'Option' => ''
+                                            'DisplayName' => 'Name ',
+                                            'Option' => ' '
                                         )
                                     )
                                 ), 6
@@ -2314,7 +2314,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Zensuren-Typen'),
                                     new TableData($tblGradeTypeAll, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'Name' => 'Name ',
                                             'Option' => 'Faktor'
                                         )
                                     )
@@ -2471,9 +2471,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Berechnungsvarianten'),
                                     new TableData($tblScoreConditionAll, null,
                                         array(
-                                            'Name' => 'Name',
-                                            'Priority' => 'Priorität',
-                                            'Option' => ''
+                                            'Name' => 'Name ',
+                                            'Priority' => 'Priorität ',
+                                            'Option' => ' '
                                         )
                                     )
                                 ), 6
