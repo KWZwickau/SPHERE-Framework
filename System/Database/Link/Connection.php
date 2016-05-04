@@ -7,7 +7,7 @@ use SPHERE\System\Database\ITypeInterface;
 /**
  * Class Connection
  *
- * @package SPHERE\System\Database\Pile
+ * @package SPHERE\System\Database\Link
  */
 class Connection
 {

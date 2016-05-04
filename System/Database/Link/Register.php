@@ -4,7 +4,7 @@ namespace SPHERE\System\Database\Link;
 /**
  * Class Register
  *
- * @package SPHERE\System\Database\Pile
+ * @package SPHERE\System\Database\Link
  */
 class Register
 {

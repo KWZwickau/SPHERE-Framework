@@ -6,7 +6,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 /**
  * Class Identifier
  *
- * @package SPHERE\System\Database\Pile
+ * @package SPHERE\System\Database\Link
  */
 class Identifier
 {
