@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Search\Group;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -12,7 +13,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\Cache;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Handler\DataCacheHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -79,9 +80,10 @@ class Frontend extends Extension implements IFrontendInterface
             // Consumer + Group Cache
             $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
 
-            $Cache = new Cache($Acronym.':'.$Id.':'.$tblGroup->getMetaTable(), array(
+            $Cache = new DataCacheHandler($Acronym.':'.$Id.':'.$tblGroup->getMetaTable(), array(
                 new TblPerson(),
                 new TblAddress(),
+                new TblToPerson(),
                 new TblStudent(),
                 new TblDivision()
             ));

@@ -70,14 +70,11 @@ abstract class Element extends Extension
     {
 
         $Array = get_object_vars($this);
-        array_walk($Array, function (&$V) {
-
-            if (is_object($V)) {
-                if ($V instanceof \DateTime) {
-                    $V = $V->format('d.m.Y H:i:s');
-                }
+        foreach( $Array as $Key => $Value ) {
+            if ($Value instanceof \DateTime) {
+                $Array[$Key] = $Value->format('d.m.Y H:i:s');
             }
-        });
+        }
 
         return $Array;
     }
@@ -184,5 +181,23 @@ abstract class Element extends Extension
     {
 
         $this->Id = $Id;
+    }
+
+    /**
+     * @return string
+     */
+    final public function getEntityShortName()
+    {
+
+        return (new \ReflectionClass($this))->getShortName();
+    }
+
+    /**
+     * @return string
+     */
+    final public function getEntityFullName()
+    {
+
+        return (new \ReflectionClass($this))->getName();
     }
 }

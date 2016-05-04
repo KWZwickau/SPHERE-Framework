@@ -104,6 +104,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return TblMember[]|bool
+     */
+    public function getMemberAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember');
+    }
+    
+    /**
      * @param int $Id
      *
      * @return bool|TblGroup
@@ -114,6 +123,17 @@ class Data extends AbstractData
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', $Id);
     }
 
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblMember
+     */
+    public function getMemberById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', $Id);
+    }
+    
     /**
      * @param string $Name
      *
