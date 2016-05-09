@@ -43,6 +43,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -88,8 +89,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(new PersonIcon() . ' Person',
-                                $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_INFO
+                                new Bold($tblPerson->getFullName()),
+                                Panel::PANEL_TYPE_SUCCESS
                             )
                         )
                     ),
@@ -173,9 +174,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new Panel(new PersonIcon() . ' Firma',
-                                    array($tblCompany->getName(),
+                                    array(
+                                        new Bold($tblCompany->getName()),
                                         $tblCompany->getExtendedName()),
-                                    Panel::PANEL_TYPE_INFO
+                                    Panel::PANEL_TYPE_SUCCESS
                                 )
                             )
                         ),
@@ -244,8 +246,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(new PersonIcon() . ' Person',
-                                $tblToPerson->getServiceTblPerson()->getFullName(),
-                                Panel::PANEL_TYPE_INFO
+                                new Bold($tblToPerson->getServiceTblPerson()->getFullName()),
+                                Panel::PANEL_TYPE_SUCCESS
                             )
                         )
                     ),
@@ -308,9 +310,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(new Building().' Firma', array(
-                                $tblToCompany->getServiceTblCompany()->getName(),
+                                new Bold($tblToCompany->getServiceTblCompany()->getName()),
                                 $tblToCompany->getServiceTblCompany()->getExtendedName()),
-                                Panel::PANEL_TYPE_INFO
+                                Panel::PANEL_TYPE_SUCCESS
                             )
                         )
                     ),
@@ -525,8 +527,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Person',
-                            $tblPerson->getFullName(),
-                            Panel::PANEL_TYPE_INFO
+                            new Bold($tblPerson->getFullName()),
+                            Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Panel(new Question() . ' Diese E-Mail Adresse wirklich löschen?', array(
                             $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
@@ -598,9 +600,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Firma',
-                            array($tblCompany->getName(),
+                            array(
+                                new Bold($tblCompany->getName()),
                                 $tblCompany->getExtendedName()),
-                            Panel::PANEL_TYPE_INFO
+                            Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Panel(new Question() . ' Diese E-Mail Adresse wirklich löschen?', array(
                             $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),

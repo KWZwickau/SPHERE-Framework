@@ -22,7 +22,7 @@ class Person extends Extension implements IApplicationInterface, IModuleInterfac
 
         self::registerModule();
 
-        if (self::getRequest()->getPathInfo() == (new Link\Route(__NAMESPACE__))->getValue()) {
+        if (0 === strpos(self::getRequest()->getPathInfo(), (new Link\Route(__NAMESPACE__))->getValue())) {
             $Parameter = self::getRequest()->getParameterArray();
             if (isset( $Parameter['Id'] )) {
                 $Name = 'Person bearbeiten';
