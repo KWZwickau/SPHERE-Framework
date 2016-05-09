@@ -7,13 +7,14 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Person
  *
  * @package SPHERE\Application\People\Person
  */
-class Person implements IApplicationInterface, IModuleInterface
+class Person extends Extension implements IApplicationInterface, IModuleInterface
 {
 
     public static function registerApplication()
@@ -21,8 +22,19 @@ class Person implements IApplicationInterface, IModuleInterface
 
         self::registerModule();
 
+        if (self::getRequest()->getPathInfo() == (new Link\Route(__NAMESPACE__))->getValue()) {
+            $Parameter = self::getRequest()->getParameterArray();
+            if (isset( $Parameter['Id'] )) {
+                $Name = 'Person bearbeiten';
+            } else {
+                $Name = 'Person anlegen';
+            }
+        } else {
+            $Name = 'Person anlegen';
+        }
+
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Person'),
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name($Name),
                 new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Person())
             )
         );

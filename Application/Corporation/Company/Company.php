@@ -8,13 +8,14 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Company
  *
  * @package SPHERE\Application\Corporation\Company
  */
-class Company implements IApplicationInterface, IModuleInterface
+class Company extends Extension implements IApplicationInterface, IModuleInterface
 {
 
     public static function registerApplication()
@@ -22,8 +23,19 @@ class Company implements IApplicationInterface, IModuleInterface
 
         self::registerModule();
 
+        if (self::getRequest()->getPathInfo() == (new Link\Route(__NAMESPACE__))->getValue()) {
+            $Parameter = self::getRequest()->getParameterArray();
+            if (isset( $Parameter['Id'] )) {
+                $Name = 'Firma bearbeiten';
+            } else {
+                $Name = 'Firma anlegen';
+            }
+        } else {
+            $Name = 'Firma anlegen';
+        }
+
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firma'),
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name($Name),
                 new Link\Icon(new Building())
             )
         );
