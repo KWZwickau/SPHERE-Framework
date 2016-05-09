@@ -5,10 +5,13 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -82,10 +85,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Cache = new DataCacheHandler($Acronym.':'.$Id.':'.$tblGroup->getMetaTable(), array(
                 new TblPerson(),
+                new TblMember(),
                 new TblAddress(),
                 new TblToPerson(),
+                new TblProspect(),
                 new TblStudent(),
-                new TblDivision()
+                new TblDivision(),
+                new TblDivisionStudent(),
             ));
             if (null === ( $Result = $Cache->getData() )) {
 

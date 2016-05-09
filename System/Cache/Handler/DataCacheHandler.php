@@ -100,7 +100,7 @@ class DataCacheHandler extends AbstractHandler
             $KeyList = array();
             array_walk($this->Dependency, function (Element $Entity) use (&$KeyList) {
 
-                array_push($KeyList, md5(get_class($Entity)));
+                array_push($KeyList, (string)crc32(get_class($Entity)));
             });
             return $KeyList;
         }
@@ -119,34 +119,6 @@ class DataCacheHandler extends AbstractHandler
             return $this->Handler->getValue($this->createKey(), 'DataCache');
         }
         return null;
-    }
-
-    /**
-     * Clear Frontend-Cache
-     */
-    public function clearData()
-    {
-
-        if ($this->Handler->isEnabled()) {
-            $Pattern = $this->createPattern();
-            $CacheList = $this->Handler->fetchKeys();
-            $KeyList = preg_grep($Pattern, $CacheList);
-            if (!empty( $KeyList )) {
-                (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Clear DataCache: '.implode(',', $KeyList));
-                $this->Handler->removeKeys($KeyList);
-            }
-        }
-    }
-
-    /**
-     * @return string
-     * @throws \Exception
-     */
-    private function createPattern()
-    {
-
-        $KeyList = $this->createKeyList();
-        return '!("'.implode('"|"', $KeyList).'")!is';
     }
 
     /**
@@ -196,6 +168,35 @@ class DataCacheHandler extends AbstractHandler
     public function clearCache()
     {
         $this->clearData();
+    }
+
+    /**
+     * Clear Frontend-Cache
+     */
+    public function clearData()
+    {
+
+        if ($this->Handler->isEnabled()) {
+            $Pattern = $this->createPattern();
+            $CacheList = $this->Handler->fetchKeys();
+            $KeyList = preg_grep($Pattern, $CacheList);
+            if (!empty( $KeyList )) {
+                (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Clear DataCache: '.implode(',',
+                        $KeyList));
+                $this->Handler->removeKeys($KeyList);
+            }
+        }
+    }
+
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    private function createPattern()
+    {
+
+        $KeyList = $this->createKeyList();
+        return '!("'.implode('"|"', $KeyList).'")!is';
     }
 
     /**

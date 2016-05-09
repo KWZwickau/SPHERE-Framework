@@ -85,6 +85,17 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
         if ($this->isValid()) {
             $this->Connection->set($this->getSlotRegion($Region).'#'.$Key, $Value,
                 ( !$Timeout ? null : time() + $Timeout ));
+            // 0 = MEMCACHED_SUCCESS
+            if (0 == ( $Code = $this->Connection->getResultCode() )) {
+                return $this;
+            } else {
+                (new DebuggerFactory())->createLogger(new ErrorLogger())
+                    ->addLog(__METHOD__.' Error: '
+                        .$Region.'->'.$Key.' - '
+                        .$Code.' - '
+                        .$this->Connection->getResultMessage()
+                    );
+            }
         }
         return $this;
     }
@@ -135,13 +146,13 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
             // 0 = MEMCACHED_SUCCESS
             if (0 == ( $Code = $this->Connection->getResultCode() )) {
                 return $Value;
-//            } else {
-//                (new DebuggerFactory())->createLogger(new ErrorLogger())
-//                    ->addLog(__METHOD__.' Error: '
-//                        .$Region.'->'.$Key.' - '
-//                        .$Code.' - '
-//                        .$this->Connection->getResultMessage()
-//                    );
+            } else {
+                (new DebuggerFactory())->createLogger(new ErrorLogger())
+                    ->addLog(__METHOD__.' Error: '
+                        .$Region.'->'.$Key.' - '
+                        .$Code.' - '
+                        .$this->Connection->getResultMessage()
+                    );
             }
         }
         return null;

@@ -6,8 +6,6 @@ use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\CacheFactory;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
 
@@ -111,7 +109,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember');
     }
-    
+
     /**
      * @param int $Id
      *
@@ -133,7 +131,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', $Id);
     }
-    
+
     /**
      * @param string $Name
      *
@@ -172,20 +170,11 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getMemberAllByGroup($tblGroup);
+        array_walk($EntityList, function (TblMember &$V) {
 
-        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
-        if (null === ( $ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__) )
-            && !empty( $EntityList )
-        ) {
-            array_walk($EntityList, function (TblMember &$V) {
-
-                $V = $V->getServiceTblPerson();
-            });
-            $EntityList = array_filter($EntityList);
-            $Cache->setValue($tblGroup->getId(), $EntityList, 0, __METHOD__);
-        } else {
-            $EntityList = $ResultList;
-        }
+            $V = $V->getServiceTblPerson();
+        });
+        $EntityList = array_filter($EntityList);
         return ( null === $EntityList ? false : $EntityList );
     }
 
