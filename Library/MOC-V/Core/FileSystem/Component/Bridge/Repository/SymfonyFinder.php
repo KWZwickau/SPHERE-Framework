@@ -27,6 +27,7 @@ class SymfonyFinder extends Bridge implements IBridgeInterface
     public function __construct(FileParameter $FileOption)
     {
 
+        parent::__construct();
         AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../../../Vendor/');
 
         $this->FileOption = $FileOption;

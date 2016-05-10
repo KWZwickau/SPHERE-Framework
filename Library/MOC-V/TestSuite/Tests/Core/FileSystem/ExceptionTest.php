@@ -11,6 +11,11 @@ use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException;
 use MOC\V\Core\FileSystem\Exception\FileSystemException;
 use MOC\V\TestSuite\AbstractTestCase;
 
+/**
+ * Class ExceptionTest
+ *
+ * @package MOC\V\TestSuite\Tests\Core\FileSystem
+ */
 class ExceptionTest extends AbstractTestCase
 {
 

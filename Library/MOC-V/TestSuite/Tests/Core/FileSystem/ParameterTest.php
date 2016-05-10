@@ -5,6 +5,11 @@ use MOC\V\Core\FileSystem\Component\Parameter\Repository\DirectoryParameter;
 use MOC\V\Core\FileSystem\Component\Parameter\Repository\FileParameter;
 use MOC\V\TestSuite\AbstractTestCase;
 
+/**
+ * Class ParameterTest
+ *
+ * @package MOC\V\TestSuite\Tests\Core\FileSystem
+ */
 class ParameterTest extends AbstractTestCase
 {
 
