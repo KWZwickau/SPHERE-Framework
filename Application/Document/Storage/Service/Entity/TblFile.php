@@ -17,12 +17,28 @@ class TblFile extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_EXTENSION = 'Extension';
+    const ATTR_TYPE = 'Type';
+    const ATTR_DESCRIPTION = 'Description';
     const ATTR_TBL_DIRECTORY = 'tblDirectory';
+    const ATTR_TBL_FILE_TYPE = 'tblFileType';
 
     /**
      * @Column(type="bigint")
      */
+    protected $tblFileType;
+    /**
+     * @Column(type="bigint")
+     */
     protected $tblDirectory;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblBinary;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsLocked;
 
     /**
      * @Column(type="string")
@@ -32,32 +48,14 @@ class TblFile extends Element
      * @Column(type="string")
      */
     protected $Description;
-
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsLocked;
-
     /**
      * @Column(type="string")
      */
-    protected $FileName;
+    protected $Extension;
     /**
      * @Column(type="string")
      */
-    protected $FileExtension;
-    /**
-     * @Column(type="blob")
-     */
-    protected $FileContent;
-    /**
-     * @Column(type="string")
-     */
-    protected $FileType;
-    /**
-     * @Column(type="integer")
-     */
-    protected $FileSize;
+    protected $Type;
 
     /**
      * @return bool|TblDirectory
@@ -79,6 +77,50 @@ class TblFile extends Element
     {
 
         $this->tblDirectory = ( null === $tblDirectory ? null : $tblDirectory->getId() );
+    }
+
+    /**
+     * @return bool|TblBinary
+     */
+    public function getTblBinary()
+    {
+
+        if (null === $this->tblBinary) {
+            return false;
+        } else {
+            return Storage::useService()->getBinaryById($this->tblBinary);
+        }
+    }
+
+    /**
+     * @param null|TblBinary $tblBinary
+     */
+    public function setTblBinary(TblBinary $tblBinary = null)
+    {
+
+        $this->tblBinary = ( null === $tblBinary ? null : $tblBinary->getId() );
+    }
+
+    /**
+     * @return bool|TblFileType
+     */
+    public function getTblFileType()
+    {
+
+        if (null === $this->tblFileType) {
+            return false;
+        } else {
+            return Storage::useService()->getFileTypeById($this->tblFileType);
+        }
+    }
+
+    /**
+     * @param null|TblFileType $tblFileType
+     */
+    public function setTblFileType(TblFileType $tblFileType = null)
+    {
+
+        $this->tblFileType = ( null === $tblFileType ? null : $tblFileType->getId() );
     }
 
     /**
@@ -138,90 +180,36 @@ class TblFile extends Element
     /**
      * @return string
      */
-    public function getFileName()
+    public function getExtension()
     {
 
-        return $this->FileName;
+        return $this->Extension;
     }
 
     /**
-     * @param string $FileName
+     * @param string $Extension
      */
-    public function setFileName($FileName)
+    public function setExtension($Extension)
     {
 
-        $this->FileName = $FileName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFileExtension()
-    {
-
-        return $this->FileExtension;
-    }
-
-    /**
-     * @param string $FileExtension
-     */
-    public function setFileExtension($FileExtension)
-    {
-
-        $this->FileExtension = $FileExtension;
-    }
-
-    /**
-     * @return string|resource
-     */
-    public function getFileContent()
-    {
-
-        return $this->FileContent;
-    }
-
-    /**
-     * @param string $FileContent
-     */
-    public function setFileContent($FileContent)
-    {
-
-        $this->FileContent = $FileContent;
+        $this->Extension = $Extension;
     }
 
     /**
      * @return string
      */
-    public function getFileType()
+    public function getType()
     {
 
-        return $this->FileType;
+        return $this->Type;
     }
 
     /**
-     * @param string $FileType
+     * @param string $Type
      */
-    public function setFileType($FileType)
+    public function setType($Type)
     {
 
-        $this->FileType = $FileType;
-    }
-
-    /**
-     * @return int
-     */
-    public function getFileSize()
-    {
-
-        return $this->FileSize;
-    }
-
-    /**
-     * @param int $FileSize
-     */
-    public function setFileSize($FileSize)
-    {
-
-        $this->FileSize = $FileSize;
+        $this->Type = $Type;
     }
 }

@@ -5,21 +5,20 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * @Entity()
- * @Table(name="tblDirectory")
+ * @Entity
+ * @Table(name="tblPartition")
  * @Cache(usage="READ_ONLY")
  */
-class TblDirectory extends Element
+class TblPartition extends Element
 {
+
+    const IDENTIFIER_CERTIFICATE_STORAGE = 'CERTIFICATE_STORAGE';
 
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_IS_LOCKED = 'IsLocked';
-    const ATTR_TBL_DIRECTORY = 'tblDirectory';
-    const ATTR_TBL_PARTITION = 'tblPartition';
     const ATTR_NAME = 'Name';
 
     /**
@@ -30,14 +29,6 @@ class TblDirectory extends Element
      * @Column(type="boolean")
      */
     protected $IsLocked;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblDirectory;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblPartition;
     /**
      * @Column(type="string")
      */
@@ -84,54 +75,6 @@ class TblDirectory extends Element
     }
 
     /**
-     * Parent Directory
-     *
-     * @return bool|TblDirectory
-     */
-    public function getTblDirectory()
-    {
-
-        if (null === $this->tblDirectory) {
-            return false;
-        } else {
-            return Storage::useService()->getDirectoryById($this->tblDirectory);
-        }
-    }
-
-    /**
-     * Parent Directory
-     * 
-     * @param null|TblDirectory $tblDirectory
-     */
-    public function setTblDirectory(TblDirectory $tblDirectory = null)
-    {
-
-        $this->tblDirectory = ( null === $tblDirectory ? null : $tblDirectory->getId() );
-    }
-
-    /**
-     * @return bool|TblPartition
-     */
-    public function getTblPartition()
-    {
-
-        if (null === $this->tblPartition) {
-            return false;
-        } else {
-            return Storage::useService()->getPartitionById($this->tblPartition);
-        }
-    }
-
-    /**
-     * @param null|TblPartition $tblPartition
-     */
-    public function setTblPartition(TblPartition $tblPartition = null)
-    {
-
-        $this->tblPartition = ( null === $tblPartition ? null : $tblPartition->getId() );
-    }
-    
-    /**
      * @return string
      */
     public function getName()
@@ -166,6 +109,4 @@ class TblDirectory extends Element
 
         $this->Description = $Description;
     }
-
-
 }

@@ -24,6 +24,11 @@ use SPHERE\System\Extension\Extension;
 abstract class Element extends Extension
 {
 
+    const ENTITY_ID = 'Id';
+    const ENTITY_REMOVE = 'EntityRemove';
+    const ENTITY_UPDATE = 'EntityUpdate';
+    const ENTITY_CREATE = 'EntityCreate';
+
     /**
      * @Id
      * @GeneratedValue
@@ -70,7 +75,7 @@ abstract class Element extends Extension
     {
 
         $Array = get_object_vars($this);
-        foreach( $Array as $Key => $Value ) {
+        foreach ($Array as $Key => $Value) {
             if ($Value instanceof \DateTime) {
                 $Array[$Key] = $Value->format('d.m.Y H:i:s');
             }
@@ -145,7 +150,7 @@ abstract class Element extends Extension
     public function setEntityRemove($Toggle = true)
     {
 
-        if( $Toggle ) {
+        if ($Toggle) {
             $this->EntityRemove = new \DateTime("now");
         } else {
             $this->EntityRemove = null;

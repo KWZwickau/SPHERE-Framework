@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
@@ -92,6 +93,23 @@ abstract class Certificate extends Extension
      * @return Frame
      */
     abstract public function buildCertificate($IsSample = true);
+
+    public function getCertificateName()
+    {
+
+        $Certificate = trim(str_replace(
+            'SPHERE\Application\Api\Education\Certificate\Generator\Repository', '', get_class($this)
+        ), '\\');
+
+        $tblCertificate = Generator::useService()->getCertificateByCertificateClassName($Certificate);
+        if ($tblCertificate) {
+            return $tblCertificate->getName().( $tblCertificate->getDescription()
+                ? ' ('.$tblCertificate->getDescription().')'
+                : ''
+            );
+        }
+        throw new \Exception('Certificate Missing: '.$Certificate);
+    }
 
     /**
      * @return null|Frame
@@ -265,10 +283,15 @@ abstract class Certificate extends Extension
     private function allocateCompanyAddress(TblAddress $tblAddress)
     {
 
-        $this->Company['Address'] = array_merge($tblAddress->__toArray(),
-            array('City' => $tblAddress->getTblCity()->__toArray()));
-        $this->Company['Address'] = array_merge($this->Company['Address'],
-            array('State' => $tblAddress->getTblState()->__toArray()));
+        $this->Company['Address'] = $tblAddress->__toArray();
+        if ($tblAddress->getTblCity()) {
+            $this->Company['Address'] = array_merge($this->Company['Address'],
+                array('City' => $tblAddress->getTblCity()->__toArray()));
+        }
+        if ($tblAddress->getTblState()) {
+            $this->Company['Address'] = array_merge($this->Company['Address'],
+                array('State' => $tblAddress->getTblState()->__toArray()));
+        }
         $this->Company['Address']['Street']['Name'] = $tblAddress->getStreetName();
         $this->Company['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
         return $this;

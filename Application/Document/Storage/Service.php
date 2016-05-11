@@ -1,8 +1,25 @@
 <?php
 namespace SPHERE\Application\Document\Storage;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
+use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Document\Storage\Service\Data;
+use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
+use SPHERE\Application\Document\Storage\Service\Entity\TblDirectory;
+use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
+use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
+use SPHERE\Application\Document\Storage\Service\Setup;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Document\Storage
+ */
 class Service extends AbstractService
 {
 
@@ -20,7 +37,191 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblDirectory
+     */
+    public function getDirectoryById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDirectoryById($Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblFile
+     */
+    public function getFileById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getFileById($Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblPartition
+     */
+    public function getPartitionById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getPartitionById($Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblBinary
+     */
+    public function getBinaryById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBinaryById($Id);
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     * @param bool   $IsLocked
+     * @param string $Identifier
+     *
+     * @return TblPartition
+     */
+    public function createPartition($Name, $Description = '', $IsLocked = false, $Identifier = '')
+    {
+
+        return (new Data($this->getBinding()))->createPartition($Name, $Description, $IsLocked, $Identifier);
+    }
+
+    public function saveCertificateRevision(
+        TblYear $tblYear,
+        TblPerson $tblPerson,
+        Certificate $Certificate,
+        $Data = array()
+    ) {
+
+        $Prefix = md5($tblYear->getYear().$tblPerson->getLastFirstName().$tblPerson->getId());
+
+        // Create Tmp
+        $File = new File('pdf', $Prefix);
+        /** @var DomPdf $Document */
+        $Document = Document::getPdfDocument($File->getFileLocation());
+        $Document->setContent($Certificate->createCertificate($Data));
+        $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+        // Load Tmp
+        $File->loadFile();
+        if ($File->getFileExists()) {
+
+            $tblPartition = Storage::useService()->getPartitionByIdentifier(
+                TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
+            );
+            $tblDirectory = Storage::useService()->createDirectory(
+                $tblPartition, $tblYear->getYear(), $tblYear->getDescription(), null, true,
+                'TBL-YEAR-ID:'.$tblYear->getId()
+            );
+            $tblDirectory = Storage::useService()->createDirectory(
+                $tblPartition, $tblPerson->getLastFirstName(), '', $tblDirectory, true,
+                'TBL-PERSON-ID:'.$tblPerson->getId()
+            );
+            $tblBinary = Storage::useService()->createBinary($File->getFileContent());
+            Storage::useService()->createFile(
+                $tblBinary,
+                $tblDirectory,
+                $tblYear->getYear().' - '.$tblPerson->getLastFirstName().' - '.$Certificate->getCertificateName(),
+                'pdf',
+                $File->getMimeType(),
+                'Erstellt: '.date('d.m.Y H:i:s'),
+                true
+            );
+        }
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return false|TblPartition
+     */
+    public function getPartitionByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getPartitionByIdentifier($Identifier);
 
     }
 
+    /**
+     * @param TblPartition $tblPartition
+     * @param string       $Name
+     * @param string       $Description
+     * @param TblDirectory $tblDirectory
+     * @param bool         $IsLocked
+     * @param string       $Identifier
+     *
+     * @return TblDirectory
+     */
+    public function createDirectory(
+        TblPartition $tblPartition,
+        $Name,
+        $Description,
+        TblDirectory $tblDirectory = null,
+        $IsLocked = false,
+        $Identifier = ''
+    ) {
+
+        return (new Data($this->getBinding()))->createDirectory(
+            $tblPartition,
+            $Name,
+            $Description,
+            $tblDirectory,
+            $IsLocked,
+            $Identifier
+        );
+    }
+
+    /**
+     * @param string $BinaryBlob
+     *
+     * @return TblBinary
+     */
+    public function createBinary($BinaryBlob)
+    {
+
+        return (new Data($this->getBinding()))->createBinary($BinaryBlob);
+    }
+
+    /**
+     * @param TblBinary    $tblBinary
+     * @param TblDirectory $tblDirectory
+     * @param string       $Name
+     * @param string       $Extension
+     * @param string       $Type
+     * @param string       $Description
+     * @param bool         $IsLocked
+     *
+     * @return TblFile
+     */
+    public function createFile(
+        TblBinary $tblBinary,
+        TblDirectory $tblDirectory,
+        $Name,
+        $Extension,
+        $Type,
+        $Description = '',
+        $IsLocked = false
+    ) {
+
+        return (new Data($this->getBinding()))->createFile(
+            $tblBinary,
+            $tblDirectory,
+            $Name,
+            $Extension,
+            $Type,
+            $Description,
+            $IsLocked
+        );
+    }
 }

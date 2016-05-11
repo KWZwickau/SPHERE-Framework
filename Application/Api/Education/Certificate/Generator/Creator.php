@@ -29,6 +29,10 @@ class Creator
         // TODO: Toggle Sample
         $Template = $tblCertificate->getDocument($tblPerson, $tblDivision, true);
 
+        \SPHERE\Application\Document\Storage\Storage::useService()->saveCertificateRevision($tblDivision->getServiceTblYear(),
+            $tblPerson, $Template, $Data);
+        throw new \Exception('Stop');
+
         $FileLocation = Storage::useWriter()->getTemporary('pdf', 'Zeugnis-Test-'.date('Ymd-His'));
         /** @var DomPdf $Document */
         $Document = Document::getPdfDocument($FileLocation->getFileLocation());

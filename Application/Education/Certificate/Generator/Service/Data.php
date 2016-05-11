@@ -185,6 +185,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Class
+     *
+     * @return bool|TblCertificate
+     */
+    public function getCertificateByCertificateClassName($Class)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificate', array(
+                TblCertificate::ATTR_CERTIFICATE => $Class
+            )
+        );
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblCertificateSubject
