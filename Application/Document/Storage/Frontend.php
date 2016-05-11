@@ -44,6 +44,11 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param $Name
+     *
+     * @return array
+     */
     private function guiPanel($Name)
     {
 

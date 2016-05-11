@@ -9,7 +9,10 @@ use SPHERE\Application\Document\Storage\Service\Data;
 use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
 use SPHERE\Application\Document\Storage\Service\Entity\TblDirectory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
+use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
+use SPHERE\Application\Document\Storage\Service\Entity\TblFileType;
 use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
+use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Document\Storage\Service\Setup;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -97,6 +100,14 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->createPartition($Name, $Description, $IsLocked, $Identifier);
     }
 
+    /**
+     * @param TblYear     $tblYear
+     * @param TblPerson   $tblPerson
+     * @param Certificate $Certificate
+     * @param array       $Data
+     *
+     * @throws \Exception
+     */
     public function saveCertificateRevision(
         TblYear $tblYear,
         TblPerson $tblPerson,
@@ -117,27 +128,29 @@ class Service extends AbstractService
         $File->loadFile();
         if ($File->getFileExists()) {
 
-            $tblPartition = Storage::useService()->getPartitionByIdentifier(
+            $tblPartition = $this->getPartitionByIdentifier(
                 TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
             );
-            $tblDirectory = Storage::useService()->createDirectory(
+            $tblDirectory = $this->createDirectory(
                 $tblPartition, $tblYear->getYear(), $tblYear->getDescription(), null, true,
                 'TBL-YEAR-ID:'.$tblYear->getId()
             );
-            $tblDirectory = Storage::useService()->createDirectory(
+            $tblDirectory = $this->createDirectory(
                 $tblPartition, $tblPerson->getLastFirstName(), '', $tblDirectory, true,
                 'TBL-PERSON-ID:'.$tblPerson->getId()
             );
-            $tblBinary = Storage::useService()->createBinary($File->getFileContent());
-            Storage::useService()->createFile(
-                $tblBinary,
-                $tblDirectory,
-                $tblYear->getYear().' - '.$tblPerson->getLastFirstName().' - '.$Certificate->getCertificateName(),
-                'pdf',
-                $File->getMimeType(),
-                'Erstellt: '.date('d.m.Y H:i:s'),
-                true
-            );
+            $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
+            if ($tblFileType) {
+                $tblBinary = $this->createBinary($File->getFileContent());
+                $this->createFile(
+                    $tblBinary,
+                    $tblDirectory,
+                    $tblFileType,
+                    $tblYear->getYear().' - '.$tblPerson->getLastFirstName().' - '.$Certificate->getCertificateName(),
+                    'Erstellt: '.date('d.m.Y H:i:s'),
+                    true
+                );
+            }
         }
     }
 
@@ -183,6 +196,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $MimeType
+     *
+     * @return false|TblFileType
+     */
+    public function getFileTypeByMimeType($MimeType)
+    {
+
+        return (new Data($this->getBinding()))->getFileTypeByMimeType($MimeType);
+    }
+
+    /**
      * @param string $BinaryBlob
      *
      * @return TblBinary
@@ -196,9 +220,8 @@ class Service extends AbstractService
     /**
      * @param TblBinary    $tblBinary
      * @param TblDirectory $tblDirectory
+     * @param TblFileType  $tblFileType
      * @param string       $Name
-     * @param string       $Extension
-     * @param string       $Type
      * @param string       $Description
      * @param bool         $IsLocked
      *
@@ -207,21 +230,47 @@ class Service extends AbstractService
     public function createFile(
         TblBinary $tblBinary,
         TblDirectory $tblDirectory,
+        TblFileType $tblFileType,
         $Name,
-        $Extension,
-        $Type,
         $Description = '',
         $IsLocked = false
     ) {
 
         return (new Data($this->getBinding()))->createFile(
-            $tblBinary,
-            $tblDirectory,
-            $Name,
-            $Extension,
-            $Type,
-            $Description,
-            $IsLocked
+            $tblBinary, $tblDirectory, $tblFileType, $Name, $Description, $IsLocked
         );
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblFileType
+     */
+    public function getFileTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getFileTypeById($Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblFileCategory
+     */
+    public function getFileCategoryById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getFileCategoryById($Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblReferenceType
+     */
+    public function getReferenceTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getReferenceTypeById($Id);
     }
 }

@@ -25,7 +25,11 @@ class Setup extends AbstractSetup
         $tblPartition = $this->setTablePartition($Schema);
         $tblDirectory = $this->setTableDirectory($Schema, $tblPartition);
         $tblBinary = $this->setTableBinary($Schema);
-        $this->setTableFile($Schema, $tblDirectory, $tblBinary);
+        $tblFileCategory = $this->setTableFileCategory($Schema);
+        $tblFileType = $this->setTableFileType($Schema, $tblFileCategory);
+        $tblFile = $this->setTableFile($Schema, $tblDirectory, $tblBinary, $tblFileType);
+        $tblReferenceType = $this->setTableReferenceType($Schema);
+        $this->setTableReference($Schema, $tblFile, $tblReferenceType);
         /**
          * Migration & Protocol
          */
@@ -106,12 +110,58 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblDirectory
-     * @param Table  $tblBinary
      *
      * @return Table
      */
-    private function setTableFile(Schema &$Schema, Table $tblDirectory, Table $tblBinary)
+    private function setTableFileCategory(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblFileCategory');
+        if (!$this->getConnection()->hasColumn('tblFileCategory', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblFileCategory', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblFileCategory
+     *
+     * @return Table
+     */
+    private function setTableFileType(Schema &$Schema, Table $tblFileCategory)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblFileType');
+        if (!$this->getConnection()->hasColumn('tblFileType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblFileType', 'Extension')) {
+            $Table->addColumn('Extension', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblFileType', 'MimeType')) {
+            $Table->addColumn('MimeType', 'string');
+        }
+        if (!$this->getConnection()->hasIndex($Table, array('MimeType'))) {
+            $Table->addUniqueIndex(array('MimeType'));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblFileCategory, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDirectory
+     * @param Table  $tblBinary
+     * @param Table  $tblFileType
+     *
+     * @return Table
+     */
+    private function setTableFile(Schema &$Schema, Table $tblDirectory, Table $tblBinary, Table $tblFileType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblFile');
@@ -124,15 +174,51 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblFile', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblFile', 'Extension')) {
-            $Table->addColumn('Extension', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblFile', 'Type')) {
-            $Table->addColumn('Type', 'string');
-        }
+
         $this->getConnection()->addForeignKey($Table, $tblDirectory, true);
+        $this->getConnection()->addForeignKey($Table, $tblFileType, true);
         $this->getConnection()->addForeignKey($Table, $tblBinary, true);
 
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableReferenceType(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblReferenceType');
+        if (!$this->getConnection()->hasColumn('tblReferenceType', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblReferenceType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblReferenceType', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblFile
+     * @param Table  $tblReferenceType
+     *
+     * @return Table
+     */
+    private function setTableReference(Schema &$Schema, Table $tblFile, Table $tblReferenceType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblReference');
+        if (!$this->getConnection()->hasColumn('tblReference', 'foreignTblEntity')) {
+            $Table->addColumn('foreignTblEntity', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblFile, true);
+        $this->getConnection()->addForeignKey($Table, $tblReferenceType, true);
         return $Table;
     }
 }

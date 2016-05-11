@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -15,15 +16,15 @@ use SPHERE\System\Database\Fitting\Element;
 class TblFileType extends Element
 {
 
-    const TYPE_PDF = 'PDF';
-
-    const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_NAME = 'Name';
+    const ATTR_EXTENSION = 'Extension';
+    const ATTR_MIME_TYPE = 'MimeType';
 
     /**
      * @Column(type="string")
      */
-    protected $Identifier;
+    protected $tblFileCategory;
+
     /**
      * @Column(type="string")
      */
@@ -31,25 +32,11 @@ class TblFileType extends Element
     /**
      * @Column(type="string")
      */
-    protected $Description;
-
+    protected $Extension;
     /**
-     * @return string
+     * @Column(type="string")
      */
-    public function getIdentifier()
-    {
-
-        return strtoupper($this->Identifier);
-    }
-
-    /**
-     * @param string $Identifier
-     */
-    public function setIdentifier($Identifier)
-    {
-
-        $this->Identifier = strtoupper($Identifier);
-    }
+    protected $MimeType;
 
     /**
      * @return string
@@ -72,18 +59,58 @@ class TblFileType extends Element
     /**
      * @return string
      */
-    public function getDescription()
+    public function getExtension()
     {
 
-        return $this->Description;
+        return $this->Extension;
     }
 
     /**
-     * @param string $Description
+     * @param string $Extension
      */
-    public function setDescription($Description)
+    public function setExtension($Extension)
     {
 
-        $this->Description = $Description;
+        $this->Extension = $Extension;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMimeType()
+    {
+
+        return $this->MimeType;
+    }
+
+    /**
+     * @param string $MimeType
+     */
+    public function setMimeType($MimeType)
+    {
+
+        $this->MimeType = $MimeType;
+    }
+
+    /**
+     * @return bool|TblFileCategory
+     */
+    public function getTblFileCategory()
+    {
+
+        if (null === $this->tblFileCategory) {
+            return false;
+        } else {
+            return Storage::useService()->getFileCategoryById($this->tblFileCategory);
+        }
+    }
+
+    /**
+     * @param null|TblFileCategory $tblFileCategory
+     */
+    public function setTblFileCategory(TblFileCategory $tblFileCategory = null)
+    {
+
+        $this->tblFileCategory = ( null === $tblFileCategory ? null : $tblFileCategory->getId() );
     }
 }

@@ -4,7 +4,10 @@ namespace SPHERE\Application\Document\Storage\Service;
 use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
 use SPHERE\Application\Document\Storage\Service\Entity\TblDirectory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
+use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
+use SPHERE\Application\Document\Storage\Service\Entity\TblFileType;
 use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
+use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -22,8 +25,17 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createPartition('Zeugnisse', 'revisionssichere Archivierung', true,
-            TblPartition::IDENTIFIER_CERTIFICATE_STORAGE);
+        $this->createPartition(
+            'Zeugnisse', 'revisionssichere Archivierung', true, TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
+        );
+
+        $FileCategoryDOCUMENT = $this->createFileCategory('Dokumente', TblFileCategory::CATEGORY_DOCUMENT);
+        $FileCategoryIMAGE = $this->createFileCategory('Bilder', TblFileCategory::CATEGORY_IMAGE);
+
+        // Documents
+        $this->createFileType('PDF-Datei', 'pdf', 'application/pdf', $FileCategoryDOCUMENT);
+        // Images
+        $this->createFileType('PNG-Datei', 'png', 'image/png', $FileCategoryIMAGE);
     }
 
     /**
@@ -58,6 +70,62 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Identifier
+     *
+     * @return TblFileCategory
+     */
+    public function createFileCategory($Name, $Identifier)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblFileCategory')->findOneBy(array(
+            TblFileCategory::ATTR_IDENTIFIER => strtoupper($Identifier)
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblFileCategory();
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param string          $Name
+     * @param string          $Extension
+     * @param string          $MimeType
+     * @param TblFileCategory $tblFileCategory
+     *
+     * @return TblFileType
+     */
+    public function createFileType($Name, $Extension, $MimeType, TblFileCategory $tblFileCategory)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblFileType')->findOneBy(array(
+            TblFileType::ATTR_MIME_TYPE => $MimeType
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblFileType();
+            $Entity->setName($Name);
+            $Entity->setExtension($Extension);
+            $Entity->setMimeType($MimeType);
+            $Entity->setTblFileCategory($tblFileCategory);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -256,9 +324,8 @@ class Data extends AbstractData
     /**
      * @param TblBinary    $tblBinary
      * @param TblDirectory $tblDirectory
+     * @param TblFileType  $tblFileType
      * @param string       $Name
-     * @param string       $Extension
-     * @param string       $Type
      * @param string       $Description
      * @param bool         $IsLocked
      *
@@ -267,9 +334,8 @@ class Data extends AbstractData
     public function createFile(
         TblBinary $tblBinary,
         TblDirectory $tblDirectory,
+        TblFileType $tblFileType,
         $Name,
-        $Extension,
-        $Type,
         $Description = '',
         $IsLocked = false
     ) {
@@ -278,9 +344,8 @@ class Data extends AbstractData
 
         $Entity = $Manager->getEntity('TblFile')->findOneBy(array(
             TblFile::ATTR_TBL_DIRECTORY => $tblDirectory->getId(),
+            TblFile::ATTR_TBL_FILE_TYPE => $tblFileType->getId(),
             TblFile::ATTR_NAME          => $Name,
-            TblFile::ATTR_EXTENSION     => $Extension,
-            TblFile::ATTR_TYPE          => $Type,
             TblFile::ENTITY_REMOVE      => null
         ));
 
@@ -288,9 +353,8 @@ class Data extends AbstractData
             $Entity = new TblFile();
             $Entity->setTblBinary($tblBinary);
             $Entity->setTblDirectory($tblDirectory);
+            $Entity->setTblFileType($tblFileType);
             $Entity->setName($Name);
-            $Entity->setExtension($Extension);
-            $Entity->setType($Type);
             $Entity->setDescription($Description);
             $Entity->setLocked($IsLocked);
             $Manager->saveEntity($Entity);
@@ -300,86 +364,50 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblFile      $tblFile
-     * @param string       $Name
-     * @param string       $Description
-     * @param string       $FileName
-     * @param string       $FileExtension
-     * @param string       $FileContent
-     * @param string       $FileType
-     * @param int          $FileSize
-     * @param TblDirectory $tblDirectory
-     * @param bool         $IsLocked
+     * @param string $MimeType
      *
-     * @return bool
+     * @return false|TblFileType
      */
-    public function updateFile(
-        TblFile $tblFile,
-        $Name,
-        $Description,
-        $FileName,
-        $FileExtension,
-        $FileContent,
-        $FileType,
-        $FileSize,
-        TblDirectory $tblDirectory = null,
-        $IsLocked = false
-    ) {
+    public function getFileTypeByMimeType($MimeType)
+    {
 
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var null|TblFile $Entity */
-        $Entity = $Manager->getEntityById('TblFile', $tblFile->getId());
-        if (null !== $Entity) {
-            $Protocol = clone $Entity;
-            $Entity->setTblDirectory(( $tblDirectory ? $tblDirectory : null ));
-            $Entity->setName($Name);
-            $Entity->setDescription($Description);
-            $Entity->setFileName($FileName);
-            $Entity->setFileExtension($FileExtension);
-            $Entity->setFileContent($FileContent);
-            $Entity->setFileType($FileType);
-            $Entity->setFileSize($FileSize);
-            $Entity->setLocked($IsLocked);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
-        }
-        return false;
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFileType', array(
+            TblFileType::ATTR_MIME_TYPE => $MimeType
+        ));
     }
 
     /**
-     * @param TblDirectory $tblDirectory
-     * @param string       $Name
-     * @param string       $Description
-     * @param TblDirectory $tblDirectoryParent
-     * @param bool         $IsLocked
-     * @param string       $Identifier
+     * @param int $Id
      *
-     * @return bool
+     * @return false|TblFileType
      */
-    public function updateDirectory(
-        TblDirectory $tblDirectory,
-        $Name,
-        $Description,
-        TblDirectory $tblDirectoryParent = null,
-        $IsLocked = false,
-        $Identifier = ''
-    ) {
+    public function getFileTypeById($Id)
+    {
 
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var null|TblDirectory $Entity */
-        $Entity = $Manager->getEntityById('TblDirectory', $tblDirectory->getId());
-        if (null !== $Entity) {
-            $Protocol = clone $Entity;
-            $Entity->setName($Name);
-            $Entity->setDescription($Description);
-            $Entity->setTblDirectory($tblDirectoryParent);
-            $Entity->setLocked($IsLocked);
-            $Entity->setIdentifier($Identifier);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
-        }
-        return false;
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFileType', $Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblFileCategory
+     */
+    public function getFileCategoryById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFileCategory',
+            $Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblReferenceType
+     */
+    public function getReferenceTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblReferenceType',
+            $Id);
     }
 }

@@ -94,6 +94,10 @@ abstract class Certificate extends Extension
      */
     abstract public function buildCertificate($IsSample = true);
 
+    /**
+     * @return string Certificate-Name from Database-Settings
+     * @throws \Exception
+     */
     public function getCertificateName()
     {
 

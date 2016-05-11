@@ -17,9 +17,6 @@ class TblFile extends Element
 {
 
     const ATTR_NAME = 'Name';
-    const ATTR_EXTENSION = 'Extension';
-    const ATTR_TYPE = 'Type';
-    const ATTR_DESCRIPTION = 'Description';
     const ATTR_TBL_DIRECTORY = 'tblDirectory';
     const ATTR_TBL_FILE_TYPE = 'tblFileType';
 
@@ -48,14 +45,6 @@ class TblFile extends Element
      * @Column(type="string")
      */
     protected $Description;
-    /**
-     * @Column(type="string")
-     */
-    protected $Extension;
-    /**
-     * @Column(type="string")
-     */
-    protected $Type;
 
     /**
      * @return bool|TblDirectory
@@ -175,41 +164,5 @@ class TblFile extends Element
     {
 
         $this->Description = $Description;
-    }
-
-    /**
-     * @return string
-     */
-    public function getExtension()
-    {
-
-        return $this->Extension;
-    }
-
-    /**
-     * @param string $Extension
-     */
-    public function setExtension($Extension)
-    {
-
-        $this->Extension = $Extension;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType()
-    {
-
-        return $this->Type;
-    }
-
-    /**
-     * @param string $Type
-     */
-    public function setType($Type)
-    {
-
-        $this->Type = $Type;
     }
 }
