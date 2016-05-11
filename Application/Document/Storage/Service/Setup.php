@@ -145,8 +145,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblFileType', 'MimeType')) {
             $Table->addColumn('MimeType', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('MimeType'))) {
-            $Table->addUniqueIndex(array('MimeType'));
+        if (!$this->getConnection()->hasIndex($Table, array('Extension', 'MimeType'))) {
+            $Table->addUniqueIndex(array('Extension', 'MimeType'));
         }
         $this->getConnection()->addForeignKey($Table, $tblFileCategory, true);
 

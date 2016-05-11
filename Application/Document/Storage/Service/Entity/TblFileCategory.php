@@ -22,11 +22,11 @@ class TblFileCategory extends Element
     const ATTR_NAME = 'Name';
 
     /**
-     * @Column(category="string")
+     * @Column(type="string")
      */
     protected $Name;
     /**
-     * @Column(category="string")
+     * @Column(type="string")
      */
     protected $Identifier;
 

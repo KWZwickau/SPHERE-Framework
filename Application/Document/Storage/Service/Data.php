@@ -117,6 +117,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblFileType')->findOneBy(array(
+            TblFileType::ATTR_EXTENSION => $Extension,
             TblFileType::ATTR_MIME_TYPE => $MimeType
         ));
 

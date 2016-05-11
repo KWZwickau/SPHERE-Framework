@@ -21,7 +21,7 @@ class TblFileType extends Element
     const ATTR_MIME_TYPE = 'MimeType';
 
     /**
-     * @Column(type="string")
+     * @Column(type="bigint")
      */
     protected $tblFileCategory;
 
