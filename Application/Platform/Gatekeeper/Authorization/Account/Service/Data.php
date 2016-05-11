@@ -17,6 +17,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
@@ -640,7 +641,7 @@ class Data extends AbstractData
             ->where($Builder->expr()->lte('S.Timeout', '?1'))
             ->setParameter(1, time())
             ->getQuery();
-
+        $Query->useQueryCache(true);
         $IdList = $Query->getResult(ColumnHydrator::HYDRATION_MODE);
 
         if (!empty( $IdList )) {
@@ -650,8 +651,12 @@ class Data extends AbstractData
                 ->where($Builder->expr()->in('S.Id', '?1'))
                 ->setParameter(1, $IdList)
                 ->getQuery();
-
+            $Query->useQueryCache(true);
             $Query->getResult();
+
+            /** @var MemcachedHandler $Public */
+            $Public = $this->getCache(new MemcachedHandler());
+            $Public->clearSlot('PUBLIC');
         }
     }
 
