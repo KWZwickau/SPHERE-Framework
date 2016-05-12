@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\Subject\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -111,8 +112,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblSubject', 'Acronym')) {
             $Table->addColumn('Acronym', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Acronym'))) {
-            $Table->addUniqueIndex(array('Acronym'));
+        $this->getConnection()->removeIndex($Table, array('Acronym'));
+        if (!$this->getConnection()->hasIndex($Table, array('Acronym', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Acronym', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblSubject', 'Name')) {
             $Table->addColumn('Name', 'string');
