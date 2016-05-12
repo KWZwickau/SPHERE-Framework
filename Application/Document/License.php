@@ -47,7 +47,7 @@ class License implements IClusterInterface, IApplicationInterface, IModuleInterf
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
@@ -55,7 +55,7 @@ class License implements IClusterInterface, IApplicationInterface, IModuleInterf
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 
     public function frontendDashboard()

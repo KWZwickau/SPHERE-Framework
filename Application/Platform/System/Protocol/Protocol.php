@@ -42,7 +42,7 @@ class Protocol implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 
     /**

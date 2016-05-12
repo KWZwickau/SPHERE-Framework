@@ -1033,7 +1033,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Acronym'     => 'Kürzel',
                                         'Name'        => 'Fach',
                                         'Description' => 'Beschreibung',
-                                        'Option'      => ' '    // ToDo Unterschiedliche Spaltennamen benötigt!
+                                        'Option'      => ' '
                                     ))
                             )
                         ), 6)

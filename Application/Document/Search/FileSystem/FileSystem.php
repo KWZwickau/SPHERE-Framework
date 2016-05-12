@@ -27,7 +27,7 @@ class FileSystem implements IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**

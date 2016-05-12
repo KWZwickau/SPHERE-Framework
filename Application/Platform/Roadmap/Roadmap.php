@@ -54,7 +54,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
 
     public static function registerModule()
     {
-        // TODO: Implement registerModule() method.
+
     }
 
     /**
@@ -62,7 +62,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
@@ -70,7 +70,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 
     public function frontendDashboard()

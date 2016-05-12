@@ -1,8 +1,6 @@
 <?php
 namespace SPHERE\Application\Setting\MyAccount;
 
-use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToCompany as TblToCompanyMail;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -296,17 +294,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblCompany = $tblSchool->getServiceTblCompany();
                 if ($tblCompany) {
-
-                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-                    if ($tblAddressAll) {
-                        array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
-
-                            if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
-                            {
-                                $tblAddress = $tblToCompany->getTblAddress();
-                                $List[] = $tblAddress->getGuiLayout();
-                            }
-                        });
+                    $tblAddress = $tblCompany->fetchMainAddress();
+                    if ($tblAddress) {
+                        $List[] = $tblAddress->getGuiLayout();
                     }
                     $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
                     if ($tblPhoneAll) {
@@ -353,17 +343,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblCompany = $tblResponsibility->getServiceTblCompany();
                 if ($tblCompany) {
-
-                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-                    if ($tblAddressAll) {
-                        array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
-
-                            if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
-                            {
-                                $tblAddress = $tblToCompany->getTblAddress();
-                                $List[] = $tblAddress->getGuiLayout();
-                            }
-                        });
+                    $tblAddress = $tblCompany->fetchMainAddress();
+                    if ($tblAddress) {
+                        $List[] = $tblAddress->getGuiLayout();
                     }
                     $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
                     if ($tblPhoneAll) {
@@ -409,17 +391,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tblCompany = $tblSponsorAssociation->getServiceTblCompany();
                     if ($tblCompany) {
-
-                        $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-                        if ($tblAddressAll) {
-                            array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
-
-                                if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
-                                {
-                                    $tblAddress = $tblToCompany->getTblAddress();
-                                    $List[] = $tblAddress->getGuiLayout();
-                                }
-                            });
+                        $tblAddress = $tblCompany->fetchMainAddress();
+                        if ($tblAddress) {
+                            $List[] = $tblAddress->getGuiLayout();
                         }
                         $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
                         if ($tblPhoneAll) {

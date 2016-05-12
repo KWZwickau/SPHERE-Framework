@@ -37,7 +37,7 @@ class Support implements IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
