@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -59,8 +60,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeType', 'Code')) {
             $Table->addColumn('Code', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Code'))) {
-            $Table->addUniqueIndex(array('Code'));
+        $this->getConnection()->removeIndex($Table, array('Code'));
+        if (!$this->getConnection()->hasIndex($Table, array('Code', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Code', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblGradeType', 'Name')) {
             $Table->addColumn('Name', 'string');

@@ -24,6 +24,11 @@ use SPHERE\System\Extension\Extension;
 abstract class Element extends Extension
 {
 
+    const ENTITY_ID = 'Id';
+    const ENTITY_REMOVE = 'EntityRemove';
+    const ENTITY_UPDATE = 'EntityUpdate';
+    const ENTITY_CREATE = 'EntityCreate';
+
     /**
      * @Id
      * @GeneratedValue

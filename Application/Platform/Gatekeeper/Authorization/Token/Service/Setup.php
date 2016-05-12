@@ -5,6 +5,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -54,14 +55,16 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToken', 'Identifier')) {
             $Table->addColumn('Identifier', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Identifier'))) {
-            $Table->addUniqueIndex(array('Identifier'));
+        $this->getConnection()->removeIndex($Table, array('Identifier'));
+        if (!$this->getConnection()->hasIndex($Table, array('Identifier', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Identifier', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblToken', 'Serial')) {
             $Table->addColumn('Serial', 'string', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Serial'))) {
-            $Table->addUniqueIndex(array('Serial'));
+        $this->getConnection()->removeIndex($Table, array('Serial'));
+        if (!$this->getConnection()->hasIndex($Table, array('Serial', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Serial', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblToken', 'serviceTblConsumer')) {
             $Table->addColumn('serviceTblConsumer', 'bigint', array('notnull' => false));
