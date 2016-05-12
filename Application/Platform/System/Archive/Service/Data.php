@@ -20,7 +20,7 @@ class Data extends AbstractData
      */
     public function setupDatabaseContent()
     {
-        // TODO: Implement setupDatabaseContent() method.
+
     }
 
     /**

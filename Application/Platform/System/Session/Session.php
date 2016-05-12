@@ -48,7 +48,7 @@ class Session extends Extension implements IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
@@ -56,7 +56,7 @@ class Session extends Extension implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 
     /**

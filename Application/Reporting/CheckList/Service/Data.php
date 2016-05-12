@@ -355,7 +355,7 @@ class Data extends AbstractData
     public function countListObjectListByList(TblList $tblList)
     {
 
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verkn�pfungstabelle
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
 //        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
 //            array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
 //

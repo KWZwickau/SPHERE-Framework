@@ -17,7 +17,7 @@ class Storage implements IModuleInterface
 
     public static function registerModule()
     {
-        // TODO: Implement registerModule() method.
+
     }
 
     /**
@@ -37,7 +37,7 @@ class Storage implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 
     /**
