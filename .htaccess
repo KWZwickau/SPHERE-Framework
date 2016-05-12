@@ -26,7 +26,7 @@
         Order Deny,Allow
         Deny from All
     </FilesMatch>
-    <FilesMatch "\.(css|js|map|woff|woff2|ico|svg|png|jpg|ttf|gif)$">
+    <FilesMatch "\.(css|js|map|woff|woff2|eot|ico|svg|png|jpg|ttf|gif)$">
         Allow from All
     </FilesMatch>
     <FilesMatch "^(index\.php|piwik\.php|robots\.txt)$">
@@ -56,11 +56,11 @@
 
     # Header set Cache-Control "max-age=600, private, must-revalidate"
     # No ETag
-    <FilesMatch "\.(gif|jpg|jpeg|png|swf|css|js|html?|xml|txt|ico|woff|woff2|map)$">
+    <FilesMatch "\.(gif|jpg|jpeg|png|swf|css|js|html?|xml|txt|ico|woff|woff2|eot|map)$">
         FileETag none
     </FilesMatch>
     # 480 weeks
-    <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|css|swf|woff|woff2|map)$">
+    <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|css|swf|woff|woff2|eot|map)$">
         Header set Cache-Control "max-age=290304000, public, must-revalidate"
     </FilesMatch>
     # 7 DAYS Js + cTag

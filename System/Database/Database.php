@@ -6,6 +6,7 @@ use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\MemcachedCache;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\EntityManager;
@@ -316,6 +317,31 @@ class Database extends Extension
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * @param Table $Table
+     * @param array $ColumnList
+     *
+     * @return void
+     */
+    public function removeIndex(Table $Table, $ColumnList)
+    {
+
+        $IndexList = $Table->getIndexes();
+        /** @var Index $Index */
+        foreach ($IndexList as $Index) {
+
+            if ($Index->spansColumns($ColumnList)
+                && count($ColumnList) === count($Index->getColumns())
+                && (
+                    $Index->isSimpleIndex()
+                    || $Index->isUnique()
+                )
+            ) {
+                $Table->dropIndex($Index->getName());
+            }
         }
     }
 
