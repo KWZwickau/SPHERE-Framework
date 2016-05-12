@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -54,8 +55,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblRight', 'Route')) {
             $Table->addColumn('Route', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Route'))) {
-            $Table->addUniqueIndex(array('Route'));
+        $this->getConnection()->removeIndex($Table, array('Route'));
+        if (!$this->getConnection()->hasIndex($Table, array('Route', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Route', Element::ENTITY_REMOVE));
         }
         return $Table;
     }
@@ -72,8 +74,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPrivilege', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Name'))) {
-            $Table->addUniqueIndex(array('Name'));
+        $this->getConnection()->removeIndex($Table, array('Name'));
+        if (!$this->getConnection()->hasIndex($Table, array('Name', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Name', Element::ENTITY_REMOVE));
         }
         return $Table;
     }
@@ -90,8 +93,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblLevel', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Name'))) {
-            $Table->addUniqueIndex(array('Name'));
+        $this->getConnection()->removeIndex($Table, array('Name'));
+        if (!$this->getConnection()->hasIndex($Table, array('Name', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Name', Element::ENTITY_REMOVE));
         }
         return $Table;
     }
@@ -108,8 +112,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblRole', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Name'))) {
-            $Table->addUniqueIndex(array('Name'));
+        $this->getConnection()->removeIndex($Table, array('Name'));
+        if (!$this->getConnection()->hasIndex($Table, array('Name', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Name', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblRole', 'IsInternal')) {
             $Table->addColumn('IsInternal', 'boolean');
