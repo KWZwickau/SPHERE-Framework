@@ -962,12 +962,13 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonList = array();
             if ($tblPerson) {
                 $tblPersonList[] = $tblPerson;
-            }
-            $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-            if ($tblPersonRelationshipList) {
-                foreach ($tblPersonRelationshipList as $relationship) {
-                    if ($relationship->getTblType()->getName() == 'Sorgeberechtigt' && $relationship->getServiceTblPersonTo()) {
-                        $tblPersonList[] = $relationship->getServiceTblPersonTo();
+
+                $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                if ($tblPersonRelationshipList) {
+                    foreach ($tblPersonRelationshipList as $relationship) {
+                        if ($relationship->getTblType()->getName() == 'Sorgeberechtigt' && $relationship->getServiceTblPersonTo()) {
+                            $tblPersonList[] = $relationship->getServiceTblPersonTo();
+                        }
                     }
                 }
             }

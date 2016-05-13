@@ -168,6 +168,18 @@ class Structure
     }
 
     /**
+     * @param DBALTable $Table
+     * @param array     $ColumnList
+     *
+     * @return void
+     */
+    public function removeIndex(DBALTable $Table, $ColumnList)
+    {
+
+        $this->Database->removeIndex($Table, $ColumnList);
+    }
+    
+    /**
      * @param string $TableName
      *
      * @return bool

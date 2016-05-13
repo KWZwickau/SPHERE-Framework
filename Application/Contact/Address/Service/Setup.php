@@ -4,6 +4,7 @@ namespace SPHERE\Application\Contact\Address\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -72,8 +73,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblState', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Name'))) {
-            $Table->addUniqueIndex(array('Name'));
+        $this->getConnection()->removeIndex($Table, array('Name'));
+        if (!$this->getConnection()->hasIndex($Table, array('Name', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Name', Element::ENTITY_REMOVE));
         }
         return $Table;
     }
@@ -145,8 +147,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson'))) {
-            $Table->addIndex(array('serviceTblPerson'));
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         $this->getConnection()->addForeignKey($Table, $tblAddress, null);
         $this->getConnection()->addForeignKey($Table, $tblType);
@@ -170,8 +173,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToCompany', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasIndex($Table, array('serviceTblCompany'))) {
-            $Table->addIndex(array('serviceTblCompany'));
+        $this->getConnection()->removeIndex($Table, array('serviceTblCompany'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblCompany', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblCompany', Element::ENTITY_REMOVE));
         }
         $this->getConnection()->addForeignKey($Table, $tblAddress, null);
         $this->getConnection()->addForeignKey($Table, $tblType);
