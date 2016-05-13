@@ -62,10 +62,12 @@ class Service extends AbstractService
 
                     $tblCategory = $tblCategory->getTblSubjectAll();
                 });
-                array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
+                if ($tblCategory) {
+                    array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
 
-                    $tblSubjectList[] = $tblSubject;
-                });
+                        $tblSubjectList[] = $tblSubject;
+                    });
+                }
             }
         }
         return (empty($tblSubjectList) ? false : $tblSubjectList);
@@ -97,10 +99,12 @@ class Service extends AbstractService
 
                     $tblCategory = $tblCategory->getTblSubjectAll();
                 });
-                array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
+                if ($tblCategory) {
+                    array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
 
-                    $tblSubjectList[] = $tblSubject;
-                });
+                        $tblSubjectList[] = $tblSubject;
+                    });
+                }
             }
         }
         return (empty($tblSubjectList) ? false : $tblSubjectList);
@@ -118,10 +122,12 @@ class Service extends AbstractService
             $tblCategory = $tblGroup->getTblCategoryByIdentifier('PROFILE');
             if ($tblCategory) {
                 $tblSubjectAll = $tblCategory->getTblSubjectAll();
-                array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+                if ($tblSubjectAll) {
+                    array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
 
-                    $tblSubjectList[] = $tblSubject;
-                });
+                        $tblSubjectList[] = $tblSubject;
+                    });
+                }
             }
         }
         return (empty($tblSubjectList) ? false : $tblSubjectList);
@@ -139,10 +145,12 @@ class Service extends AbstractService
             $tblCategory = $tblGroup->getTblCategoryByIdentifier('RELIGION');
             if ($tblCategory) {
                 $tblSubjectAll = $tblCategory->getTblSubjectAll();
-                array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+                if ($tblSubjectAll) {
+                    array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
 
-                    $tblSubjectList[] = $tblSubject;
-                });
+                        $tblSubjectList[] = $tblSubject;
+                    });
+                }
             }
         }
         return (empty($tblSubjectList) ? false : $tblSubjectList);
@@ -160,10 +168,12 @@ class Service extends AbstractService
             $tblCategory = $tblGroup->getTblCategoryByIdentifier('FOREIGNLANGUAGE');
             if ($tblCategory) {
                 $tblSubjectAll = $tblCategory->getTblSubjectAll();
-                array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+                if ($tblSubjectAll) {
+                    array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
 
-                    $tblSubjectList[] = $tblSubject;
-                });
+                        $tblSubjectList[] = $tblSubject;
+                    });
+                }
             }
         }
         return (empty($tblSubjectList) ? false : $tblSubjectList);
@@ -184,10 +194,12 @@ class Service extends AbstractService
 
                     $tblCategory = $tblCategory->getTblSubjectAll();
                 });
-                array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
+                if ($tblCategory) {
+                    array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
 
-                    $tblSubjectList[] = $tblSubject;
-                });
+                        $tblSubjectList[] = $tblSubject;
+                    });
+                }
             }
         }
         return (empty($tblSubjectList) ? false : $tblSubjectList);
