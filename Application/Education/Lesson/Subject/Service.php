@@ -191,12 +191,10 @@ class Service extends AbstractService
             $tblCategory = $tblCategory->getTblCategoryAll();
             if ($tblCategory) {
                 array_walk($tblCategory, function (TblCategory &$tblCategory) {
-
                     $tblCategory = $tblCategory->getTblSubjectAll();
                 });
                 if ($tblCategory) {
                     array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
-
                         $tblSubjectList[] = $tblSubject;
                     });
                 }
