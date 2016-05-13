@@ -77,6 +77,7 @@ class Data extends AbstractData
             TblDivision::ATTR_YEAR  => $tblYear->getId(),
             TblDivision::ATTR_NAME  => $Name,
             TblDivision::ATTR_LEVEL => ( $tblLevel ? $tblLevel->getId() : null ),
+            'EntityRemove' => null
         ));
 
         if (null === $Entity) {
