@@ -239,27 +239,6 @@ class Service extends AbstractService
 
         $Error = false;
 
-        // Remove link Subject
-        $tblSubjectAll = $tblCategory->getTblSubjectAll();
-        if ($tblSubjectAll) {
-            array_walk($tblSubjectAll, function (TblSubject $tblSubject) use ($tblCategory, &$Error) {
-
-                if (!$this->removeCategorySubject($tblCategory, $tblSubject)) {
-                    $Error = true;
-                }
-            });
-        }
-
-        // Remove link Group
-        $tblGroupAll = Subject::useService()->getGroupAllByCategory($tblCategory);
-        if ($tblGroupAll) {
-            foreach ($tblGroupAll as $tblGroup) {
-                if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
-                    $Error = true;
-                }
-            }
-        }
-
         if (!$Error) {
             if ((new Data($this->getBinding()))->destroyCategory($tblCategory)) {
                 return new Success('Die Kategorie wurde erfolgreich gelöscht')

@@ -410,7 +410,7 @@ class Data extends AbstractData
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
-            $Manager->killEntity($Entity);
+            $Manager->removeEntity($Entity);
             return true;
         }
         return false;
@@ -524,10 +524,17 @@ class Data extends AbstractData
                 TblGroupCategory::ATTR_TBL_GROUP => $tblGroup->getId()
             )
         );
-        array_walk($EntityList, function (TblGroupCategory &$V) {
+        if ($EntityList) {
+            array_walk($EntityList, function (TblGroupCategory &$V) {
 
-            $V = $V->getTblCategory();
-        });
+                if ($V->getTblCategory()) {
+                    $V = $V->getTblCategory();
+                } else {
+                    $V = false;
+                }
+            });
+        }
+        $EntityList = array_filter($EntityList);
         return ( null === $EntityList ? false : $EntityList );
     }
 
