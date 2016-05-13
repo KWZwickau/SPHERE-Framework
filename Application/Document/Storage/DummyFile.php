@@ -5,11 +5,11 @@ use MOC\V\Core\FileSystem\FileSystem;
 use MOC\V\Core\GlobalsKernel\GlobalsKernel;
 
 /**
- * Class File
+ * Class DummyFile
  *
  * @package SPHERE\Application\Document\Storage
  */
-class File
+class DummyFile
 {
 
     /** @var string $FileLocation */

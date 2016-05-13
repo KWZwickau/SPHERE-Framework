@@ -1,9 +1,6 @@
 <?php
 namespace SPHERE\Application\Document\Storage;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
-use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
-use MOC\V\Component\Document\Document;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Document\Storage\Service\Data;
 use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
@@ -14,7 +11,7 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblFileType;
 use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
 use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Document\Storage\Service\Setup;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -101,57 +98,58 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblYear     $tblYear
      * @param TblPerson   $tblPerson
+     * @param TblDivision $tblDivision
      * @param Certificate $Certificate
-     * @param array       $Data
+     * @param DummyFile   $File
      *
+     * @return bool|TblFile
      * @throws \Exception
      */
     public function saveCertificateRevision(
-        TblYear $tblYear,
         TblPerson $tblPerson,
+        TblDivision $tblDivision,
         Certificate $Certificate,
-        $Data = array()
+        DummyFile $File
     ) {
 
-        $Prefix = md5($tblYear->getYear().$tblPerson->getLastFirstName().$tblPerson->getId());
-
-        // Create Tmp
-        $File = new File('pdf', $Prefix);
-        /** @var DomPdf $Document */
-        $Document = Document::getPdfDocument($File->getFileLocation());
-        $Document->setContent($Certificate->createCertificate($Data));
-        $Document->saveFile(new FileParameter($File->getFileLocation()));
-
         // Load Tmp
-        $File->loadFile();
         if ($File->getFileExists()) {
+            $File->loadFile();
 
             $tblPartition = $this->getPartitionByIdentifier(
                 TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
             );
-            $tblDirectory = $this->createDirectory(
-                $tblPartition, $tblYear->getYear(), $tblYear->getDescription(), null, true,
-                'TBL-YEAR-ID:'.$tblYear->getId()
-            );
-            $tblDirectory = $this->createDirectory(
-                $tblPartition, $tblPerson->getLastFirstName(), '', $tblDirectory, true,
-                'TBL-PERSON-ID:'.$tblPerson->getId()
-            );
-            $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
-            if ($tblFileType) {
-                $tblBinary = $this->createBinary($File->getFileContent());
-                $this->createFile(
-                    $tblBinary,
-                    $tblDirectory,
-                    $tblFileType,
-                    $tblYear->getYear().' - '.$tblPerson->getLastFirstName().' - '.$Certificate->getCertificateName(),
-                    'Erstellt: '.date('d.m.Y H:i:s'),
-                    true
+            $tblYear = $tblDivision->getServiceTblYear();
+            if ($tblYear) {
+                $tblDirectory = $this->createDirectory(
+                    $tblPartition, $tblYear->getYear(), $tblYear->getDescription(), null, true,
+                    'TBL-YEAR-ID:'.$tblYear->getId()
                 );
+                $tblDirectory = $this->createDirectory(
+                    $tblPartition, $tblPerson->getLastFirstName(), '', $tblDirectory, true,
+                    'TBL-PERSON-ID:'.$tblPerson->getId()
+                );
+                $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
+                if ($tblFileType) {
+                    $tblBinary = $this->createBinary($File->getFileContent());
+                    $tblFile = $this->createFile(
+                        $tblBinary,
+                        $tblDirectory,
+                        $tblFileType,
+                        $tblYear->getYear().' - '.$tblPerson->getLastFirstName().' - '.$Certificate->getCertificateName(),
+                        'Erstellt: '.date('d.m.Y H:i:s'),
+                        true
+                    );
+                    if ($tblFile) {
+                        return $tblFile;
+                    } else {
+                        return false;
+                    }
+                }
             }
         }
+        return false;
     }
 
     /**
