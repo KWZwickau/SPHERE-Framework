@@ -191,11 +191,13 @@ class Data extends AbstractData
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblCategory')->findOneBy(array(
                 TblCategory::ATTR_IS_LOCKED  => $IsLocked,
-                TblCategory::ATTR_IDENTIFIER => $Identifier
+                TblCategory::ATTR_IDENTIFIER => $Identifier,
+                'EntityRemove' => null
             ));
         } else {
             $Entity = $Manager->getEntity('TblCategory')->findOneBy(array(
-                TblCategory::ATTR_NAME => $Name
+                TblCategory::ATTR_NAME => $Name,
+                'EntityRemove' => null
             ));
         }
         if (null === $Entity) {
@@ -248,6 +250,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSubject')->findOneBy(array(
             TblSubject::ATTR_ACRONYM => $Acronym,
+            'EntityRemove' => null
         ));
         if (null === $Entity) {
             $Entity = new TblSubject();
