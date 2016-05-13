@@ -239,27 +239,6 @@ class Service extends AbstractService
 
         $Error = false;
 
-        // Remove link Subject
-        $tblSubjectAll = $tblCategory->getTblSubjectAll();
-        if ($tblSubjectAll) {
-            array_walk($tblSubjectAll, function (TblSubject $tblSubject) use ($tblCategory, &$Error) {
-
-                if (!$this->removeCategorySubject($tblCategory, $tblSubject)) {
-                    $Error = true;
-                }
-            });
-        }
-
-        // Remove link Group
-        $tblGroupAll = Subject::useService()->getGroupAllByCategory($tblCategory);
-        if ($tblGroupAll) {
-            foreach ($tblGroupAll as $tblGroup) {
-                if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
-                    $Error = true;
-                }
-            }
-        }
-
         if (!$Error) {
             if ((new Data($this->getBinding()))->destroyCategory($tblCategory)) {
                 return new Success('Die Kategorie wurde erfolgreich gelöscht')
@@ -675,7 +654,8 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (null === $Category) {
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
             return $Form;
         }
 
@@ -685,19 +665,23 @@ class Service extends AbstractService
 
             // Remove old Link
             $tblCategoryAll = $tblGroup->getTblCategoryAll();
-            array_walk($tblCategoryAll, function (TblCategory $tblCategory) use ($tblGroup, &$Error) {
+            if ($tblCategoryAll) {
+                array_walk($tblCategoryAll, function (TblCategory $tblCategory) use ($tblGroup, &$Error) {
 
-                if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
-                    $Error = false;
-                }
-            });
-            // Add new Link
-            array_walk($Category, function ($Category) use ($tblGroup, &$Error) {
+                    if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
+                        $Error = false;
+                    }
+                });
+            }
+            if ($Category) {
+                // Add new Link
+                array_walk($Category, function ($Category) use ($tblGroup, &$Error) {
 
-                if (!$this->addGroupCategory($tblGroup, $this->getCategoryById($Category))) {
-                    $Error = false;
-                }
-            });
+                    if (!$this->addGroupCategory($tblGroup, $this->getCategoryById($Category))) {
+                        $Error = false;
+                    }
+                });
+            }
 
             if (!$Error) {
                 return new Success('Die Kategorien wurden erfolgreich geändert')

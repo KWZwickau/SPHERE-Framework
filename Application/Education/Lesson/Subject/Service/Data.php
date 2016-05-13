@@ -29,117 +29,117 @@ class Data extends AbstractData
         // Profil
         $tblCategory = $this->createCategory('Profil', '', true, 'PROFILE');
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
-        $tblSubject = $this->createSubject('KPR', 'Künstlerisches Profil');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('SPR', 'Sprachliches Profil');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('NPR', 'Naturwissenschaftliches Profil');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('GPR', 'Geisteswissenschaftliches Profil');
-        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('KPR', 'Künstlerisches Profil');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('SPR', 'Sprachliches Profil');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('NPR', 'Naturwissenschaftliches Profil');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('GPR', 'Geisteswissenschaftliches Profil');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
 
         // Neigungskurs
-        $tblCategory = $this->createCategory('Kunst und Kultur');
-        $this->addGroupCategory($tblGroupOrientation, $tblCategory);
-        $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
-        $tblSubject = $this->createSubject('SZSP', 'Szenisches Spiel');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblCategory = $this->createCategory('Soziales und gesellschaftliches Handeln');
-        $this->addGroupCategory($tblGroupOrientation, $tblCategory);
-        $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
-        $tblSubject = $this->createSubject('KRHA', 'Kreatives Handwerken');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblCategory = $this->createCategory('Technik');
-        $this->addGroupCategory($tblGroupOrientation, $tblCategory);
-        $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
-        $tblSubject = $this->createSubject('TECH', 'Technik');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('SCHW', 'Schrauberwerkstatt');
-        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblCategory = $this->createCategory('Kunst und Kultur');
+//        $this->addGroupCategory($tblGroupOrientation, $tblCategory);
+//        $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
+//        $tblSubject = $this->createSubject('SZSP', 'Szenisches Spiel');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblCategory = $this->createCategory('Soziales und gesellschaftliches Handeln');
+//        $this->addGroupCategory($tblGroupOrientation, $tblCategory);
+//        $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
+//        $tblSubject = $this->createSubject('KRHA', 'Kreatives Handwerken');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblCategory = $this->createCategory('Technik');
+//        $this->addGroupCategory($tblGroupOrientation, $tblCategory);
+//        $this->addGroupCategory($tblGroupAdvanced, $tblCategory);
+//        $tblSubject = $this->createSubject('TECH', 'Technik');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('SCHW', 'Schrauberwerkstatt');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
 
         // Wahlfach
         $tblCategoryElective = $tblCategory = $this->createCategory('Wahlfach');
         $this->addGroupCategory($tblGroupElective, $tblCategoryElective);
 
         // Muttersprache
-        $tblCategory = $this->createCategory('Muttersprache');
-        $this->addGroupCategory($tblGroupStandard, $tblCategory);
-        $tblSubject = $this->createSubject('DE', 'Deutsch');
-        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblCategory = $this->createCategory('Muttersprache');
+//        $this->addGroupCategory($tblGroupStandard, $tblCategory);
+//        $tblSubject = $this->createSubject('DE', 'Deutsch');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
 
         // Fremdsprache
         $tblCategory = $this->createCategory('Fremdsprachen', '', true, 'FOREIGNLANGUAGE');
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
-        $tblSubject = $this->createSubject('EN', 'Englisch');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('LA', 'Latein');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('FR', 'Französisch');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('RU', 'Russisch');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('PO', 'Polnisch');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('SP', 'Spanisch');
-        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('EN', 'Englisch');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('LA', 'Latein');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('FR', 'Französisch');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('RU', 'Russisch');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('PO', 'Polnisch');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('SP', 'Spanisch');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
 
         // Musische Fächer
-        $tblCategory = $this->createCategory('Musische Fächer');
-        $this->addGroupCategory($tblGroupStandard, $tblCategory);
-        $tblSubject = $this->createSubject('MU', 'Musik');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $this->addCategorySubject($tblCategoryElective, $tblSubject);
-        $tblSubject = $this->createSubject('KU', 'Kunst');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $this->addCategorySubject($tblCategoryElective, $tblSubject);
-        $tblSubject = $this->createSubject('DASP', 'Darstellendes Spiel');
-        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblCategory = $this->createCategory('Musische Fächer');
+//        $this->addGroupCategory($tblGroupStandard, $tblCategory);
+//        $tblSubject = $this->createSubject('MU', 'Musik');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $this->addCategorySubject($tblCategoryElective, $tblSubject);
+//        $tblSubject = $this->createSubject('KU', 'Kunst');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $this->addCategorySubject($tblCategoryElective, $tblSubject);
+//        $tblSubject = $this->createSubject('DASP', 'Darstellendes Spiel');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
 
         // Naturwissenschaften/Technik
-        $tblCategory = $this->createCategory('Naturwissenschaften/Technik');
-        $this->addGroupCategory($tblGroupStandard, $tblCategory);
-        $tblSubject = $this->createSubject('MA', 'Mathematik');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('IN', 'Informatik');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('BI', 'Biologie');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('CH', 'Chemie');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('PH', 'Physik');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('TE', 'Technik');
-        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblCategory = $this->createCategory('Naturwissenschaften/Technik');
+//        $this->addGroupCategory($tblGroupStandard, $tblCategory);
+//        $tblSubject = $this->createSubject('MA', 'Mathematik');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('IN', 'Informatik');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('BI', 'Biologie');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('CH', 'Chemie');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('PH', 'Physik');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('TE', 'Technik');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
 
         // Gesellschaftswissenschaften
-        $tblCategory = $this->createCategory('Gesellschaftswissenschaften');
-        $this->addGroupCategory($tblGroupStandard, $tblCategory);
-        $tblSubject = $this->createSubject('GE', 'Geschichte');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $this->addCategorySubject($tblCategoryElective, $tblSubject);
-        $tblSubject = $this->createSubject('GEO', 'Geographie');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $this->addCategorySubject($tblCategoryElective, $tblSubject);
-        $tblSubject = $this->createSubject('SOP', 'Sozialkunde/Politik');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('WI', 'Wirtschaft');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('RE', 'Recht');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('ER', 'Erziehungswissenschaften');
-        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblCategory = $this->createCategory('Gesellschaftswissenschaften');
+//        $this->addGroupCategory($tblGroupStandard, $tblCategory);
+//        $tblSubject = $this->createSubject('GE', 'Geschichte');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $this->addCategorySubject($tblCategoryElective, $tblSubject);
+//        $tblSubject = $this->createSubject('GEO', 'Geographie');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $this->addCategorySubject($tblCategoryElective, $tblSubject);
+//        $tblSubject = $this->createSubject('SOP', 'Sozialkunde/Politik');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('WI', 'Wirtschaft');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('RE', 'Recht');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('ER', 'Erziehungswissenschaften');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
 
         // Religionsunterricht
         $tblCategory = $this->createCategory('Religionsunterricht', '', true, 'RELIGION');
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
-        $tblSubject = $this->createSubject('RKA', 'Katholische Religionslehre');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('REV', 'Evangelische Religionslehre');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('ETH', 'Ethik');
-        $this->addCategorySubject($tblCategory, $tblSubject);
-        $tblSubject = $this->createSubject('PHI', 'Philosophie');
-        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('RKA', 'Katholische Religionslehre');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('REV', 'Evangelische Religionslehre');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('ETH', 'Ethik');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
+//        $tblSubject = $this->createSubject('PHI', 'Philosophie');
+//        $this->addCategorySubject($tblCategory, $tblSubject);
     }
 
     /**
@@ -191,11 +191,13 @@ class Data extends AbstractData
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblCategory')->findOneBy(array(
                 TblCategory::ATTR_IS_LOCKED  => $IsLocked,
-                TblCategory::ATTR_IDENTIFIER => $Identifier
+                TblCategory::ATTR_IDENTIFIER => $Identifier,
+                'EntityRemove' => null
             ));
         } else {
             $Entity = $Manager->getEntity('TblCategory')->findOneBy(array(
-                TblCategory::ATTR_NAME => $Name
+                TblCategory::ATTR_NAME => $Name,
+                'EntityRemove' => null
             ));
         }
         if (null === $Entity) {
@@ -248,6 +250,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSubject')->findOneBy(array(
             TblSubject::ATTR_ACRONYM => $Acronym,
+            'EntityRemove' => null
         ));
         if (null === $Entity) {
             $Entity = new TblSubject();
@@ -410,7 +413,7 @@ class Data extends AbstractData
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
-            $Manager->killEntity($Entity);
+            $Manager->removeEntity($Entity);
             return true;
         }
         return false;
@@ -524,10 +527,17 @@ class Data extends AbstractData
                 TblGroupCategory::ATTR_TBL_GROUP => $tblGroup->getId()
             )
         );
-        array_walk($EntityList, function (TblGroupCategory &$V) {
+        if ($EntityList) {
+            array_walk($EntityList, function (TblGroupCategory &$V) {
 
-            $V = $V->getTblCategory();
-        });
+                if ($V->getTblCategory()) {
+                    $V = $V->getTblCategory();
+                } else {
+                    $V = false;
+                }
+            });
+        }
+        $EntityList = array_filter($EntityList);
         return ( null === $EntityList ? false : $EntityList );
     }
 
