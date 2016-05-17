@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Document\Storage;
 
-use SPHERE\Application\Document\Frontend;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;

@@ -16,6 +16,7 @@
             <directory suffix=".php">./../Common</directory>
             <directory suffix=".php">./../System</directory>
             <exclude>
+                <directory>./../Library</directory>
                 <directory>./../Common/Script</directory>
                 <directory>./../Common/Style</directory>
                 <directory>./../System/Database/Fitting</directory>
@@ -24,5 +25,6 @@
     </filter>
     <logging>
         <log type="coverage-clover" target="./Report/Coverage.xml"/>
+        <!--<log type="coverage-html" target="./Report/Coverage.html"/>-->
     </logging>
 </phpunit>
