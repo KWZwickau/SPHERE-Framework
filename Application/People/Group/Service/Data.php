@@ -170,11 +170,13 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getMemberAllByGroup($tblGroup);
-        array_walk($EntityList, function (TblMember &$V) {
+        if ($EntityList) {
+            array_walk($EntityList, function (TblMember &$V) {
 
-            $V = $V->getServiceTblPerson();
-        });
-        $EntityList = array_filter($EntityList);
+                $V = $V->getServiceTblPerson();
+            });
+            $EntityList = array_filter($EntityList);
+        }
         return ( null === $EntityList ? false : $EntityList );
     }
 
