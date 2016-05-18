@@ -8,6 +8,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Storage
+ *
+ * @package SPHERE\Application\Document\Storage
+ */
 class Storage implements IApplicationInterface, IModuleInterface
 {
 
