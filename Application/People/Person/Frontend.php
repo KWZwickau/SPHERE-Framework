@@ -6,6 +6,7 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -159,6 +160,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 array('Id' => $tblPerson->getId(), 'Group' => $Group)
                             );
                             break;
+                        case 'CLUB':
+                            $tblGroup = new LayoutTab('Vereinsmitglied', $tblGroup->getMetaTable(),
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                            );
+                            break;
                         default:
                             $tblGroup = false;
                     }
@@ -198,6 +204,9 @@ class Frontend extends Extension implements IFrontendInterface
                         break;
                     case 'CUSTODY':
                         $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
+                        break;
+                    case 'CLUB':
+                        $MetaTable = Club::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                         break;
                     default:
                         if (!empty($MetaTabs)) {
