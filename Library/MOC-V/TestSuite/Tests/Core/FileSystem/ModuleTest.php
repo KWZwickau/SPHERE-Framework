@@ -49,7 +49,11 @@ class ModuleTest extends AbstractTestCase
 
         $this->assertEquals(__FILE__, $Loader->getLocation());
         $this->assertEquals(__FILE__, $Loader->getRealPath());
-
+        if (( $MimeType = $Loader->getMimeType() )) {
+            $this->assertEquals('text/x-php', $MimeType);
+        } else {
+            $this->assertEquals(false, $MimeType);
+        }
         $this->assertInternalType('string', (string)$Loader);
         $this->assertStringEqualsFile(__FILE__, (string)$Loader);
 
@@ -60,7 +64,11 @@ class ModuleTest extends AbstractTestCase
 
         $this->assertEquals(basename(__FILE__), $Loader->getLocation());
         $this->assertEquals('', $Loader->getRealPath());
-
+        if (( $MimeType = $Loader->getMimeType() )) {
+            $this->assertEquals('text/x-php', $MimeType);
+        } else {
+            $this->assertEquals(false, $MimeType);
+        }
         $this->assertInternalType('string', (string)$Loader);
         $this->assertEquals('', (string)$Loader);
     }
@@ -81,7 +89,11 @@ class ModuleTest extends AbstractTestCase
 
         $this->assertEquals(__FILE__, $Loader->getLocation());
         $this->assertEquals(__FILE__, $Loader->getRealPath());
-
+        if (( $MimeType = $Loader->getMimeType() )) {
+            $this->assertEquals('text/x-php', $MimeType);
+        } else {
+            $this->assertEquals(false, $MimeType);
+        }
         $this->assertInternalType('string', (string)$Loader);
         $this->assertStringEqualsFile(__FILE__, (string)$Loader);
 
@@ -92,7 +104,11 @@ class ModuleTest extends AbstractTestCase
 
         $this->assertEquals(basename(__FILE__), $Loader->getLocation());
         $this->assertEquals('', $Loader->getRealPath());
-
+        if (( $MimeType = $Loader->getMimeType() )) {
+            $this->assertEquals('text/x-php', $MimeType);
+        } else {
+            $this->assertEquals(false, $MimeType);
+        }
         $this->assertInternalType('string', (string)$Loader);
         $this->assertEquals('', (string)$Loader);
     }
@@ -111,7 +127,11 @@ class ModuleTest extends AbstractTestCase
 
         $this->assertEquals(__FILE__, $Loader->getLocation());
         $this->assertEquals(__FILE__, $Loader->getRealPath());
-
+        if (( $MimeType = $Loader->getMimeType() )) {
+            $this->assertEquals('text/x-php', $MimeType);
+        } else {
+            $this->assertEquals(false, $MimeType);
+        }
         $this->assertInternalType('string', (string)$Loader);
         $this->assertStringEqualsFile(__FILE__, (string)$Loader);
 
@@ -122,7 +142,11 @@ class ModuleTest extends AbstractTestCase
 
         $this->assertEquals(basename(__FILE__), $Loader->getLocation());
         $this->assertEquals('', $Loader->getRealPath());
-
+        if (( $MimeType = $Loader->getMimeType() )) {
+            $this->assertEquals('text/x-php', $MimeType);
+        } else {
+            $this->assertEquals(false, $MimeType);
+        }
         $this->assertInternalType('string', (string)$Loader);
         $this->assertEquals('', (string)$Loader);
     }
@@ -143,7 +167,11 @@ class ModuleTest extends AbstractTestCase
 
         $this->assertEquals(__FILE__, $Writer->getLocation());
         $this->assertEquals(__FILE__, $Writer->getRealPath());
-
+        if (( $MimeType = $Writer->getMimeType() )) {
+            $this->assertEquals('text/x-php', $MimeType);
+        } else {
+            $this->assertEquals(false, $MimeType);
+        }
         $this->assertInternalType('string', (string)$Writer);
         $this->assertStringEqualsFile(__FILE__, (string)$Writer);
 
@@ -154,7 +182,11 @@ class ModuleTest extends AbstractTestCase
 
         $this->assertEquals(basename(__FILE__), $Writer->getLocation());
         $this->assertEquals('', $Writer->getRealPath());
-
+        if (( $MimeType = $Writer->getMimeType() )) {
+            $this->assertEquals('text/x-php', $MimeType);
+        } else {
+            $this->assertEquals(false, $MimeType);
+        }
         $this->assertInternalType('string', (string)$Writer);
         $this->assertEquals('', (string)$Writer);
     }

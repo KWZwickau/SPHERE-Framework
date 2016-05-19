@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Document\Storage;
 
-use SPHERE\Application\Document\Frontend;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -9,6 +8,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Storage
+ *
+ * @package SPHERE\Application\Document\Storage
+ */
 class Storage implements IApplicationInterface, IModuleInterface
 {
 

@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -46,8 +47,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblConsumer', 'Acronym')) {
             $Table->addColumn('Acronym', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Acronym'))) {
-            $Table->addUniqueIndex(array('Acronym'));
+        $this->getConnection()->removeIndex($Table, array('Acronym'));
+        if (!$this->getConnection()->hasIndex($Table, array('Acronym', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Acronym', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblConsumer', 'Name')) {
             $Table->addColumn('Name', 'string');

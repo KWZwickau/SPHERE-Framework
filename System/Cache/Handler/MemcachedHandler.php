@@ -6,6 +6,7 @@ use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\CacheLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
@@ -85,6 +86,17 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
         if ($this->isValid()) {
             $this->Connection->set($this->getSlotRegion($Region).'#'.$Key, $Value,
                 ( !$Timeout ? null : time() + $Timeout ));
+            // 0 = MEMCACHED_SUCCESS
+            if (0 == ( $Code = $this->Connection->getResultCode() )) {
+                return $this;
+            } else {
+                (new DebuggerFactory())->createLogger(new ErrorLogger())
+                    ->addLog(__METHOD__.' Error: '
+                        .$Region.'->'.$Key.' - '
+                        .$Code.' - '
+                        .$this->Connection->getResultMessage()
+                    );
+            }
         }
         return $this;
     }
@@ -135,13 +147,13 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
             // 0 = MEMCACHED_SUCCESS
             if (0 == ( $Code = $this->Connection->getResultCode() )) {
                 return $Value;
-//            } else {
-//                (new DebuggerFactory())->createLogger(new ErrorLogger())
-//                    ->addLog(__METHOD__.' Error: '
-//                        .$Region.'->'.$Key.' - '
-//                        .$Code.' - '
-//                        .$this->Connection->getResultMessage()
-//                    );
+            } else {
+                (new DebuggerFactory())->createLogger(new ErrorLogger())
+                    ->addLog(__METHOD__.' Error: '
+                        .$Region.'->'.$Key.' - '
+                        .$Code.' - '
+                        .$this->Connection->getResultMessage()
+                    );
             }
         }
         return null;
@@ -169,22 +181,17 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
         return $this;
     }
 
-    /**
-     * @return CacheStatus
-     */
-    public function getStatus()
+    public function clearSlot($Slot)
     {
 
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Status MemCached');
-        if ($this->isValid()) {
-            $Status = $this->Connection->getStats();
-            $Status = $Status[$this->Host.':'.$this->Port];
-            return new CacheStatus(
-                $Status['get_hits'], $Status['get_misses'], $Status['limit_maxbytes'],
-                $Status['bytes'], $Status['limit_maxbytes'] - $Status['bytes'], 0
-            );
-        } else {
-            return new CacheStatus();
+        (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Requested Memcached-Slot-Clear: '.$Slot);
+        $Pattern = '!^'.preg_quote($Slot, '!').':!is';
+        $CacheList = $this->fetchKeys();
+        $KeyList = preg_grep($Pattern, $CacheList);
+        if (!empty( $KeyList )) {
+            $this->removeKeys($KeyList);
+            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Cleared Memcached-Slot: '.implode(',',
+                    $KeyList));
         }
     }
 
@@ -212,6 +219,25 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     {
 
         $this->Connection->deleteMulti($List);
+    }
+
+    /**
+     * @return CacheStatus
+     */
+    public function getStatus()
+    {
+
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Status MemCached');
+        if ($this->isValid()) {
+            $Status = $this->Connection->getStats();
+            $Status = $Status[$this->Host.':'.$this->Port];
+            return new CacheStatus(
+                $Status['get_hits'], $Status['get_misses'], $Status['limit_maxbytes'],
+                $Status['bytes'], $Status['limit_maxbytes'] - $Status['bytes'], 0
+            );
+        } else {
+            return new CacheStatus();
+        }
     }
 
     /**

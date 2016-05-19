@@ -1,11 +1,13 @@
 <?php
-namespace SPHERE\Common\Frontend;
+namespace SPHERE\System\Cache\Handler;
 
 use SPHERE\System\Cache\CacheFactory;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\CacheStatus;
+use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\CacheLogger;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Debugger\Logger\QueryLogger;
 
 /**
@@ -13,7 +15,7 @@ use SPHERE\System\Debugger\Logger\QueryLogger;
  *
  * @package SPHERE\Common\Frontend
  */
-class Cache
+class DataCacheHandler extends AbstractHandler
 {
 
     /** @var string $Identifier */
@@ -67,8 +69,8 @@ class Cache
     {
 
         if ($this->Handler->isEnabled()) {
-            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog('Save Gui: '.md5($this->Identifier));
-            $this->Handler->setValue($this->createKey(), $Value, $Timeout, 'GUI');
+            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog('Save DataCache: '.md5($this->Identifier));
+            $this->Handler->setValue($this->createKey(), $Value, $Timeout, 'DataCache');
         }
         return $this;
     }
@@ -98,7 +100,7 @@ class Cache
             $KeyList = array();
             array_walk($this->Dependency, function (Element $Entity) use (&$KeyList) {
 
-                array_push($KeyList, md5(get_class($Entity)));
+                array_push($KeyList, (string)crc32(get_class($Entity)));
             });
             return $KeyList;
         }
@@ -113,10 +115,60 @@ class Cache
     {
 
         if ($this->Handler->isEnabled()) {
-            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Load Gui: '.md5($this->Identifier));
-            return $this->Handler->getValue($this->createKey(), 'GUI');
+            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Load DataCache: '.md5($this->Identifier));
+            return $this->Handler->getValue($this->createKey(), 'DataCache');
         }
         return null;
+    }
+
+    /**
+     * @param string $Key
+     * @param mixed $Value
+     * @param int $Timeout
+     * @param string $Region
+     *
+     * @return HandlerInterface
+     */
+    public function setValue($Key, $Value, $Timeout = 0, $Region = 'Default')
+    {
+        // MUST NOT USE
+        (new DebuggerFactory())->createLogger(new ErrorLogger())
+            ->addLog(__METHOD__ . ' Error: SET - MUST NOT BE USED! Use setData() instead.');
+        return $this;
+    }
+
+    /**
+     * @param string $Key
+     * @param string $Region
+     *
+     * @return null|mixed
+     */
+    public function getValue($Key, $Region = 'Default')
+    {
+        // MUST NOT USE
+        (new DebuggerFactory())->createLogger(new ErrorLogger())
+            ->addLog(__METHOD__.' Error: GET - MUST NOT BE USED! Use getData() instead.');
+        return null;
+    }
+
+    /**
+     * @param string $Name
+     * @param ReaderInterface $Config
+     *
+     * @return HandlerInterface
+     */
+    public function setConfig($Name, ReaderInterface $Config = null)
+    {
+
+        return $this;
+    }
+
+    /**
+     * @return HandlerInterface
+     */
+    public function clearCache()
+    {
+        $this->clearData();
     }
 
     /**
@@ -130,7 +182,8 @@ class Cache
             $CacheList = $this->Handler->fetchKeys();
             $KeyList = preg_grep($Pattern, $CacheList);
             if (!empty( $KeyList )) {
-                (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Clear Gui: '.implode(',', $KeyList));
+                (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Clear DataCache: '.implode(',',
+                        $KeyList));
                 $this->Handler->removeKeys($KeyList);
             }
         }
@@ -146,4 +199,14 @@ class Cache
         $KeyList = $this->createKeyList();
         return '!("'.implode('"|"', $KeyList).'")!is';
     }
+
+    /**
+     * @return CacheStatus
+     */
+    public function getStatus()
+    {
+        return $this->Handler->getStatus();
+    }
+
+
 }

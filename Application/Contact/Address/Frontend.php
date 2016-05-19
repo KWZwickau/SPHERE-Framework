@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -91,8 +92,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(new PersonIcon() . ' Person',
-                                $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_INFO
+                                new Bold($tblPerson->getFullName()),
+                                Panel::PANEL_TYPE_SUCCESS
 
                             )
                         )
@@ -203,9 +204,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new Panel(new Building() . ' Firma',
-                                    array($tblCompany->getName(),
+                                    array(
+                                        new Bold($tblCompany->getName()),
                                         $tblCompany->getExtendedName()),
-                                    Panel::PANEL_TYPE_INFO
+                                    Panel::PANEL_TYPE_SUCCESS
                                 )
                             )
                         ),
@@ -283,9 +285,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(new PersonIcon() . ' Person',
                                 $tblToPerson->getServiceTblPerson()
-                                    ? $tblToPerson->getServiceTblPerson()->getFullName()
+                                    ? new Bold($tblToPerson->getServiceTblPerson()->getFullName())
                                     : 'Person nicht gefunden.'   ,
-                                Panel::PANEL_TYPE_INFO
+                                Panel::PANEL_TYPE_SUCCESS
                             )
                         )
                     ),
@@ -355,10 +357,11 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(new PersonIcon() . ' Firma',
                                     $tblToCompany->getServiceTblCompany()
-                                        ? array($tblToCompany->getServiceTblCompany()->getName(),
+                                        ? array(
+                                        new Bold($tblToCompany->getServiceTblCompany()->getName()),
                                         $tblToCompany->getServiceTblCompany()->getExtendedName())
                                         : 'Firma nicht gefunden.',
-                                    Panel::PANEL_TYPE_INFO
+                                    Panel::PANEL_TYPE_SUCCESS
                                 )
                             )
                         ),
@@ -409,8 +412,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Person',
-                            $tblPerson->getFullName(),
-                            Panel::PANEL_TYPE_INFO
+                            new Bold($tblPerson->getFullName()),
+                            Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Panel(new Question() . ' Diese Adresse wirklich löschen?', array(
                             $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
@@ -480,7 +483,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new Building() . ' Company',
-                            array($tblCompany->getName(),
+                            array(
+                                new Bold($tblCompany->getName()),
                                 $tblCompany->getExtendedName()),
                             Panel::PANEL_TYPE_SUCCESS,
                             new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),

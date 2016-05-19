@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -543,6 +544,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $Entity->Address = new WarningText('Keine Adresse hinterlegt');
                 }
 
+                $tblCourse = Student::useService()->getCourseByPerson($Entity);
+                $Entity->Course = $tblCourse ? $tblCourse->getName() : '';
+
                 /** @noinspection PhpUndefinedFieldInspection */
                 $Entity->Option = new PullRight(
                     new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
@@ -574,6 +578,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $Entity->Address = new WarningText('Keine Adresse hinterlegt');
                 }
 
+                $tblCourse = Student::useService()->getCourseByPerson($Entity);
+                $Entity->Course = $tblCourse ? $tblCourse->getName() : '';
+
                 /** @noinspection PhpUndefinedFieldInspection */
                 $Entity->Option = new PullRight(
                     new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
@@ -598,6 +605,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(
                                         'Name'    => 'Schüler',
                                         'Address' => 'Adresse',
+                                        'Course' => 'Bildungsgang',
                                         'Option'  => ''
                                     ))
                             )
@@ -610,6 +618,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(
                                         'Name'    => 'Schüler',
                                         'Address' => 'Adresse',
+                                        'Course' => 'Bildungsgang',
                                         'Option'  => ' '
                                     ))
                             )
@@ -1033,7 +1042,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Acronym'     => 'Kürzel',
                                         'Name'        => 'Fach',
                                         'Description' => 'Beschreibung',
-                                        'Option'      => ' '    // ToDo Unterschiedliche Spaltennamen benötigt!
+                                        'Option'      => ' '
                                     ))
                             )
                         ), 6)
@@ -1176,10 +1185,13 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
+                $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                $display = $tblPerson->getLastFirstName() . ($tblCourse ? new Small(' (' . $tblCourse->getName() . ')') : '');
+
                 $tblPerson = new CheckBox(
                     'Student['.$tblPerson->getId().']',
-                    ( ( $trigger ) ? new WarningText($tblPerson->getLastFirstName())
-                        : $tblPerson->getLastFirstName() )
+                    ( ( $trigger ) ? new WarningText($display)
+                        : $display )
                     ,
                     $tblPerson->getId()
                 );
@@ -1192,7 +1204,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Schüler', $tblStudentList, Panel::PANEL_TYPE_INFO)
+                        new Panel('Schüler' . new Small(' (Bildungsgang)') , $tblStudentList, Panel::PANEL_TYPE_INFO)
                         , 12),
                 )),
             ))
@@ -1733,6 +1745,9 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $tblDivisionStudent->Address = new WarningText('Keine Adresse hinterlegt');
                     }
+
+                    $tblCourse = Student::useService()->getCourseByPerson($tblDivisionStudent);
+                    $tblDivisionStudent->Course = $tblCourse ? $tblCourse ->getName() : '';
                 }
             } else {
                 $tblDivisionStudentList = array();
@@ -1916,7 +1931,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                                            'FirstName' => 'Vorname',
                                             'FullName' => 'Schüler',
                                             'Address'  => 'Adresse',
-                                            'Birthday' => 'Geburtsdatum'
+                                            'Birthday' => 'Geburtsdatum',
+                                            'Course' => 'Bildungsgang',
                                         ), false)
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,

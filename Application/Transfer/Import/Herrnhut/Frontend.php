@@ -62,4 +62,45 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $View;
     }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function frontendFormerStudentImport($File = null)
+    {
+
+        $View = new Stage('Import Herrnhut', 'Ehemalige Schüler-Daten');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Herrnhut::useService()->createStudentsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File, true
+                                )
+                                ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)', new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
 }

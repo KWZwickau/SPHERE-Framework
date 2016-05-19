@@ -190,9 +190,7 @@ class Service extends AbstractService
                     }
                 }
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Firma wurde erfolgreich aktualisiert')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblCompany->getId(), 'Group' => $Group)
-                );
+                .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger(new Ban() . ' Die Firma konnte nicht aktualisiert werden')
                 .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);

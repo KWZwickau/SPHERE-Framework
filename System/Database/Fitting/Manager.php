@@ -6,7 +6,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
-use SPHERE\Common\Frontend\Cache;
+use SPHERE\System\Cache\Handler\DataCacheHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Debugger\Logger\CacheLogger;
@@ -86,7 +86,7 @@ class Manager extends Extension
 
         $this->EntityManager->remove($Entity);
         $this->flushCache(get_class($Entity));
-        (new Cache(__METHOD__))->addDependency($Entity)->clearData();
+        (new DataCacheHandler(__METHOD__))->addDependency($Entity)->clearData();
         return $this;
     }
 
@@ -186,7 +186,7 @@ class Manager extends Extension
 
         $this->EntityManager->persist($Entity);
         $this->flushCache(get_class($Entity));
-        (new Cache(__METHOD__))->addDependency($Entity)->clearData();
+        (new DataCacheHandler(__METHOD__))->addDependency($Entity)->clearData();
         return $this;
     }
 

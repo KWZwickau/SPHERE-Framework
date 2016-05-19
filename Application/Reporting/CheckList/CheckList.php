@@ -62,7 +62,7 @@ class CheckList implements IApplicationInterface, IModuleInterface
 
     public static function registerModule()
     {
-        // TODO: Implement registerModule() method.
+
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\Transfer\Import\Chemnitz\Service;
 
-use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Address as PersonContactAddress;
 use SPHERE\Application\People\Person\Service;
 
 /**
@@ -37,18 +37,6 @@ class Person extends Service
     }
 
     /**
-     * @param $FirstName
-     * @param $LastName
-     *
-     * @return bool|Service\Entity\TblPerson[]
-     */
-    public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
-    {
-
-        return (new Service\Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
-    }
-
-    /**
      * @param string $FirstName
      * @param string $LastName
      * @param string $ZipCode
@@ -63,7 +51,7 @@ class Person extends Service
         if (( $persons = $this->getPersonAllByFirstNameAndLastName($FirstName, $LastName) )
         ) {
             foreach ($persons as $person) {
-                if (( $addresses = Address::useService()->getAddressAllByPerson($person) )) {
+                if (( $addresses = PersonContactAddress::useService()->getAddressAllByPerson($person) )) {
                     if ($addresses[0]->getTblAddress()->getTblCity()->getCode() == $ZipCode) {
                         $exists = $person;
                     }
@@ -72,5 +60,17 @@ class Person extends Service
         }
 
         return $exists;
+    }
+
+    /**
+     * @param $FirstName
+     * @param $LastName
+     *
+     * @return bool|Service\Entity\TblPerson[]
+     */
+    public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
+    {
+
+        return (new Service\Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
     }
 }

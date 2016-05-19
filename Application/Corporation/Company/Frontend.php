@@ -68,7 +68,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCompany($TabActive = false, $Id = null, $Company = null, $Meta = null, $Group = null)
     {
 
-        $Stage = new Stage('Firmen', 'Datenblatt');
+        $Stage = new Stage('Firmen', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
         if ($Group) {
             $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(),
                 array('Id' => $Group)));

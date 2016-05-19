@@ -43,7 +43,7 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
@@ -51,7 +51,7 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 
     public function frontendDashboard()

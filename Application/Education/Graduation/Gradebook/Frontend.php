@@ -50,7 +50,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -936,9 +935,9 @@ class Frontend extends Extension implements IFrontendInterface
         $rowList = array();
 
         // Schuljahr vorselektieren
-        if ($YearId === null){
+        if ($YearId === null) {
             $tblYearList = Term::useService()->getYearByNow();
-            if ($tblYearList){
+            if ($tblYearList) {
                 $tblYear = reset($tblYearList);
                 $YearId = $tblYear->getId();
             }
@@ -950,6 +949,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
 
             $tblYear = Term::useService()->getYearById($YearId);
+
             $tblPerson = false;
             $tblAccount = Account::useService()->getAccountBySession();
             if ($tblAccount) {
@@ -959,23 +959,189 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
+            $tblPersonList = array();
             if ($tblPerson) {
-
-                $rowList = $this->createContentForStudentGradebook($tblYear, $tblPerson,
-                    $rowList, $tblTestType);
+                $tblPersonList[] = $tblPerson;
 
                 $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($tblPersonRelationshipList) {
                     foreach ($tblPersonRelationshipList as $relationship) {
                         if ($relationship->getTblType()->getName() == 'Sorgeberechtigt' && $relationship->getServiceTblPersonTo()) {
-                            $rowList[] = new LayoutRow(new LayoutColumn(new Header('&nbsp;'), 12));
-                            $rowList = $this->createContentForStudentGradebook($tblYear,
-                                $relationship->getServiceTblPersonTo(), $rowList, $tblTestType);
+                            $tblPersonList[] = $relationship->getServiceTblPersonTo();
                         }
                     }
                 }
             }
-        } else {
+
+            if (!empty($tblPersonList) && $tblYear) {
+                /** @var TblPerson $tblPerson */
+                foreach ($tblPersonList as $tblPerson) {
+                    $tableHeaderList = array();
+                    $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                    if ($tblPeriodList) {
+                        $tableHeaderList['Subject'] = 'Fach';
+                        foreach ($tblPeriodList as $tblPeriod) {
+                            $tableHeaderList['Period' . $tblPeriod->getId()] = new Bold($tblPeriod->getDisplayName());
+                        }
+                    }
+
+                    $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                    if ($tblDivisionStudentList) {
+
+                        /** @var TblDivisionStudent $tblDivisionStudent */
+                        foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                            $tblDivision = $tblDivisionStudent->getTblDivision();
+                            if ($tblDivision && $tblDivision->getServiceTblYear()) {
+                                // alle Klassen zum aktuellen Jahr
+                                if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
+                                    $rowList[] = new LayoutRow(new LayoutColumn(new Title($tblPerson->getLastFirstName()
+                                        . new Small(new Muted(' Klasse ' . $tblDivision->getDisplayName()))),
+                                        12));
+                                    $tableDataList = array();
+                                    $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+                                    if ($tblDivisionSubjectList) {
+                                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                            if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                                                if (!$tblDivisionSubject->getTblSubjectGroup()) {
+                                                    $hasStudentSubject = false;
+                                                    $tblDivisionSubjectWhereGroup =
+                                                        Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                                            $tblDivision, $tblDivisionSubject->getServiceTblSubject()
+                                                        );
+                                                    if ($tblDivisionSubjectWhereGroup) {
+                                                        foreach ($tblDivisionSubjectWhereGroup as $tblDivisionSubjectGroup) {
+
+                                                            if (Division::useService()->getSubjectStudentByDivisionSubjectAndPerson($tblDivisionSubjectGroup,
+                                                                $tblPerson)
+                                                            ) {
+                                                                $hasStudentSubject = true;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        $hasStudentSubject = true;
+                                                    }
+                                                    if ($hasStudentSubject) {
+                                                        $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Subject'] = $tblDivisionSubject->getServiceTblSubject()->getName();
+
+                                                        if ($tblPeriodList) {
+                                                            foreach ($tblPeriodList as $tblPeriod) {
+                                                                $tblGradeList = Gradebook::useService()->getGradesByStudent(
+                                                                    $tblPerson,
+                                                                    $tblDivision,
+                                                                    $tblDivisionSubject->getServiceTblSubject(),
+                                                                    $tblTestType,
+                                                                    $tblPeriod
+                                                                );
+
+                                                                $subTableHeaderList = array();
+                                                                $subTableDataList = array();
+
+                                                                if ($tblGradeList) {
+
+//                                                                    if ($tblDivisionSubject->getServiceTblSubject()->getName() == 'Ethik') {
+//                                                                        $this->getDebugger()->screenDump($tblGradeList);
+//                                                                    }
+
+                                                                    foreach ($tblGradeList as $tblGrade) {
+                                                                        $tblTest = $tblGrade->getServiceTblTest();
+                                                                        if ($tblTest) {
+                                                                            if ($tblTest->getServiceTblGradeType() && $tblTest->getReturnDate()) {
+                                                                                $testReturnDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
+                                                                                $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                                if ($testReturnDate < $now) {
+
+                                                                                    // Test anzeigen
+                                                                                    $date = $tblTest->getDate();
+                                                                                    if (strlen($date) > 6) {
+                                                                                        $date = substr($date, 0, 6);
+                                                                                    }
+                                                                                    $subTableHeaderList['Test' . $tblTest->getId()] = new Small(new Muted($date)) . '<br>'
+                                                                                        . ($tblTest->getServiceTblGradeType()->isHighlighted()
+                                                                                            ? $tblTest->getServiceTblGradeType()->getCode()
+                                                                                            : new Muted($tblTest->getServiceTblGradeType()->getCode()));
+
+                                                                                    $gradeValue = $tblGrade->getGrade();
+                                                                                    if ($gradeValue) {
+                                                                                        $trend = $tblGrade->getTrend();
+                                                                                        if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                                                                                            $gradeValue .= '+';
+                                                                                        } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                                                                                            $gradeValue .= '-';
+                                                                                        }
+                                                                                    }
+
+                                                                                    $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue ? $gradeValue : '';
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                if (!empty($subTableHeaderList)) {
+                                                                    $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = new TableData(
+                                                                        $subTableDataList, null, $subTableHeaderList,
+                                                                        false
+                                                                    );
+                                                                } else {
+                                                                    $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = '';
+                                                                }
+
+
+                                                                /*
+                                                               * Calc Average
+                                                               */
+//                                                            $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
+//                                                                $tblDivisionSubject->getTblDivision(),
+//                                                                $tblDivisionSubject->getServiceTblSubject()
+//                                                            );
+//                                                            if ($tblScoreRuleDivisionSubject) {
+//                                                                if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
+//                                                                    $average = Gradebook::useService()->calcStudentGrade(
+//                                                                        $tblPerson,
+//                                                                        $tblDivision,
+//                                                                        $tblDivisionSubject->getServiceTblSubject(),
+//                                                                        $tblTestType,
+//                                                                        $tblScoreRuleDivisionSubject->getTblScoreRule(),
+//                                                                        $tblPeriod,
+//                                                                        null,
+//                                                                        true
+//                                                                    );
+//                                                                    if (is_array($average)) {
+//                                                                        $average = '';
+//                                                                    } else {
+//                                                                        $posStart = strpos($average, '(');
+//                                                                        if ($posStart !== false) {
+//                                                                            $average = substr($average, 0, $posStart);
+//                                                                        }
+//                                                                    }
+//
+//                                                                    if ($average != '') {
+//                                                                        $subColumnList[] = new LayoutColumn(new Container(new Bold('&#216;' . $average)),
+//                                                                            1);
+//                                                                    }
+//                                                                }
+//                                                            }
+//
+//                                                            $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($subColumnList))),
+//                                                                $width);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    $rowList[] = new LayoutRow(new LayoutColumn(new TableData(
+                                        $tableDataList, null, $tableHeaderList, null
+                                    )));
+                                    $rowList[] = new LayoutRow(new LayoutColumn(new Header('&nbsp;'), 12));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }else {
             $tblYear = new TblYear();
         }
 
@@ -1008,308 +1174,6 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         );
         return $Stage;
-    }
-
-    /**
-     * @param $tblYear
-     * @param $tblPerson
-     * @param $rowList
-     * @param $tblTestType
-     *
-     * @return array
-     */
-    private function createContentForStudentGradebook(
-        TblYear $tblYear,
-        TblPerson $tblPerson,
-        $rowList,
-        $tblTestType
-    ) {
-
-        $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-        if ($tblDivisionStudentList) {
-
-            /** @var TblDivisionStudent $tblDivisionStudent */
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                $tblDivision = $tblDivisionStudent->getTblDivision();
-                if ($tblDivision && $tblDivision->getServiceTblYear()) {
-                    if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
-
-                        // Header
-                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
-                        $columnList = array();
-                        $columnList[] = new LayoutColumn(new Title($tblPerson->getLastFirstName()
-                            . new Small(new Muted(' Klasse ' . $tblDivision->getDisplayName()))),
-                            12);
-                        if ($tblPeriodList) {
-                            $columnList[] = new LayoutColumn(new Header(new Bold('Fach')), 2);
-                            $width = (12 - 2) / count($tblPeriodList);
-                            foreach ($tblPeriodList as $tblPeriod) {
-                                $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getDisplayName())),
-                                    $width);
-                            }
-                        }
-                        $rowList[] = new LayoutRow($columnList);
-
-                        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
-                        if ($tblDivisionSubjectList) {
-                            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                                if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
-                                    if (!$tblDivisionSubject->getTblSubjectGroup()) {
-                                        $tblDivisionSubjectWhereGroup =
-                                            Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                                                $tblDivision, $tblDivisionSubject->getServiceTblSubject()
-                                            );
-                                        $columnList = array();
-                                        if (!$tblDivisionSubjectWhereGroup) {
-
-                                            $totalAverage = '';
-                                            $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
-                                                $tblDivisionSubject->getTblDivision(),
-                                                $tblDivisionSubject->getServiceTblSubject()
-                                            );
-                                            if ($tblScoreRuleDivisionSubject) {
-                                                if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
-                                                    $totalAverage = Gradebook::useService()->calcStudentGrade(
-                                                        $tblPerson,
-                                                        $tblDivision,
-                                                        $tblDivisionSubject->getServiceTblSubject(),
-                                                        $tblTestType,
-                                                        $tblScoreRuleDivisionSubject->getTblScoreRule(),
-                                                        null,
-                                                        null,
-                                                        true
-                                                    );
-
-                                                    if (is_array($totalAverage)) {
-//                                                    $errorRowList = $totalAverage;
-                                                        $totalAverage = '';
-                                                    } else {
-                                                        $posStart = strpos($totalAverage, '(');
-                                                        if ($posStart !== false) {
-                                                            $totalAverage = substr($totalAverage, 0, $posStart);
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            $columnList[] = new LayoutColumn(
-                                                new Container($tblDivisionSubject->getServiceTblSubject()->getName()
-                                                    . ($totalAverage != '' ? ' ' . new Bold('&#216;' . $totalAverage) : '')),
-                                                2);
-
-                                            if ($tblPeriodList) {
-                                                $width = (12 - 2) / count($tblPeriodList);
-                                                foreach ($tblPeriodList as $tblPeriod) {
-                                                    $tblGradeList = Gradebook::useService()->getGradesByStudent(
-                                                        $tblPerson,
-                                                        $tblDivision,
-                                                        $tblDivisionSubject->getServiceTblSubject(),
-                                                        $tblTestType,
-                                                        $tblPeriod
-                                                    );
-                                                    $subColumnList = array();
-                                                    if ($tblGradeList) {
-                                                        foreach ($tblGradeList as $tblGrade) {
-                                                            $tblTest = $tblGrade->getServiceTblTest();
-                                                            if ($tblTest) {
-                                                                if ($tblTest->getReturnDate()) {
-                                                                    $testDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
-                                                                    $now = (new \DateTime('now'))->format("Y-m-d");
-                                                                    if ($testDate <= $now) {
-                                                                        $gradeValue = $tblGrade->getGrade();
-                                                                        if ($gradeValue) {
-                                                                            $trend = $tblGrade->getTrend();
-                                                                            if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                                                                                $gradeValue .= '+';
-                                                                            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                                                                                $gradeValue .= '-';
-                                                                            }
-                                                                        }
-                                                                        if ($tblGrade->getGrade()) {
-                                                                            $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $gradeValue : ' ',
-                                                                                1);
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    /*
-                                                   * Calc Average
-                                                   */
-                                                    $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
-                                                        $tblDivisionSubject->getTblDivision(),
-                                                        $tblDivisionSubject->getServiceTblSubject()
-                                                    );
-                                                    if ($tblScoreRuleDivisionSubject) {
-                                                        if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
-                                                            $average = Gradebook::useService()->calcStudentGrade(
-                                                                $tblPerson,
-                                                                $tblDivision,
-                                                                $tblDivisionSubject->getServiceTblSubject(),
-                                                                $tblTestType,
-                                                                $tblScoreRuleDivisionSubject->getTblScoreRule(),
-                                                                $tblPeriod,
-                                                                null,
-                                                                true
-                                                            );
-                                                            if (is_array($average)) {
-                                                                $average = '';
-                                                            } else {
-                                                                $posStart = strpos($average, '(');
-                                                                if ($posStart !== false) {
-                                                                    $average = substr($average, 0, $posStart);
-                                                                }
-                                                            }
-
-                                                            if ($average != '') {
-                                                                $subColumnList[] = new LayoutColumn(new Container(new Bold('&#216;' . $average)),
-                                                                    1);
-                                                            }
-                                                        }
-                                                    }
-
-                                                    $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($subColumnList))),
-                                                        $width);
-                                                }
-                                            }
-
-                                            $rowList[] = new LayoutRow($columnList);
-                                        } else {
-                                            foreach ($tblDivisionSubjectWhereGroup as $tblDivisionSubjectGroup) {
-
-                                                if (Division::useService()->getSubjectStudentByDivisionSubjectAndPerson($tblDivisionSubjectGroup,
-                                                    $tblPerson)
-                                                ) {
-                                                    $totalAverage = '';
-                                                    $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
-                                                        $tblDivisionSubject->getTblDivision(),
-                                                        $tblDivisionSubject->getServiceTblSubject()
-                                                    );
-                                                    if ($tblScoreRuleDivisionSubject) {
-                                                        if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
-                                                            $totalAverage = Gradebook::useService()->calcStudentGrade(
-                                                                $tblPerson,
-                                                                $tblDivision,
-                                                                $tblDivisionSubject->getServiceTblSubject(),
-                                                                $tblTestType,
-                                                                $tblScoreRuleDivisionSubject->getTblScoreRule(),
-                                                                null,
-                                                                null,
-                                                                true
-                                                            );
-
-                                                            if (is_array($totalAverage)) {
-                                                                $totalAverage = '';
-                                                            } else {
-                                                                $posStart = strpos($totalAverage, '(');
-                                                                if ($posStart !== false) {
-                                                                    $totalAverage = substr($totalAverage, 0, $posStart);
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    $columnList[] = new LayoutColumn(
-                                                        new Container($tblDivisionSubject->getServiceTblSubject()->getName()
-                                                            . ($totalAverage != '' ? ' ' . new Bold('&#216;' . $totalAverage) : '')),
-                                                        2);
-
-                                                    if ($tblPeriodList) {
-                                                        $width = (12 - 2) / count($tblPeriodList);
-                                                        foreach ($tblPeriodList as $tblPeriod) {
-                                                            $tblGradeList = Gradebook::useService()->getGradesByStudent(
-                                                                $tblPerson,
-                                                                $tblDivision,
-                                                                $tblDivisionSubjectGroup->getServiceTblSubject(),
-                                                                $tblTestType,
-                                                                $tblPeriod
-                                                            );
-                                                            $subColumnList = array();
-                                                            if ($tblGradeList) {
-                                                                foreach ($tblGradeList as $tblGrade) {
-                                                                    $tblTest = $tblGrade->getServiceTblTest();
-                                                                    if ($tblTest) {
-                                                                        if ($tblTest->getReturnDate()) {
-                                                                            $testDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
-                                                                            $now = (new \DateTime('now'))->format("Y-m-d");
-                                                                            if ($testDate <= $now) {
-                                                                                $gradeValue = $tblGrade->getGrade();
-                                                                                if ($gradeValue) {
-                                                                                    $trend = $tblGrade->getTrend();
-                                                                                    if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                                                                                        $gradeValue .= '+';
-                                                                                    } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                                                                                        $gradeValue .= '-';
-                                                                                    }
-                                                                                }
-                                                                                if ($tblGrade->getGrade()) {
-                                                                                    $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $gradeValue : ' ',
-                                                                                        1);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            /*
-                                                             * Calc Average
-                                                             */
-                                                            $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
-                                                                $tblDivisionSubject->getTblDivision(),
-                                                                $tblDivisionSubject->getServiceTblSubject()
-                                                            );
-                                                            if ($tblScoreRuleDivisionSubject) {
-                                                                if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
-                                                                    $average = Gradebook::useService()->calcStudentGrade(
-                                                                        $tblPerson,
-                                                                        $tblDivision,
-                                                                        $tblDivisionSubject->getServiceTblSubject(),
-                                                                        $tblTestType,
-                                                                        $tblScoreRuleDivisionSubject->getTblScoreRule(),
-                                                                        $tblPeriod,
-                                                                        null,
-                                                                        true
-                                                                    );
-                                                                    if (is_array($average)) {
-                                                                        $average = '';
-                                                                    } else {
-                                                                        $posStart = strpos($average, '(');
-                                                                        if ($posStart !== false) {
-                                                                            $average = substr($average, 0, $posStart);
-                                                                        }
-                                                                    }
-
-                                                                    if ($average != '') {
-                                                                        $subColumnList[] = new LayoutColumn(new Container(new Bold('&#216;' . $average)),
-                                                                            1);
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($subColumnList))),
-                                                                $width);
-                                                        }
-                                                    }
-
-                                                    $rowList[] = new LayoutRow($columnList);
-                                                    $columnList = array();
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                }
-            }
-            return $rowList;
-        }
-        return $rowList;
     }
 
     /**
@@ -1984,8 +1848,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Zensuren-Gruppen'),
                                     new TableData($tblScoreGroupAll, null,
                                         array(
-                                            'DisplayName' => 'Name',
-                                            'Option' => ''
+                                            'DisplayName' => 'Name ',
+                                            'Option' => ' '
                                         )
                                     )
                                 ), 6
@@ -2314,7 +2178,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Zensuren-Typen'),
                                     new TableData($tblGradeTypeAll, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'Name' => 'Name ',
                                             'Option' => 'Faktor'
                                         )
                                     )
@@ -2471,9 +2335,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Berechnungsvarianten'),
                                     new TableData($tblScoreConditionAll, null,
                                         array(
-                                            'Name' => 'Name',
-                                            'Priority' => 'Priorität',
-                                            'Option' => ''
+                                            'Name' => 'Name ',
+                                            'Priority' => 'Priorität ',
+                                            'Option' => ' '
                                         )
                                     )
                                 ), 6
@@ -2779,7 +2643,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblDivisionSubject $tblDivisionSubject */
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                 if (($tblDivision = $tblDivisionSubject->getTblDivision())) {
-                    if (( $tblLevel = $tblDivision->getTblLevel() ) && !$tblDivision->getTblLevel()->getIsChecked()) {
+                    if (($tblLevel = $tblDivision->getTblLevel()) && !$tblDivision->getTblLevel()->getIsChecked()) {
                         $levelAll[$tblDivisionSubject->getId()] = $tblLevel->getName();
                         if ($tblLevel->getServiceTblType()) {
                             $typeAll[$tblDivisionSubject->getId()] = $tblLevel->getServiceTblType()->getName();

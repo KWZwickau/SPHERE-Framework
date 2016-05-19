@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Group\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -75,8 +76,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblMember', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson'))) {
-            $Table->addIndex(array('serviceTblPerson'));
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         $this->getConnection()->addForeignKey($Table, $tblGroup);
         return $Table;

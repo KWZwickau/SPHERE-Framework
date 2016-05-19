@@ -3,13 +3,7 @@ namespace SPHERE\Application\Reporting\Standard\Person;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Search\Group\Group;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -20,7 +14,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -656,27 +649,46 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Select
+     * @param null $GroupId
      *
      * @return Stage
      */
-    public function frontendGroupList($Select = null)
+    public function frontendGroupList($GroupId = null)
     {
 
         $Stage = new Stage('Auswertung', 'Personengruppenlisten');
         $tblGroupAll = Group::useService()->getGroupAll();
-        $tblGroup = new TblGroup('');
         $PersonList = array();
 
+        if ($GroupId === null) {
+            if ($tblGroupAll){
+                foreach ($tblGroupAll as &$tblGroup){
+                    $tblGroup->Count = Group::useService()->countMemberAllByGroup($tblGroup);
+                    $tblGroup->Option = new Standard(new Select(), '/Reporting/Standard/Person/GroupList', null, array(
+                        'GroupId' => $tblGroup->getId()
+                    ));
+                }
+            }
 
-        if (isset( $Select['Group'] ) && $Select['Group'] != 0) {
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData(
+                                    $tblGroupAll, null, array('Name' => 'Name', 'Count' => 'Personen', 'Option' => '')
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        } else {
 
+            $tblGroup = Group::useService()->getGroupById($GroupId);
             $Stage->addButton(
                 new Standard('Zurück', '/Reporting/Standard/Person/GroupList', new ChevronLeft())
             );
-
-            $tblGroup = Group::useService()->getGroupById($Select['Group']);
-
             if ($tblGroup) {
                 $PersonList = Person::useService()->createGroupList($tblGroup);
                 if ($PersonList) {
@@ -689,30 +701,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
-        } else {
-            $Select = null;
-        }
 
-        if ($Select === null) {
-            $Stage->setContent(
-                new Well(
-                    Person::useService()->getGroup(
-                        new Form(new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new Panel('Auswahl', array(
-                                        new SelectBox('Select[Group]', 'Gruppe', array(
-                                            '{{ Name }}' => $tblGroupAll
-                                        ))
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 12
-                                )
-                            )),
-                        )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                        , $Select, '/Reporting/Standard/Person/GroupList')
-                )
-            );
-        } else {
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
 
             $Stage->setContent(
