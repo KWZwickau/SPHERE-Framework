@@ -12,12 +12,14 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Reporting\SerialLetter\SerialLetter;
 use SPHERE\System\Database\Fitting\Element;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * @Entity()
@@ -29,8 +31,10 @@ class TblAddressPerson extends Element
 
     const ATTR_TBL_SERIAL_LETTER = 'tblSerialLetter';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_PERSON_TO_ADDRESS = 'serviceTblPersonToAddress';
     const ATTR_SERVICE_TBL_TO_PERSON = 'serviceTblToPerson';
-    const ATTR_TBL_TYPE = 'tblType';
+
+    const SALUTATION_FAMILY = 1000;
 
     /**
      * @Column(type="bigint")
@@ -45,34 +49,17 @@ class TblAddressPerson extends Element
     /**
      * @Column(type="bigint")
      */
+    protected $serviceTblPersonToAddress;
+
+    /**
+     * @Column(type="bigint")
+     */
     protected $serviceTblToPerson;
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblType;
-
-    /**
-     * @return bool|TblType
-     */
-    public function getTblType()
-    {
-
-        if (null === $this->tblType) {
-            return false;
-        } else {
-            return SerialLetter::useService()->getTypeById($this->tblType);
-        }
-    }
-
-    /**
-     * @param null|TblType $tblType
-     */
-    public function setTblType(TblType $tblType = null)
-    {
-
-        $this->tblType = ( null === $tblType ? null : $tblType->getId() );
-    }
+    protected $serviceTblSalutation;
 
     /**
      * @return bool|TblSerialLetter
@@ -119,6 +106,28 @@ class TblAddressPerson extends Element
     }
 
     /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonToAddress()
+    {
+
+        if (null === $this->serviceTblPersonToAddress) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonToAddress);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonToAddress(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPersonToAddress = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
      * @return bool|TblToPerson
      */
     public function getServiceTblToPerson()
@@ -138,5 +147,34 @@ class TblAddressPerson extends Element
     {
 
         $this->serviceTblToPerson = ( null === $tblToPerson ? null : $tblToPerson->getId() );
+    }
+
+    /**
+     * @return bool|TblSalutation
+     */
+    public function getServiceTblSalutation()
+    {
+
+        if (null === $this->serviceTblSalutation) {
+            return false;
+        } else {
+            if ($this->serviceTblSalutation == 1000){
+                $tblSalutation = new TblSalutation('Familie');
+                $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
+
+                return $tblSalutation;
+            } else {
+                return Person::useService()->getSalutationById($this->serviceTblSalutation);
+            }
+        }
+    }
+
+    /**
+     * @param null|TblSalutation $tblSalutation
+     */
+    public function setServiceTblSalutation(TblSalutation $tblSalutation = null)
+    {
+
+        $this->serviceTblSalutation = ( null === $tblSalutation ? null : $tblSalutation->getId() );
     }
 }

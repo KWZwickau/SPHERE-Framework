@@ -27,9 +27,8 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblType = $this->setTableType($Schema);
         $tblSerialLetter = $this->setTableSerialLetter($Schema);
-        $this->setTableAddressPerson($Schema, $tblType, $tblSerialLetter);
+        $this->setTableAddressPerson($Schema, $tblSerialLetter);
 
         /**
          * Migration & Protocol
@@ -37,25 +36,6 @@ class Setup extends AbstractSetup
         $this->getConnection()->addProtocol(__CLASS__);
         $this->getConnection()->setMigration($Schema, $Simulate);
         return $this->getConnection()->getProtocol($Simulate);
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableType(Schema &$Schema)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblType');
-        if (!$this->getConnection()->hasColumn('tblType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblType', 'Identifier')) {
-            $Table->addColumn('Identifier', 'string');
-        }
-
-        return $Table;
     }
 
     /**
@@ -82,12 +62,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblType
      * @param Table  $tblSerialLetter
      *
      * @return Table
      */
-    private function setTableAddressPerson(Schema &$Schema, Table $tblType, Table $tblSerialLetter)
+    private function setTableAddressPerson(Schema &$Schema, Table $tblSerialLetter)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblAddressPerson');
@@ -97,8 +76,13 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblAddressPerson', 'serviceTblToPerson')) {
             $Table->addColumn('serviceTblToPerson', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblAddressPerson', 'serviceTblPersonToAddress')) {
+            $Table->addColumn('serviceTblPersonToAddress', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblAddressPerson', 'serviceTblSalutation')) {
+            $Table->addColumn('serviceTblSalutation', 'bigint', array('notnull' => false));
+        }
 
-        $this->getConnection()->addForeignKey($Table, $tblType, true);
         $this->getConnection()->addForeignKey($Table, $tblSerialLetter, true);
 
         return $Table;

@@ -8,25 +8,22 @@
 
 namespace SPHERE\Application\Reporting\SerialLetter;
 
-
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
+use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Reporting\SerialLetter\Service\Data;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
-use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblType;
 use SPHERE\Application\Reporting\SerialLetter\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -70,43 +67,17 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblType
-     */
-    public function getTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getTypeById($Id);
-    }
-
-    /**
-     * @param $Identifier
-     * @return bool|TblType
-     */
-    public function getTypeByIdentifier($Identifier)
-    {
-
-        return (new Data($this->getBinding()))->getTypeByIdentifier($Identifier);
-    }
-
-    /**
      * @param TblSerialLetter $tblSerialLetter
      * @param TblPerson $tblPerson
-     * @param TblToPerson $tblToPerson
-     * @param TblType $tblType
      *
-     * @return bool|TblAddressPerson
+     * @return bool|TblAddressPerson[]
      */
-    public function getAddressPerson(
+    public function getAddressPersonAllByPerson(
         TblSerialLetter $tblSerialLetter,
-        TblPerson $tblPerson,
-        TblToPerson $tblToPerson,
-        TblType $tblType
+        TblPerson $tblPerson
     ) {
 
-        return (new Data($this->getBinding()))->getAddressPerson($tblSerialLetter, $tblPerson,
-            $tblToPerson, $tblType);
+        return (new Data($this->getBinding()))->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
     }
 
     /**
@@ -164,21 +135,13 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param TblSerialLetter $tblSerialLetter
      * @param $Check
-     * @param $RadioStudent
-     * @param $RadioCustody1
-     * @param $RadioCustody2
-     * @param $RadioFamily
      *
      * @return IFormInterface
      */
     public function setPersonAddressSelection(
         IFormInterface $Form,
         TblSerialLetter $tblSerialLetter,
-        $Check,
-        $RadioStudent,
-        $RadioCustody1,
-        $RadioCustody2,
-        $RadioFamily
+        $Check
     ) {
 
         /**
@@ -188,115 +151,37 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $dataList = array();
-        $columnList = array(
-            'Student' => 'Schüler',
-            'Person' => 'Person',
-            'Address' => 'Adresse'
-        );
-
         // alle Einträge zum Serienbrief löschen
         (new Data($this->getBinding()))->destroyAddressPersonAllBySerialLetter($tblSerialLetter);
 
         if (!empty($Check)) {
-            foreach ($Check as $personId => $item) {
+            foreach ($Check as $personId => $list) {
                 $tblPerson = Person::useService()->getPersonById($personId);
-                $isPersonSelected = false;
+                if ($tblPerson) {
+                    if (is_array($list) && !empty($list)) {
+                        foreach ($list as $key => $item) {
+                            if (isset($item['Address'])) {
+                                $tblToPerson = Address::useService()->getAddressToPersonById($key);
+                                if ($tblToPerson && $tblToPerson->getServiceTblPerson()) {
+                                    if (isset($item['Salutation'])) {
+                                        if ($item['Salutation'] == TblAddressPerson::SALUTATION_FAMILY) {
+                                            $tblSalutation = new TblSalutation('Familie');
+                                            $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
+                                        } else {
+                                            $tblSalutation = Person::useService()->getSalutationById($item['Salutation']);
+                                        }
 
-                if (isset($item['Student'])) {
-                    $isPersonSelected = true;
-                    $data = array();
-                    $data['Student'] = $tblPerson->getLastFirstName();
-                    $data['Person'] = $tblPerson->getLastFirstName();
-
-
-                    if (isset($RadioStudent[$personId])) {
-                        $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioStudent[$personId]);
-                        $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
-                    } else {
-                        $tblAddressToPerson = null;
-                        $data['Address'] = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
+                                        $this->createAddressPerson($tblSerialLetter, $tblPerson,
+                                            $tblToPerson->getServiceTblPerson(), $tblToPerson,
+                                            $tblSalutation ? $tblSalutation : null);
+                                    }
+                                }
+                            }
+                        }
                     }
-
-                    $this->createAddressPerson($tblSerialLetter, $tblPerson, $tblAddressToPerson,
-                        $this->getTypeByIdentifier('PERSON'));
-                    $dataList[] = $data;
-                }
-
-                if (isset($item['Family'])) {
-                    $isPersonSelected = true;
-                    $data = array();
-                    $data['Student'] = $tblPerson->getLastFirstName();
-                    $data['Person'] = 'Familie';
-                    if (isset($RadioFamily[$personId])) {
-                        $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioFamily[$personId]);
-                        $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
-                    } else {
-                        $tblAddressToPerson = null;
-                        $data['Address'] = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
-                    }
-
-                    $this->createAddressPerson($tblSerialLetter, $tblPerson, $tblAddressToPerson,
-                        $this->getTypeByIdentifier('FAMILY'));
-                    $dataList[] = $data;
-                }
-
-                if (isset($item['Custody1'])) {
-                    $isPersonSelected = true;
-                    $data = array();
-                    $data['Student'] = $tblPerson->getLastFirstName();
-                    $tblPersonCustody = Person::useService()->getPersonById($item['Custody1']);
-                    $data['Person'] = $tblPersonCustody->getLastFirstName();
-                    if (isset($RadioCustody1[$personId])) {
-                        $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioCustody1[$personId]);
-                        $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
-                    } else {
-                        $tblAddressToPerson = null;
-                        $data['Address'] = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
-                    }
-
-                    $this->createAddressPerson($tblSerialLetter, $tblPerson, $tblAddressToPerson,
-                        $this->getTypeByIdentifier('CUSTODY'));
-                    $dataList[] = $data;
-                }
-
-                if (isset($item['Custody2'])) {
-                    $isPersonSelected = true;
-                    $data = array();
-                    $data['Student'] = $tblPerson->getLastFirstName();
-                    $tblPersonCustody = Person::useService()->getPersonById($item['Custody2']);
-                    $data['Person'] = $tblPersonCustody->getLastFirstName();
-                    if (isset($RadioCustody2[$personId])) {
-                        $tblAddressToPerson = Address::useService()->getAddressToPersonById($RadioCustody2[$personId]);
-                        $data['Address'] = $tblAddressToPerson->getTblAddress()->getGuiString();
-                    } else {
-                        $tblAddressToPerson = null;
-                        $data['Address'] = new Warning(new Exclamation() . ' Keine Adresse hinterlegt.');
-                    }
-                    $this->createAddressPerson($tblSerialLetter, $tblPerson, $tblAddressToPerson,
-                        $this->getTypeByIdentifier('CUSTODY'));
-                    $dataList[] = $data;
-                }
-
-                if (!$isPersonSelected) {
-                    $data = array();
-                    $data['Student'] = new Warning($tblPerson->getLastFirstName());
-                    $data['Person'] = new Warning(new Exclamation() . ' Keine Person ausgewählt.');
-                    $data['Address'] = '';
-                    $dataList[] = $data;
                 }
             }
         }
-
-        $Form->appendGridGroup(
-            new FormGroup(
-                new FormRow(
-                    new FormColumn(
-                        new TableData($dataList, null, $columnList, false)
-                    )
-                )
-            )
-        );
 
         return $Form;
     }
@@ -304,20 +189,74 @@ class Service extends AbstractService
     /**
      * @param TblSerialLetter $tblSerialLetter
      * @param TblPerson $tblPerson
+     * @param TblPerson $tblPersonToAddress
      * @param TblToPerson $tblToPerson
-     * @param TblType $tblType
+     * @param TblSalutation|null $tblSalutation
      *
      * @return TblAddressPerson
      */
-    private function createAddressPerson(
+    public function createAddressPerson(
         TblSerialLetter $tblSerialLetter,
         TblPerson $tblPerson,
-        TblToPerson $tblToPerson = null,
-        TblType $tblType
+        TblPerson $tblPersonToAddress,
+        TblToPerson $tblToPerson,
+        TblSalutation $tblSalutation = null
     ) {
 
-        return (new Data($this->getBinding()))->createAddressPerson($tblSerialLetter, $tblPerson, $tblToPerson,
-            $tblType);
+        return (new Data($this->getBinding()))->createAddressPerson($tblSerialLetter, $tblPerson, $tblPersonToAddress,
+            $tblToPerson, $tblSalutation);
     }
 
+    public function createSerialLetterExcel(TblSerialLetter $tblSerialLetter)
+    {
+
+        $tblAddressPersonAllBySerialLetter = $this->getAddressPersonAllBySerialLetter($tblSerialLetter);
+        if ($tblAddressPersonAllBySerialLetter) {
+
+            $row = 0;
+            $column = 0;
+            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell($column++, $row), "Anrede");
+            $export->setValue($export->getCell($column++, $row), "Vorname");
+            $export->setValue($export->getCell($column++, $row), "Nachname");
+            $export->setValue($export->getCell($column++, $row), "Adresse 1");
+            $export->setValue($export->getCell($column++, $row), "PLZ");
+            $export->setValue($export->getCell($column++, $row), "Ort");
+            $export->setValue($export->getCell($column++, $row), "Person_Vorname");
+            $export->setValue($export->getCell($column++, $row), "Person_Nachname");
+
+            $row = 1;
+            foreach ($tblAddressPersonAllBySerialLetter as $tblAddressPerson) {
+                if ($tblAddressPerson->getServiceTblPerson()
+                    && $tblAddressPerson->getServiceTblPersonToAddress()
+                    && $tblAddressPerson->getServiceTblToPerson()
+                ) {
+                    $column = 0;
+                    $export->setValue($export->getCell($column++, $row),
+                        $tblAddressPerson->getServiceTblSalutation() ? $tblAddressPerson->getServiceTblSalutation()->getSalutation() : '');
+                    $export->setValue($export->getCell($column++, $row),
+                        $tblAddressPerson->getServiceTblPersonToAddress()->getFirstName());
+                    $export->setValue($export->getCell($column++, $row),
+                        $tblAddressPerson->getServiceTblPersonToAddress()->getLastName());
+                    $tblAddress = $tblAddressPerson->getServiceTblToPerson()->getTblAddress();
+                    $export->setValue($export->getCell($column++, $row),
+                        $tblAddress->getStreetName() . $tblAddress->getStreetNumber());
+                    $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getCode());
+                    $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getDisplayName());
+                    $export->setValue($export->getCell($column++, $row),
+                        $tblAddressPerson->getServiceTblPerson()->getFirstName());
+                    $export->setValue($export->getCell($column++, $row),
+                        $tblAddressPerson->getServiceTblPerson()->getLastName());
+                    $row++;
+                }
+            }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+        return false;
+    }
 }

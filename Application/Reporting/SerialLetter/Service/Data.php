@@ -11,10 +11,10 @@ namespace SPHERE\Application\Reporting\SerialLetter\Service;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
-use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblType;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -27,9 +27,6 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createType('Person', 'PERSON');
-        $this->createType('Sorgeberechtigter', 'CUSTODY');
-        $this->createType('Familie', 'FAMILY');
     }
 
     /**
@@ -56,23 +53,17 @@ class Data extends AbstractData
     /**
      * @param TblSerialLetter $tblSerialLetter
      * @param TblPerson $tblPerson
-     * @param TblToPerson $tblToPerson
-     * @param TblType $tblType
      *
-     * @return bool|TblAddressPerson
+     * @return bool|TblAddressPerson[]
      */
-    public function getAddressPerson(
+    public function getAddressPersonAllByPerson(
         TblSerialLetter $tblSerialLetter,
-        TblPerson $tblPerson,
-        TblToPerson $tblToPerson,
-        TblType $tblType
+        TblPerson $tblPerson
     ) {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAddressPerson', array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAddressPerson', array(
             TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId(),
-            TblAddressPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            TblAddressPerson::ATTR_SERVICE_TBL_TO_PERSON => $tblToPerson->getId(),
-            TblAddressPerson::ATTR_TBL_TYPE => $tblType->getId()
+            TblAddressPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ) );
     }
 
@@ -87,60 +78,6 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAddressPerson', array(
             TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()
         ));
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblType
-     */
-    public function getTypeById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', $Id);
-    }
-
-    /**
-     * @param $Identifier
-     * @return bool|TblType
-     */
-    public function getTypeByIdentifier($Identifier)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', array(
-            TblType::ATTR_IDENTIFIER => strtoupper($Identifier)
-        ));
-    }
-
-    /**
-     * @param $Name
-     * @param $Identifier
-     *
-     * @return TblType
-     */
-    public function createType(
-        $Name,
-        $Identifier
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblType')
-            ->findOneBy(array(
-                TblType::ATTR_NAME => $Name,
-                TblType::ATTR_IDENTIFIER => $Identifier
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblType();
-            $Entity->setName($Name);
-            $Entity->setIdentifier($Identifier);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
     }
 
     /**
@@ -180,16 +117,18 @@ class Data extends AbstractData
     /**
      * @param TblSerialLetter $tblSerialLetter
      * @param TblPerson $tblPerson
+     * @param TblPerson $tblPersonToAddress
      * @param TblToPerson $tblToPerson
-     * @param TblType $tblType
+     * @param TblSalutation|null $tblSalutation
      *
      * @return TblAddressPerson
      */
     public function createAddressPerson(
         TblSerialLetter $tblSerialLetter,
         TblPerson $tblPerson,
-        TblToPerson $tblToPerson = null,
-        TblType $tblType
+        TblPerson $tblPersonToAddress,
+        TblToPerson $tblToPerson,
+        TblSalutation $tblSalutation = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -198,16 +137,17 @@ class Data extends AbstractData
             ->findOneBy(array(
                 TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId(),
                 TblAddressPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblAddressPerson::ATTR_SERVICE_TBL_TO_PERSON => $tblToPerson ? $tblToPerson->getId() : null,
-                TblAddressPerson::ATTR_TBL_TYPE => $tblType->getId()
+                TblAddressPerson::ATTR_SERVICE_TBL_PERSON_TO_ADDRESS => $tblPersonToAddress->getId(),
+                TblAddressPerson::ATTR_SERVICE_TBL_TO_PERSON => $tblToPerson ? $tblToPerson->getId() : null
             ));
 
         if (null === $Entity) {
             $Entity = new TblAddressPerson();
             $Entity->setTblSerialLetter($tblSerialLetter);
             $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblPersonToAddress($tblPersonToAddress);
             $Entity->setServiceTblToPerson($tblToPerson);
-            $Entity->setTblType($tblType);
+            $Entity->setServiceTblSalutation($tblSalutation);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
