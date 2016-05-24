@@ -46,6 +46,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
                         $this->Connection->setOption(\Memcached::OPT_TCP_NODELAY, true);
                         $this->Connection->setOption(\Memcached::OPT_NO_BLOCK, true);
                         $this->Connection->setOption(\Memcached::OPT_CONNECT_TIMEOUT, 1);
+                        $this->Connection->setOption(\Memcached::OPT_BINARY_PROTOCOL, 0);
                         $this->setValue('CheckRunningStatus', true);
                         if (true === $this->getValue('CheckRunningStatus')) {
                             $this->Connection->delete('CheckRunningStatus');
@@ -69,6 +70,8 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
                     ->addLog(__METHOD__.' Error: Configuration not available -> Fallback');
             }
         }
+        (new DebuggerFactory())->createLogger(new ErrorLogger())
+            ->addLog(__METHOD__.' Error: Memcached not available -> Fallback');
         return (new CacheFactory())->createHandler(new DefaultHandler());
     }
 
@@ -186,7 +189,9 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
 
         (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Requested Memcached-Slot-Clear: '.$Slot);
         $Pattern = '!^'.preg_quote($Slot, '!').':!is';
-        $CacheList = $this->fetchKeys();
+        if (!( $CacheList = $this->fetchKeys() )) {
+            $CacheList = array();
+        }
         $KeyList = preg_grep($Pattern, $CacheList);
         if (!empty( $KeyList )) {
             $this->removeKeys($KeyList);
@@ -205,7 +210,18 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function fetchKeys()
     {
 
-        return $this->Connection->getAllKeys();
+        $List = $this->Connection->getAllKeys();
+        // 0 = MEMCACHED_SUCCESS
+        if (0 == ( $Code = $this->Connection->getResultCode() )) {
+            return $this;
+        } else {
+            (new DebuggerFactory())->createLogger(new ErrorLogger())
+                ->addLog(__METHOD__.' Error: '
+                    .$Code.' - '
+                    .$this->Connection->getResultMessage()
+                );
+        }
+        return $List;
     }
 
     /**
