@@ -59,7 +59,7 @@ class Data extends AbstractData
                 if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
                     $this->setSettingByAccount($tblAccount, 'Surface', 1);
                 }
-        
+
                 // System (Jens)
                 $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjge');
                 $tblAccount = $this->createAccount('Kmiezik', 'System', $tblToken, $tblConsumer);
@@ -68,7 +68,7 @@ class Data extends AbstractData
                 if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
                     $this->setSettingByAccount($tblAccount, 'Surface', 1);
                 }
-        
+
                 // System (Sidney)
                 $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgt');
                 $tblAccount = $this->createAccount('Rackel', 'System', $tblToken, $tblConsumer);
@@ -77,7 +77,7 @@ class Data extends AbstractData
                 if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
                     $this->setSettingByAccount($tblAccount, 'Surface', 1);
                 }
-        
+
                 // System (Johannes)
                 $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgr');
                 $tblAccount = $this->createAccount('Kauschke', 'System', $tblToken, $tblConsumer);
@@ -702,7 +702,7 @@ class Data extends AbstractData
 
         if (null !== $Entity) {
             // Skip till half of Timeout
-            $Gap = ( ( time() + $Timeout ) - ( $Timeout / 3 ) );
+            $Gap = ( ( time() + $Timeout ) - ( $Timeout / 10 ) );
 
             if ($Gap > $Entity->getTimeout()) {
                 $Entity->setTimeout(time() + $Timeout);

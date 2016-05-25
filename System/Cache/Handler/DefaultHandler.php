@@ -33,4 +33,9 @@ class DefaultHandler extends MemoryHandler implements HandlerInterface
 
         return false;
     }
+
+    public function clearSlot($Slot)
+    {
+
+    }
 }
