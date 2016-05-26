@@ -10,6 +10,7 @@ namespace SPHERE\Application\Reporting\SerialLetter;
 
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -23,13 +24,18 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -41,10 +47,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -67,8 +76,12 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblSerialLetterAll as &$tblSerialLetter) {
                 $tblSerialLetter->Group = $tblSerialLetter->getServiceTblGroup() ? $tblSerialLetter->getServiceTblGroup()->getName() : '';
                 $tblSerialLetter->Option =
-                    (new Standard(new Edit(), '/Reporting/SerialLetter/Select', null,
-                        array('Id' => $tblSerialLetter->getId()), 'Addressliste für Serienbriefe auswählen'))
+                    (new Standard(new Edit(), '/Reporting/SerialLetter/Edit', null,
+                        array('Id' => $tblSerialLetter->getId()), 'Bearbeiten'))
+                    . (new Standard(new Remove(), '/Reporting/SerialLetter/Destroy', null,
+                        array('Id' => $tblSerialLetter->getId()), 'Löschen'))
+                    . (new Standard(new ListingTable(), '/Reporting/SerialLetter/Select', null,
+                        array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen'))
                     . (new Standard(new EyeOpen(), '/Reporting/SerialLetter/Export', null,
                         array('Id' => $tblSerialLetter->getId()),
                         'Addressliste für Serienbriefe anzeigen und herunterladen'));
@@ -113,6 +126,14 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblGroupAll = Group::useService()->getGroupAll();
+        // Gruppe "Alle" aus der Auswahl entfernen
+        if ($tblGroupAll) {
+            /** @var TblGroup $tblGroup */
+            $tblGroup = current($tblGroupAll);
+            if ($tblGroup->getMetaTable() == 'COMMON') {
+                array_shift($tblGroupAll);
+            }
+        }
 
         return new Form(new FormGroup(array(
             new FormRow(array(
@@ -127,6 +148,58 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ))
         )));
+    }
+
+    /**
+     * @param null $Id
+     * @param null $SerialLetter
+     *
+     * @return Stage|string
+     */
+    public function frontendSerialLetterEdit($Id = null, $SerialLetter = null)
+    {
+
+        $Stage = new Stage('Adresslisten für Serienbriefe', 'Bearbeiten');
+
+        if (($tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id))) {
+            if ($SerialLetter == null) {
+                $Global = $this->getGlobal();
+                $Global->POST['SerialLetter']['Name'] = $tblSerialLetter->getName();
+                $Global->POST['SerialLetter']['Group'] = $tblSerialLetter->getServiceTblGroup()
+                    ? $tblSerialLetter->getServiceTblGroup()->getId() : 0;
+                $Global->POST['SerialLetter']['Description'] = $tblSerialLetter->getDescription();
+                $Global->savePost();
+            }
+
+            $Stage->setContent(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Name', $tblSerialLetter->getName() . ' '
+                            . new Small(new Muted($tblSerialLetter->getDescription())), Panel::PANEL_TYPE_INFO), 8
+                    ),
+                    new LayoutColumn(
+                        new Panel('Gruppe',
+                            $tblSerialLetter->getServiceTblGroup() ? $tblSerialLetter->getServiceTblGroup()->getName() : '',
+                            Panel::PANEL_TYPE_INFO), 4
+                    ),
+                    new LayoutColumn(
+                        new Well(
+                            SerialLetter::useService()->updateSerialLetter(
+                                $this->formSerialLetter()->appendFormButton(new Primary('Speichern', new Save())),
+                                $tblSerialLetter, $SerialLetter
+                            )
+                        )
+                    )
+                ))))
+            );
+
+        } else {
+            return $Stage
+            . new Danger('Serienbrief nicht gefunden', new Exclamation())
+            . new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
+        }
+
+        return $Stage;
     }
 
     /**
@@ -304,9 +377,9 @@ class Frontend extends Extension implements IFrontendInterface
             $columnList = array(
                 'Number' => 'Nr.',
                 'Person' => 'Person der Gruppe',
-                'PersonToAddress' => 'Person der Adresse',
+                'Salutation' => 'Anrede',
+                'PersonToAddress' => 'Adressat',
                 'Address' => 'Adresse',
-                'Salutation' => 'Anrede'
             );
 
             $tblGroup = $tblSerialLetter->getServiceTblGroup();
@@ -362,7 +435,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel('Name', $tblSerialLetter->getName() . ' '
-                                    . new Small(new Muted($tblSerialLetter->getDescription())), Panel::PANEL_TYPE_INFO), 8
+                                    . new Small(new Muted($tblSerialLetter->getDescription())), Panel::PANEL_TYPE_INFO),
+                                8
                             ),
                             new LayoutColumn(
                                 new Panel('Gruppe',
@@ -383,5 +457,77 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             return $Stage . new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation());
         }
+    }
+
+    /**
+     * @param $Id
+     * @param bool|false $Confirm
+     * @return Stage
+     */
+    public function frontendSerialLetterDestroy($Id = null, $Confirm = false)
+    {
+
+        $Stage = new Stage('Adresslisten für Serienbriefe', 'Löschen');
+        if ($Id) {
+            $Stage->addButton(
+                new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft())
+            );
+            $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id);
+            if (!$tblSerialLetter) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            new Danger(new Ban() . ' Die Adressliste für Serienbriefe konnte nicht gefunden werden.'),
+                            new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR)
+                        )))
+                    )))
+                );
+            } else {
+                if (!$Confirm) {
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                            new Panel('Adressliste für Serienbriefe', new Bold($tblSerialLetter->getName()) .
+                                ($tblSerialLetter->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    . new Muted(new Small(new Small($tblSerialLetter->getDescription()))) : ''),
+                                Panel::PANEL_TYPE_INFO),
+                            new Panel(new Question() . ' Diese Adressliste für Serienbriefe wirklich löschen?', array(
+                                $tblSerialLetter->getName() . ' ' . $tblSerialLetter->getDescription()
+                            ),
+                                Panel::PANEL_TYPE_DANGER,
+                                new Standard(
+                                    'Ja', '/Reporting/SerialLetter/Destroy', new Ok(),
+                                    array('Id' => $Id, 'Confirm' => true)
+                                )
+                                . new Standard(
+                                    'Nein', '/Reporting/SerialLetter', new Disable()
+                                )
+                            )
+                        )))))
+                    );
+                } else {
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(array(
+                                (SerialLetter::useService()->destroySerialLetter($tblSerialLetter)
+                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adressliste für Serienbriefe wurde gelöscht')
+                                    : new Danger(new Ban() . ' Die Adressliste für Serienbriefe konnte nicht gelöscht werden')
+                                ),
+                                new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS)
+                            )))
+                        )))
+                    );
+                }
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger(new Ban() . ' Daten nicht abrufbar.'),
+                        new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
     }
 }

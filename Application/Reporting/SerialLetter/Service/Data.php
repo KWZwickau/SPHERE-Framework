@@ -116,6 +116,39 @@ class Data extends AbstractData
 
     /**
      * @param TblSerialLetter $tblSerialLetter
+     * @param $Name
+     * @param TblGroup $tblGroup
+     * @param $Description
+     *
+     * @return bool
+     */
+    public function updateSerialLetter(
+        TblSerialLetter $tblSerialLetter,
+        $Name,
+        TblGroup $tblGroup,
+        $Description
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSerialLetter $Entity */
+        $Entity = $Manager->getEntityById('TblSerialLetter', $tblSerialLetter->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setServiceTblGroup($tblGroup);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
      * @param TblPerson $tblPerson
      * @param TblPerson $tblPersonToAddress
      * @param TblToPerson $tblToPerson
@@ -177,5 +210,27 @@ class Data extends AbstractData
         }
 
         return true;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool
+     */
+    public function destroySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $this->destroyAddressPersonAllBySerialLetter($tblSerialLetter);
+
+        /** @var TblSerialLetter $Entity */
+        $Entity = $Manager->getEntityById('TblSerialLetter', $tblSerialLetter->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }

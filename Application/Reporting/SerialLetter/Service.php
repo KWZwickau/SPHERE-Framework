@@ -183,7 +183,9 @@ class Service extends AbstractService
             }
         }
 
-        return $Form;
+        return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        . new Redirect('/Reporting/SerialLetter/Select', Redirect::TIMEOUT_SUCCESS,
+            array('Id' => $tblSerialLetter->getId()));
     }
 
     /**
@@ -225,7 +227,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "PLZ");
             $export->setValue($export->getCell($column++, $row), "Ort");
             $export->setValue($export->getCell($column++, $row), "Person_Vorname");
-            $export->setValue($export->getCell($column++, $row), "Person_Nachname");
+            $export->setValue($export->getCell($column, $row), "Person_Nachname");
 
             $row = 1;
             foreach ($tblAddressPersonAllBySerialLetter as $tblAddressPerson) {
@@ -242,12 +244,12 @@ class Service extends AbstractService
                         $tblAddressPerson->getServiceTblPersonToAddress()->getLastName());
                     $tblAddress = $tblAddressPerson->getServiceTblToPerson()->getTblAddress();
                     $export->setValue($export->getCell($column++, $row),
-                        $tblAddress->getStreetName() . $tblAddress->getStreetNumber());
+                        $tblAddress->getStreetName() . ' ' . $tblAddress->getStreetNumber());
                     $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getCode());
                     $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getDisplayName());
                     $export->setValue($export->getCell($column++, $row),
                         $tblAddressPerson->getServiceTblPerson()->getFirstName());
-                    $export->setValue($export->getCell($column++, $row),
+                    $export->setValue($export->getCell($column, $row),
                         $tblAddressPerson->getServiceTblPerson()->getLastName());
                     $row++;
                 }
@@ -258,5 +260,60 @@ class Service extends AbstractService
             return $fileLocation;
         }
         return false;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblSerialLetter $tblSerialLetter
+     * @param $SerialLetter
+     *
+     * @return IFormInterface|string
+     */
+    public function updateSerialLetter(
+        IFormInterface $Stage = null,
+        TblSerialLetter $tblSerialLetter,
+        $SerialLetter = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $SerialLetter) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($SerialLetter['Name']) && empty($SerialLetter['Name'])) {
+            $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+        if (!($tblGroup = Group::useService()->getGroupById($SerialLetter['Group']))) {
+            $Stage->setError('SerialLetter[Group]', 'Bitte wählen Sie eine Personengruppe aus');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateSerialLetter(
+                $tblSerialLetter,
+                $SerialLetter['Name'],
+                $tblGroup,
+                $SerialLetter['Description']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adressliste für Serienbriefe ist geändert worden')
+            . new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool
+     */
+    public function destroySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        return (new Data($this->getBinding()))->destroySerialLetter($tblSerialLetter);
     }
 }
