@@ -1341,6 +1341,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
+     * @param TblScoreRule $tblScoreRule
+     * @param TblYear $tblYear
      * @param $Data
      *
      * @return IFormInterface
@@ -1393,82 +1395,130 @@ class Service extends AbstractService
                 $tblDivision = $tblScoreRuleDivisionSubject->getServiceTblDivision();
                 $tblSubject = $tblScoreRuleDivisionSubject->getServiceTblSubject();
                 if ($tblDivision && $tblSubject) {
-                    if (!isset($Data[$tblDivision->getId()][-1])                // alle Fächer
-                        && !isset($Data[$tblDivision->getId()][$tblSubject->getId()])
-                    ) {
-                        (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
-                            $tblScoreRuleDivisionSubject, null,
-                            $tblScoreRuleDivisionSubject->getTblScoreType() ? $tblScoreRuleDivisionSubject->getTblScoreType() : null
-                        );
+                    if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
+                        if (!isset($Data[$tblDivision->getId()][-1])                // alle Fächer
+                            && !isset($Data[$tblDivision->getId()][$tblSubject->getId()])
+                        ) {
+                            (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
+                                $tblScoreRuleDivisionSubject, null,
+                                $tblScoreRuleDivisionSubject->getTblScoreType() ? $tblScoreRuleDivisionSubject->getTblScoreType() : null
+                            );
+                        }
                     }
                 }
             }
         }
 
-        return $Stage
-        . new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
         . new Redirect('/Education/Graduation/Gradebook/Score/Division', Redirect::TIMEOUT_SUCCESS, array(
             'Id' => $tblScoreRule->getId(),
             'YearId' => $tblYear->getId()
         ));
+    }
 
+    /**
+     * @param TblScoreType $tblScoreType
+     * @param $tblDivision
+     * @param $tblSubject
+     */
+    private function setScoreTypeForDivisionSubject(TblScoreType $tblScoreType, $tblDivision, $tblSubject)
+    {
+        if (($tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject(
+            $tblDivision, $tblSubject
+        ))
+        ) {
+            if (!$tblScoreRuleDivisionSubject->getTblScoreType()) {
+                (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
+                    $tblScoreRuleDivisionSubject,
+                    $tblScoreRuleDivisionSubject->getTblScoreRule() ? $tblScoreRuleDivisionSubject->getTblScoreRule() : null,
+                    $tblScoreType
+                );
+            }
+        } else {
+            (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
+                $tblDivision, $tblSubject, null, $tblScoreType
+            );
+        }
+    }
 
-//        /**
-//         * Skip to Frontend
-//         */
-//        if ($Data === null) {
-//            return $Stage;
-//        }
-//
-//        if (isset($Data)) {
-//            foreach ($Data as $divisionId => $subjectItemList) {
-//                $tblDivision = Division::useService()->getDivisionById($divisionId);
-//                if ($tblDivision) {
-//                    foreach ($subjectItemList as $subjectId => $item) {
-//                        $tblSubject = Subject::useService()->getSubjectById($subjectId);
-//                        if ($tblDivision && $tblSubject) {
-//                            $tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
-//                                $tblSubject);
-//                            $tblScoreRule = Gradebook::useService()->getScoreRuleById($item['Rule']);
-//                            if (!$tblScoreRule) {
-//                                $tblScoreRule = null;
-//                            }
-//
-//                            $tblScoreType = null;
-//                            if (isset($item['Type'])) {
-//                                $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
-//                                if (!$tblScoreType) {
-//                                    $tblScoreType = null;
-//                                }
-//                            } else {
-//                                if ($tblScoreRuleDivisionSubject) {
-//                                    if ($tblScoreRuleDivisionSubject->getTblScoreType()) {
-//                                        $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
-//                                    }
-//                                }
-//                            }
-//
-//                            if ($tblScoreRuleDivisionSubject) {
-//                                (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
-//                                    $tblScoreRuleDivisionSubject, $tblScoreRule, $tblScoreType
-//                                );
-//                            } else {
-//                                (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
-//                                    $tblDivision, $tblSubject, $tblScoreRule, $tblScoreType
-//                                );
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-//        . new Redirect('/Education/Graduation/Gradebook/Score/Division', Redirect::TIMEOUT_SUCCESS, array(
-//            'YearDivisionSubjectId' => $YearDivisionSubjectId,
-//            'TypeDivisionSubjectId' => $TypeDivisionSubjectId,
-//            'LevelDivisionSubjectId' => $LevelDivisionSubjectId
-//        ));
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblScoreType $tblScoreType
+     * @param TblYear $tblYear
+     * @param $Data
+     *
+     * @return IFormInterface
+     */
+    public function updateScoreTypeDivisionSubject(
+        IFormInterface $Stage = null,
+        TblScoreType $tblScoreType,
+        TblYear $tblYear = null,
+        $Data = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit']) || $tblYear == null) {
+            return $Stage;
+        }
+
+        if (is_array($Data)) {
+            foreach ($Data as $divisionId => $subjectList) {
+                $tblDivision = Division::useService()->getDivisionById($divisionId);
+                if ($tblDivision) {
+                    if (is_array($subjectList)) {
+                        // alle Fächer einer Klassen zuordnen
+                        if (isset($subjectList[-1])) {
+                            $tblSubjectAllByDivision = Division::useService()->getSubjectAllByDivision($tblDivision);
+                            if ($tblSubjectAllByDivision) {
+                                foreach ($tblSubjectAllByDivision as $tblSubject) {
+                                    $this->setScoreTypeForDivisionSubject($tblScoreType, $tblDivision, $tblSubject);
+                                }
+                            }
+                        } else {
+                            foreach ($subjectList as $subjectId => $value) {
+                                $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                                if ($tblSubject) {
+                                    $this->setScoreTypeForDivisionSubject($tblScoreType, $tblDivision, $tblSubject);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // bei bereits vorhandenen Einträgen Berechnungsvorschrift zurücksetzten
+        $tblScoreTypeDivisionSubjectList = $this->getScoreRuleDivisionSubjectAllByScoreType($tblScoreType);
+        if ($tblScoreTypeDivisionSubjectList) {
+            foreach ($tblScoreTypeDivisionSubjectList as $tblScoreTypeDivisionSubject) {
+                $tblDivision = $tblScoreTypeDivisionSubject->getServiceTblDivision();
+                $tblSubject = $tblScoreTypeDivisionSubject->getServiceTblSubject();
+                if ($tblDivision && $tblSubject) {
+                    if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()
+                        && !Gradebook::useService()->existsGrades($tblDivision, $tblSubject)
+                    ) {
+                        if (!isset($Data[$tblDivision->getId()][-1])                // alle Fächer
+                            && !isset($Data[$tblDivision->getId()][$tblSubject->getId()])
+                        ) {
+                            (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
+                                $tblScoreTypeDivisionSubject,
+                                $tblScoreTypeDivisionSubject->getTblScoreRule() ? $tblScoreTypeDivisionSubject->getTblScoreRule() : null,
+                                null
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        . new Redirect('/Education/Graduation/Gradebook/Type/Select', Redirect::TIMEOUT_SUCCESS, array(
+            'Id' => $tblScoreType->getId(),
+            'YearId' => $tblYear->getId()
+        ));
     }
 
     /**
@@ -1644,6 +1694,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectAllByScoreRule($tblScoreRule);
+    }
+
+    /**
+     * @param TblScoreType $tblScoreType
+     *
+     * @return false|TblScoreRuleDivisionSubject[]
+     */
+    public function getScoreRuleDivisionSubjectAllByScoreType(TblScoreType $tblScoreType)
+    {
+
+        return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectAllByScoreType($tblScoreType);
     }
 
 }

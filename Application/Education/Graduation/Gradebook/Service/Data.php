@@ -1240,6 +1240,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblScoreType $tblScoreType
+     *
+     * @return false|TblScoreRuleDivisionSubject[]
+     */
+    public function getScoreRuleDivisionSubjectAllByScoreType(TblScoreType $tblScoreType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreRuleDivisionSubject',
+            array(TblScoreRuleDivisionSubject::ATTR_TBL_SCORE_TYPE => $tblScoreType->getId()));
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
      * @param TblGradeType $tblGradeType
