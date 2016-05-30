@@ -790,11 +790,11 @@ class Data extends AbstractData
                     $tblPerson = false;
                 }
             });
-            $EntityList = array_filter($tblPersonAll);
+            $EntityList = array_values(array_filter($tblPersonAll));
         } else {
             $EntityList = null;
         }
-        return ( null === $EntityList ? false : $EntityList );
+        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
@@ -812,12 +812,11 @@ class Data extends AbstractData
 
                 $tblUser = $tblUser->getServiceTblPerson();
             });
-            $tblUserAll = array_filter($tblUserAll);
-            $EntityList = $tblUserAll;
+            $EntityList = array_values(array_filter($tblUserAll));
         } else {
             $EntityList = null;
         }
-        return ( null === $EntityList ? false : $EntityList );
+        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
