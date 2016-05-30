@@ -24,6 +24,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -286,11 +287,36 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendGradeBook()
     {
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Headmaster');
+        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Teacher');
+
+        if ($hasHeadmasterRight){
+            if ($hasTeacherRight){
+                return $this->frontendTeacherGradebook();
+            } else {
+                return $this->frontendHeadmasterGradeBook();
+            }
+        } else {
+            return $this->frontendTeacherGradebook();
+        }
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendTeacherGradebook()
+    {
 
         $Stage = new Stage('Notenbuch', 'Auswahl');
         $Stage->setMessage(
             'Auswahl der Notenbücher, wo der angemeldete Lehrer als Fachlehrer oder Klassenlehrer hinterlegt ist.'
         );
+        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Teacher');
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Headmaster');
+        if ($hasHeadmasterRight && $hasTeacherRight) {
+            $Stage->addButton(new Standard(new Info('Lehrer'), '/Education/Graduation/Gradebook/Gradebook/Teacher'));
+            $Stage->addButton(new Standard('Leitung', '/Education/Graduation/Gradebook/Gradebook/Headmaster'));
+        }
 
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
@@ -403,7 +429,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             $tblDivision, $tblSubject, $item
                                         ),
                                         'Option' => new Standard(
-                                            '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(),
+                                            '', '/Education/Graduation/Gradebook/Gradebook/Teacher/Selected', new Select(),
                                             array(
                                                 'DivisionSubjectId' => $subValue
                                             ),
@@ -422,7 +448,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblDivision, $tblSubject
                                     ),
                                     'Option' => new Standard(
-                                        '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
+                                        '', '/Education/Graduation/Gradebook/Gradebook/Teacher/Selected', new Select(), array(
                                         'DivisionSubjectId' => $value
                                     ),
                                         'Auswählen'
@@ -475,6 +501,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage(
             'Auswahl aller Notenbücher.'
         );
+        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Teacher');
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Headmaster');
+        if ($hasHeadmasterRight && $hasTeacherRight) {
+            $Stage->addButton(new Standard('Lehrer', '/Education/Graduation/Gradebook/Gradebook/Teacher'));
+            $Stage->addButton(new Standard(new Info('Leitung'), '/Education/Graduation/Gradebook/Gradebook/Headmaster'));
+        }
 
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
@@ -537,7 +569,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             $tblDivision, $tblSubject, $item
                                         ),
                                         'Option' => new Standard(
-                                            '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
+                                            '', '/Education/Graduation/Gradebook/Gradebook/Headmaster/Selected',
                                             new Select(),
                                             array(
                                                 'DivisionSubjectId' => $subValue
@@ -557,7 +589,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblDivision, $tblSubject
                                     ),
                                     'Option' => new Standard(
-                                        '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
+                                        '', '/Education/Graduation/Gradebook/Gradebook/Headmaster/Selected',
                                         new Select(),
                                         array(
                                             'DivisionSubjectId' => $value
@@ -607,17 +639,17 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendSelectedGradeBook($DivisionSubjectId = null)
+    public function frontendTeacherSelectedGradebook($DivisionSubjectId = null)
     {
 
         $Stage = new Stage('Notenbuch', 'Anzeigen');
 
         if ($DivisionSubjectId === null || !($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            return $Stage . new Danger(new Ban() . ' Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Gradebook',
+            return $Stage . new Danger(new Ban() . ' Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Gradebook/Teacher',
                 Redirect::TIMEOUT_ERROR);
         }
 
-        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, '/Education/Graduation/Gradebook/Gradebook');
+        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, '/Education/Graduation/Gradebook/Gradebook/Teacher');
 
         return $Stage;
     }
@@ -910,12 +942,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Notenbuch', 'Anzeigen');
 
         if ($DivisionSubjectId === null || !($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            return $Stage . new Danger(new Ban() . ' Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Headmaster/Gradebook',
+            return $Stage . new Danger(new Ban() . ' Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Gradebook/Headmaster',
                 Redirect::TIMEOUT_ERROR);
         }
 
         $this->contentSelectedGradeBook($Stage, $tblDivisionSubject,
-            '/Education/Graduation/Gradebook/Headmaster/Gradebook');
+            '/Education/Graduation/Gradebook/Gradebook/Headmaster');
 
         return $Stage;
     }

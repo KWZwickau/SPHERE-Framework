@@ -39,10 +39,10 @@ class Gradebook implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'\Gradebook'), new Link\Name('Notenbuch'),
                 new Link\Icon(new Book()))
         );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Gradebook'), new Link\Name('Notenbuch'),
-                new Link\Icon(new Book()))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Gradebook'), new Link\Name('Notenbuch'),
+//                new Link\Icon(new Book()))
+//        );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Student\Gradebook'), new Link\Name('Notenübersicht'),
                 new Link\Icon(new Family()))
@@ -66,9 +66,14 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendGradebook')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook\Selected',
-                __NAMESPACE__.'\Frontend::frontendSelectedGradebook')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook\Teacher',
+                __NAMESPACE__.'\Frontend::frontendTeacherGradebook')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook\Teacher\Selected',
+                __NAMESPACE__.'\Frontend::frontendTeacherSelectedGradebook')
+        );
+
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Student\Gradebook',
                 __NAMESPACE__.'\Frontend::frontendStudentGradebook')
@@ -78,11 +83,11 @@ class Gradebook implements IModuleInterface
          * Headmaster
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Gradebook',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook\Headmaster',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterGradebook')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Gradebook\Selected',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook\Headmaster\Selected',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterSelectedGradebook')
         );
 
