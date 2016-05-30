@@ -63,7 +63,6 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
@@ -103,25 +102,6 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendTask()
-    {
-        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
-        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
-
-        if ($hasHeadmasterRight){
-            if ($hasTeacherRight){
-                return $this->frontendDivisionTeacherTask();
-            } else {
-                return $this->frontendHeadmasterTask();
-            }
-        } else {
-            return $this->frontendDivisionTeacherTask();
-        }
-    }
-
-    /**
-     * @return Stage
-     */
     public function frontendTestTeacher()
     {
 
@@ -133,8 +113,9 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Info('Lehrer'), '/Education/Graduation/Evaluation/Test/Teacher'));
-            $Stage->addButton(new Standard('Leitung', '/Education/Graduation/Evaluation/Test/Headmaster'));
+            $Stage->addButton(new Standard(new Bold('Ansicht: Lehrer'), '/Education/Graduation/Evaluation/Test/Teacher',
+                new Edit()));
+            $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Evaluation/Test/Headmaster'));
         }
 
         $tblPerson = false;
@@ -322,8 +303,9 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard('Lehrer', '/Education/Graduation/Evaluation/Test/Teacher'));
-            $Stage->addButton(new Standard(new Info('Leitung'), '/Education/Graduation/Evaluation/Test/Headmaster'));
+            $Stage->addButton(new Standard('Ansicht: Lehrer', '/Education/Graduation/Evaluation/Test/Teacher'));
+            $Stage->addButton(new Standard(new Bold('Ansicht: Leitung'),
+                '/Education/Graduation/Evaluation/Test/Headmaster', new Edit()));
         }
 
         $divisionSubjectTable = array();
@@ -441,6 +423,364 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendTask()
+    {
+
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
+        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
+
+        if ($hasHeadmasterRight) {
+            if ($hasTeacherRight) {
+                return $this->frontendDivisionTeacherTask();
+            } else {
+                return $this->frontendHeadmasterTask();
+            }
+        } else {
+            return $this->frontendDivisionTeacherTask();
+        }
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendDivisionTeacherTask()
+    {
+
+        $Stage = new Stage('Notenaufträge', 'Übersicht');
+        $Stage->setMessage(
+            'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren),
+            wo der angemeldete Lehrer als Klassenlehrer hinterlegt ist.'
+        );
+        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
+        if ($hasHeadmasterRight && $hasTeacherRight) {
+            $Stage->addButton(new Standard(new Bold('Ansicht: Lehrer'), '/Education/Graduation/Evaluation/Task/Teacher',
+                new Edit()));
+            $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Evaluation/Task/Headmaster'));
+        }
+
+        $taskList = array();
+
+        $tblPerson = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPerson = $tblPersonAllByAccount[0];
+            }
+        }
+        if ($tblPerson) {
+            $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
+            if ($tblDivisionTeacherAllByTeacher) {
+                foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
+                    if ($tblDivisionTeacher->getTblDivision()) {
+                        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+                        $tblTestList = Evaluation::useService()->getTestAllByTestTypeAndDivision(
+                            $tblTestType,
+                            $tblDivisionTeacher->getTblDivision()
+                        );
+                        if ($tblTestList) {
+                            foreach ($tblTestList as $tblTest) {
+                                $taskList[$tblTest->getTblTask()->getId()] = $tblTest->getTblTask();
+                            }
+                        }
+                        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+                        $tblTestList = Evaluation::useService()->getTestAllByTestTypeAndDivision(
+                            $tblTestType,
+                            $tblDivisionTeacher->getTblDivision()
+                        );
+                        if ($tblTestList) {
+                            foreach ($tblTestList as $tblTest) {
+                                $taskList[$tblTest->getTblTask()->getId()] = $tblTest->getTblTask();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty( $taskList )) {
+            /** @var TblTask $tblTask */
+            foreach ($taskList as $tblTask) {
+                $tblTask->Type = $tblTask->getTblTestType()->getName();
+                $tblTask->EditPeriod = $tblTask->getFromDate().' - '.$tblTask->getToDate();
+                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr';
+                $tblTask->Option =
+                    (new Standard('',
+                        '/Education/Graduation/Evaluation/Task/Teacher/Grades',
+                        new Equalizer(),
+                        array('Id' => $tblTask->getId()),
+                        'Zensuren ansehen')
+                    );
+            }
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                            new LayoutColumn(
+                                new TableData(
+                                    $taskList, null, array(
+                                    'Date'       => 'Stichtag',
+                                    'Type'       => 'Kategorie',
+                                    'Name'       => 'Name',
+                                    'Period'     => 'Noten-Zeitraum',
+                                    'EditPeriod' => 'Bearbeitungszeitraum',
+                                    'Option'     => '',
+                                ), array(
+                                        'order'      => array(
+                                            array(0, 'desc')
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 0)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ), new Title(new ListingTable().' Übersicht')),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Task
+     * @param null $Select
+     * @param null $YearId
+     *
+     * @return Stage
+     */
+    public function frontendHeadmasterTask($Task = null, $Select = null, $YearId = null)
+    {
+
+        $Stage = new Stage('Notenaufträge', 'Übersicht');
+        $Stage->setMessage(
+            'Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebener Zensuren).'
+        );
+        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
+        if ($hasHeadmasterRight && $hasTeacherRight) {
+            $Stage->addButton(new Standard('Ansicht: Lehrer', '/Education/Graduation/Evaluation/Task/Teacher'));
+            $Stage->addButton(new Standard(new Bold('Ansicht: Leitung'),
+                '/Education/Graduation/Evaluation/Task/Headmaster', new Edit()));
+        }
+
+        $tblTaskAll = Evaluation::useService()->getTaskAll();
+
+        if ($tblTaskAll) {
+            foreach ($tblTaskAll as $tblTask) {
+                $hasEdit = false;
+                $nowDate = (new \DateTime('now'))->format("Y-m-d");
+                $toDate = $tblTask->getToDate();
+                if ($toDate) {
+                    $toDate = new \DateTime($toDate);
+                    $toDate = $toDate->format('Y-m-d');
+                }
+                if ($nowDate && $toDate) {
+                    if ($nowDate < $toDate) {
+                        $hasEdit = true;
+                    }
+                }
+
+                $tblTask->Type = $tblTask->getTblTestType()->getName();
+                $tblTask->EditPeriod = $tblTask->getFromDate().' - '.$tblTask->getToDate();
+                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr';
+                $tblTask->Option =
+                    ( $hasEdit ? (new Standard('',
+                        '/Education/Graduation/Evaluation/Task/Headmaster/Edit',
+                        new Edit(),
+                        array('Id' => $tblTask->getId()),
+                        'Bearbeiten')) : '' )
+                    .(new Standard('',
+                        '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
+                        array('Id' => $tblTask->getId()),
+                        'Löschen'))
+                    .(new Standard('',
+                        '/Education/Graduation/Evaluation/Task/Headmaster/Division',
+                        new Listing(),
+                        array('Id' => $tblTask->getId()),
+                        'Klassen auswählen')
+                    )
+                    .(new Standard('',
+                        '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
+                        new Equalizer(),
+                        array('Id' => $tblTask->getId()),
+                        'Zensuren ansehen')
+                    );
+
+            }
+        }
+
+        $tblYear = false;
+        if ($YearId === null) {
+            $tblYearList = Term::useService()->getYearByNow();
+            if ($tblYearList) {
+                $tblYear = reset($tblYearList);
+            }
+        } else {
+            $tblYear = Term::useService()->getYearById($YearId);
+        }
+
+        if ($tblYear) {
+            $Global = $this->getGlobal();
+            $Global->POST['Select']['Year'] = $tblYear->getId();
+            $Global->savePost();
+        }
+
+        $Form = ( $this->formTask($tblYear ? $tblYear : null) );
+        $Form
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                            new LayoutColumn(
+                                new TableData(
+                                    $tblTaskAll, null, array(
+                                    'Date'       => 'Stichtag',
+                                    'Type'       => 'Kategorie',
+                                    'Name'       => 'Name',
+                                    'Period'     => 'Noten-Zeitraum',
+                                    'EditPeriod' => 'Bearbeitungszeitraum',
+                                    'Option'     => '',
+                                ), array(
+                                        'order'      => array(
+                                            array(0, 'desc')
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 0)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ), new Title(new ListingTable().' Übersicht')),
+//                new LayoutGroup(array(
+//                    new LayoutRow(array(
+//                        new LayoutColumn(
+//                            new Well(Evaluation::useService()->getYear(
+//                                new Form(
+//                                    new FormGroup(
+//                                        new FormRow(
+//                                            new FormColumn(
+//                                                new SelectBox(
+//                                                    'Select[Year]', 'Schuljahr', array('Name' => Term::useService()->getYearAll()), new Calendar()
+//                                                )
+//                                            )
+//                                        )
+//                                    )
+//                                , new Primary('Auswählen', new Select()))
+//                                , $Select))
+//                        )
+//                    ))
+//                ), new Title(new Select() . ' Schuljahr auswählen')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Well(Evaluation::useService()->getYear(
+                                new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new SelectBox(
+                                                    'Select[Year]', 'Schuljahr',
+                                                    array('{{Name}} {{Description}}' => Term::useService()->getYearAll()),
+                                                    new Calendar()
+                                                )
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Auswählen', new Select()))
+                                , $Select)),
+                            $tblYear ? new Well(Evaluation::useService()->createTask($Form, $Task, $tblYear)) : null
+                        ))
+                    ))
+                ), new Title(new PlusSign().' Hinzufügen'))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return Form
+     */
+    private function formTask(TblYear $tblYear = null)
+    {
+
+        $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
+        $tblYearAllByNow = Term::useService()->getYearByNow();
+        $periodSelect[] = '';
+        if ($tblYear === null) {
+            if ($tblYearAllByNow) {
+                foreach ($tblYearAllByNow as $tblYear) {
+                    $tblPeriodAllByYear = Term::useService()->getPeriodAllByYear($tblYear);
+                    if ($tblPeriodAllByYear) {
+                        foreach ($tblPeriodAllByYear as $tblPeriod) {
+                            $periodSelect[$tblPeriod->getId()] = $tblPeriod->getDisplayName();
+                        }
+                    }
+                }
+            }
+        } else {
+            $tblPeriodAllByYear = Term::useService()->getPeriodAllByYear($tblYear);
+            if ($tblPeriodAllByYear) {
+                foreach ($tblPeriodAllByYear as $tblPeriod) {
+                    $periodSelect[$tblPeriod->getId()] = $tblPeriod->getDisplayName();
+                }
+            }
+        }
+
+        $tblScoreTypeAll = Gradebook::useService()->getScoreTypeAll();
+        if ($tblScoreTypeAll) {
+            array_push($tblScoreTypeAll, new TblScoreType());
+        }
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 4
+                ),
+                new FormColumn(
+                    new SelectBox('Task[Period]', 'Noten-Zeitraum beschränken', $periodSelect), 4
+                ),
+                new FormColumn(
+                    new SelectBox('Task[ScoreType]', 'Bewertungssystem überschreiben',
+                        array('Name' => $tblScoreTypeAll)), 4
+                ),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('Task[Name]', '', 'Name'), 12
+                ),
+
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new DatePicker('Task[Date]', '', 'Stichtag', new Calendar()), 4
+                ),
+                new FormColumn(
+                    new DatePicker('Task[FromDate]', '', 'Bearbeitungszeitraum von', new Calendar()), 4
+                ),
+                new FormColumn(
+                    new DatePicker('Task[ToDate]', '', 'Bearbeitungszeitraum bis', new Calendar()), 4
+                ),
+            ))
+        )));
     }
 
     /**
@@ -1840,237 +2180,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Task
-     * @param null $Select
-     * @param null $YearId
-     *
-     * @return Stage
-     */
-    public function frontendHeadmasterTask($Task = null, $Select = null, $YearId = null)
-    {
-
-        $Stage = new Stage('Notenaufträge', 'Übersicht');
-        $Stage->setMessage(
-            'Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebener Zensuren).'
-        );
-        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
-        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
-        if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard('Lehrer', '/Education/Graduation/Evaluation/Task/Teacher'));
-            $Stage->addButton(new Standard(new Info('Leitung'), '/Education/Graduation/Evaluation/Task/Headmaster'));
-        }
-
-
-        $tblTaskAll = Evaluation::useService()->getTaskAll();
-
-        if ($tblTaskAll) {
-            foreach ($tblTaskAll as $tblTask) {
-                $hasEdit = false;
-                $nowDate = (new \DateTime('now'))->format("Y-m-d");
-                $toDate = $tblTask->getToDate();
-                if ($toDate) {
-                    $toDate = new \DateTime($toDate);
-                    $toDate = $toDate->format('Y-m-d');
-                }
-                if ($nowDate && $toDate) {
-                    if ($nowDate < $toDate) {
-                        $hasEdit = true;
-                    }
-                }
-
-                $tblTask->Type = $tblTask->getTblTestType()->getName();
-                $tblTask->EditPeriod = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
-                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr';
-                $tblTask->Option =
-                    ($hasEdit ? (new Standard('',
-                        '/Education/Graduation/Evaluation/Task/Headmaster/Edit',
-                        new Edit(),
-                        array('Id' => $tblTask->getId()),
-                        'Bearbeiten')) : '')
-                    . (new Standard('',
-                        '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
-                        array('Id' => $tblTask->getId()),
-                        'Löschen'))
-                    . (new Standard('',
-                        '/Education/Graduation/Evaluation/Task/Headmaster/Division',
-                        new Listing(),
-                        array('Id' => $tblTask->getId()),
-                        'Klassen auswählen')
-                    )
-                    . (new Standard('',
-                        '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
-                        new Equalizer(),
-                        array('Id' => $tblTask->getId()),
-                        'Zensuren ansehen')
-                    );
-
-            }
-        }
-
-        $tblYear = false;
-        if ($YearId === null) {
-            $tblYearList = Term::useService()->getYearByNow();
-            if ($tblYearList) {
-                $tblYear = reset($tblYearList);
-            }
-        } else {
-            $tblYear = Term::useService()->getYearById($YearId);
-        }
-
-        if ($tblYear) {
-            $Global = $this->getGlobal();
-            $Global->POST['Select']['Year'] = $tblYear->getId();
-            $Global->savePost();
-        }
-
-        $Form = ($this->formTask($tblYear ? $tblYear : null));
-        $Form
-            ->appendFormButton(new Primary('Speichern', new Save()))
-            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                            new LayoutColumn(
-                                new TableData(
-                                    $tblTaskAll, null, array(
-                                    'Date' => 'Stichtag',
-                                    'Type' => 'Kategorie',
-                                    'Name' => 'Name',
-                                    'Period' => 'Noten-Zeitraum',
-                                    'EditPeriod' => 'Bearbeitungszeitraum',
-                                    'Option' => '',
-                                ), array(
-                                        'order' => array(
-                                            array(0, 'desc')
-                                        ),
-                                        'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => 0)
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                ), new Title(new ListingTable() . ' Übersicht')),
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            new Well(Evaluation::useService()->getYear(
-//                                new Form(
-//                                    new FormGroup(
-//                                        new FormRow(
-//                                            new FormColumn(
-//                                                new SelectBox(
-//                                                    'Select[Year]', 'Schuljahr', array('Name' => Term::useService()->getYearAll()), new Calendar()
-//                                                )
-//                                            )
-//                                        )
-//                                    )
-//                                , new Primary('Auswählen', new Select()))
-//                                , $Select))
-//                        )
-//                    ))
-//                ), new Title(new Select() . ' Schuljahr auswählen')),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Well(Evaluation::useService()->getYear(
-                                new Form(
-                                    new FormGroup(
-                                        new FormRow(
-                                            new FormColumn(
-                                                new SelectBox(
-                                                    'Select[Year]', 'Schuljahr',
-                                                    array('{{Name}} {{Description}}' => Term::useService()->getYearAll()),
-                                                    new Calendar()
-                                                )
-                                            )
-                                        )
-                                    )
-                                    , new Primary('Auswählen', new Select()))
-                                , $Select)),
-                            $tblYear ? new Well(Evaluation::useService()->createTask($Form, $Task, $tblYear)) : null
-                        ))
-                    ))
-                ), new Title(new PlusSign() . ' Hinzufügen'))
-            ))
-        );
-
-        return $Stage;
-    }
-
-    /**
-     * @param TblYear $tblYear
-     *
-     * @return Form
-     */
-    private function formTask(TblYear $tblYear = null)
-    {
-
-        $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
-        $tblYearAllByNow = Term::useService()->getYearByNow();
-        $periodSelect[] = '';
-        if ($tblYear === null) {
-            if ($tblYearAllByNow) {
-                foreach ($tblYearAllByNow as $tblYear) {
-                    $tblPeriodAllByYear = Term::useService()->getPeriodAllByYear($tblYear);
-                    if ($tblPeriodAllByYear) {
-                        foreach ($tblPeriodAllByYear as $tblPeriod) {
-                            $periodSelect[$tblPeriod->getId()] = $tblPeriod->getDisplayName();
-                        }
-                    }
-                }
-            }
-        } else {
-            $tblPeriodAllByYear = Term::useService()->getPeriodAllByYear($tblYear);
-            if ($tblPeriodAllByYear) {
-                foreach ($tblPeriodAllByYear as $tblPeriod) {
-                    $periodSelect[$tblPeriod->getId()] = $tblPeriod->getDisplayName();
-                }
-            }
-        }
-
-        $tblScoreTypeAll = Gradebook::useService()->getScoreTypeAll();
-        if ($tblScoreTypeAll) {
-            array_push($tblScoreTypeAll, new TblScoreType());
-        }
-
-        return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 4
-                ),
-                new FormColumn(
-                    new SelectBox('Task[Period]', 'Noten-Zeitraum beschränken', $periodSelect), 4
-                ),
-                new FormColumn(
-                    new SelectBox('Task[ScoreType]', 'Bewertungssystem überschreiben',
-                        array('Name' => $tblScoreTypeAll)), 4
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('Task[Name]', '', 'Name'), 12
-                ),
-
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new DatePicker('Task[Date]', '', 'Stichtag', new Calendar()), 4
-                ),
-                new FormColumn(
-                    new DatePicker('Task[FromDate]', '', 'Bearbeitungszeitraum von', new Calendar()), 4
-                ),
-                new FormColumn(
-                    new DatePicker('Task[ToDate]', '', 'Bearbeitungszeitraum bis', new Calendar()), 4
-                ),
-            ))
-        )));
-    }
-
-    /**
      * @param null $Id
      * @param null $Task
      *
@@ -2723,113 +2832,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         return array($studentList, $grades);
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendDivisionTeacherTask()
-    {
-
-        $Stage = new Stage('Notenaufträge', 'Übersicht');
-        $Stage->setMessage(
-            'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren),
-            wo der angemeldete Lehrer als Klassenlehrer hinterlegt ist.'
-        );
-        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
-        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
-        if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Info('Lehrer'), '/Education/Graduation/Evaluation/Task/Teacher'));
-            $Stage->addButton(new Standard('Leitung', '/Education/Graduation/Evaluation/Task/Headmaster'));
-        }
-
-        $taskList = array();
-
-        $tblPerson = false;
-        $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
-            if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
-            }
-        }
-        if ($tblPerson) {
-            $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
-            if ($tblDivisionTeacherAllByTeacher) {
-                foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
-                    if ($tblDivisionTeacher->getTblDivision()) {
-                        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
-                        $tblTestList = Evaluation::useService()->getTestAllByTestTypeAndDivision(
-                            $tblTestType,
-                            $tblDivisionTeacher->getTblDivision()
-                        );
-                        if ($tblTestList) {
-                            foreach ($tblTestList as $tblTest) {
-                                $taskList[$tblTest->getTblTask()->getId()] = $tblTest->getTblTask();
-                            }
-                        }
-                        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
-                        $tblTestList = Evaluation::useService()->getTestAllByTestTypeAndDivision(
-                            $tblTestType,
-                            $tblDivisionTeacher->getTblDivision()
-                        );
-                        if ($tblTestList) {
-                            foreach ($tblTestList as $tblTest) {
-                                $taskList[$tblTest->getTblTask()->getId()] = $tblTest->getTblTask();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        if (!empty($taskList)) {
-            /** @var TblTask $tblTask */
-            foreach ($taskList as $tblTask) {
-                $tblTask->Type = $tblTask->getTblTestType()->getName();
-                $tblTask->EditPeriod = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
-                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr';
-                $tblTask->Option =
-                    (new Standard('',
-                        '/Education/Graduation/Evaluation/Task/Teacher/Grades',
-                        new Equalizer(),
-                        array('Id' => $tblTask->getId()),
-                        'Zensuren ansehen')
-                    );
-            }
-        }
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                            new LayoutColumn(
-                                new TableData(
-                                    $taskList, null, array(
-                                    'Date' => 'Stichtag',
-                                    'Type' => 'Kategorie',
-                                    'Name' => 'Name',
-                                    'Period' => 'Noten-Zeitraum',
-                                    'EditPeriod' => 'Bearbeitungszeitraum',
-                                    'Option' => '',
-                                ), array(
-                                        'order' => array(
-                                            array(0, 'desc')
-                                        ),
-                                        'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => 0)
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                ), new Title(new ListingTable() . ' Übersicht')),
-            ))
-        );
-
-        return $Stage;
     }
 
     /**

@@ -53,13 +53,14 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -314,8 +315,9 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Info('Lehrer'), '/Education/Graduation/Gradebook/Gradebook/Teacher'));
-            $Stage->addButton(new Standard('Leitung', '/Education/Graduation/Gradebook/Gradebook/Headmaster'));
+            $Stage->addButton(new Standard(new Bold('Ansicht: Lehrer'),
+                '/Education/Graduation/Gradebook/Gradebook/Teacher', new Edit()));
+            $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Gradebook/Gradebook/Headmaster'));
         }
 
         $tblPerson = false;
@@ -504,8 +506,9 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard('Lehrer', '/Education/Graduation/Gradebook/Gradebook/Teacher'));
-            $Stage->addButton(new Standard(new Info('Leitung'), '/Education/Graduation/Gradebook/Gradebook/Headmaster'));
+            $Stage->addButton(new Standard('Ansicht: Lehrer', '/Education/Graduation/Gradebook/Gradebook/Teacher'));
+            $Stage->addButton(new Standard(new Bold('Ansicht: Leitung'),
+                '/Education/Graduation/Gradebook/Gradebook/Headmaster', new Edit()));
         }
 
         $divisionSubjectTable = array();
@@ -2769,7 +2772,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblYearList as $tblYear) {
                     $yearButtonList[] = new Standard(
                         ($tblSelectedYear && $tblYear->getId() == $tblSelectedYear->getId())
-                            ? new Info($tblYear->getDisplayName())
+                            ? new Bold(new Edit().' '.$tblYear->getDisplayName())
                             : $tblYear->getDisplayName(),
                         '/Education/Graduation/Gradebook/Type/Select',
                         null,
@@ -2813,12 +2816,19 @@ class Frontend extends Extension implements IFrontendInterface
 
                             $tblNewSubject = new TblSubject();
                             $tblNewSubject->setId(-1);
-                            $tblNewSubject->setName('Alle Fächer');
+                            $tblNewSubject->setName('Alle wählbaren Fächer');
                             array_unshift($subjectList, $tblNewSubject);
 
                             foreach ($subjectList as &$tblSubject) {
                                 $isDisabled = false;
-                                $name = ($tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym() . ' ') : '') . $tblSubject->getName();
+                                if ($tblSubject->getId() === -1) {
+                                    $name = new \SPHERE\Common\Frontend\Text\Repository\Italic((
+                                        $tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym().' ') : '' ).$tblSubject->getName()
+                                    );
+                                } else {
+                                    $name = ( $tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym().' ') : '' ).$tblSubject->getName();
+                                }
+
                                 $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
                                     $tblDivision, $tblSubject
                                 );
@@ -2827,7 +2837,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         && $tblScoreRuleDivisionSubject->getTblScoreType()->getId() != $tblScoreType->getId()
                                     ) {
                                         $isDisabled = true;
-                                        $name .= new Small(' (' . $tblScoreRuleDivisionSubject->getTblScoreType()->getName() . ')');
+                                        $name .= ' '.new Label($tblScoreRuleDivisionSubject->getTblScoreType()->getName(),
+                                                Label::LABEL_TYPE_PRIMARY);
                                     }
                                 }
 
@@ -2846,8 +2857,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                             $panel = new Panel(
                                 new Bold('Klasse ' . $tblDivision->getDisplayName()),
-                                $subjectList
-
+                                $subjectList,
+                                Panel::PANEL_TYPE_INFO
                             );
 
                             if ($tblDivision->getTblLevel()) {
@@ -2886,7 +2897,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Panel(
                                     'Bewertungssystem',
                                     new Bold($tblScoreType->getName()),
-                                    Panel::PANEL_TYPE_INFO
+                                    Panel::PANEL_TYPE_SUCCESS
                                 )
                             ),
                             new LayoutColumn($yearButtonList),
