@@ -3,7 +3,6 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication;
@@ -12,7 +11,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -39,17 +37,17 @@ class Data extends AbstractData
         $this->createIdentification('Token', 'Benutzername / Passwort & Hardware-Schlüssel', true);
         $this->createIdentification('System', 'Benutzername / Passwort & Hardware-Schlüssel', true);
 
-        $tblConsumer = Consumer::useService()->getConsumerById(1);
-        $tblIdentification = $this->getIdentificationByName('Credential');
-        $tblRole = Access::useService()->getRoleByName('Administrator');
-
-        // Install Administrator
-        $tblAccount = $this->createAccount('root', 'sphere', null, $tblConsumer);
-        $this->addAccountAuthentication($tblAccount, $tblIdentification);
-        $this->addAccountAuthorization($tblAccount, $tblRole);
-        if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-            $this->setSettingByAccount($tblAccount, 'Surface', 1);
-        }
+//        $tblConsumer = Consumer::useService()->getConsumerById(1);
+//        $tblIdentification = $this->getIdentificationByName('Credential');
+//        $tblRole = Access::useService()->getRoleByName('Administrator');
+//
+//        // Install Administrator
+//        $tblAccount = $this->createAccount('root', 'sphere', null, $tblConsumer);
+//        $this->addAccountAuthentication($tblAccount, $tblIdentification);
+//        $this->addAccountAuthorization($tblAccount, $tblRole);
+//        if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
+//            $this->setSettingByAccount($tblAccount, 'Surface', 1);
+//        }
         /*
                 // System (Gerd)
                 $tblToken = Token::useService()->getTokenByIdentifier('ccccccdilkui');
