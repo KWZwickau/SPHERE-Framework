@@ -700,6 +700,8 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblDivisionTeacherActive, function (TblPerson &$Entity) use ($Id, $tblDivision) {
 
                 /** @noinspection PhpUndefinedFieldInspection */
+                $Entity->DisplayName = $Entity->getLastFirstName();
+                $Entity->Address = $Entity->fetchMainAddress() ? $Entity->fetchMainAddress()->getGuiString() : '';
                 $Entity->Option = new PullRight(
                     new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
                         '/Education/Lesson/Division/Teacher/Add', new Minus(),
@@ -718,6 +720,8 @@ class Frontend extends Extension implements IFrontendInterface
         if (isset( $tblDivisionTeacherAll ) && !empty( $tblDivisionTeacherAll )) {
             array_walk($tblDivisionTeacherAll, function (TblPerson &$Entity) use ($Id) {
 
+                $Entity->DisplayName = $Entity->getLastFirstName();
+                $Entity->Address = $Entity->fetchMainAddress() ? $Entity->fetchMainAddress()->getGuiString() : '';
                 $Entity->Options = (new Form(
                     new FormGroup(
                         new FormRow(array(
@@ -750,8 +754,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Keine Lehrer zugewiesen')
                                 : new TableData($tblDivisionTeacherActive, null,
                                     array(
-                                        'FirstName'   => 'Vorname',
-                                        'LastName'    => 'Nachname',
+                                        'DisplayName'   => 'Name',
+                                        'Address'    => 'Adresse',
                                         'Description' => 'Beschreibung',
                                         'Option'      => ''
                                     ))
@@ -763,8 +767,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Info('Keine weiteren Lehrer verfügbar')
                                 : new TableData($tblTeacherAvailable, null,
                                     array(
-                                        'FirstName' => 'Vorname',
-                                        'LastName'  => 'Nachname',
+                                        'DisplayName'   => 'Name',
+                                        'Address'    => 'Adresse',
                                         'Options'   => 'Beschreibung'
                                     ))
                             )
@@ -848,6 +852,8 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblDivisionGuardianActive, function (TblPerson &$Entity) use ($Id, $tblDivision) {
 
                 /** @noinspection PhpUndefinedFieldInspection */
+                $Entity->DisplayName = $Entity->getLastFirstName();
+                $Entity->Address = $Entity->fetchMainAddress() ? $Entity->fetchMainAddress()->getGuiString() : '';
                 $Entity->Option = new PullRight(
                     new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
                         '/Education/Lesson/Division/Custody/Add', new Minus(),
@@ -866,6 +872,8 @@ class Frontend extends Extension implements IFrontendInterface
         if (isset( $tblDivisionGuardianAll ) && !empty( $tblDivisionGuardianAll )) {
             array_walk($tblDivisionGuardianAll, function (TblPerson &$Entity) use ($Id) {
 
+                $Entity->DisplayName = $Entity->getLastFirstName();
+                $Entity->Address = $Entity->fetchMainAddress() ? $Entity->fetchMainAddress()->getGuiString() : '';
                 $Entity->Options = (new Form(
                     new FormGroup(
                         new FormRow(array(
@@ -898,8 +906,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Keine Elternvertreter zugewiesen')
                                 : new TableData($tblDivisionGuardianActive, null,
                                     array(
-                                        'FirstName'   => 'Vorname',
-                                        'LastName'    => 'Nachname',
+                                        'DisplayName'   => 'Name',
+                                        'Address'    => 'Adresse',
                                         'Description' => 'Beschreibung',
                                         'Option'      => ''
                                     ))
@@ -911,8 +919,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Info('Keine weiteren Elternvertreter verfügbar')
                                 : new TableData($tblGuardianAvailable, null,
                                     array(
-                                        'FirstName' => 'Vorname',
-                                        'LastName'  => 'Nachname',
+                                        'DisplayName'   => 'Name',
+                                        'Address'    => 'Adresse',
                                         'Options'   => 'Beschreibung'
                                     ))
                             )
