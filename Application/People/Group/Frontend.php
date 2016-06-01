@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -406,7 +407,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ($tblPersonList
                                 ? new TableData(
                                     $tblPersonList,
-                                    null,
+                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Ausgewählte', 'Personen'),
                                     array(
                                         'Check' => '',
                                         'DisplayName' => 'Name',
@@ -426,14 +427,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new Warning('Keine Personen zugewiesen.', new Exclamation())
                             )
                         ), 6),
-                    )), new \SPHERE\Common\Frontend\Form\Repository\Title('Ausgewählte', 'Personen')),
-                new FormGroup(
-                    new FormRow(array(
                         new FormColumn(array(
                             ($tblPersonAll
                                 ? new TableData(
                                     $tblPersonAll,
-                                    null,
+                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Verfügbare', 'Personen'),
                                     array(
                                         'Check' => '',
                                         'DisplayName' => 'Name',
@@ -446,16 +444,19 @@ class Frontend extends Extension implements IFrontendInterface
                                         ),
                                         "paging" => false, // Deaktivieren Blättern
                                         "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                        "searching" => false, // Deaktivieren Suchen
+                                        "info" => false  // Deaktivieren Such-Info
                                     )
                                 )
                                 : new Warning('Keine weiteren Personen verfügbar.', new Exclamation())
                             )
                         ), 6)
-                    )), new \SPHERE\Common\Frontend\Form\Repository\Title('Ausgewählte', 'Personen')
-                )
+                    ))
+                ),
             ));
 
             $form->appendFormButton(new Primary('Speichern', new Save()));
+            $form->setConfirm('Die Zuweisung der Personen wurde noch nicht gespeichert.');
 
             $Stage->setContent(new Layout(array(
                 new LayoutGroup(
@@ -487,13 +488,15 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                Group::useService()->addPersonsToGroup($form, $tblGroup, $Data,
-                                    $tblFilterGroup ? $tblFilterGroup : null,
-                                    $tblFilterDivision ? $tblFilterDivision : null
+                                new Well(
+                                    Group::useService()->addPersonsToGroup($form, $tblGroup, $Data,
+                                        $tblFilterGroup ? $tblFilterGroup : null,
+                                        $tblFilterDivision ? $tblFilterDivision : null
+                                    )
                                 )
                             ))
                         ))
-                    ) : null)
+                        , new Title(new Transfer() . ' Personen', 'Zuweisen')) : null)
             )));
 
         } else {
