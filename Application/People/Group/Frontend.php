@@ -359,6 +359,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
             $tblPersonAll = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('COMMON'));
 
+            // filter
             if ($tblFilterGroup || $tblFilterDivision) {
                 $tblPersonAll = Group::useService()->filterPersonListByGroupAndDivision(
                     $tblPersonAll,
