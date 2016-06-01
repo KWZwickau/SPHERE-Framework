@@ -4,6 +4,11 @@ namespace MOC\V\TestSuite\Tests\Core\FileSystem;
 use MOC\V\Core\FileSystem\Vendor\Vendor;
 use MOC\V\TestSuite\AbstractTestCase;
 
+/**
+ * Class VendorTest
+ *
+ * @package MOC\V\TestSuite\Tests\Core\FileSystem
+ */
 class VendorTest extends AbstractTestCase
 {
 

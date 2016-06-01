@@ -24,6 +24,7 @@ class UniversalFileLoader extends Bridge implements IBridgeInterface
     public function __construct(FileParameter $FileOption)
     {
 
+        parent::__construct();
         $this->Instance = new FileLoader($FileOption->getFile());
     }
 

@@ -36,11 +36,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class Frontend
@@ -119,19 +121,19 @@ class Frontend extends Extension implements IFrontendInterface
     public function formSubject(TblSubject $tblSubject = null)
     {
 
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
         $acAcronymAll = array();
         $acNameAll = array();
-        array_walk($tblSubjectAll, function (TblSubject $tblSubject) use (&$acAcronymAll, &$acNameAll) {
+        if (( $tblSubjectAll = Subject::useService()->getSubjectAll() )) {
+            array_walk($tblSubjectAll, function (TblSubject $tblSubject) use (&$acAcronymAll, &$acNameAll) {
 
-            if (!in_array($tblSubject->getAcronym(), $acAcronymAll)) {
-                array_push($acAcronymAll, $tblSubject->getAcronym());
-            }
-            if (!in_array($tblSubject->getName(), $acNameAll)) {
-                array_push($acNameAll, $tblSubject->getName());
-            }
-        });
-
+                if (!in_array($tblSubject->getAcronym(), $acAcronymAll)) {
+                    array_push($acAcronymAll, $tblSubject->getAcronym());
+                }
+                if (!in_array($tblSubject->getName(), $acNameAll)) {
+                    array_push($acNameAll, $tblSubject->getName());
+                }
+            });
+        }
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Subject']) && $tblSubject) {
             $Global->POST['Subject']['Acronym'] = $tblSubject->getAcronym();
@@ -530,12 +532,12 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblSubjectAllAvailable = Subject::useService()->getSubjectAll();
-        $tblSubjectAllAvailable = $this->getSorter($tblSubjectAllAvailable)->sortObjectList('Name');
+        $tblSubjectAllAvailable = $this->getSorter($tblSubjectAllAvailable)->sortObjectBy('Name');
         array_walk($tblSubjectAllAvailable, function (TblSubject &$tblSubject) {
 
             $tblSubject = new CheckBox(
                 'Subject[' . $tblSubject->getId() . ']',
-                $tblSubject->getName() . ' ' . new Muted($tblSubject->getDescription()),
+                new Bold($tblSubject->getAcronym()) . ' ' . $tblSubject->getName() . ' ' . new Muted($tblSubject->getDescription()),
                 $tblSubject->getId()
             );
         });

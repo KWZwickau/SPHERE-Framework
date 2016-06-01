@@ -1280,11 +1280,11 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 if ($isProspectList) {
                     $columnDefinition = array(
-                        'Name' => 'Interessentenname_______',
-                        'Year' => 'Schul- jahr',
-                        'Level' => 'Kl.- stufe',
+                        'Name' => 'Interessentenname&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+                        'Year' => 'Schul&shy;jahr',
+                        'Level' => 'Kl. - Stufe',
                         'SchoolOption' => 'Schulart',
-                        'ReservationDate' => 'Eingangs- datum'
+                        'ReservationDate' => 'Eingangs&shy;datum'
                     );
                     // set Header for prospectList
                     $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
@@ -1341,6 +1341,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             } else {
                                                 $list[$count]['ReservationDate'] = '';
                                             }
+                                        } else {
+                                            $list[$count]['ReservationDate'] = '';
                                         }
                                         $list[$count]['Year'] = $year;
                                         $list[$count]['Level'] = $level;
@@ -1390,11 +1392,11 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 if ($hasFilter) {
                     $columnDefinition = array(
-                        'Name' => 'Interessentenname_______',
-                        'Year' => 'Schul- jahr',
-                        'Level' => 'Kl.- stufe',
+                        'Name' => 'Interessentenname&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+                        'Year' => 'Schul&shy;jahr',
+                        'Level' => 'Kl. - Stufe',
                         'SchoolOption' => 'Schulart',
-                        'ReservationDate' => 'Eingangs- datum'
+                        'ReservationDate' => 'Eingangs&shy;datum'
                     );
                     // set Header for prospectList
                     $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);

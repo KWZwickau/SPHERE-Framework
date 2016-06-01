@@ -60,7 +60,6 @@ abstract class AbstractFastCacheAdapter extends AbstractHandler
     public function setConfig($Name, ReaderInterface $Config = null)
     {
 
-        // TODO: Implement setConfig() method.
         return $this;
     }
 

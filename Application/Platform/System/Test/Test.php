@@ -29,6 +29,9 @@ class Test implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Upload'), new Link\Name('Upload-Test'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/DynamicFilter'), new Link\Name('DynamicFilter-Test'))
+        );
         /**
          * Register Route
          */
@@ -51,6 +54,11 @@ class Test implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Upload/Delete/Check',
                 __NAMESPACE__.'\Frontend::frontendPictureDeleteCheck'
             )->setParameterDefault('Id', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DynamicFilter',
+                __NAMESPACE__.'\Frontend::frontendDynamicFilter'
+            )
         );
     }
 

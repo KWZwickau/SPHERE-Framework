@@ -320,7 +320,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $GradeList = $Template->getGrade();
                             $HeaderBehavior = array();
                             if (isset( $GradeList['Data']['BEHAVIOR'] )) {
-                                // sorted like Inputfields
+                                // sorted like InputFields
                                 foreach ($GradeList['Data']['BEHAVIOR'] as $Acronym => $Value) {
                                     $tblGradeType = Gradebook::useService()->getGradeTypeByCode($Acronym);
                                     if ($tblGradeType) {

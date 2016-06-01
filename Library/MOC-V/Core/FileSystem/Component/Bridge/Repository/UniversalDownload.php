@@ -25,16 +25,8 @@ class UniversalDownload extends Bridge implements IBridgeInterface
     public function __construct(FileParameter $FileLocation, FileParameter $FileName = null)
     {
 
+        parent::__construct();
         $this->Instance = new Download($FileLocation->getFile(), ( $FileName ? $FileName->getFile() : null ));
-    }
-
-    /**
-     * @return string
-     */
-    public function getLocation()
-    {
-
-        return $this->Instance->getLocation();
     }
 
     /**
@@ -49,6 +41,15 @@ class UniversalDownload extends Bridge implements IBridgeInterface
             $SplFileInfo = (new \SplFileInfo($SERVER['DOCUMENT_ROOT'].$this->Instance->getLocation()));
         }
         return $SplFileInfo->getRealPath() ? $SplFileInfo->getRealPath() : '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getLocation()
+    {
+
+        return $this->Instance->getLocation();
     }
 
     /**

@@ -32,6 +32,15 @@ class Redirect extends Extension implements ITemplateInterface
     public function __construct($Route, $Timeout = Redirect::TIMEOUT_WAIT, $Data = array())
     {
 
+        if ($Route === null) {
+            $Route = parse_url($this->getRequest()->getUrl(), PHP_URL_PATH);
+            parse_str(parse_url($this->getRequest()->getUrl(), PHP_URL_QUERY), $Query);
+            if (isset( $Query['_Sign'] )) {
+                unset( $Query['_Sign'] );
+            }
+            $Data = array_merge($Data, $Query);
+        }
+
         if ((new DebuggerFactory())->createLogger(new ErrorLogger())->isEnabled()) {
             $Timeout = 300;
         }

@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -52,8 +53,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblAccount', 'Username')) {
             $Table->addColumn('Username', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Username'))) {
-            $Table->addUniqueIndex(array('Username'));
+        $this->getConnection()->removeIndex($Table, array('Username'));
+        if (!$this->getConnection()->hasIndex($Table, array('Username', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Username', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblAccount', 'Password')) {
             $Table->addColumn('Password', 'string');
@@ -82,8 +84,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblIdentification', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('Name'))) {
-            $Table->addUniqueIndex(array('Name'));
+        $this->getConnection()->removeIndex($Table, array('Name'));
+        if (!$this->getConnection()->hasIndex($Table, array('Name', Element::ENTITY_REMOVE))) {
+            $Table->addUniqueIndex(array('Name', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblIdentification', 'Description')) {
             $Table->addColumn('Description', 'string');

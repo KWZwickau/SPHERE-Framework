@@ -6,8 +6,6 @@ use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\CacheFactory;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
 
@@ -28,6 +26,7 @@ class Data extends AbstractData
         $this->createGroup('Sorgeberechtigt', '', '', true, 'CUSTODY');
         $this->createGroup('Mitarbeiter', 'Alle Mitarbeiter', '', true, 'STAFF');
         $this->createGroup('Lehrer', 'Alle Mitarbeiter, welche einer Lehrtätigkeit nachgehen', '', true, 'TEACHER');
+        $this->createGroup('Vereinsmitglieder', '', '', true, 'CLUB');
     }
 
     /**
@@ -104,6 +103,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return TblMember[]|bool
+     */
+    public function getMemberAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember');
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblGroup
@@ -112,6 +120,17 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', $Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblMember
+     */
+    public function getMemberById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', $Id);
     }
 
     /**
@@ -152,19 +171,12 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getMemberAllByGroup($tblGroup);
-
-        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
-        if (null === ( $ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__) )
-            && !empty( $EntityList )
-        ) {
+        if ($EntityList) {
             array_walk($EntityList, function (TblMember &$V) {
 
                 $V = $V->getServiceTblPerson();
             });
             $EntityList = array_filter($EntityList);
-            $Cache->setValue($tblGroup->getId(), $EntityList, 0, __METHOD__);
-        } else {
-            $EntityList = $ResultList;
         }
         return ( null === $EntityList ? false : $EntityList );
     }

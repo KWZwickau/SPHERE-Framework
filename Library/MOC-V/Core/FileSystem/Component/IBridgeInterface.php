@@ -10,6 +10,11 @@ interface IBridgeInterface
 {
 
     /**
+     * @return null|false|string returns null if not detected, false on error (enable the php_fileinfo extension)
+     */
+    public function getMimeType();
+
+    /**
      * @return string
      */
     public function getLocation();
