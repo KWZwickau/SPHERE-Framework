@@ -171,6 +171,11 @@ class Service extends Extension
                     $tblFormerDonorGroup = PersonGroup::useService()->insertGroup('Ehemalige Spender');
                     $tblFormerStudentGroup = PersonGroup::useService()->insertGroup('Ehemalige Schüler');
                     $tblDonorGroup = PersonGroup::useService()->insertGroup('Spender');
+                    $tblEagleGroup = PersonGroup::useService()->insertGroup('Adler');
+                    $tblDolphinGroup = PersonGroup::useService()->insertGroup('Delfin');
+                    $tblTigerGroup = PersonGroup::useService()->insertGroup('Tiger');
+
+                    $tblCustodyGroup = PersonGroup::useService()->getGroupByMetaTable('CUSTODY');
 
                     $error = array();
                     $tblPersonList = array();
@@ -187,13 +192,15 @@ class Service extends Extension
                             $tblFormerDonorGroup,
                             $tblFormerStudentGroup,
                             $tblDonorGroup,
+                            $tblEagleGroup,
+                            $tblDolphinGroup,
+                            $tblTigerGroup,
+                            $tblCustodyGroup,
                             $error,
                             $tblPersonList
                         );
 
                     }
-
-//                    Debugger::screenDump($error);
 
                     return
                         new Success('Es wurden ' . $countPerson . ' Personen erfolgreich angelegt.')
@@ -207,8 +214,6 @@ class Service extends Extension
                         ))));
 
                 } else {
-//                    Debugger::screenDump($Location);
-
                     return new Warning(json_encode($Location)) . new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
@@ -230,6 +235,10 @@ class Service extends Extension
         $tblFormerDonorGroup,
         $tblFormerStudentGroup,
         $tblDonorGroup,
+        $tblEagleGroup,
+        $tblDolphinGroup,
+        $tblTigerGroup,
+        $tblCustodyGroup,
         $error,
         $tblPersonList
     ) {
@@ -324,6 +333,7 @@ class Service extends Extension
                             Relationship::useService()->getTypeById(1), // Sorgeberechtigt
                             $remark
                         );
+                        PersonGroup::useService()->addGroupPerson($tblCustodyGroup, $tblPerson);
                     } else {
                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Beziehung konnte nicht hinzugefügt werden, da die Person nicht gefunden wurde.';
                     }
@@ -338,6 +348,7 @@ class Service extends Extension
                             Relationship::useService()->getTypeById(1), // Sorgeberechtigt
                             $remark
                         );
+                        PersonGroup::useService()->addGroupPerson($tblCustodyGroup, $tblPerson);
                     } else {
                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Beziehung konnte nicht hinzugefügt werden, da die Person nicht gefunden wurde.';
                     }
@@ -352,6 +363,7 @@ class Service extends Extension
                             Relationship::useService()->getTypeById(1), // Sorgeberechtigt
                             $remark
                         );
+                        PersonGroup::useService()->addGroupPerson($tblCustodyGroup, $tblPerson);
                     } else {
                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Beziehung konnte nicht hinzugefügt werden, da die Person nicht gefunden wurde.';
                     }
@@ -401,8 +413,17 @@ class Service extends Extension
                 if ($division !== '' && $level !== '') {
                     $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
                     if ($tblLevel && $tblYear) {
-                        $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
-                            $division);
+                        if ($division == 'Adler'){
+                            PersonGroup::useService()->addGroupPerson($tblEagleGroup, $tblPerson);
+                        } elseif ($division == 'Tiger'){
+                            PersonGroup::useService()->addGroupPerson($tblTigerGroup, $tblPerson);
+                        } elseif ($division == 'Delfin'){
+                            PersonGroup::useService()->addGroupPerson($tblDolphinGroup, $tblPerson);
+                        } else {
+                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Gruppe (Klassengruppe) nicht gefunden.';
+                        }
+
+                        $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel, '');
                         if ($tblDivision) {
                             Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
                             PersonGroup::useService()->addGroupPerson(
@@ -697,9 +718,6 @@ class Service extends Extension
                         trim($Document->getValue($Document->getCell($Location['Geburtsname'], $RunY)))
                     );
                 }
-
-                // Todo JohK Gruppe Institution ??
-
             } else {
                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Firma wurde nicht hinzugefügt.';
             }
