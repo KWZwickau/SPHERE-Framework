@@ -30,7 +30,6 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -324,7 +323,8 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param null $Data
+     * @param null $DataAddPerson
+     * @param null $DataRemovePerson
      * @param null $Filter
      * @param null $FilterGroupId
      * @param null $FilterDivisionId
@@ -333,7 +333,8 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendGroupPersonAdd(
         $Id = null,
-        $Data = null,
+        $DataAddPerson = null,
+        $DataRemovePerson = null,
         $Filter = null,
         $FilterGroupId = null,
         $FilterDivisionId = null
@@ -378,17 +379,9 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             if ($tblPersonList) {
-                if ($Data === null) {
-                    $GLOBAL = $this->getGlobal();
-                    foreach ($tblPersonList as $tblPerson) {
-                        $GLOBAL->POST['Data'][$tblPerson->getId()] = 1;
-                    }
-                    $GLOBAL->savePost();
-                }
-
                 $tempList = array();
                 foreach ($tblPersonList as $personListPerson) {
-                    $tempList[] = $this->setPersonData($personListPerson);
+                    $tempList[] = $this->setPersonData($personListPerson, 'DataRemovePerson');
                 }
                 $tblPersonList = $tempList;
             }
@@ -396,9 +389,38 @@ class Frontend extends Extension implements IFrontendInterface
             if (is_array($tblPersonAll)) {
                 $tempList = array();
                 foreach ($tblPersonAll as $personAllPerson) {
-                    $tempList[] = $this->setPersonData($personAllPerson);
+                    $tempList[] = $this->setPersonData($personAllPerson, 'DataAddPerson');
                 }
                 $tblPersonAll = $tempList;
+            }
+
+            if (!$tblFilterGroup && !$tblFilterDivision){
+                $displayAvailablePersons = new Warning(
+                    'Zum Hinzufügen von Personen zur Gruppe: ' . $tblGroup->getName() . ' schränken Sie bitte den Personenkreis über die Suche (Gruppe und/oder Klasse) ein.',
+                    new Exclamation()
+                );
+            } elseif ($tblPersonAll) {
+                $displayAvailablePersons = new TableData(
+                    $tblPersonAll,
+                    new \SPHERE\Common\Frontend\Table\Repository\Title('Weitere Personen', 'Hinzufügen'),
+                    array(
+                        'Check' => 'Hinzufügen',
+                        'DisplayName' => 'Name',
+                        'Address' => 'Addresse',
+                        'Groups' => 'Gruppen/Klasse '
+                    ),
+                    array(
+                        'order' => array(
+                            array('1', 'asc')
+                        ),
+                        "paging" => false, // Deaktivieren Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktivieren Suchen
+                        "info" => false  // Deaktivieren Such-Info
+                    )
+                );
+            } else {
+                $displayAvailablePersons = new Warning('Keine weiteren Personen verfügbar.', new Exclamation());
             }
 
             $form = new Form(array(
@@ -408,9 +430,9 @@ class Frontend extends Extension implements IFrontendInterface
                             ($tblPersonList
                                 ? new TableData(
                                     $tblPersonList,
-                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Ausgewählte', 'Personen'),
+                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Mitglieder der Gruppe', 'Entfernen'),
                                     array(
-                                        'Check' => '',
+                                        'Check' => 'Entfernen',
                                         'DisplayName' => 'Name',
                                         'Address' => 'Addresse',
                                         'Groups' => 'Gruppen/Klasse'
@@ -429,28 +451,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ), 6),
                         new FormColumn(array(
-                            ($tblPersonAll
-                                ? new TableData(
-                                    $tblPersonAll,
-                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Verfügbare', 'Personen'),
-                                    array(
-                                        'Check' => '',
-                                        'DisplayName' => 'Name',
-                                        'Address' => 'Addresse',
-                                        'Groups' => 'Gruppen/Klasse '
-                                    ),
-                                    array(
-                                        'order' => array(
-                                            array('1', 'asc')
-                                        ),
-                                        "paging" => false, // Deaktivieren Blättern
-                                        "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                        "searching" => false, // Deaktivieren Suchen
-                                        "info" => false  // Deaktivieren Such-Info
-                                    )
-                                )
-                                : new Warning('Keine weiteren Personen verfügbar.', new Exclamation())
-                            )
+                            $displayAvailablePersons
                         ), 6)
                     ))
                 ),
@@ -461,20 +462,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(new Layout(array(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
                         new LayoutColumn(
                             new Panel(
                                 'Gruppe',
                                 $tblGroup->getName() . ' ' . new Small(new Muted($tblGroup->getDescription())),
                                 Panel::PANEL_TYPE_INFO
-                            )
-                        )
-                    )
-                ),
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            '&nbsp;', 6
+                            ), 6
                         ),
                         new LayoutColumn(
                             new Well(
@@ -484,20 +478,24 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 6
                         )
                     ))
-                    , new Title(new Filter() . ' Filter', 'Verfügbare Personen')),
+                ),
                 ($Filter == null ?
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 new Well(
-                                    Group::useService()->addPersonsToGroup($form, $tblGroup, $Data,
+                                    Group::useService()->addPersonsToGroup(
+                                        $form,
+                                        $tblGroup,
+                                        $DataAddPerson,
+                                        $DataRemovePerson,
                                         $tblFilterGroup ? $tblFilterGroup : null,
                                         $tblFilterDivision ? $tblFilterDivision : null
                                     )
                                 )
                             ))
                         ))
-                        , new Title(new Transfer() . ' Personen', 'Zuweisen')) : null)
+                    ) : null)
             )));
 
         } else {
@@ -511,13 +509,15 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param $DataName
+     *
      * @return array
      */
-    private function setPersonData(TblPerson $tblPerson)
+    private function setPersonData(TblPerson $tblPerson, $DataName)
     {
         $result = array();
         $result['Check'] = new CheckBox(
-            'Data[' . $tblPerson->getId() . ']',
+            $DataName . '[' . $tblPerson->getId() . ']',
             '&nbsp;&nbsp;&nbsp;',
             1
         );
@@ -570,7 +570,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new SelectBox('Filter[Division]', 'Klasse', array('DisplayName' => $tblDivisionList)), 6
                     ),
                     new FormColumn(
-                        new Primary('Filtern', new Filter())
+                        new Primary('Suchen', new Filter())
                     ),
                 ))
             )

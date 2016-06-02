@@ -361,8 +361,24 @@ class Service extends AbstractService
         );
     }
 
-    public function addPersonsToGroup(IFormInterface $Form, TblGroup $tblGroup, $Data = null, TblGroup $tblFilterGroup = null, TblDivision $tblFilterDivision = null)
-    {
+    /**
+     * @param IFormInterface $Form
+     * @param TblGroup $tblGroup
+     * @param null $DataAddPerson
+     * @param null $DataRemovePerson
+     * @param TblGroup|null $tblFilterGroup
+     * @param TblDivision|null $tblFilterDivision
+     *
+     * @return IFormInterface|string
+     */
+    public function addPersonsToGroup(
+        IFormInterface $Form,
+        TblGroup $tblGroup,
+        $DataAddPerson = null,
+        $DataRemovePerson = null,
+        TblGroup $tblFilterGroup = null,
+        TblDivision $tblFilterDivision = null
+    ) {
 
         /**
          * Skip to Frontend
@@ -372,24 +388,14 @@ class Service extends AbstractService
             return $Form;
         }
 
-        // löschen
-        $tblPersonAllByGroup = $this->getPersonAllByGroup($tblGroup);
-        if ($tblPersonAllByGroup) {
-            foreach ($tblPersonAllByGroup as $item) {
-                if (!isset($Data[$item->getId()])){
-                    $this->removeGroupPerson($tblGroup, $item);
-                }
-            }
+        // entfernen
+        if ($DataRemovePerson !== null){
+            $this->removePersonListFromGroup($tblGroup, $DataRemovePerson);
         }
 
         // hinzufügen
-        if ($Data !== null) {
-            foreach ($Data as $personId => $value) {
-                $tblPerson = Person::useService()->getPersonById($personId);
-                if ($tblPerson && !$this->existsGroupPerson($tblGroup, $tblPerson)) {
-                    $this->addGroupPerson($tblGroup, $tblPerson);
-                }
-            }
+        if ($DataAddPerson !== null) {
+            $this->addPersonListToGroup($tblGroup, $DataAddPerson);
         }
 
         return new Success('Daten erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -447,31 +453,60 @@ class Service extends AbstractService
         TblDivision $tblDivision = null
     ) {
 
-        if (is_array($tblPersonList)){
+        if (is_array($tblPersonList)) {
             $resultPersonList = array();
             /** @var TblPerson $tblPerson */
-            foreach($tblPersonList as $tblPerson){
-                if ($tblGroup && $tblDivision){
+            foreach ($tblPersonList as $tblPerson) {
+                if ($tblGroup && $tblDivision) {
                     $tblPersonDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
                     if ($this->existsGroupPerson($tblGroup, $tblPerson)
-                        && $tblPersonDivision && $tblPersonDivision->getId() == $tblDivision->getId()){
+                        && $tblPersonDivision && $tblPersonDivision->getId() == $tblDivision->getId()
+                    ) {
                         $resultPersonList[$tblPerson->getId()] = $tblPerson;
                     }
-                } elseif ($tblGroup){
-                    if ($this->existsGroupPerson($tblGroup, $tblPerson)){
+                } elseif ($tblGroup) {
+                    if ($this->existsGroupPerson($tblGroup, $tblPerson)) {
                         $resultPersonList[$tblPerson->getId()] = $tblPerson;
                     }
-                } elseif ($tblDivision){
+                } elseif ($tblDivision) {
                     $tblPersonDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
-                    if ($tblPersonDivision && $tblPersonDivision->getId() == $tblDivision->getId()){
+                    if ($tblPersonDivision && $tblPersonDivision->getId() == $tblDivision->getId()) {
                         $resultPersonList[$tblPerson->getId()] = $tblPerson;
                     }
                 }
             }
 
-            return empty($resultPersonList) ? false: $resultPersonList;
+            return empty($resultPersonList) ? false : $resultPersonList;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param $DataAddPerson
+     */
+    private function addPersonListToGroup(TblGroup $tblGroup, $DataAddPerson)
+    {
+        foreach ($DataAddPerson as $personId => $value) {
+            $tblPerson = Person::useService()->getPersonById($personId);
+            if ($tblPerson && !$this->existsGroupPerson($tblGroup, $tblPerson)) {
+                $this->addGroupPerson($tblGroup, $tblPerson);
+            }
+        }
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param $DataRemovePerson
+     */
+    private function removePersonListFromGroup(TblGroup $tblGroup, $DataRemovePerson)
+    {
+        foreach ($DataRemovePerson as $personId => $value) {
+            $tblPerson = Person::useService()->getPersonById($personId);
+            if ($tblPerson) {
+                $this->removeGroupPerson($tblGroup, $tblPerson);
+            }
         }
     }
 
