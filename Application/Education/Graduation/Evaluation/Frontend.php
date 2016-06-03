@@ -2264,6 +2264,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Notenauftrag', 'Klassen zuordnen');
+        $Stage->setMessage(new Bold(new Exclamation() . ' Hinweis: ') . 'Bei der Auswahl vieler Klassen kann das Speichern einige Zeit dauern.');
 
         $tblTask = false;
 
