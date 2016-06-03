@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -49,6 +50,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -400,23 +402,39 @@ class Frontend extends Extension implements IFrontendInterface
                     new Exclamation()
                 );
             } elseif ($tblPersonAll) {
+
                 $displayAvailablePersons = new TableData(
                     $tblPersonAll,
-                    new \SPHERE\Common\Frontend\Table\Repository\Title('Weitere Personen', 'Hinzufügen'),
+                    new \SPHERE\Common\Frontend\Table\Repository\Title('Weitere Personen', 'hinzufügen'),
                     array(
-                        'Check' => 'Hinzufügen',
+                        'Check'       => new Center(new Small('Hinzufügen ').new Enable()),
                         'DisplayName' => 'Name',
-                        'Address' => 'Addresse',
-                        'Groups' => 'Gruppen/Klasse '
+                        'Address'     => 'Adresse',
+                        'Groups'      => 'Gruppen/Klasse '
                     ),
                     array(
-                        'order' => array(
+                        "columnDefs"     => array(
+                            array(
+                                "orderable" => false,
+                                "width"     => "35px",
+                                "targets"   => 0
+                            ),
+                            array(
+                                "width"   => "20%",
+                                "targets" => 1
+                            ),
+                            array(
+                                "width"   => "40%",
+                                "targets" => 2
+                            )
+                        ),
+                        'order'          => array(
                             array('1', 'asc')
                         ),
-                        "paging" => false, // Deaktivieren Blättern
+                        "paging"         => false, // Deaktivieren Blättern
                         "iDisplayLength" => -1,    // Alle Einträge zeigen
-                        "searching" => false, // Deaktivieren Suchen
-                        "info" => false  // Deaktivieren Such-Info
+                        "searching"      => false, // Deaktivieren Suchen
+                        "info"           => false  // Deaktivieren Such-Info
                     )
                 );
             } else {
@@ -427,32 +445,48 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn(array(
+                            $displayAvailablePersons
+                        ), 6),
+                        new FormColumn(array(
                             ($tblPersonList
                                 ? new TableData(
                                     $tblPersonList,
-                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Mitglieder der Gruppe', 'Entfernen'),
+                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Mitglieder der Gruppe "'.$tblGroup->getName().'"',
+                                        'entfernen'),
                                     array(
-                                        'Check' => 'Entfernen',
+                                        'Check'       => new Center(new Small('Entfernen ').new Disable()),
                                         'DisplayName' => 'Name',
-                                        'Address' => 'Addresse',
-                                        'Groups' => 'Gruppen/Klasse'
+                                        'Address'     => 'Adresse',
+                                        'Groups'      => 'Gruppen/Klasse'
                                     ),
                                     array(
-                                        'order' => array(
+                                        "columnDefs"     => array(
+                                            array(
+                                                "orderable" => false,
+                                                "width"     => "35px",
+                                                "targets"   => 0
+                                            ),
+                                            array(
+                                                "width"   => "20%",
+                                                "targets" => 1
+                                            ),
+                                            array(
+                                                "width"   => "40%",
+                                                "targets" => 2
+                                            )
+                                        ),
+                                        'order'          => array(
                                             array('1', 'asc')
                                         ),
-                                        "paging" => false, // Deaktivieren Blättern
+                                        "paging"         => false, // Deaktivieren Blättern
                                         "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                        "searching" => false, // Deaktivieren Suchen
-                                        "info" => false  // Deaktivieren Such-Info
+                                        "searching"      => false, // Deaktivieren Suchen
+                                        "info"           => false  // Deaktivieren Such-Info
                                     )
                                 )
                                 : new Warning('Keine Personen zugewiesen.', new Exclamation())
                             )
                         ), 6),
-                        new FormColumn(array(
-                            $displayAvailablePersons
-                        ), 6)
                     ))
                 ),
             ));
@@ -461,26 +495,36 @@ class Frontend extends Extension implements IFrontendInterface
             $form->setConfirm('Die Zuweisung der Personen wurde noch nicht gespeichert.');
 
             $Stage->setContent(new Layout(array(
-                new LayoutGroup(
+                new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel(
                                 'Gruppe',
                                 $tblGroup->getName() . ' ' . new Small(new Muted($tblGroup->getDescription())),
                                 Panel::PANEL_TYPE_INFO
-                            ), 6
+                            ), 12
                         ),
+                    ))
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
                         new LayoutColumn(
                             new Well(
                                 Group::useService()->getFilter(
                                     $this->formFilter(), $tblGroup, $Filter
                                 )
-                            ), 6
+                            ), 12
                         )
                     ))
-                ),
+                ), new Title('Personensuche')),
                 ($Filter == null ?
-                    new LayoutGroup(
+                    new LayoutGroup(array(
+                        // TODO: Describe possible Action
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                new Info('Links können neue Personsn... rechts ...')
+//                            )
+//                        )),
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 new Well(
@@ -495,7 +539,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             ))
                         ))
-                    ) : null)
+                    ), new Title('Zusammensetzung', 'der Gruppe')) : null )
             )));
 
         } else {
@@ -518,7 +562,7 @@ class Frontend extends Extension implements IFrontendInterface
         $result = array();
         $result['Check'] = new CheckBox(
             $DataName . '[' . $tblPerson->getId() . ']',
-            '&nbsp;&nbsp;&nbsp;',
+            ' ',
             1
         );
         $result['DisplayName'] = $tblPerson->getLastFirstName();
