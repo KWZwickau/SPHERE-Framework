@@ -1895,6 +1895,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList = $dataList;
 
                 $columnDefinition['Grade'] = 'Zensur';
+                if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+                    $columnDefinition['Trend'] = 'Tendenz';
+                }
                 $columnDefinition['Comment'] = 'Vermerk Notenänderung';
             } else {
                 // Kopfnote
@@ -1928,18 +1931,31 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
                 $tableColumns['Grade'] = 'Zensur';
+                if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+                    $columnDefinition['Trend'] = 'Tendenz';
+                }
                 $tableColumns['Comment'] = 'Vermerk Notenänderung';
             }
         } else {
             $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
             $gradeType = $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '';
 
-            $tableColumns = array(
-                'Name' => 'Schüler',
-                'Grade' => 'Zensur',
-                'Comment' => 'Vermerk Notenänderung',
-                'Attendance' => 'Nicht teilgenommen'
-            );
+            if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+                $tableColumns = array(
+                    'Name' => 'Schüler',
+                    'Grade' => 'Zensur',
+                    'Trend' => 'Tendenz',
+                    'Comment' => 'Vermerk Notenänderung',
+                    'Attendance' => 'Nicht teilgenommen'
+                );
+            } else {
+                $tableColumns = array(
+                    'Name' => 'Schüler',
+                    'Grade' => 'Zensur',
+                    'Comment' => 'Vermerk Notenänderung',
+                    'Attendance' => 'Nicht teilgenommen'
+                );
+            }
         }
 
         if ($studentList) {
@@ -2095,12 +2111,6 @@ class Frontend extends Extension implements IFrontendInterface
             $tblScoreType = false;
         }
 
-        $selectBoxContent = array(
-            TblGrade::VALUE_TREND_NULL => '',
-            TblGrade::VALUE_TREND_PLUS => 'Plus',
-            TblGrade::VALUE_TREND_MINUS => 'Minus'
-        );
-
         if ($tblGrade) {
             $labelComment = new Warning('Bei Notenänderung bitte einen Grund angeben');
         } else {
@@ -2113,30 +2123,47 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblScoreType) {
                 if ($tblScoreType->getIdentifier() == 'VERBAL') {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Quote()));
+                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Quote()))->setTabIndex(1);
                 } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''));
+                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex(1);
                 } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''));
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex(1);
                 } else {
-                    $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))
-                        . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
-                            new ResizeVertical()));
+                    $student = $this->setFieldsForGradesWithTrend($student, $tblPerson);
                 }
             } else {
-                $student[$tblPerson->getId()]['Grade']
-                    = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))
-                    . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
-                        new ResizeVertical()));
+                $student = $this->setFieldsForGradesWithTrend($student, $tblPerson);
             }
             $student[$tblPerson->getId()]['Comment']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', $labelComment, new Comment()));
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', $labelComment, new Comment()))->setTabIndex(3);
             $student[$tblPerson->getId()]['Attendance'] =
-                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1));
+                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(4);
         }
+
+        return $student;
+    }
+
+    /**
+     * @param $student
+     * @param TblPerson $tblPerson
+     * @return array
+     */
+    private function setFieldsForGradesWithTrend($student, TblPerson $tblPerson)
+    {
+
+        $selectBoxContent = array(
+            TblGrade::VALUE_TREND_NULL => '',
+            TblGrade::VALUE_TREND_PLUS => 'Plus',
+            TblGrade::VALUE_TREND_MINUS => 'Minus'
+        );
+
+        $student[$tblPerson->getId()]['Grade']
+            = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex(1);
+        $student[$tblPerson->getId()]['Trend']
+            = (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
+                new ResizeVertical()))->setTabIndex(2);
 
         return $student;
     }
@@ -2148,6 +2175,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function setGradeDisabled(TblPerson $tblPerson, $student)
     {
+
         $student[$tblPerson->getId()]['Grade']
             = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setDisabled();
         $student[$tblPerson->getId()]['Comment']
