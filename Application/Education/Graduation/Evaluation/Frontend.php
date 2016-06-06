@@ -63,6 +63,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
@@ -113,7 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Bold('Ansicht: Lehrer'), '/Education/Graduation/Evaluation/Test/Teacher',
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')), '/Education/Graduation/Evaluation/Test/Teacher',
                 new Edit()));
             $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Evaluation/Test/Headmaster'));
         }
@@ -306,7 +307,7 @@ class Frontend extends Extension implements IFrontendInterface
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
             $Stage->addButton(new Standard('Ansicht: Lehrer', '/Education/Graduation/Evaluation/Test/Teacher'));
-            $Stage->addButton(new Standard(new Bold('Ansicht: Leitung'),
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Leitung')),
                 '/Education/Graduation/Evaluation/Test/Headmaster', new Edit()));
         }
 
@@ -461,7 +462,7 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Bold('Ansicht: Lehrer'), '/Education/Graduation/Evaluation/Task/Teacher',
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')), '/Education/Graduation/Evaluation/Task/Teacher',
                 new Edit()));
             $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Evaluation/Task/Headmaster'));
         }
@@ -572,7 +573,7 @@ class Frontend extends Extension implements IFrontendInterface
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
             $Stage->addButton(new Standard('Ansicht: Lehrer', '/Education/Graduation/Evaluation/Task/Teacher'));
-            $Stage->addButton(new Standard(new Bold('Ansicht: Leitung'),
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Leitung')),
                 '/Education/Graduation/Evaluation/Task/Headmaster', new Edit()));
         }
 

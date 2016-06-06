@@ -315,7 +315,7 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Bold('Ansicht: Lehrer'),
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')),
                 '/Education/Graduation/Gradebook/Gradebook/Teacher', new Edit()));
             $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Gradebook/Gradebook/Headmaster'));
         }
@@ -507,7 +507,7 @@ class Frontend extends Extension implements IFrontendInterface
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
             $Stage->addButton(new Standard('Ansicht: Lehrer', '/Education/Graduation/Gradebook/Gradebook/Teacher'));
-            $Stage->addButton(new Standard(new Bold('Ansicht: Leitung'),
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Leitung')),
                 '/Education/Graduation/Gradebook/Gradebook/Headmaster', new Edit()));
         }
 
@@ -1357,24 +1357,24 @@ class Frontend extends Extension implements IFrontendInterface
     private function setScoreStageMenuButtons(Stage $Stage, $view)
     {
 
-        $text = new ListingTable() . ' Berechnungsvorschriften';
+        $text = ' Berechnungsvorschriften';
         $Stage->addButton(
-            new Standard($view == self::SCORE_RULE ? new Info ($text) : $text,
+            new Standard($view == self::SCORE_RULE ? new Edit() . new Info ($text) : $text,
                 '/Education/Graduation/Gradebook/Score', null, null,
                 'Erstellen/Berarbeiten')
         );
 
-        $text = new ListingTable() . ' Berechnungsvarianten';
+        $text = ' Berechnungsvarianten';
         $Stage->addButton(
-            new Standard($view == self::SCORE_CONDITION ? new Info ($text) : $text,
+            new Standard($view == self::SCORE_CONDITION ? new Edit() . new Info ($text) : $text,
                 '/Education/Graduation/Gradebook/Score/Condition', null,
                 null,
                 'Erstellen/Berarbeiten')
         );
 
-        $text = new ListingTable() . ' Zensuren-Gruppen';
+        $text = ' Zensuren-Gruppen';
         $Stage->addButton(
-            new Standard($view == self::GRADE_GROUP ? new Info ($text) : $text,
+            new Standard($view == self::GRADE_GROUP ? new Edit() . new Info ($text) : $text,
                 '/Education/Graduation/Gradebook/Score/Group', null, null,
                 'Erstellen/Berarbeiten')
         );
@@ -2530,7 +2530,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                             foreach ($subjectList as &$tblSubject) {
                                 $isDisabled = false;
-                                $name = ($tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym() . ' ') : '') . $tblSubject->getName();
+                                if ($tblSubject->getId() === -1) {
+                                    $name = new \SPHERE\Common\Frontend\Text\Repository\Italic((
+                                        $tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym().' ') : '' ).$tblSubject->getName()
+                                    );
+                                } else {
+                                    $name = ($tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym() . ' ') : '') . $tblSubject->getName();
+                                }
                                 $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
                                     $tblDivision, $tblSubject
                                 );
@@ -2539,7 +2545,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         && $tblScoreRuleDivisionSubject->getTblScoreRule()->getId() != $tblScoreRule->getId()
                                     ) {
                                         $isDisabled = true;
-                                        $name .= new Small(' (' . $tblScoreRuleDivisionSubject->getTblScoreRule()->getName() . ')');
+                                        $name .= ' ' . new Label($tblScoreRuleDivisionSubject->getTblScoreRule()->getName(), Label::LABEL_TYPE_PRIMARY);
                                     }
                                 }
 
@@ -2772,7 +2778,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblYearList as $tblYear) {
                     $yearButtonList[] = new Standard(
                         ($tblSelectedYear && $tblYear->getId() == $tblSelectedYear->getId())
-                            ? new Bold(new Edit().' '.$tblYear->getDisplayName())
+                            ? new Info(new Edit().' '.$tblYear->getDisplayName())
                             : $tblYear->getDisplayName(),
                         '/Education/Graduation/Gradebook/Type/Select',
                         null,
@@ -2837,7 +2843,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         && $tblScoreRuleDivisionSubject->getTblScoreType()->getId() != $tblScoreType->getId()
                                     ) {
                                         $isDisabled = true;
-                                        $name .= ' '.new Label($tblScoreRuleDivisionSubject->getTblScoreType()->getName(),
+                                        $name .= ' ' . new Label($tblScoreRuleDivisionSubject->getTblScoreType()->getName(),
                                                 Label::LABEL_TYPE_PRIMARY);
                                     }
                                 }
@@ -2897,7 +2903,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Panel(
                                     'Bewertungssystem',
                                     new Bold($tblScoreType->getName()),
-                                    Panel::PANEL_TYPE_SUCCESS
+                                    Panel::PANEL_TYPE_INFO
                                 )
                             ),
                             new LayoutColumn($yearButtonList),
