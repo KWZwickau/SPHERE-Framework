@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -914,7 +915,12 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($tblDivision->getServiceTblYear()) {
-            $Form = $this->formTest($tblDivision->getServiceTblYear())
+            $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
+                $tblDivision,
+                $tblDivisionSubject->getServiceTblSubject()
+            );
+            $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
+            $Form = $this->formTest($tblDivision->getServiceTblYear(), $tblScoreRule ? $tblScoreRule : null)
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
         } else {
@@ -1059,13 +1065,22 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblYear $tblYear
+     * @param TblScoreRule $tblScoreRule
+     *
      * @return Form
      */
-    private function formTest(TblYear $tblYear)
+    private function formTest(TblYear $tblYear, TblScoreRule $tblScoreRule = null)
     {
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+
+        // nur Zensuren-Typen, welche bei der hinterlegten Berechnungsvorschrift hinterlegt sind
+        if($tblScoreRule){
+            $tblGradeTypeList = $tblScoreRule->getGradeTypesAll();
+        } else {
+            $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+        }
+
         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
 
         // select current period
