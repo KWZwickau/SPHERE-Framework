@@ -2552,7 +2552,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
                                 );
 
-                                if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                if ($tblDivisionSubject && $tblDivisionSubject->getTblSubjectGroup()) {
                                     $tblSubjectStudentAllByDivisionSubject =
                                         Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
                                     if ($tblSubjectStudentAllByDivisionSubject) {
