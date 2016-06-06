@@ -794,6 +794,7 @@ class Service extends AbstractService
      * @param TblPeriod|null $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
      * @param bool $isStudentView
+     * @param bool $taskDate
      *
      * @return array|bool|float|string
      */
@@ -805,12 +806,29 @@ class Service extends AbstractService
         TblScoreRule $tblScoreRule = null,
         TblPeriod $tblPeriod = null,
         TblSubjectGroup $tblSubjectGroup = null,
-        $isStudentView = false
+        $isStudentView = false,
+        $taskDate = false
     ) {
 
         $tblGradeList = $this->getGradesByStudent(
             $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
         );
+
+        // entfernen aller Noten nach dem Stichtag (bei Stichtagsnotenauftäge
+        if ($taskDate && $tblGradeList){
+            $tempGradeList = array();
+            $taskDate = new \DateTime($taskDate);
+            foreach ($tblGradeList as $item){
+                if ($item->getServiceTblTest() && $item->getServiceTblTest()->getDate()) {
+                    $testDate = new \DateTime($item->getServiceTblTest()->getDate());
+                    // Noten nur vom vor dem Stichtag
+                    if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')) {
+                        $tempGradeList[] = $item;
+                    }
+                }
+            }
+            $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
+        }
 
         // filter by Test Return for StudentView
         if ($isStudentView && $tblGradeList) {

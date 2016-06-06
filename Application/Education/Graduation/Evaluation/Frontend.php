@@ -1750,19 +1750,24 @@ class Frontend extends Extension implements IFrontendInterface
                                 /** @var TblTest $tblTestTemp */
                                 foreach ($tblTestList as $tblTestTemp) {
                                     if ($tblTestTemp->getServiceTblGradeType()) {
-                                        $count++;
-                                        $date = $tblTestTemp->getDate();
-                                        if (strlen($date) > 6) {
-                                            $date = substr($date, 0, 6);
+                                        if ($tblTask->getDate() && $tblTestTemp->getDate()) {
+                                            $taskDate = new \DateTime($tblTask->getDate());
+                                            $testDate = new \DateTime($tblTestTemp->getDate());
+                                            // Tests nur vom vor dem Stichtag
+                                            if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')){
+                                                $count++;
+                                                $date = $tblTestTemp->getDate();
+                                                if (strlen($date) > 6) {
+                                                    $date = substr($date, 0, 6);
+                                                }
+                                                $columnDefinition['Test' . $tblTestTemp->getId()] = new Small(new Muted($date)) . '<br>'
+                                                    . ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
+                                                        ? $tblTestTemp->getServiceTblGradeType()->getCode()
+                                                        : new Muted($tblTestTemp->getServiceTblGradeType()->getCode()));
+                                            }
                                         }
-                                        $columnDefinition['Test' . $tblTestTemp->getId()] = new Small(new Muted($date)) . '<br>'
-                                            . ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
-                                                ? $tblTestTemp->getServiceTblGradeType()->getCode()
-                                                : new Muted($tblTestTemp->getServiceTblGradeType()->getCode()));
                                     }
                                 }
-//                                $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
-//                                $count++;
                                 $periodListCount[$tblPeriod->getId()] = $count;
                             } else {
                                 $periodListCount[$tblPeriod->getId()] = 1;
@@ -1829,7 +1834,9 @@ class Frontend extends Extension implements IFrontendInterface
                                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                             $tblScoreRule ? $tblScoreRule : null,
                                             $tblPeriod,
-                                            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                            false,
+                                            $tblTask->getDate() ? $tblTask->getDate() : false
                                         );
 
                                         if (is_array($average)) {
@@ -1838,10 +1845,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         } else {
                                             $posStart = strpos($average, '(');
                                             if ($posStart !== false) {
-//                                                $posEnd = strpos($average, ')');
-//                                                if ($posEnd !== false) {
-//                                                  $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
-//                                                }
                                                 $average = substr($average, 0, $posStart);
                                             }
                                         }
@@ -1859,7 +1862,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                         $tblScoreRule ? $tblScoreRule : null,
                                         $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
-                                        $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                        $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                        false,
+                                        $tblTask->getDate() ? $tblTask->getDate() : false
                                     );
                                     if (is_array($average)) {
                                         $errorRowList = $average;
@@ -2785,7 +2790,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubject,
             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
             $tblScoreRule ? $tblScoreRule : null,
-            $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null
+            $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+            null,
+            false,
+            $tblTask->getDate() ? $tblTask->getDate() : false
         );
         if (is_array($average)) {
 //            $errorRowList = $average;
