@@ -604,7 +604,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Edit(),
                         array('Id' => $tblTask->getId()),
                         'Bearbeiten')) : '')
-                    . (new Standard('',
+                    . ($tblTask->isLocked() ? null : new Standard('',
                         '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
                         array('Id' => $tblTask->getId()),
                         'Löschen'))
@@ -2434,6 +2434,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $isLocked = $tblTask->isLocked();
+
         $gradeTypeColumnList = array();
         if ($isBehaviorTask) {
             $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
@@ -2441,7 +2443,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
             if ($tblGradeTypeList) {
                 foreach ($tblGradeTypeList as $tblGradeType) {
-                    if ($hasEdit) {
+                    if ($hasEdit && !$isLocked) {
                         $gradeTypeColumnList[] = new FormColumn(
                             new CheckBox('Data[GradeType][' . $tblGradeType->getId() . ']', $tblGradeType->getName(),
                                 1), 1
@@ -2466,7 +2468,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $checkBoxList = array();
                     foreach ($divisionList as $key => $value) {
-                        if ($hasEdit) {
+                        if ($hasEdit  && !$isLocked) {
                             $checkBoxList[] = new CheckBox('Data[Division][' . $key . ']', $value, 1);
                         } else {
                             $checkBoxList[] = (new CheckBox('Data[Division][' . $key . ']', $value, 1))->setDisabled();
@@ -2495,7 +2497,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )
                 , new \SPHERE\Common\Frontend\Form\Repository\Title('<br> Klassen'))
         ));
-        if ($hasEdit) {
+        if ($hasEdit  && !$isLocked) {
             $form
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -2514,6 +2516,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 Panel::PANEL_TYPE_INFO
                             )
                         ),
+                        ($isLocked?
+                            new LayoutColumn(
+                                new \SPHERE\Common\Frontend\Message\Repository\Warning('Es wurden bereits Zensuren zum Notenauftrag vergeben. Klassen können nicht mehr zu diesem Notenauftrag
+                                hinzugefügt oder von diesem Notenauftrag entfernt werden.', new Exclamation())
+                            ) : null),
                         (!$hasEdit ?
                             new LayoutColumn(
                                 new \SPHERE\Common\Frontend\Message\Repository\Warning('Der Bearbeitungszeitraum ist abgelaufen. Klassen können nicht mehr zu diesem Notenauftrag
