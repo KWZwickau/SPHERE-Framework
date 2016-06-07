@@ -38,6 +38,7 @@ class Setup extends AbstractSetup
         $this->setTableScoreConditionGroupList($Schema, $tblScoreCondition, $tblScoreGroup);
         $this->setTableScoreGroupGradeTypeList($Schema, $tblGradeType, $tblScoreGroup);
         $this->setTableScoreRuleDivisionSubject($Schema, $tblScoreRule, $tblScoreType);
+        $this->setTableScoreRuleSubjectGroup($Schema, $tblScoreRule);
 
         /**
          * Migration & Protocol
@@ -283,6 +284,13 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
+    /**
+     * @param Schema $Schema
+     * @param Table $tblScoreRule
+     * @param Table $tblScoreType
+     *
+     * @return Table
+     */
     private function setTableScoreRuleDivisionSubject(Schema &$Schema, Table $tblScoreRule, Table $tblScoreType)
     {
 
@@ -301,4 +309,29 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
+    /**
+     * @param Schema $Schema
+     * @param Table $tblScoreRule
+     *
+     * @return Table
+     */
+    private function setTableScoreRuleSubjectGroup(Schema &$Schema, Table $tblScoreRule)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreRuleSubjectGroup');
+
+        if (!$this->getConnection()->hasColumn('tblScoreRuleSubjectGroup', 'serviceTblDivision')) {
+            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreRuleSubjectGroup', 'serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreRuleSubjectGroup', 'serviceTblSubjectGroup')) {
+            $Table->addColumn('serviceTblSubjectGroup', 'bigint', array('notnull' => false));
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblScoreRule, true);
+
+        return $Table;
+    }
 }

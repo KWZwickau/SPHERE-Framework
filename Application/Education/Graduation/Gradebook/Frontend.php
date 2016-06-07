@@ -42,6 +42,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Group;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -682,24 +683,21 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreRule = false;
         $scoreRuleText = array();
         if ($tblDivision && $tblSubject) {
-            $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
-                $tblDivision,
-                $tblSubject
-            );
-            if ($tblScoreRuleDivisionSubject) {
-                if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
-                    $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
-                    if ($tblScoreRule) {
-                        $scoreRuleText[] = new Bold($tblScoreRule->getName());
-                        $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
-                        if ($tblScoreConditionsByRule) {
 
-                        } else {
-                            $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                                new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
-                            ));
-                        }
-                    }
+            $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                $tblDivision,
+                $tblSubject,
+                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+            );
+            if ($tblScoreRule) {
+                $scoreRuleText[] = new Bold($tblScoreRule->getName());
+                $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
+                if ($tblScoreConditionsByRule) {
+
+                } else {
+                    $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                        new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                    ));
                 }
             }
         }
@@ -1298,7 +1296,9 @@ class Frontend extends Extension implements IFrontendInterface
                     (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Select', new Listing(),
                         array('Id' => $tblScoreRule->getId()), 'Berechnungsvarianten auswählen')) .
                     (new Standard('', '/Education/Graduation/Gradebook/Score/Division', new Equalizer(),
-                        array('Id' => $tblScoreRule->getId()), 'Fach-Klassen zuordnen'));
+                        array('Id' => $tblScoreRule->getId()), 'Fach-Klassen zuordnen')) .
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/SubjectGroup', new Group(),
+                        array('Id' => $tblScoreRule->getId()), 'Fachgruppen zuordnen'));
             }
         }
 
@@ -2593,6 +2593,192 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Well(
                                     Gradebook::useService()->updateScoreRuleDivisionSubject(
+                                        (new Form(
+                                            $formGroupList
+                                        ))->appendFormButton(new Primary('Speichern', new Save())), $tblScoreRule,
+                                        $tblSelectedYear ? $tblSelectedYear : null, $Data
+                                    )
+                                )
+                            )
+                        )
+                    )),
+                ))
+            );
+        } else {
+            $Stage->setContent(new Danger('Berechnungsvorschrift nicht gefunden.', new Exclamation()));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Data
+     * @param null $YearId
+     *
+     * @return Stage
+     */
+    public function frontendScoreSubjectGroup(
+        $Id = null,
+        $YearId = null,
+        $Data = null
+    ) {
+
+        $Stage = new Stage('Berechnungsvorschrift', 'Fachgruppe einer Berechnungsvorschrift zuordnen');
+        $Stage->setMessage('Hier können der ausgewählten Berechnungsvorschrift Fachgruppen zugeordnet werden, dabei
+            wird die Berechnungsvorschrift der Fach-Klasse für diese Gruppe überschrieben. <br>
+            ' . new Bold(new Exclamation() . ' Hinweis:') . ' Eine Fachgruppe kann immer nur ein Bewertungssystem besitzen.');
+        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft()));
+
+        $tblScoreRule = Gradebook::useService()->getScoreRuleById($Id);
+        if ($tblScoreRule) {
+
+            if ($YearId && ($tblSelectedYear = Term::useService()->getYearById($YearId))) {
+            } else {
+                if (($tblYearAllByNow = Term::useService()->getYearByNow())) {
+                    $tblSelectedYear = current($tblYearAllByNow);
+                } else {
+                    $tblSelectedYear = false;
+                }
+            }
+
+            $yearButtonList = array();
+            $tblYearList = Term::useService()->getYearAllSinceYears(3);
+            if ($tblYearList) {
+                $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
+                /** @var TblYear $tblYear */
+                foreach ($tblYearList as $tblYear) {
+                    $yearButtonList[] = new Standard(
+                        ($tblSelectedYear && $tblYear->getId() == $tblSelectedYear->getId())
+                            ? new Info($tblYear->getDisplayName())
+                            : $tblYear->getDisplayName(),
+                        '/Education/Graduation/Gradebook/Score/SubjectGroup',
+                        null,
+                        array(
+                            'Id' => $tblScoreRule->getId(),
+                            'YearId' => $tblYear->getId()
+                        )
+                    );
+                }
+            }
+
+            $formGroupList = array();
+            $rowList = array();
+            $columnList = array();
+            if ($tblSelectedYear) {
+                $tblDivisionList = Division::useService()->getDivisionByYear($tblSelectedYear);
+                if ($tblDivisionList) {
+                    $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('DisplayName');
+                    /** @var TblDivision $tblDivision */
+                    foreach ($tblDivisionList as $tblDivision) {
+                        $subjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
+                        if ($subjectList) {
+                            $subjectGroupList = array();
+                            foreach ($subjectList as $tblSubject) {
+                                $tblDivisionSubjectWhereGroup = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                    $tblDivision, $tblSubject
+                                );
+                                if ($tblDivisionSubjectWhereGroup) {
+                                    foreach ($tblDivisionSubjectWhereGroup as $tblDivisionSubject) {
+                                        $isDisabled = false;
+                                        $name = ($tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym() . ' ') : '')
+                                            . $tblSubject->getName() . ' - ' . $tblDivisionSubject->getTblSubjectGroup()->getName();
+
+                                        // set Post
+                                        if ($Data == null) {
+                                            $Global = $this->getGlobal();
+                                            foreach ($subjectList as $subject) {
+                                                $tblScoreRuleSubjectGroup = Gradebook::useService()->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup(
+                                                    $tblDivision,
+                                                    $subject,
+                                                    $tblDivisionSubject->getTblSubjectGroup()
+                                                );
+                                                if ($tblScoreRuleSubjectGroup) {
+                                                    if ($tblScoreRuleSubjectGroup->getTblScoreRule()
+                                                    ) {
+                                                        if ($tblScoreRuleSubjectGroup->getTblScoreRule()->getId() == $tblScoreRule->getId()) {
+                                                            $Global->POST['Data'][$tblDivision->getId()][$subject->getId()]
+                                                            [$tblDivisionSubject->getTblSubjectGroup()->getId()] = 1;
+                                                        } else {
+                                                            $isDisabled = true;
+                                                            $name .= ' ' . new Label($tblScoreRuleSubjectGroup->getTblScoreRule()->getName(),
+                                                                    Label::LABEL_TYPE_PRIMARY);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            $Global->savePost();
+                                        }
+
+                                        $checkBox = new CheckBox(
+                                            'Data[' . $tblDivision->getId() . '][' . $tblSubject->getId() . ']['
+                                            . $tblDivisionSubject->getTblSubjectGroup()->getId() . ']',
+                                            $name,
+                                            1
+                                        );
+                                        $subjectGroupList[] = $isDisabled ? $checkBox->setDisabled() : $checkBox;
+                                    }
+                                }
+                            }
+
+                            if (!empty($subjectGroupList)) {
+                                $panel = new Panel(
+                                    new Bold('Klasse ' . $tblDivision->getDisplayName()),
+                                    $subjectGroupList
+
+                                );
+
+                                if ($tblDivision->getTblLevel()) {
+                                    $schoolTypeId = $tblDivision->getTblLevel()->getServiceTblType()->getId();
+                                } else {
+                                    $schoolTypeId = 0;
+                                }
+                                $columnList[$schoolTypeId][] = new FormColumn($panel, 3);
+                                if (count($columnList[$schoolTypeId]) == 4) {
+                                    $rowList[$schoolTypeId][] = new FormRow($columnList[$schoolTypeId]);
+                                    $columnList[$schoolTypeId] = array();
+                                }
+                            }
+                        }
+                    }
+
+                    foreach ($columnList as $schoolTypeId => $list) {
+                        if (!empty($list)) {
+                            $rowList[$schoolTypeId][] = new FormRow($list);
+                        }
+                    }
+
+                    if (!empty($rowList)) {
+                        foreach ($rowList as $schoolTypeId => $list) {
+                            $tblSchoolType = Type::useService()->getTypeById($schoolTypeId);
+                            $formGroupList[] = new FormGroup($list,
+                                new \SPHERE\Common\Frontend\Form\Repository\Title($tblSchoolType ? $tblSchoolType->getName() : 'Keine Schulart'));
+                        }
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Berechnungsvorschrift',
+                                    new Bold($tblScoreRule->getName()) . '&nbsp;&nbsp;'
+                                    . new Muted(new Small(new Small($tblScoreRule->getDescription()))),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            ),
+                            new LayoutColumn($yearButtonList),
+                            new LayoutColumn('<br>')
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn(
+                                empty($formGroupList)
+                                    ? new Warning('Keine Fachgruppen vorhanden.', new Exclamation())
+                                    : new Well(
+                                    Gradebook::useService()->updateScoreRuleSubjectGroup(
                                         (new Form(
                                             $formGroupList
                                         ))->appendFormButton(new Primary('Speichern', new Save())), $tblScoreRule,

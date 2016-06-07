@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRul
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -115,7 +116,8 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')), '/Education/Graduation/Evaluation/Test/Teacher',
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')),
+                '/Education/Graduation/Evaluation/Test/Teacher',
                 new Edit()));
             $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Evaluation/Test/Headmaster'));
         }
@@ -463,7 +465,8 @@ class Frontend extends Extension implements IFrontendInterface
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
         if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')), '/Education/Graduation/Evaluation/Task/Teacher',
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')),
+                '/Education/Graduation/Evaluation/Task/Teacher',
                 new Edit()));
             $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Evaluation/Task/Headmaster'));
         }
@@ -915,11 +918,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($tblDivision->getServiceTblYear()) {
-            $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
+            $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                 $tblDivision,
-                $tblDivisionSubject->getServiceTblSubject()
+                $tblDivisionSubject->getServiceTblSubject(),
+                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
             );
-            $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
             $Form = $this->formTest($tblDivision->getServiceTblYear(), $tblScoreRule ? $tblScoreRule : null)
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -1075,7 +1078,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
 
         // nur Zensuren-Typen, welche bei der hinterlegten Berechnungsvorschrift hinterlegt sind
-        if($tblScoreRule){
+        if ($tblScoreRule) {
             $tblGradeTypeList = $tblScoreRule->getGradeTypesAll();
         } else {
             $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
@@ -1530,31 +1533,28 @@ class Frontend extends Extension implements IFrontendInterface
         $scoreRuleText = array();
         $tblScoreType = false;
         if ($tblDivision && $tblSubject) {
-            $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
+            if ($tblTest->getTblTask() && $tblTest->getTblTask()->getServiceTblScoreType()) {
+                $tblScoreType = $tblTest->getTblTask()->getServiceTblScoreType();
+            } else {
+                $tblScoreType = Gradebook::useService()->getScoreTypeByDivisionAndSubject(
+                    $tblDivision, $tblSubject
+                );
+            }
+
+            $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                 $tblDivision,
-                $tblSubject
+                $tblSubject,
+                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
             );
-            if ($tblScoreRuleDivisionSubject) {
+            if ($tblScoreRule) {
+                $scoreRuleText[] = $tblScoreRule->getName();
+                $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
+                if ($tblScoreConditionsByRule) {
 
-                if ($tblTest->getTblTask() && $tblTest->getTblTask()->getServiceTblScoreType()) {
-                    $tblScoreType = $tblTest->getTblTask()->getServiceTblScoreType();
                 } else {
-                    $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
-                }
-
-                if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
-                    $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
-                    if ($tblScoreRule) {
-                        $scoreRuleText[] = $tblScoreRule->getName();
-                        $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
-                        if ($tblScoreConditionsByRule) {
-
-                        } else {
-                            $scoreRuleText[] = new Bold(new Warning(
-                                new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
-                            ));
-                        }
-                    }
+                    $scoreRuleText[] = new Bold(new Warning(
+                        new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                    ));
                 }
             }
         }
@@ -1769,7 +1769,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             $taskDate = new \DateTime($tblTask->getDate());
                                             $testDate = new \DateTime($tblTestTemp->getDate());
                                             // Tests nur vom vor dem Stichtag
-                                            if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')){
+                                            if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')) {
                                                 $count++;
                                                 $date = $tblTestTemp->getDate();
                                                 if (strlen($date) > 6) {
@@ -2015,9 +2015,10 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         } else {
-            if ($tblTask && !$IsEdit && $tblTask->isAfterEditPeriod())
-            if (isset($tableColumns['Trend'])){
-                unset($tableColumns['Trend']);
+            if ($tblTask && !$IsEdit && $tblTask->isAfterEditPeriod()) {
+                if (isset($tableColumns['Trend'])) {
+                    unset($tableColumns['Trend']);
+                }
             }
             $tableData = new TableData($studentList, null, $tableColumns, null);
         }
@@ -2057,8 +2058,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Exclamation()
                         )
                         . ($tblScoreType ? '' : $warningNoScoreType)
-                        . $tableData
-                    ;
+                        . $tableData;
                 }
             } else {
                 $content = $tblScoreType ? $serviceForm : $warningNoScoreType;
@@ -2175,8 +2175,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$IsEdit && !$IsTaskAndInPeriod) {
             /** @var TblGrade $tblGrade */
-            $student[$tblPerson->getId()]['Grade'] = $tblGrade ? $tblGrade->getDisplayGrade(): '';
-            $student[$tblPerson->getId()]['Comment'] = $tblGrade ? $tblGrade->getComment(): '';
+            $student[$tblPerson->getId()]['Grade'] = $tblGrade ? $tblGrade->getDisplayGrade() : '';
+            $student[$tblPerson->getId()]['Comment'] = $tblGrade ? $tblGrade->getComment() : '';
         } else {
             if ($tblScoreType) {
                 if ($tblScoreType->getIdentifier() == 'VERBAL') {
@@ -2468,7 +2468,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $checkBoxList = array();
                     foreach ($divisionList as $key => $value) {
-                        if ($hasEdit  && !$isLocked) {
+                        if ($hasEdit && !$isLocked) {
                             $checkBoxList[] = new CheckBox('Data[Division][' . $key . ']', $value, 1);
                         } else {
                             $checkBoxList[] = (new CheckBox('Data[Division][' . $key . ']', $value, 1))->setDisabled();
@@ -2497,7 +2497,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )
                 , new \SPHERE\Common\Frontend\Form\Repository\Title('<br> Klassen'))
         ));
-        if ($hasEdit  && !$isLocked) {
+        if ($hasEdit && !$isLocked) {
             $form
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -2516,7 +2516,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 Panel::PANEL_TYPE_INFO
                             )
                         ),
-                        ($isLocked?
+                        ($isLocked ?
                             new LayoutColumn(
                                 new \SPHERE\Common\Frontend\Message\Repository\Warning('Es wurden bereits Zensuren zum Notenauftrag vergeben. Klassen können nicht mehr zu diesem Notenauftrag
                                 hinzugefügt oder von diesem Notenauftrag entfernt werden.', new Exclamation())
@@ -2649,7 +2649,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                             if ($tblPerson) {
                                                 $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                    $tblTest, $tblSubject, $tblPerson, $studentList);
+                                                    $tblTest, $tblSubject, $tblPerson, $studentList,
+                                                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null );
                                             }
                                         }
                                     }
@@ -2784,14 +2785,17 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblSubject $tblSubject
      * @param TblPerson $tblPerson
      * @param $studentList
-     * @return $studentList
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return  $studentList
      */
     private function setTableContentForAppointedDateTask(
         TblDivision $tblDivision,
         TblTest $tblTest,
         TblSubject $tblSubject,
         TblPerson $tblPerson,
-        $studentList
+        $studentList,
+        TblSubjectGroup $tblSubjectGroup = null
     ) {
         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
             $tblPerson->getLastFirstName();
@@ -2799,13 +2803,13 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPerson);
 
         $tblTask = $tblTest->getTblTask();
-        $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
-            $tblSubject);
-        if ($tblScoreRuleDivisionSubject) {
-            $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
-        } else {
-            $tblScoreRule = false;
-        }
+
+        $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+            $tblDivision,
+            $tblSubject,
+            $tblSubjectGroup
+        );
+
         $average = Gradebook::useService()->calcStudentGrade(
             $tblPerson,
             $tblDivision,
