@@ -2542,8 +2542,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                             $panel = new Panel(
                                 new Bold('Klasse ' . $tblDivision->getDisplayName()),
-                                $subjectList
-
+                                $subjectList,
+                                Panel::PANEL_TYPE_INFO
                             );
 
                             if ($tblDivision->getTblLevel()) {
@@ -2724,8 +2724,8 @@ class Frontend extends Extension implements IFrontendInterface
                             if (!empty($subjectGroupList)) {
                                 $panel = new Panel(
                                     new Bold('Klasse ' . $tblDivision->getDisplayName()),
-                                    $subjectGroupList
-
+                                    $subjectGroupList,
+                                    Panel::PANEL_TYPE_INFO
                                 );
 
                                 if ($tblDivision->getTblLevel()) {
