@@ -2345,6 +2345,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Notenauftrag', 'Klassen zuordnen');
+        $Stage->setMessage(new Bold(new Exclamation() . ' Hinweis: ') . 'Bei der Auswahl vieler Klassen kann das Speichern einige Zeit dauern.');
 
         $tblTask = false;
 
@@ -2640,7 +2641,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
                                 );
 
-                                if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                if ($tblDivisionSubject && $tblDivisionSubject->getTblSubjectGroup()) {
                                     $tblSubjectStudentAllByDivisionSubject =
                                         Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
                                     if ($tblSubjectStudentAllByDivisionSubject) {
@@ -2704,26 +2705,28 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
                                 );
 
-                                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                                    $tblSubjectStudentAllByDivisionSubject =
-                                        Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-                                    if ($tblSubjectStudentAllByDivisionSubject) {
-                                        foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
+                                if ($tblDivisionSubject) {
+                                    if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                        $tblSubjectStudentAllByDivisionSubject =
+                                            Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                        if ($tblSubjectStudentAllByDivisionSubject) {
+                                            foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
 
-                                            $tblPerson = $tblSubjectStudent->getServiceTblPerson();
-                                            if ($tblPerson) {
+                                                $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+                                                if ($tblPerson) {
+                                                    list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
+                                                        $tblTest, $tblPerson, $studentList, $grades);
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
+                                        if ($tblDivisionStudentAll) {
+                                            foreach ($tblDivisionStudentAll as $tblPerson) {
+
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
                                                     $tblTest, $tblPerson, $studentList, $grades);
                                             }
-                                        }
-                                    }
-                                } else {
-                                    $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
-                                    if ($tblDivisionStudentAll) {
-                                        foreach ($tblDivisionStudentAll as $tblPerson) {
-
-                                            list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                $tblTest, $tblPerson, $studentList, $grades);
                                         }
                                     }
                                 }
