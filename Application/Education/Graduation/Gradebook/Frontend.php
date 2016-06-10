@@ -1724,7 +1724,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (isset($GradeType['Multiplier']) && $GradeType['Multiplier'] == '') {
             $multiplier = 1;
-        } elseif (isset($GradeType['Multiplier']) &&  !preg_match(Service::PREG_MATCH_DECIMAL_NUMBER, preg_quote($GradeType['Multiplier'], '!'))) {
+        } elseif (isset($GradeType['Multiplier']) &&  !preg_match(Service::PREG_MATCH_DECIMAL_NUMBER, $GradeType['Multiplier'])) {
             return $Stage
                 . new Warning('Bitte geben Sie als Faktor eine Zahl an. Der Zensuren-Type wurde nicht hinzugefügt.', new Exclamation())
                 . new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_ERROR,

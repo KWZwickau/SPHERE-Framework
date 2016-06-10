@@ -598,7 +598,7 @@ class Service extends AbstractService
         if (isset($ScoreGroup['Multiplier']) && empty($ScoreGroup['Multiplier'])) {
             $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie einen Faktor an');
             $Error = true;
-        } elseif (isset($ScoreGroup['Multiplier']) && !preg_match(self::PREG_MATCH_DECIMAL_NUMBER, preg_quote($ScoreGroup['Multiplier'], '!'))) {
+        } elseif (isset($ScoreGroup['Multiplier']) && !preg_match(self::PREG_MATCH_DECIMAL_NUMBER, $ScoreGroup['Multiplier'])) {
             $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie eine Zahl als Faktor an');
             $Error = true;
         }
@@ -1196,7 +1196,7 @@ class Service extends AbstractService
         if (isset($ScoreGroup['Multiplier']) && empty($ScoreGroup['Multiplier'])) {
             $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie einen Faktor an');
             $Error = true;
-        } elseif (isset($ScoreGroup['Multiplier']) && !preg_match(self::PREG_MATCH_DECIMAL_NUMBER, preg_quote($ScoreGroup['Multiplier'], '!'))) {
+        } elseif (isset($ScoreGroup['Multiplier']) && !preg_match(self::PREG_MATCH_DECIMAL_NUMBER, $ScoreGroup['Multiplier'])) {
             $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie eine Zahl als Faktor an');
             $Error = true;
         }
