@@ -1662,7 +1662,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 $average = Gradebook::useService()->getAverageByTest($tblTest);
-                if ($average){
+                if ($average) {
                     $gradeMirror[] = new Bold('Fach-Klassen &#216;: ' . $average);
                 }
             }
@@ -2542,9 +2542,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $DivisionId
+     *
      * @return Stage|string
      */
-    public function frontendHeadmasterTaskGrades($Id = null)
+    public function frontendHeadmasterTaskGrades($Id = null, $DivisionId = null)
     {
         $Stage = new Stage('Notenauftrag', 'Zensurenübersicht');
 
@@ -2567,7 +2569,47 @@ class Frontend extends Extension implements IFrontendInterface
                 new ChevronLeft())
         );
 
-        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
+        $tblCurrentDivision = Division::useService()->getDivisionById($DivisionId);
+
+        $tblDivisionAllByTask = Evaluation::useService()->getDivisionAllByTask($tblTask);
+        $buttonList = array();
+        if ($tblDivisionAllByTask) {
+            $tblDivisionAllByTask = $this->getSorter($tblDivisionAllByTask)->sortObjectBy('DisplayName');
+
+            if (!$tblCurrentDivision) {
+                $tblCurrentDivision = current($tblDivisionAllByTask);
+            }
+
+            if (count($tblDivisionAllByTask) > 1) {
+                /** @var TblDivision $tblDivision */
+                foreach ($tblDivisionAllByTask as $tblDivision) {
+                    if ($tblCurrentDivision && $tblCurrentDivision->getId() == $tblDivision->getId()) {
+                        $buttonList[] = new Standard(
+                            new Info(new Bold('Klasse ' . $tblDivision->getDisplayName())),
+                            '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
+                            new Edit(),
+                            array(
+                                'Id' => $Id,
+                                'DivisionId' => $tblDivision->getId()
+                            )
+                        );
+                    } else {
+                        $buttonList[] = new Standard(
+                            'Klasse ' . $tblDivision->getDisplayName(),
+                            '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
+                            null,
+                            array(
+                                'Id' => $Id,
+                                'DivisionId' => $tblDivision->getId()
+                            )
+                        );
+                    }
+                }
+            }
+        }
+
+        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask,
+            $tblCurrentDivision ? $tblCurrentDivision : null);
 
         $divisionList = array();
         if ($tblTestAllByTask) {
@@ -2592,14 +2634,20 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(
+                        new LayoutColumn(array(
                             new Panel(
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
                                     $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
+                            ),
+                            $tblDivisionAllByTask ? null : new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                                'Es sind keine Klassen zu diesem Notenauftrag zugeordnet.', new Exclamation()
                             )
+                        )),
+                        new LayoutColumn(
+                            empty($buttonList) ? null : $buttonList
                         )
                     ))
                 )),
@@ -2655,7 +2703,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             if ($tblPerson) {
                                                 $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
-                                                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null );
+                                                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null);
                                             }
                                         }
                                     }
@@ -2940,7 +2988,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @return Stage|string
      */
-    public function frontendDivisionTeacherTaskGrades($Id = null)
+    public function frontendDivisionTeacherTaskGrades($Id = null, $DivisionId = null)
     {
         $Stage = new Stage('Notenauftrag', 'Zensurenübersicht');
 
@@ -2971,7 +3019,57 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
-        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
+
+        $tblCurrentDivision = Division::useService()->getDivisionById($DivisionId);
+
+        $tblDivisionAllByTask = Evaluation::useService()->getDivisionAllByTask($tblTask);
+        $buttonList = array();
+        if ($tblDivisionAllByTask) {
+            $tblDivisionAllByTask = $this->getSorter($tblDivisionAllByTask)->sortObjectBy('DisplayName');
+
+            $tempList = array();
+            /** @var TblDivision $tblDivision */
+            foreach($tblDivisionAllByTask as $tblDivision){
+                if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson)){
+                    $tempList[] = $tblDivision;
+                }
+            }
+            $tblDivisionAllByTask = empty($tempList) ? false : $tempList;
+
+            if (!$tblCurrentDivision && $tblDivisionAllByTask) {
+                $tblCurrentDivision = current($tblDivisionAllByTask);
+            }
+
+            if (count($tblDivisionAllByTask) > 1) {
+                /** @var TblDivision $tblDivision */
+                foreach ($tblDivisionAllByTask as $tblDivision) {
+                    if ($tblCurrentDivision && $tblCurrentDivision->getId() == $tblDivision->getId()) {
+                        $buttonList[] = new Standard(
+                            new Info(new Bold('Klasse ' . $tblDivision->getDisplayName())),
+                            '/Education/Graduation/Evaluation/Task/Teacher/Grades',
+                            new Edit(),
+                            array(
+                                'Id' => $Id,
+                                'DivisionId' => $tblDivision->getId()
+                            )
+                        );
+                    } else {
+                        $buttonList[] = new Standard(
+                            'Klasse ' . $tblDivision->getDisplayName(),
+                            '/Education/Graduation/Evaluation/Task/Teacher/Grades',
+                            null,
+                            array(
+                                'Id' => $Id,
+                                'DivisionId' => $tblDivision->getId()
+                            )
+                        );
+                    }
+                }
+            }
+        }
+
+        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask,
+            $tblCurrentDivision ? $tblCurrentDivision : null);
 
         $divisionList = array();
         if ($tblTestAllByTask) {
@@ -3010,6 +3108,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             )
+                        ),
+                        new LayoutColumn(
+                            empty($buttonList) ? null : $buttonList
                         )
                     ))
                 )),
