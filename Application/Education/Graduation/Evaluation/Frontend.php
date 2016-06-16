@@ -1661,6 +1661,10 @@ class Frontend extends Extension implements IFrontendInterface
                             ($count > 0 ? ' (' . (round(($mirror[$i] / $count) * 100, 0)) . '%)' : '');
                     }
                 }
+                $average = Gradebook::useService()->getAverageByTest($tblTest);
+                if ($average){
+                    $gradeMirror[] = new Bold('Fach-Klassen &#216;: ' . $average);
+                }
             }
         } else {
             $gradeMirror = new Bold(new Warning(

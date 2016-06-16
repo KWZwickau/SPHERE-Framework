@@ -866,6 +866,27 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $dataList[] = $data;
             }
+
+            // Fach-Klassendurchschnitt pro Test
+            $data =  array(
+                'Number' => new Muted('&#216;'),
+                'Student' => new Muted('Fach-Klasse')
+            );
+            if (!empty($columnDefinition)) {
+                foreach ($columnDefinition as $column => $value) {
+                    if (strpos($column, 'Test') !== false) {
+                        $testId = substr($column, strlen('Test'));
+                        $tblTest = Evaluation::useService()->getTestById($testId);
+                        if ($tblTest) {
+                            $average = Gradebook::useService()->getAverageByTest($tblTest);
+                            $data[$column] = new Muted($average ? $average : '');
+                        }
+                    } elseif (strpos($column, 'Average') !== false) {
+                        $data[$column] = '';
+                    }
+                }
+            }
+            $dataList[] = $data;
         }
 
         $tableData = new TableData(

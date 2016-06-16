@@ -285,6 +285,45 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTest $tblTest
+     *
+     * @return bool|float
+     */
+    public function getAverageByTest(TblTest $tblTest)
+    {
+
+        $tblDivision = $tblTest->getServiceTblDivision();
+        $tblSubject = $tblTest->getServiceTblSubject();
+        if ($tblDivision && $tblSubject) {
+            $tblScoreType = $this->getScoreTypeByDivisionAndSubject(
+                $tblDivision,
+                $tblSubject
+            );
+
+            if ($tblScoreType && $tblScoreType->getIdentifier() !== 'VERBAL' ){
+                $tblGradeList = $this->getGradeAllByTest($tblTest);
+                if ($tblGradeList){
+                    $sum = 0;
+                    $count = 0;
+                    foreach ($tblGradeList as $tblGrade){
+                        if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                            $sum += floatval($tblGrade->getGrade());
+                            $count++;
+                        }
+                    }
+
+                    if ($count > 0){
+                        return round($sum / $count, 2);
+                    }
+                }
+            }
+        }
+
+        return false;
+
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param null $TestId
      * @param                     $Grade
@@ -1640,15 +1679,15 @@ class Service extends AbstractService
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         TblSubjectGroup $tblSubjectGroup = null
-    ){
+    ) {
 
-        if ($tblSubjectGroup !== null){
+        if ($tblSubjectGroup !== null) {
             $tblScoreRuleSubjectGroup = $this->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup(
                 $tblDivision,
                 $tblSubject,
                 $tblSubjectGroup
             );
-            if ($tblScoreRuleSubjectGroup){
+            if ($tblScoreRuleSubjectGroup) {
 
                 return $tblScoreRuleSubjectGroup->getTblScoreRule();
             }
@@ -1658,7 +1697,7 @@ class Service extends AbstractService
             $tblDivision,
             $tblSubject
         );
-        if ($tblScoreRuleDivisionSubject){
+        if ($tblScoreRuleDivisionSubject) {
 
             return $tblScoreRuleDivisionSubject->getTblScoreRule();
         }
@@ -1674,13 +1713,13 @@ class Service extends AbstractService
     public function getScoreTypeByDivisionAndSubject(
         TblDivision $tblDivision,
         TblSubject $tblSubject
-    ){
+    ) {
 
         $tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject(
             $tblDivision,
             $tblSubject
         );
-        if ($tblScoreRuleDivisionSubject){
+        if ($tblScoreRuleDivisionSubject) {
 
             return $tblScoreRuleDivisionSubject->getTblScoreType();
         }
