@@ -1204,12 +1204,18 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
 
+        if (Invoice::useService()->createInvoice($tblBasket)) {
+            $Content = new Success('Rechnung erfolgreich');
+        } else {
+            $Content = new Warning('Rechnung fehlgeschlagen');
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            Invoice::useService()->createInvoice($tblBasket)
+                            $Content
                         )
                     )
                 )

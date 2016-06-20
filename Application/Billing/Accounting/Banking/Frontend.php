@@ -411,8 +411,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                     if ($Counting === 1) {
                         $Item['BankRef'] = new SuccessText('Eine Mandatsreferenz');
-                    } elseif ($Counting >= 2)
+                    } elseif ($Counting >= 2) {
                         $Item['BankRef'] = new SuccessText($Counting.' Mandatsreferenzen');
+                    }
                 }
 
                 array_push($TableContentPerson, $Item);
@@ -874,12 +875,16 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblRelationShipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                     if ($tblRelationShipList) {
                         array_walk($tblRelationShipList, function (TblToPerson $tblRelationShip) use (&$PaymentPerson) {
-
-                            $tblPerson = $tblRelationShip->getServiceTblPersonFrom();
-                            if ($tblPerson) {
-                                $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
-                                if (!empty( $tblBankReference )) {
-                                    $PaymentPerson[] = $tblPerson;
+                            /** filter Type of Relationship that is unable to pay */
+                            if ($tblRelationShip->getTblType()->getName() !== 'Arzt' &&
+                                $tblRelationShip->getTblType()->getName() !== 'Geschwisterkind'
+                            ) {
+                                $tblPerson = $tblRelationShip->getServiceTblPersonFrom();
+                                if ($tblPerson) {
+                                    $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
+                                    if (!empty( $tblBankReference )) {
+                                        $PaymentPerson[] = $tblPerson;
+                                    }
                                 }
                             }
                         });
