@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Money;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -89,15 +90,15 @@ class Frontend extends Extension implements IFrontendInterface
                             $CalculationContent[$Key] .= ' - ';
                         }
                         if (!$tblCalculation->getServiceTblSiblingRank() && !$tblCalculation->getServiceTblType()) {
-                            $CalculationContent[$Key] = $tblCalculation->getPriceString().' Grundpreis';
+                            $CalculationContent[$Key] = $tblCalculation->getPriceString().' Standardpreis';
                         }
                     }
                 }
                 $Item['Condition'] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($CalculationContent);
 
                 $Item['Option'] =
-                    new Standard('', '/Billing/Inventory/Item/Calculation', new Money(), array('Id' => $tblItem->getId()), 'Preise / Bedingungen eintragen')
-                    .new Standard('', '/Billing/Inventory/Item/Change', new Pencil(), array('Id' => $tblItem->getId()), 'Bearbeiten');
+                    new Standard('', '/Billing/Inventory/Item/Change', new Pencil(), array('Id' => $tblItem->getId()), 'Bearbeiten')
+                    .new Standard('', '/Billing/Inventory/Item/Calculation', new Equalizer(), array('Id' => $tblItem->getId()), 'Preise / Bedingungen eintragen');
 
                 array_push($TableContent, $Item);
             });
@@ -159,7 +160,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Artikel',
                             array(
                                 new TextField('Item[Name]', 'Name', 'Name', new Conversation()),
-                                new TextField('Item[Value]', 'Preis', 'Standard-Preis', new Money()),
+                                new TextField('Item[Value]', 'Preis', 'Standardpreis', new Money()),
                                 new RadioBox('Item[ItemType]', 'Einzelleistung', 'Einzelleistung'),
                                 new RadioBox('Item[ItemType]', 'Sammelleistung', 'Sammelleistung'),
 

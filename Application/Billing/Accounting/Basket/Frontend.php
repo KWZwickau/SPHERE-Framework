@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -32,7 +33,6 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Money;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
@@ -91,25 +91,25 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
 
                 $Item['Option'] =
-                    ( !$tblBasketVerification ?
-                        (new Standard('Warenkorb füllen', '/Billing/Accounting/Basket/Content',
-                            new Listing(), array(
-                                'Id' => $tblBasket->getId()
-                            )))->__toString() :
-
-                        (new Standard('Berechnung bearbeiten', '/Billing/Accounting/Basket/Verification',
-                            new Pencil(), array(
-                                'Id' => $tblBasket->getId()
-                            )))->__toString() ).
-                    (new Standard('Name bearbeiten', '/Billing/Accounting/Basket/Change',
+                    (new Standard('', '/Billing/Accounting/Basket/Change',
                         new Edit(), array(
                             'Id' => $tblBasket->getId()
-                        )))->__toString().
+                        ), 'Name bearbeiten'))->__toString().
                     ( !$tblBasketVerification ?
-                        (new Standard('Löschen', '/Billing/Accounting/Basket/Destroy',
+                        (new Standard('', '/Billing/Accounting/Basket/Content',
+                            new Listing(), array(
+                                'Id' => $tblBasket->getId()
+                            ), 'Warenkorb füllen'))->__toString() :
+
+                        (new Standard('', '/Billing/Accounting/Basket/Verification',
+                            new Cog(), array(
+                                'Id' => $tblBasket->getId()
+                            ), 'Berechnung bearbeiten'))->__toString() ).
+                    ( !$tblBasketVerification ?
+                        (new Standard('', '/Billing/Accounting/Basket/Destroy',
                             new Remove(), array(
                                 'Id' => $tblBasket->getId()
-                            )))->__toString() : null );
+                            ), 'Löschen'))->__toString() : null );
                 array_push($TableContent, $Item);
             });
         }
@@ -241,7 +241,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(new Well(
                             Basket::useService()->changeBasket($Form, $tblBasket, $Basket)
                         ), 12)
-                    ), new Title(new Pencil().' Bearbeiten')
+                    ), new Title(new Edit().' Bearbeiten')
                 )
             )
         );
@@ -837,7 +837,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Add'        => ' '
                                 )
                             )
-
                         )
                     ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' mögliche Personen')
                 )
@@ -1123,7 +1122,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['SinglePrice'] = $tblBasketVerification->getSinglePrice();
                 $Item['Quantity'] = $tblBasketVerification->getQuantity();
                 $Item['Summary'] = $tblBasketVerification->getSummaryPrice();
-                $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Verification/Edit', new Pencil(),
+                $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Verification/Edit', new Edit(),
                         array('Id' => $tblBasketVerification->getId()), 'Preis / Anzahl bearbeiten')
                     .new Standard('', '/Billing/Accounting/Basket/Verification/Destroy', new Disable(),
                         array('Id' => $tblBasketVerification->getId()), 'Artikel von Person entfernen');

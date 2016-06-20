@@ -25,10 +25,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -78,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Debitoren');
         $Stage->setDescription('Übersicht');
-        $Stage->setMessage('Zeigt die verfügbaren Debitoren an');
+//        $Stage->setMessage('Zeigt die verfügbaren Debitoren an');
 //        $Stage->addButton(
 //            new Standard('Debitor anlegen', '/Billing/Accounting/Banking/Person', new Plus())
 //        );
@@ -113,7 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!empty( $DebtorArray )) {
                     $Item['Option'] .=
                         (new Standard('', '/Billing/Accounting/Banking/View',
-                            new Cog(), array(
+                            new Edit(), array(
                                 'Id' => $tblPerson->getId()
                             ), 'Bearbeiten'))->__toString();
                 }
@@ -135,7 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Option'       => ''
                                 ))
                         )
-                    ), new Title(new PlusSign().' Hinzufügen / '.new Pencil().' Bearbeiten')
+                    ), new Title(new PlusSign().' Hinzufügen / '.new Edit().' Bearbeiten')
                 )
             )
         );
@@ -170,7 +169,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $RowContent[] = new LayoutColumn(
                 new Panel($tblDebtor->getDebtorNumber(), null, Panel::PANEL_TYPE_INFO,
-                    new Standard('', '/Billing/Accounting/Banking/Change', new Pencil(), array('Id' => $tblDebtor->getId())))
+                    new Standard('', '/Billing/Accounting/Banking/Change', new Edit(), array('Id' => $tblDebtor->getId())))
                 , 3);
         });
 
@@ -180,7 +179,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         $RowContent
-                    ), new Title(new Pencil().' Debitornummer(n) bearbeiten')
+                    ), new Title(new Edit().' Debitornummer(n) bearbeiten')
                 )
             )
         );
@@ -316,7 +315,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $Form, $tblDebtor, $Debtor
                                 ))
                             , 6)
-                    ), new Title(new Pencil().' Bearbeiten')
+                    ), new Title(new Edit().' Bearbeiten')
                 )
             )
         );
@@ -403,7 +402,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Counting = count($tblReferenceList);
                     if ($Counting >= 1) {
                         $Item['Option'] .= (new Standard('', '/Billing/Accounting/BankReference/View',
-                            new Cog(), array(
+                            new Edit(), array(
                                 'Id' => $tblPerson->getId()
                             ), 'Bearbeiten'))->__toString();
                     }
@@ -432,7 +431,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Option'  => ''
                                 ))
                         )
-                    ), new Title(new PlusSign().' Hinzufügen')
+                    ), new Title(new PlusSign().' Hinzufügen / '.new Edit().' Bearbeiten')
                 )
             )
         );
@@ -497,7 +496,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('Gültig ab', array(new DatePicker('Reference[ReferenceDate]', '', 'Mandatsreferenz Datum', new Time()))
                                 , Panel::PANEL_TYPE_INFO)
                             , 6)
-                    )), new \SPHERE\Common\Frontend\Form\Repository\Title(new Pencil().' Mandatsreferenz')
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Title(new Edit().' Mandatsreferenz')
                 ),
                 new FormGroup(
                     new FormRow(array(
@@ -568,7 +567,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Item['BIC'] = $tblBankReference->getBICFrontend();
             $Item['CashSign'] = $tblBankReference->getCashSign();
             $Item['Option'] = (new Standard('', '/Billing/Accounting/BankReference/Change',
-                    new Pencil(), array(
+                    new Edit(), array(
                         'Id' => $tblBankReference->getId()
                     ), 'Datum bearbeiten'))
                 .(new Standard('', '/Billing/Accounting/BankReference/Remove',
@@ -679,7 +678,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Gültig ab', array(new DatePicker('Reference[ReferenceDate]', '', 'Mandatsreferenz Datum', new Time()))
                             , Panel::PANEL_TYPE_INFO)
                         , 6)
-                )), new \SPHERE\Common\Frontend\Form\Repository\Title(new Pencil().' Mandatsreferenz')
+                )), new \SPHERE\Common\Frontend\Form\Repository\Title(new Edit().' Mandatsreferenz')
             ),
             new FormGroup(
                 new FormRow(array(
@@ -714,7 +713,7 @@ class Frontend extends Extension implements IFrontendInterface
                             Banking::useService()->changeReference(
                                 $Form, $tblBankReference, $Reference)
                         ), 12)
-                    ), new Title(new Pencil().' Bearbeiten')
+                    ), new Title(new Edit().' Bearbeiten')
                 )
             )
         );
@@ -1155,7 +1154,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['ItemPayer'] = new Listing($ItemPayer);
                     $Item['Status'] = new Listing($Status);
                 }
-                $Item['Option'] = new Standard('', '/Billing/Accounting/DebtorSelection/PaySelection', new Pencil(),
+                $Item['Option'] = new Standard('', '/Billing/Accounting/DebtorSelection/PaySelection', new Edit(),
                         array('Id' => $tblPerson->getId()), 'Bearbeiten')
                     .new Standard('', '/Billing/Accounting/DebtorSelection/Person/Destroy', new Remove(),
                         array('Id' => $tblPerson->getId()), 'Zuweisungen entfernen');

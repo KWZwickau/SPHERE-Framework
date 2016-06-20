@@ -72,15 +72,19 @@ class Frontend extends Extension implements IFrontendInterface
                         $ItemArray[] = $ItemL->getName();
                     }
                 }
-                $Item['ItemList'] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($ItemArray);
-                $Item['Option'] = (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
+                $ItemStringList = '';
+                if (!empty( $ItemArray )) {
+                    $ItemStringList = implode(', ', $ItemArray);
+                }
+                $Item['ItemList'] = $ItemStringList;
+                $Item['Option'] = (new Standard('', '/Billing/Inventory/Commodity/Change',
                         new Pencil(), array(
                             'Id' => $tblCommodity->getId()
-                        )))->__toString().
-                    (new Standard('Artikel auswählen', '/Billing/Inventory/Commodity/Item/Select',
+                        ), 'Bearbeiten'))->__toString().
+                    (new Standard('', '/Billing/Inventory/Commodity/Item/Select',
                         new Listing(), array(
                             'Id' => $tblCommodity->getId()
-                        )))->__toString();
+                        ), 'Artikel auswählen'))->__toString();
 //                    .(new Standard('Löschen', '/Billing/Inventory/Commodity/Destroy',
 //                        new Remove(), array(
 //                            'Id' => $tblCommodity->getId()
