@@ -156,6 +156,10 @@ class Service extends AbstractService
             $Stage->setError('Test[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
             $Error = true;
         }
+        if (isset($Test['Date']) && empty($Test['Date'])) {
+            $Stage->setError('Test[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
         if ($Error) {
             return $Stage;
         }
@@ -441,6 +445,13 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getTaskById($Id);
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param null $Data
+     *
+     * @return IFormInterface|string
+     */
     public function updateDivisionTasks(IFormInterface $Stage = null, $Id, $Data = null)
     {
 
@@ -533,7 +544,9 @@ class Service extends AbstractService
             }
         }
 
-        return $Stage;
+        return new Success('Daten erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster/Division', Redirect::TIMEOUT_SUCCESS,
+            array('Id' => $tblTask->getId()));
     }
 
     public function addBehaviorGradeTypeToDivisionAndTask(
