@@ -12,6 +12,7 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -103,31 +104,50 @@ class Service extends AbstractService
      */
     public function createInvoice(TblBasket $tblBasket)
     {
-
+        /** Warenkorb Inhalt */
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if (!$tblBasketVerificationList) {
             return false;
         }
-
+        $DebtorItemList = array();
         foreach ($tblBasketVerificationList as $tblBasketVerification) {
-            $tblDebtorInvoice = false;
-            $tblItemInvoice = false;
+
 
             $tblPerson = $tblBasketVerification->getServiceTblPerson();
             $tblItem = $tblBasketVerification->getServiceTblItem();
-//            $Quantity = $tblBasketVerification->getQuantity();
-//            $Price = $tblBasketVerification->getValue();
+            $Quantity = $tblBasketVerification->getQuantity();
+            $Price = $tblBasketVerification->getValue();
 
+            /** Bezahler suchen */
             $tblDebtorSelect = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
             if ($tblDebtorSelect) {
                 $tblBankReference = $tblDebtorSelect->getTblBankReference();
                 $tblDebtor = $tblDebtorSelect->getTblDebtor();
 
                 if ($tblBankReference && $tblDebtor) {
-                    $tblDebtorInvoice = (new Data($this->getBinding()))->createDebtor($tblDebtor, $tblBankReference);
+                    /** Invoice/tblDebtor füllen */
+                    (new Data($this->getBinding()))->createDebtor($tblDebtor, $tblBankReference)->getId();
+                    /** Invoice/tblItem füllen */
+                    $DebtorItemList[$tblDebtor->getDebtorNumber()][$tblBankReference->getReference()]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
+                    $DebtorItemList[$tblDebtor->getDebtorNumber()][$tblBankReference->getReference()]['Quantity'][] = $Quantity;
+                    $DebtorItemList[$tblDebtor->getDebtorNumber()][$tblBankReference->getReference()]['Value'][] = $Price;
                 }
             }
-            $tblItemInvoice = (new Data($this->getBinding()))->createItem($tblBasketVerification);
+        }
+
+        /** Invoice/tblInvoice und Invoice/ füllen */
+        $BillArray = array();
+        foreach ($DebtorItemList as $DebtorBill) {
+            $DebtorArray = array();
+            foreach ($DebtorBill as $ReferenceNumberBill) {
+                $ReferenceArray = array();
+                $Sum = 0;
+                foreach ($ReferenceNumberBill['Item'] as $ItemKey => $ItemBill) {
+                    Debugger::screenDump($ReferenceNumberBill['Quantity'][$ItemKey] . ' * ' . $ReferenceNumberBill['Value'][$ItemKey]);
+                    $Sum += $ReferenceNumberBill['Quantity'][$ItemKey] * $ReferenceNumberBill['Value'][$ItemKey];
+                }
+                Debugger::screenDump($Sum . '€ #####################################################################################');
+            }
         }
 
         return true;
