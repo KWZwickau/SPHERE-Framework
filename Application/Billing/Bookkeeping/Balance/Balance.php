@@ -34,11 +34,6 @@ class Balance implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBalance'
             )
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Payment',
-                __NAMESPACE__.'\Frontend::frontendPayment'
-            )
-        );
     }
 
     /**

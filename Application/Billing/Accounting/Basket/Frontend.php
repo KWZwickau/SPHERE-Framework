@@ -24,11 +24,11 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Money;
@@ -102,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 'Warenkorb füllen'))->__toString() :
 
                         (new Standard('', '/Billing/Accounting/Basket/Verification',
-                            new Cog(), array(
+                            new Equalizer(), array(
                                 'Id' => $tblBasket->getId()
                             ), 'Berechnung bearbeiten'))->__toString() ).
                     ( !$tblBasketVerification ?
@@ -1242,7 +1242,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification/Person', new ChevronLeft(),
 //            array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
 //                  'BasketId' => $tblBasketVerification->getTblBasket()->getId())));
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Backward(true));
 
         $tblItem = $tblBasketVerification->getServiceTblItem();
         $tblPerson = $tblBasketVerification->getServiceTblPerson();

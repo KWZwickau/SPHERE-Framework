@@ -5,10 +5,13 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -39,6 +42,10 @@ class TblInvoice extends Element
     /**
      * @Column(type="string")
      */
+    protected $DebtorSecondName;
+    /**
+     * @Column(type="string")
+     */
     protected $DebtorLastName;
     /**
      * @Column(type="string")
@@ -59,7 +66,19 @@ class TblInvoice extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblPaymentType;
+    protected $serviceTblMail;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPhone;
+//    /**
+//     * @Column(type="bigint")
+//     */
+//    protected $serviceTblPaymentType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $TblDebtor;
 
     /**
      * @return string
@@ -113,6 +132,24 @@ class TblInvoice extends Element
     {
 
         $this->DebtorFirstName = $PersonFirstName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDebtorSecondName()
+    {
+
+        return $this->DebtorSecondName;
+    }
+
+    /**
+     * @param string $PersonSecondName
+     */
+    public function setDebtorSecondName($PersonSecondName)
+    {
+
+        $this->DebtorSecondName = $PersonSecondName;
     }
 
     /**
@@ -223,24 +260,90 @@ class TblInvoice extends Element
     }
 
     /**
-     * @return bool|TblPaymentType
+     * @return bool|TblMail
      */
-    public function getServiceTblPaymentType()
+    public function getServiceTblMail()
     {
 
-        if (null === $this->serviceTblPaymentType) {
+        if (null === $this->serviceTblMail) {
             return false;
         } else {
-            return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
+            return Mail::useService()->getMailById($this->serviceTblMail);
         }
     }
 
     /**
-     * @param TblPaymentType $tblPaymentType
+     * @param TblMail $tblMail
      */
-    public function setServiceTblPaymentType(TblPaymentType $tblPaymentType = null)
+    public function setServiceTblMail(TblMail $tblMail = null)
     {
 
-        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
+        $this->serviceTblMail = ( null === $tblMail ? null : $tblMail->getId() );
+    }
+
+    /**
+     * @return bool|TblPhone
+     */
+    public function getServiceTblPhone()
+    {
+
+        if (null === $this->serviceTblPhone) {
+            return false;
+        } else {
+            return Phone::useService()->getPhoneById($this->serviceTblPhone);
+        }
+    }
+
+    /**
+     * @param TblPhone $tblPhone
+     */
+    public function setServiceTblPhone(TblPhone $tblPhone = null)
+    {
+
+        $this->serviceTblPhone = ( null === $tblPhone ? null : $tblPhone->getId() );
+    }
+
+//    /**
+//     * @return bool|TblPaymentType
+//     */
+//    public function getServiceTblPaymentType()
+//    {
+//
+//        if (null === $this->serviceTblPaymentType) {
+//            return false;
+//        } else {
+//            return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
+//        }
+//    }
+//
+//    /**
+//     * @param TblPaymentType $tblPaymentType
+//     */
+//    public function setServiceTblPaymentType(TblPaymentType $tblPaymentType = null)
+//    {
+//
+//        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
+//    }
+
+    /**
+     * @return bool|TblDebtor
+     */
+    public function getTblDebtor()
+    {
+
+        if (null === $this->TblDebtor) {
+            return false;
+        } else {
+            return Invoice::useService()->getDebtorById($this->TblDebtor);
+        }
+    }
+
+    /**
+     * @param TblDebtor $tblDebtor
+     */
+    public function setTblDebtor(TblDebtor $tblDebtor = null)
+    {
+
+        $this->TblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
     }
 }

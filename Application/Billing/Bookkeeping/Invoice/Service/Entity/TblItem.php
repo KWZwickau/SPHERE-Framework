@@ -104,7 +104,7 @@ class TblItem extends Element
     public function getQuantity()
     {
 
-        return $this->Name;
+        return $this->Quantity;
     }
 
     /**

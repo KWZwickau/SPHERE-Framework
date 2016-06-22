@@ -27,8 +27,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblDebtor = $this->setTableDebtor($Schema);
         $tblItem = $this->setTableItem($Schema);
-//        $tblInvoice = $this->setTableInvoice($Schema, $tblDebtor);
-//        $this->setTableInvoiceItem($Schema, $tblInvoice, $tblItem);
+        $tblInvoice = $this->setTableInvoice($Schema, $tblDebtor);
+        $this->setTableInvoiceItem($Schema, $tblInvoice, $tblItem);
 
         /**
          * Migration & Protocol
@@ -126,11 +126,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblInvoice', 'InvoiceNumber')) {
             $Table->addColumn('InvoiceNumber', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'BasketName')) {
-            $Table->addColumn('BasketName', 'string');
-        }
         if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorFirstName')) {
             $Table->addColumn('DebtorFirstName', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorSecondName')) {
+            $Table->addColumn('DebtorSecondName', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorLastName')) {
             $Table->addColumn('DebtorLastName', 'string');
@@ -147,9 +147,15 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPaymentType')) {
-            $Table->addColumn('serviceTblPaymentType', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblMail')) {
+            $Table->addColumn('serviceTblMail', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPhone')) {
+            $Table->addColumn('serviceTblPhone', 'bigint', array('notnull' => false));
+        }
+//        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPaymentType')) {
+//            $Table->addColumn('serviceTblPaymentType', 'bigint');
+//        }
         $this->getConnection()->addForeignKey($Table, $tblDebtor);
 
         return $Table;

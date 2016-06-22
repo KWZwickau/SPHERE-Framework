@@ -127,7 +127,7 @@ class Data extends AbstractData
     public function getBasketPersonByBasketAndPerson(TblBasket $tblBasket, TblPerson $tblPerson)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketPerson',
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketPerson',
             array(TblBasketPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
                   TblBasketPerson::ATTR_TBL_BASKET         => $tblBasket->getId()));
     }

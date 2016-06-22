@@ -9,6 +9,9 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItem;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -98,7 +101,7 @@ class Data extends AbstractData
      *
      * @return false|TblItem[]
      */
-    public function getItemByInvoice(TblInvoice $tblInvoice)
+    public function getItemAllByInvoice(TblInvoice $tblInvoice)
     {
 
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
@@ -115,28 +118,62 @@ class Data extends AbstractData
 
     /**
      * @param TblDebtor $tblDebtor
+     * @param $InvoiceNumber
+     * @param TblAddress|null $tblAddress
+     * @param TblMail|null $tblMail
+     * @param TblPhone|null $tblPhone
      *
-     * @return TblInvoice
+     * @return null|object|TblInvoice
      */
-    public function createInvoice(TblDebtor $tblDebtor) // Todo
+    public function createInvoice(
+        TblDebtor $tblDebtor,
+        $InvoiceNumber,
+        TblAddress $tblAddress = null,
+        TblMail $tblMail = null,
+        TblPhone $tblPhone = null
+    ) // Todo
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = new TblInvoice();
-        $Entity->setInvoiceNumber('?!?');
-        $Entity->setServiceTblPerson($tblDebtor->getServiceTblDebtor()->getServiceTblPerson());
+        $Entity = null;
+        $Entity = $Manager->getEntity('TblInvoice')->findOneBy(
+            array(TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber));
 
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-            $Entity);
+        if ($Entity === null) {
+            $tblPerson = $tblDebtor->getServiceTblDebtor()->getServiceTblPerson();
+
+            $Entity = new TblInvoice();
+            $Entity->setInvoiceNumber($InvoiceNumber);
+            $Entity->setDebtorFirstName($tblPerson->getFirstName());
+            $Entity->setDebtorSecondName($tblPerson->getSecondName());
+            $Entity->setDebtorLastName($tblPerson->getLastName());
+            $Entity->setDebtorSalutation($tblPerson->getSalutation());
+            $Entity->setDebtorLastName($tblPerson->getLastName());
+            $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
+            if (null !== $tblAddress) {
+                $Entity->setServiceTblAddress($tblAddress);
+            }
+            if (null !== $tblMail) {
+                $Entity->setServiceTblMail($tblMail);
+            }
+            if (null !== $tblPhone) {
+                $Entity->setServiceTblPhone($tblPhone);
+            }
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setTblDebtor($tblDebtor);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
 
         return $Entity;
     }
 
     /**
      * @param TblDebtorAccounting $tblDebtor
-     * @param TblBankReference    $tblBankReference
+     * @param TblBankReference $tblBankReference
      *
      * @return TblDebtor
      */
@@ -204,6 +241,22 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
+
+        return $Entity;
+    }
+
+    public function createInvoiceItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = new TblInvoiceItem();
+        $Entity->setTblInvoice($tblInvoice);
+        $Entity->setTblItem($tblItem);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
+
 
         return $Entity;
     }
