@@ -1685,30 +1685,20 @@ class Frontend extends Extension implements IFrontendInterface
         $hasPreviewGrades = false;
 
         if ($tblDivisionSubject->getTblSubjectGroup()) {
-            $tblSubjectStudentAllByDivisionSubject = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-            if ($tblSubjectStudentAllByDivisionSubject) {
-                foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
-
-                    $tblPerson = $tblSubjectStudent->getServiceTblPerson();
-                    if ($tblPerson) {
-
-                        $average = false;
-                        $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
-                            . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
-                    }
-                }
-            }
+            $tblStudentAll = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
         } else {
-            $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
-            if ($tblDivisionStudentAll) {
-                foreach ($tblDivisionStudentAll as $tblPerson) {
-
-                    $average = false;
-                    $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
-                        . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
-                }
+            $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
+        }
+        if ($tblStudentAll) {
+            $tblStudentAll = $this->getSorter($tblStudentAll)->sortObjectBy('LastFirstName');
+            /** @var TblPerson $tblPerson */
+            foreach ($tblStudentAll as $tblPerson) {
+                $average = false;
+                $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
+                    . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
             }
         }
+
         if ($tblTask) {
             $period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
             $tableColumns = array(
@@ -1984,12 +1974,13 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($studentList) {
+            $tabIndex = 1;
             foreach ($studentList as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                     $tblPerson);
                 $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                    $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
+                    $tabIndex, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
                 );
             }
         }
@@ -2153,9 +2144,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $tblGrade
      * @param $IsEdit
      * @param $student
-     * @param TblScoreType|null $tblScoreType
+     * @param $tabIndex
      * @param bool $IsTaskAndInPeriod
      *
+     * @param TblScoreType|null $tblScoreType
      * @return array
      */
     private function contentEditTestGradeTableRow(
@@ -2163,6 +2155,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGrade,
         $IsEdit,
         $student,
+        &$tabIndex,
         $IsTaskAndInPeriod = false,
         TblScoreType $tblScoreType = null
     ) {
@@ -2189,21 +2182,21 @@ class Frontend extends Extension implements IFrontendInterface
                         new Quote()))->setTabIndex(1);
                 } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex(1);
+                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
                 } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex(1);
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
                 } else {
-                    $student = $this->setFieldsForGradesWithTrend($student, $tblPerson);
+                    $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
                 }
             } else {
-                $student = $this->setFieldsForGradesWithTrend($student, $tblPerson);
+                $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
             }
             $student[$tblPerson->getId()]['Comment']
                 = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', $labelComment,
-                new Comment()))->setTabIndex(3);
+                new Comment()))->setTabIndex(1000 + $tabIndex);
             $student[$tblPerson->getId()]['Attendance'] =
-                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(4);
+                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(2000 + $tabIndex);
         }
 
         return $student;
@@ -2214,7 +2207,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @return array
      */
-    private function setFieldsForGradesWithTrend($student, TblPerson $tblPerson)
+    private function setFieldsForGradesWithTrend($student, TblPerson $tblPerson, &$tabIndex)
     {
 
         $selectBoxContent = array(
@@ -2224,10 +2217,10 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $student[$tblPerson->getId()]['Grade']
-            = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex(1);
+            = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
         $student[$tblPerson->getId()]['Trend']
             = (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
-            new ResizeVertical()))->setTabIndex(2);
+            new ResizeVertical()))->setTabIndex($tabIndex++);
 
         return $student;
     }
