@@ -108,7 +108,9 @@ abstract class AbstractNode
             }
 
             $Result = $this->parseResult($ResultCache);
-            $Cache->setData($Result);
+            if (self::$Cache) {
+                $Cache->setData($Result);
+            }
         }
         return $Result;
     }
