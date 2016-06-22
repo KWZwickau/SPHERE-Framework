@@ -35,10 +35,16 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createScoreType('Noten (1-6)', 'GRADES');
-        $this->createScoreType('Punkte (0-15)', 'POINTS');
+        $tblScoreType = $this->createScoreType('Noten (1-6)', 'GRADES');
+        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^[1-6]{1}$');
+
+        $tblScoreType = $this->createScoreType('Punkte (0-15)', 'POINTS');
+        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^([0-9]{1}|1[0-5]{1})$');
+
         $this->createScoreType('Verbale Bewertung', 'VERBAL');
-        $this->createScoreType('Noten (1-5) mit Komma', 'GRADES_V1');
+
+        $tblScoreType = $this->createScoreType('Noten (1-5) mit Komma', 'GRADES_V1');
+        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^[1-5]{1}((\.|,)[0-9]+)?');
 
         $TestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
         if ($TestType) {
@@ -52,11 +58,14 @@ class Data extends AbstractData
     /**
      * @param $Name
      * @param $Identifier
+     * @param string $Pattern
+     *
      * @return TblScoreType
      */
     public function createScoreType(
         $Name,
-        $Identifier
+        $Identifier,
+        $Pattern = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -72,12 +81,46 @@ class Data extends AbstractData
             $Entity = new TblScoreType();
             $Entity->setName($Name);
             $Entity->setIdentifier($Identifier);
+            $Entity->setPattern($Pattern);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblScoreType $tblScoreType
+     * @param $Name
+     * @param $Identifier
+     * @param $Pattern
+     *
+     * @return bool
+     */
+    public function updateScoreType(
+        TblScoreType $tblScoreType,
+        $Name,
+        $Identifier,
+        $Pattern
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblScoreType $Entity */
+        $Entity = $Manager->getEntityById('TblScoreType', $tblScoreType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+            $Entity->setPattern($Pattern);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

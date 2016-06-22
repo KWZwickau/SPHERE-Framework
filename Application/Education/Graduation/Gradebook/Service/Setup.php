@@ -205,6 +205,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblScoreType', 'Identifier')) {
             $Table->addColumn('Identifier', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Pattern')) {
+            $Table->addColumn('Pattern', 'string');
+        }
 
         return $Table;
     }

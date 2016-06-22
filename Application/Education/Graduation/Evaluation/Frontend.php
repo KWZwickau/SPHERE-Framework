@@ -73,6 +73,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
@@ -1564,43 +1565,41 @@ class Frontend extends Extension implements IFrontendInterface
         /*
          * set post
          */
-        if ($gradeList) {
+        if ($gradeList && empty($Grade)) {
             $Global = $this->getGlobal();
-            /** @var TblGrade $grade */
-            foreach ($gradeList as $grade) {
-                if (empty($Grade)) {
-                    if ($grade->getServiceTblPerson()) {
-                        if ($grade->getGrade() === null) {
-                            $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Attendance'] = 1;
-                        } else {
-                            if ($IsEdit) {
-                                $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] =
-                                    str_replace('.', ',', $grade->getGrade());
+            /** @var TblGrade $tblGrade */
+            foreach ($gradeList as $tblGrade) {
+                if ($tblGrade->getServiceTblPerson()) {
+                    if ($tblGrade->getGrade() === null) {
+                        $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Attendance'] = 1;
+                    } else {
+                        if ($IsEdit) {
+                            $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Grade'] =
+                                str_replace('.', ',', $tblGrade->getGrade());
 
-                                $trend = $grade->getTrend();
-                                if ($trend !== null) {
-                                    $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Trend'] = $trend;
-                                }
-                            } else {
-                                $trend = $grade->getTrend();
-                                if ($trend !== null) {
-                                    if ($trend == TblGrade::VALUE_TREND_PLUS) {
-                                        $trend = '+';
-                                    } elseif ($trend == TblGrade::VALUE_TREND_MINUS) {
-                                        $trend = '-';
-                                    } else {
-                                        $trend = '';
-                                    }
+                            $trend = $tblGrade->getTrend();
+                            if ($trend !== null) {
+                                $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Trend'] = $trend;
+                            }
+                        } else {
+                            $trend = $tblGrade->getTrend();
+                            if ($trend !== null) {
+                                if ($trend == TblGrade::VALUE_TREND_PLUS) {
+                                    $trend = '+';
+                                } elseif ($trend == TblGrade::VALUE_TREND_MINUS) {
+                                    $trend = '-';
                                 } else {
                                     $trend = '';
                                 }
-                                $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] =
-                                    str_replace('.', ',', $grade->getGrade()) . $trend;
+                            } else {
+                                $trend = '';
                             }
-
+                            $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Grade'] =
+                                str_replace('.', ',', $tblGrade->getGrade()) . $trend;
                         }
-                        $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Comment'] = $grade->getComment();
+
                     }
+                    $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Comment'] = $tblGrade->getComment();
                 }
             }
             $Global->savePost();
@@ -1641,11 +1640,11 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($gradeList) {
                     /** @var TblGrade $grade */
-                    foreach ($gradeList as $grade) {
+                    foreach ($gradeList as $tblGrade) {
                         if (empty($Grade)) {
 
-                            if (is_numeric($grade->getGrade())) {
-                                $gradeValue = intval(round(floatval($grade->getGrade()), 0));
+                            if (is_numeric($tblGrade->getGrade())) {
+                                $gradeValue = intval(round(floatval($tblGrade->getGrade()), 0));
                                 if ($gradeValue >= $minRange && $gradeValue <= $maxRange) {
                                     $mirror[$gradeValue]++;
                                     $count++;
@@ -2031,7 +2030,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                 ))
                 , new Primary('Speichern', new Save()))
-            , $tblTest->getId(), $Grade, $BasicRoute, $minRange, $maxRange
+            , $tblTest->getId(), $Grade, $BasicRoute, $tblScoreType ? $tblScoreType : null
         );
         $warningNoScoreType = new \SPHERE\Common\Frontend\Message\Repository\Warning('Kein Bewertungssystem hinterlegt.
                                 Zensuren können erst vergeben werden nachdem für diese Fach-Klasse ein Bewertungssystem
@@ -2182,10 +2181,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new Quote()))->setTabIndex(1);
                 } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
+                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '',
+                        ''))->setTabIndex($tabIndex++);
                 } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
                     $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '',
+                        ''))->setTabIndex($tabIndex++);
                 } else {
                     $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
                 }
@@ -2205,6 +2206,8 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $student
      * @param TblPerson $tblPerson
+     * @param $tabIndex
+     *
      * @return array
      */
     private function setFieldsForGradesWithTrend($student, TblPerson $tblPerson, &$tabIndex)
@@ -3022,8 +3025,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tempList = array();
             /** @var TblDivision $tblDivision */
-            foreach($tblDivisionAllByTask as $tblDivision){
-                if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson)){
+            foreach ($tblDivisionAllByTask as $tblDivision) {
+                if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson)) {
                     $tempList[] = $tblDivision;
                 }
             }

@@ -326,20 +326,18 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param null $TestId
-     * @param                     $Grade
-     * @param string $BasicRoute
-     * @param null|int $minRange
-     * @param null|int $maxRange
+     * @param null $Grade
+     * @param $BasicRoute
+     * @param TblScoreType|null $tblScoreType
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function updateGradeToTest(
         IFormInterface $Stage = null,
         $TestId = null,
         $Grade = null,
         $BasicRoute,
-        $minRange = null,
-        $maxRange = null
+        TblScoreType $tblScoreType = null
     ) {
 
         /**
@@ -356,12 +354,12 @@ class Service extends AbstractService
         $tblTest = Evaluation::useService()->getTestById($TestId);
 
         $errorRange = false;
-        // check if grade is in grade range + grund bei Noten-Änderung angeben
-        if ($minRange !== null && $maxRange !== null && !empty($Grade)) {
+        // check if grade has pattern
+        if (!empty($Grade) && $tblScoreType && $tblScoreType->getPattern() !== '') {
             foreach ($Grade as $personId => $value) {
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
-                if (!isset($value['Attendance']) && $gradeValue !== '') {
-                    if (!is_numeric($gradeValue) || $gradeValue < $minRange || $gradeValue > $maxRange) {
+                if (!isset($value['Attendance']) && $gradeValue !== '' ) {
+                    if (!preg_match('!' . $tblScoreType->getPattern() . '!is', $gradeValue)) {
                         $errorRange = true;
                         break;
                     }
@@ -369,34 +367,46 @@ class Service extends AbstractService
             }
         }
 
+        // grund bei Noten-Änderung angeben
         $errorEdit = false;
+        $errorNoGrade = false;
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
                 $tblPerson = Person::useService()->getPersonById($personId);
                 $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
-                if ($tblGrade && $gradeValue && empty($value['Comment'])
-                    && ($gradeValue != $tblGrade->getGrade() || (isset($value['Trend']) && $value['Trend'] != $tblGrade->getTrend()))
+                if ($tblGrade && empty($value['Comment']) && !isset($value['Attendance'])
+                    && ($gradeValue != $tblGrade->getGrade()
+                        || (isset($value['Trend']) && $value['Trend'] != $tblGrade->getTrend()))
                 ) {
                     $errorEdit = true;
-                    break;
+                }
+                if ($tblGrade && !isset($value['Attendance']) && $gradeValue === ''){
+                    $errorNoGrade = true;
                 }
             }
         }
 
-        if ($errorRange || $errorEdit) {
+        if ($errorRange || $errorEdit || $errorNoGrade) {
             if ($errorRange) {
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
                             'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
-                        Bitte geben sie für die Zensuren eine Zahl zwischen ' . $minRange . ' und ' . $maxRange . ' ein.
                         Die Daten wurden nicht gespeichert.', new Exclamation())
                     ))));
             }
             if ($errorEdit) {
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
-                            'Bei den Notenänderungen wurde nicht in jedem Fall ein Grund angegeben.', new Exclamation())
+                            'Bei den Notenänderungen wurde nicht in jedem Fall ein Grund angegeben.
+                             Die Daten wurden nicht gespeichert.', new Exclamation())
+                    ))));
+            }
+            if ($errorNoGrade) {
+                $Stage->prependGridGroup(
+                    new FormGroup(new FormRow(new FormColumn(new Danger(
+                            'Bereits eingetragene Zensuren können nur über "Nicht teilgenommen" entfernt werden.
+                            Die Daten wurden nicht gespeichert.', new Exclamation())
                     ))));
             }
 
