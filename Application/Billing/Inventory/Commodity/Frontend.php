@@ -150,29 +150,6 @@ class Frontend extends Extension implements IFrontendInterface
         ));
     }
 
-//    /**
-//     * @param null $Id
-//     *
-//     * @return Stage
-//     */
-//    public function frontendDestroy($Id = null)
-//    {
-//
-//        $Stage = new Stage();
-//        $Stage->setTitle('Leistung');
-//        $Stage->setDescription('Entfernen');
-//
-//        $tblCommodity = Commodity::useService()->getCommodityById($Id);
-//        if(!$tblCommodity){
-//            $Stage->setContent(new Warning('Leistung nicht gefunden'));
-//            return $Stage. new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
-//        }
-//
-//        $Stage->setContent(Commodity::useService()->destroyCommodity($tblCommodity));
-//
-//        return $Stage;
-//    }
-
     /**
      * @param null $Id
      * @param null $Commodity
@@ -313,7 +290,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Description'] = $tblItem->getDescription();
                     $Item['Type'] = $tblItem->getTblItemType()->getName();
                     $Item['Option'] =
-                        (new Standard('Entfernen', '/Billing/Inventory/Commodity/Item/Remove',
+                        (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Inventory/Commodity/Item/Remove',
                             new Minus(), array(
                                 'Id' => $tblCommodityItem->getId()
                             )))->__toString();
@@ -331,7 +308,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Description'] = $tblItem->getDescription();
                     $Item['Type'] = $tblItem->getTblItemType()->getName();
                     $Item['Option'] =
-                        (new Standard('Hinzufügen', '/Billing/Inventory/Commodity/Item/Add',
+                        (new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Inventory/Commodity/Item/Add',
                             new Plus(), array(
                                 'tblCommodityId' => $tblCommodity->getId(),
                                 'tblItemId'      => $tblItem->getId(),
@@ -345,7 +322,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel('Name', $tblCommodity->getName(), Panel::PANEL_TYPE_SUCCESS), 4
+                                new Panel('Name der aktuellen Leistung', $tblCommodity->getName(), Panel::PANEL_TYPE_SUCCESS), 4
                             ),
                             new LayoutColumn(
                                 new Panel('Beschreibung', $tblCommodity->getDescription(),
@@ -356,6 +333,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
+                                new Title('vorhandene Artikel'),
+                                ( empty( $TableCommodityContent ) ?
+                                    new Warning('Keine Artikel in aktueller Leistung') :
                                     new TableData($TableCommodityContent, null,
                                         array(
                                             'Name'        => 'Name',
@@ -363,14 +343,13 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Type'        => 'Typ',
                                             'Option'      => ''
                                         )
-                                    )
-                                )
-                            )
-                        )),
-                    ), new Title('vorhandene Artikel')),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
+                                    ) )
+                            ), 6
+                            ),
                             new LayoutColumn(array(
+                                new Title('mögliche Artikel'),
+                                ( empty( $TableItemContent ) ?
+                                    new Warning('Keine weiteren Artikel verfügbar') :
                                     new TableData($TableItemContent, null,
                                         array(
                                             'Name'        => 'Name',
@@ -378,11 +357,11 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Type'        => 'Typ',
                                             'Option'      => ''
                                         )
-                                    )
-                                )
+                                    ) )
+                            ), 6
                             )
                         )),
-                    ), new Title('mögliche Artikel'))
+                    ))
                 ))
             );
         }
