@@ -30,15 +30,20 @@ class Import implements IApplicationInterface
         $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
         if ($consumerAcronym == 'ESZC' || $consumerAcronym == 'DEMO') {
             Chemnitz::registerModule();
-        } elseif ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
+        }
+        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
             Hormersdorf::registerModule();
-        } elseif ($consumerAcronym === 'EVSC' || $consumerAcronym == 'DEMO'){
+        }
+        if ($consumerAcronym === 'EVSC' || $consumerAcronym == 'DEMO'){
             Coswig::registerModule();
-        } elseif ($consumerAcronym === 'EVAMTL' || $consumerAcronym == 'DEMO'){
+        }
+        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym == 'DEMO'){
             Muldental::registerModule();
-        } elseif ($consumerAcronym === 'EZGH' || $consumerAcronym == 'DEMO'){
+        }
+        if ($consumerAcronym === 'EZGH' || $consumerAcronym == 'DEMO'){
             Herrnhut::registerModule();
-        } elseif ($consumerAcronym === 'LWSZ' || $consumerAcronym == 'DEMO'){
+        }
+        if ($consumerAcronym === 'LWSZ' || $consumerAcronym == 'DEMO'){
             Zwenkau::registerModule();
         }
 
