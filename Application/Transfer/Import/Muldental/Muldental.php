@@ -82,7 +82,7 @@ class Muldental implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Hormersdorf', 'Mitglieder-Daten',
+            'Muldental', 'Mitglieder-Daten',
             new Standard('', '/Transfer/Import/Muldental/ClubMember', new Upload(), array(), 'Upload')
         );
     }
