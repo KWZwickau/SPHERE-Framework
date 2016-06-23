@@ -219,12 +219,20 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($TableContent, null, array(
-                                'Name'        => 'Name',
-                                'Description' => 'Beschreibung',
-                                'Period'      => 'Zeitraum',
-                                'Option'      => '',
-                            ))
+                            new TableData($TableContent, null,
+                                array(
+                                    'Name'        => 'Name',
+                                    'Description' => 'Beschreibung',
+                                    'Period'      => 'Zeitraum',
+                                    'Option'      => '',
+                                ),
+                                array(
+                                    'order' => array(
+                                        array('2', 'desc'),
+                                        array('0', 'asc'),
+                                    )
+                                )
+                            )
                         )
                     ), new Title(new ListingTable().' Übersicht')
                 ),
@@ -389,6 +397,12 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Schuljahr', $tblYear->getName() .
+                                ($tblYear->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    . new Muted(new Small($tblYear->getDescription())) : ''),
+                                Panel::PANEL_TYPE_INFO)
+                        ),
                         new LayoutColumn(array(
                             new Title('Zeiträume', 'Zugewiesen'),
                             ( empty( $tblPeriodUsedList )
@@ -400,7 +414,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ToDate'      => 'Bis',
                                         'Description' => 'Beschreibung',
                                         'Option'      => ''
-                                    ))
+                                    ),
+                                    array(
+                                        'order' => array(
+                                            array('0', 'asc'),
+                                            array('1', 'asc'),
+                                        )
+                                    )
+                                )
                             )
                         ), 6),
                         new LayoutColumn(array(
@@ -414,7 +435,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ToDate'      => 'Bis',
                                         'Description' => 'Beschreibung',
                                         'Option'      => ''
-                                    ))
+                                    ),
+                                    array(
+                                        'order' => array(
+                                            array('0', 'asc'),
+                                            array('1', 'asc'),
+                                        )
+                                    )
+                                )
                             )
                         ), 6)
                     ))
