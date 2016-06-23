@@ -4,7 +4,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service;
 
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as TblDebtorAccounting;
-use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
@@ -131,7 +131,7 @@ class Data extends AbstractData
         TblAddress $tblAddress = null,
         TblMail $tblMail = null,
         TblPhone $tblPhone = null
-    ) // Todo
+    ) // Todo Tabelle erweitern
     {
 
         $Manager = $this->getConnection()->getEntityManager();

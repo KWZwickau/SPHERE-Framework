@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Billing\Accounting\Basket\Service;
+namespace SPHERE\Application\Billing\Bookkeeping\Basket\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -9,7 +9,7 @@ use SPHERE\System\Database\Binding\AbstractSetup;
 /**
  * Class Setup
  *
- * @package SPHERE\Application\Billing\Accounting\Basket\Service
+ * @package SPHERE\Application\Billing\Bookkeeping\Basket\Service
  */
 class Setup extends AbstractSetup
 {

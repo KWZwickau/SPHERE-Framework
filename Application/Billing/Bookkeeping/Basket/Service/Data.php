@@ -1,11 +1,11 @@
 <?php
 
-namespace SPHERE\Application\Billing\Accounting\Basket\Service;
+namespace SPHERE\Application\Billing\Bookkeeping\Basket\Service;
 
-use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
-use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
-use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
-use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketPerson;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
@@ -17,7 +17,7 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
- * @package SPHERE\Application\Billing\Accounting\Basket\Service
+ * @package SPHERE\Application\Billing\Bookkeeping\Basket\Service
  */
 class Data extends AbstractData
 {

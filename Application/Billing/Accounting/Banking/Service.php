@@ -7,7 +7,7 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReferenc
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Setup;
-use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
@@ -349,7 +349,7 @@ class Service extends AbstractService
             }
             if (!$Error) {
                 return new Success('Daten sind erfasst worden.')
-                .new Redirect('/Billing/Accounting/Pay/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+                .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
             }
             if ($Error === true && !empty( $PersonArray )) {
                 /** @var TblPerson $Person */
@@ -535,7 +535,7 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Daten sind erfasst worden.')
-                .new Redirect('/Billing/Accounting/DebtorSelection/PayChoose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
+                .new Redirect('/Billing/Accounting/DebtorSelection/PaymentChoose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
             }
             if ($Error && $PersonPayers) {
                 $Stage .= new Warning('Bitte zuerst Daten zum bezahlen für die Beziehungstehenden (bezahlenden) Personen anlegen');
@@ -683,7 +683,7 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Daten sind erfasst worden.')
-                .new Redirect('/Billing/Accounting/Pay/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+                .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
             }
             if ($Error && $Debtor) {
                 $Stage .= new Warning('Bitte zuerst die benötigte Debitoren anlegen');

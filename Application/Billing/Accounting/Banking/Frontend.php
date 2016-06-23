@@ -5,8 +5,8 @@ namespace SPHERE\Application\Billing\Accounting\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
-use SPHERE\Application\Billing\Accounting\Basket\Basket;
-use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -814,7 +814,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendPaySelection($Id = null, $Data = null)
+    public function frontendPaymentSelection($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
@@ -831,7 +831,7 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
 
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
 //            , array('Id' => $tblBasket->getId())));
         $Stage->addButton(new Backward());
         $Global = $this->getGlobal();
@@ -954,7 +954,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 Banking::useService()->createDebtorSelection(
                                     $Form, $tblBasket, $Data
                                 ) : new Success('Warenbezogene Bezahler sind bekannt.')
-                                .new Redirect('/Billing/Accounting/Pay/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
+                                .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
                         )
                     )
                 )
@@ -970,23 +970,23 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendPayChoose($Id = null, $Data = null)
+    public function frontendPaymentChoose($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
         $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new WarningText('Warenkorb nicht gefunden'));
-            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
         // Abbruch beim löschen der Zuordnungen
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if (!$tblBasketVerification) {
             $Stage->setContent(new Warning('Keine Daten zum fakturieren vorhanden.'));
-            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
 
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
 //            , array('Id' => $tblBasket->getId())));
         $Stage->addButton(new Backward(true));
 
@@ -1091,7 +1091,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 Banking::useService()->updateDebtorSelection(
                                     $Form, $tblBasket, $Data)
                                 : new Success('Debitoren der Bezahler sind bekannt.')
-                                .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
+                                .new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
                         )
                     )
                 )
@@ -1154,7 +1154,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['ItemPayer'] = new Listing($ItemPayer);
                     $Item['Status'] = new Listing($Status);
                 }
-                $Item['Option'] = new Standard('', '/Billing/Accounting/DebtorSelection/PaySelection', new Edit(),
+                $Item['Option'] = new Standard('', '/Billing/Accounting/DebtorSelection/PaymentSelection', new Edit(),
                         array('Id' => $tblPerson->getId()), 'Bearbeiten')
                     .new Standard('', '/Billing/Accounting/DebtorSelection/Person/Destroy', new Remove(),
                         array('Id' => $tblPerson->getId()), 'Zuweisungen entfernen');
@@ -1190,7 +1190,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendDebtorPaySelection($Id = null, $Data = null)
+    public function frontendDebtorPaymentSelection($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
@@ -1341,11 +1341,11 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendDebtorPayChoose($Id = null, $Data = null)
+    public function frontendDebtorPaymentChoose($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
 //            , array('Id' => $tblBasket->getId())));
         $Stage->addButton(new Backward());
         $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
@@ -1544,10 +1544,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(new LayoutColumn(array(
                         ( Banking::useService()->destroyDebtorSelection($tblDebtorSelection)
                             ? new Success('Zuweisung entfernt')
-                            .new Redirect('/Billing/Accounting/DebtorSelection/PaySelection', Redirect::TIMEOUT_SUCCESS,
+                            .new Redirect('/Billing/Accounting/DebtorSelection/PaymentSelection', Redirect::TIMEOUT_SUCCESS,
                                 array('Id' => $tblPerson->getId()))
                             : new Danger('Zuweisung konnte nicht entfernt werden')
-                            .new Redirect('/Billing/Accounting/DebtorSelection/PaySelection', Redirect::TIMEOUT_ERROR,
+                            .new Redirect('/Billing/Accounting/DebtorSelection/PaymentSelection', Redirect::TIMEOUT_ERROR,
                                 array('Id' => $tblPerson->getId()))
                         )
                     )))

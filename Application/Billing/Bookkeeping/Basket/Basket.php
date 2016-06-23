@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Billing\Accounting\Basket;
+namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -10,7 +10,7 @@ use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Basket
- * @package SPHERE\Application\Billing\Accounting\Basket
+ * @package SPHERE\Application\Billing\Bookkeeping\Basket
  */
 class Basket implements IModuleInterface
 {

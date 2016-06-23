@@ -68,24 +68,24 @@ class Banking implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendRemoveBankReference'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/Pay/Selection',
-                __NAMESPACE__.'\Frontend::frontendPaySelection'
+            Main::getDispatcher()->createRoute('/Billing/Accounting/Payment/Selection',
+                __NAMESPACE__.'\Frontend::frontendPaymentSelection'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/Pay/Choose',
-                __NAMESPACE__.'\Frontend::frontendPayChoose'
+            Main::getDispatcher()->createRoute('/Billing/Accounting/Payment/Choose',
+                __NAMESPACE__.'\Frontend::frontendPaymentChoose'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection',
                 __NAMESPACE__.'\Frontend::frontendDebtorSelection'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/PaySelection',
-                __NAMESPACE__.'\Frontend::frontendDebtorPaySelection'
+            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/PaymentSelection',
+                __NAMESPACE__.'\Frontend::frontendDebtorPaymentSelection'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/PayChoose',
-                __NAMESPACE__.'\Frontend::frontendDebtorPayChoose'
+            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/PaymentChoose',
+                __NAMESPACE__.'\Frontend::frontendDebtorPaymentChoose'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/Destroy',

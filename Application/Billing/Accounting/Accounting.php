@@ -4,7 +4,6 @@ namespace SPHERE\Application\Billing\Accounting;
 
 use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
-use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
@@ -27,7 +26,6 @@ class Accounting implements IApplicationInterface
          */
         Account::registerModule();
         Banking::registerModule();
-        Basket::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Buchhaltung'))
@@ -43,10 +41,6 @@ class Accounting implements IApplicationInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/BankReference'), new Link\Name('Mandatsreferenz'),
                 new Link\Icon(new ClipBoard()))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Warenkorb'),
-                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/DebtorSelection'), new Link\Name('Zahlungseinstellung'),

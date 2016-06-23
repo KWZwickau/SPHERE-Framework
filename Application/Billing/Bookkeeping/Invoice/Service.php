@@ -3,8 +3,8 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
-use SPHERE\Application\Billing\Accounting\Basket\Basket;
-use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
