@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Money;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -50,6 +52,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -75,7 +78,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBasketList($Basket = null)
     {
 
-        $Stage = new Stage('Warenkorb', 'Übersicht');
+        $Stage = new Stage('Warenkorb', 'Erstellung');
         $Stage->setMessage('Zeigt alle vorhandenen Warenkörbe an');
         new Backward();
         $tblBasketAll = Basket::useService()->getBasketAll();
@@ -250,7 +253,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null       $Id
+     * @param null $Id
      * @param bool|false $Confirm
      *
      * @return Stage
@@ -344,6 +347,7 @@ class Frontend extends Extension implements IFrontendInterface
         return new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
+                    new LayoutColumn(new Title('Warenkorb Informationen')),
                     new LayoutColumn(
                         new Panel('Warenkorb', array(
                                 'Nummer: '.$tblBasket->getId()
@@ -372,7 +376,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBasketContent($Id = null)
     {
 
-        $Stage = new Stage('Warenkorb', 'Übersicht');
+        $Stage = new Stage('Warenkorb', 'Zusammenstellung');
         $Stage->setMessage('Enthaltene Artikel und Personen');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket', new ChevronLeft()));
         $Stage->addButton(new Backward());
@@ -394,9 +398,6 @@ class Frontend extends Extension implements IFrontendInterface
 //            array('Id' => $tblBasket->getId())));
 //        $Stage->addButton(new Standard('Personen hinzufügen/entfernen', '/Billing/Bookkeeping/Basket/Person/Select', null,
 //            array('Id' => $tblBasket->getId())));
-        $Stage->addButton(
-            new Standard('Warenkorb berechnen', '/Billing/Bookkeeping/Basket/Calculation', null,
-                array('Id' => $tblBasket->getId())));
 
         $TableItemContent = array();
         if ($tblBasketItem) {
@@ -440,37 +441,46 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             $this->layoutBasket($tblBasket)
             .new Layout(
-                new LayoutGroup(array(
+                new LayoutGroup(
                     new LayoutRow(array(
-                        new LayoutColumn(
-                            new TableData($TableItemContent, new \SPHERE\Common\Frontend\Table\Repository\Title('Artikel'),
-                                array('Name'        => 'Artikel',
-                                      'Description' => 'Beschreibung',
-                                      'Calculation' => 'Anzahl Bedingungen',
+                        new LayoutColumn(array(
+                                new Title('Artikel'),
+                                (new Standard('Artikel bearbeiten', '/Billing/Bookkeeping/Basket/Item/Select', null,
+                                    array('Id' => $tblBasket->getId()))),
+                                ( empty( $TableItemContent ) ? new Warning('Keine Artikel im Warenkorb') :
+                                    new TableData($TableItemContent, null,
+                                        array('Name'        => 'Artikel',
+                                              'Description' => 'Beschreibung',
+                                              'Calculation' => 'Anzahl Bedingungen',
 //                                      'Option'      => '',
-                                ), array("bPaginate" => false))
+                                        ), array("bPaginate" => false)) ))
                             , 6),
-                        new LayoutColumn(
-                            new TableData($TablePersonContent, new \SPHERE\Common\Frontend\Table\Repository\Title('Personen'),
-                                array('Name'    => 'Name',
-                                      'Address' => 'Adresse',
+                        new LayoutColumn(array(
+                                new Title('Personen'),
+                                new Standard('Personen bearbeiten', '/Billing/Bookkeeping/Basket/Person/Select', null,
+                                    array('Id' => $tblBasket->getId())),
+                                ( empty( $TablePersonContent ) ? new Warning('Keine Personen im Warenkorb') :
+                                    new TableData($TablePersonContent, null,
+                                        array('Name'    => 'Name',
+                                              'Address' => 'Adresse',
 //                                      'Option'  => '',
-                                ), array("bPaginate" => false))
-                            , 6),
-                    )),
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            (new Standard('Artikel hinzufügen/entfernen', '/Billing/Bookkeeping/Basket/Item/Select', null,
-                                array('Id' => $tblBasket->getId())))
-                            , 6),
-                        new LayoutColumn(
-                            new Standard('Personen hinzufügen/entfernen', '/Billing/Bookkeeping/Basket/Person/Select', null,
-                                array('Id' => $tblBasket->getId()))
-                            , 6),
+                                        ), array("bPaginate" => false)) ))
+                            , 6)
                     ))
-                ))
+                )
             )
-//            .new Standard('Warenkorb Fakturieren', '/Billing/Bookkeeping/Basket/Calculation', null, array('Id' => $tblBasket->getId()))
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Info('Sind alle Artikel und Personen im Warenkorb angelegt, kann mit der Zuweisung der Kosten begonnen werden.
+                            Danach kann der Preis und die Anzahl, der durch die Bedingungen zugewiesenen Artikel, für jede Person beliebig angepasst werden.<br/>'.
+                                new Standard('Warenkorb berechnen '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Calculation', null,
+                                    array('Id' => $tblBasket->getId())))
+                            , 6)
+                    )
+                )
+            )
         );
 
         return $Stage;
@@ -524,8 +534,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Calculation'] = count($tblCalculationList) - 1;
                     }
                 }
-                $Item['Option'] = new Standard('', '/Billing/Bookkeeping/Basket/Item/Remove', new Disable(),
-                    array('Id' => $tblBasketItem->getId()), 'Entfernen');
+                $Item['Option'] = new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Bookkeeping/Basket/Item/Remove', new Minus(),
+                    array('Id' => $tblBasketItem->getId()), 'Entfernt diesen Artikel aus dem Warenkorb');
                 array_push($TableItemContent, $Item);
             });
         }
@@ -548,9 +558,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Name'] = $tblItem->getName();
                 $Item['Description'] = $tblItem->getDescription();
                 $Item['Type'] = $tblItem->getTblItemType()->getName();
-                $Item['Option'] = new Standard('', '/Billing/Bookkeeping/Basket/Item/Add', new Plus(),
+                $Item['Option'] = new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Bookkeeping/Basket/Item/Add', new Plus(),
                     array('Id'     => $tblBasket->getId(),
-                          'ItemId' => $tblItem->getId()), 'Hinzufügen');
+                          'ItemId' => $tblItem->getId()), 'Fügt diesen Artikel dem Warenkorb hinzu');
 
                 array_push($TableItemAddContent, $Item);
             });
@@ -574,9 +584,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Item'] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($ItemArray);
                 }
 
-                $Item['Option'] = new Standard('', '/Billing/Bookkeeping/Basket/Commodity/Add', new Plus(),
+                $Item['Option'] = new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Bookkeeping/Basket/Commodity/Add', new Plus(),
                     array('Id'          => $tblBasket->getId(),
-                          'CommodityId' => $tblCommodity->getId()), 'Hinzufügen');
+                          'CommodityId' => $tblCommodity->getId()), 'Fügt diese Artikel dem Warenkorb hinzu');
 
                 array_push($TableCommodityAddContent, $Item);
             });
@@ -587,39 +597,38 @@ class Frontend extends Extension implements IFrontendInterface
             $this->layoutBasket($tblBasket)
             .new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($TableItemContent, null, array(
-                                'Name'        => 'Name',
-                                'Description' => 'Beschreibung',
-                                'Type'        => 'Typ',
-                                'Calculation' => 'Anzahl Bedingungen',
-                                'Option'      => '',
-                            ), array("bPaginate" => false))
-                        )
-                    ), new Title(new Listing().' im Warenkorb')
-                )
-            )
-            .new Layout(
-                new LayoutGroup(
                     new LayoutRow(array(
-                        new LayoutColumn(
-                            new TableData($TableItemAddContent, new \SPHERE\Common\Frontend\Table\Repository\Title('Artikel')
-                                , array('Name'        => 'Artikel',
-                                        'Description' => 'Beschreibung',
-                                        'Type'        => 'Typ',
-                                        'Option'      => '',
-                                ))
+                        new LayoutColumn(array(
+                            new Title(new Listing().' im Warenkorb'),
+                            ( empty( $TableItemContent ) ? new Warning('Keine Artikel im Warenkorb') :
+                                new TableData($TableItemContent, null, array(
+                                    'Name'        => 'Name',
+                                    'Description' => 'Beschreibung',
+                                    'Type'        => 'Typ',
+                                    'Calculation' => 'Anzahl Bedingungen',
+                                    'Option'      => '',
+                                ), array("bPaginate" => false)) )
+                        ), 6),
+                        new LayoutColumn(array(
+                                new Title(new PlusSign().' Hinzufügen von Artikeln'),
+                                ( empty( $TableItemAddContent ) ? new Warning('Keine Artikel die dem Warenkorb noch hinzugefügt werden können') :
+                                    new TableData($TableItemAddContent, new \SPHERE\Common\Frontend\Table\Repository\Title('Artikel')
+                                        , array('Name'        => 'Artikel',
+                                                'Description' => 'Beschreibung',
+                                                'Type'        => 'Typ',
+                                                'Option'      => '',
+                                        )) ),
+                                new Title(new PlusSign().' Hinzufügen von Leistungen'),
+                                ( empty( $TableCommodityAddContent ) ? new Warning('Es sind keine Leistungen vorhanden die dem Warenkorb noch hinzugefügt werden können') :
+                                    new TableData($TableCommodityAddContent, new \SPHERE\Common\Frontend\Table\Repository\Title('Artikelgruppen')
+                                        , array('Name'        => 'Artikel',
+                                                'Description' => 'Beschreibung',
+                                                'Item'        => 'Artikel - Typ',
+                                                'Option'      => '',
+                                        )) )
+                            )
                             , 6),
-                        new LayoutColumn(
-                            new TableData($TableCommodityAddContent, new \SPHERE\Common\Frontend\Table\Repository\Title('Artikelgruppen')
-                                , array('Name'        => 'Artikel',
-                                        'Description' => 'Beschreibung',
-                                        'Item'        => 'Artikel - Typ',
-                                        'Option'      => '',
-                                ))
-                            , 6),
-                    )), new Title(new PlusSign().' Hinzufügen')
+                    ))
                 )
             )
         );
@@ -636,7 +645,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendAddBasketCommodity($Id = null, $CommodityId = null)
     {
 
-        $Stage = new Stage('Warenkorb', 'Artikelgruppe Hinzufügen');
+        $Stage = new Stage('Warenkorb', 'Artikelgruppe hinzufügen');
         $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
@@ -773,10 +782,10 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $Temp['Address'] = $tblAddress;
                 $Temp['Remove'] =
-                    (new Standard('', '/Billing/Bookkeeping/Basket/Person/Remove',
-                        new Disable(), array(
+                    (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Bookkeeping/Basket/Person/Remove',
+                        new Minus(), array(
                             'Id' => $tblBasketPerson->getId()
-                        ), 'Entfernen'))->__toString();
+                        ), 'Entfernt diese Person aus dem Warenkorb'))->__toString();
                 array_push($TableContent, $Temp);
             });
         }
@@ -798,47 +807,45 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $Temp['Address'] = $tblAddress;
                 $Temp['Add'] =
-                    (new Standard('', '/Billing/Bookkeeping/Basket/Person/Add',
+                    (new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Bookkeeping/Basket/Person/Add',
                         new Plus(), array(
                             'Id'       => $tblBasket->getId(),
                             'PersonId' => $tblPerson->getId()
-                        ), 'Hinzufügen'))->__toString();
+                        ), 'Fügt dem Warenkorb diese Person hinzu'))->__toString();
                 array_push($TableContentPerson, $Temp);
             });
         }
 
         $Stage->setContent(
             $this->layoutBasket($tblBasket)
-            .new Layout(array(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($TableContent, null,
-                                array(
-                                    'Salutation' => 'Anrede',
-                                    'Name'       => 'Name',
-                                    'Address'    => 'Adresse',
-                                    'Remove'     => ''
-                                )
-                            )
-                        )
-                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' zugewiesene Personen')
-                )
-            ))
             .new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($TableContentPerson, null,
-                                array(
-                                    'Salutation' => 'Anrede',
-                                    'Name'       => 'Name',
-                                    'Address'    => 'Adresse',
-                                    'Add'        => ' '
-                                )
-                            )
-                        )
-                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' mögliche Personen')
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' zugewiesene Personen'),
+                            ( empty( $TableContent ) ? new Warning('Keine Personen im Warenkorb') :
+                                new TableData($TableContent, null,
+                                    array(
+                                        'Salutation' => 'Anrede',
+                                        'Name'       => 'Name',
+                                        'Address'    => 'Adresse',
+                                        'Remove'     => ''
+                                    )
+                                ) )
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' mögliche Personen'),
+                            ( empty( $TableContentPerson ) ? new Warning('Keine Personen vorhanden') :
+                                new TableData($TableContentPerson, null,
+                                    array(
+                                        'Salutation' => 'Anrede',
+                                        'Name'       => 'Name',
+                                        'Address'    => 'Adresse',
+                                        'Add'        => ' '
+                                    )
+                                ) )
+                        ), 6)
+                    ))
                 )
             )
         );
@@ -968,7 +975,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBasketVerification($Id = null)
     {
 
-        $Stage = new Stage('Warenkorb', 'Berechnung');
+        $Stage = new Stage('Warenkorb', 'Übersicht');
         $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
@@ -976,12 +983,13 @@ class Frontend extends Extension implements IFrontendInterface
         }
 //        $Stage->addButton(new Standard('Warenkorb verlassen', '/Billing/Bookkeeping/Basket', new ChevronLeft()));
         $Stage->addButton(new Backward());
-        $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Danger('Berechnungen leeren', '/Billing/Bookkeeping/Basket/Verification/Destroy', new Disable()
-            , array('BasketId' => $tblBasket->getId())));
-        $Stage->addButton(new Standard('Zahlung fakturieren', '/Billing/Accounting/Payment/Selection', new Ok()
-            , array('Id' => $tblBasket->getId())));
-        $Stage->addButton(new Standard('Rechnung Test', '/Billing/Bookkeeping/Basket/Invoice/Create', new EyeOpen()
-            , array('Id' => $tblBasket->getId())));
+
+//        $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Danger('Berechnungen leeren', '/Billing/Bookkeeping/Basket/Verification/Destroy', new Disable()
+//            , array('BasketId' => $tblBasket->getId())));
+//        $Stage->addButton(new Standard('Zahlung fakturieren', '/Billing/Accounting/Payment/Selection', new Ok()
+//            , array('Id' => $tblBasket->getId())));
+//        $Stage->addButton(new Standard('Rechnung Test', '/Billing/Bookkeeping/Basket/Invoice/Create', new EyeOpen()
+//            , array('Id' => $tblBasket->getId())));
 
         $tblPersonList = Basket::useService()->getPersonAllByBasket($tblBasket);
         if (!$tblPersonList) {
@@ -1075,6 +1083,27 @@ class Frontend extends Extension implements IFrontendInterface
                     ), new Title(new Listing().' Übersicht')
                 )
             )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Info('Sind alle Beträge kontrolliert und die Anzahl der Artikel richtig eingegeben, kann die Rechnung hier erstellt werden.
+                            Benötigte änderungen der bereits vergebenen Bezahlzuweisungen müssen vor dem faktuieren abgeändert oder gelöscht werden.
+                            Alle nicht zugewiesenen Bezahlzuweisungen werden hier abgefragt und für die wiederverwendung gespeichert.<br/>'
+                                .new Standard('Zahlungen fakturieren '.new ChevronRight(), '/Billing/Accounting/Payment/Selection', null
+                                    , array('Id' => $tblBasket->getId()))
+                                .new \SPHERE\Common\Frontend\Link\Repository\Warning('Rechnung Test', '/Billing/Bookkeeping/Basket/Invoice/Create', new EyeOpen()
+                                    , array('Id' => $tblBasket->getId())))
+                            , 6),
+                        new LayoutColumn(
+                            new Warning('Ist die Rechnung nicht mehr aktuell, da Personen oder Artikel fehlen oder grundlegende Preise geändert wurden, muss der Warenkorb zurück gesetzt werden.
+                            Hierbei gehen alle preisbezogenen Einstellungen verloren. Personen und Artikel bleiben weiterhin im Warenkorb enthalten.<br/>'
+                                .new \SPHERE\Common\Frontend\Link\Repository\Danger('Berechnungen leeren', '/Billing/Bookkeeping/Basket/Verification/Destroy', new Disable()
+                                    , array('BasketId' => $tblBasket->getId())))
+                            , 6)
+                    ))
+                )
+            )
         );
 
         return $Stage;
@@ -1119,7 +1148,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblItem = $tblBasketVerification->getServiceTblItem();
                 $Item['Name'] = $tblItem->getName();
                 $Item['Description'] = $tblItem->getDescription();
-                $Item['SinglePrice'] = $tblBasketVerification->getSinglePrice();
+                $Item['Type'] = $tblItem->getTblItemType()->getName();
+                $Item['SinglePrice'] = $tblBasketVerification->getPrice();
                 $Item['Quantity'] = $tblBasketVerification->getQuantity();
                 $Item['Summary'] = $tblBasketVerification->getSummaryPrice();
                 $Item['Option'] = new Standard('', '/Billing/Bookkeeping/Basket/Verification/Edit', new Edit(),
@@ -1178,6 +1208,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($TableContent, null,
                                 array('Name'        => 'Artikel',
                                       'Description' => 'Beschreibung',
+                                      'Type'        => 'Art',
                                       'SinglePrice' => 'Einzelpreis',
                                       'Quantity'    => 'Anzahl',
                                       'Summary'     => 'Gesammtpreis',
@@ -1268,7 +1299,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Item'] )) {
-            $Global->POST['Item']['Price'] = $tblBasketVerification->getSinglePrice();
+            $Global->POST['Item']['Price'] = $tblBasketVerification->getPrice();
             $Global->POST['Item']['Quantity'] = $tblBasketVerification->getQuantity();
             $Global->POST['Item']['PriceChoice'] = 'Einzelpreis';
             $Global->savePost();
@@ -1309,7 +1340,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         new Panel('Artikel: '.$tblItem->getName(), array(
                             'Beschreibung: '.$tblItem->getDescription(),
-                            'Einzelpreis: '.$tblBasketVerification->getSinglePrice(),
+                            'Einzelpreis: '.$tblBasketVerification->getPrice(),
                             'Anzahl: '.$tblBasketVerification->getQuantity(),
                             'Gesamtpreis: '.$tblBasketVerification->getSummaryPrice(),
                         ), Panel::PANEL_TYPE_SUCCESS)
@@ -1344,9 +1375,12 @@ class Frontend extends Extension implements IFrontendInterface
             .new Layout(
                 new LayoutGroup(
                     new LayoutRow(
-                        new LayoutColumn(new Well(
-                            Basket::useService()->changeBasketVerification($Form,
-                                $tblBasketVerification, $Item)
+                        new LayoutColumn(array(
+                            new Title(new Edit().' Bearbeiten'),
+                            new Well(
+                                Basket::useService()->changeBasketVerification($Form,
+                                    $tblBasketVerification, $Item)
+                            )
                         ))
                     )
                 )
@@ -1470,7 +1504,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $Stage->setContent(
-                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new Layout(new LayoutGroup(new LayoutRow(array(new LayoutColumn(
                         new Panel(new Question().' Diesen Eintrag mit folgenden Daten wirklich entfernen?',
                             array(
                                 'Person: '.$Person,
@@ -1489,7 +1523,14 @@ class Frontend extends Extension implements IFrontendInterface
                                       'BasketId' => $tblBasketVerification->getTblBasket()->getId())
                             )
                         )
-                        , 6))))
+                        , 6),
+                        new LayoutColumn(
+                            new Warning('Entfernt den Artikel von der Person.
+                                Entfernte Artikel können nicht über '.new Bold('"Warenkorb Übersicht"').' zugewiesen werden.
+                                Sollen ein Artikel den Personen zugeordnet werden, muss der '.new Bold('"Warenkorb Übersicht"').'
+                                geleert werden und in der '.new Bold('"Warenkorb Zusammenstellung"').' hinzugefügt werden.')
+                            , 6)
+                    ))))
                 );
             } else {
 
@@ -1512,15 +1553,25 @@ class Frontend extends Extension implements IFrontendInterface
                             $CountVerification = count($tblBasketVerificationList);
                             $tblBasketVerification = $tblBasketVerificationList[0];
                             $PanelContent = array();
-                            $PanelContent[] = new Bold('Enthaltene Artikel:');
-                            foreach ($tblBasketVerificationList as $tblBasketVerifications) {
-                                if ($tblBasketVerifications->getServiceTblItem()) {
-                                    $PanelContent[] = $tblBasketVerifications->getServiceTblItem()->getName();
-                                }
-                            }
+//                            $PanelContent[] = new Bold('Erhalten bleibende Artikel:');
+//                            foreach ($tblBasketVerificationList as $tblBasketVerifications) {
+//                                if ($tblBasketVerifications->getServiceTblItem()) {
+//                                    $PanelContent[] = $tblBasketVerifications->getServiceTblItem()->getName();
+//                                }
+//                            }
                             $PanelContent = array_unique($PanelContent);
                             $Stage->setContent(
-                                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                                new Layout(
+                                    new LayoutGroup(
+                                        new LayoutRow(
+                                            new LayoutColumn(
+                                                new Warning('Ist die Rechnung nicht mehr aktuell da Personen oder Artikel fehlen muss der Warenkorb zurück gesetzt werden.
+                                                Hierbei gehen alle preisbezogenen Einstellungen verloren. Personen und Artikel bleiben weiterhin im Warenkorb enthalten.')
+                                            )
+                                        )
+                                    )
+                                )
+                                .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                                     new Panel(new Question().' Berechnung mit '.$CountVerification.' Einträgen wirklich löschen?',
                                         $PanelContent,
                                         Panel::PANEL_TYPE_DANGER,
@@ -1547,7 +1598,8 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                             if (!$Error) {
                                 $Stage->setContent(new Success('Berechnung wurde geleert'));
-                                return $Stage.new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_SUCCESS);
+                                return $Stage.new Redirect('/Billing/Bookkeeping/Basket/Content', Redirect::TIMEOUT_SUCCESS,
+                                    array('Id' => $tblBasket->getId()));
                             } else {
                                 $Stage->setContent(new Danger('Berechnung konnte nicht geleert werden'));
                                 return $Stage.new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);

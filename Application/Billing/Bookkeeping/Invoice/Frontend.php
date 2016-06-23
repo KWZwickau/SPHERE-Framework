@@ -48,7 +48,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $ItemCount = array();
                 if (!empty( $tblItemList )) {
                     foreach ($tblItemList as &$tblItem) {
-                        $Price += $tblItem->getValue();
+                        $Price += $tblItem->getSummaryPriceInt();
                         if (!empty( $ItemCount[$tblItem->getName()] )) {
                             $ItemCount[$tblItem->getName()] += $tblItem->getQuantity();
                         } else {

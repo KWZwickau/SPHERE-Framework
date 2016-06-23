@@ -198,7 +198,6 @@ class Data extends AbstractData
             $Entity->setIBAN($tblBankReference->getIBAN());
             $Entity->setBIC($tblBankReference->getBIC());
             $Entity->setCashSign($tblBankReference->getCashSign());
-            $Entity->setCreditorId($tblBankReference->getCreditorId());
             $Entity->setServiceTblDebtor($tblDebtor);
             $Entity->setServiceTblBankReference($tblBankReference);
 

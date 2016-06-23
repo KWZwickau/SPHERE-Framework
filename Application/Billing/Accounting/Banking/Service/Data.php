@@ -203,7 +203,7 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblItem   $tblItem
+     * @param TblItem $tblItem
      * without Debtor
      *
      * @return false|TblDebtorSelection
@@ -218,7 +218,7 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblItem   $tblItem
+     * @param TblItem $tblItem
      * without Debtor
      *
      * @return false|TblDebtorSelection
@@ -317,20 +317,18 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPerson
      * @param           $Reference
-     * @param null      $CreditorId
-     * @param bool      $ReferenceDate
-     * @param null      $BankName
-     * @param null      $Owner
-     * @param null      $CashSign
-     * @param null      $IBAN
-     * @param null      $BIC
+     * @param bool $ReferenceDate
+     * @param null $BankName
+     * @param null $Owner
+     * @param null $CashSign
+     * @param null $IBAN
+     * @param null $BIC
      *
      * @return TblBankReference
      */
     public function createReference(
         TblPerson $tblPerson,
         $Reference,
-        $CreditorId = null,
         $ReferenceDate = false,
         $BankName = null,
         $Owner = null,
@@ -343,7 +341,6 @@ class Data extends AbstractData
 
         $Entity = new TblBankReference();
         $Entity->setReference($Reference);
-        $Entity->setCreditorId($CreditorId);
         $Entity->setServiceTblPerson($tblPerson);
         if ($ReferenceDate) {
             $Entity->setReferenceDate(new \DateTime($ReferenceDate));
@@ -366,10 +363,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPerson      $serviceTblPerson
-     * @param TblPerson      $serviceTblPersonPayers
+     * @param TblPerson $serviceTblPerson
+     * @param TblPerson $serviceTblPersonPayers
      * @param TblPaymentType $serviceBalance_PaymentType
-     * @param TblItem        $serviceItem_Item
+     * @param TblItem $serviceItem_Item
      *
      * @return null|object|TblDebtorSelection
      */
@@ -472,20 +469,18 @@ class Data extends AbstractData
     /**
      * @param TblBankReference $tblBankReference
      * @param                  $Reference
-     * @param                  $CreditorId
      * @param                  $Date
-     * @param null             $Owner
-     * @param null             $BankName
-     * @param null             $CashSign
-     * @param null             $IBAN
-     * @param null             $BIC
+     * @param null $Owner
+     * @param null $BankName
+     * @param null $CashSign
+     * @param null $IBAN
+     * @param null $BIC
      *
      * @return bool
      */
     public function updateReference(
         TblBankReference $tblBankReference,
         $Reference,
-        $CreditorId,
         $Date,
         $Owner = null,
         $BankName = null,
@@ -501,7 +496,6 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setReference($Reference);
-            $Entity->setCreditorId($CreditorId);
             $Entity->setReferenceDate(new \DateTime($Date));
             $Entity->setOwner($Owner);
             $Entity->setBankName($BankName);
@@ -519,8 +513,8 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDebtorSelection    $tblDebtorSelection
-     * @param TblDebtor             $tblDebtor
+     * @param TblDebtorSelection $tblDebtorSelection
+     * @param TblDebtor $tblDebtor
      * @param TblBankReference|null $tblBankReference
      *
      * @return bool|false|TblDebtorSelection
@@ -552,10 +546,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDebtorSelection    $tblDebtorSelection
-     * @param TblPerson             $tblPersonPayers
-     * @param TblPaymentType        $tblPaymentType
-     * @param TblDebtor|null        $tblDebtor
+     * @param TblDebtorSelection $tblDebtorSelection
+     * @param TblPerson $tblPersonPayers
+     * @param TblPaymentType $tblPaymentType
+     * @param TblDebtor|null $tblDebtor
      * @param TblBankReference|null $tblBankReference
      *
      * @return bool|false|TblDebtorSelection

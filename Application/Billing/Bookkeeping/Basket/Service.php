@@ -614,7 +614,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Stage
-     * @param TblBasket      $tblBasket
+     * @param TblBasket $tblBasket
      * @param                $Basket
      *
      * @return IFormInterface|string
@@ -717,7 +717,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasket    $tblBasket
+     * @param TblBasket $tblBasket
      * @param TblCommodity $tblCommodity
      *
      * @return string
@@ -732,7 +732,7 @@ class Service extends AbstractService
 
     /**
      * @param TblBasket $tblBasket
-     * @param TblItem   $tblItem
+     * @param TblItem $tblItem
      *
      * @return string
      */
@@ -767,7 +767,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null   $Stage
+     * @param IFormInterface|null $Stage
      * @param TblBasketVerification $tblBasketVerification
      * @param                       $Item
      *
@@ -804,8 +804,8 @@ class Service extends AbstractService
         }
         if (!$Error) {
 
-            if ($Item['PriceChoice'] === 'Einzelpreis') {
-                $Item['Price'] = $Item['Price'] * $Item['Quantity'];
+            if ($Item['PriceChoice'] === 'Gesamtpreis') {
+                $Item['Price'] = $Item['Price'] / $Item['Quantity'];
             }
             if ((new Data($this->getBinding()))->updateBasketVerification(
                 $tblBasketVerification,
@@ -880,7 +880,7 @@ class Service extends AbstractService
 
     /**
      * @param TblBasket $tblBasket
-     * @param TblItem   $tblItem
+     * @param TblItem $tblItem
      *
      * @return false|TblBasketItem
      */

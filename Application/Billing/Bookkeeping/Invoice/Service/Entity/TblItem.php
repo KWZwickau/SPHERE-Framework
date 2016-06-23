@@ -137,4 +137,41 @@ class TblItem extends Element
 
         $this->serviceTblItem = ( null === $tblItem ? null : $tblItem->getId() );
     }
+
+    /**
+     * @return string
+     * single ItemPrice with " €"
+     */
+    public function getPrice()
+    {
+
+        return number_format($this->Value, 2).' €';
+    }
+
+    /**
+     * @return string
+     * with " €"
+     */
+    public function getSummaryPrice()
+    {
+        if ($this->Quantity !== 0) {
+            $result = $this->Value * $this->Quantity;
+        } else {
+            $result = $this->Value;
+        }
+        return number_format($result, 2).' €';
+    }
+
+    /**
+     * @return int
+     */
+    public function getSummaryPriceInt()
+    {
+        if ($this->Quantity !== 0) {
+            $result = $this->Value * $this->Quantity;
+        } else {
+            $result = $this->Value;
+        }
+        return number_format($result, 2);
+    }
 }

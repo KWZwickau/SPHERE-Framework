@@ -70,9 +70,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBankReference', 'Reference')) {
             $Table->addColumn('Reference', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'CreditorId')) {
-            $Table->addColumn('CreditorId', 'string');
-        }
         if (!$this->getConnection()->hasColumn('tblBankReference', 'ReferenceDate')) {
             $Table->addColumn('ReferenceDate', 'date', array('notnull' => false));
         }
@@ -99,8 +96,8 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblDebtor
-     * @param Table  $tblBankReference
+     * @param Table $tblDebtor
+     * @param Table $tblBankReference
      *
      * @return Table
      */

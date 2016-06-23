@@ -7,8 +7,8 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReferenc
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Setup;
-use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Person\Person;
@@ -161,7 +161,7 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblItem   $tblItem
+     * @param TblItem $tblItem
      *
      * @return false|TblDebtorSelection
      */
@@ -173,7 +173,7 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblItem   $tblItem
+     * @param TblItem $tblItem
      *
      * @return false|TblDebtorSelection
      */
@@ -261,8 +261,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblPerson           $tblPerson
-     * @param null                $Reference
+     * @param TblPerson $tblPerson
+     * @param null $Reference
      *
      * @return IFormInterface|string
      */
@@ -294,7 +294,6 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->createReference(
                 $tblPerson,
                 $Reference['Reference'],
-                $Reference['CreditorId'],
                 $Reference['ReferenceDate'],
                 $Reference['BankName'],
                 $Reference['Owner'],
@@ -310,8 +309,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblBasket           $tblBasket
-     * @param null                $Data
+     * @param TblBasket $tblBasket
+     * @param null $Data
      *
      * @return IFormInterface|string
      */
@@ -353,8 +352,9 @@ class Service extends AbstractService
             }
             if ($Error === true && !empty( $PersonArray )) {
                 /** @var TblPerson $Person */
-                foreach ($PersonArray as $Person)
+                foreach ($PersonArray as $Person) {
                     $Stage .= new Warning('Bezahler für '.$Person->getfullName().' ist noch nicht eingerichtet');
+                }
             }
         }
 
@@ -363,7 +363,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblDebtor           $tblDebtor
+     * @param TblDebtor $tblDebtor
      * @param                     $Debtor
      *
      * @return IFormInterface|string
@@ -413,7 +413,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblBankReference    $tblBankReference
+     * @param TblBankReference $tblBankReference
      * @param                     $Reference
      *
      * @return IFormInterface|string
@@ -453,7 +453,6 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->updateReference(
                 $tblBankReference,
                 $Reference['Reference'],
-                $Reference['CreditorId'],
                 $Reference['ReferenceDate'],
                 $Reference['Owner'],
                 $Reference['BankName'],
@@ -476,8 +475,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblPerson           $tblPerson
-     * @param null                $Data
+     * @param TblPerson $tblPerson
+     * @param null $Data
      *
      * @return IFormInterface|string
      */
@@ -547,7 +546,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null                $Data
+     * @param null $Data
      *
      * @return IFormInterface|string
      */
@@ -622,8 +621,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblBasket           $tblBasket
-     * @param null                $Data
+     * @param TblBasket $tblBasket
+     * @param null $Data
      *
      * @return IFormInterface|string
      */

@@ -5,9 +5,9 @@ namespace SPHERE\Application\Billing\Accounting\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -488,8 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn(
-                            new Panel('Verweis', array(new TextField('Reference[Reference]', '', 'Mandatsreferenz-Nummer'),
-                                    new TextField('Reference[CreditorId]', '', 'Gläubiger-Identifikationsnummer'))
+                            new Panel('Verweis', array(new TextField('Reference[Reference]', '', 'Mandatsreferenz-Nummer'))
                                 , Panel::PANEL_TYPE_INFO)
                             , 6),
                         new FormColumn(
@@ -559,7 +558,6 @@ class Frontend extends Extension implements IFrontendInterface
         array_walk($tblReferenceList, function (TblBankReference $tblBankReference) use (&$TableContent) {
 
             $Item['Reference'] = $tblBankReference->getReference();
-            $Item['CreditorId'] = $tblBankReference->getCreditorId();
             $Item['ReferenceDate'] = $tblBankReference->getReferenceDate();
             $Item['Owner'] = $tblBankReference->getOwner();
             $Item['BankName'] = $tblBankReference->getBankName();
@@ -585,7 +583,6 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array('Reference'     => 'Mandatsreferenz',
-                                      'CreditorId'    => 'Gläubiger-ID',
                                       'ReferenceDate' => 'Gültig ab:',
                                       'Owner'         => 'Besitzer',
                                       'BankName'      => 'Name der Bank',
@@ -670,8 +667,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Verweis', array(new TextField('Reference[Reference]', '', 'Mandatsreferenz-Nummer'),
-                                new TextField('Reference[CreditorId]', '', 'Gläubiger-Identifikationsnummer'))
+                        new Panel('Verweis', array(new TextField('Reference[Reference]', '', 'Mandatsreferenz-Nummer'))
                             , Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
@@ -953,7 +949,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ( !empty( $TableContent ) ?
                                 Banking::useService()->createDebtorSelection(
                                     $Form, $tblBasket, $Data
-                                ) : new Success('Warenbezogene Bezahler sind bekannt.')
+                                ) : new Success('Artikelbezogene Bezahler sind bekannt.')
                                 .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
                         )
                     )

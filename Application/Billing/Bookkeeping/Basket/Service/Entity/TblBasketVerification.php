@@ -149,16 +149,12 @@ class TblBasketVerification extends Element
 
     /**
      * @return string
+     * single ItemPrice
      */
-    public function getSinglePrice()
+    public function getPrice()
     {
 
-        if ($this->Quantity !== 0) {
-            $result = ( Ceil(100 * ( $this->Value / $this->Quantity )) ) / 100;
-        } else {
-            $result = $this->Value;
-        }
-        return number_format($result, 2).' €';
+        return number_format($this->Value, 2).' €';
     }
 
     /**
@@ -166,8 +162,12 @@ class TblBasketVerification extends Element
      */
     public function getSummaryPrice()
     {
-
-        return number_format($this->Value, 2).' €';
+        if ($this->Quantity !== 0) {
+            $result = $this->Value * $this->Quantity;
+        } else {
+            $result = $this->Value;
+        }
+        return number_format($result, 2).' €';
     }
 
 
