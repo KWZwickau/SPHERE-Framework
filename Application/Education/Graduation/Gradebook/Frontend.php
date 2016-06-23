@@ -11,9 +11,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCon
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
@@ -39,13 +37,13 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Group;
-use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -871,10 +869,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             // Fach-Klassendurchschnitt pro Test
-            $data =  array(
-                'Number' => new Muted('&#216;'),
-                'Student' => new Muted('Fach-Klasse')
-            );
+            $data = array();
             if (!empty($columnDefinition)) {
                 foreach ($columnDefinition as $column => $value) {
                     if (strpos($column, 'Test') !== false) {
@@ -884,7 +879,11 @@ class Frontend extends Extension implements IFrontendInterface
                             $average = Gradebook::useService()->getAverageByTest($tblTest);
                             $data[$column] = new Muted($average ? $average : '');
                         }
-                    } elseif (strpos($column, 'Average') !== false) {
+                    } elseif (strpos($column, 'Number') !== false) {
+                        $data[$column] = new Muted('&#216;');
+                    } elseif (strpos($column, 'Student') !== false) {
+                        $data[$column] = new Muted('Fach-Klasse');
+                    } else {
                         $data[$column] = '';
                     }
                 }
@@ -1777,10 +1776,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (isset($GradeType['Multiplier']) && $GradeType['Multiplier'] == '') {
             $multiplier = 1;
-        } elseif (isset($GradeType['Multiplier']) &&  !preg_match(Service::PREG_MATCH_DECIMAL_NUMBER, $GradeType['Multiplier'])) {
+        } elseif (isset($GradeType['Multiplier']) && !preg_match(Service::PREG_MATCH_DECIMAL_NUMBER,
+                $GradeType['Multiplier'])
+        ) {
             return $Stage
-                . new Warning('Bitte geben Sie als Faktor eine Zahl an. Der Zensuren-Type wurde nicht hinzugefügt.', new Exclamation())
-                . new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_ERROR,
+            . new Warning('Bitte geben Sie als Faktor eine Zahl an. Der Zensuren-Type wurde nicht hinzugefügt.',
+                new Exclamation())
+            . new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreGroup->getId()));
         } else {
             $multiplier = $GradeType['Multiplier'];
@@ -2536,11 +2538,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 $Global->savePost();
                             }
 
-                            $tblNewSubject = new TblSubject();
-                            $tblNewSubject->setId(-1);
-                            $tblNewSubject->setName('Alle Fächer');
-                            array_unshift($subjectList, $tblNewSubject);
-
+                            $countSubject = 0;
+                            $subjectList = $this->getSorter($subjectList)->sortObjectBy('Acronym');
+                            /** @var TblSubject $tblSubject */
                             foreach ($subjectList as &$tblSubject) {
                                 $isDisabled = false;
                                 if ($tblSubject->getId() === -1) {
@@ -2569,6 +2569,22 @@ class Frontend extends Extension implements IFrontendInterface
                                     1
                                 );
                                 $tblSubject = $isDisabled ? $checkBox->setDisabled() : $checkBox;
+                                if (!$isDisabled) {
+                                    $countSubject++;
+                                }
+                            }
+
+                            if ($countSubject > 0) {
+//                                $tblNewSubject = new TblSubject();
+//                                $tblNewSubject->setId(-1);
+//                                $tblNewSubject->setName('Alle verfügbaren Fächer');
+                                $tblNewSubject = new CheckBox(
+                                    'Data[' . $tblDivision->getId() . '][-1]',
+                                    new \SPHERE\Common\Frontend\Text\Repository\Italic('Alle  verfügbaren Fächer'),
+                                    1
+                                );
+
+                                array_unshift($subjectList, $tblNewSubject);
                             }
 
                             $panel = new Panel(
@@ -2599,11 +2615,12 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($rowList as $schoolTypeId => $list) {
                         $tblSchoolType = Type::useService()->getTypeById($schoolTypeId);
                         $formGroupList[] = new FormGroup($list,
-                            new \SPHERE\Common\Frontend\Form\Repository\Title($tblSchoolType ? $tblSchoolType->getName() : 'Keine Schulart'));
+                            new \SPHERE\Common\Frontend\Form\Repository\Title($tblSchoolType
+                                ? new Building() . ' ' . $tblSchoolType->getName()
+                                : 'Keine Schulart'));
                     }
                 }
             }
-
 
             $Stage->setContent(
                 new Layout(array(
@@ -2622,7 +2639,9 @@ class Frontend extends Extension implements IFrontendInterface
                         )),
                         new LayoutRow(
                             new LayoutColumn(
-                                new Well(
+                                empty($formGroupList)
+                                    ? new Warning('Keine Klassen vorhanden.', new Exclamation())
+                                    : new Well(
                                     Gradebook::useService()->updateScoreRuleDivisionSubject(
                                         (new Form(
                                             $formGroupList
@@ -2705,6 +2724,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $subjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
                         if ($subjectList) {
                             $subjectGroupList = array();
+                            $subjectList = $this->getSorter($subjectList)->sortObjectBy('Acronym');
+                            /** @var TblSubject $tblSubject */
                             foreach ($subjectList as $tblSubject) {
                                 $tblDivisionSubjectWhereGroup = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                                     $tblDivision, $tblSubject
@@ -2718,6 +2739,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         // set Post
                                         if ($Data == null) {
                                             $Global = $this->getGlobal();
+                                            /** @var TblSubject $subject */
                                             foreach ($subjectList as $subject) {
                                                 $tblScoreRuleSubjectGroup = Gradebook::useService()->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup(
                                                     $tblDivision,
@@ -2783,7 +2805,9 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($rowList as $schoolTypeId => $list) {
                             $tblSchoolType = Type::useService()->getTypeById($schoolTypeId);
                             $formGroupList[] = new FormGroup($list,
-                                new \SPHERE\Common\Frontend\Form\Repository\Title($tblSchoolType ? $tblSchoolType->getName() : 'Keine Schulart'));
+                                new \SPHERE\Common\Frontend\Form\Repository\Title($tblSchoolType
+                                    ? new Building() . ' ' . $tblSchoolType->getName()
+                                    : 'Keine Schulart'));
                         }
                     }
                 }
@@ -3020,11 +3044,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 $Global->savePost();
                             }
 
-                            $tblNewSubject = new TblSubject();
-                            $tblNewSubject->setId(-1);
-                            $tblNewSubject->setName('Alle wählbaren Fächer');
-                            array_unshift($subjectList, $tblNewSubject);
+//                            $tblNewSubject = new TblSubject();
+//                            $tblNewSubject->setId(-1);
+//                            $tblNewSubject->setName('Alle wählbaren Fächer');
+//                            array_unshift($subjectList, $tblNewSubject);
 
+                            $countSubject = 0;
+                            $subjectList = $this->getSorter($subjectList)->sortObjectBy('Acronym');
+
+                            /** @var TblSubject $tblSubject */
                             foreach ($subjectList as &$tblSubject) {
                                 $isDisabled = false;
                                 if ($tblSubject->getId() === -1) {
@@ -3059,6 +3087,19 @@ class Frontend extends Extension implements IFrontendInterface
                                     1
                                 );
                                 $tblSubject = $isDisabled ? $checkBox->setDisabled() : $checkBox;
+                                if (!$isDisabled) {
+                                    $countSubject++;
+                                }
+                            }
+
+                            if ($countSubject > 0) {
+                                $tblNewSubject = new CheckBox(
+                                    'Data[' . $tblDivision->getId() . '][-1]',
+                                    new \SPHERE\Common\Frontend\Text\Repository\Italic('Alle  verfügbaren Fächer'),
+                                    1
+                                );
+
+                                array_unshift($subjectList, $tblNewSubject);
                             }
 
                             $panel = new Panel(
@@ -3089,7 +3130,9 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($rowList as $schoolTypeId => $list) {
                         $tblSchoolType = Type::useService()->getTypeById($schoolTypeId);
                         $formGroupList[] = new FormGroup($list,
-                            new \SPHERE\Common\Frontend\Form\Repository\Title($tblSchoolType ? $tblSchoolType->getName() : 'Keine Schulart'));
+                            new \SPHERE\Common\Frontend\Form\Repository\Title($tblSchoolType
+                                ? new Building() . ' ' . $tblSchoolType->getName()
+                                : 'Keine Schulart'));
                     }
                 }
             }
@@ -3111,7 +3154,9 @@ class Frontend extends Extension implements IFrontendInterface
                         )),
                         new LayoutRow(
                             new LayoutColumn(
-                                new Well(
+                                empty($formGroupList)
+                                    ? new Warning('Keine Klassen vorhanden.', new Exclamation())
+                                    : new Well(
                                     Gradebook::useService()->updateScoreTypeDivisionSubject(
                                         (new Form(
                                             $formGroupList

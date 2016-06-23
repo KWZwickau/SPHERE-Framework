@@ -1034,7 +1034,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new TableData($tblSubjectUsedList, null,
                                     array(
                                         'Acronym'     => 'Kürzel',
-                                        'Name'        => 'Fach',
+                                        'Name'        => 'Name',
                                         'Description' => 'Beschreibung',
                                         'Option'      => ''
                                     ))
@@ -1047,7 +1047,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new TableData($tblSubjectAvailable, null,
                                     array(
                                         'Acronym'     => 'Kürzel',
-                                        'Name'        => 'Fach',
+                                        'Name'        => 'Name',
                                         'Description' => 'Beschreibung',
                                         'Option'      => ' '
                                     ))

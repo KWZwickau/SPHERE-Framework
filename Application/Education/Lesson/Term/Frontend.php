@@ -409,7 +409,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Kein Zeitraum zugewiesen')
                                 : new TableData($tblPeriodUsedList, null,
                                     array(
-                                        'Name'        => 'Fach',
+                                        'Name'        => 'Name',
                                         'FromDate'    => 'Von',
                                         'ToDate'      => 'Bis',
                                         'Description' => 'Beschreibung',
@@ -430,7 +430,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Info('Keine weiteren Zeiträume verfügbar')
                                 : new TableData($tblPeriodAvailable, null,
                                     array(
-                                        'Name'        => 'Fach',
+                                        'Name'        => 'Name',
                                         'FromDate'    => 'Von',
                                         'ToDate'      => 'Bis',
                                         'Description' => 'Beschreibung',
