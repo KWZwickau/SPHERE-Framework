@@ -5,7 +5,8 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\Icon\Repository\More;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Success;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -54,11 +55,10 @@ class Database extends Extension implements IModuleInterface
             $tblConsumer = Consumer::useService()->getConsumerByAcronym($Consumer);
             if ($tblConsumer) {
 
-                Account::useService()->changeConsumer($tblConsumer);
-
                 $Break = 10;
                 $Acronym = '';
                 while (( ( $Break-- ) > 0 ) && ( strtoupper($Consumer) != strtoupper($Acronym) )) {
+                    Account::useService()->changeConsumer($tblConsumer);
 
                     $this->getCache(new CookieHandler())->clearCache();
                     $this->getCache(new MemcachedHandler())->clearCache();
@@ -68,13 +68,20 @@ class Database extends Extension implements IModuleInterface
                     $this->getCache(new TwigHandler())->clearCache();
                     $this->getCache(new SmartyHandler())->clearCache();
 
+                    sleep(1);
+
                     $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
                 }
 
                 Main::registerGuiPlatform();
 
                 $Protocol = (new \SPHERE\Application\Platform\System\Database\Database())->frontendSetup(false, true);
-                $Result = $Acronym.' '.(new Accordion(false))->addItem(new More().' Protocol für '.$Consumer.' (Execution on: '.$Acronym.')',
+                if (strtoupper($Consumer) != strtoupper($Acronym)) {
+                    $Icon = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Exclamation());
+                } else {
+                    $Icon = new \SPHERE\Common\Frontend\Text\Repository\Success(new Success());
+                }
+                $Result = $Acronym.' '.(new Accordion(false))->addItem($Icon.' Protocol für '.$Consumer.' (Execution on: '.$Acronym.')',
                         $Protocol->getContent())->getContent();
             } else {
                 return json_encode($Consumer.' '.(new Danger('Mandant '.$Consumer.' not valid!')));
