@@ -11,7 +11,9 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCon
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
@@ -41,6 +43,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -1278,7 +1281,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Zensuren-Gruppe: '
                                     . $tblScoreConditionGroupList->getTblScoreGroup()->getName()
                                     . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
-                                    . $tblScoreConditionGroupList->getTblScoreGroup()->getMultiplier();
+                                    . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier();
 
                                 $tblGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListByGroup(
                                     $tblScoreConditionGroupList->getTblScoreGroup()
@@ -1289,7 +1292,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             . 'Zensuren-Typ: '
                                             . ($tblGradeType->getTblGradeType() ? $tblGradeType->getTblGradeType()->getName() : '')
                                             . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
-                                            . $tblGradeType->getMultiplier();
+                                            . $tblGradeType->getDisplayMultiplier();
                                     }
                                 } else {
                                     $structure[] = new Warning('Kein Zenuren-Typ hinterlegt.', new Ban());
@@ -1430,7 +1433,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreGroups) {
                     foreach ($tblScoreGroups as $tblScoreGroup) {
                         $scoreGroups .= $tblScoreGroup->getTblScoreGroup()->getName()
-                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getTblScoreGroup()->getMultiplier() . ')')) . ', ';
+                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getTblScoreGroup()->getDisplayMultiplier() . ')')) . ', ';
                     }
                 }
                 if (($length = strlen($scoreGroups)) > 2) {
@@ -1547,13 +1550,14 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblScoreGroupGradeType->getTblGradeType()) {
 
                             $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName()
-                                . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroupGradeType->getMultiplier() . ')')) . ', ';
+                                . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroupGradeType->getDisplayMultiplier() . ')')) . ', ';
                         }
                     }
                 }
                 if (($length = strlen($gradeTypes)) > 2) {
                     $gradeTypes = substr($gradeTypes, 0, $length - 2);
                 }
+                $tblScoreGroup->DisplayMultiplier = $tblScoreGroup->getDisplayMultiplier();
                 $tblScoreGroup->GradeTypes = $gradeTypes;
                 $tblScoreGroup->Option =
                     (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Edit(),
@@ -1574,7 +1578,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new TableData($tblScoreGroupAll, null, array(
                                 'Name' => 'Name',
-                                'Multiplier' => 'Faktor',
+                                'DisplayMultiplier' => 'Faktor',
                                 'GradeTypes' => 'Zensuren-Typen',
 //                                'Round' => 'Runden',
                                 'Option' => '',
@@ -1604,13 +1608,13 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new TextField('ScoreGroup[Name]', 'Rest', 'Name'), 10
+                    new TextField('ScoreGroup[Name]', '', 'Name'), 10
                 ),
 //                new FormColumn(
 //                    new TextField('ScoreGroup[Round]', '', 'Rundung'), 2
 //                ),
                 new FormColumn(
-                    new TextField('ScoreGroup[Multiplier]', 'z.B. 40 für 40%', 'Faktor'), 2
+                    new TextField('ScoreGroup[Multiplier]', '', 'Faktor'), 2
                 )
             ))
         )));
@@ -1662,6 +1666,7 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($tblScoreGroupGradeTypeListByGroup as &$tblScoreGroupGradeTypeList) {
                         if ($tblScoreGroupGradeTypeList->getTblGradeType()) {
                             $tblScoreGroupGradeTypeList->Name = $tblScoreGroupGradeTypeList->getTblGradeType()->getName();
+                            $tblScoreGroupGradeTypeList->DisplayMultiplier = $tblScoreGroupGradeTypeList->getDisplayMultiplier();
                             $tblScoreGroupGradeTypeList->Option =
                                 (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                     'Entfernen', '/Education/Graduation/Gradebook/Score/Group/GradeType/Remove',
@@ -1706,7 +1711,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel('Zensuren-Gruppe',
                                         $tblScoreGroup->getName()
-                                        . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getMultiplier() . ')')),
+                                        . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getDisplayMultiplier() . ')')),
                                         Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
@@ -1719,7 +1724,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new TableData($tblScoreGroupGradeTypeListByGroup, null,
                                         array(
                                             'Name' => 'Name',
-                                            'Multiplier' => 'Faktor',
+                                            'DisplayMultiplier' => 'Faktor',
                                             'Option' => ''
                                         )
                                     )
@@ -1767,8 +1772,13 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId);
         $tblGradeType = Gradebook::useService()->getGradeTypeById($tblGradeTypeId);
 
-        if ($GradeType['Multiplier'] == '') {
+        if (isset($GradeType['Multiplier']) && $GradeType['Multiplier'] == '') {
             $multiplier = 1;
+        } elseif (isset($GradeType['Multiplier']) &&  !preg_match(Service::PREG_MATCH_DECIMAL_NUMBER, $GradeType['Multiplier'])) {
+            return $Stage
+                . new Warning('Bitte geben Sie als Faktor eine Zahl an. Der Zensuren-Type wurde nicht hinzugefügt.', new Exclamation())
+                . new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreGroup->getId()));
         } else {
             $multiplier = $GradeType['Multiplier'];
         }
@@ -1843,7 +1853,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreConditionGroupListByCondition) {
                     foreach ($tblScoreConditionGroupListByCondition as &$tblScoreConditionGroupList) {
                         $tblScoreConditionGroupList->Name = $tblScoreConditionGroupList->getTblScoreGroup()->getName()
-                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreConditionGroupList->getTblScoreGroup()->getMultiplier() . ')'));
+                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier() . ')'));
                         $tblScoreConditionGroupList->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                 'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/Group/Remove',
@@ -1856,7 +1866,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreGroupAll) {
                     foreach ($tblScoreGroupAll as $tblScoreGroup) {
                         $tblScoreGroup->DisplayName = $tblScoreGroup->getName()
-                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getMultiplier() . ')'));
+                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getDisplayMultiplier() . ')'));
                         $tblScoreGroup->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                 'Hinzufügen',
@@ -2030,7 +2040,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Global->POST) {
                 $Global->POST['ScoreGroup']['Name'] = $tblScoreGroup->getName();
                 $Global->POST['ScoreGroup']['Round'] = $tblScoreGroup->getRound();
-                $Global->POST['ScoreGroup']['Multiplier'] = $tblScoreGroup->getMultiplier();
+                $Global->POST['ScoreGroup']['Multiplier'] = $tblScoreGroup->getDisplayMultiplier();
 
                 $Global->savePost();
             }

@@ -52,6 +52,8 @@ use SPHERE\System\Database\Binding\AbstractService;
 class Service extends AbstractService
 {
 
+    const PREG_MATCH_DECIMAL_NUMBER = '!^[0-9]+((\.|,)[0-9]+)?$!is';
+
     /**
      * @param bool $Simulate
      * @param bool $withData
@@ -595,7 +597,10 @@ class Service extends AbstractService
             $Error = true;
         }
         if (isset($ScoreGroup['Multiplier']) && empty($ScoreGroup['Multiplier'])) {
-            $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie einen Faktor in Prozent an');
+            $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie einen Faktor an');
+            $Error = true;
+        } elseif (isset($ScoreGroup['Multiplier']) && !preg_match(self::PREG_MATCH_DECIMAL_NUMBER, $ScoreGroup['Multiplier'])) {
+            $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie eine Zahl als Faktor an');
             $Error = true;
         }
 
@@ -1187,6 +1192,13 @@ class Service extends AbstractService
         $Error = false;
         if (isset($ScoreGroup['Name']) && empty($ScoreGroup['Name'])) {
             $Stage->setError('ScoreGroup[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+        if (isset($ScoreGroup['Multiplier']) && empty($ScoreGroup['Multiplier'])) {
+            $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie einen Faktor an');
+            $Error = true;
+        } elseif (isset($ScoreGroup['Multiplier']) && !preg_match(self::PREG_MATCH_DECIMAL_NUMBER, $ScoreGroup['Multiplier'])) {
+            $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie eine Zahl als Faktor an');
             $Error = true;
         }
 

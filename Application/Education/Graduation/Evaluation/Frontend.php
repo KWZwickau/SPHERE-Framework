@@ -2485,15 +2485,19 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(
+                        new LayoutColumn(array(
                             new Panel(
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
                                     $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
-                            )
-                        ),
+                            ),
+                            new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                                'Beim Entfernen von Klassen (bzw. Kopfnoten) vom Notenauftrag werden auch alle die dazugehörigen Zensuren mit gelöscht.',
+                                new Exclamation()
+                            ),
+                        )),
                         (!$hasEdit ?
                             new LayoutColumn(
                                 new \SPHERE\Common\Frontend\Message\Repository\Warning('Der Bearbeitungszeitraum ist abgelaufen. Klassen können nicht mehr zu diesem Notenauftrag
@@ -3014,6 +3018,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
                                         $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                     Panel::PANEL_TYPE_INFO
+                                ),
+                                new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                                    'Beim Löschen des Notenauftrags werden auch alle die dazugehörigen Zensuren mit gelöscht.',
+                                    new Exclamation()
                                 ),
                                 new Panel(new Question() . ' Diesen Notenauftrag wirklich löschen?', null,
                                     Panel::PANEL_TYPE_DANGER,
