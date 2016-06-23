@@ -29,11 +29,142 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class Service
 {
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     * @return IFormInterface|Danger|Success|string
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createCompaniesFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'E.nummer' => null,
+                    'Einrichtungsname' => null,
+                    'Straße' => null,
+                    'Plz' => null,
+                    'Ort' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countCompany = 0;
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        $companyName = trim($Document->getValue($Document->getCell($Location['Einrichtungsname'],
+                            $RunY)));
+
+                        if ($companyName) {
+                            $tblCompany = Company::useService()->insertCompany(
+                                $companyName,
+                                trim($Document->getValue($Document->getCell($Location['E.nummer'], $RunY)))
+                            );
+                            if ($tblCompany) {
+                                $countCompany++;
+
+                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON'),
+                                    $tblCompany
+                                );
+                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('SCHOOL'),
+                                    $tblCompany
+                                );
+
+                                $streetName = '';
+                                $streetNumber = '';
+                                $street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                    $RunY)));
+                                if (preg_match_all('!\d+!', $street, $matches)) {
+                                    $pos = strpos($street, $matches[0][0]);
+                                    if ($pos !== null) {
+                                        $streetName = trim(substr($street, 0, $pos));
+                                        $streetNumber = trim(substr($street, $pos));
+                                    }
+                                }
+                                $zipCode = trim($Document->getValue($Document->getCell($Location['Plz'],
+                                    $RunY)));
+                                $city = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                    $RunY)));
+
+                                if ($streetName && $streetNumber && $zipCode && $city){
+                                    Address::useService()->insertAddressToCompany(
+                                        $tblCompany,
+                                        $streetName,
+                                        $streetNumber,
+                                        $zipCode,
+                                        $city,
+                                        '',
+                                        ''
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    return
+                        new Success('Es wurden ' . $countCompany . ' Firmen erfolgreich angelegt.');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Info(json_encode($Location)) .
+                    new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
+
 
     /**
      * @param IFormInterface|null $Form
@@ -102,6 +233,7 @@ class Service
                     'Schüler_Konfession' => null,
                     'Schüler_Einschulung_am' => null,
                     'Schüler_Aufnahme_am' => null,
+                    'Schüler_abgebende_Schule_ID' => null,
                     'Schüler_Abgang_am' => null,
                     'Schüler_Wiederholungen_Hinweise' => null,
                     'Schüler_Krankenversicherung_bei' => null,
@@ -671,7 +803,7 @@ class Service
                                     $tblStudentIntegration = null;
                                 }
 
-                                // ToDo JohK Versicherungsstatus
+                                // Versicherungsstatus passt nicht zu unserem Status
                                 $insurance = trim($Document->getValue($Document->getCell($Location['Schüler_Krankenkasse'],
                                     $RunY)));
                                 if ($insurance) {
@@ -707,19 +839,10 @@ class Service
                                     $arriveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
                                         $RunY)));
                                     $arriveSchool = null;
-                                    // Todo JohK abgebende Schule
-//                                    $company = trim($Document->getValue($Document->getCell($Location['abg. Schule ID'],
-//                                        $RunY)));
-                                    $company = '';
-                                    if ($company != '' && ($tblCompany = Company::useService()->insertCompany($company))
-                                    ) {
-                                        $arriveSchool = $tblCompany;
-                                        $tblCompanyGroup = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON');
-                                        \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany($tblCompanyGroup,
-                                            $tblCompany);
-                                        $tblCompanyGroup = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('SCHOOL');
-                                        \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany($tblCompanyGroup,
-                                            $tblCompany);
+                                    $company = trim($Document->getValue($Document->getCell($Location['Schüler_abgebende_Schule_ID'],
+                                        $RunY)));
+                                    if ($company != '') {
+                                        $arriveSchool = Company::useService()->getCompanyByDescription($company);
                                     }
                                     if ($arriveDate !== '' && date_create($arriveDate) !== false) {
 
@@ -727,7 +850,7 @@ class Service
                                         Student::useService()->insertStudentTransfer(
                                             $tblStudent,
                                             $tblStudentTransferType,
-                                            $arriveSchool,
+                                            $arriveSchool ? $arriveSchool : null,
                                             null,
                                             null,
                                             $arriveDate,
