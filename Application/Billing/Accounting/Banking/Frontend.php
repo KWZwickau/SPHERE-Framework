@@ -235,8 +235,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['CashSign'] = $tblBankReference->getCashSign();
                 $Item['Option'] = new Standard('', '/Billing/Accounting/Banking/Reference/Change', new Edit(), array('Id'              => $tblPerson->getId(),
                                                                                                                      'BankReferenceId' => $tblBankReference->getId()), 'Bearbeiten')
-//                    .new Standard('', '/Billing/Accounting/Banking/Debtor/Remove', new Disable(), array('Id' => $tblPerson->getId(),
-//                                                               'DebtorId' => $tblBankReference->getId()))
+                    .new Standard('', '/Billing/Accounting/Banking/Reference/Remove', new Disable(), array('Id'              => $tblPerson->getId(),
+                                                                                                           'BankReferenceId' => $tblBankReference->getId()))
                 ;
                 array_push($TableContentReference, $Item);
             });
@@ -894,21 +894,28 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $BankReferenceId
      * @param bool $Confirm
      *
      * @return Stage|string
      */
-    public function frontendRemoveBankReference($Id = null, $Confirm = false)
+    public function frontendRemoveBankReference($Id = null, $BankReferenceId = null, $Confirm = false)
     {
 
         $Stage = new Stage('Mandatsreferenz', 'Entfernen');
-        $tblBankReference = $Id === null ? false : Banking::useService()->getBankReferenceById($Id);
-        if (!$tblBankReference) {
-            $Stage->setContent(new Danger('Mandatsreferenz nicht gefunden'));
-            return $Stage.new Redirect('/Billing/Accounting/Banking/Reference', Redirect::TIMEOUT_ERROR);
+
+        $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
+        if (!$tblPerson) {
+            $Stage->setContent(new Danger('Person nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
         }
 
-        $tblPerson = $tblBankReference->getServiceTblPerson();
+        $tblBankReference = $BankReferenceId === null ? false : Banking::useService()->getBankReferenceById($BankReferenceId);
+        if (!$tblBankReference) {
+            $Stage->setContent(new Danger('Mandatsreferenz nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
+        }
+
         $PersonPanel = '';
         if ($tblPerson) {
 
@@ -925,15 +932,11 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
+                                , 6),
                             new LayoutColumn(
                                 new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
                                     new WarningText('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(( !empty( $ReferenceContent ) ) ?
-                                new Panel('Mandatsreferenzen', $ReferenceContent, Panel::PANEL_TYPE_SUCCESS)
-                                : null
-                                , 4),
+                                , 6)
                         )
                     ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
                 )
@@ -953,10 +956,10 @@ class Frontend extends Extension implements IFrontendInterface
                         Panel::PANEL_TYPE_DANGER,
                         new Standard(
                             'Ja', '/Billing/Accounting/Banking/Reference/Remove', new Ok(),
-                            array('Id' => $Id, 'Confirm' => true)
+                            array('Id' => $tblPerson->getId(), 'BankReferenceId' => $tblBankReference->getId(), 'Confirm' => true)
                         )
                         .new Standard(
-                            'Nein', '/Billing/Accounting/Banking/Reference', new Disable())
+                            'Nein', '/Billing/Accounting/Banking/View', new Disable(), array('Id' => $tblPerson->getId()))
                     )
                 ))))
             );
@@ -968,9 +971,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(new LayoutColumn(array(
                         ( Banking::useService()->removeBankReference($tblBankReference)
                             ? new Success('Mandatsreferenz entfernt')
-                            .new Redirect('/Billing/Accounting/Banking/Reference', Redirect::TIMEOUT_SUCCESS)
+                            .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()))
                             : new Danger('Mandatsreferenz konnte nicht entfernt werden')
-                            .new Redirect('/Billing/Accounting/Banking/Reference', Redirect::TIMEOUT_ERROR)
+                            .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()))
                         )
                     )))
                 )))
@@ -1340,14 +1343,16 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(
-                        new LayoutColumn(
+                        new LayoutColumn(array(
+                            new Title('Zahlungszuweisungen'),
+                            ( empty( $TableContent ) ? new Warning('Keine Zuweisungen vorhanden. Zuweisungen werden automatisch erstellt sobald ein Warenkorb fakturiert wird.') :
                             new TableData($TableContent, null,
                                 array('Name'      => 'Name',
                                       'ItemPayer' => 'Item - Bezahler',
                                       'Status'    => 'Status',
                                       'Option'    => '',
-                                ))
-                        )
+                                )) )
+                        ))
                     )
                 )
             )
