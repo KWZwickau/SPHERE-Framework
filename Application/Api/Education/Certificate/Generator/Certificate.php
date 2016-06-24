@@ -265,10 +265,15 @@ abstract class Certificate extends Extension
     private function allocateCompanyAddress(TblAddress $tblAddress)
     {
 
-        $this->Company['Address'] = array_merge($tblAddress->__toArray(),
+        $this->Company['Address'] = $tblAddress->__toArray();
+        if ($tblAddress->getTblCity()) {
+            $this->Company['Address'] = array_merge($this->Company['Address'],
             array('City' => $tblAddress->getTblCity()->__toArray()));
+        }
+        if ($tblAddress->getTblState()) {
         $this->Company['Address'] = array_merge($this->Company['Address'],
             array('State' => $tblAddress->getTblState()->__toArray()));
+        }
         $this->Company['Address']['Street']['Name'] = $tblAddress->getStreetName();
         $this->Company['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
         return $this;
