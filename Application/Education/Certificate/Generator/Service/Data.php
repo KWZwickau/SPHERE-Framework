@@ -4,6 +4,8 @@ namespace SPHERE\Application\Education\Certificate\Generator\Service;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -149,6 +151,125 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCertificate $tblCertificate
+     * @param int            $LaneIndex
+     * @param int            $LaneRanking
+     * @param TblGradeType   $tblGradeType
+     *
+     * @return null|object|TblCertificateGrade
+     */
+    public function createCertificateGrade(
+        TblCertificate $tblCertificate,
+        $LaneIndex,
+        $LaneRanking,
+        TblGradeType $tblGradeType
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificateGrade')->findOneBy(array(
+            TblCertificateGrade::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+            TblCertificateGrade::ATTR_LANE            => $LaneIndex,
+            TblCertificateGrade::ATTR_RANKING         => $LaneRanking
+        ));
+        if (null === $Entity) {
+            $Entity = new TblCertificateGrade();
+            $Entity->setTblCertificate($tblCertificate);
+            $Entity->setLane($LaneIndex);
+            $Entity->setRanking($LaneRanking);
+            $Entity->setServiceTblGradeType($tblGradeType);
+            $Entity->setEssential(false);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblCertificateGrade $tblCertificateGrade
+     * @param TblGradeType        $tblGradeType
+     *
+     * @return bool
+     */
+    public function updateCertificateGrade(TblCertificateGrade $tblCertificateGrade, TblGradeType $tblGradeType)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificateGrade $Entity */
+        $Entity = $Manager->getEntityById('TblCertificateGrade', $tblCertificateGrade->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblGradeType($tblGradeType);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param int            $LaneIndex
+     * @param int            $LaneRanking
+     * @param TblSubject     $tblSubject
+     * @param bool           $IsEssential
+     *
+     * @return TblCertificateSubject
+     */
+    public function createCertificateSubject(
+        TblCertificate $tblCertificate,
+        $LaneIndex,
+        $LaneRanking,
+        TblSubject $tblSubject,
+        $IsEssential = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificateSubject')->findOneBy(array(
+            TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+            TblCertificateSubject::ATTR_LANE            => $LaneIndex,
+            TblCertificateSubject::ATTR_RANKING         => $LaneRanking
+        ));
+        if (null === $Entity) {
+            $Entity = new TblCertificateSubject();
+            $Entity->setTblCertificate($tblCertificate);
+            $Entity->setLane($LaneIndex);
+            $Entity->setRanking($LaneRanking);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setEssential($IsEssential);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblCertificateSubject $tblCertificateSubject
+     * @param TblSubject            $tblSubject
+     * @param bool                  $IsEssential
+     *
+     * @return bool
+     */
+    public function updateCertificateSubject(
+        TblCertificateSubject $tblCertificateSubject,
+        TblSubject $tblSubject,
+        $IsEssential = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificateSubject $Entity */
+        $Entity = $Manager->getEntityById('TblCertificateSubject', $tblCertificateSubject->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setEssential($IsEssential);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param null|TblConsumer $tblConsumer
      *
      * @return bool|TblCertificate[]
@@ -209,6 +330,71 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCertificateSubject', $Id);
         return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return bool|TblCertificateSubject[]
+     */
+    public function getCertificateSubjectAll(TblCertificate $tblCertificate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificateSubject', array(
+                TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
+            ));
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return bool|TblCertificateGrade[]
+     */
+    public function getCertificateGradeAll(TblCertificate $tblCertificate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificateGrade', array(
+                TblCertificateGrade::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
+            ));
+    }
+
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param int            $LaneIndex
+     * @param int            $LaneRanking
+     *
+     * @return bool|TblCertificateSubject
+     */
+    public function getCertificateSubjectByIndex(TblCertificate $tblCertificate, $LaneIndex, $LaneRanking)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificateSubject', array(
+                TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateSubject::ATTR_LANE            => $LaneIndex,
+                TblCertificateSubject::ATTR_RANKING         => $LaneRanking
+            ));
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param int            $LaneIndex
+     * @param int            $LaneRanking
+     *
+     * @return bool|TblCertificateGrade
+     */
+    public function getCertificateGradeByIndex(TblCertificate $tblCertificate, $LaneIndex, $LaneRanking)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificateGrade', array(
+                TblCertificateGrade::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateGrade::ATTR_LANE            => $LaneIndex,
+                TblCertificateGrade::ATTR_RANKING         => $LaneRanking
+            ));
     }
 
     /**

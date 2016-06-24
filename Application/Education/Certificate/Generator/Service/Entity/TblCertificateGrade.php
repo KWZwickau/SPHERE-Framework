@@ -5,13 +5,14 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblCertificateBehavior")
+ * @Table(name="tblCertificateGrade")
  * @Cache(usage="READ_ONLY")
  */
 class TblCertificateGrade extends Element
@@ -19,8 +20,17 @@ class TblCertificateGrade extends Element
 
     const ATTR_LANE = 'Lane';
     const ATTR_RANKING = 'Ranking';
+    const ATTR_TBL_CERTIFICATE = 'tblCertificate';
     const SERVICE_TBL_GRADE_TYPE = 'serviceTblGradeType';
 
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblCertificate;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsEssential;
     /**
      * @Column(type="integer")
      */
@@ -34,6 +44,28 @@ class TblCertificateGrade extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblGradeType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblLiberation;
+
+    /**
+     * @return boolean
+     */
+    public function isEssential()
+    {
+
+        return (bool)$this->IsEssential;
+    }
+
+    /**
+     * @param boolean $IsEssential
+     */
+    public function setEssential($IsEssential)
+    {
+
+        $this->IsEssential = (bool)$IsEssential;
+    }
 
     /**
      * @return int
@@ -91,5 +123,53 @@ class TblCertificateGrade extends Element
     {
 
         $this->serviceTblGradeType = ( null === $tblGradeType ? null : $tblGradeType->getId() );
+    }
+
+    /**
+     * @return bool|TblLiberation
+     */
+    public function getServiceTblLiberation()
+    {
+
+        return 0;
+        // TODO
+
+//        if (null === $this->serviceTblLiberation) {
+//            return false;
+//        } else {
+//            return Subject::useService()->getSubjectById($this->serviceTblLiberation);
+//        }
+    }
+
+    /**
+     * @param TblLiberation|null $tblLiberation
+     */
+    public function setServiceTblLiberation(TblLiberation $tblLiberation = null)
+    {
+
+        // TODO
+//        $this->serviceTblLiberation = ( null === $tblLiberation ? null : $tblLiberation->getId() );
+    }
+
+    /**
+     * @return bool|TblCertificate
+     */
+    public function getTblCertificate()
+    {
+
+        if (null === $this->tblCertificate) {
+            return false;
+        } else {
+            return Generator::useService()->getCertificateById($this->tblCertificate);
+        }
+    }
+
+    /**
+     * @param null|TblCertificate $tblCertificate
+     */
+    public function setTblCertificate(TblCertificate $tblCertificate = null)
+    {
+
+        $this->tblCertificate = ( null === $tblCertificate ? null : $tblCertificate->getId() );
     }
 }
