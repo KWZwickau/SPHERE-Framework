@@ -590,28 +590,18 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function removeBanking(
+    public function removeDebtor(
         TblDebtor $tblDebtor
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
-
-        $EntityItems = $Manager->getEntity('TblDebtor')
-            ->findBy(array(TblDebtor::ATTR_DEBTOR_NUMBER => $tblDebtor->getId()));
-        if (null !== $EntityItems) {
-            foreach ($EntityItems as $Entity) {
-                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                    $Entity);
-                $Manager->killEntity($Entity);
-            }
-        }
 
         $Entity = $Manager->getEntity('TblDebtor')->findOneBy(array('Id' => $tblDebtor->getId()));
         if (null !== $Entity) {
             /**@var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
-            $Manager->killEntity($Entity);
+            $Manager->removeEntity($Entity);
             return true;
         }
         return false;

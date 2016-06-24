@@ -38,10 +38,10 @@ class Accounting implements IApplicationInterface
             new Link(new Link\Route(__NAMESPACE__.'/Banking'), new Link\Name('Debitoren'),
                 new Link\Icon(new Person()))
         );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/BankReference'), new Link\Name('Mandatsreferenz'),
-                new Link\Icon(new ClipBoard()))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__.'/BankReference'), new Link\Name('Mandatsreferenz'),
+//                new Link\Icon(new ClipBoard()))
+//        );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/DebtorSelection'), new Link\Name('Zahlungseinstellung'),
                 new Link\Icon(new CogWheels()))

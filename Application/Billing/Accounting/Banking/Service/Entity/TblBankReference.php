@@ -5,7 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -55,10 +54,6 @@ class TblBankReference extends Element
      * @Column(type="string")
      */
     protected $CashSign;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblDebtor;
 
     /**
      * @return string $Reference
@@ -215,28 +210,6 @@ class TblBankReference extends Element
     {
 
         $this->CashSign = $CashSign;
-    }
-
-    /**
-     * @return bool|TblDebtor
-     */
-    public function getTblDebtor()
-    {
-
-        if (null === $this->tblDebtor) {
-            return false;
-        } else {
-            return Banking::useService()->getDebtorById($this->tblDebtor);
-        }
-    }
-
-    /**
-     * @param null|TblDebtor $tblDebtor
-     */
-    public function setTblDebtor(TblDebtor $tblDebtor = null)
-    {
-
-        $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
     }
 
     /**

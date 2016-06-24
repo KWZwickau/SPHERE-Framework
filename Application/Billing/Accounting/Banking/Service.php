@@ -250,7 +250,8 @@ class Service extends AbstractService
                 (new Data($this->getBinding()))->createDebtor($tblPerson, $Debtor['DebtorNumber']);
 
                 return new Success('Der Debitor ist erfasst worden')
-                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
+                .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblPerson->getId()));
             } else {
                 return new Danger('Person nicht gefunden')
                 .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
@@ -301,7 +302,8 @@ class Service extends AbstractService
                 $Reference['IBAN'],
                 $Reference['BIC']);
             return new Success('Die Mandatsreferenz ist erfasst worden')
-            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
+            .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblPerson->getId()));
         }
 
         return $Stage;
@@ -461,11 +463,11 @@ class Service extends AbstractService
                 $Reference['BIC']);
             if ($tblBankReference->getServiceTblPerson()) {
                 return new Success('Änderungen an Informationen zur Mandatsreferenz sind erfasst')
-                .new Redirect('/Billing/Accounting/BankReference/View', Redirect::TIMEOUT_SUCCESS,
+                .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblBankReference->getServiceTblPerson()->getId()));
             } else {
                 return new Warning('Person nicht mehr gefunden')
-                .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
+                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
             }
 
         }
@@ -696,6 +698,27 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDebtor $tblDebtor
+     *
+     * @return bool|string
+     */
+    public function removeDebtor(TblDebtor $tblDebtor)
+    {
+
+        if (null === $tblDebtor) {
+            return '';
+        }
+
+        if ((new Data($this->getBinding()))->removeDebtor($tblDebtor)) {
+            return new Success('Der Debitor wurde erfolgreich gelöscht')
+            .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return new Danger('Der Debitor konnte nicht gelöscht werden')
+        .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
+    }
+
+    /**
      * @param TblBankReference $tblBankReference
      *
      * @return bool|string
@@ -743,26 +766,5 @@ class Service extends AbstractService
             }
         }
         return $Complete;
-    }
-
-    /**
-     * @param TblDebtor $tblDebtor
-     *
-     * @return string
-     */
-    public function destroyBanking(TblDebtor $tblDebtor)
-    {
-
-        if (null === $tblDebtor) {
-            return '';
-        }
-
-        if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
-            return new Success('Der Debitor wurde erfolgreich gelöscht')
-            .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
-        }
-
-        return new Danger('Der Debitor konnte nicht gelöscht werden')
-        .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
     }
 }
