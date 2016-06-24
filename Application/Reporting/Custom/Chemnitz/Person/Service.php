@@ -179,7 +179,7 @@ class Service
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
-                $Item['LastName'] = $tblPerson->getFirstSecondName();
+                $Item['LastName'] = $tblPerson->getLastName();
                 $Item['Birthday'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['City'] = $Item['Code'] = '';
                 $Item['Address'] = '';
@@ -574,7 +574,7 @@ class Service
         if (!empty($tblPersonList)) {
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
-                $Item['FirstName'] = $tblPerson->getFirstName();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
                 $Item['Address'] = '';
