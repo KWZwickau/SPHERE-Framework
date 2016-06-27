@@ -77,10 +77,25 @@ class Data extends AbstractData
                 'Halbjahreszeugnis', 'Realschule', 'ESZC\CheHjRs', $tblConsumer
             );
             $this->createCertificate(
-                'Jahreszeugnis', '', 'ESZC\CheJ', $tblConsumer
+                'Jahreszeugnis', 'Mittelschule', 'ESZC\CheJ', $tblConsumer
             );
             $this->createCertificate(
                 'Jahreszeugnis', 'Gymnasium', 'ESZC\CheJGym', $tblConsumer
+            );
+            $this->createCertificate(
+                'Bildungsempfehlung', 'Klassenstufe 4', 'ESZC\CheBeGs', $tblConsumer
+            );
+            $this->createCertificate(
+                'Jahreszeugnis', 'Grundschule 2-4', 'ESZC\CheJGs', $tblConsumer
+            );
+            $this->createCertificate(
+                'Jahreszeugnis', 'Grundschule 1', 'ESZC\CheJGsOne', $tblConsumer
+            );
+            $this->createCertificate(
+                'Habljahresinformation', 'Grundschule 2-4', 'ESZC\CheHjInfoGs', $tblConsumer
+            );
+            $this->createCertificate(
+                'Habljahresinformation', 'Grundschule 1', 'ESZC\CheHjInfoGsOne', $tblConsumer
             );
         }
 
