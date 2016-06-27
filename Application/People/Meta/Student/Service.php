@@ -15,10 +15,8 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentRelease;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
@@ -76,6 +74,7 @@ class Service extends Integration
 
     /**
      * @param TblSiblingRank $tblSiblingRank
+     *
      * @return TblStudentBilling
      */
     public function insertStudentBilling(TblSiblingRank $tblSiblingRank)
@@ -113,8 +112,9 @@ class Service extends Integration
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent              $tblStudent
      * @param TblStudentAgreementType $tblStudentAgreementType
+     *
      * @return Service\Entity\TblStudentAgreement
      */
     public function insertStudentAgreement(
@@ -149,14 +149,15 @@ class Service extends Integration
     }
 
     /**
-     * @param TblPerson|null $IntegrationPerson
+     * @param TblPerson|null  $IntegrationPerson
      * @param TblCompany|null $IntegrationCompany
-     * @param $CoachingRequestDate
-     * @param $CoachingCounselDate
-     * @param $CoachingDecisionDate
-     * @param $CoachingRequired
-     * @param $CoachingTime
-     * @param string $CoachingRemark
+     * @param                 $CoachingRequestDate
+     * @param                 $CoachingCounselDate
+     * @param                 $CoachingDecisionDate
+     * @param                 $CoachingRequired
+     * @param                 $CoachingTime
+     * @param string          $CoachingRemark
+     *
      * @return Service\Entity\TblStudentIntegration
      */
     public function insertStudentIntegration(
@@ -183,7 +184,7 @@ class Service extends Integration
     }
 
 
-        /**
+    /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta
@@ -316,14 +317,6 @@ class Service extends Integration
                 );
             }
 
-//            $tblStudentRelease = $tblStudent->getTblStudentRelease();
-//            if ($tblStudentRelease) {
-//                (new Data($this->getBinding()))->updateStudentRelease($tblStudentRelease, $Meta['Release']);
-//            } else {
-//                $tblStudentRelease = (new Data($this->getBinding()))->createStudentRelease($Meta['Release']);
-//            }
-            $tblStudentRelease = null;
-
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
                 $Meta['Student']['Identifier'],
@@ -332,8 +325,7 @@ class Service extends Integration
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration,
-                $tblStudentRelease
+                $tblStudentIntegration
             );
 
         } else {
@@ -379,9 +371,6 @@ class Service extends Integration
                 $SiblingRank ? $SiblingRank : null
             );
 
-//            $tblStudentRelease = (new Data($this->getBinding()))->createStudentRelease($Meta['Release']);
-            $tblStudentRelease = null;
-
             $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Meta['Student']['Identifier'],
@@ -390,8 +379,7 @@ class Service extends Integration
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration,
-                $tblStudentRelease
+                $tblStudentIntegration
             );
         }
 
@@ -627,9 +615,29 @@ class Service extends Integration
                     }
                 }
             }
+
+            $tblStudentLiberationAllByStudent = $this->getStudentLiberationAllByStudent($tblStudent);
+            if ($tblStudentLiberationAllByStudent) {
+                foreach ($tblStudentLiberationAllByStudent as $tblStudentLiberation) {
+                    (new Data($this->getBinding()))->removeStudentLiberation($tblStudentLiberation);
+                }
+            }
+            if (isset( $Meta['Liberation'] )) {
+                foreach ($Meta['Liberation'] as $Category => $Type) {
+                    $tblStudentLiberationCategory = $this->getStudentLiberationTypeById($Category);
+                    if ($tblStudentLiberationCategory) {
+                        // TODO: Save only if Typ exists in Category
+                        $tblStudentLiberationType = $this->getStudentLiberationTypeById($Type);
+                        if ($tblStudentLiberationType) {
+                            (new Data($this->getBinding()))->addStudentLiberation($tblStudent,
+                                $tblStudentLiberationType);
+                        }
+                    }
+                }
+            }
         }
 
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert')
         .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
     }
 
@@ -638,8 +646,7 @@ class Service extends Integration
      *
      * @return bool|TblStudentMedicalRecord
      */
-    public
-    function getStudentMedicalRecordById(
+    public function getStudentMedicalRecordById(
         $Id
     ) {
 
@@ -651,8 +658,7 @@ class Service extends Integration
      *
      * @return bool|TblStudentBaptism
      */
-    public
-    function getStudentBaptismById(
+    public function getStudentBaptismById(
         $Id
     ) {
 
@@ -664,8 +670,7 @@ class Service extends Integration
      *
      * @return bool|TblStudentBilling
      */
-    public
-    function getStudentBillingById(
+    public function getStudentBillingById(
         $Id
     ) {
 
@@ -677,8 +682,7 @@ class Service extends Integration
      *
      * @return bool|TblStudentLocker
      */
-    public
-    function getStudentLockerById(
+    public function getStudentLockerById(
         $Id
     ) {
 
@@ -690,45 +694,13 @@ class Service extends Integration
      *
      * @return bool|TblStudentTransport
      */
-    public
-    function getStudentTransportById(
+    public function getStudentTransportById(
         $Id
     ) {
 
         return (new Data($this->getBinding()))->getStudentTransportById($Id);
     }
 
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblStudentRelease
-     */
-    public function getStudentReleaseById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getStudentReleaseById($Id);
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblStudentLiberationType
-     */
-    public function getStudentLiberationTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getStudentLiberationTypeById($Id);
-    }
-
-    /**
-     * @return bool|TblStudentLiberationType[]
-     */
-    public function getStudentLiberationTypeAll()
-    {
-        
-        return (new Data($this->getBinding()))->getStudentLiberationTypeAll();
-    }
-    
     /**
      * @param TblPerson $tblPerson
      *

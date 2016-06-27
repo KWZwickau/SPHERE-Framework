@@ -4,10 +4,8 @@ namespace SPHERE\Application\People\Meta\Student\Service;
 use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentRelease;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
@@ -82,32 +80,10 @@ class Data extends Integration
         $this->createStudentTransferType('LEAVE', 'Abgabe');
         $this->createStudentTransferType('PROCESS', 'Process');
         
-        $this->createStudentLiberationType('TYPE_NO_LIBERATION', 'Nicht befreit');
-        $this->createStudentLiberationType('TYPE_PART_LIBERATION', 'Teilbefreit');
-        $this->createStudentLiberationType('TYPE_FULL_LIBERATION', 'Vollbefreit');
-    }
-
-    /**
-     * @param string $Identifier
-     * @param string $Name
-     *
-     * @return TblStudentLiberationType
-     */
-    public function createStudentLiberationType($Identifier, $Name)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblStudentLiberationType')->findOneBy(array(
-            TblStudentLiberationType::ATTR_IDENTIFIER => $Identifier
-        ));
-        if (null === $Entity) {
-            $Entity = new TblStudentLiberationType();
-            $Entity->setIdentifier($Identifier);
-            $Entity->setName($Name);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-        return $Entity;
+        $tblStudentLiberationCategory = $this->createStudentLiberationCategory('Sportbefreihung');
+        $this->createStudentLiberationType( $tblStudentLiberationCategory, 'Nicht befreit');
+        $this->createStudentLiberationType( $tblStudentLiberationCategory, 'Teilbefreit');
+        $this->createStudentLiberationType( $tblStudentLiberationCategory, 'Vollbefreit');
     }
 
     /**
@@ -447,85 +423,6 @@ class Data extends Integration
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentTransport', $Id
-        );
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblStudentRelease
-     */
-    public function getStudentReleaseById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblStudentRelease', $Id
-        );
-    }
-
-    /**
-     * @param $SportRelease
-     *
-     * @return TblStudentRelease
-     */
-    public function createStudentRelease(
-        $SportRelease
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = new TblStudentRelease();
-        $Entity->setSportRelease($SportRelease);
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-
-        return $Entity;
-    }
-
-    /**
-     * @param TblStudentRelease $tblStudentRelease
-     * @param $SportRelease
-     * @return bool
-     */
-    public function updateStudentRelease(
-        TblStudentRelease $tblStudentRelease,
-        $SportRelease
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var null|TblStudentRelease $Entity */
-        $Entity = $Manager->getEntityById('TblStudentRelease', $tblStudentRelease->getId());
-        if (null !== $Entity) {
-            $Protocol = clone $Entity;
-            $Entity->setSportRelease($SportRelease);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblStudentLiberationType
-     */
-    public function getStudentLiberationTypeById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblStudentLiberationType', $Id
-        );
-    }
-
-    /**
-     * @return bool|TblStudentLiberationType[]
-     */
-    public function getStudentLiberationTypeAll()
-    {
-
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblStudentLiberationType'
         );
     }
 }

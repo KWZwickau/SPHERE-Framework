@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -15,13 +16,13 @@ use SPHERE\System\Database\Fitting\Element;
 class TblStudentLiberationType extends Element
 {
 
-    const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_NAME = 'Name';
+    const ATTR_TBL_STUDENT_LIBERATION_CATEGORY = 'tblStudentLiberationCategory';
 
     /**
-     * @Column(type="string")
+     * @Column(type="bigint")
      */
-    protected $Identifier;
+    protected $tblStudentLiberationCategory;
     /**
      * @Column(type="string")
      */
@@ -44,22 +45,27 @@ class TblStudentLiberationType extends Element
 
         $this->Name = $Name;
     }
-
+    
     /**
-     * @return string
+     * @return bool|TblStudentLiberationCategory
      */
-    public function getIdentifier()
+    public function getTblStudentLiberationCategory()
     {
 
-        return $this->Identifier;
+        if (null === $this->tblStudentLiberationCategory) {
+            return false;
+        } else {
+            return Student::useService()->getStudentLiberationCategoryById($this->tblStudentLiberationCategory);
+        }
     }
 
     /**
-     * @param string $Identifier
+     * @param TblStudentLiberationCategory|null $tblStudentLiberationCategory
      */
-    public function setIdentifier($Identifier)
-    {
+    public function setTblStudentLiberationCategory(
+        TblStudentLiberationCategory $tblStudentLiberationCategory = null
+    ) {
 
-        $this->Identifier = $Identifier;
+        $this->tblStudentLiberationCategory = ( null === $tblStudentLiberationCategory ? null : $tblStudentLiberationCategory->getId() );
     }
 }
