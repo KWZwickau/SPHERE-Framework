@@ -81,8 +81,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'IsEssential')) {
             $Table->addColumn('IsEssential', 'boolean');
         }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'serviceTblLiberation')) {
-            $Table->addColumn('serviceTblLiberation', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'serviceTblStudentLiberationType')) {
+            $Table->addColumn('serviceTblStudentLiberationType', 'bigint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
@@ -111,8 +111,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblCertificateGrade', 'IsEssential')) {
             $Table->addColumn('IsEssential', 'boolean');
         }
-        if (!$this->getConnection()->hasColumn('tblCertificateGrade', 'serviceTblLiberation')) {
-            $Table->addColumn('serviceTblLiberation', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblCertificateGrade', 'serviceTblStudentLiberationType')) {
+            $Table->addColumn('serviceTblStudentLiberationType', 'bigint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblCertificateGrade', 'serviceTblGradeType')) {
             $Table->addColumn('serviceTblGradeType', 'bigint', array('notnull' => false));

@@ -15,6 +15,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentRelease;
@@ -706,6 +707,26 @@ class Service extends Integration
         return (new Data($this->getBinding()))->getStudentReleaseById($Id);
     }
 
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentLiberationType
+     */
+    public function getStudentLiberationTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getStudentLiberationTypeById($Id);
+    }
+
+    /**
+     * @return bool|TblStudentLiberationType[]
+     */
+    public function getStudentLiberationTypeAll()
+    {
+        
+        return (new Data($this->getBinding()))->getStudentLiberationTypeAll();
+    }
+    
     /**
      * @param TblPerson $tblPerson
      *

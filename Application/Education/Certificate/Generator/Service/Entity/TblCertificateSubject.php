@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -47,7 +49,7 @@ class TblCertificateSubject extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblLiberation;
+    protected $serviceTblStudentLiberationType;
 
     /**
      * @return boolean
@@ -126,29 +128,25 @@ class TblCertificateSubject extends Element
     }
 
     /**
-     * @return bool|TblLiberation
+     * @return bool|TblStudentLiberationType
      */
-    public function getServiceTblLiberation()
+    public function getServiceTblStudentLiberationType()
     {
 
-        return 0;
-        // TODO
-
-//        if (null === $this->serviceTblLiberation) {
-//            return false;
-//        } else {
-//            return Subject::useService()->getSubjectById($this->serviceTblLiberation);
-//        }
+        if (null === $this->serviceTblStudentLiberationType) {
+            return false;
+        } else {
+            return Student::useService()->getStudentLiberationTypeById($this->serviceTblStudentLiberationType);
+        }
     }
 
     /**
-     * @param TblLiberation|null $tblLiberation
+     * @param TblStudentLiberationType|null $tblStudentLiberationType
      */
-    public function setServiceTblLiberation(TblLiberation $tblLiberation = null)
+    public function setServiceTblStudentLiberationType(TblStudentLiberationType $tblStudentLiberationType = null)
     {
 
-        // TODO
-//        $this->serviceTblLiberation = ( null === $tblLiberation ? null : $tblLiberation->getId() );
+        $this->serviceTblStudentLiberationType = ( null === $tblStudentLiberationType ? null : $tblStudentLiberationType->getId() );
     }
 
     /**

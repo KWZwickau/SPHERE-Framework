@@ -31,7 +31,9 @@ class Setup extends AbstractSetup
         $tblStudentLocker = $this->setTableStudentLocker($Schema);
         $tblStudentBaptism = $this->setTableStudentBaptism($Schema);
         $tblStudentIntegration = $this->setTableStudentIntegration($Schema);
-        $tblStudentRelease = $this->setTableStudentRelease($Schema);
+
+        $tblStudentLiberationType = $this->setTableStudentLiberationType($Schema);
+        $tblStudentRelease = $this->setTableStudentRelease($Schema, $tblStudentLiberationType);
 
         $tblStudent = $this->setTableStudent(
             $Schema, $tblStudentMedicalRecord, $tblStudentTransport,
@@ -210,9 +212,29 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableStudentRelease(Schema &$Schema)
+    private function setTableStudentLiberationType(Schema &$Schema)
     {
 
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentLiberationType');
+        if (!$this->getConnection()->hasColumn('tblStudentLiberationType', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentLiberationType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblStudentTransferType
+     *
+     * @return Table
+     */
+    private function setTableStudentRelease(Schema &$Schema, Table $tblStudentTransferType)
+    {
+
+        // TODO: REWRITE TO LIBERATION
         $Table = $this->getConnection()->createTable($Schema, 'tblStudentRelease');
         if (!$this->getConnection()->hasColumn('tblStudentRelease', 'SportRelease')) {
             $Table->addColumn('SportRelease', 'smallint', array('notnull' => 0));

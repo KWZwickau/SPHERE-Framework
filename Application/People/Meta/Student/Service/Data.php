@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Meta\Student\Service;
 use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentRelease;
@@ -80,6 +81,33 @@ class Data extends Integration
         $this->createStudentTransferType('ARRIVE', 'Aufnahme');
         $this->createStudentTransferType('LEAVE', 'Abgabe');
         $this->createStudentTransferType('PROCESS', 'Process');
+        
+        $this->createStudentLiberationType('TYPE_NO_LIBERATION', 'Nicht befreit');
+        $this->createStudentLiberationType('TYPE_PART_LIBERATION', 'Teilbefreit');
+        $this->createStudentLiberationType('TYPE_FULL_LIBERATION', 'Vollbefreit');
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Name
+     *
+     * @return TblStudentLiberationType
+     */
+    public function createStudentLiberationType($Identifier, $Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentLiberationType')->findOneBy(array(
+            TblStudentLiberationType::ATTR_IDENTIFIER => $Identifier
+        ));
+        if (null === $Entity) {
+            $Entity = new TblStudentLiberationType();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
     }
 
     /**
@@ -475,5 +503,29 @@ class Data extends Integration
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentLiberationType
+     */
+    public function getStudentLiberationTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentLiberationType', $Id
+        );
+    }
+
+    /**
+     * @return bool|TblStudentLiberationType[]
+     */
+    public function getStudentLiberationTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentLiberationType'
+        );
     }
 }
