@@ -714,4 +714,84 @@ abstract class Certificate extends Extension
         
         return $SubjectSlice; 
     }
+    
+    /**
+     * @return Slice
+     * @throws \Exception
+     */
+    protected function getGradeLanes()
+    {
+        
+        $GradeSlice = (new Slice());
+
+        $tblCertificateGradeAll = Generator::useService()->getCertificateGradeAll( $this->getCertificateEntity() );
+        if( !empty($tblCertificateGradeAll) ) {
+            $GradeStructure = array();
+            foreach ($tblCertificateGradeAll as $tblCertificateGrade) {
+                $tblGradeType = $tblCertificateGrade->getServiceTblGradeType();
+
+                $GradeStructure[$tblCertificateGrade->getRanking()][$tblCertificateGrade->getLane()]['GradeAcronym'] = $tblGradeType->getCode();
+                $GradeStructure[$tblCertificateGrade->getRanking()][$tblCertificateGrade->getLane()]['GradeName'] = $tblGradeType->getName();
+
+            }
+        }
+
+        // Shrink Lanes
+        $LaneCounter = array( 1 => 0, 2 => 0);
+        $GradeLayout = array();
+        ksort( $GradeStructure );
+        foreach ($GradeStructure as $GradeList ) {
+            ksort( $GradeList );
+            foreach ($GradeList as $Lane => $Grade ) {
+                $GradeLayout[$LaneCounter[$Lane]][$Lane] = $Grade;
+                $LaneCounter[$Lane]++;
+            }
+        }
+        $GradeStructure = $GradeLayout;
+
+        foreach ($GradeStructure as $GradeList ) {
+            // Sort Lane-Ranking (1,2...)
+            ksort( $GradeList );
+
+            $GradeSection = (new Section());
+
+            if( count( $GradeList ) == 1 && isset( $GradeList[2] ) ) {
+                $GradeSection->addElementColumn((new Element()), 'auto' );
+            }
+
+            foreach ($GradeList as $Lane => $Grade ) {
+
+                if( $Lane > 1 ) {
+                    $GradeSection->addElementColumn((new Element())
+                        , '4%');
+                }
+                $GradeSection->addElementColumn((new Element())
+                    ->setContent( $Grade['GradeName'] )
+                    ->stylePaddingTop()
+                    ->styleMarginTop('5px')
+                    , '39%');
+                $GradeSection->addElementColumn((new Element())
+                     ->setContent('{% if(Content.Input.'.$Grade['GradeAcronym'].' is not empty) %}
+                                         {{ Content.Input.'.$Grade['GradeAcronym'].' }}
+                                     {% else %}
+                                         ---
+                                     {% endif %}')
+                     ->styleAlignCenter()
+                     ->styleBackgroundColor('#BBB')
+                     ->styleBorderBottom('1px', '#000')
+                     ->stylePaddingTop()
+                     ->stylePaddingBottom()
+                     ->styleMarginTop('5px')
+                     , '9%');
+            }
+
+            if( count( $GradeList ) == 1 && isset( $GradeList[1] ) ) {
+                $GradeSection->addElementColumn((new Element()), '52%' );
+            }
+
+            $GradeSlice->addSection($GradeSection)->styleMarginTop('15px');
+        }
+        
+        return $GradeSlice; 
+    }
 }
