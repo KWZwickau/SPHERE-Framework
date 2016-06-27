@@ -574,15 +574,15 @@ class Frontend extends Extension implements IFrontendInterface
                             'Ausstiegshaltestelle', new StopSign()),
                         new TextArea('Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
-                    new Panel('Schulbefreiung', array(
-                        new SelectBox('Meta[Release]', 'Sport', array(
-                            TblStudentRelease::VALUE_SPORT_RELEASE_NULL => '',
-                            TblStudentRelease::VALUE_SPORT_NO_RELEASE   => 'Nicht befreit',
-                            TblStudentRelease::VALUE_SPORT_PART_RELEASE => 'Teilbefreit',
-                            TblStudentRelease::VALUE_SPORT_FULL_RELEASE => 'Vollbefreit',
-
-                        ))
-                    ), Panel::PANEL_TYPE_INFO)
+//                    new Panel('Schulbefreiung', array(
+//                        new SelectBox('Meta[Release]', 'Sport', array(
+//                            TblStudentRelease::VALUE_SPORT_RELEASE_NULL => '',
+//                            TblStudentRelease::VALUE_SPORT_NO_RELEASE   => 'Nicht befreit',
+//                            TblStudentRelease::VALUE_SPORT_PART_RELEASE => 'Teilbefreit',
+//                            TblStudentRelease::VALUE_SPORT_FULL_RELEASE => 'Vollbefreit',
+//
+//                        ))
+//                    ), Panel::PANEL_TYPE_INFO)
                 ), 3),
                 new FormColumn($AgreementPanel, 3),
             )),
