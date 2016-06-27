@@ -277,6 +277,25 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCertificateSubject $tblCertificateSubject
+     *
+     * @return bool
+     */
+    public function removeCertificateSubject(TblCertificateSubject $tblCertificateSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificateSubject $Entity */
+        $Entity = $Manager->getEntityById('TblCertificateSubject', $tblCertificateSubject->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
      * @param null|TblConsumer $tblConsumer
      *
      * @return bool|TblCertificate[]

@@ -5,7 +5,11 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
@@ -41,7 +45,7 @@ abstract class Certificate extends Extension
     private $Person = array('Data' => array());
     private $Company = array('Data' => array());
     private $Division = array('Data' => array());
-    private $Grade = array('Data' => array());
+    protected $Grade = array('Data' => array());
     /**
      * @var bool
      */
@@ -111,6 +115,42 @@ abstract class Certificate extends Extension
                 ? ' ('.$tblCertificate->getDescription().')'
                 : ''
             );
+        }
+        throw new \Exception('Certificate Missing: '.$Certificate);
+    }
+
+    /**
+     * @return bool|TblCertificate
+     * @throws \Exception
+     */
+    public function getCertificateEntity()
+    {
+
+        $Certificate = trim(str_replace(
+            'SPHERE\Application\Api\Education\Certificate\Generator\Repository', '', get_class($this)
+        ), '\\');
+
+        $tblCertificate = Generator::useService()->getCertificateByCertificateClassName($Certificate);
+        if ($tblCertificate) {
+            return $tblCertificate;
+        }
+        throw new \Exception('Certificate Missing: '.$Certificate);
+    }
+
+    /**
+     * @return int Certificate-Id from Database-Settings
+     * @throws \Exception
+     */
+    public function getCertificateId()
+    {
+
+        $Certificate = trim(str_replace(
+            'SPHERE\Application\Api\Education\Certificate\Generator\Repository', '', get_class($this)
+        ), '\\');
+
+        $tblCertificate = Generator::useService()->getCertificateByCertificateClassName($Certificate);
+        if ($tblCertificate) {
+            return $tblCertificate->getId();
         }
         throw new \Exception('Certificate Missing: '.$Certificate);
     }
@@ -193,10 +233,12 @@ abstract class Certificate extends Extension
             $this->allocateDivisionData();
         }
 
-        /**
-         * Allocate Grade
-         */
-        $this->allocateGradeData();
+        if (empty( $this->Grade['Data'] )) {
+            /**
+             * Allocate Grade
+             */
+            $this->allocateGradeData();
+        }
 
         return $this;
     }
@@ -560,5 +602,116 @@ abstract class Certificate extends Extension
 
         $this->prepareData();
         return $this->Grade;
+    }
+
+    /**
+     * @return Slice
+     * @throws \Exception
+     */
+    protected function getSubjectLanes()
+    {
+
+        $SubjectSlice = (new Slice());
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll( $this->getCertificateEntity() );
+        $tblGradeList = $this->getGrade();
+        if( !empty($tblCertificateSubjectAll) ) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+
+                // Grade Exists? => Add Subject to Certificate
+                if( isset( $tblGradeList['Data'][$tblSubject->getAcronym()] ) ) {
+                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym'] = $tblSubject->getAcronym();
+                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName'] = $tblSubject->getName();
+                } else {
+                    // Grade Missing, But Subject Essential => Add Subject to Certificate
+                    if( $tblCertificateSubject->isEssential() ) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym'] = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName'] = $tblSubject->getName();
+                        // Liberation?
+                        $PersonList = $this->getPerson();
+                        if(
+                            isset($PersonList['Student']) && isset($PersonList['Student']['Id'])
+                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
+                        ) {
+                            $tblStudent = Student::useService()->getStudentById( $PersonList['Student']['Id'] );
+                            if( $tblStudent ) {
+                                $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
+                                if( $tblStudentLiberationAll ) {
+                                    foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
+                                        if (( $tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType() )) {
+                                            $tblStudentLiberationType->getTblStudentLiberationCategory();
+                                            if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
+                                                $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array( 1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort( $SubjectStructure );
+            foreach ($SubjectStructure as $SubjectList ) {
+                ksort( $SubjectList );
+                foreach ($SubjectList as $Lane => $Subject ) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+
+            foreach ($SubjectStructure as $SubjectList ) {
+                // Sort Lane-Ranking (1,2...)
+                ksort( $SubjectList );
+
+                $SubjectSection = (new Section());
+
+                if( count( $SubjectList ) == 1 && isset( $SubjectList[2] ) ) {
+                    $SubjectSection->addElementColumn((new Element()), 'auto' );
+                }
+
+                foreach ($SubjectList as $Lane => $Subject ) {
+
+                    if( $Lane > 1 ) {
+                        $SubjectSection->addElementColumn((new Element())
+                            , '4%');
+                    }
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent( $Subject['SubjectName'] )
+                        ->stylePaddingTop()
+                        ->styleMarginTop('5px')
+                        , '39%');
+                    $SubjectSection->addElementColumn((new Element())
+                         ->setContent('{% if(Content.Grade.Data.'.$Subject['SubjectAcronym'].' is not empty) %}
+                                             {{ Content.Grade.Data.'.$Subject['SubjectAcronym'].' }}
+                                         {% else %}
+                                             ---
+                                         {% endif %}')
+                         ->styleAlignCenter()
+                         ->styleBackgroundColor('#BBB')
+                         ->styleBorderBottom('1px', '#000')
+                         ->stylePaddingTop()
+                         ->stylePaddingBottom()
+                         ->styleMarginTop('5px')
+                         , '9%');
+
+                }
+
+                if( count( $SubjectList ) == 1 && isset( $SubjectList[1] ) ) {
+                    $SubjectSection->addElementColumn((new Element()), '52%' );
+                }
+
+                $SubjectSlice->addSection($SubjectSection);
+            }
+        }
+        
+        return $SubjectSlice; 
     }
 }
