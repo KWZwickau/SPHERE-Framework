@@ -315,12 +315,13 @@ class Service extends Integration
                 );
             }
 
-            $tblStudentRelease = $tblStudent->getTblStudentRelease();
-            if ($tblStudentRelease) {
-                (new Data($this->getBinding()))->updateStudentRelease($tblStudentRelease, $Meta['Release']);
-            } else {
-                $tblStudentRelease = (new Data($this->getBinding()))->createStudentRelease($Meta['Release']);
-            }
+//            $tblStudentRelease = $tblStudent->getTblStudentRelease();
+//            if ($tblStudentRelease) {
+//                (new Data($this->getBinding()))->updateStudentRelease($tblStudentRelease, $Meta['Release']);
+//            } else {
+//                $tblStudentRelease = (new Data($this->getBinding()))->createStudentRelease($Meta['Release']);
+//            }
+            $tblStudentRelease = null;
 
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
@@ -377,7 +378,8 @@ class Service extends Integration
                 $SiblingRank ? $SiblingRank : null
             );
 
-            $tblStudentRelease = (new Data($this->getBinding()))->createStudentRelease($Meta['Release']);
+//            $tblStudentRelease = (new Data($this->getBinding()))->createStudentRelease($Meta['Release']);
+            $tblStudentRelease = null;
 
             $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
