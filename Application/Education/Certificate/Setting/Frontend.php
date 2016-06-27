@@ -143,8 +143,8 @@ class Frontend extends Extension implements IFrontendInterface
                         : 0
                     );
                 $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['Liberation'] =
-                    ( $tblCertificateSubject->getServiceTblStudentLiberationType()
-                        ? $tblCertificateSubject->getServiceTblStudentLiberationType()->getId()
+                    ( $tblCertificateSubject->getServiceTblStudentLiberationCategory()
+                        ? $tblCertificateSubject->getServiceTblStudentLiberationCategory()->getId()
                         : 0
                     );
                 $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['IsEssential'] =
@@ -156,7 +156,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        $tblStudentLiberationTypeAll = Student::useService()->getStudentLiberationTypeAll();
+        $tblStudentLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll();
 
         return new Panel($LaneTitle, array(
             new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Subject]', 'Fach',
@@ -165,7 +165,7 @@ class Frontend extends Extension implements IFrontendInterface
             new CheckBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][IsEssential]',
                 'Muss immer ausgewiesen werden', 1),
             new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Liberation]', 'Befreihung',
-                array('{{ Name }}' => $tblStudentLiberationTypeAll)
+                array('{{ Name }}' => $tblStudentLiberationCategoryAll)
             ),
         ));
     }

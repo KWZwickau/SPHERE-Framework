@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -49,7 +49,7 @@ class TblCertificateGrade extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblStudentLiberationType;
+    protected $serviceTblStudentLiberationCategory;
 
     /**
      * @return boolean
@@ -128,25 +128,25 @@ class TblCertificateGrade extends Element
     }
 
     /**
-     * @return bool|TblStudentLiberationType
+     * @return bool|TblStudentLiberationCategory
      */
-    public function getServiceTblStudentLiberationType()
+    public function getServiceTblStudentLiberationCategory()
     {
 
-        if (null === $this->serviceTblStudentLiberationType) {
+        if (null === $this->serviceTblStudentLiberationCategory) {
             return false;
         } else {
-            return Student::useService()->getStudentLiberationTypeById($this->serviceTblStudentLiberationType);
+            return Student::useService()->getStudentLiberationCategoryById($this->serviceTblStudentLiberationCategory);
         }
     }
 
     /**
-     * @param TblStudentLiberationType|null $tblStudentLiberationType
+     * @param TblStudentLiberationCategory|null $tblStudentLiberationCategory
      */
-    public function setServiceTblStudentLiberationType(TblStudentLiberationType $tblStudentLiberationType = null)
+    public function setServiceTblStudentLiberationCategory(TblStudentLiberationCategory $tblStudentLiberationCategory = null)
     {
 
-        $this->serviceTblStudentLiberationType = ( null === $tblStudentLiberationType ? null : $tblStudentLiberationType->getId() );
+        $this->serviceTblStudentLiberationCategory = ( null === $tblStudentLiberationCategory ? null : $tblStudentLiberationCategory->getId() );
     }
 
     /**

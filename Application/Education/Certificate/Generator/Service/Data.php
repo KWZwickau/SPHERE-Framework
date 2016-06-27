@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -207,11 +208,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblCertificate $tblCertificate
-     * @param int            $LaneIndex
-     * @param int            $LaneRanking
-     * @param TblSubject     $tblSubject
-     * @param bool           $IsEssential
+     * @param TblCertificate               $tblCertificate
+     * @param int                          $LaneIndex
+     * @param int                          $LaneRanking
+     * @param TblSubject                   $tblSubject
+     * @param bool                         $IsEssential
+     * @param null|TblStudentLiberationCategory $tblStudentLiberationCategory
      *
      * @return TblCertificateSubject
      */
@@ -220,7 +222,8 @@ class Data extends AbstractData
         $LaneIndex,
         $LaneRanking,
         TblSubject $tblSubject,
-        $IsEssential = false
+        $IsEssential = false,
+        TblStudentLiberationCategory $tblStudentLiberationCategory = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -235,6 +238,7 @@ class Data extends AbstractData
             $Entity->setLane($LaneIndex);
             $Entity->setRanking($LaneRanking);
             $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblStudentLiberationCategory($tblStudentLiberationCategory);
             $Entity->setEssential($IsEssential);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -246,13 +250,15 @@ class Data extends AbstractData
      * @param TblCertificateSubject $tblCertificateSubject
      * @param TblSubject            $tblSubject
      * @param bool                  $IsEssential
+     * @param null|TblStudentLiberationCategory $tblStudentLiberationCategory
      *
      * @return bool
      */
     public function updateCertificateSubject(
         TblCertificateSubject $tblCertificateSubject,
         TblSubject $tblSubject,
-        $IsEssential = false
+        $IsEssential = false,
+        TblStudentLiberationCategory $tblStudentLiberationCategory = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -261,6 +267,7 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblStudentLiberationCategory($tblStudentLiberationCategory);
             $Entity->setEssential($IsEssential);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
