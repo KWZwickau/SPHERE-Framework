@@ -86,16 +86,16 @@ class Data extends AbstractData
                 'Bildungsempfehlung', 'Klassenstufe 4', 'ESZC\CheBeGs', $tblConsumer
             );
             $this->createCertificate(
-                'Jahreszeugnis', 'Grundschule 2-4', 'ESZC\CheJGs', $tblConsumer
+                'Jahreszeugnis', 'Grundschule Klasse 2-4', 'ESZC\CheJGs', $tblConsumer
             );
             $this->createCertificate(
-                'Jahreszeugnis', 'Grundschule 1', 'ESZC\CheJGsOne', $tblConsumer
+                'Jahreszeugnis', 'Grundschule Klasse 1', 'ESZC\CheJGsOne', $tblConsumer
             );
             $this->createCertificate(
-                'Habljahresinformation', 'Grundschule 2-4', 'ESZC\CheHjInfoGs', $tblConsumer
+                'Habljahresinformation', 'Grundschule Klasse 2-4', 'ESZC\CheHjInfoGs', $tblConsumer
             );
             $this->createCertificate(
-                'Habljahresinformation', 'Grundschule 1', 'ESZC\CheHjInfoGsOne', $tblConsumer
+                'Habljahresinformation', 'Grundschule Klasse 1', 'ESZC\CheHjInfoGsOne', $tblConsumer
             );
         }
 
