@@ -6,6 +6,8 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\IApplicationInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Document;
+use SPHERE\Common\Frontend\Icon\Repository\MoreItems;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
@@ -34,10 +36,12 @@ class Bookkeeping implements IApplicationInterface
                 new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Invoice'), new Link\Name('Rechnungen'))
+            new Link(new Link\Route(__NAMESPACE__.'/Invoice'), new Link\Name('Rechnungen'),
+                new Link\Icon(new MoreItems()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Balance'), new Link\Name('Offene Posten'))
+            new Link(new Link\Route(__NAMESPACE__.'/Balance'), new Link\Name('Offene Posten'),
+                new Link\Icon(new Document()))
         );
 
     }

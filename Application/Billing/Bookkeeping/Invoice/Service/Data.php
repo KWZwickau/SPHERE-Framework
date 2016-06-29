@@ -71,6 +71,21 @@ class Data extends AbstractData
     }
 
     /**
+     * IsReversal = false
+     *
+     * @param bool $Check
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceByIsPaid($Check = false)
+    {
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
+            array(TblInvoice::ATTR_IS_PAID     => $Check,
+                  TblInvoice::ATTR_IS_REVERSAL => false));
+        return $EntityList;
+    }
+
+    /**
      * @param $InvoiceNumber
      *
      * @return TblInvoice|bool
@@ -117,11 +132,11 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDebtor $tblDebtor
-     * @param $InvoiceNumber
+     * @param TblDebtor       $tblDebtor
+     * @param                 $InvoiceNumber
      * @param TblAddress|null $tblAddress
-     * @param TblMail|null $tblMail
-     * @param TblPhone|null $tblPhone
+     * @param TblMail|null    $tblMail
+     * @param TblPhone|null   $tblPhone
      *
      * @return null|object|TblInvoice
      */
@@ -145,12 +160,13 @@ class Data extends AbstractData
 
             $Entity = new TblInvoice();
             $Entity->setInvoiceNumber($InvoiceNumber);
-            $Entity->setDebtorFirstName($tblPerson->getFirstName());
-            $Entity->setDebtorSecondName($tblPerson->getSecondName());
-            $Entity->setDebtorLastName($tblPerson->getLastName());
-            $Entity->setDebtorSalutation($tblPerson->getSalutation());
-            $Entity->setDebtorLastName($tblPerson->getLastName());
-            $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
+//            $Entity->setDebtorFirstName($tblPerson->getFirstName());
+//            $Entity->setDebtorSecondName($tblPerson->getSecondName());
+//            $Entity->setDebtorLastName($tblPerson->getLastName());
+//            $Entity->setDebtorSalutation($tblPerson->getSalutation());
+//            $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
+            $Entity->setIsPaid(false);
+            $Entity->setIsReversal(false);
             if (null !== $tblAddress) {
                 $Entity->setServiceTblAddress($tblAddress);
             }
@@ -172,8 +188,58 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblInvoice $tblInvoice
+     * @param bool       $isReversal
+     *
+     * @return bool
+     */
+    public function changeInvoiceIsReversal(TblInvoice $tblInvoice, $isReversal = true)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblInvoice $Entity */
+        $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsReversal($isReversal);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param bool       $isPaid
+     *
+     * @return bool
+     */
+    public function changeInvoiceIsPaid(TblInvoice $tblInvoice, $isPaid = true)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblInvoice $Entity */
+        $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsPaid($isPaid);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblDebtorAccounting $tblDebtor
-     * @param TblBankReference $tblBankReference
+     * @param TblBankReference    $tblBankReference
      *
      * @return TblDebtor
      */

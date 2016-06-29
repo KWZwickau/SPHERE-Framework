@@ -50,6 +50,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $Check
+     *
+     * @return bool|Service\Entity\TblInvoice[]
+     */
+    public function getInvoiceByIsPaid($Check = false)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceByIsPaid($Check);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblInvoice
@@ -124,7 +135,7 @@ class Service extends AbstractService
      */
     public function createInvoice(TblBasket $tblBasket)
     {
-        /** Warenkorb Inhalt */
+        /** Shopping Content */
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if (!$tblBasketVerificationList) {
             return false;
@@ -138,16 +149,16 @@ class Service extends AbstractService
             $Quantity = $tblBasketVerification->getQuantity();
             $Price = $tblBasketVerification->getValue();
 
-            /** Bezahler suchen */
+            /** search Customer */
             $tblDebtorSelect = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
             if ($tblDebtorSelect) {
                 $tblBankReference = $tblDebtorSelect->getTblBankReference();
                 $tblDebtor = $tblDebtorSelect->getTblDebtor();
 
                 if ($tblBankReference && $tblDebtor) {
-                    /** Invoice/tblDebtor füllen */
+                    /** fill Invoice/tblDebtor */
                     $DebtorInvoiceId = (new Data($this->getBinding()))->createDebtor($tblDebtor, $tblBankReference)->getId();
-                    /** Invoice/tblItem füllen */
+                    /** fill Invoice/tblItem */
                     $DebtorItemList[$DebtorInvoiceId]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
                     $DebtorItemList[$DebtorInvoiceId]['Quantity'][] = $Quantity;
                     $DebtorItemList[$DebtorInvoiceId]['Value'][] = $Price;
@@ -160,7 +171,7 @@ class Service extends AbstractService
         $tblInvoiceList = Invoice::useService()->getInvoiceAll();
         $count = Count($tblInvoiceList);
 
-        /** Invoice/tblInvoice und Invoice/ füllen */
+        /** fill Invoice/tblInvoice */
         foreach ($DebtorItemList as $DebtorInvoiceId => $DebtorBill) {
             $count++;
             $tblDebtor = Invoice::useService()->getDebtorById($DebtorInvoiceId);
@@ -193,11 +204,11 @@ class Service extends AbstractService
             }
         }
 
+        /** fill Invoice/tblInvoiceItem */
         foreach ($DebtorItemList as $DebtorBill) {
             $tblInvoice = Invoice::useService()->getInvoiceById($DebtorBill['InvoiceId']);
 
             foreach ($DebtorBill['Item'] as $Item) {
-//                print_r(' '.$Item.' - '.$DebtorBill['InvoiceId'].'<br/>');
                 $tblItem = Invoice::useService()->getItemById($Item);
                 (new Data($this->getBinding()))->createInvoiceItem($tblInvoice, $tblItem);
             }

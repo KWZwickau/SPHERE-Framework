@@ -253,7 +253,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Id
+     * @param null       $Id
      * @param bool|false $Confirm
      *
      * @return Stage
@@ -1159,6 +1159,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 array_push($TableContent, $Item);
             });
+        } else {
+            $Stage->setContent(new Warning('Keine Artikel an dieser Person'));
+            return $Stage.new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
         $SiblingRank = '-';
         $SchoolType = '-';
@@ -1235,9 +1238,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if (Invoice::useService()->createInvoice($tblBasket)) {
-            $Content = new Success('Rechnung erfolgreich');
+            $Stage->setContent(new Success('Rechnungen erstellt'));
+            return $Stage.new Redirect('/Billing/Bookkeeping/Balance', Redirect::TIMEOUT_SUCCESS);
         } else {
-            $Content = new Warning('Rechnung fehlgeschlagen');
+            $Content = new Warning('Rechnungserstellungen fehlgeschlagen');
         }
 
         $Stage->setContent(
@@ -1479,7 +1483,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDestroyVerification($Id = null, $BasketId = null, $Confirm = false)
     {
 
-        $Stage = new Stage('Eintrag', 'Löschen');
+        $Stage = new Stage('Preise', 'Löschen');
+        $Stage->addButton(new Backward(true));
         if ($Id !== null) {
             $tblBasketVerification = Basket::useService()->getBasketVerificationById($Id);
             if (!$tblBasketVerification) {
@@ -1551,15 +1556,36 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblBasketVerificationList) {
                         if (!$Confirm) {
                             $CountVerification = count($tblBasketVerificationList);
-                            $tblBasketVerification = $tblBasketVerificationList[0];
-                            $PanelContent = array();
-//                            $PanelContent[] = new Bold('Erhalten bleibende Artikel:');
-//                            foreach ($tblBasketVerificationList as $tblBasketVerifications) {
-//                                if ($tblBasketVerifications->getServiceTblItem()) {
-//                                    $PanelContent[] = $tblBasketVerifications->getServiceTblItem()->getName();
-//                                }
-//                            }
-                            $PanelContent = array_unique($PanelContent);
+                            $PanelPersonContent = array();
+                            $PanelItemContent = array();
+                            if (!empty( $tblBasketVerificationList )) {
+                                $PersonIdList = array();
+                                $ItemIdList = array();
+                                foreach ($tblBasketVerificationList as $tblBasketVerification) {
+                                    $PersonIdList[] = $tblBasketVerification->getServiceTblPerson()->getId();
+                                    $ItemIdList[] = $tblBasketVerification->getServiceTblItem()->getId();
+                                }
+                                $PersonIdList = array_unique($PersonIdList);
+                                $ItemIdList = array_unique($ItemIdList);
+
+                                $PersonList = array();
+                                foreach ($PersonIdList as $PersonId) {
+                                    $tblPerson = Person::useService()->getPersonById($PersonId);
+                                    if ($tblPerson) {
+                                        $PersonList[] = $tblPerson->getLastFirstName();
+                                    }
+                                }
+                                $ItemList = array();
+                                foreach ($ItemIdList as $ItemId) {
+                                    $tblItem = Item::useService()->getItemById($ItemId);
+                                    if ($tblItem) {
+                                        $ItemList[] = $tblItem->getName();
+                                    }
+                                }
+                                $PanelPersonContent[] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($PersonList);
+                                $PanelItemContent[] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($ItemList);
+
+                            }
                             $Stage->setContent(
                                 new Layout(
                                     new LayoutGroup(
@@ -1571,9 +1597,19 @@ class Frontend extends Extension implements IFrontendInterface
                                         )
                                     )
                                 )
+                                .new Layout(new LayoutGroup(new LayoutRow(array(new LayoutColumn(
+                                    new Panel('Personen', $PanelPersonContent, Panel::PANEL_TYPE_WARNING)
+                                    , 6),
+                                    new LayoutColumn(
+                                        new Panel('Artikel', $PanelItemContent, Panel::PANEL_TYPE_WARNING)
+                                        , 6),
+                                ))))
                                 .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                                    new Panel(new Question().' Berechnung mit '.$CountVerification.' Einträgen wirklich löschen?',
-                                        $PanelContent,
+                                    new Panel(
+                                        ( $CountVerification == 1 ? new Question().' Die Berechnung des einen Preises wirklich löschen?' :
+                                            new Question().' Die Berechnung der '.$CountVerification.' Preise wirklich löschen?' )
+                                        ,
+                                        '',
                                         Panel::PANEL_TYPE_DANGER,
                                         new Standard(
                                             'Ja', '/Billing/Bookkeeping/Basket/Verification/Destroy', new Ok(),
@@ -1581,7 +1617,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         )
                                         .new Standard(
                                             'Nein', '/Billing/Bookkeeping/Basket/Verification', new Disable(),
-                                            array('Id' => $tblBasketVerification->getTblBasket()->getId())
+                                            array('Id' => $tblBasket->getId())
                                         )
                                     )
                                     , 6))))

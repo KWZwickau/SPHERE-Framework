@@ -55,10 +55,6 @@ class TblDebtor extends Element
      */
     protected $CashSign;
     /**
-     * @Column(type="string")
-     */
-    protected $CreditorId;
-    /**
      * @Column(type="bigint")
      */
     protected $serviceTblDebtor;
@@ -109,7 +105,7 @@ class TblDebtor extends Element
     public function getBankReference()
     {
 
-        $this->BankReference;
+        return $this->BankReference;
     }
 
     /**
@@ -127,7 +123,7 @@ class TblDebtor extends Element
     public function getOwner()
     {
 
-        $this->Owner;
+        return $this->Owner;
     }
 
     /**
@@ -145,7 +141,7 @@ class TblDebtor extends Element
     public function getBankName()
     {
 
-        $this->BankName;
+        return $this->BankName;
     }
 
     /**
@@ -163,7 +159,7 @@ class TblDebtor extends Element
     public function getIBAN()
     {
 
-        $this->IBAN;
+        return $this->IBAN;
     }
 
     /**
@@ -181,7 +177,7 @@ class TblDebtor extends Element
     public function getBIC()
     {
 
-        $this->BIC;
+        return $this->BIC;
     }
 
     /**
@@ -199,7 +195,7 @@ class TblDebtor extends Element
     public function getCashSign()
     {
 
-        $this->CashSign;
+        return $this->CashSign;
     }
 
     /**
@@ -209,24 +205,6 @@ class TblDebtor extends Element
     {
 
         $this->CashSign = $CashSign;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCreditorId()
-    {
-
-        $this->CreditorId;
-    }
-
-    /**
-     * @param $CreditorId
-     */
-    public function setCreditorId($CreditorId)
-    {
-
-        $this->CreditorId = $CreditorId;
     }
 
     /**
@@ -252,6 +230,15 @@ class TblDebtor extends Element
     }
 
     /**
+     * @param TblBankReference|null $tblBankReference
+     */
+    public function setServiceTblBankReference(TblBankReference $tblBankReference = null)
+    {
+
+        $this->serviceTblBankReference = ( null === $tblBankReference ? null : $tblBankReference->getId() );
+    }
+
+    /**
      * @return bool|TblBankReference
      */
     public function getServiceTblBankReference()
@@ -262,14 +249,5 @@ class TblDebtor extends Element
         } else {
             return Banking::useService()->getBankReferenceById($this->serviceTblBankReference);
         }
-    }
-
-    /**
-     * @param TblBankReference|null $tblBankReference
-     */
-    public function setServiceTblBankReference(TblBankReference $tblBankReference = null)
-    {
-
-        $this->serviceTblBankReference = ( null === $tblBankReference ? null : $tblBankReference->getId() );
     }
 }

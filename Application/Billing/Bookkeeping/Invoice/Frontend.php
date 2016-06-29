@@ -2,15 +2,22 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -30,18 +37,23 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Rechnungen');
         $Stage->setDescription('Übersicht');
-        $Stage->setMessage('Zeigt alle vorhandenen Rechnungen an');
 //        $Stage->addButton(new Standard('Aufträge', '/Billing/Bookkeeping/Invoice/Control', new Ok(), null, 'Freigeben von Rechnungen'));
         new Backward();
 
         $tblInvoiceAll = Invoice::useService()->getInvoiceAll();
+        $TableContent = array();
         if ($tblInvoiceAll) {
-            foreach ($tblInvoiceAll as &$tblInvoice) {
-                $tblInvoice->FullName = $tblInvoice->getServiceTblPerson()->getFullName();
 
+            array_walk($tblInvoiceAll, function (TblInvoice $tblInvoice) use (&$TableContent) {
+                $Content['FullName'] = $tblInvoice->getServiceTblPerson()->getFullName();
+                $Content['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                $Content['DebtorNumber'] = '';
+                $Content['Reference'] = '';
                 $tblDebtor = $tblInvoice->getTblDebtor();
-                $tblReference = $tblDebtor->getServiceTblBankReference();
-                $tblInvoice->Reference = $tblReference->getReference();
+                if ($tblDebtor) {
+                    $Content['DebtorNumber'] = $tblDebtor->getDebtorNumber();
+                    $Content['Reference'] = $tblDebtor->getBankReference();
+                }
 
                 $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
                 $Price = 0.00;
@@ -66,35 +78,57 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $ItemString = implode(', ', $tblItemList);
-                    $tblInvoice->ItemList = $ItemString;
+                    $Content['ItemList'] = $ItemString;
                 } else {
-                    $tblInvoice->ItemList = '';
+                    $Content['ItemList'] = '';
                 }
-                $tblInvoice->Price = Invoice::useService()->getPriceString($Price);
-                $tblInvoice->Option = new Standard('', '', new Listing(), null, 'Auswahl');
+                $Content['Price'] = Invoice::useService()->getPriceString($Price);
+                if ($tblInvoice->getIsPaid()) {
+                    $Content['Paid'] = new Success(new Check());
+                } else {
+                    $Content['Paid'] = new Danger(new Unchecked());
+                }
+                if ($tblInvoice->getIsReversal()) {
+                    $Content['Reversal'] = new Danger(new Check());
+                } else {
+                    $Content['Reversal'] = '';
+                }
+                $Content['Option'] = new Standard('', '', new Listing(), null, 'Auswahl');
 
-            }
+                array_push($TableContent, $Content);
+            });
         }
+
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($tblInvoiceAll, null,
-                                array('InvoiceNumber' => 'Rechnungsnummer',
-                                      'DebtorNumber'  => 'Debitorennummer',
-                                      'FullName'      => 'Debitor',
-                                      'Reference'     => 'Referenz',
-                                      'ItemList'      => 'Artikel',
-                                      'Price'         => 'Gesamtpreis',
-                                      'Option'        => ''))
-                        )
+                        new LayoutColumn(array(
+                            new Title(new Listing().' Übersicht', 'aller vorhandenen Rechnungen'),
+                            ( empty( $TableContent ) ? new Warning('Keine Rechnungen vorhanden') :
+                                new TableData($TableContent, null,
+                                    array('InvoiceNumber' => 'Rechnungsnummer',
+                                          'DebtorNumber'  => 'Debitorennummer',
+                                          'FullName'      => 'Debitor',
+                                          'Reference'     => 'Referenz',
+                                          'ItemList'      => 'Artikel',
+                                          'Price'         => 'Gesamtpreis',
+                                          'Paid'          => 'Bezahlt',
+                                          'Reversal'      => 'Storniert',
+                                          'Option'        => ''))
+                            )
+                        ))
                     )
                 )
             )
         );
 
         return $Stage;
+    }
+
+    public function frontendInvoiceReversal()
+    {
+
     }
 }

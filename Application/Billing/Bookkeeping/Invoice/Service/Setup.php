@@ -71,9 +71,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDebtor', 'CashSign')) {
             $Table->addColumn('CashSign', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'CreditorId')) {
-            $Table->addColumn('CreditorId', 'string');
-        }
         if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblDebtor')) {
             $Table->addColumn('serviceTblDebtor', 'bigint', array('notnull' => false));
         }
@@ -126,20 +123,26 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblInvoice', 'InvoiceNumber')) {
             $Table->addColumn('InvoiceNumber', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorFirstName')) {
-            $Table->addColumn('DebtorFirstName', 'string');
+//        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorFirstName')) {
+//            $Table->addColumn('DebtorFirstName', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorSecondName')) {
+//            $Table->addColumn('DebtorSecondName', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorLastName')) {
+//            $Table->addColumn('DebtorLastName', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorSalutation')) {
+//            $Table->addColumn('DebtorSalutation', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorNumber')) {
+//            $Table->addColumn('DebtorNumber', 'string');
+//        }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'IsPaid')) {
+            $Table->addColumn('IsPaid', 'boolean');
         }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorSecondName')) {
-            $Table->addColumn('DebtorSecondName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorLastName')) {
-            $Table->addColumn('DebtorLastName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorSalutation')) {
-            $Table->addColumn('DebtorSalutation', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorNumber')) {
-            $Table->addColumn('DebtorNumber', 'string');
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'IsReversal')) {
+            $Table->addColumn('IsReversal', 'boolean');
         }
         if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblAddress')) {
             $Table->addColumn('serviceTblAddress', 'bigint', array('notnull' => false));

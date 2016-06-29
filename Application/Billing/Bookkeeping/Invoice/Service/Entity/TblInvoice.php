@@ -24,8 +24,9 @@ use SPHERE\System\Database\Fitting\Element;
 class TblInvoice extends Element
 {
 
-    const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
     const ATTR_INVOICE_NUMBER = 'InvoiceNumber';
+    const ATTR_IS_PAID = 'IsPaid';
+    const ATTR_IS_REVERSAL = 'IsReversal';
 
     /**
      * @Column(type="string")
@@ -36,25 +37,13 @@ class TblInvoice extends Element
 //     */
 //    protected $Discount;
     /**
-     * @Column(type="string")
+     * @Column(type="boolean")
      */
-    protected $DebtorFirstName;
+    protected $IsPaid;
     /**
-     * @Column(type="string")
+     * @Column(type="boolean")
      */
-    protected $DebtorSecondName;
-    /**
-     * @Column(type="string")
-     */
-    protected $DebtorLastName;
-    /**
-     * @Column(type="string")
-     */
-    protected $DebtorSalutation;
-    /**
-     * @Column(type="string")
-     */
-    protected $DebtorNumber;
+    protected $IsReversal;
     /**
      * @Column(type="bigint")
      */
@@ -78,7 +67,7 @@ class TblInvoice extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $TblDebtor;
+    protected $tblDebtor;
 
     /**
      * @return string
@@ -117,102 +106,39 @@ class TblInvoice extends Element
 //    }
 
     /**
-     * @return string
+     * @return boolean
      */
-    public function getDebtorFirstName()
+    public function getIsPaid()
     {
 
-        return $this->DebtorFirstName;
+        return $this->IsPaid;
     }
 
     /**
-     * @param string $PersonFirstName
+     * @param boolean $isPaid
      */
-    public function setDebtorFirstName($PersonFirstName)
+    public function setIsPaid($isPaid)
     {
 
-        $this->DebtorFirstName = $PersonFirstName;
+        $this->IsPaid = $isPaid;
     }
 
     /**
-     * @return string
+     * @return boolean
      */
-    public function getDebtorSecondName()
+    public function getIsReversal()
     {
 
-        return $this->DebtorSecondName;
+        return $this->IsReversal;
     }
 
     /**
-     * @param string $PersonSecondName
+     * @param boolean $IsReversal
      */
-    public function setDebtorSecondName($PersonSecondName)
+    public function setIsReversal($IsReversal)
     {
 
-        $this->DebtorSecondName = $PersonSecondName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDebtorLastName()
-    {
-
-        return $this->DebtorLastName;
-    }
-
-    /**
-     * @param string $PersonLastName
-     */
-    public function setDebtorLastName($PersonLastName)
-    {
-
-        $this->DebtorLastName = $PersonLastName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDebtorSalutation()
-    {
-
-        return $this->DebtorSalutation;
-    }
-
-    /**
-     * @param string $PersonSalutation
-     */
-    public function setDebtorSalutation($PersonSalutation)
-    {
-
-        $this->DebtorSalutation = $PersonSalutation;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDebtorNumber()
-    {
-
-        return $this->DebtorNumber;
-    }
-
-    /**
-     * @param string $DebtorNumber
-     */
-    public function setDebtorNumber($DebtorNumber)
-    {
-
-        $this->DebtorNumber = $DebtorNumber;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDebtorFullName()
-    {
-
-        return $this->DebtorSalutation." ".$this->DebtorFirstName." ".$this->DebtorLastName;
+        $this->IsReversal = $IsReversal;
     }
 
     /**
@@ -331,10 +257,10 @@ class TblInvoice extends Element
     public function getTblDebtor()
     {
 
-        if (null === $this->TblDebtor) {
+        if (null === $this->tblDebtor) {
             return false;
         } else {
-            return Invoice::useService()->getDebtorById($this->TblDebtor);
+            return Invoice::useService()->getDebtorById($this->tblDebtor);
         }
     }
 
@@ -344,6 +270,6 @@ class TblInvoice extends Element
     public function setTblDebtor(TblDebtor $tblDebtor = null)
     {
 
-        $this->TblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
+        $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
     }
 }

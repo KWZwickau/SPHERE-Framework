@@ -36,10 +36,6 @@ class Banking implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBanking'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Reference',
-                __NAMESPACE__.'\Frontend::frontendBankReference'
-            ));
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/View',
                 __NAMESPACE__.'\Frontend::frontendBankingView'
             ));
@@ -47,26 +43,14 @@ class Banking implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Change',
                 __NAMESPACE__.'\Frontend::frontendChangeBanking'
             ));
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
-//                __NAMESPACE__.'\Frontend::frontendChangeBanking'
-//            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Reference/Add',
-                __NAMESPACE__.'\Frontend::frontendAddBankReference'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Reference/View',
-                __NAMESPACE__.'\Frontend::frontendBankReferenceView'
-            ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Reference/Change',
                 __NAMESPACE__.'\Frontend::frontendChangeBankReference'
             ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Debtor/Remove',
-                __NAMESPACE__.'\Frontend::frontendRemoveDebtor'
-            ));
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Debtor/Remove',
+//                __NAMESPACE__.'\Frontend::frontendRemoveDebtor'
+//            ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Reference/Remove',
                 __NAMESPACE__.'\Frontend::frontendRemoveBankReference'
