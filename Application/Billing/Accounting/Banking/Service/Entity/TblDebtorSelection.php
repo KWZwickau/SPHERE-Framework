@@ -27,7 +27,7 @@ class TblDebtorSelection extends Element
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
     const ATTR_TBL_DEBTOR = 'tblDebtor';
-    const ATTR_TBL_BANK_REFERENCE = '$tblBankReference';
+    const ATTR_TBL_BANK_REFERENCE = 'tblBankReference';
 
     /**
      * @Column(type="bigint")

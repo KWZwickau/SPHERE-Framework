@@ -160,8 +160,19 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblBankReference $tblBankReference
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByBankReference(TblBankReference $tblBankReference)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionByBankReference($tblBankReference);
+    }
+
+    /**
      * @param TblPerson $tblPerson
-     * @param TblItem $tblItem
+     * @param TblItem   $tblItem
      *
      * @return false|TblDebtorSelection
      */
@@ -173,7 +184,7 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblItem $tblItem
+     * @param TblItem   $tblItem
      *
      * @return false|TblDebtorSelection
      */
@@ -262,8 +273,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblPerson $tblPerson
-     * @param null $Reference
+     * @param TblPerson           $tblPerson
+     * @param null                $Reference
      *
      * @return IFormInterface|string
      */
@@ -311,8 +322,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblBasket $tblBasket
-     * @param null $Data
+     * @param TblBasket           $tblBasket
+     * @param null                $Data
      *
      * @return IFormInterface|string
      */
@@ -365,7 +376,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblDebtor $tblDebtor
+     * @param TblDebtor           $tblDebtor
      * @param                     $Debtor
      *
      * @return IFormInterface|string
@@ -415,7 +426,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblBankReference $tblBankReference
+     * @param TblBankReference    $tblBankReference
      * @param                     $Reference
      *
      * @return IFormInterface|string
@@ -477,8 +488,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblPerson $tblPerson
-     * @param null $Data
+     * @param TblPerson           $tblPerson
+     * @param null                $Data
      *
      * @return IFormInterface|string
      */
@@ -516,19 +527,13 @@ class Service extends AbstractService
                     $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
 
                     if ($tblDebtorSelection) {
-
                         if (!$Error) {
-
-
-                            $tblDebtor = null;
-                            $tblBankReference = null;
-
                             (new Data ($this->getBinding()))->changeDebtorSelection(
                                 $tblDebtorSelection,
                                 $tblPersonPayers,
                                 $tblPaymentType,
-                                $tblDebtor,
-                                $tblBankReference);
+                                null,
+                                null);
                         }
                     }
                 }
@@ -548,7 +553,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null $Data
+     * @param null                $Data
      *
      * @return IFormInterface|string
      */
@@ -577,8 +582,8 @@ class Service extends AbstractService
                         $Error = true;
                         $Debtor = true;
                     }
-                    if (!isset( $Row['RadioBox'] ) || empty( $Row['RadioBox'] )) {
-                        $Stage->setError('[Data]['.$Key.'][RadioBox]', 'Auswahl treffen!');
+                    if (!isset( $Row['Reference'] ) || empty( $Row['Reference'] )) {
+                        $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
                         $Error = true;
                         $Bank = true;
                     }
@@ -595,7 +600,7 @@ class Service extends AbstractService
 
                             $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
                             $tblBankReference = null;
-                            $tblBankReference = Banking::useService()->getBankReferenceById($Row['RadioBox']);
+                            $tblBankReference = Banking::useService()->getBankReferenceById($Row['Reference']);
 
                             (new Data ($this->getBinding()))->updateDebtorSelection(
                                 $tblDebtorSelection,
@@ -611,10 +616,10 @@ class Service extends AbstractService
                 .new Redirect('/Billing/Accounting/DebtorSelection', Redirect::TIMEOUT_SUCCESS);
             }
             if ($Error && $Debtor) {
-                $Stage .= new Warning('Bitte zuerst die benötigte Debitoren anlegen');
+                $Stage .= new Warning('Gewählte Bezahler haben keine Debitor-Nummer ausgewählt');
             }
             if ($Error && $Bank) {
-                $Stage .= new Warning('Gewählte Bezahler haben keine Zahlungs-Information');
+                $Stage .= new Warning('Gewählte Bezahler haben keine Referenz-Nummer ausgeählt');
             }
         }
 
@@ -623,8 +628,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblBasket $tblBasket
-     * @param null $Data
+     * @param TblBasket           $tblBasket
+     * @param null                $Data
      *
      * @return IFormInterface|string
      */
@@ -653,8 +658,8 @@ class Service extends AbstractService
                         $Error = true;
                         $Debtor = true;
                     }
-                    if (!isset( $Row['RadioBox'] ) || empty( $Row['RadioBox'] )) {
-                        $Stage->setError('[Data]['.$Key.'][RadioBox]', 'Auswahl treffen!');
+                    if (!isset( $Row['Reference'] ) || empty( $Row['Reference'] )) {
+                        $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
                         $Error = true;
                         $Bank = true;
                     }
@@ -671,7 +676,7 @@ class Service extends AbstractService
 
                             $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
                             $tblBankReference = null;
-                            $tblBankReference = Banking::useService()->getBankReferenceById($Row['RadioBox']);
+                            $tblBankReference = Banking::useService()->getBankReferenceById($Row['Reference']);
 
                             (new Data ($this->getBinding()))->updateDebtorSelection(
                                 $tblDebtorSelection,
@@ -687,10 +692,10 @@ class Service extends AbstractService
                 .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
             }
             if ($Error && $Debtor) {
-                $Stage .= new Warning('Bitte zuerst die benötigte Debitoren anlegen');
+                $Stage .= new Warning('Gewählte Bezahler haben keine Debitor-Nummer ausgewählt');
             }
             if ($Error && $Bank) {
-                $Stage .= new Warning('Gewählte Bezahler haben keine Zahlungs-Information');
+                $Stage .= new Warning('Gewählte Bezahler haben keine Referenz-Nummer ausgeählt');
             }
         }
 
@@ -728,6 +733,13 @@ class Service extends AbstractService
 
         if (null === $tblBankReference) {
             return '';
+        }
+
+        $tblDebtorSelectionList = Banking::useService()->getDebtorSelectionByBankReference($tblBankReference);
+        if ($tblDebtorSelectionList) {
+            foreach ($tblDebtorSelectionList as $tblDebtorSelection) {
+                Banking::useService()->destroyDebtorSelection($tblDebtorSelection);
+            }
         }
 
         return (new Data($this->getBinding()))->removeReference($tblBankReference);
