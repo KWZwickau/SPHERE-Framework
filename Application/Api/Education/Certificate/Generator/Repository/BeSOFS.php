@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC;
+namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
@@ -8,14 +8,13 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class CheBeGs
+ * Class BeSOFS
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository
  */
-class CheBeGs extends Certificate
+class BeSOFS extends Certificate
 {
 
     /**
@@ -34,8 +33,8 @@ class CheBeGs extends Certificate
                             ->setContent('Name der Schule:')
                             ->stylePaddingTop('10px')
                             ->stylePaddingLeft('5px')
-                            ->styleTextSize('11px')
-                            , '14%')
+                            ->styleTextSize('13px')
+                            , '16%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Company.Data.Name is not empty) %}
                                     {{ Content.Company.Data.Name }}
@@ -44,12 +43,12 @@ class CheBeGs extends Certificate
                                 {% endif %}')
                             ->stylePaddingTop('9px')
                             ->styleBorderBottom()
-                            , '86%')
+                            , '84%')
                     )
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Bildungsempfehlung in der Klassenstufe 4')
+                        ->setContent('Bildungsempfehlung gemäß § 34 Abs. 3 SOFS')
                         ->styleAlignCenter()
                         ->styleTextSize('20px')
                         ->styleTextBold()
@@ -65,23 +64,23 @@ class CheBeGs extends Certificate
                             ->stylePaddingTop()
                             ->stylePaddingLeft()
                             ->styleBorderBottom()
-                            , '68%')
+                            , '46%')
                         ->addElementColumn((new Element())
-                            , '1%')
+                            , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('{{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}')
                             ->stylePaddingTop()
                             ->stylePaddingLeft()
                             ->styleBorderBottom()
-                            , '15%')
+                            , '23%')
                         ->addElementColumn((new Element())
-                            , '1%')
+                            , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('{{ Content.Division.Data.Year }}')
                             ->stylePaddingTop()
                             ->stylePaddingLeft()
                             ->styleBorderBottom()
-                            , '15%')
+                            , '23%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -89,26 +88,27 @@ class CheBeGs extends Certificate
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->stylePaddingLeft()
-                            ->styleTextSize('11px')
-                            , '68%')
+                            ->styleTextSize('13px')
+                            , '46%')
                         ->addElementColumn((new Element())
-                            , '1%')
+                            , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('Klasse')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->stylePaddingLeft()
-                            ->styleTextSize('11px')
-                            , '15%')
+                            ->styleTextSize('13px')
+                            , '23%')
                         ->addElementColumn((new Element())
-                            , '1%')
+                            , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('Schuljahr')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->stylePaddingLeft()
-                            ->styleTextSize('11px')
-                            , '15%')
+                            ->styleTextSize('13px')
+                            ->styleMarginBottom('8px')
+                            , '23%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -121,9 +121,9 @@ class CheBeGs extends Certificate
                             ->stylePaddingBottom()
                             ->stylePaddingLeft('5px')
                             ->styleBorderBottom()
-                            , '30%')
+                            , '46%')
                         ->addElementColumn((new Element())
-                            , '1%')
+                            , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Person.Common.BirthDates.Birthplace is not empty) %}
                                     {{ Content.Person.Common.BirthDates.Birthplace }}
@@ -134,7 +134,7 @@ class CheBeGs extends Certificate
                             ->stylePaddingBottom()
                             ->stylePaddingLeft('5px')
                             ->styleBorderBottom()
-                            , '69%')
+                            , '50%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -142,17 +142,18 @@ class CheBeGs extends Certificate
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->stylePaddingLeft()
-                            ->styleTextSize('11px')
-                            , '30%')
+                            ->styleTextSize('13px')
+                            , '46%')
                         ->addElementColumn((new Element())
-                            , '1%')
+                            , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('in')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->stylePaddingLeft()
-                            ->styleTextSize('11px')
-                            , '70%')
+                            ->styleTextSize('13px')
+                            ->styleMarginBottom('8px')
+                            , '50%')
                     )
                     ->addElement((new Element())
                         ->setContent('{% if(Content.Person.Address.City.Name) %}
@@ -173,7 +174,8 @@ class CheBeGs extends Certificate
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
                         ->stylePaddingLeft()
-                        ->styleTextSize('11px')
+                        ->styleTextSize('13px')
+                        ->styleMarginBottom('8px')
                     )
                     ->addElement((new Element())
                         ->setContent('{% if(Content.Person.Parent) %}
@@ -194,27 +196,16 @@ class CheBeGs extends Certificate
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
                         ->stylePaddingLeft()
-                        ->styleTextSize('11px')
+                        ->styleTextSize('13px')
                     )
                 )
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                ->setContent('{% if Content.Person.Common.BirthDates.Gender == 2 %}
-//                                Die Schülerin kann ihre Ausbildung am Gymnasium fortsetzen.
-//                            {% else %}
-//                                {% if Content.Person.Common.BirthDates.Gender == 1 %}
-//                                    Der Schüler kann seine Ausbildung am Gymnasium fortsetzen.
-//                                {% else %}
-//                                    Die Schülerin/Der Schüler¹ kann ihre/seine¹ Ausbildung am Gymnasium fortsetzen.
-//                                {% endif %}
-//                            {% endif %}')
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('1. Leistungsstand')
-                        ->styleTextSize('20px')
+                        ->styleTextSize('16px')
                         ->styleTextBold()
+                        ->styleMarginTop('15px')
                         ->stylePaddingBottom('5px')
-                        ->styleMarginTop('5px')
                     )
                 )
                 ->addSlice((new Slice())
@@ -230,9 +221,7 @@ class CheBeGs extends Certificate
                                                   Die Schülerin/Der Schüler¹
                                                 {% endif %}
                                             {% endif %}
-                                hat ausweislich der Halbjahresinformation /
-                            der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz¹
-                             vom
+                                hat ausweislich der Halbjahresinformation vom
                              {% if(Content.Input.DateCertifcate is not empty) %}
                                 {{ Content.Input.DateCertifcate }}
                             {% else %}
@@ -244,7 +233,7 @@ class CheBeGs extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Deutsch/Sorbisch¹ ²')
+                            ->setContent('Deutsch')
                             ->stylePaddingTop()
                             , '25%')
                         ->addElementColumn((new Element())
@@ -256,7 +245,8 @@ class CheBeGs extends Certificate
                             ->styleAlignCenter()
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom()
+
                             , '20%')
                         ->addElementColumn((new Element())
                             , '10%')
@@ -273,19 +263,18 @@ class CheBeGs extends Certificate
                             ->styleAlignCenter()
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom()
                             , '20%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Sachunterricht')
+                            ->setContent('Geschichte')
                             ->stylePaddingTop()
                             ->styleMarginTop('10px')
                             , '25%')
                         ->addElementColumn((new Element())
-                            // ToDO Sachunterricht
-                            ->setContent('{% if(Content.Grade.Data.SA is not empty) %}
-                                    ...
+                            ->setContent('{% if(Content.Grade.Data.GE is not empty) %}
+                                    {{ Content.Grade.Data.GE }}
                                 {% else %}
                                     ---
                                 {% endif %}')
@@ -293,12 +282,86 @@ class CheBeGs extends Certificate
                             ->styleAlignCenter()
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
-                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom()
                             , '20%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            , '10%')
+                        ->addElementColumn((new Element())
+                            ->setContent('Biologie')
+                            ->stylePaddingTop()
                             ->styleMarginTop('10px')
+                            , '25%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Grade.Data.BI is not empty) %}
+                                    {{ Content.Grade.Data.BI }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
+                            ->styleAlignCenter()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleBorderBottom()
+                            ->styleMarginTop('10px')
+                            , '20%')
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Geographie')
+                            ->stylePaddingTop()
+                            ->styleMarginTop('10px')
+                            , '25%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Grade.Data.GEO is not empty) %}
+                                    {{ Content.Grade.Data.GEO }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
+                            ->styleMarginTop('10px')
+                            ->styleAlignCenter()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleBorderBottom()
+                            , '20%')
+                        ->addElementColumn((new Element())
+                            , '10%')
+                        ->addElementColumn((new Element())
+                            ->setContent('Chemie')
+                            ->stylePaddingTop()
+                            ->styleMarginTop('10px')
+                            , '25%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Grade.Data.CH is not empty) %}
+                                    {{ Content.Grade.Data.CH }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
+                            ->styleAlignCenter()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleBorderBottom()
+                            ->styleMarginTop('10px')
+                            , '20%')
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
                             , '55%')
+                        ->addElementColumn((new Element())
+                            ->setContent('Physik')
+                            ->stylePaddingTop()
+                            ->styleMarginTop('10px')
+                            , '25%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Grade.Data.PH is not empty) %}
+                                    {{ Content.Grade.Data.PH }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
+                            ->styleAlignCenter()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleBorderBottom()
+                            ->styleMarginTop('10px')
+                            , '20%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -310,7 +373,9 @@ class CheBeGs extends Certificate
                             ->setContent('{% if(Content.Grade.Data.DE is not empty) %}
                                     {% if(Content.Grade.Data.MA is not empty) %}
                                         {% if(Content.Grade.Data.EN is not empty) %}
-                                            {{ ((Content.Grade.Data.DE + Content.Grade.Data.MA + Content.Grade.Data.EN) / 3)|round(2, "floor") }}
+                                            {{ ((Content.Grade.Data.DE + Content.Grade.Data.MA + Content.Grade.Data.GE
+                                            + Content.Grade.Data.BI + Content.Grade.Data.GEO + Content.Grade.Data.CH + Content.Grade.Data.PH)
+                                             / 7)|round(2, "floor") }}
                                         {% else %}
                                             ---
                                         {% endif %}
@@ -324,7 +389,7 @@ class CheBeGs extends Certificate
                             ->stylePaddingBottom()
                             ->styleMarginTop('20px')
                             ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom()
                             , '20%')
                     )
                     ->addSection((new Section())
@@ -340,72 +405,29 @@ class CheBeGs extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('2. Gutachten³')
-                        ->styleTextSize('20px')
+                        ->setContent('2. Empfehlung der Klassenkonverenz')
+                        ->styleTextSize('16px')
                         ->styleTextBold()
-                        ->styleMarginTop('5px')
+                        ->styleMarginTop('6px')
                         ->stylePaddingBottom('5px')
                     )
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('{% if(Content.Input.Survey is not empty) %}
-                                    {{ Content.Input.Survey|nl2br }}
+                        ->setContent('Auf Grund des Leistungsstandes wird
+                                {% if Content.Person.Common.BirthDates.Gender == 2 %}
+                                    der Schülerin empfohlen, ihre
                                 {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                        ->styleHeight('200px')
+                                    {% if Content.Person.Common.BirthDates.Gender == 1 %}
+                                        dem Schüler empfohlen, seine
+                                    {% else %}
+                                        der Schülerin/dem Schüler¹ empfohlen, ihre/seine¹
+                                    {% endif %}
+                                {% endif %}
+                                Ausbildung in einer Klasse zur Erlangung des Hauptschulabschlusses fortzusetzen.
+                                ')
                         ->stylePaddingBottom()
                     )
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Auf Grund des Leitungsstandes und des Gutachtens wird
-                        {% if Content.Person.Common.BirthDates.Gender == 2 %}
-                                der Schülerin
-                            {% else %}
-                                {% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                    dem Schüler
-                                {% else %}
-                                    der Schülerin/dem Schüler¹
-                                {% endif %}
-                            {% endif %} empfohlen,')
-                        ->styleMarginTop('15px')
-                    )
-                    ->addElement((new Element())
-                        ->setContent('{% if Content.Person.Common.BirthDates.Gender == 2 %}
-                                ihre Ausbildung
-                                {% if(Content.Input.SchoolType is not empty) %}
-                                {{ Content.Input.SchoolType }}
-                                {% else %}
-                                    ________________________________
-                                {% endif %}
-                                fortzusetzen.
-                            {% else %}
-                                {% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                    seine Ausbildung
-                                    {% if(Content.Input.SchoolType is not empty) %}
-                                    {{ Content.Input.SchoolType }}
-                                    {% else %}
-                                        ________________________________
-                                    {% endif %}
-                                fortzusetzen.
-                                {% else %}
-                                    ihre/seine¹ Ausbildung
-                                     {% if(Content.Input.SchoolType is not empty) %}
-                                    {{ Content.Input.SchoolType }}
-                                    {% else %}
-                                        ________________________________
-                                    {% endif %}
-                                     fortzusetzen.
-                                {% endif %}
-                            {% endif %}')
-                        ->styleMarginTop('13px')
-
-                    )
-                    ->stylePaddingTop()
-                    ->stylePaddingBottom()
-                    ->styleMarginTop('20px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -418,6 +440,7 @@ class CheBeGs extends Certificate
                                 beschlossen.
                                 ')
                         ->styleMarginTop('20px')
+                        ->styleMarginBottom('220px')
                     )
                 )
                 ->addSlice((new Slice())
@@ -433,43 +456,42 @@ class CheBeGs extends Certificate
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
-                            , '18%')
+                            , '28%')
                         ->addElementColumn((new Element())
-                            , '75%')
+                            , '65%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
-                            ->styleMarginTop('100px')
+                            ->styleMarginTop('50px')
 
                             , '35%')
                         ->addElementColumn((new Element())
-                            ->setContent('Dienstsiegel der Schule')
-                            ->styleTextSize('11px')
+                            ->setContent('Dienstsiegel <br/> der Schule')
+                            ->styleTextColor('#AAA')
+                            ->styleTextSize('13px')
                             ->styleAlignCenter()
-                            ->styleMarginTop('80px')
+                            ->styleMarginTop('15px')
                             , '30%')
                         ->addElementColumn((new Element())
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
-                            ->styleMarginTop('100px')
+                            ->styleMarginTop('50px')
                             , '35%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Schulleiter/in')
-                            ->styleTextSize('11px')
+                            ->styleTextSize('13px')
                             ->stylePaddingTop('5px')
-                            ->styleAlignCenter()
                             , '35%')
                         ->addElementColumn((new Element())
                             , '30%')
                         ->addElementColumn((new Element())
                             ->setContent('Klassenlehrer/in')
-                            ->styleTextSize('11px')
+                            ->styleTextSize('13px')
                             ->stylePaddingTop('5px')
-                            ->styleAlignCenter()
                             , '35%')
                     )
                     ->stylePaddingTop()
@@ -478,13 +500,7 @@ class CheBeGs extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('¹ Nichtzutreffendes streichen.'
-                            .new Container('² An sorbische Schulen, an denen Sorbisch je nach Unterrichtsfach und Klassenstufe
-                            Unterrichtssprache ist, kann nach Entscheidung ')
-                            .new Container('&nbsp;&nbsp;der Schulkonferenz gem. § 21 Abs. 5 SOGS das
-                            Fach Deutsch durch das Fach Sorbisch ersetzt werden.')
-                            .new Container('³ Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
-                        )
+                        ->setContent('¹ Nichtzutreffendes streichen.')
                         ->styleTextSize('9px')
                         ->styleMarginTop('5px')
                     )

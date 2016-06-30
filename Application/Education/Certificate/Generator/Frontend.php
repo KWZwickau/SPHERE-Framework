@@ -412,7 +412,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Content.Input.Team'           => 'Arbeitsgemeinschaften',
                                 'Content.Input.Deepening'      => 'Vertiefungsrichtung',
                                 'Content.Input.Choose'         => 'Wahlpflichtbereich',
-                                'Content.Input.SchoolType'     => 'Schulart (am Gymnasium/an der Realschule/...)',
+                                'Content.Input.SchoolType'     => 'Schulart (am Gymnasium/an der Mittelschule/...)',
                                 'Content.Input.Date'           => 'Datum',
                                 'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
                                 'Content.Input.DateConference' => 'Datum der Konferenz',

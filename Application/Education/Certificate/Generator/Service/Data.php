@@ -20,6 +20,9 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createCertificate('Bildungsempfehlung', 'Grundschule Klasse 4', 'BeGs');
+        $this->createCertificate('Bildungsempfehlung', 'Mittelschule Klasse 5-6', 'BeMi');
+        $this->createCertificate('Bildungsempfehlung', '§ 34 Abs. 3 SOFS', 'BeSOFS');
         $this->createCertificate('Grundschule Halbjahresinformation', '', 'GsHjInfo');
         $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse', 'GsHjOneInfo');
         $this->createCertificate('Grundschule Jahreszeugnis', '', 'GsJ');
