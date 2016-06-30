@@ -23,9 +23,11 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
+use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -201,12 +203,13 @@ class Service
                                 $tblOptionTypeA = Type::useService()->getTypeById(8);
 
                                 $remark = '';
-                                $info = trim($Document->getValue($Document->getCell($Location['derzeitige Schule'], $RunY)));
-                                if ($info !== ''){
+                                $info = trim($Document->getValue($Document->getCell($Location['derzeitige Schule'],
+                                    $RunY)));
+                                if ($info !== '') {
                                     $remark = 'derzeitige Schule: ' . $info . ' ';
                                 }
                                 $info = trim($Document->getValue($Document->getCell($Location['Bemerkung'], $RunY)));
-                                if ($info !== ''){
+                                if ($info !== '') {
                                     $remark .= 'Bemerkung: ' . $info;
                                 }
 
@@ -280,7 +283,8 @@ class Service
                                         }
                                         if ($StreetName && $StreetNumber && $cityCode && $cityName) {
                                             Address::useService()->insertAddressToPerson(
-                                                $tblPersonCustody1, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''
+                                                $tblPersonCustody1, $StreetName, $StreetNumber, $cityCode, $cityName,
+                                                $cityDistrict, ''
                                             );
                                         } else {
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigen1 wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
@@ -351,7 +355,8 @@ class Service
                                         }
                                         if ($StreetName && $StreetNumber && $cityCode && $cityName) {
                                             Address::useService()->insertAddressToPerson(
-                                                $tblPersonCustody2, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''
+                                                $tblPersonCustody2, $StreetName, $StreetNumber, $cityCode, $cityName,
+                                                $cityDistrict, ''
                                             );
                                         } else {
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigen2 wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
@@ -1564,6 +1569,589 @@ class Service
         }
 
         return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createStudentsPrimarySchoolFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Geburtsdatum' => null,
+                    'Einschulung am' => null,
+                    'Adresse' => null,
+                    'Nr' => null,
+                    'PLZ' => null,
+                    'Ort' => null,
+                    'Ortsteil' => null,
+                    'Konfession' => null,
+                    'Klassenstufe' => null,
+                    'Einschulung-Bemerkung' => null,
+                    'Bemerkung' => null,
+                    'Fotoerlaubnis' => null,
+                );
+
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countStudent = 0;
+
+                    $error = array();
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        set_time_limit(300);
+                        // Student
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        if ($firstName === '' || $lastName === '') {
+                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
+                        } else {
+
+                            $tblPerson = Person::useService()->insertPerson(
+                                Person::useService()->getSalutationById(3),    //Schüler
+                                '',
+                                $firstName,
+                                '',
+                                $lastName,
+                                array(
+                                    0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                    1 => Group::useService()->getGroupByMetaTable('STUDENT'),
+                                )
+                            );
+
+                            if ($tblPerson === false) {
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte nicht angelegt werden.';
+                            } else {
+                                $countStudent++;
+
+                                $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
+                                $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                    $RunY)));
+                                if ($day !== '') {
+                                    $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                } else {
+                                    $birthday = '';
+                                }
+
+                                Common::useService()->insertMeta(
+                                    $tblPerson,
+                                    $birthday,
+                                    '',
+                                    $gender,
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Konfession'],
+                                        $RunY))),
+                                    TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Bemerkung'],
+                                        $RunY)))
+                                );
+
+                                $tblSchoolType = Type::useService()->getTypeById(6); // Grundschule
+
+                                // division
+                                $tblDivision = false;
+                                $year = 16;
+                                $division = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
+                                    $RunY)));
+                                if ($division !== '') {
+                                    $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
+                                    if ($tblYear) {
+                                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                                        if (!$tblPeriodList) {
+                                            // firstTerm
+                                            $tblPeriod = Term::useService()->insertPeriod(
+                                                '1. Halbjahr',
+                                                '01.08.20' . $year,
+                                                '31.01.20' . ($year + 1)
+                                            );
+                                            if ($tblPeriod) {
+                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                            }
+
+                                            // secondTerm
+                                            $tblPeriod = Term::useService()->insertPeriod(
+                                                '2. Halbjahr',
+                                                '01.02.20' . ($year + 1),
+                                                '31.07.20' . ($year + 1)
+                                            );
+                                            if ($tblPeriod) {
+                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                            }
+                                        }
+
+                                        if ($tblSchoolType) {
+                                            if ($division != '10') {
+                                                $pos = 1;
+                                                $level = substr($division, 0, $pos);
+                                                $division = substr($division, $pos);
+                                            } else {
+                                                $level = $division;
+                                                $division = '';
+                                            }
+                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                            if ($tblLevel) {
+                                                $tblDivision = Division::useService()->insertDivision(
+                                                    $tblYear,
+                                                    $tblLevel,
+                                                    $division
+                                                );
+                                            }
+                                        }
+                                    }
+
+                                    if ($tblDivision) {
+                                        Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+                                    } else {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
+                                    }
+                                }
+
+                                // Address
+                                $studentCityCode = str_pad(
+                                    trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
+                                    5,
+                                    "0",
+                                    STR_PAD_LEFT
+                                );
+                                $studentCityName = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                    $RunY)));
+                                $studentCityDistrict = trim($Document->getValue($Document->getCell($Location['Ortsteil'],
+                                    $RunY)));
+                                $streetName = trim($Document->getValue($Document->getCell($Location['Adresse'],
+                                    $RunY)));
+                                $streetNumber = trim($Document->getValue($Document->getCell($Location['Nr'],
+                                    $RunY)));
+
+                                if ($streetName !== '' && $streetNumber !== ''
+                                    && $studentCityCode && $studentCityName
+                                ) {
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson, $streetName, $streetNumber, $studentCityCode, $studentCityName,
+                                        $studentCityDistrict, ''
+                                    );
+                                } else {
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Schülers wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                }
+
+                                // ToDo JohK Fotoerlaubnis
+
+                                $tblStudent = Student::useService()->insertStudent($tblPerson, '');
+                                if ($tblStudent) {
+
+                                    // Schülertransfer
+                                    $day = trim($Document->getValue($Document->getCell($Location['Einschulung am'],
+                                        $RunY)));
+                                    if ($day !== '') {
+                                        $enrollmentDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    } else {
+                                        $enrollmentDate = '';
+                                    }
+                                    if ($enrollmentDate !== '') {
+                                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
+                                        Student::useService()->insertStudentTransfer(
+                                            $tblStudent,
+                                            $tblStudentTransferType,
+                                            null,
+                                            null,
+                                            null,
+                                            $enrollmentDate,
+                                            trim($Document->getValue($Document->getCell($Location['Einschulung-Bemerkung'],
+                                                $RunY)))
+                                        );
+                                    }
+
+                                    $tblCourse = null;
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        null,
+                                        $tblSchoolType ? $tblSchoolType : null,
+                                        $tblCourse ? $tblCourse : null,
+                                        null,
+                                        ''
+                                    );
+                                }
+                            }
+                        }
+                    }
+
+                    Debugger::screenDump($error);
+
+                    return
+                        new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.')
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                'Fehler',
+                                $error,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))));
+
+                } else {
+                    Debugger::screenDump($Location);
+
+                    return new Warning(json_encode($Location)) . new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     * @param null $IsMother
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createCustodiesFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null,
+        $IsMother = null
+    ) {
+
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                if ($IsMother) {
+                    $custodyFirstNameLocation = 'Vorname Mutter';
+                    $custodyLastNameLocation = 'Name Mutter';
+                    $custodyBirthNameLocation = 'Geburtsname Mutter';
+                } else {
+                    $custodyFirstNameLocation = 'Vorname Vater';
+                    $custodyLastNameLocation = 'Name Vater';
+                    $custodyBirthNameLocation = false;
+                }
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Name Kind' => null,
+                    'Vorname Kind' => null,
+                    $custodyLastNameLocation => null,
+                    $custodyFirstNameLocation => null,
+                    'Sorgerecht' => null,
+                    'Geburtsdatum' => null,
+                    'Adresse' => null,
+                    'Hnr' => null,
+                    'PLZ' => null,
+                    'Ort' => null,
+                    'Ortsteil' => null,
+                    'Konfession' => null,
+                    'Beruf' => null,
+                    'Arbeitgeber' => null,
+                    'Sorgerecht-Bemerkung' => null
+                );
+
+                if ($custodyBirthNameLocation) {
+                    $Location[$custodyBirthNameLocation] = null;
+                }
+
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countCustody = 0;
+                    $countCustodyExists = 0;
+
+                    $error = array();
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        set_time_limit(300);
+
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname Kind'], $RunY)));
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name Kind'], $RunY)));
+                        if ($firstName === '' || $lastName === '') {
+                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler vom Sorgeberechtigten wurde nicht gefunden, da er keinen Vornamen und/oder Namen besitzt.';
+                        } else {
+
+                            $student = $this->getStudentsByName($firstName, $lastName);
+                            if ($student === false) {
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler vom Sorgeberechtigten wurde nicht gefunden, da nicht als Schüler angelegt wurde.';
+                            } elseif (is_array($student)) {
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte konnte keinem Schüler zugeordnet werden, da der Schüler mehrmals existiert.';
+                            } else {
+
+                                $firstName = trim($Document->getValue($Document->getCell($Location[$custodyFirstNameLocation],
+                                    $RunY)));
+                                $lastName = trim($Document->getValue($Document->getCell($Location[$custodyLastNameLocation],
+                                    $RunY)));
+
+                                if ($firstName === '' || $lastName === '') {
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte wurde nicht angelegt, da er keinen Vornamen und/oder Namen besitzt.';
+                                } else {
+
+                                    $tblPerson = Person::useService()->existsPerson(
+                                        $firstName,
+                                        $lastName,
+                                        trim($Document->getValue($Document->getCell($Location['PLZ'],
+                                            $RunY)))
+                                    );
+
+                                    if ($tblPerson){
+                                        $countCustodyExists++;
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte wurde nicht angelegt, da er bereits vorhanden ist.';
+                                    } else {
+                                        $countCustody++;
+                                        $tblPerson = Person::useService()->insertPerson(
+                                            $IsMother ? Person::useService()->getSalutationById(2) : Person::useService()->getSalutationById(1),
+                                            '',
+                                            $firstName,
+                                            '',
+                                            $lastName,
+                                            array(
+                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY'),
+                                            ),
+                                            $IsMother
+                                                ? trim($Document->getValue($Document->getCell($Location[$custodyBirthNameLocation],
+                                                $RunY)))
+                                                : ''
+                                        );
+                                    }
+
+                                    if ($tblPerson === false) {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte konnte nicht angelegt werden.';
+                                    } else {
+
+
+                                        if ($IsMother) {
+                                            $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
+                                        } else {
+                                            $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
+                                        }
+
+                                        $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                            $RunY)));
+                                        if ($day !== '') {
+                                            $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                        } else {
+                                            $birthday = '';
+                                        }
+
+                                        if (!Common::useService()->getCommonByPerson($tblPerson)) {
+                                            Common::useService()->insertMeta(
+                                                $tblPerson,
+                                                $birthday,
+                                                '',
+                                                $gender,
+                                                '',
+                                                trim($Document->getValue($Document->getCell($Location['Konfession'],
+                                                    $RunY))),
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
+                                        // Address
+                                        $studentCityCode = str_pad(
+                                            trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
+                                            5,
+                                            "0",
+                                            STR_PAD_LEFT
+                                        );
+                                        $studentCityName = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                            $RunY)));
+                                        $studentCityDistrict = trim($Document->getValue($Document->getCell($Location['Ortsteil'],
+                                            $RunY)));
+                                        $streetName = trim($Document->getValue($Document->getCell($Location['Adresse'],
+                                            $RunY)));
+                                        $streetNumber = trim($Document->getValue($Document->getCell($Location['Hnr'],
+                                            $RunY)));
+
+                                        if ($streetName !== '' && $streetNumber !== ''
+                                            && $studentCityCode && $studentCityName
+                                        ) {
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPerson, $streetName, $streetNumber, $studentCityCode,
+                                                $studentCityName,
+                                                $studentCityDistrict, ''
+                                            );
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigten wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                        }
+
+                                        if (!Custody::useService()->getCustodyByPerson($tblPerson)) {
+                                            Custody::useService()->insertMeta(
+                                                $tblPerson,
+                                                trim($Document->getValue($Document->getCell($Location['Beruf'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Arbeitgeber'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Sorgerecht-Bemerkung'],
+                                                    $RunY)))
+                                            );
+                                        }
+
+                                        $custody = trim($Document->getValue($Document->getCell($Location['Sorgerecht'],
+                                            $RunY)));
+                                        if ($custody) {
+                                            $tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                                        } else {
+                                            $tblType = Relationship::useService()->getTypeByName('Notfallkontakt');
+                                        }
+                                        /** @var TblPerson $student */
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPerson,
+                                            $student,
+                                            $tblType,
+                                            trim($Document->getValue($Document->getCell($Location['Sorgerecht-Bemerkung'],
+                                                $RunY)))
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Debugger::screenDump($error);
+
+                    return
+                        new Success('Es wurden ' . $countCustody . ' Sorgeberechtigte erfolgreich angelegt.')
+                        . ($countCustodyExists > 0 ?
+                            new Warning($countCustodyExists . ' Sorgeberechtigte exisistieren bereits.') : '')
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                'Fehler',
+                                $error,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))));
+
+                } else {
+                    Debugger::screenDump($Location);
+
+                    return new Warning(json_encode($Location)) . new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param $firstName
+     * @param $lastName
+     *
+     * @return false|TblPerson|TblPerson[]
+     */
+    private function getStudentsByName($firstName, $lastName)
+    {
+        $tblStudentAll = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('STUDENT'));
+        $list = array();
+        if ($tblStudentAll) {
+            foreach ($tblStudentAll as $tblPerson) {
+                if (strtolower($tblPerson->getFirstName()) == strtolower($firstName)
+                    && strtolower($tblPerson->getLastName()) == strtolower($lastName)
+                ) {
+                    $list[] = $tblPerson;
+                }
+            }
+        }
+
+        if (empty($list)) {
+            return false;
+        } elseif (count($list) == 1) {
+            return current($list);
+        } else {
+            return $list;
+        }
     }
 
 }
