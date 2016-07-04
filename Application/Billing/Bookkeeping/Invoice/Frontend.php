@@ -5,6 +5,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -105,7 +106,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            new Title(new Listing().' Übersicht', 'aller vorhandenen Rechnungen'),
+                            new Title(new ListingTable().' Übersicht', 'aller vorhandenen Rechnungen'),
                             ( empty( $TableContent ) ? new Warning('Keine Rechnungen vorhanden') :
                                 new TableData($TableContent, null,
                                     array('InvoiceNumber' => 'Rechnungsnummer',

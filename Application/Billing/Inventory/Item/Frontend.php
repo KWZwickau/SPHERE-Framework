@@ -21,7 +21,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Money;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -94,7 +95,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
-                $Item['Condition'] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($CalculationContent);
+                $Item['Condition'] = new Listing($CalculationContent);
 
                 $Item['Option'] =
                     new Standard('', '/Billing/Inventory/Item/Change', new Pencil(), array('Id' => $tblItem->getId()), 'Bearbeiten')
@@ -102,7 +103,6 @@ class Frontend extends Extension implements IFrontendInterface
 
                 array_push($TableContent, $Item);
             });
-
         }
 
         $Global = $this->getGlobal();
@@ -130,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ), new Title(new Listing().' Übersicht')
+                    ), new Title(new ListingTable().' Übersicht')
                 )
             )
             .new Layout(
@@ -424,7 +424,7 @@ class Frontend extends Extension implements IFrontendInterface
                                       'SiblingRank' => 'Geschwister',
                                       'Option'      => '',))
                         )
-                    ), new Title(new Listing().' Übersicht')
+                    ), new Title(new ListingTable().' Übersicht')
                 ),
                 new LayoutGroup(
                     new LayoutRow(

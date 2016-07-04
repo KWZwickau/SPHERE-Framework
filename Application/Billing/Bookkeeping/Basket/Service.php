@@ -13,7 +13,12 @@ use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -429,128 +434,6 @@ class Service extends AbstractService
                         }
                     }
                 }
-
-
-//                    if (count($tblCalculationList) === 1) {
-//                        foreach ($tblCalculationList as $tblCalculation) {
-//                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
-//                                break;
-//                            }
-//                            $ItemChildRankId = false;
-//                            $ItemCourseId = false;
-//                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
-//                            if ($tblItemCourseType) {
-//                                $ItemCourseId = $tblItemCourseType->getId();
-//                            }
-//                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
-//                            if ($tblItemChildRank) {
-//                                $ItemChildRankId = $tblItemChildRank->getId();
-//                            }
-//                            // Sammelleistung ohne Bedinungen auf alle Personen verteilen
-//                            if (false === $ItemChildRankId && false === $ItemCourseId) {
-//                                if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
-//                                    $Price = $tblCalculation->getValue();
-//                                    $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
-//                                } else {
-//                                    $Price = $tblCalculation->getValue();
-//                                }
-//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-//                            }
-//                        }
-//                    }
-//                    if (count($tblCalculationList) > 1) {
-//                        foreach ($tblCalculationList as $tblCalculation) {
-//                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
-//                                break;
-//                            }
-//                            $ItemChildRankId = false;
-//                            $ItemChildRankName = '';
-//                            $ItemCourseId = false;
-//                            $Changed = false;
-//                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
-//                            if ($tblItemCourseType) {
-//                                $ItemCourseId = $tblItemCourseType->getId();
-//                                $Changed = true;
-//                            }
-//                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
-//                            if ($tblItemChildRank) {
-//                                $ItemChildRankId = $tblItemChildRank->getId();
-//                                $ItemChildRankName = $tblItemChildRank->getName();
-//                                $Changed = true;
-//                            }
-//                            // Bedinungen stimmen
-//                            if ($PersonChildRank === $ItemChildRankId && $PersonCourse === $ItemCourseId && $Changed === true) {
-//                                $Price = $tblCalculation->getValue();
-//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-//                            }   // Fehlende Geschwisterangabe = 1.Geschwisterkind
-//                            if ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && $PersonCourse === $ItemCourseId && $Changed === true) {
-//                                $Price = $tblCalculation->getValue();
-//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-//                            }
-//                        }
-//
-//
-//                        foreach ($tblCalculationList as $tblCalculation) {
-//
-//                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
-//                                break;
-//                            }
-//                            $ItemChildRankId = false;
-//                            $ItemChildRankName = '';
-//                            $ItemCourseId = false;
-//                            $Changed = false;
-//
-//                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
-//                            if ($tblItemCourseType) {
-//                                $ItemCourseId = $tblItemCourseType->getId();
-//                                $Changed = true;
-//                            }
-//                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
-//                            if ($tblItemChildRank) {
-//                                $ItemChildRankId = $tblItemChildRank->getId();
-//                                $ItemChildRankName = $tblItemChildRank->getName();
-//                                $Changed = true;
-//                            }
-//                            // Ignoriert Geschwisterkinder
-//                            if (false === $ItemChildRankId && $PersonCourse === $ItemCourseId && $Changed === true) {
-//                                $Price = $tblCalculation->getValue();
-//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-//                            }
-//                            // Ignoriert SchulTyp
-//                            if ($PersonChildRank === $ItemChildRankId && false === $ItemCourseId && $Changed === true) {
-//                                $Price = $tblCalculation->getValue();
-//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-//                            }
-//                            // Fehlende Geschwisterangabe = 1.Geschwisterkind
-//                            if ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && false === $ItemCourseId && $Changed === true) {
-//                                $Price = $tblCalculation->getValue();
-//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-//                            }
-//                        }
-//
-//                        if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
-//                            foreach ($tblCalculationList as $tblCalculation) {
-//                                if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
-//                                    break;
-//                                }
-//                                $ItemChildRankId = false;
-//                                $ItemCourseId = false;
-//                                $tblItemCourseType = $tblCalculation->getServiceSchoolType();
-//                                if ($tblItemCourseType) {
-//                                    $ItemCourseId = $tblItemCourseType->getId();
-//                                }
-//                                $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
-//                                if ($tblItemChildRank) {
-//                                    $ItemChildRankId = $tblItemChildRank->getId();
-//                                }
-//                                // Das Verteilen der Sammelleistung bei vergebenen Bedingungen an alle nicht der Bedingung zutreffenden Personen
-//                                if (false === $ItemChildRankId && false === $ItemCourseId) {
-//                                    $Price = $tblCalculation->getValue();
-//                                    $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
-//                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-//                                }
-//                            }
-//                        }
             }
         }
         //ToDO Personen ohne einträge automatisch entfernen?
@@ -614,7 +497,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Stage
-     * @param TblBasket $tblBasket
+     * @param TblBasket      $tblBasket
      * @param                $Basket
      *
      * @return IFormInterface|string
@@ -717,7 +600,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasket $tblBasket
+     * @param TblBasket    $tblBasket
      * @param TblCommodity $tblCommodity
      *
      * @return string
@@ -732,7 +615,7 @@ class Service extends AbstractService
 
     /**
      * @param TblBasket $tblBasket
-     * @param TblItem $tblItem
+     * @param TblItem   $tblItem
      *
      * @return string
      */
@@ -767,7 +650,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
+     * @param IFormInterface|null   $Stage
      * @param TblBasketVerification $tblBasketVerification
      * @param                       $Item
      *
@@ -869,6 +752,38 @@ class Service extends AbstractService
 
     /**
      * @param TblBasket $tblBasket
+     * @param           $DataAddPerson
+     */
+    public function addBasketPersonList(TblBasket $tblBasket, $DataAddPerson)
+    {
+        foreach ($DataAddPerson as $personId => $value) {
+            $tblPerson = Person::useService()->getPersonById($personId);
+            if ($tblPerson) {
+                $this->addBasketPerson($tblBasket, $tblPerson);
+            }
+        }
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param           $DataRemovePerson
+     */
+    public function removeBasketPersonList(TblBasket $tblBasket, $DataRemovePerson)
+    {
+        foreach ($DataRemovePerson as $personId => $value) {
+            $tblPerson = Person::useService()->getPersonById($personId);
+            if ($tblPerson) {
+                $tblBasketPerson = Basket::useService()->getBasketPersonByBasketAndPerson($tblBasket, $tblPerson);
+                if ($tblBasketPerson) {
+//                    Debugger::screenDump($tblBasketPerson);
+                    $this->removeBasketPerson($tblBasketPerson);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblBasket $tblBasket
      *
      * @return bool|TblBasketItem[]
      */
@@ -880,7 +795,7 @@ class Service extends AbstractService
 
     /**
      * @param TblBasket $tblBasket
-     * @param TblItem $tblItem
+     * @param TblItem   $tblItem
      *
      * @return false|TblBasketItem
      */
@@ -910,5 +825,85 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketVerificationById($Id);
+    }
+
+    /**
+     * @param IFormInterface   $Form
+     * @param TblBasket        $tblBasket
+     * @param null             $DataAddPerson
+     * @param null             $DataRemovePerson
+     * @param TblGroup|null    $tblFilterGroup
+     * @param TblDivision|null $tblFilterDivision
+     *
+     * @return IFormInterface|string
+     */
+    public function changePersonsToBasket(
+        IFormInterface $Form,
+        TblBasket $tblBasket,
+        $DataAddPerson = null,
+        $DataRemovePerson = null,
+        TblGroup $tblFilterGroup = null,
+        TblDivision $tblFilterDivision = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Button']['Submit'] )) {
+            return $Form;
+        }
+
+        // entfernen
+        if ($DataRemovePerson !== null) {
+            $this->removeBasketPersonList($tblBasket, $DataRemovePerson);
+        }
+
+        // hinzufügen
+        if ($DataAddPerson !== null) {
+            $this->addBasketPersonList($tblBasket, $DataAddPerson);
+        }
+
+        return new Success('Daten erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        .new Redirect('/Billing/Bookkeeping/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS, array(
+            'Id'               => $tblBasket->getId(),
+            'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
+            'FilterDivisionId' => $tblFilterDivision ? $tblFilterDivision->getId() : null,
+        ));
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblBasket      $tblBasket
+     * @param null           $Filter
+     *
+     * @return IFormInterface|Success
+     */
+    public function getPersonFilter(IFormInterface $Form, TblBasket $tblBasket, $Filter = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if ($Filter === null) {
+            return $Form;
+        }
+
+        $tblFilterGroup = false;
+        $tblDivision = false;
+        if (isset( $Filter['Group'] )) {
+            $tblFilterGroup = Group::useService()->getGroupById($Filter['Group']);
+        }
+        if (isset( $Filter['Division'] )) {
+            $tblDivision = Division::useService()->getDivisionById($Filter['Division']);
+        }
+
+        return new Success('Die verfügbaren Personen werden gefiltert.',
+            new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        .new Redirect('/Billing/Bookkeeping/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS, array(
+            'Id'               => $tblBasket->getId(),
+            'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
+            'FilterDivisionId' => $tblDivision ? $tblDivision->getId() : null,
+        ));
     }
 }

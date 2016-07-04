@@ -5,6 +5,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -90,7 +91,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            new Title(new Listing().' Übersicht', 'der offenen Posten'),
+                            new Title(new ListingTable().' Übersicht', 'der offenen Posten'),
                             ( empty( $TableContent ) ? new Warning('Keine offenen Rechnungen vorhanden') :
                                 new TableData($TableContent, null,
                                     array('InvoiceNumber' => 'Rechnungsnummer',

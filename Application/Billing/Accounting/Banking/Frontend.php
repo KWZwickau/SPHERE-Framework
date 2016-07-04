@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -209,7 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new Title(new \SPHERE\Common\Frontend\Icon\Repository\Listing().' Übersicht Debitornummer(n)'),
+                            new Title(new ListingTable().' Übersicht Debitornummer(n)'),
                             ( empty( $TableContentDebtor ) ? new Warning('Keine Debitor-Nummer vergeben') :
                                 new TableData($TableContentDebtor, null,
                                     array('DebtorNumber' => 'Debitoren-Nummer',
@@ -218,7 +219,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ) )
                         ), 3),
                         new LayoutColumn(array(
-                            new Title(new \SPHERE\Common\Frontend\Icon\Repository\Listing().' Übersicht Referenz(en)'),
+                            new Title(new ListingTable().' Übersicht Referenz(en)'),
                             ( empty( $TableContentReference ) ? new Warning('Keine Mandats-Referenzen vergeben') :
                                 new TableData($TableContentReference, null,
                                     array('Reference'     => 'Referenz',

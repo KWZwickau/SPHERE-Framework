@@ -12,26 +12,36 @@ use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Money;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -57,6 +67,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -147,7 +158,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ), new Title(new Listing().' Übersicht')
+                    ), new Title(new ListingTable().' Übersicht')
                 )
             )
             .new Layout(
@@ -728,128 +739,230 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $DataAddPerson
+     * @param null $DataRemovePerson
+     * @param null $Filter
+     * @param null $FilterGroupId
+     * @param null $FilterDivisionId
      *
-     * @return Stage
+     * @return Stage|string
      */
-    public function frontendBasketPersonSelect($Id = null)
-    {
+    public function frontendBasketPersonSelect(
+        $Id = null,
+        $DataAddPerson = null,
+        $DataRemovePerson = null,
+        $Filter = null,
+        $FilterGroupId = null,
+        $FilterDivisionId = null
+    ) {
 
         $Stage = new Stage('Warenkorb', 'Personen Auswählen');
         $Stage->setMessage('Bitte wählen Sie Personen zur Fakturierung aus');
-        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
-        if (!$tblBasket) {
-            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
-            return $Stage.new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
-        }
-        $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
-        if ($tblBasketVerification) {
-            $Stage->setContent(new Warning('Berechnung schon im Gange'));
-            return $Stage.new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblBasket->getId()));
-        }
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Content', new ChevronLeft(),
-//            array('Id' => $Id)));
         $Stage->addButton(new Backward());
-        $tblBasketPersonList = Basket::useService()->getBasketPersonAllByBasket($tblBasket);
-        $tblPersonByBasketList = Basket::useService()->getPersonAllByBasket($tblBasket);
-        $tblPersonAll = Person::useService()->getPersonAll();
 
+        if (( $tblBasket = Basket::useService()->getBasketById($Id) )) {
 
-        if (!empty( $tblPersonByBasketList )) {
-            $tblPersonAll = array_udiff($tblPersonAll, $tblPersonByBasketList,
-                function (TblPerson $ObjectA, TblPerson $ObjectB) {
+            $tblFilterGroup = Group::useService()->getGroupById($FilterGroupId);
+            $tblFilterDivision = Division::useService()->getDivisionById($FilterDivisionId);
 
-                    return $ObjectA->getId() - $ObjectB->getId();
+            // Set Filter Post
+            if ($Filter == null && ( $tblFilterGroup || $tblFilterDivision )) {
+                $GLOBAL = $this->getGlobal();
+                $GLOBAL->POST['Filter']['Group'] = $tblFilterGroup ? $tblFilterGroup->getId() : 0;
+                $GLOBAL->POST['Filter']['Division'] = $tblFilterDivision ? $tblFilterDivision->getId() : 0;
+
+                $GLOBAL->savePost();
+            }
+
+            $tblPersonList = Basket::useService()->getPersonAllByBasket($tblBasket);
+            $tblPersonAll = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('COMMON'));
+
+            // filter
+            if ($tblFilterGroup || $tblFilterDivision) {
+                //ToDO use Filter from Groups should I copy it to Basket Service?
+                $tblPersonAll = Group::useService()->filterPersonListByGroupAndDivision(
+                    $tblPersonAll,
+                    $tblFilterGroup ? $tblFilterGroup : null,
+                    $tblFilterDivision ? $tblFilterDivision : null
+                );
+            }
+
+            if ($tblPersonList && $tblPersonAll) {
+                $tblPersonAll = array_udiff($tblPersonAll, $tblPersonList,
+                    function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
+
+                        return $tblPersonA->getId() - $tblPersonB->getId();
+                    }
+                );
+            }
+
+            if ($tblPersonList) {
+                $tempList = array();
+                foreach ($tblPersonList as $personListPerson) {
+                    $tempList[] = $this->setPersonData($personListPerson, 'DataRemovePerson');
                 }
-            );
-        }
+                $tblPersonList = $tempList;
+            }
 
-        $TableContent = array();
-        if (!empty( $tblBasketPersonList )) {
-            array_walk($tblBasketPersonList, function (TblBasketPerson $tblBasketPerson) use (&$TableContent) {
-
-                $tblPerson = $tblBasketPerson->getServiceTblPerson();
-                $Temp['Salutation'] = $tblPerson->getSalutation();
-                $Temp['Name'] = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
-
-                $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
-                $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                if (!empty( $tblAddressAll )) {
-                    $tblAddress = current($tblAddressAll)->getGuiString();
-                } else {
-                    $tblAddress = new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                        new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Adresse hinterlegt');
+            if (is_array($tblPersonAll)) {
+                $tempList = array();
+                foreach ($tblPersonAll as $personAllPerson) {
+                    $tempList[] = $this->setPersonData($personAllPerson, 'DataAddPerson');
                 }
-                $Temp['Address'] = $tblAddress;
-                $Temp['Remove'] =
-                    (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Bookkeeping/Basket/Person/Remove',
-                        new Minus(), array(
-                            'Id' => $tblBasketPerson->getId()
-                        ), 'Entfernt diese Person aus dem Warenkorb'))->__toString();
-                array_push($TableContent, $Temp);
-            });
-        }
+                $tblPersonAll = $tempList;
+            }
 
-        $TableContentPerson = array();
-        if (!empty( $tblPersonAll )) {
-            array_walk($tblPersonAll, function (TblPerson $tblPerson) use (&$TableContentPerson, $tblBasket) {
+            if (!$tblFilterGroup && !$tblFilterDivision) {
+                $displayAvailablePersons = new Warning(
+                    'Zum Hinzufügen von Personen zum Warenkorb: '.$tblBasket->getName().' schränken Sie bitte den Personenkreis über die Suche (Gruppe und/oder Klasse) ein.',
+                    new Exclamation()
+                );
+            } elseif ($tblPersonAll) {
 
-                $Temp['Salutation'] = $tblPerson->getSalutation();
-                $Temp['Name'] = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
+                $displayAvailablePersons = new TableData(
+                    $tblPersonAll,
+                    new \SPHERE\Common\Frontend\Table\Repository\Title('Weitere Personen', 'hinzufügen'),
+                    array(
+                        'Check'       => new Center(new Small('Hinzufügen ').new Enable()),
+                        'DisplayName' => 'Name',
+                        'Address'     => 'Adresse',
+                        'Groups'      => 'Gruppen/Klasse '
+                    ),
+                    array(
+                        "columnDefs"     => array(
+                            array(
+                                "orderable" => false,
+                                "width"     => "35px",
+                                "targets"   => 0
+                            ),
+                            array(
+                                "width"   => "20%",
+                                "targets" => 1
+                            ),
+                            array(
+                                "width"   => "40%",
+                                "targets" => 2
+                            )
+                        ),
+                        'order'          => array(
+                            array('1', 'asc')
+                        ),
+                        "paging"         => false, // Deaktivieren Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching"      => false, // Deaktivieren Suchen
+                        "info"           => false  // Deaktivieren Such-Info
+                    )
+                );
+            } else {
+                $displayAvailablePersons = new Warning('Keine weiteren Personen verfügbar.', new Exclamation());
+            }
 
-                $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
-                $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                if (!empty( $tblAddressAll )) {
-                    $tblAddress = current($tblAddressAll)->getGuiString();
-                } else {
-                    $tblAddress = new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                        new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Adresse hinterlegt');
-                }
-                $Temp['Address'] = $tblAddress;
-                $Temp['Add'] =
-                    (new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Bookkeeping/Basket/Person/Add',
-                        new Plus(), array(
-                            'Id'       => $tblBasket->getId(),
-                            'PersonId' => $tblPerson->getId()
-                        ), 'Fügt dem Warenkorb diese Person hinzu'))->__toString();
-                array_push($TableContentPerson, $Temp);
-            });
-        }
-
-        $Stage->setContent(
-            $this->layoutBasket($tblBasket)
-            .new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' zugewiesene Personen'),
-                            ( empty( $TableContent ) ? new Warning('Keine Personen im Warenkorb') :
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Salutation' => 'Anrede',
-                                        'Name'       => 'Name',
-                                        'Address'    => 'Adresse',
-                                        'Remove'     => ''
-                                    )
-                                ) )
+            $form = new Form(array(
+                new FormGroup(
+                    new FormRow(array(
+                        new FormColumn(array(
+                            $displayAvailablePersons
                         ), 6),
-                        new LayoutColumn(array(
-                            new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' mögliche Personen'),
-                            ( empty( $TableContentPerson ) ? new Warning('Keine Personen vorhanden') :
-                                new TableData($TableContentPerson, null,
+                        new FormColumn(array(
+                            ( $tblPersonList
+                                ? new TableData(
+                                    $tblPersonList,
+                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Personen aus dem Warenkorb "'.$tblBasket->getName().'"',
+                                        'entfernen'),
                                     array(
-                                        'Salutation' => 'Anrede',
-                                        'Name'       => 'Name',
-                                        'Address'    => 'Adresse',
-                                        'Add'        => ' '
+                                        'Check'       => new Center(new Small('Entfernen ').new Disable()),
+                                        'DisplayName' => 'Name',
+                                        'Address'     => 'Adresse',
+                                        'Groups'      => 'Gruppen/Klasse'
+                                    ),
+                                    array(
+                                        "columnDefs"     => array(
+                                            array(
+                                                "orderable" => false,
+                                                "width"     => "35px",
+                                                "targets"   => 0
+                                            ),
+                                            array(
+                                                "width"   => "20%",
+                                                "targets" => 1
+                                            ),
+                                            array(
+                                                "width"   => "40%",
+                                                "targets" => 2
+                                            )
+                                        ),
+                                        'order'          => array(
+                                            array('1', 'asc')
+                                        ),
+                                        "paging"         => false, // Deaktivieren Blättern
+                                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                        "searching"      => false, // Deaktivieren Suchen
+                                        "info"           => false  // Deaktivieren Such-Info
                                     )
-                                ) )
-                        ), 6)
+                                )
+                                : new Warning('Keine Personen zugewiesen.', new Exclamation())
+                            )
+                        ), 6),
                     ))
-                )
-            )
-        );
+                ),
+            ));
 
+            $form->appendFormButton(new Primary('Speichern', new Save()));
+            $form->setConfirm('Die Zuweisung der Personen wurde noch nicht gespeichert.');
+
+            $Stage->setContent(new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel(
+                                'Warenkorb',
+                                $tblBasket->getName().' '.new Small(new Muted($tblBasket->getDescription())),
+                                Panel::PANEL_TYPE_INFO
+                            ), 12
+                        ),
+                    ))
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Well(
+                                Basket::useService()->getPersonFilter(
+                                    $this->formPersonFilter(), $tblBasket, $Filter
+                                )
+                            ), 12
+                        )
+                    ))
+                ), new Title('Personensuche')),
+                ( $Filter == null ?
+                    new LayoutGroup(array(
+                        // TODO: Describe possible Action
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                new Info('Links können neue Personsn... rechts ...')
+//                            )
+//                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Well(
+                                    Basket::useService()->changePersonsToBasket(
+                                        $form,
+                                        $tblBasket,
+                                        $DataAddPerson,
+                                        $DataRemovePerson,
+                                        $tblFilterGroup ? $tblFilterGroup : null,
+                                        $tblFilterDivision ? $tblFilterDivision : null
+                                    )
+                                )
+                            ))
+                        ))
+                    ), new Title('Personen', 'für diesen Warenkorb')) : null )
+            )));
+
+        } else {
+            return $Stage
+            .new Danger('Warenkorb nicht gefunden.', new Ban())
+            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
         return $Stage;
     }
 
@@ -1080,7 +1193,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Option'       => '',
                                 ))
                         )
-                    ), new Title(new Listing().' Übersicht')
+                    ), new Title(new ListingTable().' Übersicht')
                 )
             )
             .new Layout(
@@ -1218,7 +1331,7 @@ class Frontend extends Extension implements IFrontendInterface
                                       'Option'      => '',
                                 ))
                         )
-                    ), new Title(new Listing().' Übersicht')
+                    ), new Title(new ListingTable().' Übersicht')
                 )
             )
         );
@@ -1649,5 +1762,78 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param           $DataName
+     *
+     * @return array
+     */
+    private function setPersonData(TblPerson $tblPerson, $DataName)
+    {
+        $result = array();
+        $result['Check'] = new CheckBox(
+            $DataName.'['.$tblPerson->getId().']',
+            ' ',
+            1
+        );
+        $result['DisplayName'] = $tblPerson->getLastFirstName();
+        $tblAddress = $tblPerson->fetchMainAddress();
+        $result['Address'] = $tblAddress ? $tblAddress->getGuiString() : '';
+        $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+        $groups = array();
+        if ($tblGroupList) {
+            foreach ($tblGroupList as $item) {
+                if ($item->getMetaTable() !== 'COMMON') {
+                    $groups[] = $item->getName();
+                }
+            }
+        }
+
+        // current Division
+        $tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
+
+        $result['Groups'] = ( !empty( $groups ) ? implode(', ', $groups).( $tblDivision ? ', ' : '' ) : '' )
+            .( $tblDivision ? 'Klasse '.$tblDivision->getDisplayName() : '' );
+
+        return $result;
+    }
+
+    /**
+     * @return Form
+     */
+    private function formPersonFilter()
+    {
+
+        $tblGroupAll = Group::useService()->getGroupAllSorted();
+        $tblDivisionList = array();
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($tblYearList) {
+            foreach ($tblYearList as $tblYear) {
+                $tblDivisionAllByYear = Division::useService()->getDivisionByYear($tblYear);
+                if ($tblDivisionAllByYear) {
+                    foreach ($tblDivisionAllByYear as $tblDivision) {
+                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                    }
+                }
+            }
+        }
+
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Filter[Group]', 'Gruppe', array('Name' => $tblGroupAll)), 6
+                    ),
+                    new FormColumn(
+                        new SelectBox('Filter[Division]', 'Klasse', array('DisplayName' => $tblDivisionList)), 6
+                    ),
+                    new FormColumn(
+                        new Primary('Suchen', new Filter())
+                    ),
+                ))
+            )
+        );
     }
 }

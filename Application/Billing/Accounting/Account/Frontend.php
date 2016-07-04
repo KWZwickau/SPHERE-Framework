@@ -13,7 +13,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\BarCode;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -102,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ), new Title(new Listing().' Übersicht')
+                    ), new Title(new ListingTable().' Übersicht')
                 )
             ).
             new Layout(
