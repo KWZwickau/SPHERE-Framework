@@ -445,9 +445,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn(array(
-                            $displayAvailablePersons
-                        ), 6),
-                        new FormColumn(array(
                             ($tblPersonList
                                 ? new TableData(
                                     $tblPersonList,
@@ -486,6 +483,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                                 : new Warning('Keine Personen zugewiesen.', new Exclamation())
                             )
+                        ), 6),
+                        new FormColumn(array(
+                            $displayAvailablePersons
                         ), 6),
                     ))
                 ),

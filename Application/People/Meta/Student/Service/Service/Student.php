@@ -47,7 +47,6 @@ abstract class Student extends AbstractService
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
      *
-     * @param null $tblStudentRelease
      * @return bool|TblStudent
      */
     public function insertStudent(
@@ -58,8 +57,7 @@ abstract class Student extends AbstractService
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null,
-        $tblStudentRelease = null
+        $tblStudentIntegration = null
     ) {
 
         $tblStudent = $this->getStudentByPerson($tblPerson);
@@ -73,8 +71,7 @@ abstract class Student extends AbstractService
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration,
-                $tblStudentRelease
+                $tblStudentIntegration
             );
         } else {
             $tblStudent = (new Data($this->getBinding()))->createStudent(
@@ -85,8 +82,7 @@ abstract class Student extends AbstractService
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration,
-                $tblStudentRelease
+                $tblStudentIntegration
             );
         }
 

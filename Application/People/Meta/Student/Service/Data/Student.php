@@ -23,7 +23,6 @@ abstract class Student extends AbstractData
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
-     * @param null $tblStudentRelease
      *
      * @return TblStudent
      */
@@ -35,8 +34,7 @@ abstract class Student extends AbstractData
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null,
-        $tblStudentRelease = null
+        $tblStudentIntegration = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -52,7 +50,6 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
-            $Entity->setTblStudentRelease($tblStudentRelease);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -68,7 +65,6 @@ abstract class Student extends AbstractData
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
-     * @param null $tblStudentRelease
      *
      * @return bool
      */
@@ -80,8 +76,7 @@ abstract class Student extends AbstractData
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null,
-        $tblStudentRelease = null
+        $tblStudentIntegration = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -97,7 +92,6 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
-            $Entity->setTblStudentRelease($tblStudentRelease);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
