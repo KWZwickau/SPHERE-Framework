@@ -62,14 +62,14 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYear       $tblYear
-     * @param TblLevel|null $tblLevel
-     * @param string        $Name
-     * @param string        $Description
+     * @param TblYear  $tblYear
+     * @param TblLevel $tblLevel
+     * @param string   $Name
+     * @param string   $Description
      *
      * @return null|object|TblDivision
      */
-    public function createDivision(TblYear $tblYear, TblLevel $tblLevel = null, $Name, $Description = '')
+    public function createDivision(TblYear $tblYear, TblLevel $tblLevel, $Name, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -77,7 +77,7 @@ class Data extends AbstractData
             TblDivision::ATTR_YEAR  => $tblYear->getId(),
             TblDivision::ATTR_NAME  => $Name,
             TblDivision::ATTR_LEVEL => ( $tblLevel ? $tblLevel->getId() : null ),
-            'EntityRemove' => null
+            'EntityRemove'          => null
         ));
 
         if (null === $Entity) {
@@ -218,7 +218,7 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
 
-        return empty($EntityList) ? false : $EntityList;
+        return empty( $EntityList ) ? false : $EntityList;
     }
 
     /**
@@ -246,7 +246,7 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
 
-        return empty($EntityList) ? false : $EntityList;
+        return empty( $EntityList ) ? false : $EntityList;
     }
 
     /**
@@ -285,7 +285,7 @@ class Data extends AbstractData
     public function getStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
     {
 
-        $TempList =  $this->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+        $TempList = $this->getSubjectStudentByDivisionSubject($tblDivisionSubject);
 
         $EntityList = array();
         if (!empty ( $TempList )) {
@@ -1256,7 +1256,7 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
 
-        return empty($EntityList) ? false : $EntityList;
+        return empty( $EntityList ) ? false : $EntityList;
     }
 
     /**
@@ -1278,10 +1278,10 @@ class Data extends AbstractData
                 TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
 
-        if ($EntityList){
+        if ($EntityList) {
             $count = 0;
             /** @var TblDivisionStudent $item */
-            foreach ($EntityList as &$item){
+            foreach ($EntityList as &$item) {
                 if ($item->getServiceTblPerson() && $item->getTblDivision()) {
                     $count++;
                 }
@@ -1311,10 +1311,10 @@ class Data extends AbstractData
                 TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
 
-        if ($EntityList){
+        if ($EntityList) {
             $count = 0;
             /** @var TblDivisionTeacher $item */
-            foreach ($EntityList as &$item){
+            foreach ($EntityList as &$item) {
                 if ($item->getServiceTblPerson() && $item->getTblDivision()) {
                     $count++;
                 }
@@ -1343,10 +1343,10 @@ class Data extends AbstractData
                 TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
 
-        if ($EntityList){
+        if ($EntityList) {
             $count = 0;
             /** @var TblDivisionCustody $item */
-            foreach ($EntityList as &$item){
+            foreach ($EntityList as &$item) {
                 if ($item->getServiceTblPerson()) {
                     $count++;
                 }
@@ -1375,10 +1375,10 @@ class Data extends AbstractData
                 TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
 
-        if ($EntityList){
+        if ($EntityList) {
             $count = 0;
             /** @var TblDivisionSubject $item */
-            foreach ($EntityList as &$item){
+            foreach ($EntityList as &$item) {
                 if ($item->getServiceTblSubject() && $item->getTblDivision()) {
                     $count++;
                 }
@@ -1516,7 +1516,7 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
 
-        return empty($EntityList) ? false : $EntityList;
+        return empty( $EntityList ) ? false : $EntityList;
     }
 
     /**
@@ -1561,10 +1561,10 @@ class Data extends AbstractData
                 TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
             ));
 
-        if ($EntityList){
+        if ($EntityList) {
             $count = 0;
             /** @var TblSubjectStudent $item */
-            foreach ($EntityList as &$item){
+            foreach ($EntityList as &$item) {
                 if ($item->getServiceTblPerson()) {
                     $count++;
                 }
