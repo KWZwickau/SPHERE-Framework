@@ -78,6 +78,47 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $File
      *
      * @return Stage
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function frontendFormerStudentImport($File = null)
+    {
+
+        $View = new Stage('Import Radebeul', 'Ehemalige Schüler');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Radebeul::useService()->createFormerStudentsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)', new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
      */
     public function frontendCompanyImport($File = null)
     {

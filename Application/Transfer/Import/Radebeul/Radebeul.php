@@ -38,11 +38,15 @@ class Radebeul implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Staff', __NAMESPACE__ . '\Frontend::frontendStaffImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/FormerStudent', __NAMESPACE__ . '\Frontend::frontendFormerStudentImport'
+        ));
 
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStaff'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetCompany'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetClubMember'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetFormerStudent'), 2, 2);
     }
 
     /**
@@ -112,6 +116,19 @@ class Radebeul implements IModuleInterface
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
             'Radebeul', 'Lehrer',
             new Standard('', '/Transfer/Import/Radebeul/Staff', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetFormerStudent()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
+            'Radebeul', 'Ehemalige Schüler',
+            new Standard('', '/Transfer/Import/Radebeul/FormerStudent', new Upload(), array(), 'Upload')
         );
     }
 
