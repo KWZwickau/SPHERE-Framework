@@ -82,7 +82,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(
 //            new Standard('Debitor anlegen', '/Billing/Accounting/Banking/Person', new Plus())
 //        );
-        new Backward();
+//        new Backward();
         $TableContent = array();
         $tblPersonAll = Person::useService()->getPersonAll();
         if ($tblPersonAll) {
@@ -157,8 +157,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Debitor', 'Anlegen');
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
+//        $Stage->addButton(new Backward());
         $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
         if (!$tblPerson) {
             $Stage->setContent(new Warning('Auf die Person konnte nicht zugegriffen werden'));
@@ -694,7 +694,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Content[] = 'Mandatsreferenz: '.$tblBankReference->getReference();
         $Content[] = 'Datum: '.$tblBankReference->getReferenceDate();
         if (!$Confirm) {
-            $Stage->addButton(new Backward());
+            $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/View', new ChevronLeft(), array('Id' => $tblPerson->getId())));
+//            $Stage->addButton(new Backward());
             $Stage->setContent(
                 $PersonPanel
                 .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -753,9 +754,9 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
 
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
-//            , array('Id' => $tblBasket->getId())));
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
+            , array('Id' => $tblBasket->getId())));
+//        $Stage->addButton(new Backward());
         $Global = $this->getGlobal();
 
         $TableContent = array();
@@ -913,9 +914,9 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
 
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
-//            , array('Id' => $tblBasket->getId())));
-        $Stage->addButton(new Backward(true));
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
+            , array('Id' => $tblBasket->getId())));
+//        $Stage->addButton(new Backward(true));
 
         $TableContent = array();
         $tblDebtorSelectionList = array();
@@ -1036,7 +1037,7 @@ class Frontend extends Extension implements IFrontendInterface
         $PersonIdList = array();
         $tblPersonList = array();
         $TableContent = array();
-        new Backward();
+//        new Backward();
 
         if ($tblDebtorSelectionAll) {
             foreach ($tblDebtorSelectionAll as $tblDebtorSelection) {
@@ -1126,8 +1127,8 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage
             .new Redirect('/Billing/Accounting/DebtorSelection', Redirect::TIMEOUT_ERROR);
         }
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/DebtorSelection', new ChevronLeft()));
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/DebtorSelection', new ChevronLeft()));
+//        $Stage->addButton(new Backward());
         $Global = $this->getGlobal();
         $TableContent = array();
         $tblDebtorSelectionList = Banking::useService()->getDebtorSelectionByPerson($tblPerson);
@@ -1277,15 +1278,15 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
-//            , array('Id' => $tblBasket->getId())));
-        $Stage->addButton(new Backward());
         $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
         if (!$tblPerson) {
             $Stage->setContent(new WarningText('Person nicht gefunden'));
             return $Stage
             .new Redirect('/Billing/Accounting/DebtorSelection', Redirect::TIMEOUT_ERROR);
         }
+        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/DebtorSelection/PaymentSelection', new ChevronLeft()
+            , array('Id' => $tblPerson->getId())));
+//        $Stage->addButton(new Backward());
 
         $Global = $this->getGlobal();
 
@@ -1446,7 +1447,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Content[] = 'Bezahler: '.$tblDebtorSelection->getServiceTblPersonPayers()->getFullName();
         }
         if (!$Confirm) {
-            $Stage->addButton(new Backward());
+            $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/DebtorSelection/PaymentSelection', new ChevronLeft(),
+                array('Id' => $tblPerson->getId())));
+//            $Stage->addButton(new Backward());
             $Stage->setContent(
                 $PersonPanel
                 .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -1527,7 +1530,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         if (!$Confirm) {
-            $Stage->addButton(new Backward());
+            $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/DebtorSelection', new ChevronLeft()));
             $Stage->setContent(
                 $PersonPanel
                 .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(

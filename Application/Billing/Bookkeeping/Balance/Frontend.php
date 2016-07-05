@@ -35,7 +35,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Posten');
         $Stage->setDescription('Offen');
-        new Backward();
+//        new Backward();
 
         $tblInvoiceList = Invoice::useService()->getInvoiceByIsPaid();
         $TableContent = array();

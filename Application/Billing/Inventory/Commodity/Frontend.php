@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -56,7 +57,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistungen');
         $Stage->setDescription('Übersicht');
-        new Backward();
+//        new Backward();
 
         $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
@@ -161,10 +162,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Leistungen', 'Bearbeiten');
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
-//            new ChevronLeft()
-//        ));
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity', new ChevronLeft()));
+//        $Stage->addButton(new Backward());
         $tblCommodity = Commodity::useService()->getCommodityById($Id);
         if (!$tblCommodity) {
             $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));
@@ -259,10 +258,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Leistung', 'Artikel auswählen');
-//        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
-//            new ChevronLeft()
-//        ));
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity', new ChevronLeft()));
+//        $Stage->addButton(new Backward());
         $tblCommodity = Commodity::useService()->getCommodityById($Id);
         if (!$tblCommodity) {
             $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));
