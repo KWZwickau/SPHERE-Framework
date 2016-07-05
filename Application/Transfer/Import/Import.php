@@ -10,6 +10,7 @@ use SPHERE\Application\Transfer\Import\Herrnhut\Herrnhut;
 use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
 use SPHERE\Application\Transfer\Import\LebensweltZwenkau\Zwenkau;
 use SPHERE\Application\Transfer\Import\Muldental\Muldental;
+use SPHERE\Application\Transfer\Import\Radebeul\Radebeul;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -30,6 +31,9 @@ class Import implements IApplicationInterface
         $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
         if ($consumerAcronym == 'ESZC' || $consumerAcronym == 'DEMO') {
             Chemnitz::registerModule();
+        }
+        if ($consumerAcronym === 'EVSR' || $consumerAcronym == 'DEMO'){
+            Radebeul::registerModule();
         }
         if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
             Hormersdorf::registerModule();
