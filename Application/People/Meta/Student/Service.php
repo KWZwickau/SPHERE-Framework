@@ -704,12 +704,12 @@ class Service extends Integration
     /**
      * @param TblPerson $tblPerson
      *
-     * @return bool|TblDivision
+     * @return false|TblDivision[]
      */
-    public function getCurrentDivisionByPerson(TblPerson $tblPerson)
+    public function getCurrentDivisionListByPerson(TblPerson $tblPerson)
     {
 
-        $tblDivision = false;
+        $tblDivisionList = array();
         if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
             $tblPerson)
         ) {
@@ -722,22 +722,37 @@ class Service extends Integration
                             if ($tblDivisionStudent->getTblDivision()) {
                                 $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
                                 if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
-                                    $tblDivision = $tblDivisionStudent->getTblDivision();
-                                    //break;
-
-                                    return $tblDivision;
+                                    $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
                                 }
                             }
                         }
-
-//                        if ($tblDivision) {
-//                            break;
-//                        }
                     }
                 }
             }
         }
 
-        return $tblDivision;
+        return empty($tblDivisionList) ? false : $tblDivisionList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    public function getDisplayCurrentDivisionListByPerson(TblPerson $tblPerson)
+    {
+
+        $tblDivisionList = $this->getCurrentDivisionListByPerson($tblPerson);
+        $list = array();
+        if ($tblDivisionList){
+            foreach ($tblDivisionList as $tblDivision){
+                $list[] = 'Klasse ' . $tblDivision->getDisplayName();
+            }
+
+            return implode(', ', $list);
+        } else {
+
+            return '';
+        }
     }
 }
