@@ -1140,11 +1140,11 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblBasketVerification->getServiceTblItem()) {
                             $ItemArray[] = $tblBasketVerification->getServiceTblItem()->getName();
                         }
-                        $Sum += $tblBasketVerification->getValue();
+                        $Sum += $tblBasketVerification->getValue() * $tblBasketVerification->getQuantity();
                     }
                 }
                 $Item['ItemList'] = implode(', ', $ItemArray);
-                $Item['SummaryPrice'] = round($Sum, 2).' €';
+                $Item['SummaryPrice'] = number_format($Sum, 2).' €';
 
                 $Item['ChildRank'] = '';
                 $Item['CourseType'] = '';

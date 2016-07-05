@@ -34,6 +34,21 @@ class Balance implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBalance'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View',
+                __NAMESPACE__.'\Frontend::frontendBalanceView'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Paid',
+                __NAMESPACE__.'\Frontend::frontendBalancePaid'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Reversal',
+                __NAMESPACE__.'\Frontend::frontendBalanceReversal'
+            )
+        );
     }
 
     /**

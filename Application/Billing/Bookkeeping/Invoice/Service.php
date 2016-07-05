@@ -61,6 +61,30 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblInvoice $tblInvoice
+     * @param bool       $IsPaid
+     *
+     * @return bool
+     */
+    public function changeInvoiceIsPaid(TblInvoice $tblInvoice, $IsPaid = true)
+    {
+
+        return (new Data($this->getBinding()))->changeInvoiceIsPaid($tblInvoice, $IsPaid);
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param bool       $IsReversal
+     *
+     * @return bool
+     */
+    public function changeInvoiceIsReversal(TblInvoice $tblInvoice, $IsReversal = true)
+    {
+
+        return (new Data($this->getBinding()))->changeInvoiceIsReversal($tblInvoice, $IsReversal);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblInvoice

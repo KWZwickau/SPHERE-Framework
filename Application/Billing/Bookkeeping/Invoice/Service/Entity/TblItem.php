@@ -142,7 +142,7 @@ class TblItem extends Element
      * @return string
      * single ItemPrice with " €"
      */
-    public function getPrice()
+    public function getPriceString()
     {
 
         return number_format($this->Value, 2).' €';
