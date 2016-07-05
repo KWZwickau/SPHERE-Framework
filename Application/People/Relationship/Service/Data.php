@@ -227,6 +227,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     * @return false|TblType
+     */
+    public function getTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', array(
+            TblType::ATTR_NAME => $Name
+        ));
+    }
+
+    /**
      * @return bool|TblType[]
      */
     public function getTypeAll()
