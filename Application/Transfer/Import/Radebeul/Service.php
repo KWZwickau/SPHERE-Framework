@@ -25,6 +25,7 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -581,7 +582,7 @@ class Service
                                             if ($occupationFather !== '') {
                                                 Custody::useService()->insertMeta(
                                                     $tblPersonFather,
-                                                    $occupation,
+                                                    $occupationFather,
                                                     '',
                                                     ''
                                                 );
@@ -677,7 +678,7 @@ class Service
                                             if ($occupationMother !== '') {
                                                 Custody::useService()->insertMeta(
                                                     $tblPersonMother,
-                                                    $occupation,
+                                                    $occupationMother,
                                                     '',
                                                     ''
                                                 );
@@ -936,29 +937,12 @@ class Service
                                     if ($enrollmentDate !== '') {
                                         $enrollmentDate = date('d.m.Y',
                                             \PHPExcel_Shared_Date::ExcelToPHP($enrollmentDate));
-                                        $nursery = trim($Document->getValue($Document->getCell($Location['Zusatzfeld3'],
-                                            $RunY)));
-                                        if ($nursery !== '') {
-                                            $tblCompany = Company::useService()->insertCompany($nursery);
-                                            if ($tblCompany) {
-                                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
-                                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON'),
-                                                    $tblCompany
-                                                );
-                                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
-                                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('NURSERY'),
-                                                    $tblCompany
-                                                );
-                                            }
-                                        } else {
-                                            $tblCompany = false;
-                                        }
 
                                         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
                                         Student::useService()->insertStudentTransfer(
                                             $tblStudent,
                                             $tblStudentTransferType,
-                                            $tblCompany ? $tblCompany : null,
+                                            null,
                                             null,
                                             null,
                                             $enrollmentDate,
@@ -981,11 +965,29 @@ class Service
                                         if ($remark !== '') {
                                             $remark = 'Staatliche Schule: ' . $remark;
                                         }
-                                        if (trim($Document->getValue($Document->getCell($Location['Schüler_allgemeine_Bemerkungen'],
-                                                $RunY))) == 'GS'
-                                        ) {
-
+                                        $nursery = trim($Document->getValue($Document->getCell($Location['Zusatzfeld3'],
+                                            $RunY)));
+                                        if ($nursery !== '') {
+                                            $tblCompany = Company::useService()->insertCompany($nursery);
+                                            if ($tblCompany) {
+                                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON'),
+                                                    $tblCompany
+                                                );
+                                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('NURSERY'),
+                                                    $tblCompany
+                                                );
+                                            }
+                                        } else {
+                                            $tblCompany = false;
                                         }
+                                        if ($arriveSchool){
+                                            $remark = trim($remark . ' ' . 'Kita: ' . $tblCompany->getName());
+                                        } else {
+                                            $arriveSchool = $tblCompany;
+                                        }
+
                                         Student::useService()->insertStudentTransfer(
                                             $tblStudent,
                                             $tblStudentTransferType,
@@ -1126,11 +1128,16 @@ class Service
                                     if ($focus !== '') {
                                         if ($focus === 'LE') {
                                             $tblStudentFocusType = Student::useService()->getStudentFocusTypeByName('Lernen');
-                                            Student::useService()->addStudentFocus($tblStudent,
-                                                $tblStudentFocusType);
+                                            if ($tblStudentFocusType) {
+                                                Student::useService()->addStudentFocus($tblStudent,
+                                                    $tblStudentFocusType);
+                                            }
                                         } elseif ($focus === 'HÖ') {
                                             $tblStudentFocusType = Student::useService()->getStudentFocusTypeByName('Hören');
-                                            Student::useService()->addStudentFocus($tblStudent, $tblStudentFocusType);
+                                            if ($tblStudentFocusType) {
+                                                Student::useService()->addStudentFocus($tblStudent,
+                                                    $tblStudentFocusType);
+                                            }
                                         }
                                     }
 
@@ -1139,13 +1146,10 @@ class Service
                                     if ($integration !== '') {
                                         if (strpos($integration, 'Hören') !== false) {
                                             $tblStudentDisorderType = Student::useService()->getStudentDisorderTypeByName('Gehörschwierigkeiten');
-                                            Student::useService()->addStudentDisorder($tblStudent,
-                                                $tblStudentDisorderType);
-                                        }
-                                        if (strpos($integration, 'Lernen') !== false) {
-                                            $tblStudentDisorderType = Student::useService()->getStudentDisorderTypeByName('Lernen');
-                                            Student::useService()->addStudentDisorder($tblStudent,
-                                                $tblStudentDisorderType);
+                                            if ($tblStudentDisorderType) {
+                                                Student::useService()->addStudentDisorder($tblStudent,
+                                                    $tblStudentDisorderType);
+                                            }
                                         }
                                     }
 
@@ -1335,20 +1339,20 @@ class Service
 
                             $entryDate = trim($Document->getValue($Document->getCell($Location['Eintritt'],
                                 $RunY)));
-                            if ($entryDate == '00.00.0000') {
-                                $entryDate = '';
+                            if ($entryDate !== '') {
+                                $entryDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($entryDate));;
                             }
                             $exitDate = trim($Document->getValue($Document->getCell($Location['Austritt'],
                                 $RunY)));
-                            if ($exitDate == '00.00.0000') {
-                                $exitDate = '';
+                            if ($exitDate !== '') {
+                                $exitDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($exitDate));;
                             }
                             $remark = trim($Document->getValue($Document->getCell($Location['Aktiv'],
                                 $RunY)));
                             $quitDate = trim($Document->getValue($Document->getCell($Location['Kündigung'],
                                 $RunY)));
-                            if ($quitDate !== '' && $quitDate != '00.00.0000') {
-                                $remark .= ' Kündigung: ' . $quitDate;
+                            if ($quitDate !== '') {
+                                $remark .= ' Kündigung: ' . date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($quitDate));
                             }
 
                             $isActive = (trim($Document->getValue($Document->getCell($Location['Aktiv'],
@@ -1377,9 +1381,9 @@ class Service
 
                                 $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'],
                                     $RunY)));
-                                if ($salutation == 'Herr' || $salutation == 'Herrn'){
+                                if ($salutation == 'Herr' || $salutation == 'Herrn') {
                                     $tblSalutation = Person::useService()->getSalutationById(1);
-                                } elseif ($salutation == 'Frau'){
+                                } elseif ($salutation == 'Frau') {
                                     $tblSalutation = Person::useService()->getSalutationById(2);
                                 } else {
                                     $tblSalutation = false;
@@ -1411,7 +1415,9 @@ class Service
 
                                     $birthday = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
                                         $RunY)));
-                                    if ($birthday !== '' && $birthday != '00.00.0000') {
+                                    if ($birthday !== '') {
+
+                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($birthday));
                                         Common::useService()->insertMeta(
                                             $tblPerson,
                                             $birthday,
@@ -1583,6 +1589,282 @@ class Service
                         new Success('Es wurden ' . $countClubMember . ' Schulverein-Mitglieder erfolgreich angelegt.') .
                         ($countClubMemberExists > 0 ?
                             new Warning($countClubMemberExists . ' Schulverein-Mitglieder exisistieren bereits.') : '');
+
+                } else {
+                    Debugger::screenDump($Location);
+
+                    return new Warning(json_encode($Location)) . new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile $File
+     *
+     * @return IFormInterface|Danger|string
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createStaffsFromFile(IFormInterface $Form = null, UploadedFile $File = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Lehrerkürzel' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Anrede' => null,
+                    'Titel' => null,
+                    'Geschlecht' => null,
+                    'Straße' => null,
+                    'Plz' => null,
+                    'Wohnort' => null,
+                    'Ortsteil' => null,
+                    'Geburtsdatum' => null,
+                    'Geburtsort' => null,
+                    'Geburtsname' => null,
+                    'Staatsangehörigkeit' => null,
+                    'Konfession' => null,
+                    'Telefon1' => null,
+                    'Telefon2' => null,
+                    'EMail' => null,
+                    'Zusatzfeld1' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countStaff = 0;
+                    $countStaffExists = 0;
+                    $error = array();
+
+                    $tblStaffGroup = Group::useService()->getGroupByMetaTable('STAFF');
+                    $tblTeacherGroup = Group::useService()->getGroupByMetaTable('TEACHER');
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        if ($firstName !== '' && $lastName !== '') {
+
+                            $cityCode = str_pad(
+                                trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
+                                5,
+                                "0",
+                                STR_PAD_LEFT
+                            );
+
+                            $tblPersonExits = Person::useService()->existsPerson(
+                                $firstName,
+                                $lastName,
+                                $cityCode
+                            );
+
+                            $acronym = trim($Document->getValue($Document->getCell($Location['Lehrerkürzel'], $RunY)));
+                            $remark = trim($Document->getValue($Document->getCell($Location['Zusatzfeld1'], $RunY)));
+
+                            if ($tblPersonExits) {
+
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
+
+                                Group::useService()->addGroupPerson($tblStaffGroup, $tblPersonExits);
+                                Group::useService()->addGroupPerson($tblTeacherGroup, $tblPersonExits);
+
+                                if ($acronym !== '') {
+                                    Teacher::useService()->insertTeacher($tblPersonExits, $acronym);
+                                }
+
+                                $countStaffExists++;
+
+                            } else {
+
+                                $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'],
+                                    $RunY)));
+                                if ($salutation == 'Herr' || $salutation == 'Herrn') {
+                                    $tblSalutation = Person::useService()->getSalutationById(1);
+                                } elseif ($salutation == 'Frau') {
+                                    $tblSalutation = Person::useService()->getSalutationById(2);
+                                } else {
+                                    $tblSalutation = false;
+                                }
+
+                                $tblPerson = Person::useService()->insertPerson(
+                                    $tblSalutation ? $tblSalutation : null,
+                                    trim($Document->getValue($Document->getCell($Location['Titel'], $RunY))),
+                                    $firstName,
+                                    '',
+                                    $lastName,
+                                    array(
+                                        0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                        1 => $tblStaffGroup,
+                                        2 => $tblTeacherGroup
+                                    ),
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsname'], $RunY)))
+                                );
+
+                                if ($tblPerson !== false) {
+                                    $countStaff++;
+
+                                    if ($acronym !== '') {
+                                        Teacher::useService()->insertTeacher($tblPerson, $acronym);
+                                    }
+
+                                    $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                        $RunY)));
+                                    if ($day !== '') {
+                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    } else {
+                                        $birthday = '';
+                                    }
+                                    $gender = trim($Document->getValue($Document->getCell($Location['Geschlecht'],
+                                        $RunY)));
+                                    if ($gender == 'm') {
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
+                                    } elseif ($gender == 'w') {
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
+                                    } else {
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
+                                    }
+
+                                    Common::useService()->insertMeta(
+                                        $tblPerson,
+                                        $birthday,
+                                        trim($Document->getValue($Document->getCell($Location['Geburtsort'],
+                                            $RunY))),
+                                        $gender,
+                                        trim($Document->getValue($Document->getCell($Location['Staatsangehörigkeit'],
+                                            $RunY))),
+                                        trim($Document->getValue($Document->getCell($Location['Konfession'],
+                                            $RunY))),
+                                        TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                        '',
+                                        $remark
+                                    );
+
+                                    // Address
+                                    $StreetName = '';
+                                    $StreetNumber = '';
+                                    $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $RunY)));
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+                                        }
+                                    }
+                                    $cityName = trim($Document->getValue($Document->getCell($Location['Wohnort'],
+                                        $RunY)));
+                                    $cityDistrict = trim($Document->getValue($Document->getCell($Location['Ortsteil'],
+                                        $RunY)));
+
+                                    if ($StreetName && $StreetNumber && $cityCode && $cityName) {
+                                        Address::useService()->insertAddressToPerson(
+                                            $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''
+                                        );
+                                    } else {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse der Person wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                    }
+
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon1'],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $tblType = Phone::useService()->getTypeById(1);
+                                        if (0 === strpos($phoneNumber, '01')) {
+                                            $tblType = Phone::useService()->getTypeById(2);
+                                        }
+                                        Phone::useService()->insertPhoneToPerson(
+                                            $tblPerson,
+                                            $phoneNumber,
+                                            $tblType,
+                                            ''
+                                        );
+                                    }
+
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon2'],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $tblType = Phone::useService()->getTypeById(1);
+                                        if (0 === strpos($phoneNumber, '01')) {
+                                            $tblType = Phone::useService()->getTypeById(2);
+                                        }
+                                        Phone::useService()->insertPhoneToPerson(
+                                            $tblPerson,
+                                            $phoneNumber,
+                                            $tblType,
+                                            ''
+                                        );
+                                    }
+
+                                    $mailAddress = trim($Document->getValue($Document->getCell($Location['EMail'],
+                                        $RunY)));
+                                    if ($mailAddress != '') {
+                                        Mail::useService()->insertMailToPerson(
+                                            $tblPerson,
+                                            $mailAddress,
+                                            Mail::useService()->getTypeById(1),
+                                            ''
+                                        );
+                                    }
+                                }
+                            }
+                        } else {
+                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person wurde nicht angelegt, da sie keinen Namen und Vornamen hat.';
+                        }
+                    }
+
+                    Debugger::screenDump($error);
+
+                    return
+                        new Success('Es wurden ' . $countStaff . ' Mitarbeiter erfolgreich angelegt.') .
+                        ($countStaffExists > 0 ?
+                            new Warning($countStaffExists . ' Mitarbeiter exisistieren bereits.') : '')
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                'Fehler',
+                                $error,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))));
 
                 } else {
                     Debugger::screenDump($Location);
