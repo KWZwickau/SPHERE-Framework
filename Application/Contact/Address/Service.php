@@ -177,7 +177,7 @@ class Service extends AbstractService
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && empty( $City['Code'] )) {
+        if (isset( $City['Code'] ) && empty($City['Code'])) {
             $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
             $Error = true;
         } else {
@@ -189,7 +189,7 @@ class Service extends AbstractService
         } else {
             $Form->setSuccess('City[Name]');
         }
-        if (!( $tblType = $this->getTypeById($Type['Type']) )) {
+        if (!($tblType = $this->getTypeById($Type['Type']))){
             $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
             $Error = true;
         } else {
@@ -212,11 +212,11 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
                 $Type['Remark'])
             ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich hinzugefügt')
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich hinzugefügt')
                 .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
+                return new Danger(new Ban() . ' Die Adresse konnte nicht hinzugefügt werden')
                 .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblPerson->getId()));
             }
@@ -248,14 +248,15 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param           $StreetName
-     * @param           $StreetNumber
-     * @param           $CityCode
-     * @param           $CityName
-     * @param           $CityDistrict
-     * @param           $PostOfficeBox
-     * @param string    $County
-     * @param string    $Nation
+     * @param $StreetName
+     * @param $StreetNumber
+     * @param $CityCode
+     * @param $CityName
+     * @param $CityDistrict
+     * @param $PostOfficeBox
+     * @param string $County
+     * @param string $Nation
+     * @param TblState $tblState
      *
      * @return TblToPerson
      */
@@ -268,11 +269,12 @@ class Service extends AbstractService
         $CityDistrict,
         $PostOfficeBox,
         $County = '',
-        $Nation = ''
+        $Nation = '',
+        TblState $tblState = null
     ) {
 
         $tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, $CityDistrict);
-        $tblState = null;
+//        $tblState = null;
 
         $tblAddress = (new Data($this->getBinding()))->createAddress(
             $tblState,
@@ -290,14 +292,14 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
-     * @param            $StreetName
-     * @param            $StreetNumber
-     * @param            $CityCode
-     * @param            $CityName
-     * @param            $CityDistrict
-     * @param            $PostOfficeBox
-     * @param string     $County
-     * @param string     $Nation
+     * @param $StreetName
+     * @param $StreetNumber
+     * @param $CityCode
+     * @param $CityName
+     * @param $CityDistrict
+     * @param $PostOfficeBox
+     * @param string $County
+     * @param string $Nation
      *
      * @return TblToCompany
      */
