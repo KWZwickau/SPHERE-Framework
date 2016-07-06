@@ -100,4 +100,18 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getTeacherByAcronym($Acronym);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Acronym
+     *
+     * @return TblTeacher
+     */
+    public function insertTeacher(
+        TblPerson $tblPerson,
+        $Acronym
+    ) {
+
+        return (new Data($this->getBinding()))->createTeacher($tblPerson, $Acronym);
+    }
 }

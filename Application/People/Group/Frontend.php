@@ -578,11 +578,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        // current Division
-        $tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
+        // current Divisions
+        $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
 
-        $result['Groups'] = (!empty($groups) ? implode(', ', $groups) . ($tblDivision ? ', ' : '') : '')
-            . ($tblDivision ? 'Klasse ' . $tblDivision->getDisplayName() : '');
+        $result['Groups'] = (!empty($groups) ? implode(', ', $groups) . ($displayDivisionList ? ', ' . $displayDivisionList : '') : '');
 
         return $result;
     }
