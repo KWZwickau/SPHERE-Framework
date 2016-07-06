@@ -25,6 +25,12 @@ class TblStudent extends Element
      * @Column(type="string")
      */
     protected $Identifier;
+
+    /**
+     * @Column(type="datetime")
+     */
+    protected $SchoolAttendanceStartDate;
+
     /**
      * @Column(type="bigint")
      */
@@ -224,6 +230,33 @@ class TblStudent extends Element
     {
 
         $this->Identifier = $Identifier;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSchoolAttendanceStartDate()
+    {
+
+        if (null === $this->SchoolAttendanceStartDate) {
+            return false;
+        }
+        /** @var \DateTime $SchoolAttendanceStartDate */
+        $SchoolAttendanceStartDate = $this->SchoolAttendanceStartDate;
+        if ($SchoolAttendanceStartDate instanceof \DateTime) {
+            return $SchoolAttendanceStartDate->format('d.m.Y');
+        } else {
+            return (string)$SchoolAttendanceStartDate;
+        }
+    }
+
+    /**
+     * @param null|\DateTime $SchoolAttendanceStartDate
+     */
+    public function setSchoolAttendanceStartDate(\DateTime $SchoolAttendanceStartDate = null)
+    {
+
+        $this->SchoolAttendanceStartDate = $SchoolAttendanceStartDate;
     }
 
 }

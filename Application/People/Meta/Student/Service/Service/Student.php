@@ -46,6 +46,7 @@ abstract class Student extends AbstractService
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
+     * @param string $SchoolAttendanceStartDate
      *
      * @return bool|TblStudent
      */
@@ -57,7 +58,8 @@ abstract class Student extends AbstractService
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null
+        $tblStudentIntegration = null,
+        $SchoolAttendanceStartDate = ''
     ) {
 
         $tblStudent = $this->getStudentByPerson($tblPerson);
@@ -71,7 +73,8 @@ abstract class Student extends AbstractService
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration
+                $tblStudentIntegration,
+                $SchoolAttendanceStartDate
             );
         } else {
             $tblStudent = (new Data($this->getBinding()))->createStudent(
@@ -82,7 +85,8 @@ abstract class Student extends AbstractService
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration
+                $tblStudentIntegration,
+                $SchoolAttendanceStartDate
             );
         }
 
