@@ -23,6 +23,9 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createCertificate('Bildungsempfehlung', 'Grundschule Klasse 4', 'BeGs');
+        $this->createCertificate('Bildungsempfehlung', 'Mittelschule Klasse 5-6', 'BeMi');
+        $this->createCertificate('Bildungsempfehlung', '§ 34 Abs. 3 SOFS', 'BeSOFS');
         $this->createCertificate('Grundschule Halbjahresinformation', '', 'GsHjInfo');
         $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse', 'GsHjOneInfo');
         $this->createCertificate('Grundschule Jahreszeugnis', '', 'GsJ');
@@ -80,10 +83,25 @@ class Data extends AbstractData
                 'Halbjahreszeugnis', 'Realschule', 'ESZC\CheHjRs', $tblConsumer
             );
             $this->createCertificate(
-                'Jahreszeugnis', '', 'ESZC\CheJ', $tblConsumer
+                'Jahreszeugnis', 'Mittelschule', 'ESZC\CheJ', $tblConsumer
             );
             $this->createCertificate(
                 'Jahreszeugnis', 'Gymnasium', 'ESZC\CheJGym', $tblConsumer
+            );
+            $this->createCertificate(
+                'Bildungsempfehlung', 'Klassenstufe 4', 'ESZC\CheBeGs', $tblConsumer
+            );
+            $this->createCertificate(
+                'Jahreszeugnis', 'Grundschule Klasse 2-4', 'ESZC\CheJGs', $tblConsumer
+            );
+            $this->createCertificate(
+                'Jahreszeugnis', 'Grundschule Klasse 1', 'ESZC\CheJGsOne', $tblConsumer
+            );
+            $this->createCertificate(
+                'Habljahresinformation', 'Grundschule Klasse 2-4', 'ESZC\CheHjInfoGs', $tblConsumer
+            );
+            $this->createCertificate(
+                'Habljahresinformation', 'Grundschule Klasse 1', 'ESZC\CheHjInfoGsOne', $tblConsumer
             );
         }
 
