@@ -3,6 +3,7 @@ namespace SPHERE\Application\Transfer\Import;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Transfer\Import\Annaberg\Annaberg;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\Coswig\Coswig;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
@@ -53,6 +54,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'ESS' || $consumerAcronym == 'DEMO'){
             Schneeberg::registerModule();
+        }
+        if ($consumerAcronym === 'EGE' || $consumerAcronym == 'DEMO'){
+            Annaberg::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(
