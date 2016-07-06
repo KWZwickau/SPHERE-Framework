@@ -50,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -745,17 +746,16 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$tblBasket) {
             $Stage->setContent(new WarningText('Warenkorb nicht gefunden'));
             return $Stage
-            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
         // Abbruch beim löschen der Zuordnungen
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if (!$tblBasketVerification) {
             $Stage->setContent(new Warning('Keine Daten zum fakturieren vorhanden.'));
-            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
 
-        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
-            , array('Id' => $tblBasket->getId())));
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket', new ChevronLeft()));
 //        $Stage->addButton(new Backward());
         $Global = $this->getGlobal();
 
@@ -914,7 +914,7 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
 
-        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft()
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket', new ChevronLeft()
             , array('Id' => $tblBasket->getId())));
 //        $Stage->addButton(new Backward(true));
 
@@ -934,8 +934,10 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblDebtorSelectionList )) {
             array_walk($tblDebtorSelectionList, function (TblDebtorSelection $tblDebtorSelection) use (&$TableContent, &$Global, &$Data) {
 
+//                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
+//                if ($tblPaymentType->getId() === $tblDebtorSelection->getServiceTblPaymentType()->getId()) {
                 $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
-                if ($tblPaymentType->getId() === $tblDebtorSelection->getServiceTblPaymentType()->getId()) {
+                $tblPaymentTypeSelection = $tblDebtorSelection->getServiceTblPaymentType();
                     if (Banking::useService()->checkDebtorSelectionDebtor($tblDebtorSelection)) {   //Prüfung auf vorhandene Zuweisungen
                         $tblPerson = $tblDebtorSelection->getServiceTblPerson();
                         $tblPersonPayers = $tblDebtorSelection->getServiceTblPersonPayers();
@@ -945,12 +947,18 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Item'] = $tblItem->getName();
                         $Item['Reference'] = new Warning('Der Debitor besitzt keine Referenzen');
 
-                        $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPersonPayers);
-                        if ($tblBankReferenceList) {
-                            $Item['Reference'] = new SelectBox('Data['.$tblDebtorSelection->getId().'][Reference]', '',
-                                array('{{ Reference }}' => $tblBankReferenceList)
-                            );
+                        $tblBankReferenceList = array();
+                        if ($tblPaymentType->getId() == $tblPaymentTypeSelection->getId()) {
+                            $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPersonPayers);
+                            if ($tblBankReferenceList) {
+                                $Item['Reference'] = new SelectBox('Data['.$tblDebtorSelection->getId().'][Reference]', '',
+                                    array('{{ Reference }}' => $tblBankReferenceList)
+                                );
+                            }
+                        } else {
+                            $Item['Reference'] = new Info('Bezahlart benötigt keine Referenz');
                         }
+
                         $DebtorArray = array();
                         if (Banking::useService()->getDebtorByPerson($tblPerson)) {
                             $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
@@ -983,7 +991,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                         array_push($TableContent, $Item);
                     }
-                }
+//                }
             });
         }
         $Global->savePost();
@@ -1063,7 +1071,7 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($tblDebtorSelectionList as $tblDebtorSelection) {
                         $ItemPayer[] = $tblDebtorSelection->getServiceTblInventoryItem()->getName()
                             .' - '.$tblDebtorSelection->getServiceTblPersonPayers()->getLastFirstName();
-                        if ($tblDebtorSelection->getTblDebtor() === false && $tblDebtorSelection->getTblBankReference() === false) {
+                        if ($tblDebtorSelection->getTblDebtor() === false || $tblDebtorSelection->getTblBankReference() === false) {
                             if ($tblDebtorSelection->getServiceTblPaymentType()->getName() === 'Bar') {
                                 $Status[] = new SuccessText(new Check().' Bar');
                             } elseif ($tblDebtorSelection->getServiceTblPaymentType()->getName() === 'SEPA-Überweisung') {
@@ -1296,45 +1304,51 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblDebtorSelectionList )) {
             array_walk($tblDebtorSelectionList, function (TblDebtorSelection $tblDebtorSelection) use (&$TableContent, &$Global, &$Data) {
 
-                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
-                if ($tblPaymentType->getId() === $tblDebtorSelection->getServiceTblPaymentType()->getId()) {
+//                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
+//                if ($tblPaymentType->getId() === $tblDebtorSelection->getServiceTblPaymentType()->getId()) {
 //                    if (Banking::useService()->checkDebtorSelectionDebtor($tblDebtorSelection)) { //Prüfung auf vorhandene Zuweisungen
-                    $tblPerson = $tblDebtorSelection->getServiceTblPerson();
-                    $tblPersonPayers = $tblDebtorSelection->getServiceTblPersonPayers();
-                    $tblItem = $tblDebtorSelection->getServiceTblInventoryItem();
-                    $Item['Person'] = $tblPerson->getFullName();
-                    $Item['PersonPayers'] = $tblPersonPayers->getFullName();
-                    $Item['Item'] = $tblItem->getName();
-                    $Item['Reference'] = new Warning('Der Debitor besitzt keine Referenzen');
 
+                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
+                $tblPaymentTypeSelection = $tblDebtorSelection->getServiceTblPaymentType();
+
+                $tblPerson = $tblDebtorSelection->getServiceTblPerson();
+                $tblPersonPayers = $tblDebtorSelection->getServiceTblPersonPayers();
+                $tblItem = $tblDebtorSelection->getServiceTblInventoryItem();
+                $Item['Person'] = $tblPerson->getFullName();
+                $Item['PersonPayers'] = $tblPersonPayers->getFullName();
+                $Item['Item'] = $tblItem->getName();
+                $Item['Reference'] = new Warning('Der Debitor besitzt keine Referenzen');
+                $Item['Payment'] = $tblPaymentTypeSelection->getName();
+
+                $tblBankReferenceList = array();
+                if ($tblPaymentType->getId() == $tblPaymentTypeSelection->getId()) {
                     $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPersonPayers);
                     if ($tblBankReferenceList) {
                         $Item['Reference'] = new SelectBox('Data['.$tblDebtorSelection->getId().'][Reference]', '',
-                            array('{{ Reference }} - Besitzer:{{ Owner }}' => $tblBankReferenceList)
+                            array('{{ Reference }} - Besitzer: {{ Owner }}' => $tblBankReferenceList)
                         );
                     }
+                } else {
+                    $Item['Reference'] = new Info('Bezahlart benötigt keine Referenz');
+                }
 
-                    $DebtorArray = array();
-                    if (Banking::useService()->getDebtorByPerson($tblPerson)) {
-                        $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
-                        $DebtorArray = array_merge($DebtorArray, $DebtorList);
-                    }
-                    if (Banking::useService()->getDebtorByPerson($tblPersonPayers)) {
-                        $DebtorList = Banking::useService()->getDebtorByPerson($tblPersonPayers);
-                        $DebtorArray = array_merge($DebtorArray, $DebtorList);
-                    }
+                $DebtorArray = array();
+                if (Banking::useService()->getDebtorByPerson($tblPerson)) {
+                    $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+                    $DebtorArray = array_merge($DebtorArray, $DebtorList);
+                }
+                if (Banking::useService()->getDebtorByPerson($tblPersonPayers)) {
+                    $DebtorList = Banking::useService()->getDebtorByPerson($tblPersonPayers);
+                    $DebtorArray = array_merge($DebtorArray, $DebtorList);
+                }
 
-                    if (!empty( $DebtorArray )) {
-                        $Item['SelectDebtor'] = new SelectBox('Data['.$tblDebtorSelection->getId().'][Debtor]', '',
-                            array(
-                                '{{ DebtorNumber }}'
-//                                '{{ DebtorNumber }} - {{ ServiceTblPerson.FullName }}'
-//                    .'{% if( ServiceBillingDebtor.Description is not empty) %} - {{ ServiceBillingDebtor.Description }}{% endif %}'
-                                => $DebtorArray)
-                        );
-                    } else {
-                        $Item['SelectDebtor'] = new \SPHERE\Common\Frontend\Text\Repository\Danger('Debitor benötigt!');
-                    }
+                if (!empty( $DebtorArray )) {
+                    $Item['SelectDebtor'] = new SelectBox('Data['.$tblDebtorSelection->getId().'][Debtor]', '',
+                        array('{{ DebtorNumber }}' => $DebtorArray)
+                    );
+                } else {
+                    $Item['SelectDebtor'] = new \SPHERE\Common\Frontend\Text\Repository\Danger('Debitor benötigt!');
+                }
 //                    if (!empty( $Payment )) {
 ////                        foreach($Payment as $Pay)
 ////                        $Item['SelectBox'] = $Pay;
@@ -1343,27 +1357,28 @@ class Frontend extends Extension implements IFrontendInterface
 //                        $Item['RadioBox'] = new WarningText('keine Kontoinformationen');
 //                    }
 
-                    if (( $tblRef = $tblDebtorSelection->getTblBankReference() )) {
-                        $Global->POST['Data'][$tblDebtorSelection->getId()]['Reference'] = $tblRef->getId();
-                    } elseif ($tblBankReferenceList && count($tblBankReferenceList) == 1) {
-                        $Global->POST['Data'][$tblDebtorSelection->getId()]['Reference'] = $tblBankReferenceList[0]->getId();
-                    }
-                    if (( $tblDeb = $tblDebtorSelection->getTblDebtor() )) {
-                        $Global->POST['Data'][$tblDebtorSelection->getId()]['Debtor'] = $tblDeb->getId();
-                    } elseif (!empty( $DebtorArray ) && count($DebtorArray) == 1) {
-                        $Global->POST['Data'][$tblDebtorSelection->getId()]['Debtor'] = $DebtorArray[0]->getId();
-                    }
-
-                    if ($Data !== null) {
-                        $Data[$tblDebtorSelection->getId()]['Person'] = $tblPerson->getId();
-                        $Data[$tblDebtorSelection->getId()]['Item'] = $tblItem->getId();
-                    }
-                    array_push($TableContent, $Item);
+                if (( $tblRef = $tblDebtorSelection->getTblBankReference() )) {
+                    $Global->POST['Data'][$tblDebtorSelection->getId()]['Reference'] = $tblRef->getId();
+                } elseif ($tblBankReferenceList && count($tblBankReferenceList) == 1 &&
+                    $tblPaymentType->getId() == $tblPaymentTypeSelection->getId()
+                ) {
+                    $Global->POST['Data'][$tblDebtorSelection->getId()]['Reference'] = $tblBankReferenceList[0]->getId();
                 }
+                if (( $tblDeb = $tblDebtorSelection->getTblDebtor() )) {
+                    $Global->POST['Data'][$tblDebtorSelection->getId()]['Debtor'] = $tblDeb->getId();
+                } elseif (!empty( $DebtorArray ) && count($DebtorArray) == 1) {
+                    $Global->POST['Data'][$tblDebtorSelection->getId()]['Debtor'] = $DebtorArray[0]->getId();
+                }
+
+                if ($Data !== null) {
+                    $Data[$tblDebtorSelection->getId()]['Person'] = $tblPerson->getId();
+                    $Data[$tblDebtorSelection->getId()]['Item'] = $tblItem->getId();
+                }
+                array_push($TableContent, $Item);
+//                }
 //                }
             });
         }
-
 
 //        if($Data === null){
         $Global->savePost();
@@ -1378,6 +1393,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Person'       => 'Person',
                             'PersonPayers' => 'Bezahler',
                             'Item'         => 'Artikel',
+                            'Payment'      => 'Bezahlart',
                             'SelectDebtor' => 'Debitor-Nummer',
                             'Reference'    => 'Referenz-Nummer',
                         ), null) // array("bPaginate" => false))

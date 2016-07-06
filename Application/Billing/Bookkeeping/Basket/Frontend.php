@@ -404,7 +404,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
-            return $Stage.new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+            return $Stage.new Redirect('/Billing/Accounting/Payment/Selection', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
 //        $Stage->addButton(new Standard('Artikel hinzufügen/entfernen', '/Billing/Bookkeeping/Basket/Item/Select', null,
 //            array('Id' => $tblBasket->getId())));
@@ -1063,7 +1063,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
-            return $Stage.new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+            return $Stage.new Redirect('/Billing/Accounting/Payment/Selection', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket', new ChevronLeft(), array('Id' => $tblBasket->getId())));
 
@@ -1100,6 +1100,12 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket', new ChevronLeft()));
         }
+
+        if (!Basket::useService()->checkSelectedPayer($tblBasket)) {
+            $Stage->setContent(new Warning('fehlende Bezahler weiterleitung erfolgt.'));
+            return $Stage.new Redirect('/Billing/Accounting/Payment/Selection', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+        }
+
 //        $Stage->addButton(new Backward());
 
 //        $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Danger('Berechnungen leeren', '/Billing/Bookkeeping/Basket/Verification/Destroy', new Disable()

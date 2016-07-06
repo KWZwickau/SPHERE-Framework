@@ -19,8 +19,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDebtor extends Element
 {
 
-    const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
-    const ATTR_IBAN = 'IBAN';
+    const ATTR_SERVICE_TBL_DEBTOR = 'serviceTblDebtor';
+    const ATTR_SERVICE_TBL_BANKING_REFERENCE = 'serviceTblBankReference';
 
     /**
      * @Column(type="string")

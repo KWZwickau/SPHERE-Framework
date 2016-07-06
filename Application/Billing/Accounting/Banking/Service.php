@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -582,10 +583,14 @@ class Service extends AbstractService
                         $Error = true;
                         $Debtor = true;
                     }
-                    if (!isset( $Row['Reference'] ) || empty( $Row['Reference'] )) {
-                        $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
-                        $Error = true;
-                        $Bank = true;
+                    if ($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift') {
+                        if (!isset( $Row['Reference'] ) || empty( $Row['Reference'] )) {
+                            $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
+                            $Error = true;
+                            $Bank = true;
+
+                            Debugger::screenDump($Row['Reference']);
+                        }
                     }
                 }
             }
@@ -599,8 +604,13 @@ class Service extends AbstractService
                         if (!$Error) {
 
                             $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
-                            $tblBankReference = null;
-                            $tblBankReference = Banking::useService()->getBankReferenceById($Row['Reference']);
+
+                            if (isset( $Row['Reference'] )) {
+                                $tblBankReference = Banking::useService()->getBankReferenceById($Row['Reference']);
+                            } else {
+                                $tblBankReference = null;
+                            }
+
 
                             (new Data ($this->getBinding()))->updateDebtorSelection(
                                 $tblDebtorSelection,
@@ -658,10 +668,12 @@ class Service extends AbstractService
                         $Error = true;
                         $Debtor = true;
                     }
-                    if (!isset( $Row['Reference'] ) || empty( $Row['Reference'] )) {
-                        $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
-                        $Error = true;
-                        $Bank = true;
+                    if ($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift') {
+                        if (!isset( $Row['Reference'] ) || empty( $Row['Reference'] )) {
+                            $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
+                            $Error = true;
+                            $Bank = true;
+                        }
                     }
                 }
             }
@@ -675,8 +687,11 @@ class Service extends AbstractService
                         if (!$Error) {
 
                             $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
-                            $tblBankReference = null;
-                            $tblBankReference = Banking::useService()->getBankReferenceById($Row['Reference']);
+                            if (isset( $Row['Reference'] )) {
+                                $tblBankReference = Banking::useService()->getBankReferenceById($Row['Reference']);
+                            } else {
+                                $tblBankReference = null;
+                            }
 
                             (new Data ($this->getBinding()))->updateDebtorSelection(
                                 $tblDebtorSelection,

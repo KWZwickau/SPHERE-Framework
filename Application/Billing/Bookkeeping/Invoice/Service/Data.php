@@ -238,38 +238,64 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDebtorAccounting $tblDebtor
-     * @param TblBankReference    $tblBankReference
+     * @param TblDebtorAccounting   $tblDebtor
+     * @param TblBankReference|null $tblBankReference
      *
-     * @return TblDebtor
+     * @return null|TblDebtor
      */
     public function createDebtor(
         TblDebtorAccounting $tblDebtor,
-        TblBankReference $tblBankReference
+        TblBankReference $tblBankReference = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = null;
-        $Entity = $Manager->getEntity('TblDebtor')->findOneBy(
-            array(TblDebtor::ATTR_DEBTOR_NUMBER => $tblDebtor->getDebtorNumber(),
-                  TblDebtor::ATTR_IBAN          => $tblBankReference->getIBAN()));
 
-        if ($Entity === null) {
-            $Entity = new TblDebtor();
-            $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
-            $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
-            $Entity->setBankReference($tblBankReference->getReference());
-            $Entity->setOwner($tblBankReference->getOwner());
-            $Entity->setBankName($tblBankReference->getBankName());
-            $Entity->setIBAN($tblBankReference->getIBAN());
-            $Entity->setBIC($tblBankReference->getBIC());
-            $Entity->setCashSign($tblBankReference->getCashSign());
-            $Entity->setServiceTblDebtor($tblDebtor);
-            $Entity->setServiceTblBankReference($tblBankReference);
+        if ($tblBankReference) {
 
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                $Entity);
+            $Entity = $Manager->getEntity('TblDebtor')->findOneBy(
+                array(TblDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
+                      TblDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => $tblBankReference->getId()));
+
+            if ($Entity === null) {
+                $Entity = new TblDebtor();
+                $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
+                $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
+                $Entity->setBankReference($tblBankReference->getReference());
+                $Entity->setOwner($tblBankReference->getOwner());
+                $Entity->setBankName($tblBankReference->getBankName());
+                $Entity->setIBAN($tblBankReference->getIBAN());
+                $Entity->setBIC($tblBankReference->getBIC());
+                $Entity->setCashSign($tblBankReference->getCashSign());
+                $Entity->setServiceTblDebtor($tblDebtor);
+                $Entity->setServiceTblBankReference($tblBankReference);
+
+                $Manager->saveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+            }
+        } else {
+            $Entity = $Manager->getEntity('TblDebtor')->findOneBy(
+                array(TblDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
+                      TblDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => null));
+
+            if ($Entity === null) {
+                $Entity = new TblDebtor();
+                $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
+                $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
+                $Entity->setBankReference('');
+                $Entity->setOwner('');
+                $Entity->setBankName('');
+                $Entity->setIBAN('');
+                $Entity->setBIC('');
+                $Entity->setCashSign('');
+                $Entity->setServiceTblDebtor($tblDebtor);
+                $Entity->setServiceTblBankReference(null);
+
+                $Manager->saveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+            }
         }
 
         return $Entity;

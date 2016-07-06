@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
+use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
@@ -449,7 +451,7 @@ class Service extends AbstractService
 //            }
 //        }
         return new Success('Berechnung bereitmachen für Bearbeitung')
-        .new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+        .new Redirect('/Billing/Accounting/Payment/Selection', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
     }
 
     /**
@@ -493,6 +495,63 @@ class Service extends AbstractService
         }
 
         return ( ( $tblCommodityList === null ) ? false : $tblCommodityList );
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool
+     */
+    public function checkSelectedPayer(TblBasket $tblBasket)
+    {
+
+        $tblBasketPersonList = Basket::useService()->getBasketPersonAllByBasket($tblBasket);
+        if (!$tblBasketPersonList) {
+            return false;
+        }
+        $tblPersonList = array();
+        foreach ($tblBasketPersonList as $tblBasketPerson) {
+            $tblPersonList[] = $tblBasketPerson->getServiceTblPerson();
+        }
+        if (empty( $tblPersonList )) {
+            return false;
+        }
+        foreach ($tblPersonList as $tblPerson) {
+            $tblBasketVerificationList = Basket::useService()->getBasketVerificationByPersonAndBasket($tblPerson, $tblBasket);
+            if (!$tblBasketVerificationList) {
+                return false;
+            } else {
+                foreach ($tblBasketVerificationList as $tblBasketVerification) {
+
+                    $tblItem = $tblBasketVerification->getServiceTblItem();
+                    if (( $tblDebtorSelection = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem) )) {
+                        if ($tblDebtorSelection) {
+
+                            $tblPersonPayer = $tblDebtorSelection->getServiceTblPersonPayers();
+                            $tblPaymentTypeSelection = $tblDebtorSelection->getServiceTblPaymentType();
+                            if (!$tblPersonPayer || !$tblPaymentTypeSelection) {
+                                return false;
+                            } else {
+                                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
+                                if ($tblPaymentType->getId() == $tblPaymentTypeSelection->getId()) {
+                                    $tblDebtor = $tblDebtorSelection->getTblDebtor();
+                                    $tblReference = $tblDebtorSelection->getTblBankReference();
+                                    if (!$tblDebtor || !$tblReference) {
+                                        return false;
+                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**

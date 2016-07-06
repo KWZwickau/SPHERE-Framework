@@ -186,6 +186,13 @@ class Service extends AbstractService
                     $DebtorItemList[$DebtorInvoiceId]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
                     $DebtorItemList[$DebtorInvoiceId]['Quantity'][] = $Quantity;
                     $DebtorItemList[$DebtorInvoiceId]['Value'][] = $Price;
+                } elseif ($tblDebtor) {
+                    /** fill Invoice/tblDebtor */
+                    $DebtorInvoiceId = (new Data($this->getBinding()))->createDebtor($tblDebtor, null)->getId();
+                    /** fill Invoice/tblItem */
+                    $DebtorItemList[$DebtorInvoiceId]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
+                    $DebtorItemList[$DebtorInvoiceId]['Quantity'][] = $Quantity;
+                    $DebtorItemList[$DebtorInvoiceId]['Value'][] = $Price;
                 }
             }
         }
