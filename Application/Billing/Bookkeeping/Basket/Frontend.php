@@ -858,10 +858,10 @@ class Frontend extends Extension implements IFrontendInterface
                     'order'          => array(
                         array('1', 'asc')
                     ),
-                    "paging"         => false, // Deaktivieren Blättern
+                    "paging"         => false, // Deaktiviert Blättern
                     "iDisplayLength" => -1,    // Alle Einträge zeigen
-                    "searching"      => false, // Deaktivieren Suchen
-                    "info"           => false  // Deaktivieren Such-Info
+                    "searching"      => false, // Deaktiviert Suche
+                    "info"           => false  // Deaktiviert Such-Info)
                 )
             );
         } else {
@@ -905,10 +905,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     'order'          => array(
                                         array('1', 'asc')
                                     ),
-                                    "paging"         => false, // Deaktivieren Blättern
+                                    "paging"         => false, // Deaktiviert Blättern
                                     "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                    "searching"      => false, // Deaktivieren Suchen
-                                    "info"           => false  // Deaktivieren Such-Info
+                                    "searching"      => false, // Deaktiviert Suche
+                                    "info"           => false  // Deaktiviert Such-Info)
                                 )
                             )
                             : new Warning('Keine Personen zugewiesen.', new Exclamation())
@@ -1885,9 +1885,9 @@ class Frontend extends Extension implements IFrontendInterface
             $CountPriceSum++;
             foreach ($InvoiceList as $Item) {
                 if (empty( $PriceSumArray[$CountPriceSum] )) {
-                    $PriceSumArray[$CountPriceSum] = $Item['Value'];
+                    $PriceSumArray[$CountPriceSum] = $Item['Value'] * $Item['Quantity'];
                 } else {
-                    $PriceSumArray[$CountPriceSum] += $Item['Value'];
+                    $PriceSumArray[$CountPriceSum] += $Item['Value'] * $Item['Quantity'];
                 }
             }
         }
@@ -1905,8 +1905,15 @@ class Frontend extends Extension implements IFrontendInterface
                     'Quantity'    => 'Anzahl',
                     'Price'       => 'Einzelpreis',
                     'PriceSum'    => 'Gesamtpreis',
-                ), false), Panel::PANEL_TYPE_PRIMARY)
-                .new PullRight(new Panel('Gesamtpreis Rechnung', Invoice::useService()->getPriceString($PriceSumArray[$InvoiceCount]), Panel::PANEL_TYPE_SUCCESS))
+                ), array(
+                    'order'          => array(array('3', 'asc')),
+                    "paging"         => false, // Deaktiviert Blättern
+                    "iDisplayLength" => -1,    // Alle Einträge zeigen
+                    "searching"      => false, // Deaktiviert Suche
+                    "info"           => false  // Deaktiviert Such-Info)
+                )), Panel::PANEL_TYPE_PRIMARY)
+                .new PullRight(new Panel('Gesamtpreis der Rechnung Nr. '.$InvoiceCount,
+                    new Bold(Invoice::useService()->getPriceString($PriceSumArray[$InvoiceCount])), Panel::PANEL_TYPE_SUCCESS))
                 .new PullClear('');
         }
 
