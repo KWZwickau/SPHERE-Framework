@@ -4,6 +4,7 @@ namespace SPHERE\Application\Document;
 use SPHERE\Application\Document\Designer\Designer;
 use SPHERE\Application\Document\Explorer\Explorer;
 use SPHERE\Application\Document\Search\Search;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -24,7 +25,7 @@ class Document extends Extension implements IClusterInterface
         Search::registerApplication();
         Explorer::registerApplication();
         Designer::registerApplication();
-//        Storage::registerApplication();
+        Storage::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Dokumente'))

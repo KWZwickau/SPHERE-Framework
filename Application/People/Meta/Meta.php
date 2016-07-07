@@ -2,10 +2,12 @@
 namespace SPHERE\Application\People\Meta;
 
 use SPHERE\Application\IApplicationInterface;
+use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 
 /**
  * Class Meta
@@ -22,6 +24,8 @@ class Meta implements IApplicationInterface
         Prospect::registerModule();
         Student::registerModule();
         Custody::registerModule();
+        Club::registerModule();
+        Teacher::registerModule();
     }
 
 }

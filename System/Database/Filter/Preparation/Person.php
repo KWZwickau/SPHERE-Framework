@@ -12,7 +12,7 @@ class Person extends AbstractPreparation
 
         $Entity = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Id);
 
-        $Properties
+//        $Properties
     }
 
 

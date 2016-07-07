@@ -92,4 +92,43 @@ abstract class Student extends AbstractService
 
         return $tblStudent;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|\SPHERE\Application\Education\School\Course\Service\Entity\TblCourse
+     */
+    public function getCourseByPerson(TblPerson $tblPerson)
+    {
+
+        $tblStudent = $this->getStudentByPerson($tblPerson);
+        if ($tblStudent){
+            return $this->getCourseByStudent($tblStudent);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     *
+     * @return bool|\SPHERE\Application\Education\School\Course\Service\Entity\TblCourse
+     */
+    public function getCourseByStudent(TblStudent $tblStudent)
+    {
+
+        $tblTransferType = \SPHERE\Application\People\Meta\Student\Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+        if ($tblTransferType) {
+            $tblStudentTransfer = \SPHERE\Application\People\Meta\Student\Student::useService()->getStudentTransferByType($tblStudent,
+                $tblTransferType);
+            if ($tblStudentTransfer) {
+                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                if ($tblCourse) {
+                    return $tblCourse;
+                }
+            }
+        }
+
+        return false;
+    }
 }

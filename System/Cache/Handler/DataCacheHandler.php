@@ -159,7 +159,8 @@ class DataCacheHandler extends AbstractHandler
      */
     public function setConfig($Name, ReaderInterface $Config = null)
     {
-        // TODO: Implement setConfig() method.
+
+        return $this;
     }
 
     /**
@@ -178,7 +179,9 @@ class DataCacheHandler extends AbstractHandler
 
         if ($this->Handler->isEnabled()) {
             $Pattern = $this->createPattern();
-            $CacheList = $this->Handler->fetchKeys();
+            if (!( $CacheList = $this->Handler->fetchKeys() )) {
+                $CacheList = array();
+            }
             $KeyList = preg_grep($Pattern, $CacheList);
             if (!empty( $KeyList )) {
                 (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Clear DataCache: '.implode(',',

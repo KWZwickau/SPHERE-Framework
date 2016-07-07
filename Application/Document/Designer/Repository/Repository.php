@@ -15,7 +15,7 @@ class Repository implements IModuleInterface
 
     public static function registerModule()
     {
-        // TODO: Implement registerModule() method.
+
     }
 
     /**
@@ -23,7 +23,7 @@ class Repository implements IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
@@ -31,6 +31,6 @@ class Repository implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 }

@@ -61,7 +61,7 @@ class Authentication implements IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**

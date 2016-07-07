@@ -8,6 +8,7 @@ use SPHERE\Application\Transfer\Import\Coswig\Coswig;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
 use SPHERE\Application\Transfer\Import\Herrnhut\Herrnhut;
 use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
+use SPHERE\Application\Transfer\Import\LebensweltZwenkau\Zwenkau;
 use SPHERE\Application\Transfer\Import\Muldental\Muldental;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -26,17 +27,24 @@ class Import implements IApplicationInterface
 
         FuxSchool::registerModule();
 
-        $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
-        if ($consumerAcronym == 'ESZC') {
+        $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
+        if ($consumerAcronym == 'ESZC' || $consumerAcronym == 'DEMO') {
             Chemnitz::registerModule();
-        } elseif ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
+        }
+        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
             Hormersdorf::registerModule();
-        } elseif ($consumerAcronym === 'EVSC'){
+        }
+        if ($consumerAcronym === 'EVSC' || $consumerAcronym == 'DEMO'){
             Coswig::registerModule();
-        } elseif ($consumerAcronym === 'EVAMTL'){
+        }
+        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym == 'DEMO'){
             Muldental::registerModule();
-        } elseif ($consumerAcronym === 'EZGH'){
+        }
+        if ($consumerAcronym === 'EZGH' || $consumerAcronym == 'DEMO'){
             Herrnhut::registerModule();
+        }
+        if ($consumerAcronym === 'LWSZ' || $consumerAcronym == 'DEMO'){
+            Zwenkau::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

@@ -19,6 +19,7 @@ class TblDirectory extends Element
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_IS_LOCKED = 'IsLocked';
     const ATTR_TBL_DIRECTORY = 'tblDirectory';
+    const ATTR_TBL_PARTITION = 'tblPartition';
     const ATTR_NAME = 'Name';
 
     /**
@@ -34,6 +35,10 @@ class TblDirectory extends Element
      */
     protected $tblDirectory;
     /**
+     * @Column(type="bigint")
+     */
+    protected $tblPartition;
+    /**
      * @Column(type="string")
      */
     protected $Name;
@@ -48,7 +53,7 @@ class TblDirectory extends Element
     public function getIdentifier()
     {
 
-        return $this->Identifier;
+        return strtoupper($this->Identifier);
     }
 
     /**
@@ -57,7 +62,7 @@ class TblDirectory extends Element
     public function setIdentifier($Identifier)
     {
 
-        $this->Identifier = $Identifier;
+        $this->Identifier = strtoupper($Identifier);
     }
 
     /**
@@ -94,6 +99,8 @@ class TblDirectory extends Element
     }
 
     /**
+     * Parent Directory
+     * 
      * @param null|TblDirectory $tblDirectory
      */
     public function setTblDirectory(TblDirectory $tblDirectory = null)
@@ -102,6 +109,28 @@ class TblDirectory extends Element
         $this->tblDirectory = ( null === $tblDirectory ? null : $tblDirectory->getId() );
     }
 
+    /**
+     * @return bool|TblPartition
+     */
+    public function getTblPartition()
+    {
+
+        if (null === $this->tblPartition) {
+            return false;
+        } else {
+            return Storage::useService()->getPartitionById($this->tblPartition);
+        }
+    }
+
+    /**
+     * @param null|TblPartition $tblPartition
+     */
+    public function setTblPartition(TblPartition $tblPartition = null)
+    {
+
+        $this->tblPartition = ( null === $tblPartition ? null : $tblPartition->getId() );
+    }
+    
     /**
      * @return string
      */

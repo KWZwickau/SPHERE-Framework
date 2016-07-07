@@ -40,7 +40,7 @@ class General implements IApplicationInterface, IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
@@ -48,7 +48,7 @@ class General implements IApplicationInterface, IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 
 }

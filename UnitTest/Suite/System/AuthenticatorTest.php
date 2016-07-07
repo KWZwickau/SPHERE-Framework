@@ -20,6 +20,8 @@ class AuthenticatorTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('SPHERE\System\Authenticator\ITypeInterface', $Mock);
         $this->assertInternalType('string', $Mock->getConfiguration());
         $this->assertEquals('Get', $Mock->getConfiguration());
+        $this->assertInternalType('array', $Mock->createSignature(array('Test' => 1), null));
+        $Mock->validateSignature();
     }
 
     public function testTypePost()
@@ -29,6 +31,8 @@ class AuthenticatorTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('SPHERE\System\Authenticator\ITypeInterface', $Mock);
         $this->assertInternalType('string', $Mock->getConfiguration());
         $this->assertEquals('Post', $Mock->getConfiguration());
+        $this->assertInternalType('array', $Mock->createSignature(array('Test' => 1), null));
+        $Mock->validateSignature();
     }
 
     public function testAuthenticator()

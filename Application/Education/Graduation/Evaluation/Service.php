@@ -156,6 +156,10 @@ class Service extends AbstractService
             $Stage->setError('Test[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
             $Error = true;
         }
+        if (isset($Test['Date']) && empty($Test['Date'])) {
+            $Stage->setError('Test[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
         if ($Error) {
             return $Stage;
         }
@@ -339,7 +343,7 @@ class Service extends AbstractService
             );
             $Stage .= new Success('Notenauftrag erfolgreich angelegt',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
+                . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -423,7 +427,7 @@ class Service extends AbstractService
 
             $Stage .= new Success('Notenauftrag erfolgreich geändert',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
+                . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS);
 
         }
 
@@ -441,6 +445,13 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getTaskById($Id);
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param null $Data
+     *
+     * @return IFormInterface|string
+     */
     public function updateDivisionTasks(IFormInterface $Stage = null, $Id, $Data = null)
     {
 
@@ -533,7 +544,9 @@ class Service extends AbstractService
             }
         }
 
-        return $Stage;
+        return new Success('Daten erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster/Division', Redirect::TIMEOUT_SUCCESS,
+            array('Id' => $tblTask->getId()));
     }
 
     public function addBehaviorGradeTypeToDivisionAndTask(
@@ -623,6 +636,26 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByTask(TblTask $tblTask)
+    {
+
+        $resultList = array();
+        $tblTestList = $this->getTestAllByTask($tblTask);
+        if ($tblTestList){
+            foreach ($tblTestList as $tblTest){
+                if ($tblTest->getServiceTblDivision()){
+                    $resultList[$tblTest->getServiceTblDivision()->getId()] = $tblTest->getServiceTblDivision();
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
@@ -776,7 +809,7 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        return new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS, array(
+        return new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS, array(
             'YearId' => $tblYear->getId(),
         ));
     }
