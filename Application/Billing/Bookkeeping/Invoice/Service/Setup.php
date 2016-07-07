@@ -175,6 +175,9 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblInvoiceItem');
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
         $this->getConnection()->addForeignKey($Table, $tblInvoice);
         $this->getConnection()->addForeignKey($Table, $tblItem);
 

@@ -12,6 +12,7 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -129,6 +130,45 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return false|TblPerson[]
+     */
+    public function getTblPersonAllByInvoice(TblInvoice $tblInvoice)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
+            array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId()));
+        if ($EntityList) {
+            /** @var TblInvoiceItem $Entity */
+            foreach ($EntityList as &$Entity) {
+                $Entity = $Entity->getServiceTblPerson();
+            }
+            $EntityList = array_filter($EntityList);
+        }
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param TblItem    $tblItem
+     *
+     * @return bool|TblPerson
+     */
+    public function getTblPersonByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    {
+        /** @param TblInvoiceItem $Entity */
+        $Entity = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
+            array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId(),
+                  TblInvoiceItem::ATTR_TBL_ITEM    => $tblItem->getId()));
+        if ($Entity) {
+            /** @var TblInvoiceItem $Entity */
+            $Entity = $Entity->getServiceTblPerson();
+        }
+        return ( $Entity == false ? false : $Entity );
     }
 
     /**
@@ -336,18 +376,25 @@ class Data extends AbstractData
         return $Entity;
     }
 
-    public function createInvoiceItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param TblItem    $tblItem
+     * @param TblPerson  $tblPerson
+     *
+     * @return TblInvoiceItem
+     */
+    public function createInvoiceItem(TblInvoice $tblInvoice, TblItem $tblItem, TblPerson $tblPerson)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblInvoiceItem();
         $Entity->setTblInvoice($tblInvoice);
         $Entity->setTblItem($tblItem);
+        $Entity->setServiceTblPerson($tblPerson);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
-
 
         return $Entity;
     }

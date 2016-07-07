@@ -14,6 +14,7 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -140,6 +141,29 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return false|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
+     */
+    public function getTblPersonAllByInvoice(TblInvoice $tblInvoice)
+    {
+
+        return (new Data($this->getBinding()))->getTblPersonAllByInvoice($tblInvoice);
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param TblItem    $tblItem
+     *
+     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson
+     */
+    public function getTblPersonByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getTblPersonByInvoiceAndItem($tblInvoice, $tblItem);
+    }
+
+    /**
      * @param $value
      *
      * @return string
@@ -148,8 +172,76 @@ class Service extends AbstractService
     {
 
         $result = number_format($value, 2, ',', '.');
-        $result .= '€';
+        $result .= ' €';
         return $result;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return array|bool
+     */
+    public function reviewInvoiceData(TblBasket $tblBasket)
+    {
+        /** Shopping Content */
+        $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+        if (!$tblBasketVerificationList) {
+            return false;
+        }
+        $Invoice = array();
+        $ItemCount = 0;
+        foreach ($tblBasketVerificationList as $tblBasketVerification) {
+            $tblPerson = $tblBasketVerification->getServiceTblPerson();
+            $tblItem = $tblBasketVerification->getServiceTblItem();
+            $Quantity = $tblBasketVerification->getQuantity();
+            $Value = $tblBasketVerification->getValue();
+            $Price = $tblBasketVerification->getPrice();
+            $PriceSum = $tblBasketVerification->getSummaryPrice();
+
+            /** search Customer */
+            $tblDebtorSelect = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
+            if ($tblDebtorSelect) {
+                $tblBankReference = $tblDebtorSelect->getTblBankReference();
+                $tblDebtor = $tblDebtorSelect->getTblDebtor();
+
+                if ($tblDebtorSelect->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift') {
+                    $tblPaymentTypeId = $tblDebtorSelect->getServiceTblPaymentType()->getId();
+                    $tblPaymentType = $tblDebtorSelect->getServiceTblPaymentType();
+                } else {
+                    $tblPaymentTypeId = 0;
+                    $tblPaymentType = $tblDebtorSelect->getServiceTblPaymentType();
+                }
+                if ($tblBankReference && $tblDebtor) {
+                    /** fill Invoice/tblDebtor */
+                    $seperator = $tblDebtor->getId().$tblPaymentTypeId.$tblBankReference;
+                    /** fill Invoice/tblItem */
+                    $Invoice[$seperator][$ItemCount]['PersonFrom'] = $tblPerson->getFullName();
+                    $Invoice[$seperator][$ItemCount]['PersonTo'] = $tblDebtor->getServiceTblPerson()->getFullName();
+                    $Invoice[$seperator][$ItemCount]['PaymentType'] = $tblPaymentType->getName();
+                    $Invoice[$seperator][$ItemCount]['Item'] = $tblBasketVerification->getServiceTblItem()->getName();
+                    $Invoice[$seperator][$ItemCount]['Quantity'] = $Quantity;
+                    $Invoice[$seperator][$ItemCount]['Price'] = $Price;
+                    $Invoice[$seperator][$ItemCount]['PriceSum'] = $PriceSum;
+                    $Invoice[$seperator][$ItemCount]['Value'] = $Value;
+                    $ItemCount++;
+                } elseif ($tblDebtor) {
+                    /** fill Invoice/tblDebtor */
+                    $seperator = $tblDebtor->getId().$tblPaymentTypeId.'0';
+                    /** fill Invoice/tblItem */
+                    $Invoice[$seperator][$ItemCount]['PersonFrom'] = $tblPerson->getFullName();
+                    $Invoice[$seperator][$ItemCount]['PersonTo'] = $tblDebtor->getServiceTblPerson()->getFullName();
+                    $Invoice[$seperator][$ItemCount]['PaymentType'] = $tblPaymentType->getName();
+                    $Invoice[$seperator][$ItemCount]['Item'] = $tblBasketVerification->getServiceTblItem()->getName();
+                    $Invoice[$seperator][$ItemCount]['Quantity'] = $Quantity;
+                    $Invoice[$seperator][$ItemCount]['Price'] = $Price;
+                    $Invoice[$seperator][$ItemCount]['PriceSum'] = $PriceSum;
+                    $Invoice[$seperator][$ItemCount]['Value'] = $Value;
+                    $ItemCount++;
+                }
+            }
+        }
+
+        return $Invoice;
     }
 
     /**
@@ -186,6 +278,7 @@ class Service extends AbstractService
                     $DebtorItemList[$DebtorInvoiceId]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
                     $DebtorItemList[$DebtorInvoiceId]['Quantity'][] = $Quantity;
                     $DebtorItemList[$DebtorInvoiceId]['Value'][] = $Price;
+                    $DebtorItemList[$DebtorInvoiceId]['PersonId'][] = $tblPerson->getId();
                 } elseif ($tblDebtor) {
                     /** fill Invoice/tblDebtor */
                     $DebtorInvoiceId = (new Data($this->getBinding()))->createDebtor($tblDebtor, null)->getId();
@@ -193,6 +286,7 @@ class Service extends AbstractService
                     $DebtorItemList[$DebtorInvoiceId]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
                     $DebtorItemList[$DebtorInvoiceId]['Quantity'][] = $Quantity;
                     $DebtorItemList[$DebtorInvoiceId]['Value'][] = $Price;
+                    $DebtorItemList[$DebtorInvoiceId]['PersonId'][] = $tblPerson->getId();
                 }
             }
         }
@@ -208,23 +302,23 @@ class Service extends AbstractService
             $tblDebtor = Invoice::useService()->getDebtorById($DebtorInvoiceId);
 
             if ($tblDebtor) {
-                $tblPerson = $tblDebtor->getServiceTblDebtor()->getServiceTblPerson();
-                if ($tblPerson) {
+                $tblPersonDebtor = $tblDebtor->getServiceTblDebtor()->getServiceTblPerson();
+                if ($tblPersonDebtor) {
 
                     //get Address
-                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    $tblAddress = Address::useService()->getAddressByPerson($tblPersonDebtor);
                     if (!$tblAddress) {
                         $tblAddress = null;
                     }
                     //get Mail
                     $tblMail = null;
-                    $tblToPersonListMail = Mail::useService()->getMailAllByPerson($tblPerson);
+                    $tblToPersonListMail = Mail::useService()->getMailAllByPerson($tblPersonDebtor);
                     if ($tblToPersonListMail) {
                         $tblMail = $tblToPersonListMail[0]->getTblMail();
                     }
                     //get Phone
                     $tblPhone = null;
-                    $tblToPersonListPhone = Phone::useService()->getPhoneAllByPerson($tblPerson);
+                    $tblToPersonListPhone = Phone::useService()->getPhoneAllByPerson($tblPersonDebtor);
                     if ($tblToPersonListPhone) {
                         $tblPhone = $tblToPersonListPhone[0]->getTblPhone();
                     }
@@ -239,12 +333,15 @@ class Service extends AbstractService
         foreach ($DebtorItemList as $DebtorBill) {
             $tblInvoice = Invoice::useService()->getInvoiceById($DebtorBill['InvoiceId']);
 
-            foreach ($DebtorBill['Item'] as $Item) {
-                $tblItem = Invoice::useService()->getItemById($Item);
-                (new Data($this->getBinding()))->createInvoiceItem($tblInvoice, $tblItem);
+            foreach ($DebtorBill['Item'] as $key => $Item) {
+
+                $tblPerson = Person::useService()->getPersonById($DebtorBill['PersonId'][$key]);
+                if ($tblPerson) {
+                    $tblItem = Invoice::useService()->getItemById($Item);
+                    (new Data($this->getBinding()))->createInvoiceItem($tblInvoice, $tblItem, $tblPerson);
+                }
             }
         }
-
         return true;
     }
 }

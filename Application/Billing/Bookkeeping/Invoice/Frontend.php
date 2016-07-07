@@ -127,9 +127,4 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
-
-    public function frontendInvoiceReversal()
-    {
-
-    }
 }

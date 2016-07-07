@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -18,6 +20,7 @@ class TblInvoiceItem extends Element
 
     const ATTR_TBL_INVOICE = 'tblInvoice';
     const ATTR_TBL_ITEM = 'tblItem';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
      * @Column(type="bigint")
@@ -27,6 +30,10 @@ class TblInvoiceItem extends Element
      * @Column(type="bigint")
      */
     protected $tblItem;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPerson;
 
     /**
      * @return bool|TblInvoice
@@ -70,5 +77,27 @@ class TblInvoiceItem extends Element
     {
 
         $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPerson()
+    {
+
+        if (null === $this->serviceTblPerson) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPerson);
+        }
+    }
+
+    /**
+     * @param null|TblPerson $tblPerson
+     */
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 }

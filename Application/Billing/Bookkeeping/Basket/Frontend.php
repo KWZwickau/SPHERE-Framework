@@ -52,6 +52,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -1214,10 +1216,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new Info('Sind alle Beträge kontrolliert und die Anzahl der Artikel richtig eingegeben, kann die Rechnung hier erstellt werden.
                             Benötigte änderungen der bereits vergebenen Bezahlzuweisungen müssen vor dem faktuieren abgeändert oder gelöscht werden.
                             Alle nicht zugewiesenen Bezahlzuweisungen werden hier abgefragt und für die wiederverwendung gespeichert.<br/>'
-                                .new Standard('Zahlungen fakturieren '.new ChevronRight(), '/Billing/Accounting/Payment/Selection', null
-                                    , array('Id' => $tblBasket->getId()))
-                                .new \SPHERE\Common\Frontend\Link\Repository\Warning('Rechnung Test', '/Billing/Bookkeeping/Basket/Invoice/Create', new EyeOpen()
+                                .new Standard('Zahlungen fakturieren '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Review', null
                                     , array('Id' => $tblBasket->getId())))
+//                                .new \SPHERE\Common\Frontend\Link\Repository\Warning('Rechnung Test', '/Billing/Bookkeeping/Basket/Invoice/Create', new EyeOpen()
+//                                    , array('Id' => $tblBasket->getId())))
                             , 6),
                         new LayoutColumn(
                             new Warning('Ist die Rechnung nicht mehr aktuell, da Personen oder Artikel fehlen oder grundlegende Preise geändert wurden, muss der Warenkorb zurück gesetzt werden.
@@ -1856,5 +1858,76 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendInvoiceReview($Id = null)
+    {
+
+        $Stage = new Stage('Rechnung', 'Kontrolle');
+
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
+        if (!$tblBasket) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
+        }
+
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft(), array('Id' => $tblBasket->getId())));
+        $InvoiceDataList = Invoice::useService()->reviewInvoiceData($tblBasket);
+
+        $PriceSumArray = array();
+        $CountPriceSum = 0;
+        foreach ($InvoiceDataList as &$InvoiceList) {
+            $CountPriceSum++;
+            foreach ($InvoiceList as $Item) {
+                if (empty( $PriceSumArray[$CountPriceSum] )) {
+                    $PriceSumArray[$CountPriceSum] = $Item['Value'];
+                } else {
+                    $PriceSumArray[$CountPriceSum] += $Item['Value'];
+                }
+            }
+        }
+
+        $PanelArray = array();
+        $InvoiceCount = 0;
+        foreach ($InvoiceDataList as &$InvoiceList) {
+            $InvoiceCount++;
+
+            $PanelArray[] = new Panel('Vorschau Rechnung Nr. '.$InvoiceCount, new TableData($InvoiceList, null, array(
+                    'PersonFrom'  => 'Leistungsbezieher',
+                    'PersonTo'    => 'Bezahler',
+                    'PaymentType' => 'Bezahlart',
+                    'Item'        => 'Artikel',
+                    'Quantity'    => 'Anzahl',
+                    'Price'       => 'Einzelpreis',
+                    'PriceSum'    => 'Gesamtpreis',
+                ), false), Panel::PANEL_TYPE_PRIMARY)
+                .new PullRight(new Panel('Gesamtpreis Rechnung', Invoice::useService()->getPriceString($PriceSumArray[$InvoiceCount]), Panel::PANEL_TYPE_SUCCESS))
+                .new PullClear('');
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $PanelArray
+                            , 12),
+                        new LayoutColumn(
+                            new Standard('Rechnungen nicht erstellen', '/Billing/Bookkeeping/Basket/Verification', new Disable()
+                                , array('Id' => $tblBasket->getId()))
+                            .new Standard(' Rechnung erstellen '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Create', null
+                                , array('Id' => $tblBasket->getId()))
+                            , 12)
+                    ))
+                )
+            )
+        );
+
+        return $Stage;
     }
 }
