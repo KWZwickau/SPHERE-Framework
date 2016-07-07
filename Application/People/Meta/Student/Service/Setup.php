@@ -236,6 +236,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudent', 'Identifier')) {
             $Table->addColumn('Identifier', 'string', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblStudent', 'SchoolAttendanceStartDate')) {
+            $Table->addColumn('SchoolAttendanceStartDate', 'datetime', array('notnull' => false));
+        }
         $this->getConnection()->addForeignKey($Table, $tblStudentMedicalRecord, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentTransport, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentBilling, true);

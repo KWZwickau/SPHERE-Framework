@@ -23,6 +23,7 @@ abstract class Student extends AbstractData
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
+     * @param string $SchoolAttendanceStartDate
      *
      * @return TblStudent
      */
@@ -34,7 +35,8 @@ abstract class Student extends AbstractData
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null
+        $tblStudentIntegration = null,
+        $SchoolAttendanceStartDate = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -50,6 +52,8 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -65,6 +69,7 @@ abstract class Student extends AbstractData
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
+     * @param string $SchoolAttendanceStartDate
      *
      * @return bool
      */
@@ -76,7 +81,8 @@ abstract class Student extends AbstractData
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null
+        $tblStudentIntegration = null,
+        $SchoolAttendanceStartDate = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -92,6 +98,7 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
