@@ -1815,10 +1815,16 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // current Division
-        $tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
+        $tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
+        $DivisionNameArray = array();
+        if ($tblDivisionList) {
+            foreach ($tblDivisionList as $tblDivision) {
+                $DivisionNameArray[] = $tblDivision->getDisplayName();;
+            }
+        }
 
-        $result['Groups'] = ( !empty( $groups ) ? implode(', ', $groups).( $tblDivision ? ', ' : '' ) : '' )
-            .( $tblDivision ? 'Klasse '.$tblDivision->getDisplayName() : '' );
+        $result['Groups'] = ( !empty( $groups ) ? implode(', ', $groups).( $tblDivisionList ? ', ' : '' ) : '' )
+            .( $tblDivisionList ? 'Klasse '.implode(', ', $DivisionNameArray) : '' );
 
         return $result;
     }
@@ -1879,11 +1885,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket/Verification', new ChevronLeft(), array('Id' => $tblBasket->getId())));
         $InvoiceDataList = Invoice::useService()->reviewInvoiceData($tblBasket);
 
+        $PayerArray = array();
         $PriceSumArray = array();
         $CountPriceSum = 0;
         foreach ($InvoiceDataList as &$InvoiceList) {
             $CountPriceSum++;
             foreach ($InvoiceList as $Item) {
+                $PayerArray[$CountPriceSum] = $Item['PersonTo'];
                 if (empty( $PriceSumArray[$CountPriceSum] )) {
                     $PriceSumArray[$CountPriceSum] = $Item['Value'] * $Item['Quantity'];
                 } else {
@@ -1897,10 +1905,11 @@ class Frontend extends Extension implements IFrontendInterface
         foreach ($InvoiceDataList as &$InvoiceList) {
             $InvoiceCount++;
 
-            $PanelArray[] = new Panel('Vorschau Rechnung Nr. '.$InvoiceCount, new TableData($InvoiceList, null, array(
+            $PanelArray[] = new Panel('Vorschau Rechnung Nr. '.$InvoiceCount.' '.new ChevronRight().' '.$PayerArray[$InvoiceCount], new TableData($InvoiceList, null, array(
                     'PersonFrom'  => 'Leistungsbezieher',
-                    'PersonTo'    => 'Bezahler',
+//                    'PersonTo'    => 'Bezahler',
                     'PaymentType' => 'Bezahlart',
+                    'Reference'   => 'Rferenz',
                     'Item'        => 'Artikel',
                     'Quantity'    => 'Anzahl',
                     'Price'       => 'Einzelpreis',

@@ -223,6 +223,7 @@ class Service extends AbstractService
                     $Invoice[$seperator][$ItemCount]['Price'] = $Price;
                     $Invoice[$seperator][$ItemCount]['PriceSum'] = $PriceSum;
                     $Invoice[$seperator][$ItemCount]['Value'] = $Value;
+                    $Invoice[$seperator][$ItemCount]['Reference'] = $tblBankReference->getReference();
                     $ItemCount++;
                 } elseif ($tblDebtor) {
                     /** fill Invoice/tblDebtor */
@@ -236,6 +237,7 @@ class Service extends AbstractService
                     $Invoice[$seperator][$ItemCount]['Price'] = $Price;
                     $Invoice[$seperator][$ItemCount]['PriceSum'] = $PriceSum;
                     $Invoice[$seperator][$ItemCount]['Value'] = $Value;
+                    $Invoice[$seperator][$ItemCount]['Reference'] = 'Keine Referenz';
                     $ItemCount++;
                 }
             }
