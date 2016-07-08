@@ -52,8 +52,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -1764,7 +1762,7 @@ class Frontend extends Extension implements IFrontendInterface
                             // Destroy BasketVerification
                             $Error = false;
                             foreach ($tblBasketVerificationList as $tblBasketVerification) {
-                                if (!Basket::useService()->destroyBasketVerificationList($tblBasketVerification)) {
+                                if (!Basket::useService()->destroyBasketVerification($tblBasketVerification)) {
                                     $Error = true;
                                 }
                             }
@@ -1906,24 +1904,31 @@ class Frontend extends Extension implements IFrontendInterface
             $InvoiceCount++;
 
             $PanelArray[] = new Panel('Vorschau Rechnung Nr. '.$InvoiceCount.' '.new ChevronRight().' '.$PayerArray[$InvoiceCount], new TableData($InvoiceList, null, array(
-                    'PersonFrom'  => 'Leistungsbezieher',
+                'PersonFrom'   => 'Leistungsbezieher',
 //                    'PersonTo'    => 'Bezahler',
-                    'PaymentType' => 'Bezahlart',
-                    'Reference'   => 'Rferenz',
-                    'Item'        => 'Artikel',
-                    'Quantity'    => 'Anzahl',
-                    'Price'       => 'Einzelpreis',
-                    'PriceSum'    => 'Gesamtpreis',
-                ), array(
-                    'order'          => array(array('3', 'asc')),
-                    "paging"         => false, // Deaktiviert Blättern
-                    "iDisplayLength" => -1,    // Alle Einträge zeigen
-                    "searching"      => false, // Deaktiviert Suche
-                    "info"           => false  // Deaktiviert Such-Info)
-                )), Panel::PANEL_TYPE_PRIMARY)
-                .new PullRight(new Panel('Gesamtpreis der Rechnung Nr. '.$InvoiceCount,
-                    new Bold(Invoice::useService()->getPriceString($PriceSumArray[$InvoiceCount])), Panel::PANEL_TYPE_SUCCESS))
-                .new PullClear('');
+                'PaymentType'  => 'Bezahlart',
+                'Reference'    => 'Referenz',
+                'DebtorNumber' => 'Debitor-Nr.',
+                'Item'         => 'Artikel',
+                'Quantity'     => 'Anzahl',
+                'Price'        => 'Einzelpreis',
+                'PriceSum'     => 'Gesamtpreis',
+            ), array(
+                'order'          => array(array('3', 'asc')),
+                "paging"         => false, // Deaktiviert Blättern
+                "iDisplayLength" => -1,    // Alle Einträge zeigen
+                "searching"      => false, // Deaktiviert Suche
+                "info"           => false  // Deaktiviert Such-Info)
+            )), Panel::PANEL_TYPE_PRIMARY,
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn('', 8)
+                        , new LayoutColumn(new Panel('Gesamtpreis der Rechnung Nr. '.$InvoiceCount,
+                                new Bold(Invoice::useService()->getPriceString($PriceSumArray[$InvoiceCount])), Panel::PANEL_TYPE_INFO), 4)
+                        ))
+                    )
+                ));
         }
 
         $Stage->setContent(
@@ -1934,11 +1939,16 @@ class Frontend extends Extension implements IFrontendInterface
                             $PanelArray
                             , 12),
                         new LayoutColumn(
-                            new Standard('Rechnungen nicht erstellen', '/Billing/Bookkeeping/Basket/Verification', new Disable()
-                                , array('Id' => $tblBasket->getId()))
-                            .new Standard(' Rechnung erstellen '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Create', null
-                                , array('Id' => $tblBasket->getId()))
-                            , 12)
+                            new Success('Festschreibung der Rechnungen als Offene Posten bei denen keine Änderungen mehr möglich sind.
+                                    In diesem Schritt werden Rechnungsnummern vergeben.<br/>'.
+                                new Standard(' Rechnung erstellen '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Create', null
+                                    , array('Id' => $tblBasket->getId())))
+                            , 6),
+                        new LayoutColumn(
+                            new Info('Rechnung soll weiter bearbeitet werden.<br/>'.
+                                new Standard('Rechnungen nicht erstellen', '/Billing/Bookkeeping/Basket/Verification', new Disable()
+                                    , array('Id' => $tblBasket->getId())))
+                            , 6),
                     ))
                 )
             )

@@ -648,17 +648,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasketVerification $tblBasketVerification
-     *
-     * @return bool
-     */
-    public function destroyBasketVerificationList(TblBasketVerification $tblBasketVerification)
-    {
-
-        return (new Data($this->getBinding()))->destroyBasketVerification($tblBasketVerification);
-    }
-
-    /**
      * @param TblBasket    $tblBasket
      * @param TblCommodity $tblCommodity
      *
@@ -803,7 +792,7 @@ class Service extends AbstractService
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationByPersonAndBasket($tblPerson, $tblBasket);
         if ($tblBasketVerificationList) {
             foreach ($tblBasketVerificationList as $tblBasketVerification) {
-                Basket::useService()->destroyBasketVerificationList($tblBasketVerification);
+                Basket::useService()->destroyBasketVerification($tblBasketVerification);
             }
         }
         return (new Data($this->getBinding()))->removeBasketPerson($tblBasketPerson);

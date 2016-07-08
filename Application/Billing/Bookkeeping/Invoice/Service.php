@@ -205,16 +205,14 @@ class Service extends AbstractService
                 $tblDebtor = $tblDebtorSelect->getTblDebtor();
 
                 if ($tblDebtorSelect->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift') {
-                    $tblPaymentTypeId = $tblDebtorSelect->getServiceTblPaymentType()->getId();
                     $tblPaymentType = $tblDebtorSelect->getServiceTblPaymentType();
                 } else {
-                    $tblPaymentTypeId = 0;
                     $tblPaymentType = $tblDebtorSelect->getServiceTblPaymentType();
                 }
                 if ($tblBankReference && $tblDebtor) {
-                    /** fill Invoice/tblDebtor */
-                    $seperator = $tblDebtor->getId().$tblPaymentTypeId.$tblBankReference;
-                    /** fill Invoice/tblItem */
+                    /** separator for Invoice */
+                    $seperator = $tblDebtor->getId();
+                    /** fill Invoice */
                     $Invoice[$seperator][$ItemCount]['PersonFrom'] = $tblPerson->getFullName();
                     $Invoice[$seperator][$ItemCount]['PersonTo'] = $tblDebtor->getServiceTblPerson()->getFullName();
                     $Invoice[$seperator][$ItemCount]['PaymentType'] = $tblPaymentType->getName();
@@ -224,11 +222,12 @@ class Service extends AbstractService
                     $Invoice[$seperator][$ItemCount]['PriceSum'] = $PriceSum;
                     $Invoice[$seperator][$ItemCount]['Value'] = $Value;
                     $Invoice[$seperator][$ItemCount]['Reference'] = $tblBankReference->getReference();
+                    $Invoice[$seperator][$ItemCount]['DebtorNumber'] = $tblDebtor->getDebtorNumber();
                     $ItemCount++;
                 } elseif ($tblDebtor) {
-                    /** fill Invoice/tblDebtor */
-                    $seperator = $tblDebtor->getId().$tblPaymentTypeId.'0';
-                    /** fill Invoice/tblItem */
+                    /** separator for Invoice */
+                    $seperator = $tblDebtor->getId();
+                    /** fill Invoice */
                     $Invoice[$seperator][$ItemCount]['PersonFrom'] = $tblPerson->getFullName();
                     $Invoice[$seperator][$ItemCount]['PersonTo'] = $tblDebtor->getServiceTblPerson()->getFullName();
                     $Invoice[$seperator][$ItemCount]['PaymentType'] = $tblPaymentType->getName();
@@ -237,7 +236,8 @@ class Service extends AbstractService
                     $Invoice[$seperator][$ItemCount]['Price'] = $Price;
                     $Invoice[$seperator][$ItemCount]['PriceSum'] = $PriceSum;
                     $Invoice[$seperator][$ItemCount]['Value'] = $Value;
-                    $Invoice[$seperator][$ItemCount]['Reference'] = 'Keine Referenz';
+                    $Invoice[$seperator][$ItemCount]['Reference'] = 'Bar/Überweisung';
+                    $Invoice[$seperator][$ItemCount]['DebtorNumber'] = $tblDebtor->getDebtorNumber();
                     $ItemCount++;
                 }
             }
@@ -344,6 +344,11 @@ class Service extends AbstractService
                 }
             }
         }
+
+        foreach ($tblBasketVerificationList as $tblBasketVerification) {
+            Basket::useService()->destroyBasketVerification($tblBasketVerification);
+        }
+
         return true;
     }
 }
