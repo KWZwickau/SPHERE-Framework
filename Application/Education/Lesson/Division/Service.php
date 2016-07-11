@@ -1149,6 +1149,43 @@ class Service extends AbstractService
     }
 
     /**
+     * Alle Klassen wo die Person als Klassenlehrer oder Fachlehrer hinterlegt ist.
+     *
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionAllByTeacher(TblPerson $tblPerson)
+    {
+
+        $resultList = array();
+
+        // DivisionTeacher
+        $list = $this->getDivisionTeacherAllByTeacher($tblPerson);
+        if ($list){
+            foreach ($list as $tblDivisionTeacher){
+                if ($tblDivisionTeacher->getServiceTblPerson() && $tblDivisionTeacher->getTblDivision()){
+                    $resultList[$tblDivisionTeacher->getTblDivision()->getId()] = $tblDivisionTeacher->getTblDivision();
+                }
+            }
+        }
+
+        // SubjectTeacher
+        $list = $this->getSubjectTeacherAllByTeacher($tblPerson);
+        if ($list){
+            foreach ($list as $tblSubjectTeacher){
+                if ($tblSubjectTeacher->getTblDivisionSubject()
+                    && ($tblDivision = $tblSubjectTeacher->getTblDivisionSubject()->getTblDivision())
+                ){
+                    $resultList[$tblDivision->getId()] = $tblDivision;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblDivisionSubject $tblDivisionSubject
      * @param TblPerson $tblPerson
      *
