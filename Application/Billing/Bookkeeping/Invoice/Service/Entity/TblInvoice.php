@@ -5,7 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -32,6 +31,10 @@ class TblInvoice extends Element
      * @Column(type="string")
      */
     protected $InvoiceNumber;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $TargetTime;
 //    /**
 //     * @Column(type="decimal", precision=14, scale=4)
 //     */
@@ -64,10 +67,10 @@ class TblInvoice extends Element
 //     * @Column(type="bigint")
 //     */
 //    protected $serviceTblPaymentType;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblDebtor;
+//    /**
+//     * @Column(type="bigint")
+//     */
+//    protected $tblDebtor;
 
     /**
      * @return string
@@ -85,6 +88,33 @@ class TblInvoice extends Element
     {
 
         $this->InvoiceNumber = $InvoiceNumber;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getTargetTime()
+    {
+
+        if (null === $this->TargetTime) {
+            return false;
+        }
+        /** @var \DateTime $InvoiceDate */
+        $TargetDate = $this->TargetTime;
+        if ($TargetDate instanceof \DateTime) {
+            return $TargetDate->format('d.m.Y');
+        } else {
+            return (string)$TargetDate;
+        }
+    }
+
+    /**
+     * @param \DateTime|null $Date
+     */
+    public function setTargetTime(\DateTime $Date = null)
+    {
+
+        $this->TargetTime = $Date;
     }
 
 //    /**
@@ -250,26 +280,4 @@ class TblInvoice extends Element
 //
 //        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
 //    }
-
-    /**
-     * @return bool|TblDebtor
-     */
-    public function getTblDebtor()
-    {
-
-        if (null === $this->tblDebtor) {
-            return false;
-        } else {
-            return Invoice::useService()->getDebtorById($this->tblDebtor);
-        }
-    }
-
-    /**
-     * @param TblDebtor $tblDebtor
-     */
-    public function setTblDebtor(TblDebtor $tblDebtor = null)
-    {
-
-        $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
-    }
 }

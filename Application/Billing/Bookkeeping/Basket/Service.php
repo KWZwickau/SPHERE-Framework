@@ -451,7 +451,7 @@ class Service extends AbstractService
 //            }
 //        }
         return new Success('Berechnung bereitmachen für Bearbeitung')
-        .new Redirect('/Billing/Accounting/Payment/Selection', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+        .new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
     }
 
     /**
@@ -823,7 +823,6 @@ class Service extends AbstractService
             if ($tblPerson) {
                 $tblBasketPerson = Basket::useService()->getBasketPersonByBasketAndPerson($tblBasket, $tblPerson);
                 if ($tblBasketPerson) {
-//                    Debugger::screenDump($tblBasketPerson);
                     $this->removeBasketPerson($tblBasketPerson);
                 }
             }
@@ -873,6 +872,34 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketVerificationById($Id);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblBasket      $tblBasket
+     * @param                $Date
+     *
+     * @return bool|Redirect
+     */
+    public function checkBasket(IFormInterface $Form, TblBasket $tblBasket, $Date)
+    {
+        $Global = $this->getGlobal();
+        $Error = false;
+        if (empty( $Global->POST )) {
+            return $Form;
+        } else {
+            if (empty( $Date )) {
+                $Form->setError('Date', 'Bitte geben Sie ein Fälligkeitsdatum an');
+                $Error = true;
+            }
+        }
+        if (!$Error) {
+            return new Redirect('/Billing/Bookkeeping/Basket/Invoice/Review', Redirect::TIMEOUT_SUCCESS,
+                array('Id'   => $tblBasket->getId(),
+                      'Date' => $Date));
+        } else {
+            return $Form;
+        }
     }
 
     /**

@@ -50,10 +50,21 @@ class Frontend extends Extension implements IFrontendInterface
                 $Content['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                 $Content['DebtorNumber'] = '';
                 $Content['Reference'] = '';
-                $tblDebtor = $tblInvoice->getTblDebtor();
-                if ($tblDebtor) {
-                    $Content['DebtorNumber'] = $tblDebtor->getDebtorNumber();
-                    $Content['Reference'] = $tblDebtor->getBankReference();
+
+                $tblDebtorList = Invoice::useService()->getDebtorAllByInvoice($tblInvoice);
+                $DebtorNumberArray = array();
+                $DebtorReferenceArray = array();
+                if ($tblDebtorList) {
+                    foreach ($tblDebtorList as $tblDebtor) {
+                        $DebtorNumberArray[] = $tblDebtor->getDebtorNumber();
+                        $DebtorReferenceArray[] = $tblDebtor->getBankReference();
+                    }
+                    $DebtorNumberArray = array_filter(array_unique($DebtorNumberArray));
+                    $DebtorReferenceArray = array_filter(array_unique($DebtorReferenceArray));
+                    $DebtorNumberString = implode(', ', $DebtorNumberArray);
+                    $DebtorReferenceString = implode(', ', $DebtorReferenceArray);
+                    $Content['DebtorNumber'] = $DebtorNumberString;
+                    $Content['Reference'] = $DebtorReferenceString;
                 }
 
                 $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);

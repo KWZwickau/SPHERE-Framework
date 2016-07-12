@@ -20,6 +20,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -50,6 +51,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -1085,10 +1087,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $Date
      *
      * @return Stage|string
      */
-    public function frontendBasketVerification($Id = null)
+    public function frontendBasketVerification($Id = null, $Date = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Übersicht');
@@ -1144,7 +1147,7 @@ class Frontend extends Extension implements IFrontendInterface
                     /** @var TblBasketVerification $tblBasketVerification */
                     foreach ($tblBasketVerificationList as $tblBasketVerification) {
                         if ($tblBasketVerification->getServiceTblItem()) {
-                            $ItemArray[] = $tblBasketVerification->getServiceTblItem()->getName();
+                            $ItemArray[] = $tblBasketVerification->getQuantity().'x '.$tblBasketVerification->getServiceTblItem()->getName();
                         }
                         $Sum += $tblBasketVerification->getValue() * $tblBasketVerification->getQuantity();
                     }
@@ -1184,6 +1187,20 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
+        $Form = new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new DatePicker('Date', 'Zahlungsdatum (Fälligkeit)',
+                            'Zahlungsdatum (Fälligkeit)',
+                            new Time())
+                        , 6)
+                )),
+            ))
+        );
+        $Form->appendFormButton(new Primary('Warenkorb fakturieren (prüfen)'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
         $Stage->setContent(
             $this->layoutBasket($tblBasket)
             .new Layout(
@@ -1214,10 +1231,11 @@ class Frontend extends Extension implements IFrontendInterface
                             new Info('Sind alle Beträge kontrolliert und die Anzahl der Artikel richtig eingegeben, kann die Rechnung hier erstellt werden.
                             Benötigte änderungen der bereits vergebenen Bezahlzuweisungen müssen vor dem faktuieren abgeändert oder gelöscht werden.
                             Alle nicht zugewiesenen Bezahlzuweisungen werden hier abgefragt und für die wiederverwendung gespeichert.<br/>'
-                                .new Standard('Zahlungen fakturieren '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Review', null
-                                    , array('Id' => $tblBasket->getId())))
-//                                .new \SPHERE\Common\Frontend\Link\Repository\Warning('Rechnung Test', '/Billing/Bookkeeping/Basket/Invoice/Create', new EyeOpen()
+                                .Basket::useService()->checkBasket($Form, $tblBasket, $Date)
+                            )
+//                                .new Standard('Zahlungen fakturieren '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Review', null
 //                                    , array('Id' => $tblBasket->getId())))
+
                             , 6),
                         new LayoutColumn(
                             new Warning('Ist die Rechnung nicht mehr aktuell, da Personen oder Artikel fehlen oder grundlegende Preise geändert wurden, muss der Warenkorb zurück gesetzt werden.
@@ -1349,7 +1367,13 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendCreateInvoice($Id = null)
+    /**
+     * @param null $Id
+     * @param null $Date
+     *
+     * @return Stage|string
+     */
+    public function frontendCreateInvoice($Id = null, $Date = null)
     {
 
         $Stage = new Stage('Rechnungen', 'erstellen');
@@ -1362,8 +1386,13 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
+        if ($Date == null) {
+            $Stage->setContent(new Warning('Fälligkeitsdatum nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblBasket->getId()));
+        }
 
-        if (Invoice::useService()->createInvoice($tblBasket)) {
+        if (Invoice::useService()->createInvoice($tblBasket, $Date)) {
             $Stage->setContent(new Success('Rechnungen erstellt'));
             return $Stage.new Redirect('/Billing/Bookkeeping/Balance', Redirect::TIMEOUT_SUCCESS);
         } else {
@@ -1866,13 +1895,15 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $Date
      *
      * @return Stage|string
      */
-    public function frontendInvoiceReview($Id = null)
+    public function frontendInvoiceReview($Id = null, $Date = null)
     {
 
         $Stage = new Stage('Rechnung', 'Kontrolle');
+
 
         $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
@@ -1897,6 +1928,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        $InvoiceSum = number_format(array_sum($PriceSumArray), 2).' €';
 
         $PanelArray = array();
         $InvoiceCount = 0;
@@ -1936,13 +1968,23 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
+                            new Panel('Anzahl Rechnungen', $InvoiceCount, Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Fälligkeitsdatum', $Date, Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamtpreis aller Rechnungen', $InvoiceSum, Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
                             $PanelArray
                             , 12),
                         new LayoutColumn(
                             new Success('Festschreibung der Rechnungen als Offene Posten bei denen keine Änderungen mehr möglich sind.
                                     In diesem Schritt werden Rechnungsnummern vergeben.<br/>'.
                                 new Standard(' Rechnung erstellen '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Create', null
-                                    , array('Id' => $tblBasket->getId())))
+                                    , array('Id'   => $tblBasket->getId(),
+                                            'Date' => $Date)))
                             , 6),
                         new LayoutColumn(
                             new Info('Rechnung soll weiter bearbeitet werden.<br/>'.

@@ -27,8 +27,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblDebtor = $this->setTableDebtor($Schema);
         $tblItem = $this->setTableItem($Schema);
-        $tblInvoice = $this->setTableInvoice($Schema, $tblDebtor);
-        $this->setTableInvoiceItem($Schema, $tblInvoice, $tblItem);
+        $tblInvoice = $this->setTableInvoice($Schema);
+        $this->setTableInvoiceItem($Schema, $tblInvoice, $tblItem, $tblDebtor);
 
         /**
          * Migration & Protocol
@@ -77,6 +77,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblBankReference')) {
             $Table->addColumn('serviceTblBankReference', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblPaymentType')) {
+            $Table->addColumn('serviceTblPaymentType', 'bigint', array('notnull' => false));
+        }
 
         return $Table;
     }
@@ -112,16 +115,18 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblDebtor
      *
      * @return Table
      */
-    private function setTableInvoice(Schema &$Schema, Table $tblDebtor)
+    private function setTableInvoice(Schema &$Schema)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblInvoice');
         if (!$this->getConnection()->hasColumn('tblInvoice', 'InvoiceNumber')) {
             $Table->addColumn('InvoiceNumber', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'TargetTime')) {
+            $Table->addColumn('TargetTime', 'datetime');
         }
         if (!$this->getConnection()->hasColumn('tblInvoice', 'IsPaid')) {
             $Table->addColumn('IsPaid', 'boolean');
@@ -141,10 +146,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPhone')) {
             $Table->addColumn('serviceTblPhone', 'bigint', array('notnull' => false));
         }
-//        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPaymentType')) {
-//            $Table->addColumn('serviceTblPaymentType', 'bigint');
-//        }
-        $this->getConnection()->addForeignKey($Table, $tblDebtor);
 
         return $Table;
     }
@@ -153,10 +154,11 @@ class Setup extends AbstractSetup
      * @param Schema $Schema
      * @param Table  $tblInvoice
      * @param Table  $tblItem
+     * @param Table  $tblDebtor
      *
      * @return Table
      */
-    private function setTableInvoiceItem(Schema $Schema, Table $tblInvoice, Table $tblItem)
+    private function setTableInvoiceItem(Schema $Schema, Table $tblInvoice, Table $tblItem, Table $tblDebtor)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblInvoiceItem');
@@ -165,6 +167,7 @@ class Setup extends AbstractSetup
         }
         $this->getConnection()->addForeignKey($Table, $tblInvoice);
         $this->getConnection()->addForeignKey($Table, $tblItem);
+        $this->getConnection()->addForeignKey($Table, $tblDebtor);
 
         return $Table;
     }

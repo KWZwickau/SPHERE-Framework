@@ -21,6 +21,7 @@ class TblInvoiceItem extends Element
     const ATTR_TBL_INVOICE = 'tblInvoice';
     const ATTR_TBL_ITEM = 'tblItem';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_TBL_DEBTOR = 'tblDebtor';
 
     /**
      * @Column(type="bigint")
@@ -34,6 +35,10 @@ class TblInvoiceItem extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblDebtor;
 
     /**
      * @return bool|TblInvoice
@@ -99,5 +104,27 @@ class TblInvoiceItem extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return bool|TblDebtor
+     */
+    public function getServiceTblDebtor()
+    {
+
+        if (null === $this->tblDebtor) {
+            return false;
+        } else {
+            return Invoice::useService()->getDebtorById($this->tblDebtor);
+        }
+    }
+
+    /**
+     * @param null|TblDebtor $tblDebtor
+     */
+    public function setServiceTblDebtor(TblDebtor $tblDebtor = null)
+    {
+
+        $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
     }
 }

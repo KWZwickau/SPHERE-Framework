@@ -45,7 +45,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setDescription('Offen');
 //        new Backward();
 
-        $tblInvoiceList = Invoice::useService()->getInvoiceByIsPaid();
+        $tblInvoiceList = Invoice::useService()->getInvoiceByIsPaid(false);
         $TableContent = array();
         if ($tblInvoiceList) {
 
@@ -54,11 +54,24 @@ class Frontend extends Extension implements IFrontendInterface
                 $Content['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                 $Content['DebtorNumber'] = '';
                 $Content['Reference'] = '';
-                $tblDebtor = $tblInvoice->getTblDebtor();
-                if ($tblDebtor) {
-                    $Content['DebtorNumber'] = $tblDebtor->getDebtorNumber();
-                    $Content['Reference'] = $tblDebtor->getBankReference();
+                $Content['DebtorNumber'] = '';
+                $Content['TargetTime'] = $tblInvoice->getTargetTime();
+                $tblDebtorList = Invoice::useService()->getDebtorAllByInvoice($tblInvoice);
+                $DebtorNumberArray = array();
+                $DebtorReferenceArray = array();
+                if ($tblDebtorList) {
+                    foreach ($tblDebtorList as $tblDebtor) {
+                        $DebtorNumberArray[] = $tblDebtor->getDebtorNumber();
+                        $DebtorReferenceArray[] = $tblDebtor->getBankReference();
+                    }
+                    $DebtorNumberArray = array_filter(array_unique($DebtorNumberArray));
+                    $DebtorReferenceArray = array_filter(array_unique($DebtorReferenceArray));
+                    $DebtorNumberString = implode(', ', $DebtorNumberArray);
+                    $DebtorReferenceString = implode(', ', $DebtorReferenceArray);
+                    $Content['DebtorNumber'] = $DebtorNumberString;
+                    $Content['Reference'] = $DebtorReferenceString;
                 }
+
 
                 $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
                 $Price = 0.00;
@@ -103,10 +116,11 @@ class Frontend extends Extension implements IFrontendInterface
                             new Title(new ListingTable().' Übersicht', 'der offenen Posten'),
                             ( empty( $TableContent ) ? new Warning('Keine offenen Rechnungen vorhanden') :
                                 new TableData($TableContent, null,
-                                    array('InvoiceNumber' => 'Rechnungsnummer',
-                                          'DebtorNumber'  => 'Debitorennummer',
+                                    array('InvoiceNumber' => 'Rechnungs Nr.',
+                                          'DebtorNumber'  => 'Debitoren Nr.',
                                           'FullName'      => 'Debitor',
-                                          'Reference'     => 'Referenz',
+                                          'Reference'     => 'Referenz(en)',
+                                          'TargetTime'    => 'Fällig am',
                                           'ItemList'      => 'Artikel',
                                           'Price'         => 'Gesamtpreis',
                                           'Option'        => ''))
@@ -170,11 +184,19 @@ class Frontend extends Extension implements IFrontendInterface
 //        array_multisort($Name, SORT_ASC, $SummaryPrice, SORT_ASC,  $TableContent);
 
 
-            array_walk($tblItemList, function (TblItem $tblItem) use (&$TableContent, &$SumPrice) {
+            array_walk($tblItemList, function (TblItem $tblItem) use (&$TableContent, &$SumPrice, $tblInvoice) {
                 $Item['Name'] = $tblItem->getName();
                 $Item['Quantity'] = $tblItem->getQuantity();
                 $Item['SinglePrice'] = $tblItem->getPriceString();
                 $Item['SumPrice'] = $tblItem->getSummaryPrice();
+
+                $tblDebtor = Invoice::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
+                if ($tblDebtor) {
+                    $tblPaymentType = $tblDebtor->getServiceTblPaymentType();
+                    if ($tblPaymentType) {
+                        $Item['Payment'] = $tblDebtor->getServiceTblPaymentType()->getName();
+                    }
+                }
 
                 $SumPrice += $tblItem->getValue() * $tblItem->getQuantity();
 

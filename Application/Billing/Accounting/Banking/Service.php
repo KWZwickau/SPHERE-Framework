@@ -19,7 +19,6 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -361,7 +360,7 @@ class Service extends AbstractService
                 }
             }
             if (!$Error) {
-                return new Success('Daten sind erfasst worden.')
+                return new Success('Daten erfasst')
                 .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
             }
             if ($Error === true && !empty( $PersonArray )) {
@@ -541,7 +540,7 @@ class Service extends AbstractService
             }
 
             if (!$Error) {
-                return new Success('Daten sind erfasst worden.')
+                return new Success('Daten erfasst')
                 .new Redirect('/Billing/Accounting/DebtorSelection/PaymentChoose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
             }
             if ($Error && $PersonPayers) {
@@ -588,8 +587,6 @@ class Service extends AbstractService
                             $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
                             $Error = true;
                             $Bank = true;
-
-                            Debugger::screenDump($Row['Reference']);
                         }
                     }
                 }
@@ -622,7 +619,7 @@ class Service extends AbstractService
             }
 
             if (!$Error) {
-                return new Success('Daten sind erfasst worden.')
+                return new Success('Daten erfasst')
                 .new Redirect('/Billing/Accounting/DebtorSelection', Redirect::TIMEOUT_SUCCESS);
             }
             if ($Error && $Debtor) {
@@ -703,8 +700,8 @@ class Service extends AbstractService
             }
 
             if (!$Error) {
-                return new Success('Daten sind erfasst worden.')
-                .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+                return new Success('Daten erfasst')
+                .new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
             }
             if ($Error && $Debtor) {
                 $Stage .= new Warning('Gewählte Bezahler haben keine Debitor-Nummer ausgewählt');

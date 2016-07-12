@@ -1071,8 +1071,15 @@ class Frontend extends Extension implements IFrontendInterface
                     $ItemPayer = array();
                     $Status = array();
                     foreach ($tblDebtorSelectionList as $tblDebtorSelection) {
-                        $ItemPayer[] = $tblDebtorSelection->getServiceTblInventoryItem()->getName()
-                            .' - '.$tblDebtorSelection->getServiceTblPersonPayers()->getLastFirstName();
+
+                        if (( $tblItem = $tblDebtorSelection->getServiceTblInventoryItem() )) {
+                            $ItemPayer[] = $tblItem->getName()
+                                .' - '.$tblDebtorSelection->getServiceTblPersonPayers()->getLastFirstName();
+                        } else {
+                            $ItemPayer[] = 'Fehlt'
+                                .' - '.$tblDebtorSelection->getServiceTblPersonPayers()->getLastFirstName();
+                        }
+
                         if ($tblDebtorSelection->getTblDebtor() === false || $tblDebtorSelection->getTblBankReference() === false) {
                             if ($tblDebtorSelection->getServiceTblPaymentType()->getName() === 'Bar') {
                                 $Status[] = new SuccessText(new Check().' Bar');

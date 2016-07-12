@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as BankingDebtor;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -21,6 +23,7 @@ class TblDebtor extends Element
 
     const ATTR_SERVICE_TBL_DEBTOR = 'serviceTblDebtor';
     const ATTR_SERVICE_TBL_BANKING_REFERENCE = 'serviceTblBankReference';
+    const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
 
     /**
      * @Column(type="string")
@@ -62,6 +65,10 @@ class TblDebtor extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblBankReference;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPaymentType;
 
     /**
      * @return string
@@ -248,6 +255,28 @@ class TblDebtor extends Element
             return false;
         } else {
             return Banking::useService()->getBankReferenceById($this->serviceTblBankReference);
+        }
+    }
+
+    /**
+     * @param TblPaymentType|null $tblPaymentType
+     */
+    public function setServiceTblPaymentType(TblPaymentType $tblPaymentType = null)
+    {
+
+        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
+    }
+
+    /**
+     * @return bool|TblPaymentType
+     */
+    public function getServiceTblPaymentType()
+    {
+
+        if (null === $this->serviceTblPaymentType) {
+            return false;
+        } else {
+            return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
         }
     }
 }
