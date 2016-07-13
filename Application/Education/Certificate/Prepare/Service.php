@@ -10,9 +10,15 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblCertificatePrepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -66,6 +72,64 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblPrepareGrade
+     */
+    public function getPrepareGradeBy(
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblTestType $tblTestType
+    ) {
+
+        return (new Data($this->getBinding()))->getPrepareGradeBy(
+            $tblPrepare,
+            $tblPerson,
+            $tblDivision,
+            $tblSubject,
+            $tblTestType
+        );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getPrepareGradeAllByPerson(
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        TblTestType $tblTestType
+    ) {
+
+        return (new Data($this->getBinding()))->getPrepareGradeAllByPerson($tblPrepare, $tblPerson, $tblTestType);
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getPrepareGradeAllByPrepare(
+        TblCertificatePrepare $tblPrepare,
+        TblTestType $tblTestType
+    ) {
+
+        return (new Data($this->getBinding()))->getPrepareGradeAllByPrepare(
+            $tblPrepare, $tblTestType
+        );
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param TblDivision $tblDivision
      * @param $Data
@@ -114,8 +178,11 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function updatePrepareSetAppointedDateTask(IFormInterface $Stage = null, TblCertificatePrepare $tblPrepare, $Data)
-    {
+    public function updatePrepareSetAppointedDateTask(
+        IFormInterface $Stage = null,
+        TblCertificatePrepare $tblPrepare,
+        $Data
+    ) {
 
         /**
          * Skip to Frontend
@@ -132,8 +199,36 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            // ToDo JohK Noten löschen
-            // ToDo JohK Noten extra speichern
+            // Löschen der vorhandenen Zensuren
+            (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
+
+            $tblDivision = $tblPrepare->getServiceTblDivision();
+            $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
+            $gradeList = array();
+            if ($tblDivision) {
+                $tblStudentListByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
+                $tblYear = $tblDivision->getServiceTblYear();
+                if ($tblStudentListByDivision && $tblYear && $tblTestAllByTask) {
+                    foreach ($tblTestAllByTask as $tblTest) {
+                        foreach ($tblStudentListByDivision as $tblPerson) {
+                            $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
+                            if ($tblGrade) {
+                                $gradeList[$tblPerson->getId()][$tblGrade->getId()] = $tblGrade;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Speichern der Zensuren aus dem Stichtagsnotenauftrag
+            if (!empty($gradeList)) {
+                (new Data($this->getBinding()))->createPrepareGrades(
+                    $tblPrepare,
+                    $tblTask->getTblTestType(),
+                    $gradeList
+                );
+            }
+
             (new Data($this->getBinding()))->updatePrepare(
                 $tblPrepare,
                 $tblPrepare->getDate(),
@@ -151,6 +246,4 @@ class Service extends AbstractService
 
         return $Stage;
     }
-
-
 }

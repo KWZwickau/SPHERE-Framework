@@ -9,10 +9,17 @@
 namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblCertificatePrepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -84,6 +91,75 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblPrepareGrade
+     */
+    public function getPrepareGradeBy(
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblTestType $tblTestType
+    ) {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
+            array(
+                TblPrepareGrade::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+            )
+        );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getPrepareGradeAllByPerson(
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        TblTestType $tblTestType
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
+            array(
+                TblPrepareGrade::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+            )
+        );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getPrepareGradeAllByPrepare(
+        TblCertificatePrepare $tblPrepare,
+        TblTestType $tblTestType
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
+            array(
+                TblPrepareGrade::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
+            )
+        );
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param $Date
      * @param $Name
@@ -152,5 +228,71 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblTestType $tblTestType
+     * @param $gradeList
+     */
+    public function createPrepareGrades(
+        TblCertificatePrepare $tblPrepare,
+        TblTestType $tblTestType,
+        $gradeList
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if (is_array($gradeList)) {
+            foreach ($gradeList as $personId => $gradeArray) {
+                $tblPerson = Person::useService()->getPersonById($personId);
+                if ($tblPerson && is_array($gradeArray)) {
+                    /** @var TblGrade $tblGrade */
+                    foreach ($gradeArray as $tblGrade) {
+                        $Entity = new TblPrepareGrade();
+                        $Entity->setTblCertificatePrepare($tblPrepare);
+                        $Entity->setServiceTblDivision($tblGrade->getServiceTblDivision() ? $tblGrade->getServiceTblDivision() : null);
+                        $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
+                        $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
+                        $Entity->setServiceTblTestType($tblTestType);
+                        $Entity->setGrade($tblGrade->getDisplayGrade());
+
+                        $Manager->bulkSaveEntity($Entity);
+                        // ToDo GCK Protokoll bulkSave sonst witzlos
+                        // Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+                    }
+                }
+            }
+
+            $Manager->flushCache();
+        }
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblTestType $tblTestType
+     */
+    public function destroyPrepareGrades(
+        TblCertificatePrepare $tblPrepare,
+        TblTestType $tblTestType
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $tblPrepareGradeList = $this->getPrepareGradeAllByPrepare(
+            $tblPrepare, $tblTestType
+        );
+        if ($tblPrepareGradeList) {
+            foreach ($tblPrepareGradeList as $tblPrepareGrade) {
+                $Entity = $Manager->getEntity('TblPrepareGrade')->findOneBy(array('Id' => $tblPrepareGrade->getId()));
+                if (null !== $Entity) {
+                    /** @var Element $Entity */
+                    // ToDo GCK Protokoll bulkSave sonst witzlos
+                    // Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+                    $Manager->bulkKillEntity($Entity);
+                }
+            }
+
+            $Manager->flushCache();
+        }
     }
 }

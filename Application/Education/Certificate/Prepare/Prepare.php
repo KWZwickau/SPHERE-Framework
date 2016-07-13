@@ -47,6 +47,9 @@ class Prepare implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\AppointedDateTask', __NAMESPACE__ . '\Frontend::frontendAppointedDateTask')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\SubjectGrades', __NAMESPACE__ . '\Frontend::frontendSubjectGrades')
+        );
     }
 
     /**

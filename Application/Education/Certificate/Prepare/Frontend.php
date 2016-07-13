@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -45,6 +46,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
@@ -243,55 +245,102 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Klassen', 'Übersicht');
-        $Stage->addButton(new Standard(
-            'Zurück', '/Education/Certificate/Prepare', new ChevronLeft()
-        ));
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
         if ($tblPrepare) {
             $tblDivision = $tblPrepare->getServiceTblDivision();
             $studentTable = array();
-            $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-            if ($tblStudentList) {
-                foreach ($tblStudentList as $tblPerson) {
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $birthday = '';
-                    if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
-                        if ($tblCommon->getTblCommonBirthDates()) {
-                            $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+            if ($tblDivision) {
+                $Stage->addButton(new Standard(
+                    'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                    array('DivisionId' => $tblDivision->getId())
+                ));
+                $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblStudentList) {
+                    foreach ($tblStudentList as $tblPerson) {
+                        $tblAddress = $tblPerson->fetchMainAddress();
+                        $birthday = '';
+                        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                            if ($tblCommon->getTblCommonBirthDates()) {
+                                $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                            }
                         }
-                    }
-                    $course = '';
-                    if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                        $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        if ($tblTransferType) {
-                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                $tblTransferType);
-                            if ($tblStudentTransfer) {
-                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                                if ($tblCourse) {
-                                    $course = $tblCourse->getName();
+                        $course = '';
+                        if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                            $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                            if ($tblTransferType) {
+                                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                    $tblTransferType);
+                                if ($tblStudentTransfer) {
+                                    $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                    if ($tblCourse) {
+                                        $course = $tblCourse->getName();
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    $studentTable[] = array(
-                        'Name' => $tblPerson->getLastFirstName(),
-                        'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Birthday' => $birthday,
-                        'Course' => $course,
-                        'Absence' => Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision) . ', '
-                            . Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision),
-                        'Option' => new Standard(
-                            '', '/Education/ClassRegister/Absence', new Time(),
-                            array(
-                                'DivisionId' => $tblDivision->getId(),
-                                'PersonId' => $tblPerson->getId()
-                            ),
-                            'Fehlzeiten des Schülers verwalten'
-                        )
-                    );
+                        // Fächer zählen
+                        if ($tblDivision->getServiceTblYear()) {
+                            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear(
+                                $tblPerson, $tblDivision->getServiceTblYear()
+                            );
+                        } else {
+                            $tblDivisionSubjectList = false;
+                        }
+                        if ($tblDivisionSubjectList) {
+                            $countSubjects = count($tblDivisionSubjectList);
+                        } else {
+                            $countSubjects = 0;
+                        }
+
+                        // Zensuren zählen
+                        if ($tblPrepare->getServiceTblAppointedDateTask()) {
+                            $tblPrepareGradeList = Prepare::useService()->getPrepareGradeAllByPerson(
+                                $tblPrepare, $tblPerson, $tblPrepare->getServiceTblAppointedDateTask()->getTblTestType()
+                            );
+                        } else {
+                            $tblPrepareGradeList = false;
+                        }
+                        if ($tblPrepareGradeList) {
+                            $countSubjectGrades = count($tblPrepareGradeList);
+                        } else {
+                            $countSubjectGrades = 0;
+                        }
+
+                        $subjectGradesText = $countSubjectGrades . ' von ' . $countSubjects . ' Zensuren&nbsp;';
+
+                        $studentTable[] = array(
+                            'Name' => $tblPerson->getLastFirstName(),
+                            'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
+                            'Birthday' => $birthday,
+                            'Course' => $course,
+                            'Absence' => Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision) . ', '
+                                . Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision),
+                            'AppointedDateTask' => $tblPrepare->getServiceTblAppointedDateTask()
+                                ? new Success($tblPrepare->getServiceTblAppointedDateTask()->getName()
+                                    . ' ' . $tblPrepare->getServiceTblAppointedDateTask()->getDate())
+                                : new \SPHERE\Common\Frontend\Text\Repository\Warning('Kein Stichtagsnotenauftrag ausgewählt'),
+                            'SubjectGrades' => ($countSubjectGrades < $countSubjects
+                                    ? new \SPHERE\Common\Frontend\Text\Repository\Warning($subjectGradesText)
+                                    : new Success($subjectGradesText))
+                                . new Standard(
+                                    '', '/Education/Certificate/Prepare/SubjectGrades', new EyeOpen(), array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                    'PersonId' => $tblPerson->getId()
+                                ),
+                                    'Fachnoten ansehen'
+                                ),
+                            'Option' => new Standard(
+                                '', '/Education/ClassRegister/Absence', new Time(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'PersonId' => $tblPerson->getId()
+                                ),
+                                'Fehlzeiten des Schülers verwalten'
+                            )
+                        );
+                    }
                 }
             }
 
@@ -339,6 +388,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Birthday' => 'Geburtsdatum',
                                     'Course' => 'Bildungsgang',
                                     'Absence' => 'Fehlzeiten (E, U)',
+                                    'AppointedDateTask' => 'Stichtagsnotenauftrag',
+                                    'SubjectGrades' => 'Fachnoten',
 //                                    'Option' => ''
                                 ), array(
                                     'order' => array(
@@ -355,6 +406,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Prepare', new ChevronLeft()
+            ));
 
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
         }
@@ -443,6 +497,96 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
 
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     *
+     * @return Stage|string
+     */
+    public function frontendSubjectGrades($PrepareId = null, $PersonId = null)
+    {
+
+        $Stage = new Stage('Fachnoten', 'Übersicht');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/Prepare/Division', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        if ($tblPrepare && $tblPerson) {
+            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+
+            $tableData = array();
+            if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                && ($tblYear = $tblDivision->getServiceTblYear())
+            ) {
+                $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear(
+                    $tblPerson, $tblYear
+                );
+                if ($tblDivisionSubjectList) {
+                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                        $tblPrepareGrade = Prepare::useService()->getPrepareGradeBy(
+                            $tblPrepare,
+                            $tblPerson,
+                            $tblDivisionSubject->getTblDivision(),
+                            $tblDivisionSubject->getServiceTblSubject(),
+                            $tblTestType
+                        );
+                        $tableData[] = array(
+                            'Division' => $tblDivisionSubject->getTblDivision()->getDisplayName(),
+                            'Subject' => $tblDivisionSubject->getServiceTblSubject()->getAcronym() . ' - '
+                                . $tblDivisionSubject->getServiceTblSubject()->getName(),
+                            'Grade' => $tblPrepareGrade ? $tblPrepareGrade->getGrade()
+                                : new \SPHERE\Common\Frontend\Text\Repository\Warning('Keine Note vergeben')
+                        );
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnisvorbereitung',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    $tblPerson->getLastFirstName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new TableData(
+                                    $tableData,
+                                    null,
+                                    array(
+                                        'Subject' => 'Fach',
+                                        'Division' => 'Klasse',
+                                        'Grade' => 'Zensur'
+                                    ),
+                                    null
+                                )
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung oder Person nicht gefunden.', new Ban());
         }
     }
 

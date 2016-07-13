@@ -31,7 +31,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblPrepareGrade extends Element
 {
 
-    const ATTR_TBL_PREPARE = 'tblPrepare';
+    const ATTR_TBL_CERTIFICATE_PREPARE = 'tblCertificatePrepare';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
@@ -40,7 +40,7 @@ class TblPrepareGrade extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblPrepare;
+    protected $tblCertificatePrepare;
 
     /**
      * @Column(type="bigint")
@@ -70,23 +70,23 @@ class TblPrepareGrade extends Element
     /**
      * @return bool|TblCertificatePrepare
      */
-    public function getTblPrepare()
+    public function getTblCertificatePrepare()
     {
 
-        if (null === $this->tblPrepare) {
+        if (null === $this->tblCertificatePrepare) {
             return false;
         } else {
-            return Prepare::useService()->getPrepareById($this->tblPrepare);
+            return Prepare::useService()->getPrepareById($this->tblCertificatePrepare);
         }
     }
 
     /**
-     * @param TblCertificatePrepare|null $tblPrepare
+     * @param TblCertificatePrepare|null $tblCertificatePrepare
      */
-    public function setTblPrepare(TblCertificatePrepare $tblPrepare = null)
+    public function setTblCertificatePrepare(TblCertificatePrepare $tblCertificatePrepare = null)
     {
 
-        $this->tblPrepare = (null === $tblPrepare ? null : $tblPrepare->getId());
+        $this->tblCertificatePrepare = (null === $tblCertificatePrepare ? null : $tblCertificatePrepare->getId());
     }
 
     /**
@@ -169,12 +169,28 @@ class TblPrepareGrade extends Element
     }
 
     /**
-     * @param TblTestType|null $serviceTblTestType
+     * @param TblTestType|null $tblTestType
      */
-    public function setServiceTblTestType($serviceTblTestType)
+    public function setServiceTblTestType(TblTestType $tblTestType = null)
     {
 
-        $this->serviceTblTestType = ( null === $serviceTblTestType ? null : $serviceTblTestType->getId() );
+        $this->serviceTblTestType = ( null === $tblTestType ? null : $tblTestType->getId() );
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getGrade()
+    {
+        return $this->Grade;
+    }
+
+    /**
+     * @param mixed $Grade
+     */
+    public function setGrade($Grade)
+    {
+        $this->Grade = $Grade;
     }
 
 }

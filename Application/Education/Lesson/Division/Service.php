@@ -92,7 +92,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (!( Type::useService()->getTypeById($Level['Type']) )) {
+        if (!(Type::useService()->getTypeById($Level['Type']))) {
             $Form->setError('Level[Type]', 'Schulart erforderlich! Bitte auswählen');
             $Error = true;
         }
@@ -654,7 +654,7 @@ class Service extends AbstractService
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
-     * @param TblPerson          $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return TblSubjectTeacher
      */
@@ -1162,9 +1162,9 @@ class Service extends AbstractService
 
         // DivisionTeacher
         $list = $this->getDivisionTeacherAllByTeacher($tblPerson);
-        if ($list){
-            foreach ($list as $tblDivisionTeacher){
-                if ($tblDivisionTeacher->getServiceTblPerson() && $tblDivisionTeacher->getTblDivision()){
+        if ($list) {
+            foreach ($list as $tblDivisionTeacher) {
+                if ($tblDivisionTeacher->getServiceTblPerson() && $tblDivisionTeacher->getTblDivision()) {
                     $resultList[$tblDivisionTeacher->getTblDivision()->getId()] = $tblDivisionTeacher->getTblDivision();
                 }
             }
@@ -1172,11 +1172,11 @@ class Service extends AbstractService
 
         // SubjectTeacher
         $list = $this->getSubjectTeacherAllByTeacher($tblPerson);
-        if ($list){
-            foreach ($list as $tblSubjectTeacher){
+        if ($list) {
+            foreach ($list as $tblSubjectTeacher) {
                 if ($tblSubjectTeacher->getTblDivisionSubject()
                     && ($tblDivision = $tblSubjectTeacher->getTblDivisionSubject()->getTblDivision())
-                ){
+                ) {
                     $resultList[$tblDivision->getId()] = $tblDivision;
                 }
             }
@@ -1522,14 +1522,14 @@ class Service extends AbstractService
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                 $isAdd = false;
                 if (!$tblDivisionSubject->getTblSubjectGroup()) {
-                   $isAdd = true;
+                    $isAdd = true;
                 } elseif ($tblSubjectGroup !== null
                     && $tblSubjectGroup->getId() == $tblDivisionSubject->getTblSubjectGroup()->getId()
                 ) {
                     $isAdd = true;
                 }
 
-                if ($isAdd){
+                if ($isAdd) {
                     $tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
                     if ($tblSubjectTeacherList) {
                         foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
@@ -1544,5 +1544,70 @@ class Service extends AbstractService
         }
 
         return empty($nameList) ? '' : implode(', ', $nameList);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function exitsDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->exitsDivisionStudent($tblDivision, $tblPerson);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function exitsSubjectStudent(TblDivisionSubject $tblDivisionSubject, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->exitsSubjectStudent($tblDivisionSubject, $tblPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectAllByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+
+        $resultList = array();
+        $tblDivisionList = Division::useService()->getDivisionByYear($tblYear);
+        if ($tblDivisionList) {
+            foreach ($tblDivisionList as $tblDivision) {
+                if ($this->exitsDivisionStudent($tblDivision, $tblPerson)) {
+                    $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
+                    if ($tblDivisionSubjectList){
+                        foreach ($tblDivisionSubjectList as $tblDivisionSubject){
+                            if (!$tblDivisionSubject->getTblSubjectGroup()){
+                                $groups = $this->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                    $tblDivisionSubject->getTblDivision(),
+                                    $tblDivisionSubject->getServiceTblSubject()
+                                );
+                                if ($groups){
+                                    foreach ($groups as $item){
+                                        if ($this->exitsSubjectStudent($item, $tblPerson)){
+                                            $resultList[$item->getId()] = $item;
+                                        }
+                                    }
+                                } else {
+                                    $resultList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 }
