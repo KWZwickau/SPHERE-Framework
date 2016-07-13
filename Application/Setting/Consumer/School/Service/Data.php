@@ -32,6 +32,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return false|TblSchool
+     */
+    public function getSchoolByCompany(TblCompany $tblCompany)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool',
+            array(TblSchool::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId()));
+    }
+
+    /**
      * @return bool|TblSchool[]
      */
     public function getSchoolAll()
@@ -53,8 +65,8 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSchool')
             ->findOneBy(array(
-                TblSchool::SERVICE_TBL_COMPANY => $tblCompany->getId(),
-                TblSchool::SERVICE_TBL_TYPE    => $tblType->getId(),
+                TblSchool::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId(),
+                TblSchool::ATTR_SERVICE_TBL_TYPE    => $tblType->getId(),
             ));
         if (null === $Entity) {
             $Entity = new TblSchool();
