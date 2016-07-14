@@ -100,6 +100,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPrepareGrade', 'serviceTblTestType')) {
             $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblPrepareGrade', 'serviceTblGradeType')) {
+            $Table->addColumn('serviceTblGradeType', 'bigint', array('notnull' => false));
+        }
         if (!$this->getConnection()->hasColumn('tblPrepareGrade', 'Grade')) {
             $Table->addColumn('Grade', 'string');
         }

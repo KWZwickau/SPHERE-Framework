@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGr
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Person\Person;
@@ -99,7 +100,7 @@ class Data extends AbstractData
      *
      * @return false|TblPrepareGrade
      */
-    public function getPrepareGradeBy(
+    public function getPrepareGradeBySubject(
         TblCertificatePrepare $tblPrepare,
         TblPerson $tblPerson,
         TblDivision $tblDivision,
@@ -114,6 +115,34 @@ class Data extends AbstractData
                 TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+            )
+        );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblTestType $tblTestType
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblPrepareGrade
+     */
+    public function getPrepareGradeByGradeType(
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblTestType $tblTestType,
+        TblGradeType $tblGradeType
+    ) {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
+            array(
+                TblPrepareGrade::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+                TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
             )
         );
     }
@@ -294,5 +323,56 @@ class Data extends AbstractData
 
             $Manager->flushCache();
         }
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblTestType $tblTestType
+     * @param TblGradeType $tblGradeType
+     * @param $Grade
+     *
+     * @return TblPrepareGrade
+     */
+    public function updatePrepareGradeForBehavior(
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblTestType $tblTestType,
+        TblGradeType $tblGradeType,
+        $Grade
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareGrade $Entity */
+        $Entity = $Manager->getEntity('TblPrepareGrade')->findOneBy(array(
+            TblPrepareGrade::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+            TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+            TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
+        ));
+        if ($Entity === null) {
+            $Entity = new TblPrepareGrade();
+            $Entity->setTblCertificatePrepare($tblPrepare);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblTestType($tblTestType);
+            $Entity->setServiceTblGradeType($tblGradeType);
+            $Entity->setGrade($Grade);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            $Protocol = clone $Entity;
+            $Entity->setGrade($Grade);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+
+        return $Entity;
     }
 }

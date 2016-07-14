@@ -15,6 +15,8 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -36,6 +38,7 @@ class TblPrepareGrade extends Element
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_TEST_TYPE = 'serviceTblTestType';
+    const ATTR_SERVICE_TBL_GRADE_TYPE = 'serviceTblGradeType';
 
     /**
      * @Column(type="bigint")
@@ -61,6 +64,11 @@ class TblPrepareGrade extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblTestType;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblGradeType;
 
     /**
      * @Column(type="string")
@@ -178,7 +186,29 @@ class TblPrepareGrade extends Element
     }
 
     /**
-     * @return mixed
+     * @return bool|TblGradeType
+     */
+    public function getServiceTblGradeType()
+    {
+
+        if (null === $this->serviceTblGradeType) {
+            return false;
+        } else {
+            return Gradebook::useService()->getGradeTypeById($this->serviceTblGradeType);
+        }
+    }
+
+    /**
+     * @param TblGradeType|null $serviceTblGradeType
+     */
+    public function setServiceTblGradeType($serviceTblGradeType)
+    {
+
+        $this->serviceTblGradeType = ( null === $serviceTblGradeType ? null : $serviceTblGradeType->getId() );
+    }
+
+    /**
+     * @return string
      */
     public function getGrade()
     {
@@ -186,7 +216,7 @@ class TblPrepareGrade extends Element
     }
 
     /**
-     * @param mixed $Grade
+     * @param string $Grade
      */
     public function setGrade($Grade)
     {
