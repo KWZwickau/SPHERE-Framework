@@ -210,6 +210,53 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
+    public function updatePrepare(IFormInterface $Stage = null, TblCertificatePrepare $tblPrepare, $Data)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($Data['Date']) && empty($Data['Date'])) {
+            $Stage->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+        if (isset($Data['Name']) && empty($Data['Name'])) {
+            $Stage->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updatePrepare(
+                $tblPrepare,
+                $Data['Date'],
+                $Data['Name'],
+                $tblPrepare->isApproved(),
+                $tblPrepare->isPrinted(),
+                $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
+                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zeugnisvorbereitung ist geändert worden.')
+            . new Redirect('/Education/Certificate/Prepare/Prepare', Redirect::TIMEOUT_SUCCESS, array(
+                'DivisionId' => $tblPrepare->getServiceTblDivision() ? $tblPrepare->getServiceTblDivision()->getId() : null
+            ));
+        }
+
+        return $Stage;
+    }
+
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblCertificatePrepare $tblPrepare
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
     public function updatePrepareSetAppointedDateTask(
         IFormInterface $Stage = null,
         TblCertificatePrepare $tblPrepare,

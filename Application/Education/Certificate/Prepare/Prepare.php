@@ -42,6 +42,9 @@ class Prepare implements IModuleInterface
             __NAMESPACE__ . '\Prepare' , __NAMESPACE__ . '\Frontend::frontendPrepare')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Edit' , __NAMESPACE__ . '\Frontend::frontendEditPrepare')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Division', __NAMESPACE__ . '\Frontend::frontendDivision')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
