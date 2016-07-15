@@ -123,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('InvoiceNumber' => 'Rechnungsnummer',
                                           'DebtorNumber'  => 'Debitorennummer',
                                           'FullName'      => 'Debitor',
-                                          'Reference'     => 'Referenz',
+                                          'Reference'     => 'Mandatsreferenz(en)',
                                           'ItemList'      => 'Artikel',
                                           'Price'         => 'Gesamtpreis',
                                           'Paid'          => 'Bezahlt',

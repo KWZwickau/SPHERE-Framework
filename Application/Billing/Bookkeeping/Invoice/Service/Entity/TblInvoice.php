@@ -26,6 +26,7 @@ class TblInvoice extends Element
     const ATTR_INVOICE_NUMBER = 'InvoiceNumber';
     const ATTR_IS_PAID = 'IsPaid';
     const ATTR_IS_REVERSAL = 'IsReversal';
+    const ATTR_TARGET_TIME = 'TargetTime';
 
     /**
      * @Column(type="string")
@@ -107,6 +108,20 @@ class TblInvoice extends Element
             return (string)$TargetDate;
         }
     }
+
+//    public function getTargetTimeMonthYear()  //Test der Ausgabe
+//    {
+//        if (null === $this->TargetTime) {
+//            return false;
+//        }
+//        /** @var \DateTime $InvoiceDate */
+//        $TargetDate = $this->TargetTime;
+//        if ($TargetDate instanceof \DateTime) {
+//            return $TargetDate->format('M y');
+//        } else {
+//            return (string)$TargetDate;
+//        }
+//    }
 
     /**
      * @param \DateTime|null $Date

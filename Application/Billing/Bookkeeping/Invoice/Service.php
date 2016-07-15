@@ -201,6 +201,18 @@ class Service extends AbstractService
 
     /**
      * @param TblInvoice $tblInvoice
+     * @param TblPerson  $tblPerson
+     *
+     * @return bool|TblPerson
+     */
+    public function getItemAllInvoiceAndPerson(TblInvoice $tblInvoice, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
      * @param TblItem    $tblItem
      *
      * @return bool|TblDebtor
@@ -209,6 +221,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
+    }
+
+    /**
+     * @param \DateTime      $From
+     * @param \DateTime|null $To
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByDate(\DateTime $From, \DateTime $To = null)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceAllByDate($From, $To);
     }
 
     /**

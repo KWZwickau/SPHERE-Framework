@@ -45,6 +45,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setDescription('Offen');
 //        new Backward();
 
+//        $Stage->addButton(new Primary('Herunterladen', '/Billing/Bookkeeping/Export/All', new Download()));
+
         $tblInvoiceList = Invoice::useService()->getInvoiceByIsPaid(false);
         $TableContent = array();
         if ($tblInvoiceList) {
@@ -119,7 +121,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('InvoiceNumber' => 'Rechnungs Nr.',
                                           'DebtorNumber'  => 'Debitoren Nr.',
                                           'FullName'      => 'Debitor',
-                                          'Reference'     => 'Referenz(en)',
+                                          'Reference'     => 'Mandatsreferenz(en)',
                                           'TargetTime'    => 'Fällig am',
                                           'ItemList'      => 'Artikel',
                                           'Price'         => 'Gesamtpreis',

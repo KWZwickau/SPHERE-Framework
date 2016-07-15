@@ -238,6 +238,28 @@ class Data extends AbstractData
 
     /**
      * @param TblInvoice $tblInvoice
+     * @param TblPerson  $tblPerson
+     *
+     * @return bool|TblInvoiceItem
+     */
+    public function getItemAllInvoiceAndPerson(TblInvoice $tblInvoice, TblPerson $tblPerson)
+    {
+        /** @param TblInvoiceItem $Entity */
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
+            array(TblInvoiceItem::ATTR_TBL_INVOICE        => $tblInvoice->getId(),
+                  TblInvoiceItem::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
+        if ($EntityList) {
+            /** @var TblInvoiceItem $Entity */
+            foreach ($EntityList as &$Entity) {
+                $Entity = $Entity->getTblItem();
+            }
+            $EntityList = array_filter($EntityList);
+        }
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
      * @param TblItem    $tblItem
      *
      * @return bool|TblDebtor
@@ -253,6 +275,34 @@ class Data extends AbstractData
             $Entity = $Entity->getServiceTblDebtor();
         }
         return ( $Entity == false ? false : $Entity );
+    }
+
+    /**
+     * @param \DateTime      $From
+     * @param \DateTime|null $To
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByDate(\DateTime $From, \DateTime $To = null)
+    {
+        if ($To == null) {
+            $To = new \DateTime('now');
+        }
+        $EntityList = $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice');
+        if ($EntityList) {
+            /** @var TblInvoice $Entity */
+            foreach ($EntityList as &$Entity) {
+                if (new \DateTime($Entity->getTargetTime()) < $From || new \DateTime($Entity->getTargetTime()) > $To) {
+                    $Entity = false;
+                } else {
+                    if ($Entity->getIsPaid() || $Entity->getIsReversal()) {
+                        $Entity = false;
+                    }
+                }
+            }
+            $EntityList = array_filter($EntityList);
+        }
+        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
