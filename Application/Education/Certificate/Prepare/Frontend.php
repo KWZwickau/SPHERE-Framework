@@ -507,6 +507,16 @@ class Frontend extends Extension implements IFrontendInterface
                 'Kopfnoten ansehen und Kopfnoten festlegen'
             );
 
+            $buttonSigner = new Standard(
+                'Unterzeichner auswählen',
+                '/Education/Certificate/Prepare/Signer',
+                new Select(),
+                array(
+                    'PrepareId' => $tblPrepare->getId(),
+                ),
+                'Unterzeichner auswählen'
+            );
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -514,15 +524,32 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new Panel(
                                     'Zeugnisvorbereitung',
-                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    array(
+                                        $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                        'Klasse ' . $tblDivision->getDisplayName()
+                                    ),
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 6),
+//                            new LayoutColumn(array(
+//                                new Panel(
+//                                    'Klasse',
+//                                    $tblDivision->getDisplayName(),
+//                                    Panel::PANEL_TYPE_INFO
+//                                ),
+//                            ), 3),
                             new LayoutColumn(array(
                                 new Panel(
-                                    'Klasse',
-                                    $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_INFO
+                                    'Unterzeichner',
+                                    array(
+                                        $tblPrepare->getServiceTblPersonSigner()
+                                            ? $tblPrepare->getServiceTblPersonSigner()->getFullName()
+                                            : new Exclamation() . ' Kein Unterzeichner ausgewählt',
+                                        $buttonSigner
+                                    ),
+                                    $tblPrepare->getServiceTblPersonSigner()
+                                        ? Panel::PANEL_TYPE_SUCCESS
+                                        : Panel::PANEL_TYPE_WARNING
                                 ),
                             ), 6),
                         )),
@@ -1188,6 +1215,85 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
 
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendSigner($PrepareId = null, $Data = null)
+    {
+
+        $Stage = new Stage('Unterzeichner', 'Auswählen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/Prepare/Division', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        if ($tblPrepare && ($tblDivision = $tblPrepare->getServiceTblDivision())) {
+
+            if ($Data === null) {
+                $Global = $this->getGlobal();
+                $Global->POST['Data'] = $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : 0;
+                $Global->savePost();
+            }
+
+            $tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
+
+            $form = new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new SelectBox(
+                                'Data',
+                                'Unterzeichner (Klassenlehrer)',
+                                array('{{ FullName }}' => $tblPersonList)
+                            )
+                        )
+                    )
+                )
+            );
+            $form->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnisvorbereitung',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                $tblPersonList
+                                    ? new Well(Prepare::useService()->updatePrepareSetSigner($form,
+                                    $tblPrepare, $Data))
+                                    : new Warning('Für diese Klasse sind keine Klassenlehrer vorhanden.')
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
         } else {
 
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());

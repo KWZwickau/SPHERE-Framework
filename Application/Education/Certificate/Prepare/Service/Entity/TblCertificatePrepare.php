@@ -16,6 +16,8 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -27,8 +29,6 @@ class TblCertificatePrepare extends Element
 {
 
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
-    const ATTR_IS_APPROVED = 'IsApproved';
-    const ATTR_IS_PRINTED = 'IsPrinted';
 
     /**
      * @Column(type="string")
@@ -46,16 +46,6 @@ class TblCertificatePrepare extends Element
     protected $Date;
 
     /**
-     * @Column(type="boolean")
-     */
-    protected $IsApproved;
-
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsPrinted;
-
-    /**
      * @Column(type="bigint")
      */
     protected $serviceTblAppointedDateTask;
@@ -64,6 +54,16 @@ class TblCertificatePrepare extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblBehaviorTask;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonSigner;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsAppointedDateTaskUpdated;
 
     /**
      * @return string
@@ -131,42 +131,6 @@ class TblCertificatePrepare extends Element
     }
 
     /**
-     * @return bool
-     */
-    public function isApproved()
-    {
-
-        return $this->IsApproved;
-    }
-
-    /**
-     * @param bool $IsApproved
-     */
-    public function setApproved($IsApproved)
-    {
-
-        $this->IsApproved = (bool)$IsApproved;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isPrinted()
-    {
-
-        return $this->IsPrinted;
-    }
-
-    /**
-     * @param bool $IsPrinted
-     */
-    public function setPrinted($IsPrinted)
-    {
-
-        $this->IsPrinted = (bool)$IsPrinted;
-    }
-
-    /**
      * @return bool|TblTask
      */
     public function getServiceTblAppointedDateTask()
@@ -208,5 +172,45 @@ class TblCertificatePrepare extends Element
     {
 
         $this->serviceTblBehaviorTask = (null === $tblTask ? null : $tblTask->getId());
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonSigner()
+    {
+
+        if (null === $this->serviceTblPersonSigner) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonSigner);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonSigner(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPersonSigner = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAppointedDateTaskUpdated()
+    {
+
+        return $this->IsAppointedDateTaskUpdated;
+    }
+
+    /**
+     * @param bool $IsAppointedDateTaskUpdated
+     */
+    public function setAppointedDateTaskUpdated($IsAppointedDateTaskUpdated)
+    {
+
+        $this->IsAppointedDateTaskUpdated = (bool)$IsAppointedDateTaskUpdated;
     }
 }

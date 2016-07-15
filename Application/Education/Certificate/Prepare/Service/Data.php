@@ -48,47 +48,18 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param null $IsApproved
-     * @param null $IsPrinted
      *
      * @return false|TblCertificatePrepare[]
      */
-    public function getPrepareAllByDivision(TblDivision $tblDivision, $IsApproved = null, $IsPrinted = null)
+    public function getPrepareAllByDivision(TblDivision $tblDivision)
     {
 
-        if ($IsApproved !== null && $IsPrinted !== null) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblCertificatePrepare',
-                array(
-                    TblCertificatePrepare::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                    TblCertificatePrepare::ATTR_IS_APPROVED => $IsApproved,
-                    TblCertificatePrepare::ATTR_IS_PRINTED => $IsPrinted
-                )
-            );
-        } elseif ($IsApproved !== null) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblCertificatePrepare',
-                array(
-                    TblCertificatePrepare::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                    TblCertificatePrepare::ATTR_IS_APPROVED => $IsApproved,
-                )
-            );
-        } elseif ($IsPrinted !== null) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblCertificatePrepare',
-                array(
-                    TblCertificatePrepare::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                    TblCertificatePrepare::ATTR_IS_PRINTED => $IsPrinted
-                )
-            );
-        } else {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblCertificatePrepare',
-                array(
-                    TblCertificatePrepare::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
-                )
-            );
-        }
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificatePrepare',
+            array(
+                TblCertificatePrepare::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+            )
+        );
     }
 
     /**
@@ -207,8 +178,6 @@ class Data extends AbstractData
         $Entity->setServiceTblDivision($tblDivision);
         $Entity->setDate($Date ? new \DateTime($Date) : null);
         $Entity->setName($Name);
-        $Entity->setApproved(false);
-        $Entity->setPrinted(false);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -220,10 +189,10 @@ class Data extends AbstractData
      * @param TblCertificatePrepare $tblPrepare
      * @param $Date
      * @param $Name
-     * @param $IsApproved
-     * @param $IsPrinted
      * @param TblTask|null $tblAppointedDateTask
      * @param TblTask|null $tblBehaviorTask
+     * @param TblPerson|null $tblPersonSigner
+     * @param bool|false $IsAppointedDateTaskUpdated
      *
      * @return bool
      */
@@ -231,10 +200,10 @@ class Data extends AbstractData
         TblCertificatePrepare $tblPrepare,
         $Date,
         $Name,
-        $IsApproved,
-        $IsPrinted,
         TblTask $tblAppointedDateTask = null,
-        TblTask $tblBehaviorTask = null
+        TblTask $tblBehaviorTask = null,
+        TblPerson $tblPersonSigner = null,
+        $IsAppointedDateTaskUpdated = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -245,10 +214,10 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setName($Name);
-            $Entity->setApproved($IsApproved);
-            $Entity->setPrinted($IsPrinted);
             $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
             $Entity->setServiceTblBehaviorTask($tblBehaviorTask);
+            $Entity->setServiceTblPersonSigner($tblPersonSigner);
+            $Entity->setAppointedDateTaskUpdated($IsAppointedDateTaskUpdated);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

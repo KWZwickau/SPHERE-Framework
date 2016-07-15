@@ -62,17 +62,17 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'IsApproved')) {
-            $Table->addColumn('IsApproved', 'boolean');
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'IsPrinted')) {
-            $Table->addColumn('IsPrinted', 'boolean');
-        }
         if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'serviceTblBehaviorTask')) {
             $Table->addColumn('serviceTblBehaviorTask', 'bigint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'serviceTblAppointedDateTask')) {
             $Table->addColumn('serviceTblAppointedDateTask', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'serviceTblPersonSigner')) {
+            $Table->addColumn('serviceTblPersonSigner', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'IsAppointedDateTaskUpdated')) {
+            $Table->addColumn('IsAppointedDateTaskUpdated', 'boolean');
         }
 
         return $Table;

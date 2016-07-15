@@ -62,6 +62,9 @@ class Prepare implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\BehaviorGrades\Edit', __NAMESPACE__ . '\Frontend::frontendEditBehaviorGrades')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Signer', __NAMESPACE__ . '\Frontend::frontendSigner')
+        );
     }
 
     /**

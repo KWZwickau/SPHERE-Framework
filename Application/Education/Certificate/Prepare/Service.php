@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreTyp
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -67,15 +68,13 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
-     * @param null $IsApproved
-     * @param null $IsPrinted
      *
      * @return false|TblCertificatePrepare[]
      */
-    public function getPrepareAllByDivision(TblDivision $tblDivision, $IsApproved = null, $IsPrinted = null)
+    public function getPrepareAllByDivision(TblDivision $tblDivision)
     {
 
-        return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision, $IsApproved, $IsPrinted);
+        return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision);
     }
 
     /**
@@ -235,10 +234,10 @@ class Service extends AbstractService
                 $tblPrepare,
                 $Data['Date'],
                 $Data['Name'],
-                $tblPrepare->isApproved(),
-                $tblPrepare->isPrinted(),
                 $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
-                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null
+                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
+                $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null,
+                $tblPrepare->isAppointedDateTaskUpdated()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zeugnisvorbereitung ist geändert worden.')
             . new Redirect('/Education/Certificate/Prepare/Prepare', Redirect::TIMEOUT_SUCCESS, array(
@@ -312,10 +311,10 @@ class Service extends AbstractService
                 $tblPrepare,
                 $tblPrepare->getDate(),
                 $tblPrepare->getName(),
-                $tblPrepare->isApproved(),
-                $tblPrepare->isPrinted(),
                 $tblTask,
-                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null
+                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
+                $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null,
+                $tblPrepare->isAppointedDateTaskUpdated()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Stichtagsnotenauftrag wurde ausgewählt.')
             . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
@@ -356,7 +355,8 @@ class Service extends AbstractService
         if (!$Error) {
             // Löschen der vorhandenen Zensuren
             if ($tblPrepare->getServiceTblBehaviorTask()
-                && $tblPrepare->getServiceTblBehaviorTask()->getId() !== $tblTask->getId()) {
+                && $tblPrepare->getServiceTblBehaviorTask()->getId() !== $tblTask->getId()
+            ) {
                 (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
             }
 
@@ -364,11 +364,10 @@ class Service extends AbstractService
                 $tblPrepare,
                 $tblPrepare->getDate(),
                 $tblPrepare->getName(),
-                $tblPrepare->isApproved(),
-                $tblPrepare->isPrinted(),
                 $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
-                $tblTask
-
+                $tblTask,
+                $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null,
+                $tblPrepare->isAppointedDateTaskUpdated()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnotenauftrag wurde ausgewählt.')
             . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
@@ -448,6 +447,53 @@ class Service extends AbstractService
 
                 }
             }
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblCertificatePrepare $tblPrepare
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePrepareSetSigner(
+        IFormInterface $Stage = null,
+        TblCertificatePrepare $tblPrepare,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $Error = false;
+        $tblPerson = Person::useService()->getPersonById($Data);
+        if (!$tblPerson) {
+            $Stage->setError('Data', 'Bitte wählen Sie eine Person aus');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updatePrepare(
+                $tblPrepare,
+                $tblPrepare->getDate(),
+                $tblPrepare->getName(),
+                $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
+                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
+                $tblPerson,
+                $tblPrepare->isAppointedDateTaskUpdated()
+            );
+
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Unterzeichner wurde ausgewählt.')
+            . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId()
+            ));
         }
 
         return $Stage;
