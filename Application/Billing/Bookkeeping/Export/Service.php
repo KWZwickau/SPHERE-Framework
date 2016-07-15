@@ -11,6 +11,8 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItem;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -186,62 +188,66 @@ class Service
     /**
      * @param                                                                        $TableHeader
      * @param TblDivision|null                                                       $tblDivision
+     * @param TblGroup|null                                                          $tblGroup
      * @param \SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem|null $tblItemInventory
      * @param null                                                                   $tblInvoiceList
      *
      * @return array
      */
-    public function createInvoiceListByInvoiceListAndDivision(&$TableHeader, TblDivision $tblDivision = null, \SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem $tblItemInventory = null, $tblInvoiceList = null)
-    {
+    public function createInvoiceListByInvoiceListAndDivision(
+        &$TableHeader,
+        TblDivision $tblDivision = null,
+        TblGroup $tblGroup = null,
+        \SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem $tblItemInventory = null,
+        $tblInvoiceList = null
+    ) {
 
         $tblPersonList = array();
         $tblItemArray = array();
         $TableContent = array();
         if ($tblInvoiceList) {
-
-            if ($tblDivision != null) {
+            // Personenliste aus Division & Group erstellen
+            if ($tblDivision != null && $tblGroup != null) {
+                $tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                $tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup);
+                if ($tblDivisionPersonList && $tblPersonGroupList) {
+                    foreach ($tblDivisionPersonList as $tblDivisionPerson) {
+                        foreach ($tblPersonGroupList as $tblPersonGroup) {
+                            if ($tblDivisionPerson->getId() == $tblPersonGroup->getId()) {
+                                $tblPersonList[] = $tblDivisionPerson;
+                            }
+                        }
+                    }
+                }
+            }   // PersonenListe aus Division erstellen
+            elseif ($tblDivision != null) {
                 $tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblDivisionPersonList) {
                     foreach ($tblDivisionPersonList as $tblDivisionPerson) {
                         $tblPersonList[] = $tblDivisionPerson;
                     }
                 }
+            }   //PersonenListe aus Group erstellen
+            elseif ($tblGroup != null) {
+                $tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup);
+                if ($tblPersonGroupList) {
+                    foreach ($tblPersonGroupList as $tblPersonGroup) {
+                        $tblPersonList[] = $tblPersonGroup;
+                    }
+                }
             }
+
+
             if ($tblItemInventory != null) {
                 $tblItemArray[] = $tblItemInventory;
             }
-
-            // Personenliste aus allen offenen Rechnungen erstellen
             foreach ($tblInvoiceList as $tblInvoice) {
 
-                if ($tblDivision == null) {
+                // Personenliste aus allen offenen Rechnungen erstellen
+                if ($tblDivision == null && $tblGroup == null) {
                     $PersonList = Invoice::useService()->getPersonAllByInvoice($tblInvoice);
                     if ($PersonList) {
                         foreach ($PersonList as $Person) {
-//                        if($tblDivision != null){
-//                            $tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-//                            if($tblDivisionPersonList){
-//                                foreach($tblDivisionPersonList as $tblDivisionPerson)
-//                                {
-//                                    if($tblDivisionPerson->getId() == $Person->getId()){
-//                                        if (empty( $tblPersonList )) {
-//                                            $tblPersonList[] = $Person;
-//                                        } else {
-//                                            /** @var TblPerson $tblPerson */
-//                                            $Found = false;
-//                                            foreach ($tblPersonList as $tblPerson) {
-//                                                if ($tblPerson->getId() == $Person->getId()) {
-//                                                    $Found = true;
-//                                                }
-//                                            }
-//                                            if (!$Found) {
-//                                                $tblPersonList[] = $Person;
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        } else {
                             if (empty( $tblPersonList )) {
                                 $tblPersonList[] = $Person;
                             } else {
@@ -372,9 +378,13 @@ class Service
             if (!isset( $Filter['Division'] ) || empty( $Filter['Division'] )) {
                 $Filter['Division'] = null;
             }
+            if (!isset( $Filter['Group'] ) || empty( $Filter['Group'] )) {
+                $Filter['Group'] = null;
+            }
             if (!isset( $Filter['Item'] ) || empty( $Filter['Item'] )) {
                 $Filter['Item'] = null;
             }
+
             $InvoiceList = Invoice::useService()->getInvoiceAllByDate($DateFrom, $DateTo);
             if (!$InvoiceList) {
                 $Stage->setError('Filter[DateFrom]', 'Keine Rechnung im angegebenem Zeitraum');
@@ -389,6 +399,7 @@ class Service
                 , array('DateFrom' => $Filter['DateFrom'],
                         'DateTo'   => $Filter['DateTo'],
                         'Division' => $Filter['Division'],
+                        'Group'    => $Filter['Group'],
                         'Item'     => $Filter['Item']));
         }
         return $Stage;

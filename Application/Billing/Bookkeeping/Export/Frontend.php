@@ -5,6 +5,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Export;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -134,8 +135,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        $ItemList = Item::useService()->getItemAll();
-
+        $tblGroupAll = Group::useService()->getGroupAll();
+        $tblItemAll = Item::useService()->getItemAll();
 
         return new Form(
             new FormGroup(
@@ -146,11 +147,12 @@ class Frontend extends Extension implements IFrontendInterface
                             , Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
-                        new Panel('Klassenauswahl', array(new SelectBox('Filter[Division]', 'Klasse', array('{{ DisplayName }}' => $DivisionList), new Select()))
+                        new Panel('Personen auswahl', array(new SelectBox('Filter[Division]', 'Klasse', array('{{ DisplayName }}' => $DivisionList), new Select()),
+                                new SelectBox('Filter[Group]', 'Gruppe', array('{{ Name }}' => $tblGroupAll), new Select()))
                             , Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
-                        new Panel('Artikelauswahl', array(new SelectBox('Filter[Item]', 'Artikel', array('{{ Name }}' => $ItemList), new CommodityItem()))
+                        new Panel('Artikel auswahl', array(new SelectBox('Filter[Item]', 'Artikel', array('{{ Name }}' => $tblItemAll), new CommodityItem()))
                             , Panel::PANEL_TYPE_INFO)
                         , 4)
                 ))
@@ -162,11 +164,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param      $DateFrom
      * @param null $DateTo
      * @param null $Division
+     * @param null $Group
      * @param null $Item
      *
      * @return Stage
      */
-    public function frontendFilterView($DateFrom, $DateTo = null, $Division = null, $Item = null)
+    public function frontendFilterView($DateFrom, $DateTo = null, $Division = null, $Group = null, $Item = null)
     {
 
         $Stage = new Stage('Export Filterung', 'Vorschau');
@@ -174,19 +177,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblInvoiceList = Export::useService()->getInvoiceListByDate($DateFrom, $DateTo);
         $tblDivision = ( $Division == null ? null : Division::useService()->getDivisionById($Division) );
+        $tblGroup = ( $Group == null ? null : Group::useService()->getGroupById($Group) );
         $tblItem = ( $Item == null ? null : Item::useService()->getItemById($Item) );
 
         $TableHeader = array('Name'          => 'Name',
                              'StudentNumber' => 'Schülernummer',
                              'Date'          => 'Fälligkeitsdatum',
         );
-        $TableContent = Export::useService()->createInvoiceListByInvoiceListAndDivision($TableHeader, $tblDivision, $tblItem, $tblInvoiceList);
+        $TableContent = Export::useService()->createInvoiceListByInvoiceListAndDivision($TableHeader, $tblDivision, $tblGroup, $tblItem, $tblInvoiceList);
         if (!empty( $TableContent )) {
             $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',
                 '/Api/Billing/Invoice/Select/Download', new Download(),
                 array('DateFrom' => $DateFrom,
                       'DateTo'   => $DateTo,
                       'Division' => $Division,
+                      'Group'    => $Group,
                       'Item'     => $Item)));
         }
 
@@ -197,9 +202,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             ( empty( $TableContent ) ? new Warning('Keine Rechnung gefunden<br/>
-                                                                    Fälligkeit von: '.$DateFrom.'<br/>
-                                                                    Fälligkeit bis: '.$DateTo.'<br/>
+                                                                    Datum "Fälligkeit" von: '.$DateFrom.'<br/>
+                                                                    Datum "Fälligkeit" bis: '.$DateTo.'<br/>
                                                                     Klasse: '.( $tblDivision ? $tblDivision->getDisplayName() : null ).'<br/>
+                                                                    Gruppe: '.( $tblGroup ? $tblGroup->getName() : null ).'<br/>
                                                                     Artikel: '.( $tblItem ? $tblItem->getName() : null ))
                                 : new TableData($TableContent, null, $TableHeader) )
                         )
