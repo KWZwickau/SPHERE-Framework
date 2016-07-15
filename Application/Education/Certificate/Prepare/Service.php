@@ -355,7 +355,10 @@ class Service extends AbstractService
 
         if (!$Error) {
             // Löschen der vorhandenen Zensuren
-            (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
+            if ($tblPrepare->getServiceTblBehaviorTask()
+                && $tblPrepare->getServiceTblBehaviorTask()->getId() !== $tblTask->getId()) {
+                (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
+            }
 
             (new Data($this->getBinding()))->updatePrepare(
                 $tblPrepare,
@@ -368,7 +371,7 @@ class Service extends AbstractService
 
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnotenauftrag wurde ausgewählt.')
-            . new Redirect('/Education/Certificate/Prepare/BehaviorTask', Redirect::TIMEOUT_SUCCESS, array(
+            . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
                 'PrepareId' => $tblPrepare->getId()
             ));
         }
