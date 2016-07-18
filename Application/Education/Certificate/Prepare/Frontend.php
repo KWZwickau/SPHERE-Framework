@@ -157,9 +157,15 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPrepareAllByDivision = Prepare::useService()->getPrepareAllByDivision($tblDivision);
             if ($tblPrepareAllByDivision) {
                 foreach ($tblPrepareAllByDivision as $tblPrepare) {
+
+                    // ToDo setzen von $tblPrepare->isAppointedDateTaskUpdated beim Änderung der Noten im ausgewählten Stichtagsnotenauftrag
+
                     $tableData[] = array(
                         'Date' => $tblPrepare->getDate(),
                         'Name' => $tblPrepare->getName(),
+                        'Status' => $tblPrepare->isAppointedDateTaskUpdated()
+                            ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' Stichtagsnotenauftrag wurde aktualisiert')
+                            : new Success(new Enable() . ' Keine Fachnoten-Änderungen'),
                         'Option' =>
                             (new Standard(
                                 '', '/Education/Certificate/Prepare/Prepare/Edit', new Edit(),
@@ -202,6 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new TableData($tableData, null, array(
                                         'Date' => 'Zeugnisdatum',
                                         'Name' => 'Name',
+                                        'Status' => 'Status',
                                         'Option' => ''
                                     ),
                                         array(
@@ -528,7 +535,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 'Kopfnoten ansehen und Kopfnoten festlegen'
             );
-
             $buttonSigner = new Standard(
                 'Unterzeichner auswählen',
                 '/Education/Certificate/Prepare/Signer',
@@ -537,6 +543,15 @@ class Frontend extends Extension implements IFrontendInterface
                     'PrepareId' => $tblPrepare->getId(),
                 ),
                 'Unterzeichner auswählen'
+            );
+            $buttonUpdateAppointedDateTask = new Standard(
+                'Aktualisieren',
+                '/Education/Certificate/Prepare/AppointedDateTask/Update',
+                new Select(),
+                array(
+                    'PrepareId' => $tblPrepare->getId(),
+                ),
+                'Fachnoten aus dem Stichtagsnotenauftrag aktualisieren'
             );
 
             $Stage->setContent(
@@ -579,6 +594,11 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
+                                $tblPrepare->isAppointedDateTaskUpdated()
+                                    ? new Warning('Die Fachnoten im Stichtagsnotenauftrag wurden aktualisiert.',
+                                    new Exclamation()) : null,
+                            )),
+                            new LayoutColumn(array(
                                 new Panel(
                                     'Stichtagsnotenauftrag',
                                     array(
@@ -586,8 +606,9 @@ class Frontend extends Extension implements IFrontendInterface
                                             ? $tblPrepare->getServiceTblAppointedDateTask()->getName()
                                             . ' ' . $tblPrepare->getServiceTblAppointedDateTask()->getDate()
                                             : new Exclamation() . ' Kein Stichtagsnotenauftrag ausgewählt',
-                                        ($hasAllApproved ? ' ' : $buttonAppointedDateTask) .
-                                        ($tblPrepare->getServiceTblAppointedDateTask()
+                                        ($hasAllApproved ? ' ' : $buttonAppointedDateTask)
+                                        . ($tblPrepare->isAppointedDateTaskUpdated() && !$hasAllApproved ? $buttonUpdateAppointedDateTask : '')
+                                        . ($tblPrepare->getServiceTblAppointedDateTask()
                                             ? $buttonAppointedDateTaskShowGrades
                                             : '')
                                     ),
@@ -727,6 +748,53 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Well(Prepare::useService()->updatePrepareSetAppointedDateTask($form,
                                     $tblPrepare, $Data))
                                     : new Warning('Für diese Klasse sind keine Notenaufträge vorhanden.')
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     *
+     * @return Stage|string
+     */
+    public function frontendUpdateAppointedDateTask($PrepareId = null)
+    {
+
+        $Stage = new Stage('Stichtagsnotenauftrag', 'Aktualisieren');
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        if ($tblPrepare && $tblPrepare->getServiceTblAppointedDateTask()) {
+            $tblDivision = $tblPrepare->getServiceTblDivision();
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnisvorbereitung',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                Prepare::useService()->updatePrepareUpdateAppointedDateTask($tblPrepare)
                             )),
                         ))
                     ))

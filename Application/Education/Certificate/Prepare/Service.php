@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareIn
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -317,57 +319,8 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            // Löschen der vorhandenen Zensuren
-            (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
+            $this->updatePrepareSubjectGrades($tblPrepare, $tblTask);
 
-            // Zensuren zum Stichtagsnotenauftrag ermitteln
-            $tblDivision = $tblPrepare->getServiceTblDivision();
-            $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
-            $gradeList = array();
-            if ($tblDivision) {
-                $tblStudentListByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
-                $tblYear = $tblDivision->getServiceTblYear();
-                $isApprovedArray = array();
-                if ($tblStudentListByDivision && $tblYear && $tblTestAllByTask) {
-                    foreach ($tblTestAllByTask as $tblTest) {
-                        foreach ($tblStudentListByDivision as $tblPerson) {
-                            if (!isset($isApprovedArray[$tblPerson->getId()])) {
-                                if (($tblPersonStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                                    $isApprovedArray[$tblPerson->getId()] = $tblPersonStudent->isApproved();
-                                } else {
-                                    $isApprovedArray[$tblPerson->getId()] = false;
-                                }
-                            }
-
-                            if (!$isApprovedArray[$tblPerson->getId()]) {
-                                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
-                                if ($tblGrade) {
-                                    $gradeList[$tblPerson->getId()][$tblGrade->getId()] = $tblGrade;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Speichern der Zensuren aus dem Stichtagsnotenauftrag
-            if (!empty($gradeList)) {
-                (new Data($this->getBinding()))->createPrepareGrades(
-                    $tblPrepare,
-                    $tblTask->getTblTestType(),
-                    $gradeList
-                );
-            }
-
-            (new Data($this->getBinding()))->updatePrepare(
-                $tblPrepare,
-                $tblPrepare->getDate(),
-                $tblPrepare->getName(),
-                $tblTask,
-                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
-                $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null,
-                $tblPrepare->isAppointedDateTaskUpdated()
-            );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Stichtagsnotenauftrag wurde ausgewählt.')
             . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
                 'PrepareId' => $tblPrepare->getId()
@@ -375,6 +328,34 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     *
+     * @return string
+     */
+    public function updatePrepareUpdateAppointedDateTask(
+        TblCertificatePrepare $tblPrepare
+    ) {
+
+        $Stage = new Stage('Stichtagsnotenauftrag', 'Aktualisieren');
+        if ($tblPrepare->getServiceTblAppointedDateTask()) {
+            $this->updatePrepareSubjectGrades($tblPrepare, $tblPrepare->getServiceTblAppointedDateTask());
+
+            return $Stage
+            . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Stichtagsnotenauftrag wurde ausgewählt.')
+            . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId()
+            ));
+        } else {
+            return $Stage
+            . new Danger('Kein Stichtagsnotenauftrag ausgewählt.', new Exclamation())
+            . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS,
+                array(
+                    'PrepareId' => $tblPrepare->getId()
+                ));
+        }
     }
 
     /**
@@ -645,5 +626,64 @@ class Service extends AbstractService
             'PrepareId' => $tblPrepare->getId(),
             'PersonId' => $tblPerson->getId()
         ));
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param $tblTask
+     */
+    private function updatePrepareSubjectGrades(TblCertificatePrepare $tblPrepare, TblTask $tblTask)
+    {
+        // Löschen der vorhandenen Zensuren
+        (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
+
+        // Zensuren zum Stichtagsnotenauftrag ermitteln
+        $tblDivision = $tblPrepare->getServiceTblDivision();
+        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
+        $gradeList = array();
+        if ($tblDivision) {
+            $tblStudentListByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
+            $tblYear = $tblDivision->getServiceTblYear();
+            $isApprovedArray = array();
+            if ($tblStudentListByDivision && $tblYear && $tblTestAllByTask) {
+                foreach ($tblTestAllByTask as $tblTest) {
+                    foreach ($tblStudentListByDivision as $tblPerson) {
+                        if (!isset($isApprovedArray[$tblPerson->getId()])) {
+                            if (($tblPersonStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                                $isApprovedArray[$tblPerson->getId()] = $tblPersonStudent->isApproved();
+                            } else {
+                                $isApprovedArray[$tblPerson->getId()] = false;
+                            }
+                        }
+
+                        if (!$isApprovedArray[$tblPerson->getId()]) {
+                            $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
+                            if ($tblGrade) {
+                                $gradeList[$tblPerson->getId()][$tblGrade->getId()] = $tblGrade;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Speichern der Zensuren aus dem Stichtagsnotenauftrag
+        if (!empty($gradeList)) {
+            (new Data($this->getBinding()))->createPrepareGrades(
+                $tblPrepare,
+                $tblTask->getTblTestType(),
+                $gradeList
+            );
+        }
+
+        (new Data($this->getBinding()))->updatePrepare(
+            $tblPrepare,
+            $tblPrepare->getDate(),
+            $tblPrepare->getName(),
+            $tblTask,
+            $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
+            $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null,
+            false
+        );
     }
 }
