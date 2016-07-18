@@ -340,6 +340,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
         if ($tblPrepare) {
+            $hasAllApproved = true;
             $tblDivision = $tblPrepare->getServiceTblDivision();
             $studentTable = array();
             if ($tblDivision) {
@@ -432,34 +433,40 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblPrepare->getServiceTblAppointedDateTask()) {
                             $subjectGradesText = $countSubjectGrades . ' von ' . $countSubjects; // . ' Zensuren&nbsp;';
                         } else {
-                            $subjectGradesText = new Exclamation() . ' Kein Stichtagsnotenauftrag ausgewählt';
+                            $subjectGradesText = 'Kein Stichtagsnotenauftrag ausgewählt';
                         }
 
                         if ($tblPrepare->getServiceTblBehaviorTask()) {
                             $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
                         } else {
-                            $behaviorGradesText = new Exclamation() . ' Kein Stichtagsnotenauftrag ausgewählt';
+                            $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
                         }
 
                         $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                         if ($tblPrepareStudent) {
                             $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+                            $isApproved = $tblPrepareStudent->isApproved();
                         } else {
                             $tblCertificate = false;
+                            $isApproved = false;
+                        }
+
+                        if ($hasAllApproved && !$isApproved) {
+                            $hasAllApproved = false;
                         }
 
                         $studentTable[] = array(
                             'Name' => $tblPerson->getLastFirstName(),
-                            'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
+                            'Address' => $tblAddress ? $tblAddress->getGuiTwoRowString() : '',
                             'Birthday' => $birthday,
                             'Course' => $course,
                             'ExcusedAbsence' => Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision),
                             'UnexcusedAbsence' => Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
                                 $tblDivision),
-                            'SubjectGrades' => ($countSubjectGrades < $countSubjects
+                            'SubjectGrades' => ($countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
                                 ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
                                 : new Success(new Enable() . ' ' . $subjectGradesText)),
-                            'BehaviorGrades' => ($countBehaviorGrades < $countBehavior
+                            'BehaviorGrades' => ($countBehaviorGrades < $countBehavior || !$tblPrepare->getServiceTblBehaviorTask()
                                 ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $behaviorGradesText)
                                 : new Success(new Enable() . ' ' . $behaviorGradesText)),
                             'Template' => ($tblCertificate
@@ -467,10 +474,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     . ($tblCertificate->getDescription() ? '<br>' . $tblCertificate->getDescription() : ''))
                                 : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' Keine Zeugnisvorlage ausgewählt')),
                             'Option' =>
-                                (new Standard(
+                                (!$isApproved ? (new Standard(
                                     '', '/Education/Certificate/Prepare/Certificate', new Edit(),
                                     array('PrepareId' => $tblPrepare->getId(), 'PersonId' => $tblPerson->getId()),
-                                    'Zeugnisvorlage auswählen und zusätzliche Informationen bearbeiten'))
+                                    'Zeugnisvorlage auswählen und zusätzliche Informationen bearbeiten')) : '')
                                 . ($tblCertificate
                                     ? (new Standard(
                                         '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
@@ -560,7 +567,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblPrepare->getServiceTblPersonSigner()
                                             ? $tblPrepare->getServiceTblPersonSigner()->getFullName()
                                             : new Exclamation() . ' Kein Unterzeichner ausgewählt',
-                                        $buttonSigner
+                                        ($hasAllApproved ? null : $buttonSigner)
                                     ),
                                     $tblPrepare->getServiceTblPersonSigner()
                                         ? Panel::PANEL_TYPE_SUCCESS
@@ -579,7 +586,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             ? $tblPrepare->getServiceTblAppointedDateTask()->getName()
                                             . ' ' . $tblPrepare->getServiceTblAppointedDateTask()->getDate()
                                             : new Exclamation() . ' Kein Stichtagsnotenauftrag ausgewählt',
-                                        $buttonAppointedDateTask .
+                                        ($hasAllApproved ? ' ' : $buttonAppointedDateTask) .
                                         ($tblPrepare->getServiceTblAppointedDateTask()
                                             ? $buttonAppointedDateTaskShowGrades
                                             : '')
@@ -597,7 +604,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             ? $tblPrepare->getServiceTblBehaviorTask()->getName()
                                             . ' ' . $tblPrepare->getServiceTblBehaviorTask()->getDate()
                                             : 'Kein Kopfnotenauftrag ausgewählt',
-                                        $buttonBehaviorTask .
+                                        ($hasAllApproved ? ' ' : $buttonBehaviorTask) .
                                         ($tblPrepare->getServiceTblBehaviorTask()
                                             ? $buttonBehaviorTaskShowGrades
                                             : '')
@@ -961,17 +968,28 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblStudentAllByDivision) {
                 foreach ($tblStudentAllByDivision as $tblPerson) {
                     if ($tblDivision->getServiceTblYear()) {
+
+                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
+                        if ($tblPrepareStudent) {
+                            $isApproved = $tblPrepareStudent->isApproved();
+                        } else {
+                            $isApproved = false;
+                        }
+
                         $dataTable[$tblPerson->getId()]['Student'] = $tblPerson->getLastFirstName();
-                        $dataTable[$tblPerson->getId()]['Option'] = new Standard(
-                            '',
-                            '/Education/Certificate/Prepare/BehaviorGrades/Edit',
-                            new Edit(),
-                            array(
-                                'PrepareId' => $tblPrepare->getId(),
-                                'PersonId' => $tblPerson->getId()
-                            ),
-                            'Kopfnoten bearbeiten'
-                        );
+                        $dataTable[$tblPerson->getId()]['Option'] =
+                            $isApproved
+                                ? ''
+                                : new Standard(
+                                '',
+                                '/Education/Certificate/Prepare/BehaviorGrades/Edit',
+                                new Edit(),
+                                array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                    'PersonId' => $tblPerson->getId()
+                                ),
+                                'Kopfnoten bearbeiten'
+                            );
 
                         /** @var TblGradeType $tblGradeType */
                         foreach ($tblGradeTypeList as $tblGradeType) {
@@ -1476,13 +1494,15 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                if ($form === null){
-                    $contentLayout = new Warning('Es sind keine zusätzlichen Informationen in der Zeugnisvorlage vorhanden.', new Exclamation());
+                if ($form === null) {
+                    $contentLayout = new Warning('Es sind keine zusätzlichen Informationen in der Zeugnisvorlage vorhanden.',
+                        new Exclamation());
                 } else {
                     $form->appendFormButton(new Primary('Speichern', new Save()))
                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-                    $contentLayout = new Well(Prepare::useService()->updatePrepareInformationList($form, $tblPrepare, $tblPerson,
+                    $contentLayout = new Well(Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
+                        $tblPerson,
                         $Content));
                 }
             } else {
@@ -1655,13 +1675,15 @@ class Frontend extends Extension implements IFrontendInterface
                             Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'),
                             Gradebook::useService()->getGradeTypeByCode('B')
                         );
-                        if ($tblPrepareGrade){
+                        if ($tblPrepareGrade) {
                             $Content['Input']['KBE'] = $tblPrepareGrade->getGrade();
                         }
 
                         // Fehlzeiten
-                        $Content['Input']['Missing'] = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision);
-                        $Content['Input']['Bad']['Missing'] = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision);
+                        $Content['Input']['Missing'] = Absence::useService()->getExcusedDaysByPerson($tblPerson,
+                            $tblDivision);
+                        $Content['Input']['Bad']['Missing'] = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
+                            $tblDivision);
 
 //                        $Stage->addButton(
 //                            new External(

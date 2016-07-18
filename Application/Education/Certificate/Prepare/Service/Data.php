@@ -23,7 +23,6 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
-use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -207,7 +206,8 @@ class Data extends AbstractData
     public function getPrepareInformationAllByPerson(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblPrepareInformation',
             array(
                 TblPrepareInformation::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
                 TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
@@ -336,13 +336,27 @@ class Data extends AbstractData
             $tblPrepare, $tblTestType
         );
         if ($tblPrepareGradeList) {
+            $isApprovedArray = array();
             foreach ($tblPrepareGradeList as $tblPrepareGrade) {
+                /** @var TblPrepareGrade $Entity */
                 $Entity = $Manager->getEntity('TblPrepareGrade')->findOneBy(array('Id' => $tblPrepareGrade->getId()));
                 if (null !== $Entity) {
-                    /** @var Element $Entity */
-                    // ToDo GCK Protokoll bulkSave sonst witzlos
-                    // Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
-                    $Manager->bulkKillEntity($Entity);
+                    if (($tblPerson = $Entity->getServiceTblPerson())) {
+                        if (!isset($isApprovedArray[$tblPerson->getId()])) {
+                            if (($tblPersonStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                                $isApprovedArray[$tblPerson->getId()] = $tblPersonStudent->isApproved();
+                            } else {
+                                $isApprovedArray[$tblPerson->getId()] = false;
+                            }
+                        }
+                    }
+
+                    // Freigebene nicht löschen
+                    if (!$tblPerson || !$isApprovedArray[$tblPerson->getId()]) {
+                        // ToDo GCK Protokoll bulkSave sonst witzlos
+                        // Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+                        $Manager->bulkKillEntity($Entity);
+                    }
                 }
             }
 

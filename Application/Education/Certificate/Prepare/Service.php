@@ -187,7 +187,7 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getPrepareInformationAllByPerson($tblPrepare, $tblPerson);
     }
 
-        /**
+    /**
      * @param TblCertificatePrepare $tblPrepare
      * @param TblPerson $tblPerson
      * @param $Field
@@ -320,18 +320,30 @@ class Service extends AbstractService
             // Löschen der vorhandenen Zensuren
             (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
 
+            // Zensuren zum Stichtagsnotenauftrag ermitteln
             $tblDivision = $tblPrepare->getServiceTblDivision();
             $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
             $gradeList = array();
             if ($tblDivision) {
                 $tblStudentListByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
                 $tblYear = $tblDivision->getServiceTblYear();
+                $isApprovedArray = array();
                 if ($tblStudentListByDivision && $tblYear && $tblTestAllByTask) {
                     foreach ($tblTestAllByTask as $tblTest) {
                         foreach ($tblStudentListByDivision as $tblPerson) {
-                            $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
-                            if ($tblGrade) {
-                                $gradeList[$tblPerson->getId()][$tblGrade->getId()] = $tblGrade;
+                            if (!isset($isApprovedArray[$tblPerson->getId()])) {
+                                if (($tblPersonStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                                    $isApprovedArray[$tblPerson->getId()] = $tblPersonStudent->isApproved();
+                                } else {
+                                    $isApprovedArray[$tblPerson->getId()] = false;
+                                }
+                            }
+
+                            if (!$isApprovedArray[$tblPerson->getId()]) {
+                                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
+                                if ($tblGrade) {
+                                    $gradeList[$tblPerson->getId()][$tblGrade->getId()] = $tblGrade;
+                                }
                             }
                         }
                     }
