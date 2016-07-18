@@ -8,8 +8,11 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblCertificatePrepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
@@ -155,6 +158,59 @@ class Data extends AbstractData
             array(
                 TblPrepareGrade::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
+            )
+        );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareStudent
+     */
+    public function getPrepareStudentBy(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+            array(
+                TblPrepareStudent::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+                TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            )
+        );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Field
+     *
+     * @return false|TblPrepareInformation
+     */
+    public function getPrepareInformationBy(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson, $Field)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation',
+            array(
+                TblPrepareInformation::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+                TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareInformation::ATTR_FIELD => $Field,
+            )
+        );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareInformation[]
+     */
+    public function getPrepareInformationAllByPerson(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation',
+            array(
+                TblPrepareInformation::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+                TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             )
         );
     }
@@ -343,5 +399,156 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblCertificate|null $tblCertificate
+     * @param bool|false $IsApproved
+     * @param bool|false $IsPrinted
+     * @param null $ExcusedDays
+     * @param null $UnexcusedDays
+     *
+     * @return TblPrepareStudent
+     */
+    public function createPrepareStudent(
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        TblCertificate $tblCertificate = null,
+        $IsApproved = false,
+        $IsPrinted = false,
+        $ExcusedDays = null,
+        $UnexcusedDays = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblPrepareStudent')->findOneBy(array(
+            TblPrepareStudent::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+            TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+        ));
+        if ($Entity === null) {
+            $Entity = new TblPrepareStudent();
+            $Entity->setTblCertificatePrepare($tblPrepare);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblCertificate($tblCertificate ? $tblCertificate : null);
+            $Entity->setApproved($IsApproved);
+            $Entity->setPrinted($IsPrinted);
+            $Entity->setExcusedDays($ExcusedDays);
+            $Entity->setUnexcusedDays($UnexcusedDays);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param TblCertificate|null $tblCertificate
+     * @param bool|false $IsApproved
+     * @param bool|false $IsPrinted
+     * @param null $ExcusedDays
+     * @param null $UnexcusedDays
+     *
+     * @return bool
+     */
+    public function updatePrepareStudent(
+        TblPrepareStudent $tblPrepareStudent,
+        TblCertificate $tblCertificate = null,
+        $IsApproved = false,
+        $IsPrinted = false,
+        $ExcusedDays = null,
+        $UnexcusedDays = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareStudent $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblCertificate($tblCertificate ? $tblCertificate : null);
+            $Entity->setApproved($IsApproved);
+            $Entity->setPrinted($IsPrinted);
+            $Entity->setExcusedDays($ExcusedDays);
+            $Entity->setUnexcusedDays($UnexcusedDays);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Field
+     * @param $Value
+     *
+     * @return TblPrepareInformation
+     */
+    public function createPrepareInformation(
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        $Field,
+        $Value
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblPrepareInformation')->findOneBy(array(
+            TblPrepareInformation::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+            TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblPrepareInformation::ATTR_FIELD => $Field,
+        ));
+        if ($Entity === null) {
+            $Entity = new TblPrepareInformation();
+            $Entity->setTblCertificatePrepare($tblPrepare);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setField($Field);
+            $Entity->setValue($Value);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblPrepareInformation $tblPrepareInformation
+     * @param $Field
+     * @param $Value
+     *
+     * @return bool
+     */
+    public function updatePrepareInformation(
+        TblPrepareInformation $tblPrepareInformation,
+        $Field,
+        $Value
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareInformation $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareInformation', $tblPrepareInformation->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setField($Field);
+            $Entity->setValue($Value);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

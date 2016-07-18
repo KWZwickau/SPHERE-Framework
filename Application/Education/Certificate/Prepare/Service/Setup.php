@@ -34,6 +34,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblPrepare = $this->setTableCertificatePrepare($Schema);
         $this->setTablePrepareGrade($Schema, $tblPrepare);
+        $this->setTablePrepareStudent($Schema, $tblPrepare);
+        $this->setTablePrepareInformation($Schema, $tblPrepare);
 
         /**
          * Migration & Protocol
@@ -105,6 +107,65 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblPrepareGrade', 'Grade')) {
             $Table->addColumn('Grade', 'string');
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblPrepare
+     *
+     * @return Table
+     */
+    private function setTablePrepareStudent(Schema &$Schema, Table $tblPrepare)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblPrepareStudent');
+        if (!$this->getConnection()->hasColumn('tblPrepareStudent', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblPrepareStudent', 'serviceTblCertificate')) {
+            $Table->addColumn('serviceTblCertificate', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblPrepareStudent', 'IsApproved')) {
+            $Table->addColumn('IsApproved', 'boolean');
+        }
+        if (!$this->getConnection()->hasColumn('tblPrepareStudent', 'IsPrinted')) {
+            $Table->addColumn('IsPrinted', 'boolean');
+        }
+        if (!$this->getConnection()->hasColumn('tblPrepareStudent', 'ExcusedDays')) {
+            $Table->addColumn('ExcusedDays', 'integer', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblPrepareStudent', 'UnexcusedDays')) {
+            $Table->addColumn('UnexcusedDays', 'integer', array('notnull' => false));
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblPrepare
+     *
+     * @return Table
+     */
+    private function setTablePrepareInformation(Schema &$Schema, Table $tblPrepare)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblPrepareInformation');
+        if (!$this->getConnection()->hasColumn('tblPrepareInformation', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblPrepareInformation', 'Value')) {
+            $Table->addColumn('Value', 'text');
+        }
+        if (!$this->getConnection()->hasColumn('tblPrepareInformation', 'Field')) {
+            $Table->addColumn('Field', 'string');
         }
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);

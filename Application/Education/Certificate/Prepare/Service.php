@@ -8,9 +8,12 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblCertificatePrepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
@@ -75,6 +78,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareStudent
+     */
+    public function getPrepareStudentBy(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareStudentBy($tblPrepare, $tblPerson);
     }
 
     /**
@@ -158,6 +173,31 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getPrepareGradeAllByPrepare(
             $tblPrepare, $tblTestType
         );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareInformation[]
+     */
+    public function getPrepareInformationAllByPerson(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareInformationAllByPerson($tblPrepare, $tblPerson);
+    }
+
+        /**
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Field
+     *
+     * @return false|TblPrepareInformation
+     */
+    public function getPrepareInformationBy(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson, $Field)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareInformationBy($tblPrepare, $tblPerson, $Field);
     }
 
     /**
@@ -497,5 +537,101 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePrepareStudentSetCertificate(
+        IFormInterface $Stage = null,
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $Error = false;
+        $tblCertificate = Generator::useService()->getCertificateById($Data);
+        if (!$tblCertificate) {
+            $Stage->setError('Data', 'Bitte wählen Sie eine Zeugnisvorlage aus');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                (new Data($this->getBinding()))->updatePrepareStudent(
+                    $tblPrepareStudent,
+                    $tblCertificate,
+                    $tblPrepareStudent->isApproved(),
+                    $tblPrepareStudent->isPrinted(),
+                    $tblPrepareStudent->getExcusedDays(),
+                    $tblPrepareStudent->getUnexcusedDays()
+                );
+            } else {
+                (new Data($this->getBinding()))->createPrepareStudent(
+                    $tblPrepare,
+                    $tblPerson,
+                    $tblCertificate
+                );
+            }
+
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Zeugnisvorlage wurde ausgewählt.')
+            . new Redirect('/Education/Certificate/Prepare/Certificate', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId(),
+                'PersonId' => $tblPerson->getId()
+            ));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Content
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePrepareInformationList(
+        IFormInterface $Stage = null,
+        TblCertificatePrepare $tblPrepare,
+        TblPerson $tblPerson,
+        $Content
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Content) {
+            return $Stage;
+        }
+
+        if (isset($Content['Input']) && is_array($Content['Input'])) {
+            foreach ($Content['Input'] as $field => $value) {
+                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
+                    (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
+                } else {
+                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, $field, $value);
+                }
+            }
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
+        . new Redirect('/Education/Certificate/Prepare/Certificate', Redirect::TIMEOUT_SUCCESS, array(
+            'PrepareId' => $tblPrepare->getId(),
+            'PersonId' => $tblPerson->getId()
+        ));
     }
 }
