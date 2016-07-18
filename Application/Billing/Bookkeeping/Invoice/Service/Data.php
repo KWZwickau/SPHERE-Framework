@@ -306,6 +306,27 @@ class Data extends AbstractData
     }
 
     /**
+     * @param \DateTime $Date
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByYearAndMonth(\DateTime $Date)
+    {
+
+        $EntityList = $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice');
+        if ($EntityList) {
+            /** @var TblInvoice $Entity */
+            foreach ($EntityList as &$Entity) {
+                if ((new \DateTime($Entity->getTargetTime()))->format('ym') != $Date->format('ym')) {
+                    $Entity = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+        }
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
      * @param TblPerson       $tblPerson
      * @param                 $InvoiceNumber
      * @param                 $Date

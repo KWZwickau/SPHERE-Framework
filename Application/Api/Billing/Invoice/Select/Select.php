@@ -8,7 +8,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
 
 /**
- * Class CheckList
+ * Class Select
  *
  * @package SPHERE\Application\Api\Billing\Invoice\Select
  */
@@ -32,7 +32,8 @@ class Select
 
         $tblInvoiceList = Export::useService()->getInvoiceListByDate($DateFrom, $DateTo);
 
-        $TableHeader = array('Name'          => 'Name',
+        $TableHeader = array('Debtor'        => 'Debitor',
+                             'Name'          => 'Name',
                              'StudentNumber' => 'Schülernummer',
                              'Date'          => 'Fälligkeitsdatum',);
         $TableContent = Export::useService()->createInvoiceListByInvoiceListAndDivision($TableHeader, $tblDivision, $tblGroup, $tblItem, $tblInvoiceList);

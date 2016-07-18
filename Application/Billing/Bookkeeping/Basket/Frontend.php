@@ -1394,7 +1394,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (Invoice::useService()->createInvoice($tblBasket, $Date)) {
             $Stage->setContent(new Success('Rechnungen erstellt'));
-            return $Stage.new Redirect('/Billing/Bookkeeping/Balance', Redirect::TIMEOUT_SUCCESS);
+            return $Stage.new Redirect('/Billing/Bookkeeping/Export', Redirect::TIMEOUT_SUCCESS);
         } else {
             $Content = new Warning('Rechnungserstellungen fehlgeschlagen');
         }
@@ -1931,11 +1931,17 @@ class Frontend extends Extension implements IFrontendInterface
         $InvoiceSum = number_format(array_sum($PriceSumArray), 2).' €';
 
         $PanelArray = array();
+
         $InvoiceCount = 0;
+        $tblInvoiceList = Invoice::useService()->getInvoiceAllByYearAndMonth((new \DateTime($Date)));
+        $date = (new \DateTime($Date))->format('ym');
         foreach ($InvoiceDataList as &$InvoiceList) {
+
+            $count = Count($tblInvoiceList) + $InvoiceCount;
+            $count = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
             $InvoiceCount++;
 
-            $PanelArray[] = new Panel('Vorschau Rechnung Nr. '.$InvoiceCount.' '.new ChevronRight().' '.$PayerArray[$InvoiceCount], new TableData($InvoiceList, null, array(
+            $PanelArray[] = new Panel('Vorschau Rechnung Nr. '.$count.' '.new ChevronRight().' '.$PayerArray[$InvoiceCount], new TableData($InvoiceList, null, array(
                 'PersonFrom'   => 'Leistungsbezieher',
 //                    'PersonTo'    => 'Bezahler',
                 'PaymentType'  => 'Bezahlart',
@@ -1956,7 +1962,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn('', 8)
-                        , new LayoutColumn(new Panel('Gesamtpreis der Rechnung Nr. '.$InvoiceCount,
+                        , new LayoutColumn(new Panel('Gesamtpreis der Rechnung Nr. '.$count,
                                 new Bold(Invoice::useService()->getPriceString($PriceSumArray[$InvoiceCount])), Panel::PANEL_TYPE_INFO), 4)
                         ))
                     )

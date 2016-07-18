@@ -58,6 +58,10 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $TableContent )) {
             $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',
                 '/Api/Billing/Invoice/InvoiceAll/Download', new Download()));
+            $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Primary('Datev',
+                '/Api/Billing/Invoice/Datev/Download', new Download()));
+            $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Primary('SFirm',
+                '/Api/Billing/Invoice/Sfirm/Download', new Download()));
         }
         $Stage->addButton(new Standard('Filterung', '\Billing\Bookkeeping\Export\Filter', new Search()));
 

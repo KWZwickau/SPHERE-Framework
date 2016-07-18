@@ -25,6 +25,12 @@ class Invoice implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Select/Download', __NAMESPACE__.'\Select\Select::downloadInvoiceSelect'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Datev/Download', __NAMESPACE__.'\Datev\Datev::downloadInvoiceAllDatev'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Sfirm/Download', __NAMESPACE__.'\Sfirm\Sfirm::downloadInvoiceAllSfirm'
+        ));
     }
 
     /**
@@ -49,7 +55,8 @@ class Invoice implements IModuleInterface
     public function downloadInvoiceAll()
     {
 
-        $TableHeader = array('Name'          => 'Name',
+        $TableHeader = array('Debtor'        => 'Debitor',
+                             'Name'          => 'Name',
                              'StudentNumber' => 'Schülernummer',
                              'Date'          => 'Fälligkeitsdatum',);
         $TableContent = Export::useService()->createInvoiceList($TableHeader);

@@ -236,6 +236,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param \DateTime $Date
+     *
+     * @return bool|Service\Entity\TblInvoice[]
+     */
+    public function getInvoiceAllByYearAndMonth(\DateTime $Date)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceAllByYearAndMonth($Date);
+    }
+
+    /**
      * @param $value
      *
      * @return string
@@ -369,10 +380,10 @@ class Service extends AbstractService
             }
         }
 
-
-        /** ToDO Rechnungsnummer übergeben */
-        $tblInvoiceList = Invoice::useService()->getInvoiceAll();
+        $tblInvoiceList = Invoice::useService()->getInvoiceAllByYearAndMonth((new \DateTime($Date)));
+        $date = (new \DateTime($Date))->format('ym');
         $count = Count($tblInvoiceList);
+        $count = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
 
         /** fill Invoice/tblInvoice */
         foreach ($DebtorItemList as $DebtorId => $InvoiceList) {

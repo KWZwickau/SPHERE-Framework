@@ -15,6 +15,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
 
@@ -93,6 +94,7 @@ class Service
                         $tblItemList = Invoice::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
                         if ($tblItemList) {
 
+                            $Item['Debtor'] = '';
                             $Item['Name'] = $tblPerson->getLastFirstName();
                             $Item['StudentNumber'] = 'keine';
                             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -116,10 +118,21 @@ class Service
 //                                        $Item[$key] = $tblItem->getName().' - '.( $tblItem->getValue() * $tblItem->getQuantity() );   // Item Kontrolle (mit Namen)
                                         $Item['Item'.$key] = number_format(( $tblItem->getValue() * $tblItem->getQuantity() ), 2).' €';
 
+                                        if (empty( $tblDebtor )) {
+                                            $tblDebtor = Invoice::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
+                                        }
+
                                         // Header erstellen (dynamisch)
                                         if (!isset( $TableHeader['Item'.$key] )) {
                                             $TableHeader['Item'.$key] = $tblItem->getName();
                                         }
+                                    }
+                                }
+                            }
+                            if (isset( $tblDebtor )) {
+                                if (( $tblDebtorService = $tblDebtor->getServiceTblDebtor() )) {
+                                    if (( $tblPersonDebtor = $tblDebtorService->getServiceTblPerson() )) {
+                                        $Item['Debtor'] = $tblPersonDebtor->getFullName();
                                     }
                                 }
                             }
@@ -186,11 +199,219 @@ class Service
     }
 
     /**
+     * @param $TableHeader
+     *
+     * @return array
+     */
+    public function createInvoiceListDatev(&$TableHeader)
+    {
+
+        $tblInvoiceList = Invoice::useService()->getInvoiceByIsPaid(false);
+        $tblPersonList = array();
+        $tblItemArray = array();
+        $TableContent = array();
+        if ($tblInvoiceList) {
+            // Personenliste aus allen offenen Rechnungen erstellen
+            foreach ($tblInvoiceList as $tblInvoice) {
+                $PersonList = Invoice::useService()->getPersonAllByInvoice($tblInvoice);
+                if ($PersonList) {
+                    foreach ($PersonList as $Person) {
+                        if (empty( $tblPersonList )) {
+                            $tblPersonList[] = $Person;
+                        } else {
+                            /** @var TblPerson $tblPerson */
+                            $Found = false;
+                            foreach ($tblPersonList as $tblPerson) {
+                                if ($tblPerson->getId() == $Person->getId()) {
+                                    $Found = true;
+                                }
+                            }
+                            if (!$Found) {
+                                $tblPersonList[] = $Person;
+                            }
+                        }
+                    }
+                }
+                $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
+                if ($tblItemList) {
+                    foreach ($tblItemList as $Item) {
+                        if (empty( $tblItemArray )) {
+                            $InventoryItem = $Item->getServiceTblItem();
+                            if ($InventoryItem) {
+                                $tblItemArray[] = $InventoryItem;
+                            }
+                        } else {
+                            /** @var TblItem $tblItem */
+                            $Found = false;
+                            $InventoryItem = $Item->getServiceTblItem();
+                            if ($InventoryItem) {
+                                foreach ($tblItemArray as $tblItem) {
+                                    if ($tblItem->getId() == $InventoryItem->getId()) {
+                                        $Found = true;
+                                    }
+                                }
+                                if (!$Found) {
+                                    $tblItemArray[] = $InventoryItem;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach ($tblInvoiceList as $tblInvoice) {
+                if (!empty( $tblPersonList )) {
+                    array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblInvoice, $tblItemArray, &$TableHeader) {
+
+                        $tblItemList = Invoice::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
+                        if ($tblItemList) {
+                            /** @var TblItem $tblItem */
+                            foreach ($tblItemList as $tblItem) {
+                                $Item['StudentNumber'] = '';
+                                $Item['Item'] = $tblItem->getName();
+                                $Item['ItemPrice'] = number_format(( $tblItem->getValue() * $tblItem->getQuantity() ), 2);
+                                $Item['Reference'] = '';
+                                $Item['BillDate'] = $tblInvoice->getEntityCreate()->format('d.m.Y');
+                                $Item['Date'] = $tblInvoice->getTargetTime();
+                                $Item['BookingText'] = 'Wird noch überarbeitet';
+
+                                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                                if ($tblStudent && $tblStudent->getIdentifier() != '') {
+                                    $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                                }
+                                $tblDebtor = Invoice::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
+                                if (isset( $tblDebtor )) {
+                                    $Item['Reference'] = $tblDebtor->getBankReference();
+                                }
+
+                                array_push($TableContent, $Item);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $TableHeader
+     *
+     * @return array
+     */
+    public function createInvoiceListSfirm(&$TableHeader)
+    {
+
+        $tblInvoiceList = Invoice::useService()->getInvoiceByIsPaid(false);
+        $tblPersonList = array();
+        $tblItemArray = array();
+        $TableContent = array();
+        if ($tblInvoiceList) {
+            // Personenliste aus allen offenen Rechnungen erstellen
+            foreach ($tblInvoiceList as $tblInvoice) {
+                $PersonList = Invoice::useService()->getPersonAllByInvoice($tblInvoice);
+                if ($PersonList) {
+                    foreach ($PersonList as $Person) {
+                        if (empty( $tblPersonList )) {
+                            $tblPersonList[] = $Person;
+                        } else {
+                            /** @var TblPerson $tblPerson */
+                            $Found = false;
+                            foreach ($tblPersonList as $tblPerson) {
+                                if ($tblPerson->getId() == $Person->getId()) {
+                                    $Found = true;
+                                }
+                            }
+                            if (!$Found) {
+                                $tblPersonList[] = $Person;
+                            }
+                        }
+                    }
+                }
+                $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
+                if ($tblItemList) {
+                    foreach ($tblItemList as $Item) {
+                        if (empty( $tblItemArray )) {
+                            $InventoryItem = $Item->getServiceTblItem();
+                            if ($InventoryItem) {
+                                $tblItemArray[] = $InventoryItem;
+                            }
+                        } else {
+                            /** @var TblItem $tblItem */
+                            $Found = false;
+                            $InventoryItem = $Item->getServiceTblItem();
+                            if ($InventoryItem) {
+                                foreach ($tblItemArray as $tblItem) {
+                                    if ($tblItem->getId() == $InventoryItem->getId()) {
+                                        $Found = true;
+                                    }
+                                }
+                                if (!$Found) {
+                                    $tblItemArray[] = $InventoryItem;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach ($tblInvoiceList as $tblInvoice) {
+                if (!empty( $tblPersonList )) {
+                    array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblInvoice, $tblItemArray, &$TableHeader) {
+
+                        $tblItemList = Invoice::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
+                        if ($tblItemList) {
+                            /** @var TblItem $tblItem */
+                            foreach ($tblItemList as $tblItem) {
+                                $Item['Date'] = $tblInvoice->getTargetTime();
+                                $Item['IBAN'] = '';
+                                $Item['BIC'] = '';
+                                $Item['BillDate'] = $tblInvoice->getEntityCreate()->format('d.m.Y');
+                                $Item['Reference'] = '';
+                                $Item['Bank'] = '';
+                                $Item['Client'] = '';
+                                $Item['DebtorNumber'] = '';
+                                $Item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                                $Item['BookingText'] = 'Noch in Arbeit';
+                                $Item['Owner'] = '';
+                                $Item['Item'] = $tblItem->getName();
+                                $Item['ItemPrice'] = number_format(( $tblItem->getValue() ), 2);
+                                $Item['Quantity'] = $tblItem->getQuantity();
+                                $Item['Sum'] = number_format(( $tblItem->getValue() * $tblItem->getQuantity() ), 2);
+
+                                $Item['Reference'] = '';
+                                $tblDebtor = Invoice::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
+                                if (isset( $tblDebtor )) {
+                                    $Item['IBAN'] = $tblDebtor->getIBAN();
+                                    $Item['BIC'] = $tblDebtor->getBIC();
+                                    $Item['Reference'] = $tblDebtor->getBankReference();
+                                    $Item['Bank'] = $tblDebtor->getBankName();
+                                    $Item['DebtorNumber'] = $tblDebtor->getDebtorNumber();
+                                    $Item['Owner'] = $tblDebtor->getOwner();
+                                }
+                                if (Consumer::useService()->getConsumerBySession()->getName()) {
+                                    $Item['Client'] = Consumer::useService()->getConsumerBySession()->getName();
+                                }
+                                $Item['BookingText'] = 'Wird noch überarbeitet';
+
+                                array_push($TableContent, $Item);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        return $TableContent;
+    }
+
+    /**
      * @param                                                                        $TableHeader
      * @param TblDivision|null                                                       $tblDivision
      * @param TblGroup|null                                                          $tblGroup
      * @param \SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem|null $tblItemInventory
-     * @param null                                                                   $tblInvoiceList
+     * @param null|array                                                             $tblInvoiceList
      *
      * @return array
      */
@@ -206,37 +427,9 @@ class Service
         $tblItemArray = array();
         $TableContent = array();
         if ($tblInvoiceList) {
-            // Personenliste aus Division & Group erstellen
-            if ($tblDivision != null && $tblGroup != null) {
-                $tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                $tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup);
-                if ($tblDivisionPersonList && $tblPersonGroupList) {
-                    foreach ($tblDivisionPersonList as $tblDivisionPerson) {
-                        foreach ($tblPersonGroupList as $tblPersonGroup) {
-                            if ($tblDivisionPerson->getId() == $tblPersonGroup->getId()) {
-                                $tblPersonList[] = $tblDivisionPerson;
-                            }
-                        }
-                    }
-                }
-            }   // PersonenListe aus Division erstellen
-            elseif ($tblDivision != null) {
-                $tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblDivisionPersonList) {
-                    foreach ($tblDivisionPersonList as $tblDivisionPerson) {
-                        $tblPersonList[] = $tblDivisionPerson;
-                    }
-                }
-            }   //PersonenListe aus Group erstellen
-            elseif ($tblGroup != null) {
-                $tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup);
-                if ($tblPersonGroupList) {
-                    foreach ($tblPersonGroupList as $tblPersonGroup) {
-                        $tblPersonList[] = $tblPersonGroup;
-                    }
-                }
+            if ($tblDivision != null || $tblGroup != null) {
+                $tblPersonList = $this->getPersonListByDivisionAndGroup($tblDivision, $tblGroup);
             }
-
 
             if ($tblItemInventory != null) {
                 $tblItemArray[] = $tblItemInventory;
@@ -303,6 +496,7 @@ class Service
                         $tblItemList = Invoice::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
                         if ($tblItemList) {
 
+                            $Item['Debtor'] = '';
                             $Item['Name'] = $tblPerson->getLastFirstName();
                             $Item['StudentNumber'] = 'keine';
                             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -326,13 +520,23 @@ class Service
                                     if ($InventoryItem->getId() == $tblItem->getServiceTblItem()->getId()) {
                                         $ItemExists = true;
 
-//                                        $Item[$key] = $tblItem->getName().' - '.( $tblItem->getValue() * $tblItem->getQuantity() );   // Item Kontrolle (mit Namen)
+                                        if (empty( $tblDebtor )) {
+                                            $tblDebtor = Invoice::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
+                                        }
+
                                         $Item['Item'.$key] = number_format(( $tblItem->getValue() * $tblItem->getQuantity() ), 2).' €';
 
                                         // Header erstellen (dynamisch)
                                         if (!isset( $TableHeader['Item'.$key] )) {
                                             $TableHeader['Item'.$key] = $tblItem->getName();
                                         }
+                                    }
+                                }
+                            }
+                            if (isset( $tblDebtor )) {
+                                if (( $tblDebtorService = $tblDebtor->getServiceTblDebtor() )) {
+                                    if (( $tblPersonDebtor = $tblDebtorService->getServiceTblPerson() )) {
+                                        $Item['Debtor'] = $tblPersonDebtor->getFullName();
                                     }
                                 }
                             }
@@ -348,6 +552,49 @@ class Service
         }
 
         return $TableContent;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblGroup    $tblGroup
+     *
+     * @return bool| TblPerson[]
+     */
+    public function getPersonListByDivisionAndGroup(TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        $tblPersonList = array();
+        // Personenliste aus Division & Group erstellen
+        if ($tblDivision != null && $tblGroup != null) {
+            $tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup);
+            if ($tblDivisionPersonList && $tblPersonGroupList) {
+                foreach ($tblDivisionPersonList as $tblDivisionPerson) {
+                    foreach ($tblPersonGroupList as $tblPersonGroup) {
+                        if ($tblDivisionPerson->getId() == $tblPersonGroup->getId()) {
+                            $tblPersonList[] = $tblDivisionPerson;
+                        }
+                    }
+                }
+            }
+        }   // PersonenListe aus Division erstellen
+        elseif ($tblDivision != null) {
+            $tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            if ($tblDivisionPersonList) {
+                foreach ($tblDivisionPersonList as $tblDivisionPerson) {
+                    $tblPersonList[] = $tblDivisionPerson;
+                }
+            }
+        }   //PersonenListe aus Group erstellen
+        elseif ($tblGroup != null) {
+            $tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup);
+            if ($tblPersonGroupList) {
+                foreach ($tblPersonGroupList as $tblPersonGroup) {
+                    $tblPersonList[] = $tblPersonGroup;
+                }
+            }
+        }
+
+        return ( empty( $tblPersonList ) ? false : $tblPersonList );
     }
 
     /**
