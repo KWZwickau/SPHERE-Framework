@@ -118,7 +118,7 @@ class Service extends AbstractService
     /**
      * @param TblItem $tblItem
      *
-     * @return bool|TblCalculation
+     * @return bool|TblCalculation[]
      */
     public function getCalculationAllByItem(TblItem $tblItem)
     {

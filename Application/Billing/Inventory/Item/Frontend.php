@@ -44,6 +44,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -77,24 +78,32 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
                 $CalculationContent = array();
                 if ($tblCalculationList) {
+                    $ItemCount = count($tblCalculationList);
                     /** @var TblCalculation $tblCalculation */
 
                     foreach ($tblCalculationList as $Key => $tblCalculation) {
-                        $CalculationContent[$Key] = 'Bedingung: '.$tblCalculation->getPriceString();
-                        if ($tblCalculation->getServiceTblType()) {
-                            $CalculationContent[$Key] .= ' - '.$tblCalculation->getServiceTblType()->getName();
-                        } else {
-                            $CalculationContent[$Key] .= ' - ';
+                        $CalculationContent[$Key] = 'Preis: '.new Bold($tblCalculation->getPriceString()).' Bedingung: ';
+                        if ($tblCalculation->getServiceTblType() && $tblCalculation->getServiceTblSiblingRank()) {
+                            $CalculationContent[$Key] .= $tblCalculation->getServiceTblType()->getName().' - '.$tblCalculation->getServiceTblSiblingRank()->getName();
+                        } elseif ($tblCalculation->getServiceTblType()) {
+                            $CalculationContent[$Key] .= $tblCalculation->getServiceTblType()->getName();
+                        } elseif ($tblCalculation->getServiceTblSiblingRank()) {
+                            $CalculationContent[$Key] .= $tblCalculation->getServiceTblSiblingRank()->getName();
                         }
-                        if ($tblCalculation->getServiceTblSiblingRank()) {
-                            $CalculationContent[$Key] .= ' - '.$tblCalculation->getServiceTblSiblingRank()->getName();
-                        } else {
-                            $CalculationContent[$Key] .= ' - ';
-                        }
+
                         if (!$tblCalculation->getServiceTblSiblingRank() && !$tblCalculation->getServiceTblType()) {
-                            $CalculationContent[$Key] = $tblCalculation->getPriceString().' Standardpreis';
+                            if ($tblItem->getTblItemType()->getName() == 'Einzelleistung') {
+                                if ($ItemCount == 1) {
+                                    $CalculationContent[$Key] = 'Standardpreis: '.new Bold($tblCalculation->getPriceString());
+                                } else {
+                                    $CalculationContent[$Key] = false;
+                                }
+                            } else {
+                                $CalculationContent[$Key] = 'Gesamtpreis: '.new Bold($tblCalculation->getPriceString());
+                            }
                         }
                     }
+                    $CalculationContent = array_filter($CalculationContent);
                 }
                 $Item['Condition'] = new Listing($CalculationContent);
 

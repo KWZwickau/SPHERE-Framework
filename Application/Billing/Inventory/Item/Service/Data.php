@@ -161,7 +161,7 @@ class Data extends AbstractData
     /**
      * @param TblItem $tblItem
      *
-     * @return bool|TblCalculation
+     * @return bool|TblCalculation[]
      */
     public function getCalculationAllByItem(TblItem $tblItem)
     {
