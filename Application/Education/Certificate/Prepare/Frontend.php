@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
@@ -347,7 +348,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
         if ($tblPrepare) {
-            $hasAllApproved = true;
+            $isOneApproved = Prepare::useService()->existsPrepareStudentWhereIsApproved($tblPrepare);
             $tblDivision = $tblPrepare->getServiceTblDivision();
             $studentTable = array();
             if ($tblDivision) {
@@ -456,10 +457,6 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             $tblCertificate = false;
                             $isApproved = false;
-                        }
-
-                        if ($hasAllApproved && !$isApproved) {
-                            $hasAllApproved = false;
                         }
 
                         $studentTable[] = array(
@@ -582,7 +579,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblPrepare->getServiceTblPersonSigner()
                                             ? $tblPrepare->getServiceTblPersonSigner()->getFullName()
                                             : new Exclamation() . ' Kein Unterzeichner ausgewählt',
-                                        ($hasAllApproved ? null : $buttonSigner)
+                                        ($isOneApproved ? null : $buttonSigner)
                                     ),
                                     $tblPrepare->getServiceTblPersonSigner()
                                         ? Panel::PANEL_TYPE_SUCCESS
@@ -606,8 +603,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             ? $tblPrepare->getServiceTblAppointedDateTask()->getName()
                                             . ' ' . $tblPrepare->getServiceTblAppointedDateTask()->getDate()
                                             : new Exclamation() . ' Kein Stichtagsnotenauftrag ausgewählt',
-                                        ($hasAllApproved ? ' ' : $buttonAppointedDateTask)
-                                        . ($tblPrepare->isAppointedDateTaskUpdated() && !$hasAllApproved ? $buttonUpdateAppointedDateTask : '')
+                                        ($isOneApproved ? ' ' : $buttonAppointedDateTask)
+                                        . ($tblPrepare->isAppointedDateTaskUpdated() ? $buttonUpdateAppointedDateTask : '')
                                         . ($tblPrepare->getServiceTblAppointedDateTask()
                                             ? $buttonAppointedDateTaskShowGrades
                                             : '')
@@ -625,7 +622,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             ? $tblPrepare->getServiceTblBehaviorTask()->getName()
                                             . ' ' . $tblPrepare->getServiceTblBehaviorTask()->getDate()
                                             : 'Kein Kopfnotenauftrag ausgewählt',
-                                        ($hasAllApproved ? ' ' : $buttonBehaviorTask) .
+                                        ($isOneApproved ? ' ' : $buttonBehaviorTask) .
                                         ($tblPrepare->getServiceTblBehaviorTask()
                                             ? $buttonBehaviorTaskShowGrades
                                             : '')
@@ -690,6 +687,10 @@ class Frontend extends Extension implements IFrontendInterface
                 'PrepareId' => $PrepareId
             )
         ));
+
+        $Stage->setMessage(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Bold(new Exclamation() . ' Hinweis:')
+            . ' Bei der Auswahl des Stichtagsnotenauftrags werden alle Zensuren dieses Auftrags übernommen. Dieser Vorgang kann
+             einen Augenblick dauern.'));
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
         if ($tblPrepare) {
@@ -1498,7 +1499,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Input.Team' => 'Arbeitsgemeinschaften',
                             'Content.Input.Deepening' => 'Vertiefungsrichtung',
                             'Content.Input.Choose' => 'Wahlpflichtbereich',
-                            'Content.Input.Date' => 'Datum',
+//                            'Content.Input.Date' => 'Datum',
                             'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
                             'Content.Input.DateConference' => 'Datum der Konferenz',
                             'Content.Input.Transfer' => 'Versetzungsvermerk',
@@ -1752,6 +1753,9 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblDivision);
                         $Content['Input']['Bad']['Missing'] = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
                             $tblDivision);
+
+                        // Zeugnisdatum
+                        $Content['Input']['Date'] = $tblPrepare->getDate();
 
 //                        $Stage->addButton(
 //                            new External(

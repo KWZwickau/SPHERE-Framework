@@ -24,6 +24,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreTyp
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -83,6 +84,40 @@ class Service extends AbstractService
     }
 
     /**
+     *
+     * @return false|TblCertificatePrepare[]
+     */
+    public function getPrepareAll()
+    {
+
+        return (new Data($this->getBinding()))->getPrepareAll();
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblCertificatePrepare[]
+     */
+    public function getPrepareAllByYear(TblYear $tblYear)
+    {
+
+        $resultList = array();
+        $entityList = $this->getPrepareAll();
+        if ($entityList) {
+            foreach ($entityList as $tblPrepare) {
+                if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                    && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() == $tblYear->getId()
+                ) {
+                    $resultList[] = $tblPrepare;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblCertificatePrepare $tblPrepare
      * @param TblPerson $tblPerson
      *
@@ -92,6 +127,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPrepareStudentBy($tblPrepare, $tblPerson);
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     *
+     * @return bool
+     */
+    public function existsPrepareStudentWhereIsApproved(TblCertificatePrepare $tblPrepare)
+    {
+
+        return (new Data($this->getBinding()))->existsPrepareStudentWhereIsApproved($tblPrepare);
     }
 
     /**

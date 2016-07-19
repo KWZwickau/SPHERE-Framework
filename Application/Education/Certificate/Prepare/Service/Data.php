@@ -65,6 +65,18 @@ class Data extends AbstractData
     }
 
     /**
+     *
+     * @return false|TblCertificatePrepare[]
+     */
+    public function getPrepareAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificatePrepare'
+        );
+    }
+
+    /**
      * @param TblCertificatePrepare $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
@@ -176,6 +188,24 @@ class Data extends AbstractData
                 TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             )
         );
+    }
+
+    /**
+     * @param TblCertificatePrepare $tblPrepare
+     *
+     * @return bool
+     */
+    public function existsPrepareStudentWhereIsApproved(TblCertificatePrepare $tblPrepare)
+    {
+
+        $entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+            array(
+                TblPrepareStudent::ATTR_TBL_CERTIFICATE_PREPARE => $tblPrepare->getId(),
+                TblPrepareStudent::ATTR_IS_APPROVED => true
+            )
+        );
+
+        return $entity ? true : false;
     }
 
     /**
