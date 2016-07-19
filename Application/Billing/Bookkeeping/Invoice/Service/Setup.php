@@ -97,7 +97,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Name', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblItem', 'Description')) {
-            $Table->addColumn('Description', 'string');
+            $Table->addColumn('Description', 'text');
         }
         if (!$this->getConnection()->hasColumn('tblItem', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));

@@ -69,7 +69,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Name', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblItem', 'Description')) {
-            $Table->addColumn('Description', 'string');
+            $Table->addColumn('Description', 'text');
         }
 
         $this->getConnection()->addForeignKey($Table, $tblItemType);

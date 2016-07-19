@@ -55,7 +55,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Name', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblBasket', 'Description')) {
-            $Table->addColumn('Description', 'string');
+            $Table->addColumn('Description', 'text');
         }
 
         return $Table;

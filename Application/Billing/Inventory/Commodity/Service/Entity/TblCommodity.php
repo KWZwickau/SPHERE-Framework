@@ -5,7 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -23,7 +22,7 @@ class TblCommodity extends Element
      */
     protected $Name;
     /**
-     * @Column(type="string")
+     * @Column(type="text")
      */
     protected $Description;
 

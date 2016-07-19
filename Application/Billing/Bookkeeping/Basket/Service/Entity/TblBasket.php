@@ -20,7 +20,7 @@ class TblBasket extends Element
      */
     protected $Name;
     /**
-     * @Column(type="string")
+     * @Column(type="text")
      */
     protected $Description;
 

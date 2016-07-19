@@ -32,7 +32,7 @@ class TblItem extends Element
      */
     protected $Description;
     /**
-     * @Column(type="string")
+     * @Column(type="text")
      */
     protected $Value;
     /**

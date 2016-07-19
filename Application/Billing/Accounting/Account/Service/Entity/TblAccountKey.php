@@ -31,7 +31,7 @@ class TblAccountKey extends Element
      */
     protected $ValidTo;
     /**
-     * @Column(type="string")
+     * @Column(type="text")
      */
     protected $Description;
     /**

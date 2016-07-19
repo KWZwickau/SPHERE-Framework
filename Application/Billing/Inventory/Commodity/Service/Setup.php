@@ -50,7 +50,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Name', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblCommodity', 'Description')) {
-            $Table->addColumn('Description', 'string');
+            $Table->addColumn('Description', 'text');
         }
 
         return $Table;
