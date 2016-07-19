@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGr
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
@@ -633,6 +634,33 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return bool
+     */
+    public function updatePrepareStudentSetApproved(TblPrepareStudent $tblPrepareStudent)
+    {
+
+        if ($tblPrepareStudent->getServiceTblCertificate()
+            && $tblPrepareStudent->getServiceTblPerson()
+            && $tblPrepareStudent->getTblCertificatePrepare()->getServiceTblDivision()
+        ) {
+            return (new Data($this->getBinding()))->updatePrepareStudent(
+                $tblPrepareStudent,
+                $tblPrepareStudent->getServiceTblCertificate(),
+                true,
+                $tblPrepareStudent->isPrinted(),
+                Absence::useService()->getExcusedDaysByPerson($tblPrepareStudent->getServiceTblPerson(),
+                    $tblPrepareStudent->getTblCertificatePrepare()->getServiceTblDivision()),
+                Absence::useService()->getUnexcusedDaysByPerson($tblPrepareStudent->getServiceTblPerson(),
+                    $tblPrepareStudent->getTblCertificatePrepare()->getServiceTblDivision())
+            );
+        } else {
+            return false;
+        }
     }
 
     /**

@@ -264,6 +264,7 @@ class Data extends AbstractData
         $Entity->setServiceTblDivision($tblDivision);
         $Entity->setDate($Date ? new \DateTime($Date) : null);
         $Entity->setName($Name);
+        $Entity->setAppointedDateTaskUpdated(false);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
