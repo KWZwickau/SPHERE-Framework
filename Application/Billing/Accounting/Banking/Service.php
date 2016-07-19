@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Billing\Accounting\Banking;
 
 use SPHERE\Application\Billing\Accounting\Banking\Service\Data;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
@@ -192,17 +191,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
-    }
-
-    /**
-     * @param $IBAN
-     *
-     * @return false|TblBankAccount
-     */
-    public function getIBANIsUsed($IBAN)
-    {
-
-        return (new Data($this->getBinding()))->getIBANIsUsed($IBAN);
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Billing\Accounting\Banking\Service;
 
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
@@ -50,17 +49,6 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
-     * @return bool|TblBankAccount
-     */
-    public function getBankAccountById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount', $Id);
-    }
-
-    /**
-     * @param $Id
-     *
      * @return false|TblDebtorSelection
      */
     public function getDebtorSelectionById($Id)
@@ -88,27 +76,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblBankAccount $tblBankAccount
-     *
-     * @return false|TblBankReference[]
-     */
-    public function getBankReferenceByBankAccount(TblBankAccount $tblBankAccount)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference',
-            array(TblBankReference::ATTR_TBL_BANK_ACCOUNT => $tblBankAccount->getId()));
-    }
-
-    /**
-     * @return TblBankAccount[]|bool
-     */
-    public function getBankAccountAll()
-    {
-
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount');
-    }
-
-    /**
      * @return false|TblDebtorSelection[]
      */
     public function getDebtorSelectionAll()
@@ -127,18 +94,6 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtor',
             array(TblDebtor::ATTR_DEBTOR_NUMBER => $DebtorNumber));
-    }
-
-    /**
-     * @param $IBAN
-     *
-     * @return false|TblBankAccount
-     */
-    public function getIBANIsUsed($IBAN)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount',
-            array(TblBankAccount::ATTR_IBAN => $IBAN));
     }
 
     /**
@@ -260,45 +215,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param           $BankName
-     * @param           $Owner
-     * @param           $CashSign
-     * @param           $IBAN
-     * @param           $BIC
-     *
-     * @return TblBankAccount
-     */
-    public function createBankAccount(
-        $BankName,
-        $Owner,
-        $CashSign,
-        $IBAN,
-        $BIC
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblBankAccount')->findOneBy(array(
-            TblBankAccount::ATTR_IBAN => $IBAN
-        ));
-
-        if ($Entity === null) {
-            $Entity = new TblBankAccount();
-            $Entity->setBankName($BankName);
-            $Entity->setOwner($Owner);
-            $Entity->setCashSign($CashSign);
-            $Entity->setIBAN($IBAN);
-            $Entity->setBIC($BIC);
-
-            $Manager->saveEntity($Entity);
-
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                $Entity);
-        }
-
-        return $Entity;
-    }
-
-    /**
      * @param TblPerson $tblPerson
      * @param           $DebtorNumber
      *
@@ -411,45 +327,6 @@ class Data extends AbstractData
                 $Entity);
         }
         return $Entity;
-    }
-
-    /**
-     * @param TblBankAccount $tblBankAccount
-     * @param                $Owner
-     * @param                $IBAN
-     * @param                $BIC
-     * @param                $CashSign
-     * @param                $BankName
-     *
-     * @return bool
-     */
-    public function updateBankAccount(
-        TblBankAccount $tblBankAccount,
-        $Owner,
-        $IBAN,
-        $BIC,
-        $CashSign,
-        $BankName
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        /** @var TblBankAccount $Entity */
-        $Entity = $Manager->getEntityById('TblBankAccount', $tblBankAccount->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setOwner($Owner);
-            $Entity->setIBAN($IBAN);
-            $Entity->setBIC($BIC);
-            $Entity->setCashSign($CashSign);
-            $Entity->setBankName($BankName);
-            $Manager->saveEntity($Entity);
-
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
-                $Protocol, $Entity);
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -658,27 +535,6 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Manager->killEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param TblBankAccount $tblBankAccount
-     *
-     * @return bool
-     */
-    public function destroyBankAccount(TblBankAccount $tblBankAccount)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntityById('TblBankAccount', $tblBankAccount->getId());
-        if (null !== $Entity) {
-            /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                $Entity);
-            $Manager->killEntity($Entity);
             return true;
         }
         return false;
