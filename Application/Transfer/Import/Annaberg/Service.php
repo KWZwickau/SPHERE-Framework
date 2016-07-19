@@ -614,6 +614,61 @@ class Service
                         $tblCompanyOber
                     );
 
+                    $year = 16;
+                    // normales Schuljahr
+                    $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
+                    if ($tblYear) {
+                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                        if (!$tblPeriodList) {
+                            // firstTerm
+                            $tblPeriod = Term::useService()->insertPeriod(
+                                '1. Halbjahr',
+                                '01.08.20' . $year,
+                                '31.01.20' . ($year + 1)
+                            );
+                            if ($tblPeriod) {
+                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                            }
+
+                            // secondTerm
+                            $tblPeriod = Term::useService()->insertPeriod(
+                                '2. Halbjahr',
+                                '01.02.20' . ($year + 1),
+                                '31.07.20' . ($year + 1)
+                            );
+                            if ($tblPeriod) {
+                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                            }
+                        }
+                    }
+                    // Klasse 12
+                    $tblYearDivision12 = Term::useService()->insertYear('20' . $year . '/' . ($year + 1),  'Klasse 12');
+                    if ($tblYearDivision12) {
+                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYearDivision12);
+                        if (!$tblPeriodList) {
+                            // firstTerm
+                            $tblPeriod = Term::useService()->insertPeriod(
+                                '1. Halbjahr',
+                                '01.08.20' . $year,
+                                '31.12.20' . ($year + 1)
+                            );
+                            if ($tblPeriod) {
+                                Term::useService()->insertYearPeriod($tblYearDivision12, $tblPeriod);
+                            }
+
+                            // secondTerm
+                            $tblPeriod = Term::useService()->insertPeriod(
+                                '2. Halbjahr',
+                                '01.01.20' . ($year + 1),
+                                '30.06.20' . ($year + 1)
+                            );
+                            if ($tblPeriod) {
+                                Term::useService()->insertYearPeriod($tblYearDivision12, $tblPeriod);
+                            }
+                        }
+                    }
+
+
                     $error = array();
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         set_time_limit(300);
@@ -683,7 +738,6 @@ class Service
 
                                 // division
                                 $tblDivision = false;
-                                $year = 16;
                                 $division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
                                     $RunY)));
                                 if ($division !== '') {
@@ -692,54 +746,39 @@ class Service
                                         $tblCurrentCompany = $tblCompanyOber;
                                     }
 
-                                    $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
-                                    if ($tblYear) {
-                                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
-                                        if (!$tblPeriodList) {
-                                            // firstTerm
-                                            $tblPeriod = Term::useService()->insertPeriod(
-                                                '1. Halbjahr',
-                                                '01.08.20' . $year,
-                                                '31.01.20' . ($year + 1)
-                                            );
-                                            if ($tblPeriod) {
-                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
-                                            }
+                                    if (strpos($division, '12') !== false){
+                                        $tblSelectedYear = $tblYearDivision12;
+                                    } else {
+                                        $tblSelectedYear = $tblYear;
+                                    }
 
-                                            // secondTerm
-                                            $tblPeriod = Term::useService()->insertPeriod(
-                                                '2. Halbjahr',
-                                                '01.02.20' . ($year + 1),
-                                                '31.07.20' . ($year + 1)
-                                            );
-                                            if ($tblPeriod) {
-                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                    if ($tblSchoolType) {
+                                        $level = '';
+                                        $pos = strpos($division, ' ');
+                                        if ($pos !== false) {
+                                            $level = trim(substr($division, 0, $pos));
+                                            $division = trim(substr($division, $pos + 1));
+                                        } else {
+                                            $pos = strpos($division, '-');
+                                            if ($pos !== false) {
+                                                $level = trim(substr($division, 0, $pos));
+                                                //$division = trim(substr($division, $pos + 1));
+                                                $tblGroup = Group::useService()->insertGroup($division);
+                                                if ($tblGroup){
+                                                    Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                                                }
+                                                $division = '';
                                             }
                                         }
 
-                                        if ($tblSchoolType) {
-                                            $level = '';
-                                            $pos = strpos($division, ' ');
-                                            if ($pos !== false) {
-                                                $level = trim(substr($division, 0, $pos));
-                                                $division = trim(substr($division, $pos + 1));
-                                            } else {
-                                                $pos = strpos($division, '-');
-                                                if ($pos !== false) {
-                                                    $level = trim(substr($division, 0, $pos));
-                                                    $division = trim(substr($division, $pos + 1));
-                                                }
-                                            }
-
-                                            if ($level !== '') {
-                                                $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
-                                                if ($tblLevel) {
-                                                    $tblDivision = Division::useService()->insertDivision(
-                                                        $tblYear,
-                                                        $tblLevel,
-                                                        $division
-                                                    );
-                                                }
+                                        if ($level !== '') {
+                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                            if ($tblLevel) {
+                                                $tblDivision = Division::useService()->insertDivision(
+                                                    $tblSelectedYear,
+                                                    $tblLevel,
+                                                    $division
+                                                );
                                             }
                                         }
                                     }
