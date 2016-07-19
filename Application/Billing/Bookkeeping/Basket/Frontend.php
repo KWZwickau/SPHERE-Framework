@@ -101,7 +101,23 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Number'] = $tblBasket->getId();
                 $Item['Name'] = $tblBasket->getName();
-                $Item['CreateDate'] = $tblBasket->getCreateDate();
+                $Item['Description'] = $tblBasket->getDescription();
+//                $Item['CreateDate'] = $tblBasket->getCreateDate();
+                $Item['Person'] = '';
+                $tblPersonList = Basket::useService()->getPersonAllByBasket($tblBasket);
+                if ($tblPersonList) {
+                    $Item['Person'] = count($tblPersonList);
+                }
+                $Item['Item'] = '';
+                $tblItemList = Basket::useService()->getItemAllByBasket($tblBasket);
+                $ItemArray = array();
+                if ($tblItemList) {
+                    foreach ($tblItemList as $tblItem) {
+                        $ItemArray[] = $tblItem->getName();
+                    }
+                    sort($ItemArray);
+                    $Item['Item'] = implode(', ', $ItemArray);
+                }
 
                 $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
 
@@ -152,10 +168,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
-                                    'Number'     => 'Nummer',
-                                    'Name'       => 'Name',
-                                    'CreateDate' => 'Erstellt am',
-                                    'Option'     => ''
+                                    'Number'      => 'Nummer',
+                                    'Name'        => 'Name',
+                                    'Description' => 'Beschreibung',
+                                    'Person'      => 'Anzahl Personen',
+                                    'Item'        => 'Artikel',
+                                    'Option'      => ''
                                 )
                             )
                         )
