@@ -68,9 +68,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDebtor', 'BIC')) {
             $Table->addColumn('BIC', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'CashSign')) {
-            $Table->addColumn('CashSign', 'string');
-        }
         if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblDebtor')) {
             $Table->addColumn('serviceTblDebtor', 'bigint', array('notnull' => false));
         }

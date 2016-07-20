@@ -464,7 +464,6 @@ class Data extends AbstractData
                 $Entity->setBankName($tblBankReference->getBankName());
                 $Entity->setIBAN($tblBankReference->getIBAN());
                 $Entity->setBIC($tblBankReference->getBIC());
-                $Entity->setCashSign($tblBankReference->getCashSign());
                 $Entity->setServiceTblDebtor($tblDebtor);
                 $Entity->setServiceTblBankReference($tblBankReference);
                 $Entity->setServiceTblPaymentType($tblPaymentType);
@@ -487,7 +486,6 @@ class Data extends AbstractData
                 $Entity->setBankName('');
                 $Entity->setIBAN('');
                 $Entity->setBIC('');
-                $Entity->setCashSign('');
                 $Entity->setServiceTblDebtor($tblDebtor);
                 $Entity->setServiceTblBankReference(null);
                 $Entity->setServiceTblPaymentType($tblPaymentType);

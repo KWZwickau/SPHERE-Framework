@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Billing\Accounting\SchoolAccount\Service;
 
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Entity\TblSchoolAccount;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -57,7 +56,6 @@ class Data extends AbstractData
      * @param TblCompany $tblCompany
      * @param            $BankName
      * @param            $Owner
-     * @param            $CashSign
      * @param            $IBAN
      * @param            $BIC
      *
@@ -67,7 +65,6 @@ class Data extends AbstractData
         TblCompany $tblCompany,
         $BankName,
         $Owner,
-        $CashSign,
         $IBAN,
         $BIC
     ) {
@@ -81,7 +78,6 @@ class Data extends AbstractData
             $Entity = new TblSchoolAccount();
             $Entity->setBankName($BankName);
             $Entity->setOwner($Owner);
-            $Entity->setCashSign($CashSign);
             $Entity->setIBAN($IBAN);
             $Entity->setBIC($BIC);
             $Entity->setServiceTblCompany($tblCompany);
@@ -99,7 +95,6 @@ class Data extends AbstractData
      * @param TblSchoolAccount $tblSchoolAccount
      * @param                  $BankName
      * @param                  $Owner
-     * @param                  $CashSign
      * @param                  $IBAN
      * @param                  $BIC
      *
@@ -109,21 +104,19 @@ class Data extends AbstractData
         TblSchoolAccount $tblSchoolAccount,
         $BankName,
         $Owner,
-        $CashSign,
         $IBAN,
         $BIC
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblBankAccount $Entity */
+        /** @var TblSchoolAccount $Entity */
         $Entity = $Manager->getEntityById('TblSchoolAccount', $tblSchoolAccount->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setOwner($Owner);
             $Entity->setIBAN($IBAN);
             $Entity->setBIC($BIC);
-            $Entity->setCashSign($CashSign);
             $Entity->setBankName($BankName);
             $Manager->saveEntity($Entity);
 

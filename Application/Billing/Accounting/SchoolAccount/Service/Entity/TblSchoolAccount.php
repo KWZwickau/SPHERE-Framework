@@ -36,10 +36,6 @@ class TblSchoolAccount extends Element
      * @Column(type="string")
      */
     protected $Owner;
-    /**
-     * @Column(type="string")
-     */
-    protected $CashSign;
 //    /**
 //     * @Column(type="bigint")
 //     */
@@ -124,24 +120,6 @@ class TblSchoolAccount extends Element
     {
 
         $this->Owner = $Owner;
-    }
-
-    /**
-     * @return string $CashSign
-     */
-    public function getCashSign()
-    {
-
-        return $this->CashSign;
-    }
-
-    /**
-     * @param string $CashSign
-     */
-    public function setCashSign($CashSign)
-    {
-
-        $this->CashSign = $CashSign;
     }
 
 //    /**

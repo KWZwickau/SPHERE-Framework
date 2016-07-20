@@ -88,9 +88,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBankReference', 'Owner')) {
             $Table->addColumn('Owner', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'CashSign')) {
-            $Table->addColumn('CashSign', 'string');
-        }
         return $Table;
     }
 

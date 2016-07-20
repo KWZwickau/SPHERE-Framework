@@ -107,7 +107,7 @@ class Service extends AbstractService
 
         if (!$Error) {
             if ((new Data($this->getBinding()))->createSchoolAccount($tblCompany, $Account['BankName'], $Account['Owner'],
-                $Account['CashSign'], $Account['IBAN'], $Account['BIC'])
+                $Account['IBAN'], $Account['BIC'])
             ) {
                 return new Success('Kontoinformationen gespeichert')
                 .new Redirect('/Billing/Accounting/SchoolAccount', Redirect::TIMEOUT_SUCCESS);
@@ -157,7 +157,7 @@ class Service extends AbstractService
         if (!$Error) {
 
             if ((new Data($this->getBinding()))->updateSchoolAccount($tblSchoolAccount, $Account['BankName'], $Account['Owner'],
-                $Account['CashSign'], $Account['IBAN'], $Account['BIC'])
+                $Account['IBAN'], $Account['BIC'])
             ) {
                 return new Success('Änderungen sind erfasst')
                 .new Redirect('/Billing/Accounting/SchoolAccount', Redirect::TIMEOUT_SUCCESS);

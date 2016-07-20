@@ -297,7 +297,6 @@ class Service extends AbstractService
                 $Reference['ReferenceDate'],
                 $Reference['BankName'],
                 $Reference['Owner'],
-                $Reference['CashSign'],
                 $Reference['IBAN'],
                 $Reference['BIC']);
             return new Success('Die Mandatsreferenz ist erfasst worden')
@@ -457,7 +456,6 @@ class Service extends AbstractService
                 $Reference['ReferenceDate'],
                 $Reference['Owner'],
                 $Reference['BankName'],
-                $Reference['CashSign'],
                 $Reference['IBAN'],
                 $Reference['BIC']);
             if ($tblBankReference->getServiceTblPerson()) {

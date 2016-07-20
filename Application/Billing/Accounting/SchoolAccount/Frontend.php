@@ -70,7 +70,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Owner'] = $tblSchoolAccount->getOwner();
                         $Item['IBAN'] = $tblSchoolAccount->getIBAN();
                         $Item['BIC'] = $tblSchoolAccount->getBIC();
-                        $Item['CashSign'] = $tblSchoolAccount->getCashSign();
                         $Item['CompanyName'] = $tblCompany->getDisplayName();
 
                         $Item['Option'] = new Standard('', '/Billing/Accounting/SchoolAccount/Edit', new Edit(), array('Id' => $tblSchoolAccount->getId()))
@@ -82,7 +81,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Owner'] = $tblSchoolAccount->getOwner();
                         $Item['IBAN'] = $tblSchoolAccount->getIBAN();
                         $Item['BIC'] = $tblSchoolAccount->getBIC();
-                        $Item['CashSign'] = $tblSchoolAccount->getCashSign();
                         $Item['CompanyName'] = $tblCompany->getDisplayName();
 
                         $Item['Option'] = new Standard('', '/Billing/Accounting/SchoolAccount/Destroy', new Disable(), array('Id' => $tblSchoolAccount->getId()));
@@ -126,7 +124,6 @@ class Frontend extends Extension implements IFrontendInterface
                                                                          'BankName'    => 'Name der Bank',
                                                                          'IBAN'        => 'IBAN',
                                                                          'BIC'         => 'BIC',
-                                                                         'CashSign'    => 'Kassenzeichen',
                                                                          'Option'      => '',
                                 ))
                             )
@@ -220,18 +217,12 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextField('Account[Owner]', '', 'Kontoinhaber'),
                             new TextField('Account[BankName]', '', 'Bankname')
                         ), Panel::PANEL_TYPE_INFO)
-                        , 5),
+                        , 6),
                     new FormColumn(
                         new Panel('Zuordnung',
                             array(new TextField('Account[IBAN]', '', 'IBAN'),
                                 new TextField('Account[BIC]', '', 'BIC')), Panel::PANEL_TYPE_INFO)
-                        , 5),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            array(
-                                new TextField('Account[CashSign]', '', 'Kassenzeichen')
-                            ), Panel::PANEL_TYPE_INFO)
-                        , 2)
+                        , 6),
                 ))
             )
         );
@@ -248,7 +239,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Global = $this->getGlobal();
         $Global->POST['Account']['Owner'] = $tblSchoolAccount->getOwner();
         $Global->POST['Account']['BankName'] = $tblSchoolAccount->getBankName();
-        $Global->POST['Account']['CashSign'] = $tblSchoolAccount->getCashSign();
         $Global->POST['Account']['IBAN'] = $tblSchoolAccount->getIBAN();
         $Global->POST['Account']['BIC'] = $tblSchoolAccount->getBIC();
         $Global->savePost();
@@ -262,18 +252,12 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextField('Account[Owner]', '', 'Kontoinhaber'),
                             new TextField('Account[BankName]', '', 'Bankname')
                         ), Panel::PANEL_TYPE_INFO)
-                        , 5),
+                        , 6),
                     new FormColumn(
                         new Panel('Zuordnung',
                             array(new TextField('Account[IBAN]', '', 'IBAN'),
                                 new TextField('Account[BIC]', '', 'BIC')), Panel::PANEL_TYPE_INFO)
-                        , 5),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            array(
-                                new TextField('Account[CashSign]', '', 'Kassenzeichen')
-                            ), Panel::PANEL_TYPE_INFO)
-                        , 2)
+                        , 6),
                 )), new \SPHERE\Common\Frontend\Form\Repository\Title(new PlusSign().' Kontoinformationen eintragen')
             )
         );

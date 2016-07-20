@@ -248,7 +248,6 @@ class Data extends AbstractData
      * @param bool      $ReferenceDate
      * @param null      $BankName
      * @param null      $Owner
-     * @param null      $CashSign
      * @param null      $IBAN
      * @param null      $BIC
      *
@@ -260,7 +259,6 @@ class Data extends AbstractData
         $ReferenceDate = false,
         $BankName = null,
         $Owner = null,
-        $CashSign = null,
         $IBAN = null,
         $BIC = null
     ) {
@@ -278,7 +276,6 @@ class Data extends AbstractData
         }
         $Entity->setBankName($BankName);
         $Entity->setOwner($Owner);
-        $Entity->setCashSign($CashSign);
         $Entity->setIBAN($IBAN);
         $Entity->setBIC($BIC);
 
@@ -361,7 +358,6 @@ class Data extends AbstractData
      * @param                  $Date
      * @param null             $Owner
      * @param null             $BankName
-     * @param null             $CashSign
      * @param null             $IBAN
      * @param null             $BIC
      *
@@ -373,7 +369,6 @@ class Data extends AbstractData
         $Date,
         $Owner = null,
         $BankName = null,
-        $CashSign = null,
         $IBAN = null,
         $BIC = null
     ) {
@@ -388,7 +383,6 @@ class Data extends AbstractData
             $Entity->setReferenceDate(new \DateTime($Date));
             $Entity->setOwner($Owner);
             $Entity->setBankName($BankName);
-            $Entity->setCashSign($CashSign);
             $Entity->setIBAN($IBAN);
             $Entity->setBIC($BIC);
             $Entity->setOwner($Owner);

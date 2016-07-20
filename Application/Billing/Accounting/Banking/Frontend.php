@@ -188,7 +188,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['BankName'] = $tblBankReference->getBankName();
                 $Item['IBAN'] = $tblBankReference->getIBANFrontend();
                 $Item['BIC'] = $tblBankReference->getBICFrontend();
-                $Item['CashSign'] = $tblBankReference->getCashSign();
                 $Item['Option'] = new Standard('', '/Billing/Accounting/Banking/Reference/Change', new Edit(), array('Id'              => $tblPerson->getId(),
                                                                                                                      'BankReferenceId' => $tblBankReference->getId()), 'Bearbeiten')
                     .new Standard('', '/Billing/Accounting/Banking/Reference/Remove', new Disable(), array('Id'              => $tblPerson->getId(),
@@ -229,7 +228,6 @@ class Frontend extends Extension implements IFrontendInterface
                                           'BankName'      => 'Name der Bank',
                                           'IBAN'          => 'IBAN',
                                           'BIC'           => 'BIC',
-                                          'CashSign'      => 'Kassenzeichen',
                                           'Option'        => ''
                                     )
                                 ) )
@@ -386,18 +384,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TextField('Reference[Owner]', '', 'Kontoinhaber'),
                                 new TextField('Reference[BankName]', '', 'Bankname')
                             ), Panel::PANEL_TYPE_INFO)
-                            , 5),
+                            , 6),
                         new FormColumn(
                             new Panel('Zuordnung',
                                 array(new TextField('Reference[IBAN]', '', 'IBAN'),
                                     new TextField('Reference[BIC]', '', 'BIC')), Panel::PANEL_TYPE_INFO)
-                            , 5),
-                        new FormColumn(
-                            new Panel('Sonstiges',
-                                array(
-                                    new TextField('Reference[CashSign]', '', 'Kassenzeichen')
-                                ), Panel::PANEL_TYPE_INFO)
-                            , 2)
+                            , 6),
                     )), new \SPHERE\Common\Frontend\Form\Repository\Title(new PlusSign().' Konto eintragen')
                 )
             )
@@ -423,14 +415,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Zuordnung',
                             array(new TextField('Account[IBAN]', '', 'IBAN'),
                                 new TextField('Account[BIC]', '', 'BIC')), Panel::PANEL_TYPE_INFO)
-                        , 5),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            array(
-                                new TextField('Account[CashSign]', '', 'Kassenzeichen')
-                            ), Panel::PANEL_TYPE_INFO)
-                        , 2)
-
+                        , 5)
                 ))
             )
         );
@@ -489,7 +474,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Reference']['BankName'] = $tblBankReference->getBankName();
             $Global->POST['Reference']['IBAN'] = $tblBankReference->getIBAN();
             $Global->POST['Reference']['BIC'] = $tblBankReference->getBIC();
-            $Global->POST['Reference']['CashSign'] = $tblBankReference->getCashSign();
             $Global->savePost();
         }
 
@@ -513,18 +497,12 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextField('Reference[Owner]', '', 'Kontoinhaber'),
                             new TextField('Reference[BankName]', '', 'Bankname')
                         ), Panel::PANEL_TYPE_INFO)
-                        , 5),
+                        , 6),
                     new FormColumn(
                         new Panel('Zuordnung',
                             array(new TextField('Reference[IBAN]', '', 'IBAN'),
                                 new TextField('Reference[BIC]', '', 'BIC')), Panel::PANEL_TYPE_INFO)
-                        , 5),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            array(
-                                new TextField('Reference[CashSign]', '', 'Kassenzeichen')
-                            ), Panel::PANEL_TYPE_INFO)
-                        , 2)
+                        , 6)
                 )), new \SPHERE\Common\Frontend\Form\Repository\Title(new PlusSign().' Konto eintragen')
             )
         ));
@@ -840,6 +818,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Data[$tblBasketVerification->getId()]['Item'] = $tblBasketVerification->getServiceTblItem()->getId();
                     } else {
                         if (!empty( $PaymentPerson ) && count($PaymentPerson) == 1) {
+                            /** @var TblPerson[] $PaymentPerson */
                             $Global->POST['Data'][$tblBasketVerification->getId()]['PersonPayers'] = $PaymentPerson[0]->getId();
                         }
                     }
@@ -983,6 +962,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Data'][$tblDebtorSelection->getId()]['Reference'] = $tblBankReferenceList[0]->getId();
                     }
                     if (!empty( $DebtorArray ) && count($DebtorArray) == 1) {
+                        /** @var TblDebtor[] $DebtorArray */
                         $Global->POST['Data'][$tblDebtorSelection->getId()]['Debtor'] = $DebtorArray[0]->getId();
                     }
 
@@ -1376,6 +1356,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (( $tblDeb = $tblDebtorSelection->getTblDebtor() )) {
                     $Global->POST['Data'][$tblDebtorSelection->getId()]['Debtor'] = $tblDeb->getId();
                 } elseif (!empty( $DebtorArray ) && count($DebtorArray) == 1) {
+                    /** @var TblDebtor[] $DebtorArray */
                     $Global->POST['Data'][$tblDebtorSelection->getId()]['Debtor'] = $DebtorArray[0]->getId();
                 }
 

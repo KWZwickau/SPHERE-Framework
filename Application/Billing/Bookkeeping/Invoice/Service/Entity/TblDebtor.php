@@ -54,10 +54,6 @@ class TblDebtor extends Element
      */
     protected $BIC;
     /**
-     * @Column(type="string")
-     */
-    protected $CashSign;
-    /**
      * @Column(type="bigint")
      */
     protected $serviceTblDebtor;
@@ -194,24 +190,6 @@ class TblDebtor extends Element
     {
 
         $this->BIC = $BIC;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCashSign()
-    {
-
-        return $this->CashSign;
-    }
-
-    /**
-     * @param $CashSign
-     */
-    public function setCashSign($CashSign)
-    {
-
-        $this->CashSign = $CashSign;
     }
 
     /**
