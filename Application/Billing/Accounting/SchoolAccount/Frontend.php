@@ -91,7 +91,8 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $Form = new Form(new FormGroup(new FormRow(new FormColumn(new Warning('Keine Schulen ohne Kontodaten gefunden')))));
+        $Form = new Form(new FormGroup(new FormRow(new FormColumn(new Warning(nl2br(( 'Keine Schulen ohne Kontodaten gefunden
+                                                                    (Schule unter Einstellungen/Mandant/Schulen auswählen um die Auswahl zu erweitern)' )))))));
         $tblCompanyAll = Company::useService()->getCompanyAll();
         $tblSchoolAll = School::useService()->getSchoolAll();
         $tblCompanyList = array();
@@ -118,7 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            ( empty( $TableContent ) ? new Warning('Keine Schule unter Einstellungen/Schule ausgewählt') :
+                            ( empty( $TableContent ) ? new Warning('Keine Schule mit Kontodaten hinterlegt') :
                                 new TableData($TableContent, null, array('CompanyName' => 'Schule',
                                                                          'Owner'       => 'Besitzer',
                                                                          'BankName'    => 'Name der Bank',

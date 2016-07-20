@@ -73,7 +73,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblItemAll, function (TblItem $tblItem) use (&$TableContent) {
 
                 $Item['Name'] = $tblItem->getName();
-                $Item['Description'] = $tblItem->getDescription();
+                $Item['Description'] = $tblItem->getDisplayDescription();
                 $Item['ItemType'] = $tblItem->getTblItemType()->getName();
                 $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
                 $CalculationContent = array();
@@ -435,7 +435,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Artikel', $tblItem->getName(), Panel::PANEL_TYPE_SUCCESS)
                         , 4),
                     new LayoutColumn(
-                        new Panel('Beschreibung', $tblItem->getDescription(), Panel::PANEL_TYPE_SUCCESS)
+                        new Panel('Beschreibung', $tblItem->getDisplayDescription(), Panel::PANEL_TYPE_SUCCESS)
                         , 4),
                     new LayoutColumn(
                         new Panel('Art', $tblItem->getTblItemType()->getName(), Panel::PANEL_TYPE_SUCCESS)

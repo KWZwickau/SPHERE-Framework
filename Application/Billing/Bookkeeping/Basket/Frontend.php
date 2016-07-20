@@ -50,6 +50,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -135,7 +136,10 @@ class Frontend extends Extension implements IFrontendInterface
                         (new Standard('', '/Billing/Bookkeeping/Basket/Verification',
                             new Equalizer(), array(
                                 'Id' => $tblBasket->getId()
-                            ), 'Berechnung bearbeiten'))->__toString() ).
+                            ), 'Berechnung bearbeiten'))->__toString()
+                        .new Standard(''
+                            , '/Billing/Bookkeeping/Basket/Verification/Destroy', new Repeat()
+                            , array('BasketId' => $tblBasket->getId()), 'Berechnung leeren') ).
                     ( !$tblBasketVerification ?
                         (new Standard('', '/Billing/Bookkeeping/Basket/Destroy',
                             new Remove(), array(
@@ -441,7 +445,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Calculation'] = '';
                 if ($tblItem) {
                     $Item['Name'] = $tblItem->getName();
-                    $Item['Description'] = $tblItem->getDescription();
+                    $Item['Description'] = $tblItem->getDisplayDescription();
                     $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
                     if (is_array($tblCalculationList)) {
                         $Item['Calculation'] = count($tblCalculationList) - 1;
@@ -561,7 +565,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Calculation'] = '';
                 if ($tblItem) {
                     $Item['Name'] = $tblItem->getName();
-                    $Item['Description'] = $tblItem->getDescription();
+                    $Item['Description'] = $tblItem->getDisplayDescription();
                     $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
                     if (is_array($tblCalculationList)) {
                         $Item['Calculation'] = count($tblCalculationList) - 1;
@@ -589,7 +593,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblItemAll, function (TblItem $tblItem) use (&$TableItemAddContent, $tblBasket) {
 
                 $Item['Name'] = $tblItem->getName();
-                $Item['Description'] = $tblItem->getDescription();
+                $Item['Description'] = $tblItem->getDisplayDescription();
                 $Item['Type'] = $tblItem->getTblItemType()->getName();
                 $Item['Option'] = new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Bookkeeping/Basket/Item/Add', new Plus(),
                     array('Id'     => $tblBasket->getId(),
@@ -1178,8 +1182,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
-                    if ($tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()) {
-                        $Item['ChildRank'] = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()->getName();
+                    if ($tblStudent->getTblStudentBilling()) {
+                        if ($tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()) {
+                            $Item['ChildRank'] = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()->getName();
+                        }
                     }
                     $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                     if ($tblTransferType) {
@@ -1307,7 +1313,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblItem = $tblBasketVerification->getServiceTblItem();
                 $Item['Name'] = $tblItem->getName();
-                $Item['Description'] = $tblItem->getDescription();
+                $Item['Description'] = $tblItem->getDisplayDescription();
                 $Item['Type'] = $tblItem->getTblItemType()->getName();
                 $Item['SinglePrice'] = $tblBasketVerification->getPrice();
                 $Item['Quantity'] = $tblBasketVerification->getQuantity();
@@ -1516,7 +1522,7 @@ class Frontend extends Extension implements IFrontendInterface
                         , 6),
                     new LayoutColumn(
                         new Panel('Artikel: '.$tblItem->getName(), array(
-                            'Beschreibung: '.$tblItem->getDescription(),
+                            'Beschreibung: '.$tblItem->getDisplayDescription(),
                             'Einzelpreis: '.$tblBasketVerification->getPrice(),
                             'Anzahl: '.$tblBasketVerification->getQuantity(),
                             'Gesamtpreis: '.$tblBasketVerification->getSummaryPrice(),

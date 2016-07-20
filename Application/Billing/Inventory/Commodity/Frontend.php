@@ -285,7 +285,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblItem = $tblCommodityItem->getTblItem();
 
                     $Item['Name'] = $tblItem->getName();
-                    $Item['Description'] = $tblItem->getDescription();
+                    $Item['Description'] = $tblItem->getDisplayDescription();
                     $Item['Type'] = $tblItem->getTblItemType()->getName();
                     $Item['Option'] =
                         (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Inventory/Commodity/Item/Remove',
@@ -303,7 +303,7 @@ class Frontend extends Extension implements IFrontendInterface
                 array_walk($tblItemAll, function (TblItem $tblItem) use (&$TableItemContent, $tblCommodity) {
 
                     $Item['Name'] = $tblItem->getName();
-                    $Item['Description'] = $tblItem->getDescription();
+                    $Item['Description'] = $tblItem->getDisplayDescription();
                     $Item['Type'] = $tblItem->getTblItemType()->getName();
                     $Item['Option'] =
                         (new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Inventory/Commodity/Item/Add',

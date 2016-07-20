@@ -89,4 +89,12 @@ class TblItem extends Element
 
         $this->tblItemType = ( null === $tblItemType ? null : $tblItemType->getId() );
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayDescription()
+    {
+        return nl2br($this->getDescription());
+    }
 }
