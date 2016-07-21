@@ -160,6 +160,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblAbsence $tblAbsence
+     *
+     * @return bool
+     */
+    public function destroyAbsence(TblAbsence $tblAbsence)
+    {
+
+        return (new Data($this->getBinding()))->destroyAbsence($tblAbsence);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblDivision|null $tblDivision
      *

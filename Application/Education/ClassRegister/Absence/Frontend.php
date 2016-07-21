@@ -25,9 +25,13 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -45,6 +49,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -76,7 +81,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($Data === null) {
                 $Global = $this->getGlobal();
-                $Global->POST['Data']['Status'] = TblAbsence::VALUE_STATUS_EXCUSED;
+                $Global->POST['Data']['Status'] = TblAbsence::VALUE_STATUS_UNEXCUSED;
                 $Global->savePost();
             }
 
@@ -97,10 +102,21 @@ class Frontend extends Extension implements IFrontendInterface
                         'Days' => $tblAbsence->getDays(),
                         'Remark' => $tblAbsence->getRemark(),
                         'Status' => $status,
-                        'Option' => new Standard(
-                            '', '/Education/ClassRegister/Absence/Edit', new Edit(),
-                            array('Id' => $tblAbsence->getId()), 'Bearbeiten'
-                        )
+                        'Option' =>
+                            (new Standard(
+                                '',
+                                '/Education/ClassRegister/Absence/Edit',
+                                new Edit(),
+                                array('Id' => $tblAbsence->getId()),
+                                'Bearbeiten'
+                            ))
+                            . (new Standard(
+                                '',
+                                '/Education/ClassRegister/Absence/Destroy',
+                                new Remove(),
+                                array('Id' => $tblAbsence->getId()),
+                                'Löschen'
+                            ))
                     );
                 }
             }
@@ -510,5 +526,96 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentTable[$tblPerson->getId()]['Day' . $date->format('d')] = new Muted(new Small('w'));
             }
         }
+    }
+
+    /**
+     * @param int $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyAbsence($Id = null, $Confirm = false)
+    {
+
+        $Stage = new Stage('Fehlzeit', 'Löschen');
+
+        if (($tblAbsence = Absence::useService()->getAbsenceById($Id))
+            && ($tblPerson = $tblAbsence->getServiceTblPerson())
+            && ($tblDivision = $tblAbsence->getServiceTblDivision())
+        ) {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/ClassRegister/Absence', new ChevronLeft(),
+                array(
+                    'PersonId' => $tblPerson->getId(),
+                    'DivisionId' => $tblDivision->getId()
+                )
+            ));
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(
+                            'Schüler',
+                            $tblPerson->getLastFirstName(),
+                            Panel::PANEL_TYPE_INFO
+                        ),
+                        new Panel(
+                            new Question() . ' Diese Fehlzeit wirklich löschen?',
+                            array(
+                                $tblAbsence->getFromDate()
+                                . ($tblAbsence->getToDate() ? ' -  ' . $tblAbsence->getToDate() : ''),
+                                ($tblAbsence->getRemark() ? ' ' . new Muted(new Small($tblAbsence->getRemark())) : null)
+                            ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/ClassRegister/Absence/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            . new Standard(
+                                'Nein', '/Education/ClassRegister/Absence', new Disable(),
+                                array(
+                                    'PersonId' => $tblPerson->getId(),
+                                    'DivisionId' => $tblDivision->getId()
+                                )
+                            )
+                        ),
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Absence::useService()->destroyAbsence($tblAbsence)
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(
+                                    new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Fehlzeit wurde gelöscht')
+                                . new Redirect('/Education/ClassRegister/Absence', Redirect::TIMEOUT_SUCCESS,
+                                    array(
+                                        'PersonId' => $tblPerson->getId(),
+                                        'DivisionId' => $tblDivision->getId()
+                                    )
+                                )
+                                : new Danger(new Ban() . ' Die Fehlzeit konnte nicht gelöscht werden')
+                                . new Redirect('/Education/ClassRegister/Absence', Redirect::TIMEOUT_ERROR,
+                                    array(
+                                        'PersonId' => $tblPerson->getId(),
+                                        'DivisionId' => $tblDivision->getId()
+                                    )
+                                )
+                            )
+                        )))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger(new Ban() . ' Die Fehlzeit konnte nicht gefunden werden'),
+                        new Redirect('/Education/ClassRegister', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
     }
 }

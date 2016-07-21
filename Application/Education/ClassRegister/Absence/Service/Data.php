@@ -135,4 +135,27 @@ class Data extends AbstractData
         return false;
     }
 
+    /**
+     * @param TblAbsence $tblAbsence
+     *
+     * @return bool
+     */
+    public function destroyAbsence(
+        TblAbsence $tblAbsence
+    ){
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblAbsence $Entity */
+        $Entity = $Manager->getEntityById('TblAbsence', $tblAbsence->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
 }

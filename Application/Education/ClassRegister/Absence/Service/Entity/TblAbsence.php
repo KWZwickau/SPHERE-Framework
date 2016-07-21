@@ -228,16 +228,16 @@ class TblAbsence extends Element
      */
     private function countThisDay(\DateTime $date, $countDays)
     {
+
         if ($date->format('w') != 0 && $date->format('w') != 6) {
             if ($this->getServiceTblDivision()
                 && ($tblYear = $this->getServiceTblDivision()->getServiceTblYear())
                 && !Term::useService()->getHolidayByDay($tblYear, $date)
             ) {
                 $countDays++;
-                return $countDays;
             }
-            return $countDays;
         }
+
         return $countDays;
     }
 

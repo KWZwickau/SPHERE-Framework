@@ -35,6 +35,9 @@ class Absence implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Edit' , __NAMESPACE__ . '\Frontend::frontendEditAbsence')
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Destroy' , __NAMESPACE__ . '\Frontend::frontendDestroyAbsence')
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Month' , __NAMESPACE__ . '\Frontend::frontendAbsenceMonth')
         );
     }
