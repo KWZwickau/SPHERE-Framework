@@ -172,11 +172,12 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblDivision|null $tblDivision
+     * @param TblDivision $tblDivision
+     * @param \DateTime|null $tillDate
      *
      * @return int
      */
-    public function getUnexcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null)
+    function getUnexcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, \DateTime $tillDate = null)
     {
 
         $list = $this->getAbsenceAllByPerson($tblPerson, $tblDivision);
@@ -184,7 +185,7 @@ class Service extends AbstractService
         if ($list) {
             foreach ($list as $item) {
                 if ($item->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                    $days += $item->getDays();
+                    $days += $item->getDays($tillDate);
                 }
             }
         }
@@ -194,11 +195,12 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblDivision|null $tblDivision
+     * @param TblDivision $tblDivision
+     * @param \DateTime|null $tillDate
      *
      * @return int
      */
-    public function getExcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null)
+    public function getExcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, \DateTime $tillDate = null)
     {
 
         $list = $this->getAbsenceAllByPerson($tblPerson, $tblDivision);
@@ -206,7 +208,7 @@ class Service extends AbstractService
         if ($list) {
             foreach ($list as $item) {
                 if ($item->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                    $days += $item->getDays();
+                    $days += $item->getDays($tillDate);
                 }
             }
         }

@@ -195,27 +195,50 @@ class TblAbsence extends Element
     }
 
     /**
+     * @param \DateTime $tillDate
+     *
      * @return int
      */
-    public function getDays()
+    public function getDays(\DateTime $tillDate = null)
     {
 
         $countDays = 0;
         $fromDate = new \DateTime($this->getFromDate());
-        if ($this->getToDate()) {
-            $toDate = new \DateTime($this->getToDate());
-            if ($toDate >= $fromDate) {
-                $date = $fromDate;
-                while ($date <= $toDate) {
 
-                    $countDays = $this->countThisDay($date, $countDays);
+        if ($tillDate === null) {
+            if ($this->getToDate()) {
+                $toDate = new \DateTime($this->getToDate());
+                if ($toDate >= $fromDate) {
+                    $date = $fromDate;
+                    while ($date <= $toDate) {
 
-                    $date = $date->modify('+1 day');
+                        $countDays = $this->countThisDay($date, $countDays);
+
+                        $date = $date->modify('+1 day');
+                    }
                 }
+            } else {
+
+                $countDays = $this->countThisDay($fromDate, $countDays);
             }
         } else {
+            if ($tillDate >= $fromDate){
+                if ($this->getToDate()) {
+                    $toDate = new \DateTime($this->getToDate());
+                    if ($toDate >= $fromDate) {
+                        $date = $fromDate;
+                        while ($date <= $toDate && $date <= $tillDate) {
 
-            $countDays = $this->countThisDay($fromDate, $countDays);
+                            $countDays = $this->countThisDay($date, $countDays);
+
+                            $date = $date->modify('+1 day');
+                        }
+                    }
+                } else {
+
+                    $countDays = $this->countThisDay($fromDate, $countDays);
+                }
+            }
         }
 
         return $countDays;

@@ -450,13 +450,26 @@ class Frontend extends Extension implements IFrontendInterface
                             $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
                         }
 
+                        $excusedDays = null;
+                        $unexcusedDays = null;
                         $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                         if ($tblPrepareStudent) {
                             $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
                             $isApproved = $tblPrepareStudent->isApproved();
+                            $excusedDays = $tblPrepareStudent->getExcusedDays();
+                            $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                         } else {
                             $tblCertificate = false;
                             $isApproved = false;
+                        }
+
+                        if ($excusedDays === null){
+                            $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                                new \DateTime($tblPrepare->getDate()));
+                        }
+                        if ($unexcusedDays === null){
+                            $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
+                                new \DateTime($tblPrepare->getDate()));
                         }
 
                         $studentTable[] = array(
@@ -464,9 +477,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Address' => $tblAddress ? $tblAddress->getGuiTwoRowString() : '',
                             'Birthday' => $birthday,
                             'Course' => $course,
-                            'ExcusedAbsence' => Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision),
-                            'UnexcusedAbsence' => Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                $tblDivision),
+                            'ExcusedAbsence' => $excusedDays,
+                            'UnexcusedAbsence' => $unexcusedDays,
                             'SubjectGrades' => ($countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
                                 ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
                                 : new Success(new Enable() . ' ' . $subjectGradesText)),
@@ -1485,7 +1497,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Input.Team' => 'TextArea',
                             'Content.Input.Deepening' => 'TextField',
                             'Content.Input.Choose' => 'TextField',
-                            'Content.Input.Date' => 'DatePicker',
+//                            'Content.Input.Date' => 'DatePicker',
                             'Content.Input.DateCertifcate' => 'DatePicker',
                             'Content.Input.DateConference' => 'DatePicker',
                             'Content.Input.Transfer' => 'TextField',
@@ -1749,10 +1761,18 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         // Fehlzeiten
-                        $Content['Input']['Missing'] = Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                            $tblDivision);
-                        $Content['Input']['Bad']['Missing'] = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                            $tblDivision);
+                        $excusedDays = $tblPrepareStudent->getExcusedDays();
+                        $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
+                        if ($excusedDays === null){
+                            $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                                new \DateTime($tblPrepare->getDate()));
+                        }
+                        if ($unexcusedDays === null){
+                            $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
+                                new \DateTime($tblPrepare->getDate()));
+                        }
+                        $Content['Input']['Missing'] = $excusedDays;
+                        $Content['Input']['Bad']['Missing'] = $unexcusedDays;
 
                         // Zeugnisdatum
                         $Content['Input']['Date'] = $tblPrepare->getDate();

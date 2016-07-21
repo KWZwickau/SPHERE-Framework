@@ -644,19 +644,20 @@ class Service extends AbstractService
     public function updatePrepareStudentSetApproved(TblPrepareStudent $tblPrepareStudent)
     {
 
-        if ($tblPrepareStudent->getServiceTblCertificate()
-            && $tblPrepareStudent->getServiceTblPerson()
-            && $tblPrepareStudent->getTblCertificatePrepare()->getServiceTblDivision()
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && ($tblPrepare = $tblPrepareStudent->getTblCertificatePrepare())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblDivision = $tblPrepareStudent->getTblCertificatePrepare()->getServiceTblDivision())
         ) {
             return (new Data($this->getBinding()))->updatePrepareStudent(
                 $tblPrepareStudent,
-                $tblPrepareStudent->getServiceTblCertificate(),
+                $tblCertificate,
                 true,
                 $tblPrepareStudent->isPrinted(),
-                Absence::useService()->getExcusedDaysByPerson($tblPrepareStudent->getServiceTblPerson(),
-                    $tblPrepareStudent->getTblCertificatePrepare()->getServiceTblDivision()),
-                Absence::useService()->getUnexcusedDaysByPerson($tblPrepareStudent->getServiceTblPerson(),
-                    $tblPrepareStudent->getTblCertificatePrepare()->getServiceTblDivision())
+                Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                    new \DateTime($tblPrepare->getDate())),
+                Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
+                    new \DateTime($tblPrepare->getDate()))
             );
         } else {
             return false;
