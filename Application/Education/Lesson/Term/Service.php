@@ -745,6 +745,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblHoliday $tblHoliday
+     *
+     * @return false|TblYearHoliday[]
+     */
+    public function getYearHolidayAllByHoliday(TblHoliday $tblHoliday)
+    {
+
+        return (new Data($this->getBinding()))->getYearHolidayAllByHoliday($tblHoliday);
+    }
+
+        /**
      * Alle möglichen Holidays innerhalb des Schuljahres
      *
      * @param TblYear $tblYear
@@ -900,5 +911,24 @@ class Service extends AbstractService
         . new Redirect('/Education/Lesson/Term/Holiday/Select', Redirect::TIMEOUT_SUCCESS, array(
             'YearId' => $tblYear->getId(),
         ));
+    }
+
+    /**
+     * @param TblHoliday $tblHoliday
+     *
+     * @return bool
+     */
+    public function destroyHoliday(TblHoliday $tblHoliday)
+    {
+
+        // Verknüpfungen löschen
+        $tblYearHolidayList = $this->getYearHolidayAllByHoliday($tblHoliday);
+        if ($tblYearHolidayList){
+            foreach ($tblYearHolidayList as $tblYearHoliday){
+                (new Data($this->getBinding()))->removeYearHoliday($tblYearHoliday);
+            }
+        }
+
+        return (new Data($this->getBinding()))->destroyHoliday($tblHoliday);
     }
 }

@@ -561,7 +561,7 @@ class Data extends AbstractData
 
         $resultList = $query->getResult();
 
-        if (!empty($resultList)){
+        if (!empty($resultList)) {
             /** @var TblYearHoliday $tblYearHoliday */
             $tblYearHoliday = current($resultList);
             $tblHoliday = $tblYearHoliday->getTblHoliday();
@@ -595,6 +595,21 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearHoliday',
             array(
                 TblYearHoliday::ATTR_TBL_YEAR => $tblYear->getId()
+            )
+        );
+    }
+
+    /**
+     * @param TblHoliday $tblHoliday
+     *
+     * @return false|TblYearHoliday[]
+     */
+    public function getYearHolidayAllByHoliday(TblHoliday $tblHoliday)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearHoliday',
+            array(
+                TblYearHoliday::ATTR_TBL_HOLIDAY => $tblHoliday->getId()
             )
         );
     }
@@ -752,6 +767,28 @@ class Data extends AbstractData
             $Manager->killEntity($Entity);
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param TblHoliday $tblHoliday
+     *
+     * @return bool
+     */
+    public function destroyHoliday(TblHoliday $tblHoliday)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblHoliday $Entity */
+        $Entity = $Manager->getEntityById('TblHoliday', $tblHoliday->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
         return false;
     }
 }

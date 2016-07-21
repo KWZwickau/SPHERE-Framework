@@ -76,6 +76,9 @@ class Term implements IModuleInterface
             __NAMESPACE__ . '/Holiday/Edit', __NAMESPACE__ . '\Frontend::frontendEditHoliday'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Holiday/Destroy', __NAMESPACE__ . '\Frontend::frontendDestroyHoliday'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Holiday/Select', __NAMESPACE__ . '\Frontend::frontendSelectHoliday'
         ));
 

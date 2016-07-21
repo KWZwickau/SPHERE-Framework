@@ -25,9 +25,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -657,10 +659,14 @@ class Frontend extends Extension implements IFrontendInterface
                     'ToDate' => $tblHoliday->getToDate(),
                     'Name' => $tblHoliday->getName(),
                     'Type' => $tblHoliday->getTblHolidayType()->getName(),
-                    'Option' => new Standard(
-                        '', '/Education/Lesson/Term/Holiday/Edit', new Edit(),
-                        array('Id' => $tblHoliday->getId()), 'Bearbeiten'
-                    )
+                    'Option' => (new Standard(
+                            '', '/Education/Lesson/Term/Holiday/Edit', new Edit(),
+                            array('Id' => $tblHoliday->getId()), 'Bearbeiten'
+                        ))
+                        . (new Standard(
+                            '', '/Education/Lesson/Term/Holiday/Destroy', new Remove(),
+                            array('Id' => $tblHoliday->getId()), 'Löschen'
+                        ))
                 );
             }
         }
@@ -976,6 +982,72 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_ERROR);
         }
 
+        return $Stage;
+    }
+
+    /**
+     * @param int $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyHoliday($Id = null, $Confirm = false)
+    {
+
+        $Stage = new Stage('Unterrichtsfreie Tage', 'Löschen');
+
+        if (($tblHoliday = Term::useService()->getHolidayById($Id))) {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Lesson/Term/Holiday', new ChevronLeft()
+            ));
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(
+                            new Question() . ' Diese Unterrichtsfreien Tage wirklich löschen?',
+                            array(
+                                $tblHoliday->getFromDate()
+                                . ($tblHoliday->getToDate() ? ' -  ' . $tblHoliday->getToDate() : ''),
+                                $tblHoliday->getName(),
+                                $tblHoliday->getTblHolidayType()->getName()
+                            ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Lesson/Term/Holiday/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            . new Standard(
+                                'Nein', '/Education/Lesson/Term/Holiday', new Disable()
+                            )
+                        ),
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Term::useService()->destroyHoliday($tblHoliday)
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(
+                                    new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Unterrichtsfreien Tage wurde gelöscht')
+                                . new Redirect('/Education/Lesson/Term/Holiday', Redirect::TIMEOUT_SUCCESS)
+                                : new Danger(new Ban() . ' Die Unterrichtsfreien Tage konnte nicht gelöscht werden')
+                                . new Redirect('/Education/Lesson/Term/Holiday', Redirect::TIMEOUT_ERROR)
+                            )
+                        )))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger(new Ban() . ' Die Unterrichtsfreien Tage konnte nicht gefunden werden'),
+                        new Redirect('/Education/Lesson/Term/Holiday', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
         return $Stage;
     }
 
