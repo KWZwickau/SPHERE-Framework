@@ -27,7 +27,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
      * @param IFormInterface $Form
      * @param array          $Account
      *
-     * @return IFormInterface
+     * @return IFormInterface|string
      */
     public function createAccount(IFormInterface $Form, $Account)
     {
@@ -137,7 +137,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
      * @param TblAccount     $tblAccount
      * @param array          $Account
      *
-     * @return IFormInterface
+     * @return IFormInterface|string
      */
     public function changeAccount(IFormInterface $Form, TblAccount $tblAccount, $Account)
     {
