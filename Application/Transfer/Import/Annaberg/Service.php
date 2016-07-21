@@ -738,12 +738,16 @@ class Service
 
                                 // division
                                 $tblDivision = false;
+                                $tblAlternateCourse = false;
                                 $division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
                                     $RunY)));
                                 if ($division !== '') {
                                     if (strpos($division, 'alpha') !== false) {
                                         $tblSchoolType = Type::useService()->getTypeById(8); // Oberschule
                                         $tblCurrentCompany = $tblCompanyOber;
+                                        $tblAlternateCourse = Course::useService()->getCourseById(2); // Realschule
+                                    } else {
+                                        $tblAlternateCourse = Course::useService()->getCourseById(3); // Gymnasium
                                     }
 
                                     if (strpos($division, '12') !== false){
@@ -1350,7 +1354,7 @@ class Service
                                         } elseif ($course == 'RS') {
                                             $tblCourse = Course::useService()->getCourseById(2); // Realschule
                                         } elseif ($course == '') {
-                                            // do nothing
+                                            $tblCourse = $tblAlternateCourse ? $tblAlternateCourse : null;
                                         } else {
 //                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Bildungsgang nicht gefunden.';
                                         }
