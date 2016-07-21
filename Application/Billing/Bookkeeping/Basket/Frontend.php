@@ -428,7 +428,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
-            return $Stage.new Redirect('/Billing/Accounting/Payment/Selection', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+            return $Stage.new Redirect('/Billing/Accounting/DebtorSelection/Payment/Selection', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
 //        $Stage->addButton(new Standard('Artikel hinzufügen/entfernen', '/Billing/Bookkeeping/Basket/Item/Select', null,
 //            array('Id' => $tblBasket->getId())));
@@ -1087,7 +1087,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
-            return $Stage.new Redirect('/Billing/Accounting/Payment/Selection', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+            return $Stage.new Redirect('/Billing/Accounting/DebtorSelection/Payment/Selection', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket', new ChevronLeft(), array('Id' => $tblBasket->getId())));
 
@@ -1128,14 +1128,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!Basket::useService()->checkSelectedPayer($tblBasket)) {
             $Stage->setContent(new Warning('fehlende Bezahler weiterleitung erfolgt.'));
-            return $Stage.new Redirect('/Billing/Accounting/Payment/Selection', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+            return $Stage.new Redirect('/Billing/Accounting/DebtorSelection/Payment/Selection', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
         }
 
 //        $Stage->addButton(new Backward());
 
 //        $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Danger('Berechnungen leeren', '/Billing/Bookkeeping/Basket/Verification/Destroy', new Disable()
 //            , array('BasketId' => $tblBasket->getId())));
-//        $Stage->addButton(new Standard('Zahlung fakturieren', '/Billing/Accounting/Payment/Selection', new Ok()
+//        $Stage->addButton(new Standard('Zahlung fakturieren', '/Billing/Accounting/DebtorSelection/Payment/Selection', new Ok()
 //            , array('Id' => $tblBasket->getId())));
 //        $Stage->addButton(new Standard('Rechnung Test', '/Billing/Bookkeeping/Basket/Invoice/Create', new EyeOpen()
 //            , array('Id' => $tblBasket->getId())));

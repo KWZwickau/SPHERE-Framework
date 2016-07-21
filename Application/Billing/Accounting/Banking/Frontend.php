@@ -781,17 +781,16 @@ class Frontend extends Extension implements IFrontendInterface
                             ) {
                                 $tblPerson = $tblRelationShip->getServiceTblPersonFrom();
                                 if ($tblPerson) {
-                                    // If Auskommentiert da Personen auch ohne Referenz bezahlen möchten (Bar / Überweisung)
-//                                    $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
-//                                    if (!empty( $tblBankReference )) {
-                                    $PaymentPerson[] = $tblPerson;
-//                                    }
+                                    $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+                                    if ($tblDebtor) {
+                                        $PaymentPerson[] = $tblPerson;
+                                    }
                                 }
                             }
                         });
                     }
-                    $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
-                    if (!empty( $tblBankReference )) {
+                    $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+                    if ($tblDebtor) {
                         $PaymentPerson[] = $tblPerson;
                     }
 
@@ -861,7 +860,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 Banking::useService()->createDebtorSelection(
                                     $Form, $tblBasket, $Data
                                 ) : new Success('Artikelbezogene Bezahler sind bekannt.')
-                                .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
+                                .new Redirect('/Billing/Accounting/DebtorSelection/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
                         )
                     )
                 )
@@ -1171,18 +1170,16 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblRelationShip->getTblType()->getName() !== 'Arzt' &&
                                 $tblRelationShip->getTblType()->getName() !== 'Geschwisterkind'
                             ) {
-                                // If Auskommentiert da Personen auch ohne Referenz bezahlen möchten (Bar / Überweisung)
-//                            $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
-//                            if (!empty( $tblBankReference )) {
-                                $PaymentPerson[] = $tblPerson;
-//                            }
+                                $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+                                if ($tblDebtor) {
+                                    $PaymentPerson[] = $tblPerson;
+                                }
                             }
                         }
                     });
                 }
                 $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
-                $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
-                if (!empty( $tblDebtor ) || !empty( $tblBankReference )) {
+                if ($tblDebtor) {
                     $PaymentPerson[] = $tblPerson;
                 }
 

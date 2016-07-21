@@ -348,7 +348,7 @@ class Service extends AbstractService
             }
             if (!$Error) {
                 return new Success('Daten erfasst')
-                .new Redirect('/Billing/Accounting/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+                .new Redirect('/Billing/Accounting/DebtorSelection/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
             }
             if ($Error === true && !empty( $PersonArray )) {
                 /** @var TblPerson $Person */
