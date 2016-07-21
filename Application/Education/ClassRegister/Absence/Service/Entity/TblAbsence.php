@@ -204,7 +204,7 @@ class TblAbsence extends Element
         $fromDate = new \DateTime($this->getFromDate());
         if ($this->getToDate()) {
             $toDate = new \DateTime($this->getToDate());
-            if ($toDate > $fromDate) {
+            if ($toDate >= $fromDate) {
                 $date = $fromDate;
                 while ($date <= $toDate) {
 
