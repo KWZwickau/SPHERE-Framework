@@ -10,7 +10,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblCertificatePrepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
@@ -65,7 +65,7 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return false|TblCertificatePrepare
+     * @return false|TblPrepareCertificate
      */
     public function getPrepareById($Id)
     {
@@ -76,7 +76,7 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      *
-     * @return false|TblCertificatePrepare[]
+     * @return false|TblPrepareCertificate[]
      */
     public function getPrepareAllByDivision(TblDivision $tblDivision)
     {
@@ -86,7 +86,7 @@ class Service extends AbstractService
 
     /**
      *
-     * @return false|TblCertificatePrepare[]
+     * @return false|TblPrepareCertificate[]
      */
     public function getPrepareAll()
     {
@@ -97,7 +97,7 @@ class Service extends AbstractService
     /**
      * @param TblYear $tblYear
      *
-     * @return false|TblCertificatePrepare[]
+     * @return false|TblPrepareCertificate[]
      */
     public function getPrepareAllByYear(TblYear $tblYear)
     {
@@ -119,23 +119,23 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      *
      * @return false|TblPrepareStudent
      */
-    public function getPrepareStudentBy(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson)
+    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
 
         return (new Data($this->getBinding()))->getPrepareStudentBy($tblPrepare, $tblPerson);
     }
 
     /**
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      *
      * @return bool
      */
-    public function existsPrepareStudentWhereIsApproved(TblCertificatePrepare $tblPrepare)
+    public function existsPrepareStudentWhereIsApproved(TblPrepareCertificate $tblPrepare)
     {
 
         return (new Data($this->getBinding()))->existsPrepareStudentWhereIsApproved($tblPrepare);
@@ -144,7 +144,7 @@ class Service extends AbstractService
     /**
      * Fach-Note
      *
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
@@ -153,7 +153,7 @@ class Service extends AbstractService
      * @return false|TblPrepareGrade
      */
     public function getPrepareGradeBySubject(
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         TblDivision $tblDivision,
         TblSubject $tblSubject,
@@ -172,7 +172,7 @@ class Service extends AbstractService
     /**
      * Kopf-Note
      *
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param TblTestType $tblTestType
@@ -181,7 +181,7 @@ class Service extends AbstractService
      * @return false|TblPrepareGrade
      */
     public function getPrepareGradeByGradeType(
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         TblDivision $tblDivision,
         TblTestType $tblTestType,
@@ -193,14 +193,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblTestType $tblTestType
      *
      * @return false|TblPrepareGrade[]
      */
     public function getPrepareGradeAllByPerson(
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         TblTestType $tblTestType
     ) {
@@ -209,13 +209,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblTestType $tblTestType
      *
      * @return false|TblPrepareGrade[]
      */
     public function getPrepareGradeAllByPrepare(
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         TblTestType $tblTestType
     ) {
 
@@ -225,25 +225,25 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      *
      * @return false|TblPrepareInformation[]
      */
-    public function getPrepareInformationAllByPerson(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson)
+    public function getPrepareInformationAllByPerson(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
 
         return (new Data($this->getBinding()))->getPrepareInformationAllByPerson($tblPrepare, $tblPerson);
     }
 
     /**
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param $Field
      *
      * @return false|TblPrepareInformation
      */
-    public function getPrepareInformationBy(TblCertificatePrepare $tblPrepare, TblPerson $tblPerson, $Field)
+    public function getPrepareInformationBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $Field)
     {
 
         return (new Data($this->getBinding()))->getPrepareInformationBy($tblPrepare, $tblPerson, $Field);
@@ -293,12 +293,12 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param $Data
      *
      * @return IFormInterface|string
      */
-    public function updatePrepare(IFormInterface $Stage = null, TblCertificatePrepare $tblPrepare, $Data)
+    public function updatePrepare(IFormInterface $Stage = null, TblPrepareCertificate $tblPrepare, $Data)
     {
 
         /**
@@ -340,14 +340,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param $Data
      *
      * @return IFormInterface|string
      */
     public function updatePrepareSetAppointedDateTask(
         IFormInterface $Stage = null,
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         $Data
     ) {
 
@@ -378,12 +378,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      *
      * @return string
      */
     public function updatePrepareUpdateAppointedDateTask(
-        TblCertificatePrepare $tblPrepare
+        TblPrepareCertificate $tblPrepare
     ) {
 
         $Stage = new Stage('Stichtagsnotenauftrag', 'Aktualisieren');
@@ -407,14 +407,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param $Data
      *
      * @return IFormInterface|string
      */
     public function updatePrepareSetBehaviorTask(
         IFormInterface $Stage = null,
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         $Data
     ) {
 
@@ -460,7 +460,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblScoreType|null $tblScoreType
      * @param $Data
@@ -469,7 +469,7 @@ class Service extends AbstractService
      */
     public function updatePrepareGradeForBehaviorTask(
         IFormInterface $Stage = null,
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         TblScoreType $tblScoreType = null,
         $Data
@@ -534,14 +534,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param $Data
      *
      * @return IFormInterface|string
      */
     public function updatePrepareSetSigner(
         IFormInterface $Stage = null,
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         $Data
     ) {
 
@@ -581,7 +581,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param $Data
      *
@@ -589,7 +589,7 @@ class Service extends AbstractService
      */
     public function updatePrepareStudentSetCertificate(
         IFormInterface $Stage = null,
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         $Data
     ) {
@@ -645,9 +645,9 @@ class Service extends AbstractService
     {
 
         if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-            && ($tblPrepare = $tblPrepareStudent->getTblCertificatePrepare())
+            && ($tblPrepare = $tblPrepareStudent->gettblPrepareCertificate())
             && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-            && ($tblDivision = $tblPrepareStudent->getTblCertificatePrepare()->getServiceTblDivision())
+            && ($tblDivision = $tblPrepareStudent->gettblPrepareCertificate()->getServiceTblDivision())
         ) {
             return (new Data($this->getBinding()))->updatePrepareStudent(
                 $tblPrepareStudent,
@@ -666,7 +666,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param $Content
      *
@@ -674,7 +674,7 @@ class Service extends AbstractService
      */
     public function updatePrepareInformationList(
         IFormInterface $Stage = null,
-        TblCertificatePrepare $tblPrepare,
+        TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         $Content
     ) {
@@ -704,10 +704,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCertificatePrepare $tblPrepare
+     * @param TblPrepareCertificate $tblPrepare
      * @param $tblTask
      */
-    private function updatePrepareSubjectGrades(TblCertificatePrepare $tblPrepare, TblTask $tblTask)
+    private function updatePrepareSubjectGrades(TblPrepareCertificate $tblPrepare, TblTask $tblTask)
     {
         // Löschen der vorhandenen Zensuren
         (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());

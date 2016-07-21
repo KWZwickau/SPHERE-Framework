@@ -54,26 +54,26 @@ class Setup extends AbstractSetup
     private function setTableCertificatePrepare(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblCertificatePrepare');
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'serviceTblDivision')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblPrepareCertificate');
+        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblDivision')) {
             $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'Date')) {
+        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'Date')) {
             $Table->addColumn('Date', 'datetime', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'serviceTblBehaviorTask')) {
+        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblBehaviorTask')) {
             $Table->addColumn('serviceTblBehaviorTask', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'serviceTblAppointedDateTask')) {
+        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblAppointedDateTask')) {
             $Table->addColumn('serviceTblAppointedDateTask', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'serviceTblPersonSigner')) {
+        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblPersonSigner')) {
             $Table->addColumn('serviceTblPersonSigner', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblCertificatePrepare', 'IsAppointedDateTaskUpdated')) {
+        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'IsAppointedDateTaskUpdated')) {
             $Table->addColumn('IsAppointedDateTaskUpdated', 'boolean');
         }
 

@@ -33,7 +33,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblPrepareGrade extends Element
 {
 
-    const ATTR_TBL_CERTIFICATE_PREPARE = 'tblCertificatePrepare';
+    const ATTR_TBL_PREPARE_CERTIFICATE = 'tblPrepareCertificate';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
@@ -43,7 +43,7 @@ class TblPrepareGrade extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblCertificatePrepare;
+    protected $tblPrepareCertificate;
 
     /**
      * @Column(type="bigint")
@@ -76,25 +76,25 @@ class TblPrepareGrade extends Element
     protected $Grade;
 
     /**
-     * @return bool|TblCertificatePrepare
+     * @return bool|TblPrepareCertificate
      */
-    public function getTblCertificatePrepare()
+    public function gettblPrepareCertificate()
     {
 
-        if (null === $this->tblCertificatePrepare) {
+        if (null === $this->tblPrepareCertificate) {
             return false;
         } else {
-            return Prepare::useService()->getPrepareById($this->tblCertificatePrepare);
+            return Prepare::useService()->getPrepareById($this->tblPrepareCertificate);
         }
     }
 
     /**
-     * @param TblCertificatePrepare|null $tblCertificatePrepare
+     * @param TblPrepareCertificate|null $tblPrepareCertificate
      */
-    public function setTblCertificatePrepare(TblCertificatePrepare $tblCertificatePrepare = null)
+    public function settblPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate = null)
     {
 
-        $this->tblCertificatePrepare = (null === $tblCertificatePrepare ? null : $tblCertificatePrepare->getId());
+        $this->tblPrepareCertificate = (null === $tblPrepareCertificate ? null : $tblPrepareCertificate->getId());
     }
 
     /**

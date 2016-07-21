@@ -22,10 +22,10 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblCertificatePrepare")
+ * @Table(name="tblPrepareCertificate")
  * @Cache(usage="READ_ONLY")
  */
-class TblCertificatePrepare extends Element
+class TblPrepareCertificate extends Element
 {
 
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
