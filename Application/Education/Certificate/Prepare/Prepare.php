@@ -51,6 +51,9 @@ class Prepare implements IModuleInterface
             __NAMESPACE__ . '\AppointedDateTask', __NAMESPACE__ . '\Frontend::frontendAppointedDateTask')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\AppointedDateTask\Select', __NAMESPACE__ . '\Frontend::frontendSelectAppointedDateTask')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\AppointedDateTask\Update', __NAMESPACE__ . '\Frontend::frontendUpdateAppointedDateTask')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -58,6 +61,9 @@ class Prepare implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\BehaviorTask', __NAMESPACE__ . '\Frontend::frontendBehaviorTask')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\BehaviorTask\Select', __NAMESPACE__ . '\Frontend::frontendSelectBehaviorTask')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\BehaviorGrades', __NAMESPACE__ . '\Frontend::frontendBehaviorGrades')

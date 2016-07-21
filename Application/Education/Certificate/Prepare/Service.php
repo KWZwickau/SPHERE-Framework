@@ -339,42 +339,22 @@ class Service extends AbstractService
 
 
     /**
-     * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
-     * @param $Data
+     * @param TblTask $tblTask
      *
-     * @return IFormInterface|string
+     * @return string
      */
     public function updatePrepareSetAppointedDateTask(
-        IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
-        $Data
+        TblTask $tblTask
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
+        $this->updatePrepareSubjectGrades($tblPrepare, $tblTask);
 
-        $Error = false;
-        $tblTask = Evaluation::useService()->getTaskById($Data);
-        if (!$tblTask) {
-            $Stage->setError('Data', 'Bitte wählen Sie einen Stichtagsnotenauftrag aus');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            $this->updatePrepareSubjectGrades($tblPrepare, $tblTask);
-
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Stichtagsnotenauftrag wurde ausgewählt.')
-            . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
-                'PrepareId' => $tblPrepare->getId()
-            ));
-        }
-
-        return $Stage;
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Stichtagsnotenauftrag wurde ausgewählt.')
+        . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
+            'PrepareId' => $tblPrepare->getId()
+        ));
     }
 
     /**
@@ -406,56 +386,38 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
-     * @param $Data
+     * @param TblTask $tblTask
      *
-     * @return IFormInterface|string
+     * @return string
      */
     public function updatePrepareSetBehaviorTask(
-        IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
-        $Data
+        TblTask $tblTask
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
+        // Löschen der vorhandenen Zensuren
+        if ($tblPrepare->getServiceTblBehaviorTask()
+            && $tblPrepare->getServiceTblBehaviorTask()->getId() !== $tblTask->getId()
+        ) {
+            (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
         }
 
-        $Error = false;
-        $tblTask = Evaluation::useService()->getTaskById($Data);
-        if (!$tblTask) {
-            $Stage->setError('Data', 'Bitte wählen Sie einen Kopfnotenauftrag aus');
-            $Error = true;
-        }
+        (new Data($this->getBinding()))->updatePrepare(
+            $tblPrepare,
+            $tblPrepare->getDate(),
+            $tblPrepare->getName(),
+            $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
+            $tblTask,
+            $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null,
+            $tblPrepare->isAppointedDateTaskUpdated()
+        );
 
-        if (!$Error) {
-            // Löschen der vorhandenen Zensuren
-            if ($tblPrepare->getServiceTblBehaviorTask()
-                && $tblPrepare->getServiceTblBehaviorTask()->getId() !== $tblTask->getId()
-            ) {
-                (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
-            }
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnotenauftrag wurde ausgewählt.')
+        . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
+            'PrepareId' => $tblPrepare->getId()
+        ));
 
-            (new Data($this->getBinding()))->updatePrepare(
-                $tblPrepare,
-                $tblPrepare->getDate(),
-                $tblPrepare->getName(),
-                $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
-                $tblTask,
-                $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null,
-                $tblPrepare->isAppointedDateTaskUpdated()
-            );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnotenauftrag wurde ausgewählt.')
-            . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
-                'PrepareId' => $tblPrepare->getId()
-            ));
-        }
-
-        return $Stage;
     }
 
     /**
