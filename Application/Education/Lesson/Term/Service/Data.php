@@ -523,6 +523,56 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblYear $tblYear
+     * @param \DateTime $date
+     *
+     * @return false|TblHoliday
+     */
+    public function getHolidayByDay(TblYear $tblYear, \DateTime $date)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('y')
+            ->from(__NAMESPACE__ . '\Entity\TblHoliday', 'h')
+            ->join(__NAMESPACE__ . '\Entity\TblYearHoliday', 'y')
+            ->where(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->eq('h.FromDate', '?1'),
+                        $queryBuilder->expr()->isNull('h.ToDate'),
+
+                        $queryBuilder->expr()->eq('y.tblHoliday', 'h.Id'),
+                        $queryBuilder->expr()->eq('y.tblYear', '?2')
+                    ),
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->lte('h.FromDate', '?1'),
+                        $queryBuilder->expr()->gte('h.ToDate', '?1'),
+
+                        $queryBuilder->expr()->eq('y.tblHoliday', 'h.Id'),
+                        $queryBuilder->expr()->eq('y.tblYear', '?2')
+                    )
+                )
+            )
+            ->setParameter(1, $date)
+            ->setParameter(2, $tblYear->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        if (!empty($resultList)){
+            /** @var TblYearHoliday $tblYearHoliday */
+            $tblYearHoliday = current($resultList);
+            $tblHoliday = $tblYearHoliday->getTblHoliday();
+
+            return $tblHoliday;
+        }
+
+        return false;
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblYearHoliday
@@ -530,7 +580,8 @@ class Data extends AbstractData
     public function getYearHolidayById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearHoliday', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearHoliday',
+            $Id);
     }
 
     /**
@@ -694,7 +745,7 @@ class Data extends AbstractData
         /** @var TblHoliday $Entity */
         $Entity = $Manager->getEntity('TblYearHoliday')
             ->findOneBy(array(
-                'Id'     => $tblYearHoliday->getId(),
+                'Id' => $tblYearHoliday->getId(),
             ));
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);

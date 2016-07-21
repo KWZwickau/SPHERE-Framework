@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -199,12 +200,45 @@ class TblAbsence extends Element
     public function getDays()
     {
 
-        // ToDo JohK Tage richtig berechnen
+        $countDays = 0;
+        $fromDate = new \DateTime($this->getFromDate());
+        if ($this->getToDate()) {
+            $toDate = new \DateTime($this->getToDate());
+            if ($toDate > $fromDate) {
+                $date = $fromDate;
+                while ($date <= $toDate) {
 
-        return $this->getToDate()
-            ? (date_diff(new \DateTime($this->getToDate()),
-                new \DateTime($this->getFromDate()))->days) + 1
-            : 1;
+                    $countDays = $this->countThisDay($date, $countDays);
+
+                    $date = $date->modify('+1 day');
+                }
+            }
+        } else {
+
+            $countDays = $this->countThisDay($fromDate, $countDays);
+        }
+
+        return $countDays;
+    }
+
+    /**
+     * @param $date
+     * @param $countDays
+     * @return mixed
+     */
+    private function countThisDay(\DateTime $date, $countDays)
+    {
+        if ($date->format('w') != 0 && $date->format('w') != 6) {
+            if ($this->getServiceTblDivision()
+                && ($tblYear = $this->getServiceTblDivision()->getServiceTblYear())
+                && !Term::useService()->getHolidayByDay($tblYear, $date)
+            ) {
+                $countDays++;
+                return $countDays;
+            }
+            return $countDays;
+        }
+        return $countDays;
     }
 
 }

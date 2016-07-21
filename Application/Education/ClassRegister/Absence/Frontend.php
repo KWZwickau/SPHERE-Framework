@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\ClassRegister\Absence;
 
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -41,6 +42,8 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -87,7 +90,7 @@ class Frontend extends Extension implements IFrontendInterface
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
                         $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
                     }
-                    // ToDo JohK Tage richtig berechnen
+
                     $tableData[] = array(
                         'FromDate' => $tblAbsence->getFromDate(),
                         'ToDate' => $tblAbsence->getToDate(),
@@ -360,19 +363,34 @@ class Frontend extends Extension implements IFrontendInterface
 
             $days = array("So", "Mo", "Di", "Mi", "Do", "Fr", "Sa");
 
+
             $maxDays = cal_days_in_month(CAL_GREGORIAN, $Month, $Year);
             $tableHead['Name'] = 'Schüler';
+            $holidays = array();
             for ($i = 1; $i <= $maxDays; $i++) {
                 $date = new \DateTime($i . '.' . $Month . '.' . $Year);
                 $tableHead['Day' . str_pad($i, 2, '0', STR_PAD_LEFT)] = $i . '<br>' . $days[$date->format('w')];
+
+                if ($date->format('w') != 0 && $date->format('w') != 6) {
+                    if (Term::useService()->getHolidayByDay($tblYear, $date)) {
+                        $holidays[$i] = new Muted(new Small('f'));
+                    } else {
+                        $holidays[$i] = '';
+                    }
+                } else {
+                    $holidays[$i] = new Muted(new Small('w'));
+                }
             }
-            $tableHead['TotalDays'] = 'G';
+
             $tableHead['ExcusedDays'] = 'E';
             $tableHead['UnexcusedDays'] = 'U';
+            $tableHead['TotalDays'] = 'G';
 
             $studentTable = array();
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblStudentList) {
+                $tblStudentList = $this->getSorter($tblStudentList)->sortObjectBy('LastFirstName');
+                /** @var TblPerson $tblPerson */
                 foreach ($tblStudentList as $tblPerson) {
                     $studentTable[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
                     $countExcused = 0;
@@ -386,13 +404,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($toDate > $fromDate) {
                                     $date = $fromDate;
                                     while ($date <= $toDate) {
-                                        $this->setStatusForDay($tblPerson, $tblAbsence, $studentTable, $date, $Month,
+                                        $this->setStatusForDay($tblPerson, $tblAbsence, $tblYear, $studentTable, $date,
+                                            $Month,
                                             $Year, $countExcused, $countUnexcused);
                                         $date = $date->modify('+1 day');
                                     }
                                 }
                             } else {
-                                $this->setStatusForDay($tblPerson, $tblAbsence, $studentTable, $fromDate, $Month, $Year,
+                                $this->setStatusForDay($tblPerson, $tblAbsence, $tblYear, $studentTable, $fromDate,
+                                    $Month, $Year,
                                     $countExcused, $countUnexcused);
                             }
                         }
@@ -403,7 +423,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     for ($i = 1; $i <= $maxDays; $i++) {
                         if (!isset($studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0', STR_PAD_LEFT)])) {
-                            $studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0', STR_PAD_LEFT)] = '';
+                            $studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0',
+                                STR_PAD_LEFT)] = $holidays[$i];
                         }
                     }
                 }
@@ -448,9 +469,21 @@ class Frontend extends Extension implements IFrontendInterface
         }
     }
 
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblAbsence $tblAbsence
+     * @param TblYear $tblYear
+     * @param $studentTable
+     * @param \DateTime $date
+     * @param $month
+     * @param $year
+     * @param $countExcused
+     * @param $countUnexcused
+     */
     private function setStatusForDay(
         TblPerson $tblPerson,
         TblAbsence $tblAbsence,
+        TblYear $tblYear,
         &$studentTable,
         \DateTime $date,
         $month,
@@ -458,16 +491,23 @@ class Frontend extends Extension implements IFrontendInterface
         &$countExcused,
         &$countUnexcused
     ) {
+
         if ($date->format('Y') == $year && $date->format('m') == $month) {
             if ($date->format('w') != 0 && $date->format('w') != 6) {
-                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                    $countUnexcused++;
-                    $studentTable[$tblPerson->getId()]['Day' . $date->format('d')]
-                        = new \SPHERE\Common\Frontend\Text\Repository\Danger('U');
-                } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                    $countExcused++;
-                    $studentTable[$tblPerson->getId()]['Day' . $date->format('d')] = new Success('E');
+                if (Term::useService()->getHolidayByDay($tblYear, $date)) {
+                    $studentTable[$tblPerson->getId()]['Day' . $date->format('d')] = new Muted(new Small('f'));
+                } else {
+                    if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+                        $countUnexcused++;
+                        $studentTable[$tblPerson->getId()]['Day' . $date->format('d')]
+                            = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Bold('U'));
+                    } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+                        $countExcused++;
+                        $studentTable[$tblPerson->getId()]['Day' . $date->format('d')] = new Success(new Bold('E'));
+                    }
                 }
+            } else {
+                $studentTable[$tblPerson->getId()]['Day' . $date->format('d')] = new Muted(new Small('w'));
             }
         }
     }

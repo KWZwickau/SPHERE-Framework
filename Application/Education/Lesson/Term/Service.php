@@ -691,6 +691,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblYear $tblYear
+     * @param \DateTime $date
+     *
+     * @return false|TblHoliday
+     */
+    public function getHolidayByDay(TblYear $tblYear, \DateTime $date)
+    {
+
+        return (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date);
+    }
+
+    /**
      * @return false|TblHoliday[]
      */
     public function getHolidayAll()
