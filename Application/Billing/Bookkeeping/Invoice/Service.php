@@ -226,13 +226,14 @@ class Service extends AbstractService
     /**
      * @param \DateTime      $From
      * @param \DateTime|null $To
+     * @param int            $Status "Invoice" 1 = open, 2 = paid, 3 = storno
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByDate(\DateTime $From, \DateTime $To = null)
+    public function getInvoiceAllByDate(\DateTime $From, \DateTime $To = null, $Status = 1)
     {
 
-        return (new Data($this->getBinding()))->getInvoiceAllByDate($From, $To);
+        return (new Data($this->getBinding()))->getInvoiceAllByDate($From, $To, $Status);
     }
 
     /**

@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Api\Billing\Invoice\Sfirm;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Billing\Bookkeeping\Export\Export;
+use SPHERE\Application\Transfer\Export\Invoice\Invoice;
 
 /**
  * Class Sfirm
@@ -34,9 +34,9 @@ class Sfirm
                              'Quantity'      => 'Anzahl',
                              'Sum'           => 'Summe',
         );
-        $TableContent = Export::useService()->createInvoiceListSfirm($TableHeader);
+        $TableContent = Invoice::useService()->createInvoiceListSfirm($TableHeader);
         if ($TableContent) {
-            $fileLocation = Export::useService()->createInvoiceListExcel($TableContent, $TableHeader);
+            $fileLocation = Invoice::useService()->createInvoiceListExcel($TableContent, $TableHeader);
             if ($fileLocation) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "SFirm ".date("Y-m-d H:i:s").".xlsx")->__toString();

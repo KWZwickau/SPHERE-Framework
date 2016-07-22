@@ -280,14 +280,25 @@ class Data extends AbstractData
     /**
      * @param \DateTime      $From
      * @param \DateTime|null $To
+     * @param int            $Status "Invoice" 1 = open, 2 = paid, 3 = storno
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByDate(\DateTime $From, \DateTime $To = null)
+    public function getInvoiceAllByDate(\DateTime $From, \DateTime $To = null, $Status = 1)
     {
+
         if ($To == null) {
             $To = new \DateTime('now');
         }
+        $IsPaid = false;
+        $IsStorno = false;
+        if ($Status == 2) {
+            $IsPaid = true;
+        }
+        if ($Status == 3) {
+            $IsStorno = true;
+        }
+
         $EntityList = $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice');
         if ($EntityList) {
             /** @var TblInvoice $Entity */
@@ -295,7 +306,7 @@ class Data extends AbstractData
                 if (new \DateTime($Entity->getTargetTime()) < $From || new \DateTime($Entity->getTargetTime()) > $To) {
                     $Entity = false;
                 } else {
-                    if ($Entity->getIsPaid() || $Entity->getIsReversal()) {
+                    if ($Entity->getIsPaid() != $IsPaid || $Entity->getIsReversal() != $IsStorno) {
                         $Entity = false;
                     }
                 }

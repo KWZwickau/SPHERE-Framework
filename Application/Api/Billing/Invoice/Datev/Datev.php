@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Api\Billing\Invoice\Datev;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Billing\Bookkeeping\Export\Export;
+use SPHERE\Application\Transfer\Export\Invoice\Invoice;
 
 /**
  * Class Datev
@@ -25,9 +25,9 @@ class Datev
                              'BillDate'      => 'Belegdatum',
                              'Date'          => 'Fälligkeitsdatum',
                              'BookingText'   => 'Buchungstext');
-        $TableContent = Export::useService()->createInvoiceListDatev($TableHeader);
+        $TableContent = Invoice::useService()->createInvoiceListDatev($TableHeader);
         if ($TableContent) {
-            $fileLocation = Export::useService()->createInvoiceListExcel($TableContent, $TableHeader);
+            $fileLocation = Invoice::useService()->createInvoiceListExcel($TableContent, $TableHeader);
             if ($fileLocation) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Datev ".date("Y-m-d H:i:s").".xlsx")->__toString();

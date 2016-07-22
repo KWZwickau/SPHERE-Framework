@@ -1,15 +1,15 @@
 <?php
-namespace SPHERE\Application\Billing\Bookkeeping\Export;
+namespace SPHERE\Application\Transfer\Export\Invoice;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
 /**
- * Class Balance
- * @package SPHERE\Application\Billing\Bookkeeping\Export
+ * Class Invoice
+ * @package SPHERE\Application\Transfer\Export\Invoice
  */
-class Export implements IModuleInterface
+class Invoice implements IModuleInterface
 {
 
     public static function registerModule()
@@ -29,18 +29,18 @@ class Export implements IModuleInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__,
+            Main::getDispatcher()->createRoute('\Billing\Bookkeeping\Export',
                 __NAMESPACE__.'\Frontend::frontendExport'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Filter',
-                __NAMESPACE__.'\Frontend::frontendFilter'
+            Main::getDispatcher()->createRoute('\Billing\Bookkeeping\Export'.'/Prepare',
+                __NAMESPACE__.'\Frontend::frontendPrepare'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Filter/View',
-                __NAMESPACE__.'\Frontend::frontendFilterView'
+            Main::getDispatcher()->createRoute('\Billing\Bookkeeping\Export'.'/Prepare/View',
+                __NAMESPACE__.'\Frontend::frontendPrepareView'
             )
         );
     }
