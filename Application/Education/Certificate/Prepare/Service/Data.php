@@ -264,7 +264,6 @@ class Data extends AbstractData
         $Entity->setServiceTblDivision($tblDivision);
         $Entity->setDate($Date ? new \DateTime($Date) : null);
         $Entity->setName($Name);
-        $Entity->setAppointedDateTaskUpdated(false);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -279,7 +278,6 @@ class Data extends AbstractData
      * @param TblTask|null $tblAppointedDateTask
      * @param TblTask|null $tblBehaviorTask
      * @param TblPerson|null $tblPersonSigner
-     * @param bool|false $IsAppointedDateTaskUpdated
      *
      * @return bool
      */
@@ -289,8 +287,7 @@ class Data extends AbstractData
         $Name,
         TblTask $tblAppointedDateTask = null,
         TblTask $tblBehaviorTask = null,
-        TblPerson $tblPersonSigner = null,
-        $IsAppointedDateTaskUpdated = false
+        TblPerson $tblPersonSigner = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -304,7 +301,6 @@ class Data extends AbstractData
             $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
             $Entity->setServiceTblBehaviorTask($tblBehaviorTask);
             $Entity->setServiceTblPersonSigner($tblPersonSigner);
-            $Entity->setAppointedDateTaskUpdated($IsAppointedDateTaskUpdated);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
