@@ -749,4 +749,46 @@ class Service extends AbstractService
             false
         );
     }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function isAppointedDateTaskUpdated(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        $tblDivision = $tblPrepareCertificate->getServiceTblDivision();
+        $tblTask = $tblPrepareCertificate->getServiceTblAppointedDateTask();
+        if ($tblDivision && $tblTask) {
+            $tblStudentListByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
+            $tblYear = $tblDivision->getServiceTblYear();
+            $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
+            if ($tblStudentListByDivision && $tblYear && $tblTestAllByTask) {
+                foreach ($tblTestAllByTask as $tblTest) {
+                    foreach ($tblStudentListByDivision as $tblPerson) {
+                        $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
+                        if ($tblGrade && $tblGrade->getGrade()) {
+                            $tblPrepareGrade = $this->getPrepareGradeBySubject(
+                                $tblPrepareCertificate,
+                                $tblPerson,
+                                $tblGrade->getServiceTblDivision(),
+                                $tblGrade->getServiceTblSubject(),
+                                $tblTask->getTblTestType()
+                            );
+                            if ($tblPrepareGrade){
+                                if ($tblPrepareGrade->getGrade() != $tblGrade->getDisplayGrade()){
+                                    return true;
+                                }
+                            } else {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
 }

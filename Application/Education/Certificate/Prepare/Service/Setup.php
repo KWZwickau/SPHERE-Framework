@@ -73,9 +73,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblPersonSigner')) {
             $Table->addColumn('serviceTblPersonSigner', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'IsAppointedDateTaskUpdated')) {
-            $Table->addColumn('IsAppointedDateTaskUpdated', 'boolean');
-        }
 
         return $Table;
     }

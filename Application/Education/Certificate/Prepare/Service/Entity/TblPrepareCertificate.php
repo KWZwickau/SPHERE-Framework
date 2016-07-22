@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -59,11 +60,6 @@ class TblPrepareCertificate extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPersonSigner;
-
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsAppointedDateTaskUpdated;
 
     /**
      * @return string
@@ -202,15 +198,6 @@ class TblPrepareCertificate extends Element
     public function isAppointedDateTaskUpdated()
     {
 
-        return $this->IsAppointedDateTaskUpdated;
-    }
-
-    /**
-     * @param bool $IsAppointedDateTaskUpdated
-     */
-    public function setAppointedDateTaskUpdated($IsAppointedDateTaskUpdated)
-    {
-
-        $this->IsAppointedDateTaskUpdated = (bool)$IsAppointedDateTaskUpdated;
+        return Prepare::useService()->isAppointedDateTaskUpdated($this);
     }
 }
