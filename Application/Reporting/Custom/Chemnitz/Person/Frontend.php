@@ -110,13 +110,15 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($TableContent, null,
                                     array(
-                                        'Year'     => 'Jahr',
+                                        'Year' => 'Jahr',
                                         'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => '',))
+                                        'Type' => 'Schulart',
+                                        'Count' => 'Schüler',
+                                        'Option' => ''
+                                    )
+                                )
                                 , 12)
-                        ), new Title(new Listing().' Übersicht')
+                        ), new Title(new Listing() . ' Übersicht')
                     )
                 )
             );
@@ -127,20 +129,20 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(array(
-                            ( $tblDivision->getServiceTblYear() ?
+                            ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
                                     new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
+                                ) : ''),
                             new LayoutColumn(
                                 new Panel('Klasse', $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_SUCCESS), 4
                             ),
-                            ( $tblDivision->getTypeName() ?
+                            ($tblDivision->getTypeName() ?
                                 new LayoutColumn(
                                     new Panel('Schulart', $tblDivision->getTypeName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
+                                ) : ''),
                         ))
                     ),
                     new LayoutGroup(
@@ -148,17 +150,21 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($PersonList, null,
                                     array(
-                                        'Salutation'   => 'Anrede',
-                                        'Father'       => 'Vorname Sorgeberechtigter 1',
-                                        'Mother'       => 'Vorname Sorgeberechtigter 2',
-                                        'LastName'     => 'Name',
+                                        'Salutation' => 'Anrede',
+                                        'Father' => 'Vorname Sorgeberechtigter 1',
+                                        'Mother' => 'Vorname Sorgeberechtigter 2',
+                                        'LastName' => 'Name',
                                         'Denomination' => 'Konfession',
-                                        'Address'      => 'Adresse',
-                                        'FirstName'    => 'Schüler',
-                                        'Birthday'     => 'Geburtsdatum',
-                                        'Birthplace'   => 'Geburtsort',
+                                        'Address' => 'Adresse',
+                                        'FirstName' => 'Schüler',
+                                        'Birthday' => 'Geburtsdatum',
+                                        'Birthplace' => 'Geburtsort',
                                     ),
                                     array(
+                                        'order' => array(
+                                            array(3, 'asc'),
+                                            array(6, 'asc')
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -170,27 +176,27 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel('Weiblich', array(
-                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Männlich', array(
-                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Gesamt', array(
-                                    'Anzahl: '.count($tblPersonList),
+                                    'Anzahl: ' . count($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4)
                         )),
                         new LayoutRow(
                             new LayoutColumn(
-                                ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
                                     entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
                                     in den Stammdaten der Personen.') :
-                                    null )
+                                    null)
                             )
                         )
                     ))
@@ -227,20 +233,24 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($PersonList, null,
                                 array(
                                     'Salutation' => 'Anrede',
-                                    'FirstName'  => 'Vorname',
-                                    'LastName'   => 'Name',
-                                    'Birthday'   => 'Geburtsdatum',
-                                    'Division'   => 'Unterbereich',
-                                    'Address'    => 'Adresse',
+                                    'FirstName' => 'Vorname',
+                                    'LastName' => 'Name',
+                                    'Birthday' => 'Geburtsdatum',
+                                    'Division' => 'Unterbereich',
+                                    'Address' => 'Adresse',
 //                                    'StreetName'         => 'Straße',
 //                                    'StreetNumber'         => 'Hausnr.',
 //                                    'Code'         => 'PLZ',
 //                                    'City'         => 'Ort',
-                                    'Phone1'     => 'Telefon 1',
-                                    'Phone2'     => 'Telefon 2',
-                                    'Mail'       => 'Mail',
+                                    'Phone1' => 'Telefon 1',
+                                    'Phone2' => 'Telefon 2',
+                                    'Mail' => 'Mail',
                                 ),
                                 array(
+                                    'order' => array(
+                                        array(2, 'asc'),
+                                        array(1, 'asc')
+                                    ),
                                     "pageLength" => -1,
                                     "responsive" => false
                                 )
@@ -252,27 +262,27 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Weiblich', array(
-                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
                             new Panel('Männlich', array(
-                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
                             new Panel('Gesamt', array(
-                                'Anzahl: '.count($tblPersonList),
+                                'Anzahl: ' . count($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4)
                     )),
                     new LayoutRow(
                         new LayoutColumn(
-                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
                                     entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
                                     in den Stammdaten der Personen.') :
-                                null )
+                                null)
                         )
                     )
                 ))
@@ -307,20 +317,20 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($PersonList, null,
                                 array(
-                                    'DebtorNumber'  => 'Deb.-Nr.',
-                                    'Reply'         => 'Bescheid geschickt',
-                                    'Father'        => 'Sorgeberechtigter 1',
+                                    'DebtorNumber' => 'Deb.-Nr.',
+                                    'Reply' => 'Bescheid geschickt',
+                                    'Father' => 'Sorgeberechtigter 1',
 //                                    'FatherSalutation'     => 'Anrede V',
 //                                    'FatherLastName'       => 'Name V',
 //                                    'FatherFirstName'      => 'Vorname V',
-                                    'Mother'        => 'Sorgeberechtigter 2',
+                                    'Mother' => 'Sorgeberechtigter 2',
 //                                    'MotherSalutation'     => 'Anrede M',
 //                                    'MotherLastName'       => 'Name M',
 //                                    'MotherFirstName'      => 'Vorname M',
-                                    'Records'       => 'Unterlagen eingereicht',
+                                    'Records' => 'Unterlagen eingereicht',
                                     'LastSchoolFee' => 'SG Vorjahr',
-                                    'Remarks'       => 'Bemerkungen',
-                                    'Address'       => 'Adresse',
+                                    'Remarks' => 'Bemerkungen',
+                                    'Address' => 'Adresse',
 //                                    'StreetName'           => 'Straße',
 //                                    'StreetNumber'         => 'Hausnummer',
 //                                    'Code'                 => 'PLZ',
@@ -338,27 +348,27 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Weiblich', array(
-                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
                             new Panel('Männlich', array(
-                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
                             new Panel('Gesamt', array(
-                                'Anzahl: '.count($tblPersonList),
+                                'Anzahl: ' . count($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4)
                     )),
                     new LayoutRow(
                         new LayoutColumn(
-                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
                                     entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
                                     in den Stammdaten der Personen.') :
-                                null )
+                                null)
                         )
                     )
                 ))
@@ -433,13 +443,14 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($TableContent, null,
                                     array(
-                                        'Year'     => 'Jahr',
+                                        'Year' => 'Jahr',
                                         'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => '',))
+                                        'Type' => 'Schulart',
+                                        'Count' => 'Schüler',
+                                        'Option' => '',
+                                    ))
                                 , 12)
-                        ), new Title(new Listing().' Übersicht')
+                        ), new Title(new Listing() . ' Übersicht')
                     )
                 )
             );
@@ -450,20 +461,20 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(array(
-                            ( $tblDivision->getServiceTblYear() ?
+                            ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
                                     new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
+                                ) : ''),
                             new LayoutColumn(
                                 new Panel('Klasse', $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_SUCCESS), 4
                             ),
-                            ( $tblDivision->getTypeName() ?
+                            ($tblDivision->getTypeName() ?
                                 new LayoutColumn(
                                     new Panel('Schulart', $tblDivision->getTypeName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
+                                ) : ''),
                         ))
                     ),
                     new LayoutGroup(
@@ -471,12 +482,16 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($PersonList, null,
                                     array(
-                                        'LastName'  => 'Name',
+                                        'LastName' => 'Name',
                                         'FirstName' => 'Vorname',
-                                        'Birthday'  => 'Geburtsdatum',
-                                        'Address'   => 'Adresse',
+                                        'Birthday' => 'Geburtsdatum',
+                                        'Address' => 'Adresse',
                                     ),
                                     array(
+                                        'order' => array(
+                                            array(0, 'asc'),
+                                            array(1, 'asc')
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -488,27 +503,27 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel('Weiblich', array(
-                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Männlich', array(
-                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Gesamt', array(
-                                    'Anzahl: '.count($tblPersonList),
+                                    'Anzahl: ' . count($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4)
                         )),
                         new LayoutRow(
                             new LayoutColumn(
-                                ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
                                     entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
                                     in den Stammdaten der Personen.') :
-                                    null )
+                                    null)
                             )
                         )
                     ))
@@ -545,33 +560,37 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($PersonList, null,
                                 array(
                                     'RegistrationDate' => 'Anmeldedatum',
-                                    'FirstName'        => 'Vorname',
-                                    'LastName'         => 'Name',
-                                    'SchoolYear'       => 'Schuljahr',
-                                    'DivisionLevel'    => 'Klassenstufe',
-                                    'TypeOptionA'      => 'Schulart 1',
-                                    'TypeOptionB'      => 'Schulart 2',
-                                    'Address'          => 'Adresse',
+                                    'FirstName' => 'Vorname',
+                                    'LastName' => 'Name',
+                                    'SchoolYear' => 'Schuljahr',
+                                    'DivisionLevel' => 'Klassenstufe',
+                                    'TypeOptionA' => 'Schulart 1',
+                                    'TypeOptionB' => 'Schulart 2',
+                                    'Address' => 'Adresse',
 //                                    'StreetName'         => 'Straße',
 //                                    'StreetNumber'         => 'Hausnummer',
 //                                    'Code'         => 'PLZ',
 //                                    'City'         => 'Ort',
-                                    'Birthday'         => 'Geburtsdatum',
-                                    'Birthplace'       => 'Geburtsort',
-                                    'Nationality'      => 'Staatsangeh.',
-                                    'Denomination'     => 'Bekenntnis',
-                                    'Siblings'         => 'Geschwister',
-                                    'Hoard'            => 'Hort',
-                                    'Father'           => 'Sorgeberechtigter 1',
+                                    'Birthday' => 'Geburtsdatum',
+                                    'Birthplace' => 'Geburtsort',
+                                    'Nationality' => 'Staatsangeh.',
+                                    'Denomination' => 'Bekenntnis',
+                                    'Siblings' => 'Geschwister',
+                                    'Hoard' => 'Hort',
+                                    'Father' => 'Sorgeberechtigter 1',
 //                                    'FatherSalutation'         => 'Anrede V',
 //                                    'FatherLastName'         => 'Name V',
 //                                    'FatherFirstName'         => 'Vorname V',
-                                    'Mother'           => 'Sorgeberechtigter 2',
+                                    'Mother' => 'Sorgeberechtigter 2',
 //                                    'MotherSalutation'         => 'Anrede M',
 //                                    'MotherLastName'         => 'Name M',
 //                                    'MotherFirstName'         => 'Vorname M',
                                 ),
                                 array(
+                                    'order' => array(
+                                        array(2, 'asc'),
+                                        array(1, 'asc')
+                                    ),
                                     "pageLength" => -1,
                                     "responsive" => false
                                 )
@@ -583,27 +602,27 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Weiblich', array(
-                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
                             new Panel('Männlich', array(
-                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
                             new Panel('Gesamt', array(
-                                'Anzahl: '.count($tblPersonList),
+                                'Anzahl: ' . count($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4)
                     )),
                     new LayoutRow(
                         new LayoutColumn(
-                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
                                     entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
                                     in den Stammdaten der Personen.') :
-                                null )
+                                null)
                         )
                     )
                 ))
@@ -623,7 +642,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('ESZC Auswertung', 'Liste für Elternabende');
         if (null !== $DivisionId) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList', new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList',
+                new ChevronLeft()));
         }
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
@@ -664,7 +684,8 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblDivision->getServiceTblYear()) {
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
-                $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList', new EyeOpen(),
+                $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList',
+                    new EyeOpen(),
                     array('DivisionId' => $tblDivision->getId()));
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
@@ -679,13 +700,14 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($TableContent, null,
                                     array(
-                                        'Year'     => 'Jahr',
+                                        'Year' => 'Jahr',
                                         'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => '',))
+                                        'Type' => 'Schulart',
+                                        'Count' => 'Schüler',
+                                        'Option' => '',
+                                    ))
                                 , 12)
-                        ), new Title(new Listing().' Übersicht')
+                        ), new Title(new Listing() . ' Übersicht')
                     )
                 )
             );
@@ -696,20 +718,20 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(array(
-                            ( $tblDivision->getServiceTblYear() ?
+                            ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
                                     new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
+                                ) : ''),
                             new LayoutColumn(
                                 new Panel('Klasse', $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_SUCCESS), 4
                             ),
-                            ( $tblDivision->getTypeName() ?
+                            ($tblDivision->getTypeName() ?
                                 new LayoutColumn(
                                     new Panel('Schulart', $tblDivision->getTypeName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
+                                ) : ''),
                         ))
                     ),
                     new LayoutGroup(
@@ -717,11 +739,15 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($PersonList, null,
                                     array(
-                                        'LastName'   => 'Name',
-                                        'FirstName'  => 'Vorname',
+                                        'LastName' => 'Name',
+                                        'FirstName' => 'Vorname',
                                         'Attendance' => 'Anwesenheit',
                                     ),
                                     array(
+                                        'order' => array(
+                                            array(0, 'asc'),
+                                            array(1, 'asc')
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -733,27 +759,27 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel('Weiblich', array(
-                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Männlich', array(
-                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Gesamt', array(
-                                    'Anzahl: '.count($tblPersonList),
+                                    'Anzahl: ' . count($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4)
                         )),
                         new LayoutRow(
                             new LayoutColumn(
-                                ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
                                     entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
                                     in den Stammdaten der Personen.') :
-                                    null )
+                                    null)
                             )
                         )
                     ))
@@ -793,19 +819,23 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($PersonList, null,
                                 array(
-                                    'Salutation'  => 'Anrede',
-                                    'FirstName'   => 'Vorname',
-                                    'LastName'    => 'Name',
-                                    'Address'     => 'Adresse',
+                                    'Salutation' => 'Anrede',
+                                    'FirstName' => 'Vorname',
+                                    'LastName' => 'Name',
+                                    'Address' => 'Adresse',
 //                                    'StreetName'         => 'Straße',
 //                                    'StreetNumber'         => 'Hausnr.',
 //                                    'Code'         => 'PLZ',
 //                                    'City'         => 'Ort',
-                                    'Phone'       => 'Telefon',
-                                    'Mail'        => 'Mail',
+                                    'Phone' => 'Telefon',
+                                    'Mail' => 'Mail',
                                     'Directorate' => 'Vorstand'
                                 ),
                                 array(
+                                    'order' => array(
+                                        array(2, 'asc'),
+                                        array(1, 'asc')
+                                    ),
                                     "pageLength" => -1,
                                     "responsive" => false
                                 )
@@ -817,27 +847,27 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Weiblich', array(
-                                'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
                             new Panel('Männlich', array(
-                                'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
                             new Panel('Gesamt', array(
-                                'Anzahl: '.count($tblPersonList),
+                                'Anzahl: ' . count($tblPersonList),
                             ), Panel::PANEL_TYPE_INFO)
                             , 4)
                     )),
                     new LayoutRow(
                         new LayoutColumn(
-                            ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
                                     entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
                                     in den Stammdaten der Personen.') :
-                                null )
+                                null)
                         )
                     )
                 ))
@@ -857,7 +887,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('ESZC Auswertung', 'Klassenliste zum Ausdrucken');
         if (null !== $DivisionId) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/PrintClassList', new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Chemnitz/Person/PrintClassList',
+                new ChevronLeft()));
         }
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
@@ -913,13 +944,14 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($TableContent, null,
                                     array(
-                                        'Year'     => 'Jahr',
+                                        'Year' => 'Jahr',
                                         'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => '',))
+                                        'Type' => 'Schulart',
+                                        'Count' => 'Schüler',
+                                        'Option' => '',
+                                    ))
                                 , 12)
-                        ), new Title(new Listing().' Übersicht')
+                        ), new Title(new Listing() . ' Übersicht')
                     )
                 )
             );
@@ -930,20 +962,20 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(array(
-                            ( $tblDivision->getServiceTblYear() ?
+                            ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
                                     new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
+                                ) : ''),
                             new LayoutColumn(
                                 new Panel('Klasse', $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_SUCCESS), 4
                             ),
-                            ( $tblDivision->getTypeName() ?
+                            ($tblDivision->getTypeName() ?
                                 new LayoutColumn(
                                     new Panel('Schulart', $tblDivision->getTypeName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
+                                ) : ''),
                         ))
                     ),
                     new LayoutGroup(
@@ -951,14 +983,14 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($PersonList, null,
                                     array(
-                                        'DisplayName'  => 'Name',
-                                        'Birthday'     => 'Geb.-Datum',
-                                        'Address'      => 'Adresse',
+                                        'DisplayName' => 'Name',
+                                        'Birthday' => 'Geb.-Datum',
+                                        'Address' => 'Adresse',
                                         'PhoneNumbers' => 'Telefonnummer',
-                                        'Group'        => 'Schüler&shy;gruppe',
-                                        'Orientation'  => 'Profil/NK/VK',
-                                        'Education'    => 'Bildungsgang',
-                                        'Elective'    => 'Wahlfach',
+                                        'Group' => 'Schüler&shy;gruppe',
+                                        'Orientation' => 'Profil/NK/VK',
+                                        'Education' => 'Bildungsgang',
+                                        'Elective' => 'Wahlfach',
                                     ),
                                     array(
                                         "pageLength" => -1,
@@ -972,27 +1004,27 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel('Weiblich', array(
-                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
+                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Männlich', array(
-                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
+                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Gesamt', array(
-                                    'Anzahl: '.count($tblPersonList),
+                                    'Anzahl: ' . count($tblPersonList),
                                 ), Panel::PANEL_TYPE_INFO)
                                 , 4)
                         )),
                         new LayoutRow(
                             new LayoutColumn(
-                                ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
                                     entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
                                     in den Stammdaten der Personen.') :
-                                    null )
+                                    null)
                             )
                         )
                     ))
