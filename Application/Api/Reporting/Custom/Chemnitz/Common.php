@@ -26,7 +26,15 @@ class Common
         if ($tblDivision) {
             $PersonList = Person::useService()->createClassList($tblDivision);
             if ($PersonList) {
+
+                foreach ($PersonList as $key => $row) {
+                    $name[$key] = strtoupper($row['LastName']);
+                    $firstName[$key] = strtoupper($row['FirstName']);
+                }
+                array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
                 $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+
                 if ($tblPersonList) {
                     $fileLocation = Person::useService()->createClassListExcel($PersonList, $tblPersonList);
 
@@ -49,6 +57,12 @@ class Common
         $PersonList = Person::useService()->createStaffList();
 
         if ($PersonList) {
+            foreach ($PersonList as $key => $row) {
+                $name[$key] = strtoupper($row['LastName']);
+                $firstName[$key] = strtoupper($row['FirstName']);
+            }
+            array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
             $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
             if ($tblPersonList) {
                 $fileLocation = Person::useService()->createStaffListExcel($PersonList, $tblPersonList);
@@ -73,6 +87,12 @@ class Common
         if ($tblDivision) {
             $PersonList = Person::useService()->createMedicList($tblDivision);
             if ($PersonList) {
+                foreach ($PersonList as $key => $row) {
+                    $name[$key] = strtoupper($row['LastName']);
+                    $firstName[$key] = strtoupper($row['FirstName']);
+                }
+                array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
                 $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblPersonList) {
                     $fileLocation = Person::useService()->createMedicListExcel($PersonList, $tblPersonList);
@@ -99,6 +119,12 @@ class Common
         if ($tblDivision) {
             $PersonList = Person::useService()->createParentTeacherConferenceList($tblDivision);
             if ($PersonList) {
+                foreach ($PersonList as $key => $row) {
+                    $name[$key] = strtoupper($row['LastName']);
+                    $firstName[$key] = strtoupper($row['FirstName']);
+                }
+                array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
                 $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblPersonList) {
                     $fileLocation = Person::useService()->createParentTeacherConferenceListExcel($PersonList, $tblPersonList);
@@ -124,6 +150,12 @@ class Common
         if ($PersonList) {
             $tblGroup = Group::useService()->getGroupByName('Verein');
             if ($tblGroup) {
+                foreach ($PersonList as $key => $row) {
+                    $name[$key] = strtoupper($row['LastName']);
+                    $firstName[$key] = strtoupper($row['FirstName']);
+                }
+                array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
                 $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
                 if ($tblPersonList) {
                     $fileLocation = Person::useService()->createClubMemberListExcel($PersonList, $tblPersonList);
@@ -145,6 +177,12 @@ class Common
 
         $PersonList = Person::useService()->createInterestedPersonList();
         if ($PersonList) {
+            foreach ($PersonList as $key => $row) {
+                $name[$key] = strtoupper($row['LastName']);
+                $firstName[$key] = strtoupper($row['FirstName']);
+            }
+            array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
             $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
             if ($tblPersonList) {
                 $fileLocation = Person::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList);
@@ -165,6 +203,12 @@ class Common
 
         $PersonList = Person::useService()->createSchoolFeeList();
         if ($PersonList) {
+            foreach ($PersonList as $key => $row) {
+                $name[$key] = strtoupper($row['LastName']);
+                $firstName[$key] = strtoupper($row['FirstName']);
+            }
+            array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
             $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
             if ($tblPersonList) {
                 $fileLocation = Person::useService()->createSchoolFeeListExcel($PersonList, $tblPersonList);
