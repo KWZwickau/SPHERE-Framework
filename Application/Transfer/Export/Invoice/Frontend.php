@@ -47,7 +47,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Export', 'aller offenen Posten');
 
-        $TableHeader = array('Name'          => 'Name',
+        $TableHeader = array('InvoiceNumber' => 'Rechnungsnummer',
+                             'Debtor'        => 'Debitor',
+                             'Name'          => 'Name',
                              'StudentNumber' => 'Schülernummer',
                              'Date'          => 'Fälligkeitsdatum',
         );

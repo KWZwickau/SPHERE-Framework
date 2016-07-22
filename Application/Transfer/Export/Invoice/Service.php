@@ -91,6 +91,7 @@ class Service
                         $tblItemList = Invoice::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
                         if ($tblItemList) {
 
+                            $Item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                             $Item['Debtor'] = '';
                             $Item['Name'] = $tblPerson->getLastFirstName();
                             $Item['StudentNumber'] = 'keine';

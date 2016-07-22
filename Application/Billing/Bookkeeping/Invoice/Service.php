@@ -383,12 +383,14 @@ class Service extends AbstractService
 
         $tblInvoiceList = Invoice::useService()->getInvoiceAllByYearAndMonth((new \DateTime($Date)));
         $date = (new \DateTime($Date))->format('ym');
-        $count = Count($tblInvoiceList);
-        $count = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
-
+        if (empty( $tblInvoiceList )) {
+            $count = 1;
+        } else {
+            $count = count($tblInvoiceList);
+        }
         /** fill Invoice/tblInvoice */
         foreach ($DebtorItemList as $DebtorId => $InvoiceList) {
-            $count++;
+            $countString = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
             $InsertArray = array();
             foreach ($InvoiceList['DebtorInvoice'] as $DebtorInvoiceId) {
                 $tblDebtor = Invoice::useService()->getDebtorById($DebtorInvoiceId);
@@ -414,11 +416,13 @@ class Service extends AbstractService
                     }
                 }
             }
-            $InvoiceId = (new Data($this->getBinding()))->createInvoice($InsertArray['tblPersonDebtor'], $count, $Date,
+            $InvoiceId = (new Data($this->getBinding()))->createInvoice($InsertArray['tblPersonDebtor'], $countString, $Date,
                 $InsertArray['tblAddress'],
                 ( empty( $InsertArray['tblMail'] ) ? null : $InsertArray['tblMail'] ),
                 ( empty( $InsertArray['tblPhone'] ) ? null : $InsertArray['tblPhone'] ))->getId();
             $DebtorItemList[$DebtorId]['InvoiceId'] = $InvoiceId;
+
+            $count++;
         }
 
         /** fill Invoice/tblInvoiceItem */

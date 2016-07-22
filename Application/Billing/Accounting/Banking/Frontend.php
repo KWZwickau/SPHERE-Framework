@@ -62,7 +62,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
-
 /**
  * Class Frontend
  * @package SPHERE\Application\Billing\Accounting\Banking
@@ -912,8 +911,6 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblDebtorSelectionList )) {
             array_walk($tblDebtorSelectionList, function (TblDebtorSelection $tblDebtorSelection) use (&$TableContent, &$Global, &$Data) {
 
-//                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
-//                if ($tblPaymentType->getId() === $tblDebtorSelection->getServiceTblPaymentType()->getId()) {
                 $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
                 $tblPaymentTypeSelection = $tblDebtorSelection->getServiceTblPaymentType();
                 if (Banking::useService()->checkDebtorSelectionDebtor($tblDebtorSelection)) {   //Prüfung auf vorhandene Zuweisungen
@@ -939,10 +936,10 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $DebtorArray = array();
-                    if (Banking::useService()->getDebtorByPerson($tblPerson)) {
-                        $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
-                        $DebtorArray = array_merge($DebtorArray, $DebtorList);
-                    }
+//                    if (Banking::useService()->getDebtorByPerson($tblPerson)) {
+//                        $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+//                        $DebtorArray = array_merge($DebtorArray, $DebtorList);
+//                    }
                     if (Banking::useService()->getDebtorByPerson($tblPersonPayers)) {
                         $DebtorList = Banking::useService()->getDebtorByPerson($tblPersonPayers);
                         $DebtorArray = array_merge($DebtorArray, $DebtorList);
@@ -1290,10 +1287,6 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblDebtorSelectionList )) {
             array_walk($tblDebtorSelectionList, function (TblDebtorSelection $tblDebtorSelection) use (&$TableContent, &$Global, &$Data) {
 
-//                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
-//                if ($tblPaymentType->getId() === $tblDebtorSelection->getServiceTblPaymentType()->getId()) {
-//                    if (Banking::useService()->checkDebtorSelectionDebtor($tblDebtorSelection)) { //Prüfung auf vorhandene Zuweisungen
-
                 $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
                 $tblPaymentTypeSelection = $tblDebtorSelection->getServiceTblPaymentType();
 
@@ -1319,10 +1312,10 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $DebtorArray = array();
-                if (Banking::useService()->getDebtorByPerson($tblPerson)) {
-                    $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
-                    $DebtorArray = array_merge($DebtorArray, $DebtorList);
-                }
+//                if (Banking::useService()->getDebtorByPerson($tblPerson)) {
+//                    $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+//                    $DebtorArray = array_merge($DebtorArray, $DebtorList);
+//                }
                 if (Banking::useService()->getDebtorByPerson($tblPersonPayers)) {
                     $DebtorList = Banking::useService()->getDebtorByPerson($tblPersonPayers);
                     $DebtorArray = array_merge($DebtorArray, $DebtorList);
@@ -1335,13 +1328,6 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     $Item['SelectDebtor'] = new \SPHERE\Common\Frontend\Text\Repository\Danger('Debitor benötigt!');
                 }
-//                    if (!empty( $Payment )) {
-////                        foreach($Payment as $Pay)
-////                        $Item['SelectBox'] = $Pay;
-//                        $Item['RadioBox'] = new Panel('Zahlung:', $Payment);
-//                    } else {
-//                        $Item['RadioBox'] = new WarningText('keine Kontoinformationen');
-//                    }
 
                 if (( $tblRef = $tblDebtorSelection->getTblBankReference() )) {
                     $Global->POST['Data'][$tblDebtorSelection->getId()]['Reference'] = $tblRef->getId();
@@ -1362,14 +1348,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $Data[$tblDebtorSelection->getId()]['Item'] = $tblItem->getId();
                 }
                 array_push($TableContent, $Item);
-//                }
-//                }
             });
         }
 
-//        if($Data === null){
         $Global->savePost();
-//        }
 
         $Form = new Form(
             new FormGroup(array(
