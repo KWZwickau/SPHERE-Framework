@@ -19,6 +19,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -249,6 +250,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         'PersonId' => $tblPerson->getId()
                                     ),
                                     'Zeugnis freigeben')) : '')
+                                . ($isApproved ? (new Standard(
+                                    'Zeugnisfreigabe entfernen', '/Education/Certificate/Approve/Prepare/ResetApproved',
+                                    new Disable(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'PersonId' => $tblPerson->getId()
+                                    ),
+                                    'Zeugnisfreigabe entfernen')) : '')
                         );
                     }
                 }
@@ -368,6 +377,79 @@ class Frontend extends Extension implements IFrontendInterface
 
                 return $Stage
                 . new \SPHERE\Common\Frontend\Message\Repository\Success('Zeugnis wurde freigegeben.',
+                    new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/Education/Certificate/Approve/Prepare', Redirect::TIMEOUT_SUCCESS,
+                    array('PrepareId' => $tblPrepare->getId()));
+            }
+
+            return $Stage;
+
+        } else {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Approve', new ChevronLeft()
+            ));
+
+            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     *
+     * @return Stage|string
+     */
+    public function frontendResetApprovePrepare($PrepareId = null, $PersonId = null)
+    {
+        $Stage = new Stage('Zeugnis', 'Freigabe entfernen');
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+        ) {
+
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Approve/Prepare', new ChevronLeft(),
+                array('PrepareId' => $tblPrepare->getId())
+            ));
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnisvorbereitung',
+                                    array(
+                                        $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    ),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision ? $tblDivision->getDisplayName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    $tblPerson ? $tblPerson->getLastFirstName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 12),
+                        )),
+                    )),
+                ))
+            );
+
+            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                Prepare::useService()->updatePrepareStudentResetApproved($tblPrepareStudent);
+
+                return $Stage
+                . new \SPHERE\Common\Frontend\Message\Repository\Success('Zeugnisfreigabe wurde entfernt.',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . new Redirect('/Education/Certificate/Approve/Prepare', Redirect::TIMEOUT_SUCCESS,
                     array('PrepareId' => $tblPrepare->getId()));

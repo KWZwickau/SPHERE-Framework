@@ -627,6 +627,32 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return bool
+     */
+    public function updatePrepareStudentResetApproved(TblPrepareStudent $tblPrepareStudent)
+    {
+
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && ($tblPrepare = $tblPrepareStudent->gettblPrepareCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblDivision = $tblPrepareStudent->gettblPrepareCertificate()->getServiceTblDivision())
+        ) {
+            return (new Data($this->getBinding()))->updatePrepareStudent(
+                $tblPrepareStudent,
+                $tblCertificate,
+                false,
+                $tblPrepareStudent->isPrinted(),
+                null,
+                null
+            );
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson

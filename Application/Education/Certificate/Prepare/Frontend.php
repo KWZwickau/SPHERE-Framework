@@ -2042,7 +2042,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         ? Panel::PANEL_TYPE_SUCCESS
                                         : Panel::PANEL_TYPE_WARNING
                                 ),
-                            ), 4),
+                            ), 12),
                             new LayoutColumn(array(
                                 $ContentLayout
                             )),
