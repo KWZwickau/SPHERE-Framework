@@ -15,7 +15,7 @@ class Search implements IApplicationInterface
     {
 
         Group\Group::registerModule();
-        Filter\Filter::registerModule();
+//        Filter\Filter::registerModule();
     }
 
 }
