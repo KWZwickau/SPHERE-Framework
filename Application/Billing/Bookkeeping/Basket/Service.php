@@ -420,18 +420,21 @@ class Service extends AbstractService
                             if ($tblItemCourseType) {
                                 $ItemCourseId = $tblItemCourseType->getId();
                             }
+                            $ItemChildRankName = '';
                             $tblItemChildRank = $tblCalculation->getServiceTblSiblingRank();
                             if ($tblItemChildRank) {
                                 $ItemChildRankId = $tblItemChildRank->getId();
+                                $ItemChildRankName = $tblItemChildRank->getName();
                             }
-                            if ($PersonChildRank !== false && $PersonCourse !== false) {
-                                if (false === $ItemChildRankId && $PersonCourse === $ItemCourseId) {    // Ignoriert Geschwisterkinder
-                                    $Price = $tblCalculation->getValue();
-                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-                                } elseif ($PersonChildRank === $ItemChildRankId && false === $ItemCourseId) { // Ignoriert SchulTyp
-                                    $Price = $tblCalculation->getValue();
-                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-                                }
+                            if (false === $ItemChildRankId && $PersonCourse === $ItemCourseId) {    // Ignoriert Geschwisterkinder
+                                $Price = $tblCalculation->getValue();
+                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                            } elseif ($PersonChildRank === $ItemChildRankId && false === $ItemCourseId) { // Ignoriert SchulTyp
+                                $Price = $tblCalculation->getValue();
+                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                            } elseif ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && false === $ItemCourseId) { //Person ohne Geschwistereinstellung = 1. Geschwisterkind
+                                $Price = $tblCalculation->getValue();
+                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
                             }
                         }
                     }
