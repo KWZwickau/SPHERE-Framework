@@ -2,27 +2,42 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
+use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItem;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\Money;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -58,6 +73,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Content['Reference'] = '';
                 $Content['DebtorNumber'] = '';
                 $Content['TargetTime'] = $tblInvoice->getTargetTime();
+                $Content['Paid'] = Balance::useService()->getPriceString(Balance::useService()->getPaidFromInvoice($tblInvoice));
                 $tblDebtorList = Invoice::useService()->getDebtorAllByInvoice($tblInvoice);
                 $DebtorNumberArray = array();
                 $DebtorReferenceArray = array();
@@ -103,8 +119,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $Content['ItemList'] = '';
                 }
                 $Content['Price'] = Invoice::useService()->getPriceString($Price);
-                $Content['Option'] = new Standard('', '/Billing/Bookkeeping/Balance/View', new Listing(),
-                    array('Id' => $tblInvoice->getId()));
+                $Content['Option'] = new Standard('', '/Billing/Bookkeeping/Balance/View', new Edit(),
+                    array('Id' => $tblInvoice->getId()), 'Rechnung einsehen');
 
                 array_push($TableContent, $Content);
             });
@@ -124,6 +140,7 @@ class Frontend extends Extension implements IFrontendInterface
                                           'Reference'     => 'Mandatsreferenz(en)',
                                           'TargetTime'    => 'Fällig am',
                                           'ItemList'      => 'Artikel',
+                                          'Paid'          => 'Bezahlt',
                                           'Price'         => 'Gesamtpreis',
                                           'Option'        => ''))
                             )
@@ -136,7 +153,13 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendBalanceView($Id = null)
+    /**
+     * @param null $Id
+     * @param null $Payment
+     *
+     * @return Stage|string
+     */
+    public function frontendBalanceView($Id = null, $Payment = null)
     {
 
         $Stage = new Stage('Rechung', '');
@@ -150,42 +173,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
 
-//        $Quantity = array();
         $TableContent = array();
         $SumPrice = 0;
         if ($tblItemList) {
-//            // Doppelte Artikel zusammenfassen
-//            foreach($tblItemList as $tblItem){
-//                $SumPrice += $tblItem->getValue() * $tblItem->getQuantity();
-//                if(empty($Quantity[$tblItem->getServiceTblItem()->getId().$tblItem->getValue()])){
-//                    $Quantity[$tblItem->getServiceTblItem()->getId().$tblItem->getValue()] = $tblItem->getQuantity();
-//                } else {
-//                    $Quantity[$tblItem->getServiceTblItem()->getId().$tblItem->getValue()] += $tblItem->getQuantity();
-//                }
-//            }
-//            $separator = array();
-//            array_walk($tblItemList, function( TblItem $tblItem ) use (&$TableContent, &$ItemPanel, $Quantity, &$separator){
-//                $Item['Name'] = $tblItem->getName();
-//                $Item['Quantity'] = $Quantity[$tblItem->getServiceTblItem()->getId().$tblItem->getValue()];
-//                $Item['SinglePrice'] = $tblItem->getPriceString();
-//                $Item['SumPrice'] = number_format($tblItem->getValue() * $Quantity[$tblItem->getServiceTblItem()->getId().$tblItem->getValue()], 2).' €';
-//
-//                // Doppelte Artikel nur einmal aufnehmen
-//                if(empty($separator[$tblItem->getServiceTblItem()->getId().$tblItem->getValue()])){
-//                    array_push($TableContent, $Item);
-//                }
-//                $separator[$tblItem->getServiceTblItem()->getId().$tblItem->getValue()] = 'Vorhanden';
-//            });
-//        }
-//
-//        // Sortierung nach Name && Preis aufsteigend
-//        foreach ($TableContent as $key => $row) {
-//            $Name[$key] = strtoupper($row['Name']);
-//            $SummaryPrice[$key] = ($row['SinglePrice']);
-//        }
-//        array_multisort($Name, SORT_ASC, $SummaryPrice, SORT_ASC,  $TableContent);
-
-
             array_walk($tblItemList, function (TblItem $tblItem) use (&$TableContent, &$SumPrice, $tblInvoice) {
                 $Item['Name'] = $tblItem->getName();
                 $Item['Quantity'] = $tblItem->getQuantity();
@@ -214,50 +204,158 @@ class Frontend extends Extension implements IFrontendInterface
         }
         array_multisort($Name, SORT_ASC, $SummaryPrice, SORT_ASC, $TableContent);
 
+        $TablePaid = array();
+        $tblPaymentList = Balance::useService()->getPaymentAllByInvoice($tblInvoice);
+        if ($tblPaymentList) {
+            array_walk($tblPaymentList, function (TblPayment $tblPayment) use (&$TablePaid, $tblInvoice) {
+                $Content['Time'] = $tblPayment->getLastDate();
+                $Content['Purpose'] = $tblPayment->getPurpose();
+                $Content['Value'] = $tblPayment->getValueString();
+                $Content['PaymentType'] = $tblPayment->getTblPaymentType()->getName();
+                $Content['Option'] = new Standard('', '/Billing/Bookkeeping/Balance/Payment/Edit', new Edit(),
+                    array('Id'        => $tblInvoice->getId(),
+                          'PaymentId' => $tblPayment->getId()
+                    ));
+                array_push($TablePaid, $Content);
+            });
+        }
+
+        $Form = $this->formPayment();
+        $Form->appendFormButton(new Primary('Speichern', new Save()));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $tblPaymenttype = Balance::useService()->getPaymentTypeByName('Bar');
+        if ($tblPaymenttype && empty( $Payment )) {
+            $Global = $this->getGlobal();
+            $Global->POST['Payment']['Payment'] = $tblPaymenttype->getId();
+            $Global->savePost();
+        }
+
         $Stage->setContent(
-            $this->layoutInvoice($tblInvoice, $SumPrice)
-            .new Layout(
-                new LayoutGroup(
+            new Layout(
+                new LayoutGroup(array(
                     new LayoutRow(
+                        new LayoutColumn($this->layoutInvoice($tblInvoice, $SumPrice)
+                            , 12)
+                    ),
+                    new LayoutRow(array(
                         new LayoutColumn(array(
                             new Title(new ListingTable().' Übersicht der Artikel'),
-                            new TableData($TableContent, null, array(), false)
-                        ))
-                    )
-                )
+                            new TableData($TableContent, null,
+                                array('Name'        => 'Artikel',
+                                      'SinglePrice' => 'Einzelpreis',
+                                      'Quantity'    => 'Anzahl',
+                                      'SumPrice'    => 'Gesamtpreis',
+                                      'Payment'     => 'Bezahlart',
+                                )
+                                , false)
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Title(new Money().' Teilzahlung'),
+                            ( empty( $TablePaid ) ? new Warning('Keine Teilzahlungen vorhanden') :
+                                new TableData($TablePaid, null,
+                                    array('Time'        => 'Datum',
+                                          'Purpose'     => 'Verwendungszweck',
+                                          'Value'       => 'Betrag',
+                                          'PaymentType' => 'Bezahlart',
+                                          'Option'      => '',),
+                                    false) ),
+
+                            new Well(
+                                Balance::useService()->createPayment(
+                                    $Form, $tblInvoice, $Payment))
+                        ), 6)
+                    ))
+                ))
             )
         );
 
         return $Stage;
     }
 
-    public function layoutInvoice(TblInvoice $tblInvoice, $SummaryPrice)
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param            $SummaryPrice
+     *
+     * @return string
+     */
+    public function layoutInvoice(TblInvoice $tblInvoice, $SummaryPrice, $Buttons = true)
     {
+
+        $Content = array();
+        $Content[] = 'Gesamtbetrag: '.new PullRight(Balance::useService()->getPriceString($SummaryPrice));
+        if (( $PaidMoney = Balance::useService()->getPaidFromInvoice($tblInvoice) ) > 0) {
+            $result = $SummaryPrice - $PaidMoney;
+            if ($result >= 0) {
+                $Content[] = new Bold('Fehlender Betrag: '.new PullRight(Balance::useService()->getPriceString($result)));
+            } else {
+                $Content[] = new Danger(new Bold('Betrag überschritten: '.new PullRight(Balance::useService()->getPriceString($result))));
+            }
+        }
 
         $tblPersonFrom = $tblInvoice->getServiceTblPerson();
         return new Title('Eckdaten der Rechnung')
         .new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
-                    new LayoutColumn(array(
-                        new Panel('Rechnungsnummer:', $tblInvoice->getInvoiceNumber(), Panel::PANEL_TYPE_SUCCESS),
-                    ), 4),
-                    new LayoutColumn(array(
-                        new Panel('Gesamtbetrag:', $SummaryPrice.' €', Panel::PANEL_TYPE_SUCCESS,
-                            new PullRight(new Standard('', '/Billing/Bookkeeping/Balance/Paid', new Check(),
+                    new LayoutColumn(
+                        new Panel('Rechnungsnummer:', $tblInvoice->getInvoiceNumber(), Panel::PANEL_TYPE_SUCCESS)
+                        , 4),
+                    new LayoutColumn(
+                        new Panel('Rechnungsempfänger:', $tblPersonFrom->getFullName(), Panel::PANEL_TYPE_SUCCESS)
+                        , 4),
+                    new LayoutColumn(
+                        new Panel('Gesamtbetrag:', $Content, Panel::PANEL_TYPE_SUCCESS,
+                            ( $Buttons ? new PullRight(new Standard('', '/Billing/Bookkeeping/Balance/Paid', new Check(),
                                     array('Id' => $tblInvoice->getId()), 'Bezahlen')
                                 .new Standard('', '/Billing/Bookkeeping/Balance/Reversal', new Disable(),
-                                    array('Id' => $tblInvoice->getId()), 'Stornieren'))
-                        ),
-                    ), 4),
-                    new LayoutColumn(array(
-                        new Panel('Rechnungsempfänger:', $tblPersonFrom->getFullName(), Panel::PANEL_TYPE_SUCCESS),
-                    ), 4),
+                                    array('Id' => $tblInvoice->getId()), 'Stornieren')) :
+                                '' )
+                        )
+                        , 4),
                 ))
             )
         );
     }
 
+    /**
+     * @return Form
+     */
+    public function formPayment()
+    {
+
+        $tblPaymentTypeList = Balance::useService()->getPaymentTypeAll();
+        if (!$tblPaymentTypeList) {
+            $tblPaymentTypeList = array(new TblPaymentType());
+        }
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Betrag', array(
+                            new TextField('Payment[Value]', '', '', new Money())
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Verwendungszweck', array(
+                            new TextField('Payment[Purpose]', '', '', new CommodityItem())
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Bezahlart', array(
+                            new SelectBox('Payment[Payment]', '', array('{{ Name }}' => $tblPaymentTypeList))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                ))
+            )
+        );
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return Stage|string
+     */
     public function frontendBalancePaid($Id = null)
     {
         $Stage = new Stage('Bezahlen der Rechnung', 'Manuelles');
@@ -295,6 +393,11 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param null $Id
+     *
+     * @return Stage|string
+     */
     public function frontendBalanceReversal($Id = null)
     {
         $Stage = new Stage('Stornieren der Rechnung');
@@ -329,6 +432,62 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $PaymentId
+     * @param null $Payment
+     *
+     * @return Stage|string
+     */
+    public function frontendPaymentEdit($Id = null, $PaymentId = null, $Payment = null)
+    {
+        $Stage = new Stage('Teilzahlung', 'Bearbeiten');
+        $tblInvoice = ( $Id == null ? false : Invoice::useService()->getInvoiceById($Id) );
+        if (!$tblInvoice) {
+            $Stage->setContent(new Warning('Rechnung nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Bookkeeping/Balance', Redirect::TIMEOUT_ERROR);
+        }
+        $tblPayment = ( $Id == null ? false : Balance::useService()->getPaymentById($PaymentId) );
+        if (!$tblPayment) {
+            $Stage->setContent(new Warning('Teilzahlung nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Bookkeeping/Balance/View', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblInvoice->getId()));
+        }
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Balance/View', new ChevronLeft(),
+            array('Id' => $tblInvoice->getId())));
+        $Form = $this->formPayment();
+        $Form->appendFormButton(new Primary('Speichern', new Save()));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Global = $this->getGlobal();
+        if ($Payment == null) {
+            $Value = number_format($tblPayment->getValue(), 2);
+            $Global->POST['Payment']['Value'] = str_replace('.', ',', $Value);
+            $Global->POST['Payment']['Purpose'] = $tblPayment->getPurpose();
+            $Global->POST['Payment']['Payment'] = $tblPayment->getTblPaymentType()->getId();
+            $Global->savePost();
+        }
+
+        $SumPrice = Invoice::useService()->getInvoicePrice($tblInvoice);
+
+        $Stage->setContent(
+            $this->layoutInvoice($tblInvoice, $SumPrice, false)
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                Balance::useService()->changePayment(
+                                    $Form, $tblInvoice, $tblPayment, $Payment
+                                ))
+                        )
+                    ), new Title(new Edit().' Bearbeiten')
+                )
+            )
+        );
         return $Stage;
     }
 }

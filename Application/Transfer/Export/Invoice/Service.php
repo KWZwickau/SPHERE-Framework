@@ -6,7 +6,7 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Api\Response;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice as InvoiceBilling;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItem;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
@@ -31,14 +31,14 @@ class Service
     public function createInvoiceList(&$TableHeader)
     {
 
-        $tblInvoiceList = Invoice::useService()->getInvoiceByIsPaid(false);
+        $tblInvoiceList = InvoiceBilling::useService()->getInvoiceByIsPaid(false);
         $tblPersonList = array();
         $tblItemArray = array();
         $TableContent = array();
         if ($tblInvoiceList) {
             // Personenliste aus allen offenen Rechnungen erstellen
             foreach ($tblInvoiceList as $tblInvoice) {
-                $PersonList = Invoice::useService()->getPersonAllByInvoice($tblInvoice);
+                $PersonList = InvoiceBilling::useService()->getPersonAllByInvoice($tblInvoice);
                 if ($PersonList) {
                     foreach ($PersonList as $Person) {
                         if (empty( $tblPersonList )) {
@@ -57,7 +57,7 @@ class Service
                         }
                     }
                 }
-                $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
+                $tblItemList = InvoiceBilling::useService()->getItemAllByInvoice($tblInvoice);
                 if ($tblItemList) {
                     foreach ($tblItemList as $Item) {
                         if (empty( $tblItemArray )) {
@@ -88,7 +88,7 @@ class Service
                 if (!empty( $tblPersonList )) {
                     array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblInvoice, $tblItemArray, &$TableHeader) {
 
-                        $tblItemList = Invoice::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
+                        $tblItemList = InvoiceBilling::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
                         if ($tblItemList) {
 
                             $Item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
@@ -117,7 +117,7 @@ class Service
                                         $Item['Item'.$key] = number_format(( $tblItem->getValue() * $tblItem->getQuantity() ), 2).' €';
 
                                         if (empty( $tblDebtor )) {
-                                            $tblDebtor = Invoice::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
+                                            $tblDebtor = InvoiceBilling::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
                                         }
 
                                         // Header erstellen (dynamisch)
@@ -224,7 +224,7 @@ class Service
         if ($tblInvoiceList != null) {
             // Personenliste aus allen offenen Rechnungen erstellen
             foreach ($tblInvoiceList as $tblInvoice) {
-                $PersonList = Invoice::useService()->getPersonAllByInvoice($tblInvoice);
+                $PersonList = InvoiceBilling::useService()->getPersonAllByInvoice($tblInvoice);
                 if ($PersonList) {
                     foreach ($PersonList as $Person) {
                         if (empty( $tblPersonList )) {
@@ -243,7 +243,7 @@ class Service
                         }
                     }
                 }
-                $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
+                $tblItemList = InvoiceBilling::useService()->getItemAllByInvoice($tblInvoice);
                 if ($tblItemList) {
                     foreach ($tblItemList as $Item) {
                         if (empty( $tblItemArray )) {
@@ -285,7 +285,7 @@ class Service
                         $Owner
                     ) {
 
-                        $tblItemList = Invoice::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
+                        $tblItemList = InvoiceBilling::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
                         if ($tblItemList) {
                             /** @var TblItem $tblItem */
                             foreach ($tblItemList as $tblItem) {
@@ -308,7 +308,7 @@ class Service
                                 $Item['Sum'] = number_format(( $tblItem->getValue() * $tblItem->getQuantity() ), 2);
 
                                 $Item['Reference'] = '';
-                                $tblDebtor = Invoice::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
+                                $tblDebtor = InvoiceBilling::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
                                 if (isset( $tblDebtor )) {
                                     $tblServiceDebtor = $tblDebtor->getServiceTblDebtor();
                                     if ($tblServiceDebtor) {
@@ -386,7 +386,7 @@ class Service
                 $Prepare['DateTo'] = (new \DateTime('now'))->format('d.m.Y');
             }
             $DateTo = new \DateTime($Prepare['DateTo']);
-            $InvoiceList = Invoice::useService()->getInvoiceAllByDate($DateFrom, $DateTo);
+            $InvoiceList = InvoiceBilling::useService()->getInvoiceAllByDate($DateFrom, $DateTo);
             if (!$InvoiceList) {
                 $Stage->setError('Prepare[DateFrom]', 'Keine Rechnung im angegebenem Zeitraum');
                 $Stage->setError('Prepare[DateTo]', 'Keine Rechnung im angegebenem Zeitraum');
@@ -442,7 +442,7 @@ class Service
         } else {
             $DateTo = new \DateTime($DateTo);
         }
-        $InvoiceList = Invoice::useService()->getInvoiceAllByDate($DateFrom, $DateTo, $Status);
+        $InvoiceList = InvoiceBilling::useService()->getInvoiceAllByDate($DateFrom, $DateTo, $Status);
         return $InvoiceList;
     }
 }

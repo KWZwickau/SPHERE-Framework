@@ -2,10 +2,10 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service;
 
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblInvoice;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblInvoicePayment;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice as TblInvoiceInv;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
@@ -61,17 +61,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
-     *
-     * @return false|TblInvoice
-     */
-    public function getInvoiceById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice', $Id);
-    }
-
-    /**
      * @return bool|TblPayment[]
      */
     public function getPaymentAll()
@@ -101,18 +90,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblInvoiceInv $serviceInvoice
-     *
-     * @return false|TblInvoice[]
-     */
-    public function getInvoiceByServiceInvoice(TblInvoiceInv $serviceInvoice
-    ) {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
-            array(TblInvoice::ATTR_SERVICE_TBL_INVOICE => $serviceInvoice->getId()));
-    }
-
-    /**
      * @param $Name
      *
      * @return false|TblPaymentType
@@ -125,68 +102,91 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return false|TblPayment[]
+     */
+    public function getPaymentAllByInvoice(TblInvoice $tblInvoice)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoicePayment',
+            array(TblInvoicePayment::ATTR_SERVICE_TBL_INVOICE => $tblInvoice));
+        if ($EntityList) {
+            /** @var TblInvoicePayment $Entity */
+            foreach ($EntityList as &$Entity) {
+                $Entity = $Entity->getTblPayment();
+            }
+        }
+        return ( $EntityList );
+    }
+
+    /**
      * @param TblPaymentType $tblPaymentType
      * @param                $Value
-     * @param string         $Usage
+     * @param                $Purpose
      *
-     * @return TblPayment|null|object
+     * @return null|object|TblPayment
      */
-    public function createPayment(TblPaymentType $tblPaymentType, $Value, $Usage)
+    public function createPayment(TblPaymentType $tblPaymentType, $Value, $Purpose)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblPayment')->findOneBy(array(
-            'tblPaymentType' => $tblPaymentType->getId(),
-            'Value'          => $Value,
-            'Usage'          => $Usage
-        ));
+        $Entity = new TblPayment();
+        $Entity->setTblPaymentType($tblPaymentType);
+        $Entity->setValue(str_replace(',', '.', $Value));
+        $Entity->setPurpose($Purpose);
 
-        if (null === $Entity) {
-            $Entity = new TblPayment();
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
+        return $Entity;
+    }
+
+    /**
+     * @param TblPayment     $tblPayment
+     * @param TblPaymentType $tblPaymentType
+     * @param                $Value
+     * @param                $Purpose
+     *
+     * @return false|TblPayment
+     */
+    public function changePayment(TblPayment $tblPayment, TblPaymentType $tblPaymentType, $Value, $Purpose)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $this->getCachedEntityById(__METHOD__, $Manager, 'TblPayment', $tblPayment->getId());
+        $Protocol = clone $Entity;
+        /** @var TblPayment $Entity */
+        if ($Entity) {
             $Entity->setTblPaymentType($tblPaymentType);
-            $Entity->setValue($Value);
-            $Entity->setUsage($Usage);
+            $Entity->setValue(str_replace(',', '.', $Value));
+            $Entity->setPurpose($Purpose);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
                 $Entity);
+            return $Entity;
         }
         return $Entity;
     }
 
     /**
-     * @param TblInvoiceInv $serviceInvoice
-     * @param TblPayment    $tblPayment
-     * @param               $InvoiceNumber
-     * @param bool          $IsPaid
+     * @param TblInvoice $tblInvoice
+     * @param TblPayment $tblPayment
      *
-     * @return null|object|TblInvoice
+     * @return TblInvoicePayment
      */
-    public function createInvoice(
-        TblInvoiceInv $serviceInvoice,
-        TblPayment $tblPayment,
-        $InvoiceNumber,
-        $IsPaid = false
-    ) {
+    public function createInvoicePayment(TblInvoice $tblInvoice, TblPayment $tblPayment)
+    {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblInvoice')->findOneBy(array(
-            TblInvoice::ATTR_SERVICE_TBL_INVOICE => $serviceInvoice->getId(),
-            TblInvoice::ATTR_TBL_PAYMENT         => $tblPayment->getId(),
-            TblInvoice::ATTR_INVOICE_NUMBER      => $InvoiceNumber
-        ));
+        $Entity = new TblInvoicePayment();
+        $Entity->setServiceTblInvoice($tblInvoice);
+        $Entity->setTblPayment($tblPayment);
 
-        if (null === $Entity) {
-            $Entity = new TblInvoice();
-            $Entity->setServiceTblInvoice($serviceInvoice);
-            $Entity->setTblPayment($tblPayment);
-            $Entity->setInvoiceNumber($InvoiceNumber);
-            $Entity->setIsPaid($IsPaid);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                $Entity);
-        }
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
 
         return $Entity;
     }

@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -16,61 +18,61 @@ use SPHERE\System\Database\Fitting\Element;
 class TblInvoicePayment extends Element
 {
 
-    const ATTR_TBL_PAYMENT_TYPE = 'tblPaymentType';
-    const ATTR_TBL_INVOICE = 'tblInvoice';
+    const ATTR_TBL_PAYMENT = 'tblPayment';
+    const ATTR_SERVICE_TBL_INVOICE = 'serviceTblInvoice';
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblPaymentType;
+    protected $tblPayment;
     /**
      * @Column(type="bigint")
      */
-    protected $tblInvoice;
+    protected $serviceTblInvoice;
 
 
     /**
-     * @return bool|TblPaymentType
+     * @return bool|TblPayment
      */
-    public function getTblPaymentType()
+    public function getTblPayment()
     {
 
-        if (null === $this->tblPaymentType) {
+        if (null === $this->tblPayment) {
             return false;
         } else {
-            return Balance::useService()->getPaymentTypeById($this->tblPaymentType);
+            return Balance::useService()->getPaymentById($this->tblPayment);
         }
     }
 
     /**
-     * @param TblPaymentType|null $tblPaymentType
+     * @param TblPayment|null $tblPayment
      */
-    public function setTblPaymentType(TblPaymentType $tblPaymentType = null)
+    public function setTblPayment(TblPayment $tblPayment = null)
     {
 
-        $this->tblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
+        $this->tblPayment = ( null === $tblPayment ? null : $tblPayment->getId() );
     }
 
     /**
      * @return bool|TblInvoice
      */
-    public function getTblInvoice()
+    public function getServiceTblInvoice()
     {
 
-        if (null === $this->tblInvoice) {
+        if (null === $this->serviceTblInvoice) {
             return false;
         } else {
-            return Balance::useService()->getInvoiceById($this->tblInvoice);
+            return Invoice::useService()->getInvoiceById($this->serviceTblInvoice);
         }
     }
 
     /**
-     * @param TblInvoice|null $tblInvoice
+     * @param TblInvoice|null $serviceTblInvoice
      */
-    public function setTblInvoice(TblInvoice $tblInvoice = null)
+    public function setServiceTblInvoice(TblInvoice $serviceTblInvoice = null)
     {
 
-        $this->tblInvoice = ( null === $tblInvoice ? null : $tblInvoice->getId() );
+        $this->serviceTblInvoice = ( null === $serviceTblInvoice ? null : $serviceTblInvoice->getId() );
     }
 
 }

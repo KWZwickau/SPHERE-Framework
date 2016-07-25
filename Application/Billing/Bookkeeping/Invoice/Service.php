@@ -261,6 +261,24 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return int
+     */
+    public function getInvoicePrice(TblInvoice $tblInvoice)
+    {
+
+        $result = 0;
+        $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
+        if ($tblItemList) {
+            foreach ($tblItemList as $tblItem) {
+                $result += $tblItem->getValue() * $tblItem->getQuantity();
+            }
+        }
+        return $result;
+    }
+
+    /**
      * @param TblBasket $tblBasket
      *
      * @return array|bool

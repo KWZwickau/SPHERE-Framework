@@ -17,6 +17,7 @@ class TblPayment extends Element
 {
 
     const ATTR_TBL_PAYMENT_TYPE = 'tblPaymentType';
+    const ATTR_PURPOSE = 'Purpose';
 
     /**
      * @Column(type="bigint")
@@ -56,7 +57,7 @@ class TblPayment extends Element
     /**
      * @return string $Purpose
      */
-    public function getUsage()
+    public function getPurpose()
     {
 
         return $this->Purpose;
@@ -65,7 +66,7 @@ class TblPayment extends Element
     /**
      * @param string $Purpose
      */
-    public function setUsage($Purpose)
+    public function setPurpose($Purpose)
     {
 
         $this->Purpose = $Purpose;
@@ -97,5 +98,18 @@ class TblPayment extends Element
 
         $result = sprintf("%01.2f", $this->Value);
         return str_replace('.', ',', $result)." €";
+    }
+
+    /**
+     * @return string
+     */
+    public function getLastDate()
+    {
+
+        if ($this->getEntityUpdate() != null) {
+            return $this->getEntityUpdate()->format('d.m.Y');
+        } else {
+            return $this->getEntityCreate()->format('d.m.Y');
+        }
     }
 }

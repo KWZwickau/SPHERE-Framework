@@ -39,6 +39,21 @@ class Invoice implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendInvoiceList'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View',
+                __NAMESPACE__.'\Frontend::frontendInvoiceView'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View/Remove/Paid',
+                __NAMESPACE__.'\Frontend::frontendRemovePaid'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View/Remove/Storno',
+                __NAMESPACE__.'\Frontend::frontendRemoveStorno'
+            )
+        );
     }
 
     /**
