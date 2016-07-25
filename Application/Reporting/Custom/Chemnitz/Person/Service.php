@@ -19,13 +19,14 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Reporting\Custom\Chemnitz\Person
  */
-class Service
+class Service extends Extension
 {
 
     /**
@@ -992,6 +993,9 @@ class Service
         $tblStudentGroup1 = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable('STUDENT_GROUP_1');
         $tblStudentGroup2 = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable('STUDENT_GROUP_2');
         if (!empty($tblPersonList)) {
+
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblStudentGroup1, $tblStudentGroup2) {
 
                 $Item['Orientation'] = '';
