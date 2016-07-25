@@ -172,15 +172,15 @@ abstract class Certificate extends Extension
     public function createCertificate($Data = array())
     {
 
-        $this->prepareData();
+//        $this->prepareData();
 
         /**
          * Assign
          */
-        $this->Certificate->setData(array('Person' => $this->Person));
-        $this->Certificate->setData(array('Company' => $this->Company));
-        $this->Certificate->setData(array('Division' => $this->Division));
-        $this->Certificate->setData(array('Grade' => $this->Grade));
+//        $this->Certificate->setData(array('Person' => $this->Person));
+//        $this->Certificate->setData(array('Company' => $this->Company));
+//        $this->Certificate->setData(array('Division' => $this->Division));
+//        $this->Certificate->setData(array('Grade' => $this->Grade));
         if (!empty( $Data )) {
             $this->Certificate->setData($Data);
         }
@@ -711,17 +711,17 @@ abstract class Certificate extends Extension
                 $SubjectSlice->addSection($SubjectSection);
             }
         }
-        
-        return $SubjectSlice; 
+
+        return $SubjectSlice;
     }
-    
+
     /**
      * @return Slice
      * @throws \Exception
      */
     protected function getGradeLanes()
     {
-        
+
         $GradeSlice = (new Slice());
 
         $tblCertificateGradeAll = Generator::useService()->getCertificateGradeAll( $this->getCertificateEntity() );
@@ -791,7 +791,7 @@ abstract class Certificate extends Extension
 
             $GradeSlice->addSection($GradeSection)->styleMarginTop('15px');
         }
-        
-        return $GradeSlice; 
+
+        return $GradeSlice;
     }
 }
