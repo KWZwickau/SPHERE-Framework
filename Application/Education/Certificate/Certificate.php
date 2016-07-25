@@ -1,7 +1,9 @@
 <?php
 namespace SPHERE\Application\Education\Certificate;
 
+use SPHERE\Application\Education\Certificate\Approve\Approve;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
@@ -16,6 +18,8 @@ class Certificate implements IApplicationInterface
 
         Generator::registerModule();
         Setting::registerModule();
+        Prepare::registerModule();
+        Approve::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Zeugnisse'))
