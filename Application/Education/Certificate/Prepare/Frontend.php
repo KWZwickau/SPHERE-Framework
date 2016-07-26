@@ -1920,7 +1920,6 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblPerson = Person::useService()->getPersonById($PersonId))
         ) {
 
-            $Content = array();
             $ContentLayout = array();
 
             $tblCertificate = false;
@@ -1930,56 +1929,10 @@ class Frontend extends Extension implements IFrontendInterface
                     if (class_exists($CertificateClass)) {
 
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                        $Template = new $CertificateClass($tblPerson, $tblDivision);
+                        $Template = new $CertificateClass();
 
-                        $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
-                            $tblPerson);
-                        if ($tblPrepareInformationList) {
-                            foreach ($tblPrepareInformationList as $tblPrepareInformation) {
-                                $Content['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
-                            }
-                        }
-
-                        // ToDo weitere Zensuren + Infos
-                        $tblPrepareGrade = Prepare::useService()->getPrepareGradeByGradeType(
-                            $tblPrepare, $tblPerson, $tblDivision,
-                            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'),
-                            Gradebook::useService()->getGradeTypeByCode('B')
-                        );
-                        if ($tblPrepareGrade) {
-                            $Content['Input']['KBE'] = $tblPrepareGrade->getGrade();
-                        }
-
-                        // Fehlzeiten
-                        $excusedDays = $tblPrepareStudent->getExcusedDays();
-                        $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
-                        if ($excusedDays === null) {
-                            $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
-                                new \DateTime($tblPrepare->getDate()));
-                        }
-                        if ($unexcusedDays === null) {
-                            $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
-                                new \DateTime($tblPrepare->getDate()));
-                        }
-                        $Content['Input']['Missing'] = $excusedDays;
-                        $Content['Input']['Bad']['Missing'] = $unexcusedDays;
-
-                        // Zeugnisdatum
-                        $Content['Input']['Date'] = $tblPrepare->getDate();
-
-//                        $Stage->addButton(
-//                            new External(
-//                                'Zeugnis erstellen bestätigen',
-//                                '/Api/Education/Certificate/Generator',
-//                                new Download(),
-//                                array(
-//                                    'Person'      => $tblPerson->getId(),
-//                                    'Division'    => $tblDivision->getId(),
-//                                    'Certificate' => $tblCertificate->getId(),
-//                                    'Data'        => $Content
-//                                ), false
-//                            )
-//                        );
+                        // get Content
+                        $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
 
                         $ContentLayout = $Template->createCertificate($Content)->getContent();
                     }
@@ -2010,26 +1963,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 4),
-//                            new LayoutColumn(array(
-//                                new Panel(
-//                                    'Schulart',
-//                                    $tblSchoolType
-//                                        ? $tblSchoolType->getName()
-//                                        : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
-//                                        . ' Keine Schulart hinterlegt'),
-//                                    Panel::PANEL_TYPE_INFO
-//                                ),
-//                            ), 4),
-//                            new LayoutColumn(array(
-//                                new Panel(
-//                                    'Bildungsgang',
-//                                    $tblCourse
-//                                        ? $tblCourse->getName()
-//                                        : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
-//                                        . ' Kein Bildungsgang hinterlegt'),
-//                                    Panel::PANEL_TYPE_INFO
-//                                ),
-//                            ), 4),
                             new LayoutColumn(array(
                                 new Panel(
                                     'Zeugnisvorlage',
@@ -2053,9 +1986,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
-
-            // http://192.168.112.128/Api/Education/Certificate/Generator?Person=16&Division=6&Certificate=21&Data%5BInput%5D%5BKBE%5D=&Data%5BInput%5D%5BKMI%5D=&Data%5BInput%5D%5BKFL%5D=&Data%5BInput%5D%5BKOR%5D=&Data%5BInput%5D%5BRating%5D=einsch%C3%A4tzung+bla%0D%0Ablabla&Data%5BInput%5D%5BChoose%5D=adfkkdkfdksfkk&Data%5BInput%5D%5BMissing%5D=2&Data%5BInput%5D%5BBad%5D%5BMissing%5D=1&Data%5BInput%5D%5BRemark%5D=kafdfkjdf%0D%0Akfdjeiefjej%23&Data%5BInput%5D%5BTransfer%5D=fjeiifejeiffijeiffjeifemnenmenm&Data%5BInput%5D%5BDate%5D=&_Sign=NTZkYTJiNmQzZjlmMzdjZDgxMDM2OWE4MTA3YzBlNTc2NjY1MGU2MzU5MmNiM2ViNDEyM2FhMzI1MzBhZDM0OQ%3D%3D
-            // http://192.168.112.128/Api/Education/Certificate/Generator?Person=16&Division=6&Certificate=21&Data[Input][Rating]=Einsch%C3%A4tzung+blabla%0D%0Ablabla&Data[Input][Choose]=Wahlpflichtbereich+bla&Data[Input][Remark]=Bemerkung+bla%0D%0Abla%0D%0A&Data[Input][Transfer]=Versetzungsvermerk+bla&Data[Input][KBE]=2&Data[Input][Missing]=16&Data[Input][Bad][Missing]=2&_Sign=NTMzY2M0MjQ4MWM2ZTAzMzRlYjdiMDgyNGNiMmJhM2JjYjE4NWY5MDY4NmVmOWZmMmM5YWVjY2YxNTdiZmE5ZA%3D%3D
 
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
         }

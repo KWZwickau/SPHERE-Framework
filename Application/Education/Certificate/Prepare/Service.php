@@ -26,6 +26,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -772,8 +773,8 @@ class Service extends AbstractService
                                 $tblGrade->getServiceTblSubject(),
                                 $tblTask->getTblTestType()
                             );
-                            if ($tblPrepareGrade){
-                                if ($tblPrepareGrade->getGrade() != $tblGrade->getDisplayGrade()){
+                            if ($tblPrepareGrade) {
+                                if ($tblPrepareGrade->getGrade() != $tblGrade->getDisplayGrade()) {
                                     return true;
                                 }
                             } else {
@@ -786,5 +787,112 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return array
+     */
+    public function getCertificateContent(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
+    {
+
+        $Content = array();
+
+        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
+        ) {
+
+            // Company
+            $tblCompany = false;
+            if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+            ) {
+                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                    $tblTransferType);
+                if ($tblStudentTransfer) {
+                    $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                }
+            }
+            if ($tblCompany) {
+                $Content['Company']['Data']['Name'] = $tblCompany->getDisplayName();
+            }
+
+            // Division
+            if (($tblLevel = $tblDivision->getTblLevel())) {
+                $Content['Division']['Data']['Level']['Name'] = $tblLevel->getName();
+                $Content['Division']['Data']['Name'] = $tblDivision->getName();
+            }
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                $Content['Division']['Data']['Year'] = $tblYear->getName();
+            }
+            if ($tblPrepare->getServiceTblPersonSigner()){
+                $Content['Division']['Data']['Teacher'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
+            }
+
+            // Person
+            $Content['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
+            $Content['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                $Content['Person']['Student']['Id'] = $tblStudent->getId();
+            }
+
+            // zusätzliche Informationen
+            $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
+                $tblPerson);
+            if ($tblPrepareInformationList) {
+                foreach ($tblPrepareInformationList as $tblPrepareInformation) {
+                    $Content['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
+                }
+            }
+
+            // Kopfnoten
+            $tblPrepareGradeBehaviorList = Prepare::useService()->getPrepareGradeAllByPerson(
+                $tblPrepare,
+                $tblPerson,
+                Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK')
+            );
+            if ($tblPrepareGradeBehaviorList) {
+                foreach ($tblPrepareGradeBehaviorList as $tblPrepareGrade) {
+                    if ($tblPrepareGrade->getServiceTblGradeType()) {
+                        $Content['Input'][$tblPrepareGrade->getServiceTblGradeType()->getCode()] = $tblPrepareGrade->getGrade();
+                    }
+                }
+            }
+
+            // Fachnoten
+            $tblPrepareGradeSubjectList = Prepare::useService()->getPrepareGradeAllByPerson(
+                $tblPrepare,
+                $tblPerson,
+                Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+            );
+            if ($tblPrepareGradeSubjectList) {
+                foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
+                    if ($tblPrepareGrade->getServiceTblSubject()) {
+                        $Content['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = $tblPrepareGrade->getGrade();
+                    }
+                }
+            }
+
+            // Fehlzeiten
+            $excusedDays = $tblPrepareStudent->getExcusedDays();
+            $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
+            if ($excusedDays === null) {
+                $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                    new \DateTime($tblPrepare->getDate()));
+            }
+            if ($unexcusedDays === null) {
+                $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
+                    new \DateTime($tblPrepare->getDate()));
+            }
+            $Content['Input']['Missing'] = $excusedDays;
+            $Content['Input']['Bad']['Missing'] = $unexcusedDays;
+
+            // Zeugnisdatum
+            $Content['Input']['Date'] = $tblPrepare->getDate();
+        }
+
+        return $Content;
     }
 }
