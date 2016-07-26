@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -30,6 +31,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -242,7 +244,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Success(new Enable() . ' freigegeben')
                                     : new Warning(new Exclamation() . ' nicht freigegeben'),
                             'Option' =>
-                                (!$isApproved && $tblCertificate ? (new Standard(
+                                ($tblCertificate ? new External(
+                                    'Zeugnis herunterladen',
+                                    '/Api/Education/Certificate/Generator',
+                                    new Download(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'PersonId' => $tblPerson->getId(),
+                                    ), false) : '')
+                                . (!$isApproved && $tblCertificate ? (new Standard(
                                     'Zeugnis freigeben', '/Education/Certificate/Approve/Prepare/SetApproved',
                                     new Check(),
                                     array(
