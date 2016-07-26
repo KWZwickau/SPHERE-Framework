@@ -58,15 +58,12 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'Owner')) {
             $Table->addColumn('Owner', 'string');
         }
-//        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'serviceTblPerson')) {
-//            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-//        }
         if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
         }
-//        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'serviceTblSchool')) {
-//            $Table->addColumn('serviceTblSchool', 'bigint', array('notnull' => false));
-//        }
+        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'serviceTblType')) {
+            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
+        }
         return $Table;
     }
 }

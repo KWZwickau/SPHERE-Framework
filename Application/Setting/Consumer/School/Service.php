@@ -3,6 +3,7 @@ namespace SPHERE\Application\Setting\Consumer\School;
 
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Setting\Consumer\School\Service\Data;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
@@ -70,6 +71,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSchoolByCompany($tblCompany);
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
+     * @return false|TblSchool
+     */
+    public function getSchoolByCompanyAndType(TblCompany $tblCompany, TblType $tblType)
+    {
+
+        return (new Data($this->getBinding()))->getSchoolByCompanyAndType($tblCompany, $tblType);
     }
 
     /**

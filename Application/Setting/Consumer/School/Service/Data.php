@@ -44,6 +44,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCompany $tblCompany
+     * @param TblType    $tblType
+     *
+     * @return false|TblSchool
+     */
+    public function getSchoolByCompanyAndType(TblCompany $tblCompany, TblType $tblType)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool',
+            array(TblSchool::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId(),
+                  TblSchool::ATTR_SERVICE_TBL_TYPE    => $tblType->getId()));
+    }
+
+    /**
      * @return bool|TblSchool[]
      */
     public function getSchoolAll()

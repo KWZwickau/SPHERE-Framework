@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Billing\Accounting\SchoolAccount;
 
 use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Entity\TblSchoolAccount;
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -63,8 +62,9 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSchoolAccountList) {
             array_walk($tblSchoolAccountList, function (TblSchoolAccount $tblSchoolAccount) use (&$TableContent) {
                 $tblCompany = $tblSchoolAccount->getServiceTblCompany();
-                if ($tblCompany) {
-                    $tblSchool = School::useService()->getSchoolByCompany($tblCompany);
+                $tblType = $tblSchoolAccount->getServiceTblType();
+                if ($tblCompany && $tblType) {
+                    $tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblType);
                     if ($tblSchool) {
                         $Item['BankName'] = $tblSchoolAccount->getBankName();
                         $Item['Owner'] = $tblSchoolAccount->getOwner();
@@ -93,23 +93,19 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Form = new Form(new FormGroup(new FormRow(new FormColumn(new Warning(nl2br(( 'Keine Schulen ohne Kontodaten gefunden
                                                                     (Schule unter Einstellungen/Mandant/Schulen auswählen um die Auswahl zu erweitern)' )))))));
-        $tblCompanyAll = Company::useService()->getCompanyAll();
         $tblSchoolAll = School::useService()->getSchoolAll();
-        $tblCompanyList = array();
-        if ($tblCompanyAll) {
-            foreach ($tblCompanyAll as $tblCompany) {
-                if ($tblSchoolAll) {
-                    foreach ($tblSchoolAll as $tblSchoolSingle) {
-                        if ($tblSchoolSingle->getServiceTblCompany()->getId() == $tblCompany->getId() && !SchoolAccount::useService()->getSchoolAccountByCompany($tblCompany)) {
-                            $tblCompanyList[] = $tblCompany;
-                        }
-                    }
+
+        $tblSchoolList = array();
+        if ($tblSchoolAll) {
+            foreach ($tblSchoolAll as $tblSchool) {
+                if (!SchoolAccount::useService()->getSchoolAccountByCompanyAndType($tblSchool->getServiceTblCompany(), $tblSchool->getServiceTblType())) {
+                    $tblSchoolList[] = $tblSchool;
                 }
             }
         }
-        $tblCompanyList = array_filter($tblCompanyList);
-        if (!empty( $tblCompanyList )) {
-            $Form = $this->formSchoolAccountCreate($tblCompanyList);
+//        $tblCompanyList = array_filter($tblCompanyList);
+        if (!empty( $tblSchoolList )) {
+            $Form = $this->formSchoolAccountCreate($tblSchoolList);
             $Form->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
         }
@@ -196,11 +192,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $tblCompanyList
+     * @param $tblSchoolAll
      *
      * @return Form
      */
-    public function formSchoolAccountCreate($tblCompanyList)
+    public function formSchoolAccountCreate($tblSchoolAll)
     {
 
         return new Form(
@@ -208,8 +204,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Schule', array(
-                            new SelectBox('Account[Company]', 'Auswahl', array(
-                                '{{ DisplayName }}' => $tblCompanyList
+                            new SelectBox('Account[School]', 'Auswahl', array(
+                                '{{ ServiceTblCompany.getName }} - {{ ServiceTblType.getName }}' => $tblSchoolAll
                             ), new Education())
                         ), Panel::PANEL_TYPE_INFO)
                     ),

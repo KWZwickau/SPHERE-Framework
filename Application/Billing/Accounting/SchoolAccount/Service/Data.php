@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Accounting\SchoolAccount\Service;
 
 use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Entity\TblSchoolAccount;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
@@ -42,18 +43,21 @@ class Data extends AbstractData
 
     /**
      * @param TblCompany $tblCompany
+     * @param TblType    $tblType
      *
-     * @return false|TblSchoolAccount
+     * @return false|Element
      */
-    public function getSchoolAccountByCompany(TblCompany $tblCompany)
+    public function getSchoolAccountByCompanyAndType(TblCompany $tblCompany, TblType $tblType)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchoolAccount',
-            array(TblSchoolAccount::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId()));
+            array(TblSchoolAccount::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId(),
+                  TblSchoolAccount::ATTR_SERVICE_TBL_TYPE    => $tblType->getId()));
     }
 
     /**
      * @param TblCompany $tblCompany
+     * @param TblType    $tblType
      * @param            $BankName
      * @param            $Owner
      * @param            $IBAN
@@ -63,6 +67,7 @@ class Data extends AbstractData
      */
     public function createSchoolAccount(
         TblCompany $tblCompany,
+        TblType $tblType,
         $BankName,
         $Owner,
         $IBAN,
@@ -81,6 +86,7 @@ class Data extends AbstractData
             $Entity->setIBAN($IBAN);
             $Entity->setBIC($BIC);
             $Entity->setServiceTblCompany($tblCompany);
+            $Entity->setServiceTblType($tblType);
 
             $Manager->saveEntity($Entity);
 

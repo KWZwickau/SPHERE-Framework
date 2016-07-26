@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -16,9 +18,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblSchoolAccount extends Element
 {
-//    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_COMPANY = 'serviceTblCompany';
-//    const ATTR_SERVICE_TBL_SCHOOL = 'serviceTblSchool';
+    const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
 
     /**
      * @Column(type="string")
@@ -36,18 +37,14 @@ class TblSchoolAccount extends Element
      * @Column(type="string")
      */
     protected $Owner;
-//    /**
-//     * @Column(type="bigint")
-//     */
-//    protected $serviceTblPerson;
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblCompany;
-//    /**
-//     * @Column(type="bigint")
-//     */
-//    protected $serviceTblSchool;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblType;
 
 
     /**
@@ -122,28 +119,6 @@ class TblSchoolAccount extends Element
         $this->Owner = $Owner;
     }
 
-//    /**
-//     * @return bool|TblPerson
-//     */
-//    public function getServiceTblPerson()
-//    {
-//
-//        if (null === $this->serviceTblPerson) {
-//            return false;
-//        } else {
-//            return Person::useService()->getPersonById($this->serviceTblPerson);
-//        }
-//    }
-//
-//    /**
-//     * @param TblPerson|null $tblPerson
-//     */
-//    public function setServiceTblPerson(TblPerson $tblPerson = null)
-//    {
-//
-//        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
-//    }
-//
     /**
      * @return bool|TblCompany
      */
@@ -166,25 +141,25 @@ class TblSchoolAccount extends Element
         $this->serviceTblCompany = ( null === $tblCompany ? null : $tblCompany->getId() );
     }
 
-//    /**
-//     * @return bool|TblSchool
-//     */
-//    public function getServiceTblSchool()
-//    {
-//
-//        if (null === $this->serviceTblSchool) {
-//            return false;
-//        } else {
-//            return School::useService()->getSchoolById($this->serviceTblSchool);
-//        }
-//    }
-//
-//    /**
-//     * @param TblSchool|null $tblSchool
-//     */
-//    public function setServiceTblSchool(TblSchool $tblSchool = null)
-//    {
-//
-//        $this->serviceTblSchool = ( null === $tblSchool ? null : $tblSchool->getId() );
-//    }
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceTblType()
+    {
+
+        if (null === $this->serviceTblType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceTblType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblType
+     */
+    public function setServiceTblType(TblType $tblType = null)
+    {
+
+        $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
+    }
 }

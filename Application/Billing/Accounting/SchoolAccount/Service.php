@@ -4,8 +4,9 @@ namespace SPHERE\Application\Billing\Accounting\SchoolAccount;
 use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Data;
 use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Entity\TblSchoolAccount;
 use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Setup;
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -58,13 +59,14 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
+     * @param TblType    $tblType
      *
-     * @return false|TblSchoolAccount
+     * @return mixed
      */
-    public function getSchoolAccountByCompany(TblCompany $tblCompany)
+    public function getSchoolAccountByCompanyAndType(TblCompany $tblCompany, TblType $tblType)
     {
 
-        return (new Data($this->getBinding()))->getSchoolAccountByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getSchoolAccountByCompanyAndType($tblCompany, $tblType);
     }
 
     /**
@@ -100,13 +102,16 @@ class Service extends AbstractService
             $Stage->setError('Account[BIC]', 'Bitte geben Sie die BIC an');
             $Error = true;
         }
-        if (!( $tblCompany = Company::useService()->getCompanyById($Account['Company']) )) {
+        if (!( $tblSchool = School::useService()->getSchoolById($Account['School']) )) {
             $Stage->setError('Account[School]', 'Bitte geben Sie eine Schule an');
             $Error = true;
         }
 
         if (!$Error) {
-            if ((new Data($this->getBinding()))->createSchoolAccount($tblCompany, $Account['BankName'], $Account['Owner'],
+            $tblCompany = $tblSchool->getServiceTblCompany();
+            $tblType = $tblSchool->getServiceTblType();
+
+            if ((new Data($this->getBinding()))->createSchoolAccount($tblCompany, $tblType, $Account['BankName'], $Account['Owner'],
                 $Account['IBAN'], $Account['BIC'])
             ) {
                 return new Success('Kontoinformationen gespeichert')
