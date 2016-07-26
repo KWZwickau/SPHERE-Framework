@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service;
 
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as TblDebtorAccounting;
+use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Entity\TblSchoolAccount;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
@@ -338,17 +339,19 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPerson       $tblPerson
-     * @param                 $InvoiceNumber
-     * @param                 $Date
-     * @param TblAddress|null $tblAddress
-     * @param TblMail|null    $tblMail
-     * @param TblPhone|null   $tblPhone
+     * @param TblPerson             $tblPerson
+     * @param TblSchoolAccount|null $tblSchoolAccount
+     * @param                       $InvoiceNumber
+     * @param                       $Date
+     * @param TblAddress|null       $tblAddress
+     * @param TblMail|null          $tblMail
+     * @param TblPhone|null         $tblPhone
      *
      * @return null|object|TblInvoice
      */
     public function createInvoice(
         TblPerson $tblPerson,
+        TblSchoolAccount $tblSchoolAccount = null,
         $InvoiceNumber,
         $Date,
         TblAddress $tblAddress = null,
@@ -367,11 +370,19 @@ class Data extends AbstractData
             $Entity = new TblInvoice();
             $Entity->setInvoiceNumber($InvoiceNumber);
             $Entity->setTargetTime(( $Date ? new \DateTime($Date) : null ));
-//            $Entity->setDebtorFirstName($tblPerson->getFirstName());
-//            $Entity->setDebtorSecondName($tblPerson->getSecondName());
-//            $Entity->setDebtorLastName($tblPerson->getLastName());
-//            $Entity->setDebtorSalutation($tblPerson->getSalutation());
-//            $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
+            if ($tblSchoolAccount != null) {
+                $Entity->setSchoolName($tblSchoolAccount->getServiceTblCompany()->getDisplayName());
+                $Entity->setSchoolOwner($tblSchoolAccount->getOwner());
+                $Entity->setSchoolBankName($tblSchoolAccount->getBankName());
+                $Entity->setSchoolIBAN($tblSchoolAccount->getIBAN());
+                $Entity->setSchoolBIC($tblSchoolAccount->getBIC());
+            } else {
+                $Entity->setSchoolName('');
+                $Entity->setSchoolOwner('');
+                $Entity->setSchoolBankName('');
+                $Entity->setSchoolIBAN('');
+                $Entity->setSchoolBIC('');
+            }
             $Entity->setIsPaid(false);
             $Entity->setIsReversal(false);
             if (null !== $tblAddress) {

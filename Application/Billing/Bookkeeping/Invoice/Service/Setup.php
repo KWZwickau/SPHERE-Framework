@@ -125,6 +125,21 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblInvoice', 'TargetTime')) {
             $Table->addColumn('TargetTime', 'datetime');
         }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolName')) {
+            $Table->addColumn('SchoolName', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolOwner')) {
+            $Table->addColumn('SchoolOwner', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolBankName')) {
+            $Table->addColumn('SchoolBankName', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolIBAN')) {
+            $Table->addColumn('SchoolIBAN', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolBIC')) {
+            $Table->addColumn('SchoolBIC', 'string');
+        }
         if (!$this->getConnection()->hasColumn('tblInvoice', 'IsPaid')) {
             $Table->addColumn('IsPaid', 'boolean');
         }

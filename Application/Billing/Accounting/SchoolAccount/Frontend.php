@@ -205,7 +205,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Schule', array(
                             new SelectBox('Account[School]', 'Auswahl', array(
-                                '{{ ServiceTblCompany.getName }} - {{ ServiceTblType.getName }}' => $tblSchoolAll
+                                '{{ ServiceTblCompany.getDisplayName }} - {{ ServiceTblType.getName }}' => $tblSchoolAll
                             ), new Education())
                         ), Panel::PANEL_TYPE_INFO)
                     ),

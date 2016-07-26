@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
+use SPHERE\Application\Billing\Accounting\SchoolAccount\SchoolAccount;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketPerson;
@@ -52,6 +53,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -1109,11 +1111,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param null $Date
+     * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendBasketVerification($Id = null, $Date = null)
+    public function frontendBasketVerification($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Übersicht');
@@ -1151,9 +1153,11 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
 
+        $AccountFail = false;
+
         $TableContent = array();
         if ($tblPersonList) {
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblBasket) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$AccountFail, $tblBasket) {
 
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['FirstName'] = $tblPerson->getFirstName();
@@ -1178,7 +1182,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['SummaryPrice'] = number_format($Sum, 2).' €';
 
                 $Item['ChildRank'] = '';
-                $Item['CourseType'] = '';
+                $Item['CourseType'] = new Warning('Keine Schulart gewählt');
+                $Item['Company'] = new Warning('Keine Schule gewählt');
 
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -1196,8 +1201,32 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblType) {
                                 $Item['CourseType'] = $tblType->getName();
                             }
+                            $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                            if ($tblCompany) {
+                                $Item['Company'] = $tblCompany->getDisplayName();
+                            }
+                            if ($tblType && $tblCompany) {
+                                $tblSchoolAccount = SchoolAccount::useService()->getSchoolAccountByCompanyAndType($tblCompany, $tblType);
+                                if (!$tblSchoolAccount) {
+                                    $AccountFail = true;
+                                    $Item['Company'] .= new \SPHERE\Common\Frontend\Text\Repository\Danger('<br/>'.
+                                        new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Kontodaten vorhanden');
+                                }
+                            } elseif ($tblCompany) {
+                                $AccountFail = true;
+                                $Item['Company'] .= new \SPHERE\Common\Frontend\Text\Repository\Danger('<br/>'.
+                                    new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Kontodaten vorhanden');
+                            } else {
+                                $AccountFail = true;
+                            }
+                        } else {
+                            $AccountFail = true;
                         }
+                    } else {
+                        $AccountFail = true;
                     }
+                } else {
+                    $AccountFail = true;
                 }
 
                 $Item['Option'] = new Standard('', '/Billing/Bookkeeping/Basket/Verification/Person', new EyeOpen(),
@@ -1211,14 +1240,29 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
+        $tblSchoolAccountAll = SchoolAccount::useService()->getSchoolAccountAll();
+        if ($AccountFail) {
+            $InputColumn = new FormColumn(array(
+                    new DatePicker('Data[Date]', 'Zahlungsdatum (Fälligkeit)',
+                        'Zahlungsdatum (Fälligkeit)',
+                        new Time()),
+                    new SelectBox('Data[SchoolAccount]', 'Manuelle Schulauswahl (Rechnungssteller)',
+                        array('{{ ServiceTblCompany.getDisplayName }} - {{ ServiceTblType.getName }}' => $tblSchoolAccountAll), new Select())
+                )
+                , 6);
+        } else {
+            $InputColumn = new FormColumn(array(
+                    new DatePicker('Data[Date]', 'Zahlungsdatum (Fälligkeit)',
+                        'Zahlungsdatum (Fälligkeit)',
+                        new Time()),
+                )
+                , 6);
+        }
+
         $Form = new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(
-                        new DatePicker('Date', 'Zahlungsdatum (Fälligkeit)',
-                            'Zahlungsdatum (Fälligkeit)',
-                            new Time())
-                        , 6)
+                    $InputColumn
                 )),
             ))
         );
@@ -1238,6 +1282,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Address'      => 'Adresse',
                                     // Todo entfernen?
                                     'ChildRank'    => 'Geschwisterkind',
+                                    'Company'      => 'Schule',
                                     'CourseType'   => 'Schulart',
                                     //
                                     'ItemList'     => 'Artikel Liste',
@@ -1254,8 +1299,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Info('Sind alle Beträge kontrolliert und die Anzahl der Artikel richtig eingegeben, kann die Rechnung hier erstellt werden.
                             Benötigte änderungen der bereits vergebenen Bezahlzuweisungen müssen vor dem faktuieren abgeändert oder gelöscht werden.
-                            Alle nicht zugewiesenen Bezahlzuweisungen werden hier abgefragt und für die wiederverwendung gespeichert.<br/>'
-                                .Basket::useService()->checkBasket($Form, $tblBasket, $Date)
+                            Alle nicht zugewiesenen Bezahlzuweisungen werden hier abgefragt und für die wiederverwendung gespeichert.<br/>'.
+                                ( $AccountFail && !empty( $tblSchoolAccountAll ) ? 'Auswahl des Rechnungsstellers erfolgt bei fehlenen Kontodaten und wird bei diesen herangezogen.<br/>' : '' )
+                                .( $tblSchoolAccountAll ? Basket::useService()->checkBasket($Form, $tblBasket, $Data) :
+                                    new Warning('Es müssen erst Kontodaten angelegt werden (Fakturierung/Buchhaltung/Kontoeinstellung)') )
                             )
 //                                .new Standard('Zahlungen fakturieren '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Review', null
 //                                    , array('Id' => $tblBasket->getId())))
@@ -1394,10 +1441,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $Date
+     * @param null $SchoolAccount
      *
      * @return Stage|string
      */
-    public function frontendCreateInvoice($Id = null, $Date = null)
+    public function frontendCreateInvoice($Id = null, $Date = null, $SchoolAccount = null)
     {
 
         $Stage = new Stage('Rechnungen', 'erstellen');
@@ -1416,7 +1464,7 @@ class Frontend extends Extension implements IFrontendInterface
                 array('Id' => $tblBasket->getId()));
         }
 
-        if (Invoice::useService()->createInvoice($tblBasket, $Date)) {
+        if (Invoice::useService()->createInvoice($tblBasket, $Date, $SchoolAccount)) {
             $Stage->setContent(new Success('Rechnungen erstellt'));
             return $Stage.new Redirect('/Billing/Bookkeeping/Export', Redirect::TIMEOUT_SUCCESS);
         } else {
@@ -1920,14 +1968,14 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $Date
+     * @param null $SchoolAccount
      *
      * @return Stage|string
      */
-    public function frontendInvoiceReview($Id = null, $Date = null)
+    public function frontendInvoiceReview($Id = null, $Date = null, $SchoolAccount = null)
     {
 
         $Stage = new Stage('Rechnung', 'Kontrolle');
-
 
         $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
@@ -1956,14 +2004,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         $PanelArray = array();
 
-        $InvoiceCount = 0;
+        $InvoiceCount = 1;
         $tblInvoiceList = Invoice::useService()->getInvoiceAllByYearAndMonth((new \DateTime($Date)));
         $date = (new \DateTime($Date))->format('ym');
         foreach ($InvoiceDataList as &$InvoiceList) {
 
             $count = Count($tblInvoiceList) + $InvoiceCount;
             $count = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
-            $InvoiceCount++;
+
 
             $PanelArray[] = new Panel('Vorschau Rechnung Nr. '.$count.' '.new ChevronRight().' '.$PayerArray[$InvoiceCount], new TableData($InvoiceList, null, array(
                 'PersonFrom'   => 'Leistungsbezieher',
@@ -1991,6 +2039,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                     )
                 ));
+            $InvoiceCount++;
         }
 
         $Stage->setContent(
@@ -2013,8 +2062,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new Success('Festschreibung der Rechnungen als Offene Posten bei denen keine Änderungen mehr möglich sind.
                                     In diesem Schritt werden Rechnungsnummern vergeben.<br/>'.
                                 new Standard(' Rechnung erstellen '.new ChevronRight(), '/Billing/Bookkeeping/Basket/Invoice/Create', null
-                                    , array('Id'   => $tblBasket->getId(),
-                                            'Date' => $Date)))
+                                    , array('Id'            => $tblBasket->getId(),
+                                            'Date'          => $Date,
+                                            'SchoolAccount' => $SchoolAccount)))
                             , 6),
                         new LayoutColumn(
                             new Info('Rechnung soll weiter bearbeitet werden.<br/>'.

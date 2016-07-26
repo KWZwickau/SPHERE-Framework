@@ -880,26 +880,35 @@ class Service extends AbstractService
     /**
      * @param IFormInterface $Form
      * @param TblBasket      $tblBasket
-     * @param                $Date
+     * @param                $Data
      *
-     * @return bool|Redirect
+     * @return IFormInterface|Redirect
      */
-    public function checkBasket(IFormInterface $Form, TblBasket $tblBasket, $Date)
+    public function checkBasket(IFormInterface $Form, TblBasket $tblBasket, $Data)
     {
         $Global = $this->getGlobal();
         $Error = false;
         if (empty( $Global->POST )) {
             return $Form;
-        } else {
-            if (empty( $Date )) {
-                $Form->setError('Date', 'Bitte geben Sie ein Fälligkeitsdatum an');
-                $Error = true;
-            }
         }
+
+        if (empty( $Data['Date'] )) {
+            $Form->setError('Data[Date]', 'Bitte geben Sie ein Fälligkeitsdatum an');
+            $Error = true;
+        }
+        if (isset( $Data['SchoolAccount'] ) && $Data['SchoolAccount'] == 0) {
+            $Form->setError('Data[SchoolAccount]', 'Bitte geben Sie einen Rechnungssteller an!');
+            $Error = true;
+        }
+
         if (!$Error) {
+            if (!isset( $Data['SchoolAccount'] )) {
+                $Data['SchoolAccount'] = 0;
+            }
             return new Redirect('/Billing/Bookkeeping/Basket/Invoice/Review', Redirect::TIMEOUT_SUCCESS,
-                array('Id'   => $tblBasket->getId(),
-                      'Date' => $Date));
+                array('Id'            => $tblBasket->getId(),
+                      'Date'          => $Data['Date'],
+                      'SchoolAccount' => $Data['SchoolAccount']));
         } else {
             return $Form;
         }

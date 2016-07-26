@@ -36,6 +36,26 @@ class TblInvoice extends Element
      * @Column(type="datetime")
      */
     protected $TargetTime;
+    /**
+     * @Column(type="string")
+     */
+    protected $SchoolName;
+    /**
+     * @Column(type="string")
+     */
+    protected $SchoolOwner;
+    /**
+     * @Column(type="string")
+     */
+    protected $SchoolBankName;
+    /**
+     * @Column(type="string")
+     */
+    protected $SchoolIBAN;
+    /**
+     * @Column(type="string")
+     */
+    protected $SchoolBIC;
 //    /**
 //     * @Column(type="decimal", precision=14, scale=4)
 //     */
@@ -64,14 +84,6 @@ class TblInvoice extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPhone;
-//    /**
-//     * @Column(type="bigint")
-//     */
-//    protected $serviceTblPaymentType;
-//    /**
-//     * @Column(type="bigint")
-//     */
-//    protected $tblDebtor;
 
     /**
      * @return string
@@ -109,20 +121,6 @@ class TblInvoice extends Element
         }
     }
 
-//    public function getTargetTimeMonthYear()  //Test der Ausgabe
-//    {
-//        if (null === $this->TargetTime) {
-//            return false;
-//        }
-//        /** @var \DateTime $InvoiceDate */
-//        $TargetDate = $this->TargetTime;
-//        if ($TargetDate instanceof \DateTime) {
-//            return $TargetDate->format('M y');
-//        } else {
-//            return (string)$TargetDate;
-//        }
-//    }
-
     /**
      * @param \DateTime|null $Date
      */
@@ -130,6 +128,96 @@ class TblInvoice extends Element
     {
 
         $this->TargetTime = $Date;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSchoolName()
+    {
+
+        return $this->SchoolName;
+    }
+
+    /**
+     * @param string $SchoolName
+     */
+    public function setSchoolName($SchoolName)
+    {
+
+        $this->SchoolName = $SchoolName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSchoolOwner()
+    {
+
+        return $this->SchoolOwner;
+    }
+
+    /**
+     * @param string $SchoolOwner
+     */
+    public function setSchoolOwner($SchoolOwner)
+    {
+
+        $this->SchoolOwner = $SchoolOwner;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSchoolBankName()
+    {
+
+        return $this->SchoolBankName;
+    }
+
+    /**
+     * @param string $SchoolBankName
+     */
+    public function setSchoolBankName($SchoolBankName)
+    {
+
+        $this->SchoolBankName = $SchoolBankName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSchoolIBAN()
+    {
+
+        return $this->SchoolIBAN;
+    }
+
+    /**
+     * @param string $SchoolIBAN
+     */
+    public function setSchoolIBAN($SchoolIBAN)
+    {
+
+        $this->SchoolIBAN = $SchoolIBAN;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSchoolBIC()
+    {
+
+        return $this->SchoolBIC;
+    }
+
+    /**
+     * @param string $SchoolBIC
+     */
+    public function setSchoolBIC($SchoolBIC)
+    {
+
+        $this->SchoolBIC = $SchoolBIC;
     }
 
 //    /**
@@ -273,26 +361,4 @@ class TblInvoice extends Element
 
         $this->serviceTblPhone = ( null === $tblPhone ? null : $tblPhone->getId() );
     }
-
-//    /**
-//     * @return bool|TblPaymentType
-//     */
-//    public function getServiceTblPaymentType()
-//    {
-//
-//        if (null === $this->serviceTblPaymentType) {
-//            return false;
-//        } else {
-//            return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
-//        }
-//    }
-//
-//    /**
-//     * @param TblPaymentType $tblPaymentType
-//     */
-//    public function setServiceTblPaymentType(TblPaymentType $tblPaymentType = null)
-//    {
-//
-//        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
-//    }
 }

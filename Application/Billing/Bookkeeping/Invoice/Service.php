@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\Billing\Accounting\SchoolAccount\SchoolAccount;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
@@ -14,6 +15,7 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -351,10 +353,11 @@ class Service extends AbstractService
     /**
      * @param TblBasket $tblBasket
      * @param           $Date
+     * @param null      $SchoolAccount
      *
      * @return bool
      */
-    public function createInvoice(TblBasket $tblBasket, $Date)
+    public function createInvoice(TblBasket $tblBasket, $Date, $SchoolAccount = null)
     {
         /** Shopping Content */
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
@@ -404,10 +407,11 @@ class Service extends AbstractService
         if (empty( $tblInvoiceList )) {
             $count = 1;
         } else {
-            $count = count($tblInvoiceList);
+            $count = count($tblInvoiceList) + 1;
         }
         /** fill Invoice/tblInvoice */
         foreach ($DebtorItemList as $DebtorId => $InvoiceList) {
+
             $countString = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
             $InsertArray = array();
             foreach ($InvoiceList['DebtorInvoice'] as $DebtorInvoiceId) {
@@ -434,7 +438,39 @@ class Service extends AbstractService
                     }
                 }
             }
-            $InvoiceId = (new Data($this->getBinding()))->createInvoice($InsertArray['tblPersonDebtor'], $countString, $Date,
+
+            $tblPerson = Person::useService()->getPersonById($InvoiceList['PersonId'][0]);
+            $tblSchoolAccount = false;
+            if ($tblPerson) {
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                if ($tblStudent) {
+                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                    if ($tblTransferType) {
+                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType);
+                        if ($tblStudentTransfer) {
+                            $tblType = $tblStudentTransfer->getServiceTblType();
+                            $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                            if ($tblType && $tblCompany) {
+                                $tblSchoolAccount = SchoolAccount::useService()->getSchoolAccountByCompanyAndType($tblCompany, $tblType);
+                            }
+                        }
+                    }
+                }
+            }
+            if ($tblSchoolAccount) {
+                $InsertArray['tblSchoolAccount'] = $tblSchoolAccount;
+            } else {
+//                $tblSchoolAccount = SchoolAccount::useService()->getSchoolAccountAll();
+//                if(!empty($tblSchoolAccount)){
+//                    $InsertArray['tblSchoolAccount'] = $tblSchoolAccount[0];
+//                } else {
+                $tblSchoolAccount = SchoolAccount::useService()->getSchoolAccountById($SchoolAccount);
+                $InsertArray['tblSchoolAccount'] = $tblSchoolAccount;
+//                }
+            }
+
+            $InvoiceId = (new Data($this->getBinding()))->createInvoice($InsertArray['tblPersonDebtor'], $InsertArray['tblSchoolAccount'], $countString, $Date,
                 $InsertArray['tblAddress'],
                 ( empty( $InsertArray['tblMail'] ) ? null : $InsertArray['tblMail'] ),
                 ( empty( $InsertArray['tblPhone'] ) ? null : $InsertArray['tblPhone'] ))->getId();
@@ -458,6 +494,7 @@ class Service extends AbstractService
             }
         }
 
+        // Warenkorb leeren
         foreach ($tblBasketVerificationList as $tblBasketVerification) {
             Basket::useService()->destroyBasketVerification($tblBasketVerification);
         }
