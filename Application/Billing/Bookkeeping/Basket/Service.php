@@ -522,7 +522,8 @@ class Service extends AbstractService
         foreach ($tblPersonList as $tblPerson) {
             $tblBasketVerificationList = Basket::useService()->getBasketVerificationByPersonAndBasket($tblPerson, $tblBasket);
             if (!$tblBasketVerificationList) {
-                return false;
+                // Personen ohne Artikel im Warenkorb sind möglich...
+//                return false;
             } else {
                 foreach ($tblBasketVerificationList as $tblBasketVerification) {
 

@@ -480,10 +480,8 @@ class Data extends AbstractData
             /**@var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
-            $Manager->bulkKillEntity($Entity);
-
-            $Manager->flushCache();
-
+            $Manager->killEntity($Entity);
+//            $Manager->flushCache();
             return true;
         }
 
@@ -505,7 +503,6 @@ class Data extends AbstractData
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
-            $Manager->flushCache();
 
             return true;
         }

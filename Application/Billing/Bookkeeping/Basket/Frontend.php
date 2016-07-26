@@ -1987,12 +1987,14 @@ class Frontend extends Extension implements IFrontendInterface
         $InvoiceDataList = Invoice::useService()->reviewInvoiceData($tblBasket);
 
         $PayerArray = array();
+        $PersonFromArray = array();
         $PriceSumArray = array();
         $CountPriceSum = 0;
         foreach ($InvoiceDataList as &$InvoiceList) {
             $CountPriceSum++;
             foreach ($InvoiceList as $Item) {
                 $PayerArray[$CountPriceSum] = $Item['PersonTo'];
+                $PersonFromArray[$CountPriceSum] = $Item['PersonFromId'];
                 if (empty( $PriceSumArray[$CountPriceSum] )) {
                     $PriceSumArray[$CountPriceSum] = $Item['Value'] * $Item['Quantity'];
                 } else {
@@ -2012,6 +2014,47 @@ class Frontend extends Extension implements IFrontendInterface
             $count = Count($tblInvoiceList) + $InvoiceCount;
             $count = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
 
+            $SellerContent = '';
+            // verwendung des übergebenen Schulkonto's
+            if (( $tblSchoolAccount = SchoolAccount::useService()->getSchoolAccountById($SchoolAccount) )) {
+                $tblCompanySet = $tblSchoolAccount->getServiceTblCompany();
+                $tblTypeSet = $tblSchoolAccount->getServiceTblType();
+                if ($tblCompanySet && $tblTypeSet) {
+                    $SellerContent = $tblCompanySet->getName().' - '.$tblTypeSet->getName();
+                }
+            }
+            // wird ersetzt durch vorhandene Schulkontoverknüpfung (Company/Type)
+            $tblPersonFrom = Person::useService()->getPersonById($PersonFromArray[$InvoiceCount]);
+            if ($tblPersonFrom) {
+                $tblStudent = Student::useService()->getStudentByPerson($tblPersonFrom);
+                if ($tblStudent) {
+                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                    if ($tblTransferType) {
+                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType);
+                        if ($tblStudentTransfer) {
+                            $tblType = $tblStudentTransfer->getServiceTblType();
+                            if ($tblType) {
+                                $Item['CourseType'] = $tblType->getName();
+                            }
+                            $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                            if ($tblCompany) {
+                                $Item['Company'] = $tblCompany->getDisplayName();
+                            }
+                            if ($tblType && $tblCompany) {
+                                $tblSchoolAccount = SchoolAccount::useService()->getSchoolAccountByCompanyAndType($tblCompany, $tblType);
+                                if ($tblSchoolAccount) {
+                                    $tblCompanyGet = $tblSchoolAccount->getServiceTblCompany();
+                                    $tblTypeGet = $tblSchoolAccount->getServiceTblType();
+                                    if ($tblCompanyGet && $tblTypeGet) {
+                                        $SellerContent = $tblCompanyGet->getName().' - '.$tblTypeGet->getName();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             $PanelArray[] = new Panel('Vorschau Rechnung Nr. '.$count.' '.new ChevronRight().' '.$PayerArray[$InvoiceCount], new TableData($InvoiceList, null, array(
                 'PersonFrom'   => 'Leistungsbezieher',
@@ -2033,7 +2076,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
-                            new LayoutColumn('', 8)
+                            new LayoutColumn(new Panel('Rechnungssteller', $SellerContent, Panel::PANEL_TYPE_INFO), 4)
+                        , new LayoutColumn('', 4)
                         , new LayoutColumn(new Panel('Gesamtpreis der Rechnung Nr. '.$count,
                                 new Bold(Invoice::useService()->getPriceString($PriceSumArray[$InvoiceCount])), Panel::PANEL_TYPE_INFO), 4)
                         ))

@@ -318,6 +318,7 @@ class Service extends AbstractService
                     $seperator = $tblDebtor->getId();
                     /** fill Invoice */
                     $Invoice[$seperator][$ItemCount]['PersonFrom'] = $tblPerson->getFullName();
+                    $Invoice[$seperator][$ItemCount]['PersonFromId'] = $tblPerson->getId();
                     $Invoice[$seperator][$ItemCount]['PersonTo'] = $tblDebtor->getServiceTblPerson()->getFullName();
                     $Invoice[$seperator][$ItemCount]['PaymentType'] = $tblPaymentType->getName();
                     $Invoice[$seperator][$ItemCount]['Item'] = $tblBasketVerification->getServiceTblItem()->getName();
@@ -333,6 +334,7 @@ class Service extends AbstractService
                     $seperator = $tblDebtor->getId();
                     /** fill Invoice */
                     $Invoice[$seperator][$ItemCount]['PersonFrom'] = $tblPerson->getFullName();
+                    $Invoice[$seperator][$ItemCount]['PersonFromId'] = $tblPerson->getId();
                     $Invoice[$seperator][$ItemCount]['PersonTo'] = $tblDebtor->getServiceTblPerson()->getFullName();
                     $Invoice[$seperator][$ItemCount]['PaymentType'] = $tblPaymentType->getName();
                     $Invoice[$seperator][$ItemCount]['Item'] = $tblBasketVerification->getServiceTblItem()->getName();

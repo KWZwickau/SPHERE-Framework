@@ -61,7 +61,7 @@ class Service extends AbstractService
      * @param TblCompany $tblCompany
      * @param TblType    $tblType
      *
-     * @return mixed
+     * @return false|TblSchoolAccount
      */
     public function getSchoolAccountByCompanyAndType(TblCompany $tblCompany, TblType $tblType)
     {

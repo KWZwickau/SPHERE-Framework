@@ -45,7 +45,7 @@ class Data extends AbstractData
      * @param TblCompany $tblCompany
      * @param TblType    $tblType
      *
-     * @return false|Element
+     * @return false|TblSchoolAccount
      */
     public function getSchoolAccountByCompanyAndType(TblCompany $tblCompany, TblType $tblType)
     {
