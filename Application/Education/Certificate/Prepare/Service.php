@@ -132,6 +132,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool|false $IsApproved
+     * @param bool|false $IsPrinted
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentAllWhere($IsApproved = false, $IsPrinted = false)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareStudentAllWhere($IsApproved, $IsPrinted);
+    }
+
+    /**
      * @param TblPrepareCertificate $tblPrepare
      *
      * @return bool
@@ -605,9 +617,9 @@ class Service extends AbstractService
     {
 
         if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-            && ($tblPrepare = $tblPrepareStudent->gettblPrepareCertificate())
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
             && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-            && ($tblDivision = $tblPrepareStudent->gettblPrepareCertificate()->getServiceTblDivision())
+            && ($tblDivision = $tblPrepareStudent->getTblPrepareCertificate()->getServiceTblDivision())
         ) {
             return (new Data($this->getBinding()))->updatePrepareStudent(
                 $tblPrepareStudent,
@@ -629,13 +641,41 @@ class Service extends AbstractService
      *
      * @return bool
      */
+    public function updatePrepareStudentSetPrinted(TblPrepareStudent $tblPrepareStudent)
+    {
+
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblDivision = $tblPrepareStudent->getTblPrepareCertificate()->getServiceTblDivision())
+        ) {
+            return (new Data($this->getBinding()))->updatePrepareStudent(
+                $tblPrepareStudent,
+                $tblCertificate,
+                $tblPrepareStudent->isApproved(),
+                true,
+                Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                    new \DateTime($tblPrepare->getDate())),
+                Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
+                    new \DateTime($tblPrepare->getDate()))
+            );
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return bool
+     */
     public function updatePrepareStudentResetApproved(TblPrepareStudent $tblPrepareStudent)
     {
 
         if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-            && ($tblPrepare = $tblPrepareStudent->gettblPrepareCertificate())
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
             && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-            && ($tblDivision = $tblPrepareStudent->gettblPrepareCertificate()->getServiceTblDivision())
+            && ($tblDivision = $tblPrepareStudent->getTblPrepareCertificate()->getServiceTblDivision())
         ) {
             return (new Data($this->getBinding()))->updatePrepareStudent(
                 $tblPrepareStudent,

@@ -191,6 +191,23 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool|false $IsApproved
+     * @param bool|false $IsPrinted
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentAllWhere($IsApproved = false, $IsPrinted = false)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+            array(
+                TblPrepareStudent::ATTR_IS_APPROVED => $IsApproved,
+                TblPrepareStudent::ATTR_IS_PRINTED => $IsPrinted
+            )
+        );
+    }
+
+    /**
      * @param TblPrepareCertificate $tblPrepare
      *
      * @return bool
@@ -471,7 +488,7 @@ class Data extends AbstractData
         ));
         if ($Entity === null) {
             $Entity = new TblPrepareStudent();
-            $Entity->settblPrepareCertificate($tblPrepare);
+            $Entity->setTblPrepareCertificate($tblPrepare);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblCertificate($tblCertificate ? $tblCertificate : null);
             $Entity->setApproved($IsApproved);

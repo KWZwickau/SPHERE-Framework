@@ -246,7 +246,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Option' =>
                                 ($tblCertificate ? new External(
                                     'Zeugnis herunterladen',
-                                    '/Api/Education/Certificate/Generator',
+                                    '/Api/Education/Certificate/Generator/Preview',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
