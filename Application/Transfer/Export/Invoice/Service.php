@@ -202,8 +202,14 @@ class Service
      * @param      $StudentNumber
      * @param      $IBAN
      * @param      $BIC
+     * @param      $Client
      * @param      $BankName
      * @param      $Owner
+     * @param      $Billers
+     * @param      $SchoolIBAN
+     * @param      $SchoolBIC
+     * @param      $SchoolBankName
+     * @param      $SchoolOwner
      *
      * @return array
      */
@@ -214,8 +220,14 @@ class Service
         $StudentNumber,
         $IBAN,
         $BIC,
+        $Client,
         $BankName,
-        $Owner
+        $Owner,
+        $Billers,
+        $SchoolIBAN,
+        $SchoolBIC,
+        $SchoolBankName,
+        $SchoolOwner
     ) {
 
         $tblPersonList = array();
@@ -281,8 +293,14 @@ class Service
                         $StudentNumber,
                         $IBAN,
                         $BIC,
+                        $Client,
                         $BankName,
-                        $Owner
+                        $Owner,
+                        $Billers,
+                        $SchoolIBAN,
+                        $SchoolBIC,
+                        $SchoolBankName,
+                        $SchoolOwner
                     ) {
 
                         $tblItemList = InvoiceBilling::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
@@ -292,15 +310,21 @@ class Service
                                 $Item['Payer'] = '';
                                 $Item['PersonFrom'] = $tblPerson->getFullName();
                                 $Item['StudentNumber'] = '';
+                                $Item['BillDate'] = $tblInvoice->getEntityCreate()->format('d.m.Y');
                                 $Item['Date'] = $tblInvoice->getTargetTime();
+                                $Item['DebtorNumber'] = '';
+                                $Item['Reference'] = '';
+                                $Item['Owner'] = '';
+                                $Item['Bank'] = '';
                                 $Item['IBAN'] = '';
                                 $Item['BIC'] = '';
-                                $Item['BillDate'] = $tblInvoice->getEntityCreate()->format('d.m.Y');
-                                $Item['Reference'] = '';
-                                $Item['Bank'] = '';
                                 $Item['Client'] = '';
-                                $Item['DebtorNumber'] = '';
-                                $Item['Owner'] = '';
+                                $Item['Billers'] = $tblInvoice->getSchoolName();
+                                $Item['SchoolOwner'] = $tblInvoice->getSchoolOwner();
+                                $Item['SchoolBankName'] = $tblInvoice->getSchoolBankName();
+                                $Item['SchoolIBAN'] = $tblInvoice->getSchoolIBAN();
+                                $Item['SchoolBIC'] = $tblInvoice->getSchoolBIC();
+
                                 $Item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                                 $Item['Item'] = $tblItem->getName();
                                 $Item['ItemPrice'] = number_format(( $tblItem->getValue() ), 2);
@@ -343,11 +367,29 @@ class Service
                                 if ($BIC == 0) {
                                     unset( $Item['BIC'] );
                                 }
+                                if ($Client == 0) {
+                                    unset( $Item['Client'] );
+                                }
                                 if ($StudentNumber == 0) {
                                     unset( $Item['StudentNumber'] );
                                 }
                                 if ($PersonFrom == 0) {
                                     unset( $Item['PersonFrom'] );
+                                }
+                                if ($Billers == 0) {
+                                    unset( $Item['Billers'] );
+                                }
+                                if ($SchoolOwner == 0) {
+                                    unset( $Item['SchoolOwner'] );
+                                }
+                                if ($SchoolBankName == 0) {
+                                    unset( $Item['SchoolBankName'] );
+                                }
+                                if ($SchoolIBAN == 0) {
+                                    unset( $Item['SchoolIBAN'] );
+                                }
+                                if ($SchoolBIC == 0) {
+                                    unset( $Item['SchoolBIC'] );
                                 }
 
                                 array_push($TableContent, $Item);
@@ -404,21 +446,33 @@ class Service
             $Owner = ( isset( $Prepare['Owner'] ) ? 1 : 0 );
             $IBAN = ( isset( $Prepare['IBAN'] ) ? 1 : 0 );
             $BIC = ( isset( $Prepare['BIC'] ) ? 1 : 0 );
+            $Client = ( isset( $Prepare['Client'] ) ? 1 : 0 );
+            $Billers = ( isset( $Prepare['Billers'] ) ? 1 : 0 );
+            $SchoolBankName = ( isset( $Prepare['SchoolBankName'] ) ? 1 : 0 );
+            $SchoolOwner = ( isset( $Prepare['SchoolOwner'] ) ? 1 : 0 );
+            $SchoolIBAN = ( isset( $Prepare['SchoolIBAN'] ) ? 1 : 0 );
+            $SchoolBIC = ( isset( $Prepare['SchoolBIC'] ) ? 1 : 0 );
             $StudentNumber = ( isset( $Prepare['StudentNumber'] ) ? 1 : 0 );
             $PersonFrom = ( isset( $Prepare['PersonFrom'] ) ? 1 : 0 );
             $Status = $Prepare['Status'];
 
             return $Stage.new Redirect('/Billing/Bookkeeping/Export/Prepare/View', Redirect::TIMEOUT_SUCCESS
                 , array('Filter' => (new Response())->addData(array(
-                    'DateFrom'      => $DateFrom,
-                    'DateTo'        => $DateTo,
-                    'BankName'      => $BankName,
-                    'Owner'         => $Owner,
-                    'IBAN'          => $IBAN,
-                    'BIC'           => $BIC,
-                    'StudentNumber' => $StudentNumber,
-                    'PersonFrom'    => $PersonFrom,
-                    'Status'        => $Status
+                    'DateFrom'       => $DateFrom,
+                    'DateTo'         => $DateTo,
+                    'BankName'       => $BankName,
+                    'Owner'          => $Owner,
+                    'IBAN'           => $IBAN,
+                    'BIC'            => $BIC,
+                    'Client'         => $Client,
+                    'Billers'        => $Billers,
+                    'SchoolBankName' => $SchoolBankName,
+                    'SchoolOwner'    => $SchoolOwner,
+                    'SchoolIBAN'     => $SchoolIBAN,
+                    'SchoolBIC'      => $SchoolBIC,
+                    'StudentNumber'  => $StudentNumber,
+                    'PersonFrom'     => $PersonFrom,
+                    'Status'         => $Status
                 ))->__toString()
                 ));
         }
@@ -444,5 +498,63 @@ class Service
         }
         $InvoiceList = InvoiceBilling::useService()->getInvoiceAllByDate($DateFrom, $DateTo, $Status);
         return $InvoiceList;
+    }
+
+    /**
+     * @param $Filter
+     *
+     * @return array
+     */
+    public function getHeader($Filter)
+    {
+        $TableHeader = array();
+        $TableHeader['Payer'] = 'Bezahler (Debitor)';
+        if (isset( $Filter->PersonFrom ) && $Filter->PersonFrom != 0) {
+            $TableHeader['PersonFrom'] = 'Leistungsbezieher';
+        }
+        if (isset( $Filter->StudentNumber ) && $Filter->StudentNumber != 0) {
+            $TableHeader['StudentNumber'] = 'Schüler-Nr.';
+        }
+        $TableHeader['BillDate'] = 'Rechnungsdatum';
+        $TableHeader['Date'] = 'Fälligkeitsdatum';
+        $TableHeader['DebtorNumber'] = 'Debitoren-Nr.';
+        $TableHeader['Reference'] = 'Mandats-Ref.';
+        if (isset( $Filter->Owner ) && $Filter->Owner != 0) {
+            $TableHeader['Owner'] = 'Kontoinhaber';
+        }
+        if (isset( $Filter->BankName ) && $Filter->BankName != 0) {
+            $TableHeader['Bank'] = 'Name der Bank';
+        }
+        if (isset( $Filter->IBAN ) && $Filter->IBAN != 0) {
+            $TableHeader['IBAN'] = 'IBAN';
+        }
+        if (isset( $Filter->BIC ) && $Filter->BIC != 0) {
+            $TableHeader['BIC'] = 'BIC';
+        }
+        if (isset( $Filter->Client ) && $Filter->Client != 0) {
+            $TableHeader['Client'] = 'Mandant';
+        }
+        if (isset( $Filter->Billers ) && $Filter->Billers != 0) {
+            $TableHeader['Billers'] = 'Rechnungssteller (Schule)';
+        }
+        if (isset( $Filter->SchoolOwner ) && $Filter->SchoolOwner != 0) {
+            $TableHeader['SchoolOwner'] = 'Kontoinhaber (Schule)';
+        }
+        if (isset( $Filter->SchoolBankName ) && $Filter->SchoolBankName != 0) {
+            $TableHeader['SchoolBankName'] = 'Name der Bank (Schule)';
+        }
+        if (isset( $Filter->SchoolIBAN ) && $Filter->SchoolIBAN != 0) {
+            $TableHeader['SchoolIBAN'] = 'IBAN (Schule)';
+        }
+        if (isset( $Filter->SchoolBIC ) && $Filter->SchoolBIC != 0) {
+            $TableHeader['SchoolBIC'] = 'BIC (Schule)';
+        }
+        $TableHeader['InvoiceNumber'] = 'Buchungstext';
+        $TableHeader['Item'] = 'Artikel';
+        $TableHeader['ItemPrice'] = 'Einzelpreis';
+        $TableHeader['Quantity'] = 'Anzahl';
+        $TableHeader['Sum'] = 'Gesamtpreis';
+
+        return $TableHeader;
     }
 }

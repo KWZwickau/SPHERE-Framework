@@ -281,6 +281,30 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return bool|string
+     */
+    public function getInvoiceItemsString(TblInvoice $tblInvoice)
+    {
+
+        $ItemList = array();
+        $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
+        if ($tblItemList) {
+            foreach ($tblItemList as $tblItem) {
+                $Item = $tblItem->getServiceTblItem();
+                if($Item){
+                    $ItemList[] = $Item->getName();
+                }
+            }
+            $ItemList = array_unique($ItemList);
+        }
+        $ItemString = implode(' ,', $ItemList);
+
+        return (empty($ItemList) ? false : $ItemString);
+    }
+
+    /**
      * @param TblBasket $tblBasket
      *
      * @return array|bool

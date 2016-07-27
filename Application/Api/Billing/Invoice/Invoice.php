@@ -69,36 +69,8 @@ class Invoice implements IModuleInterface
 
         $tblInvoiceList = \SPHERE\Application\Transfer\Export\Invoice\Invoice::useService()->getInvoiceListByDate($Filter->DateFrom, $Filter->DateTo, $Filter->Status);
 
-        $TableHeader = array();
-        $TableHeader['Payer'] = 'Bezahler';
-        if ($Filter->PersonFrom != 0) {
-            $TableHeader['PersonFrom'] = 'Leistungsbezieher';
-        }
-        if ($Filter->StudentNumber != 0) {
-            $TableHeader['StudentNumber'] = 'Schüler-Nr.';
-        }
-        $TableHeader['Date'] = 'Fälligkeitsdatum';
-        if ($Filter->IBAN != 0) {
-            $TableHeader['IBAN'] = 'IBAN';
-        }
-        if ($Filter->BIC != 0) {
-            $TableHeader['BIC'] = 'BIC';
-        }
-        $TableHeader['BillDate'] = 'Rechnungsdatum';
-        $TableHeader['Reference'] = 'Mandats-Ref.';
-        if ($Filter->BankName != 0) {
-            $TableHeader['Bank'] = 'Name der Bank';
-        }
-        $TableHeader['Client'] = 'Mandant';
-        $TableHeader['DebtorNumber'] = 'Debitoren-Nr.';
-        if ($Filter->Owner != 0) {
-            $TableHeader['Owner'] = 'Besitzer';
-        }
-        $TableHeader['InvoiceNumber'] = 'Buchungstext';
-        $TableHeader['Item'] = 'Artikel';
-        $TableHeader['ItemPrice'] = 'Einzelpreis';
-        $TableHeader['Quantity'] = 'Anzahl';
-        $TableHeader['Sum'] = 'Gesamtpreis';
+        $TableHeader = \SPHERE\Application\Transfer\Export\Invoice\Invoice::useService()->getHeader($Filter);
+
         $TableContent = \SPHERE\Application\Transfer\Export\Invoice\Invoice::useService()->createInvoiceListByPrepare(
 //            $TableHeader,
             $tblInvoiceList,
@@ -106,8 +78,14 @@ class Invoice implements IModuleInterface
             $Filter->StudentNumber,
             $Filter->IBAN,
             $Filter->BIC,
+            $Filter->Client,
             $Filter->BankName,
-            $Filter->Owner);
+            $Filter->Owner,
+            $Filter->Billers,
+            $Filter->SchoolIBAN,
+            $Filter->SchoolBIC,
+            $Filter->SchoolBankName,
+            $Filter->SchoolOwner);
         if ($TableContent) {
             $fileLocation = \SPHERE\Application\Transfer\Export\Invoice\Invoice::useService()->createInvoiceListExcel($TableContent, $TableHeader);
             if ($fileLocation) {

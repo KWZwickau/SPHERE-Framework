@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Transfer\Export\Invoice;
 
 use SPHERE\Application\Api\Response;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice as InvoiceBilling;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -47,13 +49,45 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Export', 'aller offenen Posten');
 
-        $TableHeader = array('InvoiceNumber' => 'Rechnungsnummer',
-                             'Debtor'        => 'Debitor',
-                             'Name'          => 'Name',
-                             'StudentNumber' => 'Schülernummer',
-                             'Date'          => 'Fälligkeitsdatum',
-        );
-        $TableContent = Invoice::useService()->createInvoiceList($TableHeader);
+//        $TableHeader = array('InvoiceNumber' => 'Rechnungsnummer',
+//                             'Debtor'        => 'Debitor',
+//                             'Name'          => 'Name',
+//                             'StudentNumber' => 'Schülernummer',
+//                             'Date'          => 'Fälligkeitsdatum',
+//        );
+//        $TableContent = Invoice::useService()->createInvoiceList($TableHeader); // Dynamische Tabelle (Artikelspalten dynamisch)
+        $TableContent = array();
+        $tblInvoiceList = InvoiceBilling::useService()->getInvoiceByIsPaid(false);
+        if($tblInvoiceList){
+            array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent)
+            {
+
+                $Content['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                $Content['CreateDate'] = $tblInvoice->getEntityCreate()->format('d.m.Y');
+                $Content['TargetDate'] = $tblInvoice->getTargetTime();
+                $Content['Debtor'] = '';
+                $Content['Billers'] = $tblInvoice->getSchoolName();
+                $Content['Item'] = '';
+                $Content['Price'] = InvoiceBilling::useService()->getPriceString(
+                    InvoiceBilling::useService()->getInvoicePrice($tblInvoice));
+
+                if(($ItemString = InvoiceBilling::useService()->getInvoiceItemsString($tblInvoice))){
+                    $Content['Item'] = $ItemString;
+                }
+                $tblDebtorList = InvoiceBilling::useService()->getDebtorAllByInvoice($tblInvoice);
+                if($tblDebtorList){
+                    $tblDebtor = $tblDebtorList[0]->getServiceTblDebtor();
+                    if($tblDebtor){
+                        if(($tblPerson = $tblDebtor->getServiceTblPerson())){
+                            $Content['Debtor'] = $tblPerson->getFullName();
+                        }
+                    }
+                }
+
+                array_push($TableContent, $Content);
+            });
+        }
+
         $Stage->addButton(new Standard('Auswahl Herunterladen', '\Billing\Bookkeeping\Export\Prepare', new Search()));
 
         $Stage->setContent(
@@ -61,7 +95,26 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($TableContent, null, $TableHeader)
+//                            new TableData($TableContent, null, $TableHeader)
+                            new TableData($TableContent, null,
+                                array('InvoiceNumber' => 'Rechnungsnummer',
+                                    'CreateDate' => 'Rechnungsdatum',
+                                    'TargetDate' => 'Fälligkeitsdatum',
+                                    'Debtor' => 'Debitor',
+                                    'Billers' => 'Rechnungssteller',
+                                    'Item' => 'Enthaltene Artikel',
+                                    'Price' => 'Gesamt Preis',
+                                    ),
+                                array(
+//                                    'order' => array(
+//                                        array(0, 'desc')
+//                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => 'de_date', 'targets' => 1),
+                                        array('type' => 'de_date', 'targets' => 2),
+                                    )
+                                )
+                            )
                         )
                     )
                     , new Title(new ListingTable().' Übersicht der offenen Posten'))
@@ -132,8 +185,13 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(array(
                             new Info('Hinzufügen von'),
                             new Panel('Personendaten', array(
+                                    new CheckBox('Prepare[PersonFrom]', 'Leistungsbezieher', 1),
                                     new CheckBox('Prepare[StudentNumber]', 'Schülernummer', 1),
-                                    new CheckBox('Prepare[PersonFrom]', 'Leistungsbezieher', 1)
+                                )
+                                , Panel::PANEL_TYPE_INFO),
+                            new Panel('Firmendaten', array(
+                                    new CheckBox('Prepare[Client]', 'Mandant', 1),
+                                    new CheckBox('Prepare[Billers]', 'Rechnungssteller', 1),
                                 )
                                 , Panel::PANEL_TYPE_INFO)
                         ), 3),
@@ -144,6 +202,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     new CheckBox('Prepare[Owner]', 'Besitzer des Konto\'s', 1),
                                     new CheckBox('Prepare[IBAN]', 'IBAN', 1),
                                     new CheckBox('Prepare[BIC]', 'BIC', 1)
+                                )
+                                , Panel::PANEL_TYPE_INFO),
+                            new Panel('Bankdaten des Rechnungssteller\'s', array(
+                                    new CheckBox('Prepare[SchoolBankName]', 'Name der Bank', 1),
+                                    new CheckBox('Prepare[SchoolOwner]', 'Besitzer des Konto\'s', 1),
+                                    new CheckBox('Prepare[SchoolIBAN]', 'IBAN', 1),
+                                    new CheckBox('Prepare[SchoolBIC]', 'BIC', 1)
                                 )
                                 , Panel::PANEL_TYPE_INFO)
                         ), 3),
@@ -179,36 +244,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblInvoiceList = Invoice::useService()->getInvoiceListByDate($Filter->DateFrom, $Filter->DateTo, $Filter->Status);
 
-        $TableHeader = array();
-        $TableHeader['Payer'] = 'Bezahler';
-        if (isset( $Filter->PersonFrom ) && $Filter->PersonFrom != 0) {
-            $TableHeader['PersonFrom'] = 'Leistungsbezieher';
-        }
-        if (isset( $Filter->StudentNumber ) && $Filter->StudentNumber != 0) {
-            $TableHeader['StudentNumber'] = 'Schüler-Nr.';
-        }
-        $TableHeader['Date'] = 'Fälligkeitsdatum';
-        if (isset( $Filter->IBAN ) && $Filter->IBAN != 0) {
-            $TableHeader['IBAN'] = 'IBAN';
-        }
-        if (isset( $Filter->BIC ) && $Filter->BIC != 0) {
-            $TableHeader['BIC'] = 'BIC';
-        }
-        $TableHeader['BillDate'] = 'Rechnungsdatum';
-        $TableHeader['Reference'] = 'Mandats-Ref.';
-        if (isset( $Filter->BankName ) && $Filter->BankName != 0) {
-            $TableHeader['Bank'] = 'Name der Bank';
-        }
-        $TableHeader['Client'] = 'Mandant';
-        $TableHeader['DebtorNumber'] = 'Debitoren-Nr.';
-        if (isset( $Filter->Owner ) && $Filter->Owner != 0) {
-            $TableHeader['Owner'] = 'Besitzer';
-        }
-        $TableHeader['InvoiceNumber'] = 'Buchungstext';
-        $TableHeader['Item'] = 'Artikel';
-        $TableHeader['ItemPrice'] = 'Einzelpreis';
-        $TableHeader['Quantity'] = 'Anzahl';
-        $TableHeader['Sum'] = 'Gesamtpreis';
+        $TableHeader = Invoice::useService()->getHeader($Filter);
 
         $TableContent = array();
         if ($tblInvoiceList) {
@@ -219,28 +255,48 @@ class Frontend extends Extension implements IFrontendInterface
                 $Filter->StudentNumber,
                 $Filter->IBAN,
                 $Filter->BIC,
+                $Filter->Client,
                 $Filter->BankName,
-                $Filter->Owner
+                $Filter->Owner,
+                $Filter->Billers,
+                $Filter->SchoolIBAN,
+                $Filter->SchoolBIC,
+                $Filter->SchoolBankName,
+                $Filter->SchoolOwner
             );
             if (!empty( $TableContent )) {
                 $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',
                     '/Api/Billing/Invoice/Download', new Download(),
                     array('Filter' => (new Response())->addData(array(
-                        'DateFrom'      => $Filter->DateFrom,
-                        'DateTo'        => $Filter->DateTo,
-                        'BankName'      => $Filter->BankName,
-                        'Owner'         => $Filter->Owner,
-                        'IBAN'          => $Filter->IBAN,
-                        'BIC'           => $Filter->BIC,
-                        'StudentNumber' => $Filter->StudentNumber,
-                        'PersonFrom'    => $Filter->PersonFrom,
-                        'Status'        => $Filter->Status,
+                        'DateFrom'       => $Filter->DateFrom,
+                        'DateTo'         => $Filter->DateTo,
+                        'BankName'       => $Filter->BankName,
+                        'Owner'          => $Filter->Owner,
+                        'IBAN'           => $Filter->IBAN,
+                        'BIC'            => $Filter->BIC,
+                        'Client'            => $Filter->Client,
+                        'Billers' => $Filter->Billers,
+                        'SchoolBankName' => $Filter->SchoolBankName,
+                        'SchoolOwner'    => $Filter->SchoolOwner,
+                        'SchoolIBAN'     => $Filter->SchoolIBAN,
+                        'SchoolBIC'      => $Filter->SchoolBIC,
+                        'StudentNumber'  => $Filter->StudentNumber,
+                        'PersonFrom'     => $Filter->PersonFrom,
+                        'Status'         => $Filter->Status,
                     ))->__toString()
                     )
                 ));
             }
         }
         $Status = ( $Filter->Status == 1 ? 'Offene Rechnungen' : ( $Filter->Status == 2 ? 'Bezahlte Rechnungen' : 'Stornierte Rechnungen' ) );
+
+        $ColumnDate = 1;
+        if($Filter->PersonFrom == 1){
+            $ColumnDate++;
+        }
+        if($Filter->StudentNumber == 1){
+            $ColumnDate++;
+        }
 
         $Stage->setContent(
             new Layout(
@@ -251,7 +307,15 @@ class Frontend extends Extension implements IFrontendInterface
                                                                     Datum "Fälligkeit" von: '.$Filter->DateFrom.'<br/>
                                                                     Datum "Fälligkeit" bis: '.$Filter->DateTo.'<br/>
                                                                     Status der Rechnungen: '.$Status)
-                                : new TableData($TableContent, null, $TableHeader) )
+                                : new TableData($TableContent, null, $TableHeader,
+                                    array(
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => $ColumnDate),
+                                            array('type' => 'de_date', 'targets' => $ColumnDate + 1),
+                                        )
+                                    )
+                                )
+                            )
                         )
                     )
                     , new Title(new ListingTable().' Übersicht'))

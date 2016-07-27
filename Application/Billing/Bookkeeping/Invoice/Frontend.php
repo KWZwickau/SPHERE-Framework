@@ -56,6 +56,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblInvoiceAll) {
 
             array_walk($tblInvoiceAll, function (TblInvoice $tblInvoice) use (&$TableContent) {
+                $Content['CreateDate'] = $tblInvoice->getEntityCreate()->format('d.m.Y');
+                $Content['TargetDate'] = $tblInvoice->getTargetTime();
                 $Content['FullName'] = $tblInvoice->getServiceTblPerson()->getFullName();
                 $Content['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                 $Content['DebtorNumber'] = '';
@@ -132,6 +134,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ( empty( $TableContent ) ? new Warning('Keine Rechnungen vorhanden') :
                                 new TableData($TableContent, null,
                                     array('InvoiceNumber' => 'Rechnungsnummer',
+                                          'CreateDate'    => 'Erstellungsdatum',
+                                          'TargetDate'    => 'Fälligkeitsdatum',
                                           'DebtorNumber'  => 'Debitorennummer',
                                           'FullName'      => 'Debitor',
                                           'Reference'     => 'Mandatsreferenz(en)',
@@ -139,7 +143,13 @@ class Frontend extends Extension implements IFrontendInterface
                                           'Price'         => 'Gesamtpreis',
                                           'Paid'          => 'Bezahlt',
                                           'Reversal'      => 'Storniert',
-                                          'Option'        => ''))
+                                          'Option'        => ''),
+                                    array(
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 1),
+                                            array('type' => 'de_date', 'targets' => 2),
+                                        )
+                                    ))
                             )
                         ))
                     )

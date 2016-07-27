@@ -142,7 +142,13 @@ class Frontend extends Extension implements IFrontendInterface
                                           'ItemList'      => 'Artikel',
                                           'Paid'          => 'Bezahlt',
                                           'Price'         => 'Gesamtpreis',
-                                          'Option'        => ''))
+                                          'Option'        => ''),
+                                    array(
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 4),
+                                        )
+                                    )
+                                )
                             )
                         ))
                     )
