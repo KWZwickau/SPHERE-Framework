@@ -49,6 +49,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblCertificate[]
+     */
+    public function getCertificateAll()
+    {
+
+        return (new Data($this->getBinding()))->getCertificateAll();
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblCertificate

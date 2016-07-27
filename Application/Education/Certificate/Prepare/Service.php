@@ -718,10 +718,10 @@ class Service extends AbstractService
 
         if (isset($Content['Input']) && is_array($Content['Input'])) {
             foreach ($Content['Input'] as $field => $value) {
-                if ($field == 'SchoolType'){
+                if ($field == 'SchoolType') {
                     /** @var CheBeGs $Certificate */
                     $value = $Certificate->selectValuesSchoolType()[$value];
-                } elseif ($field == 'Type'){
+                } elseif ($field == 'Type') {
                     /** @var CheBeGs $Certificate */
                     $value = $Certificate->selectValuesType()[$value];
                 }
@@ -879,7 +879,7 @@ class Service extends AbstractService
             if (($tblYear = $tblDivision->getServiceTblYear())) {
                 $Content['Division']['Data']['Year'] = $tblYear->getName();
             }
-            if ($tblPrepare->getServiceTblPersonSigner()){
+            if ($tblPrepare->getServiceTblPersonSigner()) {
                 $Content['Division']['Data']['Teacher'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
             }
 
@@ -901,7 +901,7 @@ class Service extends AbstractService
             }
 
             // Klassenlehrer
-            if ($tblPrepare->getServiceTblPersonSigner()){
+            if ($tblPrepare->getServiceTblPersonSigner()) {
                 $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
             }
 
@@ -949,8 +949,61 @@ class Service extends AbstractService
 
             // Zeugnisdatum
             $Content['Input']['Date'] = $tblPrepare->getDate();
+
+            // Notendurchschnitt für Bildungsempfehlung
+            if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                && $tblCertificate->getName() == 'Bildungsempfehlung'
+            ) {
+                $average = $this->calcSubjectGradesAverage($tblPrepareStudent);
+                if ($average) {
+                    $Content['Grade']['Data']['Average'] = str_replace('.', ',', $average);
+                }
+            }
         }
 
         return $Content;
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return bool|float
+     */
+    private function calcSubjectGradesAverage(TblPrepareStudent $tblPrepareStudent)
+    {
+
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+        ) {
+            $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+
+            if ($tblCertificateSubjectAll) {
+                $gradeList = array();
+                foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                    if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())) {
+                        $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject(
+                            $tblPrepare, $tblPerson, $tblDivision, $tblSubject,
+                            Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+                        );
+                        if ($tblPrepareGrade && $tblPrepareGrade->getGrade() != '') {
+                            $grade = str_replace('+', '', $tblPrepareGrade->getGrade());
+                            $grade = str_replace('-', '', $grade);
+                            if (is_numeric($grade)) {
+                                $gradeList[] = $grade;
+                            }
+                        }
+
+                    }
+                }
+
+                if (!empty($gradeList)) {
+                    return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
+                }
+            }
+        }
+
+        return false;
     }
 }

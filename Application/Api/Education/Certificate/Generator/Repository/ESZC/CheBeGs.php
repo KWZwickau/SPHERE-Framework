@@ -275,19 +275,10 @@ class CheBeGs extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent('Durchschnitt der Noten aus den angegebenen Fächern')
                             ->styleMarginTop('20px')
-                            , '80%')
+                            , '91%')
                         ->addElementColumn((new Element())
-                            // ToDO EN replace to Sachunterricht
-                            ->setContent('{% if(Content.Grade.Data.DE is not empty) %}
-                                    {% if(Content.Grade.Data.MA is not empty) %}
-                                        {% if(Content.Grade.Data.EN is not empty) %}
-                                            {{ ((Content.Grade.Data.DE + Content.Grade.Data.MA + Content.Grade.Data.EN) / 3)|round(2, "floor") }}
-                                        {% else %}
-                                            ---
-                                        {% endif %}
-                                    {% else %}
-                                        ---
-                                    {% endif %}
+                            ->setContent('{% if(Content.Grade.Data.Average is not empty) %}
+                                    {{ Content.Grade.Data.Average }}
                                 {% else %}
                                     ---
                                 {% endif %}')
@@ -296,7 +287,7 @@ class CheBeGs extends Certificate
                             ->styleMarginTop('20px')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
-                            , '20%')
+                            , '9%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -455,7 +446,7 @@ class CheBeGs extends Certificate
                                     &nbsp;
                                 {% endif %}')
                             ->styleTextSize('11px')
-                            ->stylePaddingTop('5px')
+                            ->stylePaddingTop('2px')
                             ->styleAlignCenter()
                             , '35%')
                     )

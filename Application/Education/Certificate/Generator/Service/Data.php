@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -50,91 +51,131 @@ class Data extends AbstractData
         $this->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-6', 'MsJ');
         $this->createCertificate('Mittelschule Jahreszeugnis', 'Realschule', 'MsJRs');
 
-        $tblConsumer = Consumer::useService()->getConsumerByAcronym('ESZC');
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
         if ($tblConsumer) {
-            $this->createCertificate(
-                'Bildungsempfehlung', 'Gymnasium', 'ESZC\CheBeGym', $tblConsumer
-            );
-            $this->createCertificate(
-                'Bildungsempfehlung', 'Mittelschule', 'ESZC\CheBeMi', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahresinformation', 'Hauptschule', 'ESZC\CheHjInfoHs', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahresinformation', 'Klasse 5-6', 'ESZC\CheHjInfo', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahresinformation', 'Realschule', 'ESZC\CheHjInfoRs', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahresinformation', 'Gymnasium', 'ESZC\CheHjGymInfo', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahreszeugnis', 'Gymnasium', 'ESZC\CheHjGym', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahreszeugnis', 'Hauptschule', 'ESZC\CheHjHs', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahreszeugnis', 'Klasse 5-6', 'ESZC\CheHj', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahreszeugnis', 'Realschule', 'ESZC\CheHjRs', $tblConsumer
-            );
-            $this->createCertificate(
-                'Jahreszeugnis', 'Mittelschule', 'ESZC\CheJ', $tblConsumer
-            );
-            $this->createCertificate(
-                'Jahreszeugnis', 'Gymnasium', 'ESZC\CheJGym', $tblConsumer
-            );
-            $this->createCertificate(
-                'Bildungsempfehlung', 'Klassenstufe 4', 'ESZC\CheBeGs', $tblConsumer
-            );
-            $this->createCertificate(
-                'Jahreszeugnis', 'Grundschule Klasse 2-4', 'ESZC\CheJGs', $tblConsumer
-            );
-            $this->createCertificate(
-                'Jahreszeugnis', 'Grundschule Klasse 1', 'ESZC\CheJGsOne', $tblConsumer
-            );
-            $this->createCertificate(
-                'Habljahresinformation', 'Grundschule Klasse 2-4', 'ESZC\CheHjInfoGs', $tblConsumer
-            );
-            $this->createCertificate(
-                'Habljahresinformation', 'Grundschule Klasse 1', 'ESZC\CheHjInfoGsOne', $tblConsumer
-            );
-        }
+            if ($tblConsumer->getAcronym() == 'ESZC' || $tblConsumer->getAcronym() == 'DEMO') {
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESZC');
+                if ($tblConsumerCertificate) {
 
-        $tblConsumer = Consumer::useService()->getConsumerByAcronym('EVSC');
-        if ($tblConsumer) {
-            $this->createCertificate(
-                'Halbjahresinformation', 'Primarstufe', 'EVSC\CosHjPri', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahresinformation', 'Sekundarstufe', 'EVSC\CosHjSek', $tblConsumer
-            );
-            $this->createCertificate(
-                'Jahreszeugnis', 'Primarstufe', 'EVSC\CosJPri', $tblConsumer
-            );
-            $this->createCertificate(
-                'Jahreszeugnis', 'Sekundarstufe', 'EVSC\CosJSek', $tblConsumer
-            );
-        }
+                    $tblCertificate = $this->createCertificate(
+                        'Bildungsempfehlung', 'Klassenstufe 4', 'ESZC\CheBeGs', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
 
-        $tblConsumer = Consumer::useService()->getConsumerByAcronym('FESH');
-        if ($tblConsumer) {
-            $this->createCertificate(
-                'Halbjahresinformation', '', 'FESH\HorHj', $tblConsumer
-            );
-            $this->createCertificate(
-                'Halbjahresinformation', '1. Klasse', 'FESH\HorHjOne', $tblConsumer
-            );
-            $this->createCertificate(
-                'Jahreszeugnis', '', 'FESH\HorJ', $tblConsumer
-            );
-            $this->createCertificate(
-                'Jahreszeugnis', '1. Klasse', 'FESH\HorJOne', $tblConsumer
-            );
+                        $laneIndex = 1;
+                        $laneRanking = 1;
+                        if (!$this->getCertificateSubjectByIndex($tblCertificate, $laneIndex, $laneRanking)
+                            && ($tblSubject = Subject::useService()->getSubjectByAcronym('D'))
+                        ) {
+                            $this->createCertificateSubject($tblCertificate, $laneIndex, $laneRanking, $tblSubject,
+                                true);
+                        }
+
+                        $laneIndex = 2;
+                        $laneRanking = 1;
+                        if (!$this->getCertificateSubjectByIndex($tblCertificate, $laneIndex, $laneRanking)
+                            && ($tblSubject = Subject::useService()->getSubjectByAcronym('MA'))
+                        ) {
+                            $this->createCertificateSubject($tblCertificate, $laneIndex, $laneRanking, $tblSubject,
+                                true);
+                        }
+
+                        $laneIndex = 1;
+                        $laneRanking = 2;
+                        if (!$this->getCertificateSubjectByIndex($tblCertificate, $laneIndex, $laneRanking)
+                            && ($tblSubject = Subject::useService()->getSubjectByAcronym('SU'))
+                        ) {
+                            $this->createCertificateSubject($tblCertificate, $laneIndex, $laneRanking, $tblSubject,
+                                true);
+                        }
+                    }
+
+                    $this->createCertificate(
+                        'Bildungsempfehlung', 'Gymnasium', 'ESZC\CheBeGym', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Bildungsempfehlung', 'Mittelschule', 'ESZC\CheBeMi', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahresinformation', 'Hauptschule', 'ESZC\CheHjInfoHs', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahresinformation', 'Klasse 5-6', 'ESZC\CheHjInfo', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahresinformation', 'Realschule', 'ESZC\CheHjInfoRs', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahresinformation', 'Gymnasium', 'ESZC\CheHjGymInfo', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahreszeugnis', 'Gymnasium', 'ESZC\CheHjGym', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahreszeugnis', 'Hauptschule', 'ESZC\CheHjHs', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahreszeugnis', 'Klasse 5-6', 'ESZC\CheHj', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahreszeugnis', 'Realschule', 'ESZC\CheHjRs', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Jahreszeugnis', 'Mittelschule', 'ESZC\CheJ', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Jahreszeugnis', 'Gymnasium', 'ESZC\CheJGym', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Jahreszeugnis', 'Grundschule Klasse 2-4', 'ESZC\CheJGs', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Jahreszeugnis', 'Grundschule Klasse 1', 'ESZC\CheJGsOne', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Habljahresinformation', 'Grundschule Klasse 2-4', 'ESZC\CheHjInfoGs', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Habljahresinformation', 'Grundschule Klasse 1', 'ESZC\CheHjInfoGsOne', $tblConsumerCertificate
+                    );
+                }
+            }
+
+            if ($tblConsumer->getAcronym() == 'EVSC' || $tblConsumer->getAcronym() == 'DEMO') {
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EVSC');
+                if ($tblConsumerCertificate) {
+                    $this->createCertificate(
+                        'Halbjahresinformation', 'Primarstufe', 'EVSC\CosHjPri', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahresinformation', 'Sekundarstufe', 'EVSC\CosHjSek', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Jahreszeugnis', 'Primarstufe', 'EVSC\CosJPri', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Jahreszeugnis', 'Sekundarstufe', 'EVSC\CosJSek', $tblConsumerCertificate
+                    );
+                }
+            }
+
+            if ($tblConsumer->getAcronym() == 'FESH' || $tblConsumer->getAcronym() == 'DEMO') {
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('FESH');
+                if ($tblConsumerCertificate) {
+                    $this->createCertificate(
+                        'Halbjahresinformation', '', 'FESH\HorHj', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Halbjahresinformation', '1. Klasse', 'FESH\HorHjOne', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Jahreszeugnis', '', 'FESH\HorJ', $tblConsumerCertificate
+                    );
+                    $this->createCertificate(
+                        'Jahreszeugnis', '1. Klasse', 'FESH\HorJOne', $tblConsumerCertificate
+                    );
+                }
+            }
         }
     }
 
