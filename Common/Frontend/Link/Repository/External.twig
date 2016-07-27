@@ -1,4 +1,4 @@
-<a href="{{ ElementPath }}" class="{{ ElementType }}" data-toggle="tooltip" data-container="body"
+<a id="{{ Hash }}" href="{{ ElementPath }}" class="{{ ElementType }}" data-toggle="tooltip" data-container="body"
    title="{{ ElementToolTip }}" rel="external">{{ ElementIcon }} {{ ElementName }}</a>
 
 <script language=javascript>
@@ -6,7 +6,16 @@
     executeScript(function()
     {
         {% if RedirectTimeout is not empty %}
-            setTimeout("location.href='{{ UrlBase }}{{ RedirectRoute }}'", {{ RedirectTimeout }}000);
+        Client.Use("ModAlways", function()
+        {
+            jQuery("a#{{ Hash }}").on("click", function()
+            {
+                $("a#{{ Hash }}").html(
+                    '<span class="loading-indicator-animate"></span> Bitte warten'
+                );
+                setTimeout("location.href='{{ UrlBase }}{{ RedirectRoute }}'", {{ RedirectTimeout }}000);
+            });
+        });
         {% endif %}
     });
 </script>
