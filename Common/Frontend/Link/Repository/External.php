@@ -23,6 +23,8 @@ class External extends Extension implements ILinkInterface
     protected $Name;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
+    /** @var string $Hash */
+    protected $Hash = '';
 
     /** @var string $RedirectRoute */
     private $RedirectRoute = '/';
@@ -107,6 +109,20 @@ class External extends Extension implements ILinkInterface
             $this->Template->setVariable('RedirectTimeout', $this->RedirectTimeout);
         }
 
+        $this->Template->setVariable('Hash', $this->getHash());
+
         return $this->Template->getContent();
+    }
+
+    /**
+     * @return string
+     */
+    public function getHash()
+    {
+
+        if (empty( $this->Hash )) {
+            $this->Hash = md5( uniqid( __CLASS__, true ) );
+        }
+        return $this->Hash;
     }
 }
