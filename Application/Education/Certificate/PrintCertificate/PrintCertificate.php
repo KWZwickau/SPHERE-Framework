@@ -32,6 +32,9 @@ class PrintCertificate implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ , __NAMESPACE__ . '\Frontend::frontendPrintCertificate')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Confirm' , __NAMESPACE__ . '\Frontend::frontendConfirmPrintCertificate')
+        );
     }
 
     /**

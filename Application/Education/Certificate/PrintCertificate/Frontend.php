@@ -9,16 +9,26 @@
 namespace SPHERE\Application\Education\Certificate\PrintCertificate;
 
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -30,7 +40,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zeugnis', 'Übersicht (nicht gedruckte Zeugnisse)');
 
-        // freigeben und nicht gedruckte Zeugnisse
+        // freigebene und nicht gedruckte Zeugnisse
         $tableContent = array();
         $tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllWhere(true, false);
         if ($tblPrepareStudentList) {
@@ -45,9 +55,9 @@ class Frontend extends Extension implements IFrontendInterface
                         'Year' => $tblYear ? $tblYear->getDisplayName() : '',
                         'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
                         'Student' => $tblPerson->getLastFirstName(),
-                        'Option' => new External(
-                            'Zeugnis drucken (herunterladen)',
-                            '/Api/Education/Certificate/Generator/Create',
+                        'Option' => new Standard(
+                            'Zeugnis drucken',
+                            '/Education/Certificate/PrintCertificate/Confirm',
                             new Download(),
                             array(
                                 'PrepareId' => $tblPrepare->getId(),
@@ -90,4 +100,81 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendConfirmPrintCertificate($PrepareId = null, $PersonId = null, $Confirm = false)
+    {
+
+        $Stage = new Stage('Zeugnis', 'Drucken und revisionssicher abspeichern');
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+        ) {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
+            ));
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(
+                            'Schüler',
+                            $tblPerson->getLastFirstName(),
+                            Panel::PANEL_TYPE_INFO
+                        ),
+                        new Panel(
+                            new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
+                            array(
+                                $tblPerson->getLastFirstName()
+                                . ($tblPrepare->getServiceTblDivision()
+                                    ? ' ' . $tblPrepare->getServiceTblDivision()->getDisplayName()
+                                    : '')
+                                . $tblPrepare->getName()
+                            ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new External(
+                                'Ja',
+                                '/Api/Education/Certificate/Generator/Create',
+                                new Ok(),
+                                array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                    'PersonId' => $tblPerson->getId(),
+                                ), 'Zeugnis drucken und revisionssicher abspeichern')
+//                            new Standard(
+//                                'Ja', '/Education/Certificate/PrintCertificate/Confirm', new Ok(),
+//                                array('PrepareId' => $PrepareId, 'PersonId' => $PersonId, 'Confirm' => true)
+//                            )
+                            . new Standard(
+                                'Nein', '/Education/Certificate/PrintCertificate', new Disable()
+                            )
+                        ),
+                    )))))
+                );
+            } else {
+
+                return \SPHERE\Application\Api\Education\Certificate\Certificate::createPdf($tblPrepare, $tblPerson);
+
+//                return  new Success('Zeugnis wurde erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+//                    . new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_SUCCESS);
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger(new Ban() . ' Das Zeugnis konnte nicht gefunden werden'),
+                        new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
+    }
+
 }
