@@ -95,7 +95,7 @@ abstract class Cacheable extends Extension
      * @param array|object|bool|int $EntityList
      * @param array|string|int      $Parameter
      */
-    private function debugFactory($__METHOD__, $EntityList, $Parameter)
+    protected function debugFactory($__METHOD__, $EntityList, $Parameter)
     {
 
         if ($this->useDebugger()) {
@@ -109,7 +109,7 @@ abstract class Cacheable extends Extension
     /**
      * @return bool|null
      */
-    private function useDebugger()
+    protected function useDebugger()
     {
         if ($this->Debug === null) {
             $this->Debug = (

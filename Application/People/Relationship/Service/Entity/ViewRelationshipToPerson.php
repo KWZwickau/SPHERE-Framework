@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
@@ -79,6 +80,18 @@ class ViewRelationshipToPerson extends AbstractView
     protected $TblGroup_Description;
 
     /**
+     * Overwrite this method to return View-ObjectName as View-DisplayName
+     *
+     * @return string View-Gui-Name of Class
+     */
+    public function getViewGuiName()
+    {
+
+        return 'Personenbeziehung';
+    }
+
+
+    /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
      *
      * @return void
@@ -86,5 +99,16 @@ class ViewRelationshipToPerson extends AbstractView
     public function loadNameDefinition()
     {
         // TODO: Implement loadNameDefinition() method.
+    }
+
+    /**
+     * Use this method to add ForeignViews to Graph with "addForeignView()"
+     *
+     * @return void
+     */
+    public function loadViewGraph()
+    {
+
+        $this->addForeignView('TblToPerson_serviceTblPersonTo', new ViewPerson(), 'TblPerson_Id');
     }
 }

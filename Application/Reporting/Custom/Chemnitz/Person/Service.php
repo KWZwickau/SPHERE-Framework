@@ -636,6 +636,7 @@ class Service extends Extension
 
                 $relationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if (!empty($relationshipList)) {
+                    /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToPerson $relationship */
                     foreach ($relationshipList as $relationship) {
                         if ($relationship->getServiceTblPersonFrom() && $relationship->getServiceTblPersonTo()
                             && $relationship->getTblType()->getName() == 'Geschwisterkind'

@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
@@ -54,6 +55,17 @@ class ViewPerson extends AbstractView
     protected $TblPerson_BirthName;
 
     /**
+     * Overwrite this method to return View-ObjectName as View-DisplayName
+     *
+     * @return string Gui-Name of Class
+     */
+    public function getViewGuiName()
+    {
+
+        return 'Personendaten';
+    }
+
+    /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
      *
      * @return void
@@ -61,11 +73,22 @@ class ViewPerson extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition('TblSalutation_Salutation', 'Person Anrede');
-        $this->setNameDefinition('TblPerson_Title', 'Person Titel');
-        $this->setNameDefinition('TblPerson_FirstName', 'Person Vorname');
-        $this->setNameDefinition('TblPerson_SecondName', 'Person Zweitname');
-        $this->setNameDefinition('TblPerson_LastName', 'Person Nachname');
-        $this->setNameDefinition('TblPerson_BirthName', 'Person Geburtsname');
+        $this->setNameDefinition('TblSalutation_Salutation', 'Person: Anrede');
+        $this->setNameDefinition('TblPerson_Title', 'Person: Titel');
+        $this->setNameDefinition('TblPerson_FirstName', 'Person: Vorname');
+        $this->setNameDefinition('TblPerson_SecondName', 'Person: Zweitname');
+        $this->setNameDefinition('TblPerson_LastName', 'Person: Nachname');
+        $this->setNameDefinition('TblPerson_BirthName', 'Person: Geburtsname');
+    }
+
+    /**
+     * Use this method to add ForeignViews to Graph with "addForeignView()"
+     *
+     * @return void
+     */
+    public function loadViewGraph()
+    {
+
+        $this->addForeignView('TblPerson_Id', new ViewRelationshipToPerson(), 'TblToPerson_serviceTblPersonFrom');
     }
 }
