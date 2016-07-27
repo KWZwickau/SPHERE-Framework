@@ -1,13 +1,8 @@
 <?php
 namespace SPHERE\Application\Api\Education\Certificate;
 
-use SPHERE\Application\Api\Education\Certificate\Generator\Creator;
-use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Extension\Extension;
