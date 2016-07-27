@@ -77,19 +77,10 @@ class Frontend extends Extension implements IFrontendInterface
             // Get LAST Mask
             $tblDynamicFilterMaskAll = $this->getSorter($tblDynamicFilterMaskAll)
                 ->sortObjectBy(TblDynamicFilterMask::PROPERTY_FILTER_PILE_ORDER);
-
-            $this->getDebugger()->screenDump($tblDynamicFilterMaskAll);
-
             /** @var TblDynamicFilterMask $tblDynamicFilterMaskLast */
             $tblDynamicFilterMaskLast = end($tblDynamicFilterMaskAll);
-
-            $this->getDebugger()->screenDump($tblDynamicFilterMaskLast);
-
             // Get ForeignView-List
             $ForeignViewList = $tblDynamicFilterMaskLast->getFilterClassInstance()->getForeignViewList();
-
-            $this->getDebugger()->screenDump($ForeignViewList);
-
             // Define as AvailableView-List
             foreach ($ForeignViewList as $ForeignView) {
                 // Index 1 contains FQ Class-Name
@@ -112,8 +103,6 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
 
-        $this->getDebugger()->screenDump($Panel);
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
@@ -121,14 +110,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             $Panel
                         )
-                    ), new Title(new Listing().' Verfügbare Auswertungen')
+                    )
                 ),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             ''
                         )
-                    ), new Title(new PlusSign().' Neue Auswertung anlegen')
+                    )
                 ),
             ))
         );
