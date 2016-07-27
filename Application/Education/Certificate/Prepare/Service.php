@@ -8,6 +8,8 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC\CheBeGs;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
@@ -695,6 +697,7 @@ class Service extends AbstractService
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param $Content
+     * @param Certificate $Certificate
      *
      * @return IFormInterface|string
      */
@@ -702,7 +705,8 @@ class Service extends AbstractService
         IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        $Content
+        $Content,
+        Certificate $Certificate = null
     ) {
 
         /**
@@ -714,6 +718,14 @@ class Service extends AbstractService
 
         if (isset($Content['Input']) && is_array($Content['Input'])) {
             foreach ($Content['Input'] as $field => $value) {
+                if ($field == 'SchoolType'){
+                    /** @var CheBeGs $Certificate */
+                    $value = $Certificate->selectValuesSchoolType()[$value];
+                } elseif ($field == 'Type'){
+                    /** @var CheBeGs $Certificate */
+                    $value = $Certificate->selectValuesType()[$value];
+                }
+
                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
                     (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
                 } else {
@@ -872,11 +884,12 @@ class Service extends AbstractService
             }
 
             // Person
-            $Content['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
-            $Content['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
-            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                $Content['Person']['Student']['Id'] = $tblStudent->getId();
-            }
+            $Content['Person']['Id'] = $tblPerson->getId();
+//            $Content['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
+//            $Content['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
+//            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+//                $Content['Person']['Student']['Id'] = $tblStudent->getId();
+//            }
 
             // zusätzliche Informationen
             $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
@@ -885,6 +898,11 @@ class Service extends AbstractService
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
                     $Content['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
                 }
+            }
+
+            // Klassenlehrer
+            if ($tblPrepare->getServiceTblPersonSigner()){
+                $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
             }
 
             // Kopfnoten

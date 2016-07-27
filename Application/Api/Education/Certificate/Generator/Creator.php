@@ -48,7 +48,7 @@ class Creator
                         $FileName = "Zeugnis " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s") . ".pdf";
 
                         // Revisionssicher speichern
-                        if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+                        if (($tblDivision = $tblPrepare->getServiceTblDivision()) && !$tblPrepareStudent->isPrinted()) {
                             if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision, $Certificate,
                                 $File)
                             ) {
@@ -110,7 +110,7 @@ class Creator
      *
      * @return DummyFile
      */
-    public static function buildDummyFile(Certificate $Certificate, $Data = array())
+    private function buildDummyFile(Certificate $Certificate, $Data = array())
     {
 
         $tblYear = isset($Data['Division']['Data']['Year']) ? $Data['Division']['Data']['Year'] : '';
@@ -136,7 +136,7 @@ class Creator
      *
      * @return string
      */
-    public static function buildDownloadFile(DummyFile $File, $FileName = '')
+    private function buildDownloadFile(DummyFile $File, $FileName = '')
     {
 
         return FileSystem::getDownload(

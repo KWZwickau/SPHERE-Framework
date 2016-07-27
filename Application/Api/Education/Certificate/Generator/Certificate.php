@@ -8,7 +8,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
@@ -29,19 +33,58 @@ abstract class Certificate extends Extension
     private $Grade;
 
     /**
-     * @var array|false
+     * @var TblPerson|null
      */
-    private $Person;
+    private $tblPerson = null;
 
+    /**
+     * @param bool|true $IsSample
+     */
     public function __construct($IsSample = true)
     {
 
         $this->getCache(new TwigHandler())->clearCache();
 
         $this->setGrade(false);
-        $this->setPerson(false);
         $this->IsSample = (bool)$IsSample;
-//        $this->Certificate = $this->buildCertificate($this->IsSample);
+        $this->Certificate = $this->buildCertificate($this->IsSample);
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return IBridgeInterface
+     */
+    public function createCertificate($Data = array())
+    {
+
+        if (isset($Data['Grade'])) {
+            $this->setGrade($Data['Grade']);
+        }
+        if (isset($Data['Person']['Id'])) {
+            if (($person = Person::useService()->getPersonById($Data['Person']['Id']))) {
+                $this->setTblPerson($person);
+                $this->allocatePersonData($Data);
+                $this->allocatePersonAddress($Data);
+                $this->allocatePersonCommon($Data);
+                $this->allocatePersonParents($Data);
+            } else {
+                $this->setTblPerson(null);
+            }
+        }
+
+        $this->Certificate = $this->buildCertificate($this->IsSample);
+
+        // für Befreiung
+        if (isset($Data['Grade'])) {
+            $Data['Grade'] = $this->getGrade();
+        }
+
+        if (!empty($Data)) {
+            $this->Certificate->setData($Data);
+        }
+
+        return $this->Certificate->getTemplate();
     }
 
     /**
@@ -69,22 +112,25 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param $Person
+     * @return false|TblPerson
      */
-    public function setPerson($Person)
+    public function getTblPerson()
     {
-        $this->Person = $Person;
+        if (null === $this->tblPerson) {
+            return false;
+        } else {
+            return $this->tblPerson;
+        }
     }
 
     /**
-     * @return array|false
+     * @param false|TblPerson $tblPerson
      */
-    public function getPerson()
+    public function setTblPerson(TblPerson $tblPerson = null)
     {
 
-        return $this->Person;
+        $this->tblPerson = $tblPerson;
     }
-
 
     /**
      * @return string Certificate-Name from Database-Settings
@@ -155,32 +201,92 @@ abstract class Certificate extends Extension
     /**
      * @param array $Data
      *
-     * @return IBridgeInterface
+     * @return array $Data
      */
-    public function createCertificate($Data = array())
+    private function allocatePersonData(&$Data)
     {
 
-        if (isset($Data['Grade'])){
-            $this->setGrade($Data['Grade']);
-        }
-        if (isset($Data['Person'])){
-            $this->setPerson($Data['Person']);
-        }
-
-        $this->Certificate = $this->buildCertificate($this->IsSample);
-
-        // für Befreiung
-        if (isset($Data['Grade'])){
-            $Data['Grade'] = $this->getGrade();
+        if ($this->getTblPerson()) {
+            $Data['Person']['Data']['Name']['Salutation'] = $this->getTblPerson()->getSalutation();
+            $Data['Person']['Data']['Name']['First'] = $this->getTblPerson()->getFirstSecondName();
+            $Data['Person']['Data']['Name']['Last'] = $this->getTblPerson()->getLastName();
         }
 
-        if (!empty($Data)) {
-            $this->Certificate->setData($Data);
-        }
-
-        return $this->Certificate->getTemplate();
+        return $Data;
     }
 
+    /**
+     * @param array $Data
+     *
+     * @return array $Data
+     */
+    private function allocatePersonAddress(&$Data)
+    {
+
+        if ($this->getTblPerson()) {
+            if (($tblAddress = $this->getTblPerson()->fetchMainAddress())) {
+                $Data['Person']['Address']['Street']['Name'] = $tblAddress->getStreetName();
+                $Data['Person']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
+                $Data['Person']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                $Data['Person']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
+            }
+        }
+
+        return $Data;
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return array $Data
+     */
+    private function allocatePersonCommon(&$Data)
+    {
+
+        if ($this->getTblPerson()) {
+            if (($tblCommon = Common::useService()->getCommonByPerson($this->getTblPerson()))
+                && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
+            ) {
+                $Data['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
+                $Data['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
+                $Data['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
+                    ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
+            }
+        }
+
+        return $Data;
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return array $Data
+     */
+    private function allocatePersonParents(&$Data)
+    {
+
+        if ($this->getTblPerson()) {
+            if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
+                foreach ($tblRelationshipList as $tblToPerson) {
+                    if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
+                        && $tblToPerson->getServiceTblPersonTo()
+                        && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
+                        && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
+                    ) {
+                        if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
+                            $Data['Person']['Parent']['Mother']['Name']['First'] =$tblFromPerson->getFirstSecondName();
+                            $Data['Person']['Parent']['Mother']['Name']['Last'] =$tblFromPerson->getLastName();
+                        } elseif (!isset($Data['Person']['Parent']['Father']['Name'])) {
+                            $Data['Person']['Parent']['Father']['Name']['First'] =$tblFromPerson->getFirstSecondName();
+                            $Data['Person']['Parent']['Father']['Name']['Last'] =$tblFromPerson->getLastName();
+                        }
+                    }
+                }
+            }
+        }
+
+        return $Data;
+    }
 
     /**
      * @return Slice
@@ -208,22 +314,20 @@ abstract class Certificate extends Extension
                     if ($tblCertificateSubject->isEssential()) {
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym'] = $tblSubject->getAcronym();
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName'] = $tblSubject->getName();
+
                         // Liberation?
-                        $PersonList = $this->getPerson();
-                        if(
-                            isset($PersonList['Student']) && isset($PersonList['Student']['Id'])
+                        if (
+                            $this->getTblPerson()
+                            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
                             && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
                         ) {
-                            $tblStudent = Student::useService()->getStudentById( $PersonList['Student']['Id'] );
-                            if( $tblStudent ) {
-                                $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-                                if( $tblStudentLiberationAll ) {
-                                    foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-                                        if (( $tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType() )) {
-                                            $tblStudentLiberationType->getTblStudentLiberationCategory();
-                                            if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-                                                $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-                                            }
+                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
+                            if ($tblStudentLiberationAll) {
+                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
+                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
+                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
+                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
+                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
                                         }
                                     }
                                 }

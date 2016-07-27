@@ -37,7 +37,7 @@ class GsHjInfo extends Certificate
                 ->addElementColumn((new Element\Sample())
                     ->styleTextSize('30px')
                 )
-                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '200px', '63px'))
+                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '200px'))
                     , '25%')
             );
 
@@ -105,85 +105,84 @@ class GsHjInfo extends Certificate
                             , '79%')
                     )->styleMarginTop('5px')
                 )
-                ->addSlice( $this->getGradeLanes() )
-//                ->addSlice((new Slice())
-//                    ->addSection((new Section())
-//                        ->addElementColumn((new Element())
-//                            ->setContent('Betragen')
-//                            ->stylePaddingTop()
-//                            , '39%')
-//                        ->addElementColumn((new Element())
-//                            ->setContent('{% if(Content.Input.KBE is not empty) %}
-//                                    {{ Content.Input.KBE }}
-//                                {% else %}
-//                                    ---
-//                                {% endif %}')
-//                            ->styleAlignCenter()
-//                            ->styleBackgroundColor('#BBB')
-//                            ->styleBorderBottom('1px', '#000')
-//                            ->stylePaddingTop()
-//                            ->stylePaddingBottom()
-//                            , '9%')
-//                        ->addElementColumn((new Element())
-//                            , '4%')
-//                        ->addElementColumn((new Element())
-//                            ->setContent('Mitarbeit')
-//                            ->stylePaddingTop()
-//                            , '39%')
-//                        ->addElementColumn((new Element())
-//                            ->setContent('{% if(Content.Input.KMI is not empty) %}
-//                                    {{ Content.Input.KMI }}
-//                                {% else %}
-//                                    ---
-//                                {% endif %}')
-//                            ->styleAlignCenter()
-//                            ->styleBackgroundColor('#BBB')
-//                            ->styleBorderBottom('1px', '#000')
-//                            ->stylePaddingTop()
-//                            ->stylePaddingBottom()
-//                            , '9%')
-//                    )
-//                    ->styleMarginTop('15px')
-//                )
-//                ->addSlice((new Slice())
-//                    ->addSection((new Section())
-//                        ->addElementColumn((new Element())
-//                            ->setContent('Fleiß')
-//                            ->stylePaddingTop()
-//                            , '39%')
-//                        ->addElementColumn((new Element())
-//                            ->setContent('{% if(Content.Input.KFL is not empty) %}
-//                                    {{ Content.Input.KFL }}
-//                                {% else %}
-//                                    ---
-//                                {% endif %}')
-//                            ->styleAlignCenter()
-//                            ->styleBackgroundColor('#BBB')
-//                            ->styleBorderBottom('1px', '#000')
-//                            ->stylePaddingTop()
-//                            ->stylePaddingBottom()
-//                            , '9%')
-//                        ->addElementColumn((new Element())
-//                            , '4%')
-//                        ->addElementColumn((new Element())
-//                            ->setContent('Ordnung')
-//                            ->stylePaddingTop()
-//                            , '39%')
-//                        ->addElementColumn((new Element())
-//                            ->setContent('{% if(Content.Input.KOR is not empty) %}
-//                                    {{ Content.Input.KOR }}
-//                                {% else %}
-//                                    ---
-//                                {% endif %}')
-//                            ->styleAlignCenter()
-//                            ->styleBackgroundColor('#BBB')
-//                            ->styleBorderBottom('1px', '#000')
-//                            ->stylePaddingTop()
-//                            ->stylePaddingBottom()
-//                            , '9%')
-//                    )
-//                    ->styleMarginTop('3px')
-//                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Betragen')
+                            ->stylePaddingTop()
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Input.KBE is not empty) %}
+                                    {{ Content.Input.KBE }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '9%')
+                        ->addElementColumn((new Element())
+                            , '4%')
+                        ->addElementColumn((new Element())
+                            ->setContent('Mitarbeit')
+                            ->stylePaddingTop()
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Input.KMI is not empty) %}
+                                    {{ Content.Input.KMI }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '9%')
+                    )
+                    ->styleMarginTop('15px')
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Fleiß')
+                            ->stylePaddingTop()
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Input.KFL is not empty) %}
+                                    {{ Content.Input.KFL }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '9%')
+                        ->addElementColumn((new Element())
+                            , '4%')
+                        ->addElementColumn((new Element())
+                            ->setContent('Ordnung')
+                            ->stylePaddingTop()
+                            , '39%')
+                        ->addElementColumn((new Element())
+                            ->setContent('{% if(Content.Input.KOR is not empty) %}
+                                    {{ Content.Input.KOR }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom('1px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            , '9%')
+                    )
+                    ->styleMarginTop('3px')
+                )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('Leistungen in den einzelnen Fächern:')
@@ -191,8 +190,7 @@ class GsHjInfo extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice( $this->getSubjectLanes() )
-                /*->addSlice((new Slice())
+                ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Deutsch')
@@ -396,7 +394,7 @@ class GsHjInfo extends Certificate
                             , '52%')
                     )
                     ->styleHeight('145px')
-                )*/
+                )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())

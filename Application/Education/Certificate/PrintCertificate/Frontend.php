@@ -104,11 +104,10 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $PrepareId
      * @param null $PersonId
-     * @param bool $Confirm
      *
      * @return Stage
      */
-    public function frontendConfirmPrintCertificate($PrepareId = null, $PersonId = null, $Confirm = false)
+    public function frontendConfirmPrintCertificate($PrepareId = null, $PersonId = null)
     {
 
         $Stage = new Stage('Zeugnis', 'Drucken und revisionssicher abspeichern');
@@ -121,49 +120,40 @@ class Frontend extends Extension implements IFrontendInterface
                 'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
             ));
 
-            if (!$Confirm) {
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(
-                            'Schüler',
-                            $tblPerson->getLastFirstName(),
-                            Panel::PANEL_TYPE_INFO
+
+            $Stage->setContent(
+                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                    new Panel(
+                        'Schüler',
+                        $tblPerson->getLastFirstName(),
+                        Panel::PANEL_TYPE_INFO
+                    ),
+                    new Panel(
+                        new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
+                        array(
+                            $tblPerson->getLastFirstName()
+                            . ($tblPrepare->getServiceTblDivision()
+                                ? ' ' . $tblPrepare->getServiceTblDivision()->getDisplayName()
+                                : '')
+                            . $tblPrepare->getName()
                         ),
-                        new Panel(
-                            new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
+                        Panel::PANEL_TYPE_DANGER,
+                        (new External(
+                            'Ja',
+                            '/Api/Education/Certificate/Generator/Create',
+                            new Ok(),
                             array(
-                                $tblPerson->getLastFirstName()
-                                . ($tblPrepare->getServiceTblDivision()
-                                    ? ' ' . $tblPrepare->getServiceTblDivision()->getDisplayName()
-                                    : '')
-                                . $tblPrepare->getName()
+                                'PrepareId' => $tblPrepare->getId(),
+                                'PersonId' => $tblPerson->getId(),
                             ),
-                            Panel::PANEL_TYPE_DANGER,
-                            new External(
-                                'Ja',
-                                '/Api/Education/Certificate/Generator/Create',
-                                new Ok(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'PersonId' => $tblPerson->getId(),
-                                ), 'Zeugnis drucken und revisionssicher abspeichern')
-//                            new Standard(
-//                                'Ja', '/Education/Certificate/PrintCertificate/Confirm', new Ok(),
-//                                array('PrepareId' => $PrepareId, 'PersonId' => $PersonId, 'Confirm' => true)
-//                            )
-                            . new Standard(
-                                'Nein', '/Education/Certificate/PrintCertificate', new Disable()
-                            )
-                        ),
-                    )))))
-                );
-            } else {
-
-                return \SPHERE\Application\Api\Education\Certificate\Certificate::createPdf($tblPrepare, $tblPerson);
-
-//                return  new Success('Zeugnis wurde erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-//                    . new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_SUCCESS);
-            }
+                            'Zeugnis drucken und revisionssicher abspeichern'))
+                            ->setRedirect('/Education/Certificate/PrintCertificate', 3)
+                        . new Standard(
+                            'Nein', '/Education/Certificate/PrintCertificate', new Disable()
+                        )
+                    ),
+                )))))
+            );
         } else {
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
@@ -174,6 +164,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )))
             );
         }
+
         return $Stage;
     }
 

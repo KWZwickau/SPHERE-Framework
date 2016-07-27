@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC\CheBeGs;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
@@ -158,8 +159,6 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPrepareAllByDivision = Prepare::useService()->getPrepareAllByDivision($tblDivision);
             if ($tblPrepareAllByDivision) {
                 foreach ($tblPrepareAllByDivision as $tblPrepare) {
-
-                    // ToDo setzen von $tblPrepare->isAppointedDateTaskUpdated beim Änderung der Noten im ausgewählten Stichtagsnotenauftrag
 
                     $tableData[] = array(
                         'Date' => $tblPrepare->getDate(),
@@ -1660,25 +1659,14 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblCertificate && !$IsChange) {
 
-                if ($Content === null) {
-                    $Global = $this->getGlobal();
-                    $tblPrepareInformationAll = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
-                        $tblPerson);
-                    if ($tblPrepareInformationAll) {
-                        foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
-                            $Global->POST['Content']['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
-                        }
-                    }
-                    $Global->savePost();
-                }
-
                 $form = null;
+                $Certificate = null;
                 if ($tblCertificate) {
                     $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
 
-                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                        $Template = new $CertificateClass($tblPerson, $tblDivision);
+                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                        $Certificate = new $CertificateClass($tblPerson, $tblDivision);
 
                         $FormField = array(
                             'Content.Input.Remark' => 'TextArea',
@@ -1687,6 +1675,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Input.Team' => 'TextArea',
                             'Content.Input.Deepening' => 'TextField',
                             'Content.Input.Choose' => 'TextField',
+                            'Content.Input.SchoolType' => 'SelectBox',
+                            'Content.Input.Type' => 'SelectBox',
 //                            'Content.Input.Date' => 'DatePicker',
                             'Content.Input.DateCertifcate' => 'DatePicker',
                             'Content.Input.DateConference' => 'DatePicker',
@@ -1701,6 +1691,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Content.Input.Team' => 'Arbeitsgemeinschaften',
                             'Content.Input.Deepening' => 'Vertiefungsrichtung',
                             'Content.Input.Choose' => 'Wahlpflichtbereich',
+                            'Content.Input.SchoolType' => 'Ausbildung fortsetzen',
+                            'Content.Input.Type' => 'Bezieht sich auf',
 //                            'Content.Input.Date' => 'Datum',
                             'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
                             'Content.Input.DateConference' => 'Datum der Konferenz',
@@ -1709,12 +1701,37 @@ class Frontend extends Extension implements IFrontendInterface
 //                        'Content.Input.LevelThree' => '3. Fremdsprache ab Klassenstufe',
                         );
 
+                        if ($Content === null) {
+                            $Global = $this->getGlobal();
+                            $tblPrepareInformationAll = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
+                                $tblPerson);
+                            if ($tblPrepareInformationAll) {
+                                foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
+                                    if ($tblPrepareInformation->getField() == 'SchoolType') {
+                                        $Global->POST['Content']['Input'][$tblPrepareInformation->getField()] =
+                                            /** @var CheBeGs $Certificate */
+                                            array_search($tblPrepareInformation->getValue(),
+                                                $Certificate->selectValuesSchoolType());
+                                    } elseif ($tblPrepareInformation->getField() == 'Type') {
+                                        $Global->POST['Content']['Input'][$tblPrepareInformation->getField()] =
+                                            /** @var CheBeGs $Certificate */
+                                            array_search($tblPrepareInformation->getValue(),
+                                                $Certificate->selectValuesType());
+                                    } else {
+                                        $Global->POST['Content']['Input'][$tblPrepareInformation->getField()]
+                                            = $tblPrepareInformation->getValue();
+                                    }
+                                }
+                            }
+                            $Global->savePost();
+                        }
+
                         // Create Form, Additional Information from Template
-                        $PlaceholderList = $Template->getCertificate()->getPlaceholder();
+                        $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
                         $FormPanelList = array();
                         if ($PlaceholderList) {
                             array_walk($PlaceholderList,
-                                function ($Placeholder) use ($Template, $FormField, $FormLabel, &$FormPanelList) {
+                                function ($Placeholder) use ($Certificate, $FormField, $FormLabel, &$FormPanelList) {
 
                                     $PlaceholderList = explode('.', $Placeholder);
                                     $Identifier = array_slice($PlaceholderList, 1);
@@ -1722,7 +1739,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $FieldName = $PlaceholderList[0] . '[' . implode('][', $Identifier) . ']';
 
                                     $Type = array_shift($Identifier);
-                                    if (!method_exists($Template, 'get' . $Type)) {
+                                    if (!method_exists($Certificate, 'get' . $Type)) {
                                         if (isset($FormField[$Placeholder])) {
                                             if (isset($FormLabel[$Placeholder])) {
                                                 $Label = $FormLabel[$Placeholder];
@@ -1731,7 +1748,19 @@ class Frontend extends Extension implements IFrontendInterface
                                             }
                                             if (isset($FormField[$Placeholder])) {
                                                 $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$Placeholder];
-                                                $Placeholder = (new $Field($FieldName, $Label, $Label));
+                                                if ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\SelectBox') {
+                                                    $selectBoxData = array();
+                                                    if ($Placeholder == 'Content.Input.SchoolType') {
+                                                        /** @var CheBeGs $Certificate */
+                                                        $selectBoxData = $Certificate->selectValuesSchoolType();
+                                                    } elseif ($Placeholder == 'Content.Input.Type') {
+                                                        /** @var CheBeGs $Certificate */
+                                                        $selectBoxData = $Certificate->selectValuesType();
+                                                    }
+                                                    $Placeholder = (new SelectBox($FieldName, $Label, $selectBoxData));
+                                                } else {
+                                                    $Placeholder = (new $Field($FieldName, $Label, $Label));
+                                                }
                                             } else {
                                                 $Placeholder = (new TextField($FieldName, $Label, $Label));
                                             }
@@ -1773,8 +1802,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
                     $contentLayout = new Well(Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
-                        $tblPerson,
-                        $Content));
+                        $tblPerson, $Content, $Certificate));
                 }
             } else {
                 if ($Data === null && $tblPrepareStudent) {
