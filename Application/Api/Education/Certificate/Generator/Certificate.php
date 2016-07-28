@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
@@ -71,6 +72,12 @@ abstract class Certificate extends Extension
             } else {
                 $this->setTblPerson(null);
             }
+        }
+        if (isset($Data['Company']['Id'])
+            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
+        ) {
+            $this->allocateCompanyData($Data);
+            $this->allocateCompanyAddress($Data);
         }
 
         $this->Certificate = $this->buildCertificate($this->IsSample);
@@ -274,14 +281,53 @@ abstract class Certificate extends Extension
                         && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
                     ) {
                         if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
-                            $Data['Person']['Parent']['Mother']['Name']['First'] =$tblFromPerson->getFirstSecondName();
-                            $Data['Person']['Parent']['Mother']['Name']['Last'] =$tblFromPerson->getLastName();
+                            $Data['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
+                            $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
                         } elseif (!isset($Data['Person']['Parent']['Father']['Name'])) {
-                            $Data['Person']['Parent']['Father']['Name']['First'] =$tblFromPerson->getFirstSecondName();
-                            $Data['Person']['Parent']['Father']['Name']['Last'] =$tblFromPerson->getLastName();
+                            $Data['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
+                            $Data['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
                         }
                     }
                 }
+            }
+        }
+
+        return $Data;
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return array $Data
+     */
+    private function allocateCompanyData(&$Data)
+    {
+
+        if (isset($Data['Company']['Id'])
+            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
+        ) {
+            $Data['Company']['Data']['Name'] = $tblCompany->getDisplayName();
+        }
+
+        return $Data;
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return array $Data
+     */
+    private function allocateCompanyAddress(&$Data)
+    {
+
+        if (isset($Data['Company']['Id'])
+            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
+        ) {
+            if (($tblAddress = $tblCompany->fetchMainAddress())) {
+                $Data['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
+                $Data['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
+                $Data['Company']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                $Data['Company']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
             }
         }
 

@@ -850,7 +850,7 @@ class Service extends AbstractService
                 }
             }
             if ($tblCompany) {
-                $Content['Company']['Data']['Name'] = $tblCompany->getDisplayName();
+                $Content['Company']['Id'] = $tblCompany->getId();
             }
 
             // Division
@@ -867,11 +867,6 @@ class Service extends AbstractService
 
             // Person
             $Content['Person']['Id'] = $tblPerson->getId();
-//            $Content['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
-//            $Content['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
-//            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-//                $Content['Person']['Student']['Id'] = $tblStudent->getId();
-//            }
 
             // zusätzliche Informationen
             $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
