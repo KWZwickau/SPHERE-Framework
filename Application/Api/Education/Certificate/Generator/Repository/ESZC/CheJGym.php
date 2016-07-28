@@ -213,6 +213,32 @@ class CheJGym extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('Arbeitsgemeinschaften:')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleTextBold()
+                            , '20%')
+                        ->addElementColumn((new Element())
+                            , '80%'
+                        )
+                    )
+                    ->styleMarginTop('5px')
+                )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('{% if(Content.Subject.Team is not empty) %}
+                                    {{ Content.Subject.Team }}
+                                {% else %}
+                                    0
+                                {% endif %}')
+                        ->styleBorderBottom('1px', '#BBB')
+                        ->styleMarginTop('5px')
+                        ->styleBorderBottom()
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
                             ->setContent('Bemerkungen:')
                             , '16%')
                         ->addElementColumn((new Element())

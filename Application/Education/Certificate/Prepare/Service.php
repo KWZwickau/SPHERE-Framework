@@ -838,10 +838,12 @@ class Service extends AbstractService
             && ($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
         ) {
 
+            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+
             // Company
             $tblCompany = false;
             if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                && $tblStudent
             ) {
                 $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                     $tblTransferType);
@@ -851,6 +853,24 @@ class Service extends AbstractService
             }
             if ($tblCompany) {
                 $Content['Company']['Id'] = $tblCompany->getId();
+            }
+
+            // Arbeitsgemeinschaften
+            if ($tblStudent
+                && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
+                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                    $tblStudent, $tblSubjectType
+                ))
+            ){
+                $tempList = array();
+                foreach ($tblSubjectList as $tblStudentSubject){
+                    if ($tblStudentSubject->getServiceTblSubject()){
+                        $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
+                    }
+                }
+                if (!empty($tempList)){
+                    $Content['Subject']['Team'] = implode(', ', $tempList);
+                }
             }
 
             // Division
