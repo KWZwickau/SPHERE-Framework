@@ -60,34 +60,11 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Bildungsempfehlung', 'Klassenstufe 4', 'ESZC\CheBeGs', $tblConsumerCertificate
                     );
-                    if ($tblCertificate) {
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
 
-                        $laneIndex = 1;
-                        $laneRanking = 1;
-                        if (!$this->getCertificateSubjectByIndex($tblCertificate, $laneIndex, $laneRanking)
-                            && ($tblSubject = Subject::useService()->getSubjectByAcronym('D'))
-                        ) {
-                            $this->createCertificateSubject($tblCertificate, $laneIndex, $laneRanking, $tblSubject,
-                                true);
-                        }
-
-                        $laneIndex = 2;
-                        $laneRanking = 1;
-                        if (!$this->getCertificateSubjectByIndex($tblCertificate, $laneIndex, $laneRanking)
-                            && ($tblSubject = Subject::useService()->getSubjectByAcronym('MA'))
-                        ) {
-                            $this->createCertificateSubject($tblCertificate, $laneIndex, $laneRanking, $tblSubject,
-                                true);
-                        }
-
-                        $laneIndex = 1;
-                        $laneRanking = 2;
-                        if (!$this->getCertificateSubjectByIndex($tblCertificate, $laneIndex, $laneRanking)
-                            && ($tblSubject = Subject::useService()->getSubjectByAcronym('SU'))
-                        ) {
-                            $this->createCertificateSubject($tblCertificate, $laneIndex, $laneRanking, $tblSubject,
-                                true);
-                        }
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
                     }
 
                     $this->createCertificate(
@@ -180,9 +157,9 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string           $Name
-     * @param string           $Description
-     * @param string           $Certificate
+     * @param string $Name
+     * @param string $Description
+     * @param string $Certificate
      * @param TblConsumer|null $tblConsumer
      *
      * @return null|object|TblCertificate
@@ -212,9 +189,9 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param int            $LaneIndex
-     * @param int            $LaneRanking
-     * @param TblGradeType   $tblGradeType
+     * @param int $LaneIndex
+     * @param int $LaneRanking
+     * @param TblGradeType $tblGradeType
      *
      * @return null|object|TblCertificateGrade
      */
@@ -228,8 +205,8 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCertificateGrade')->findOneBy(array(
             TblCertificateGrade::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-            TblCertificateGrade::ATTR_LANE            => $LaneIndex,
-            TblCertificateGrade::ATTR_RANKING         => $LaneRanking
+            TblCertificateGrade::ATTR_LANE => $LaneIndex,
+            TblCertificateGrade::ATTR_RANKING => $LaneRanking
         ));
         if (null === $Entity) {
             $Entity = new TblCertificateGrade();
@@ -246,7 +223,7 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificateGrade $tblCertificateGrade
-     * @param TblGradeType        $tblGradeType
+     * @param TblGradeType $tblGradeType
      *
      * @return bool
      */
@@ -267,11 +244,11 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblCertificate               $tblCertificate
-     * @param int                          $LaneIndex
-     * @param int                          $LaneRanking
-     * @param TblSubject                   $tblSubject
-     * @param bool                         $IsEssential
+     * @param TblCertificate $tblCertificate
+     * @param int $LaneIndex
+     * @param int $LaneRanking
+     * @param TblSubject $tblSubject
+     * @param bool $IsEssential
      * @param null|TblStudentLiberationCategory $tblStudentLiberationCategory
      *
      * @return TblCertificateSubject
@@ -288,8 +265,8 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCertificateSubject')->findOneBy(array(
             TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-            TblCertificateSubject::ATTR_LANE            => $LaneIndex,
-            TblCertificateSubject::ATTR_RANKING         => $LaneRanking
+            TblCertificateSubject::ATTR_LANE => $LaneIndex,
+            TblCertificateSubject::ATTR_RANKING => $LaneRanking
         ));
         if (null === $Entity) {
             $Entity = new TblCertificateSubject();
@@ -307,8 +284,8 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificateSubject $tblCertificateSubject
-     * @param TblSubject            $tblSubject
-     * @param bool                  $IsEssential
+     * @param TblSubject $tblSubject
+     * @param bool $IsEssential
      * @param null|TblStudentLiberationCategory $tblStudentLiberationCategory
      *
      * @return bool
@@ -353,7 +330,7 @@ class Data extends AbstractData
         }
         return false;
     }
-    
+
     /**
      * @param null|TblConsumer $tblConsumer
      *
@@ -364,7 +341,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificate', array(
-                TblCertificate::SERVICE_TBL_CONSUMER => ( $tblConsumer ? $tblConsumer->getId() : null )
+                TblCertificate::SERVICE_TBL_CONSUMER => ($tblConsumer ? $tblConsumer->getId() : null)
             )
         );
     }
@@ -387,7 +364,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCertificate', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -414,7 +391,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCertificateSubject', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -448,8 +425,8 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param int            $LaneIndex
-     * @param int            $LaneRanking
+     * @param int $LaneIndex
+     * @param int $LaneRanking
      *
      * @return bool|TblCertificateSubject
      */
@@ -459,15 +436,15 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificateSubject', array(
                 TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-                TblCertificateSubject::ATTR_LANE            => $LaneIndex,
-                TblCertificateSubject::ATTR_RANKING         => $LaneRanking
+                TblCertificateSubject::ATTR_LANE => $LaneIndex,
+                TblCertificateSubject::ATTR_RANKING => $LaneRanking
             ));
     }
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param int            $LaneIndex
-     * @param int            $LaneRanking
+     * @param int $LaneIndex
+     * @param int $LaneRanking
      *
      * @return bool|TblCertificateGrade
      */
@@ -477,8 +454,8 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificateGrade', array(
                 TblCertificateGrade::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-                TblCertificateGrade::ATTR_LANE            => $LaneIndex,
-                TblCertificateGrade::ATTR_RANKING         => $LaneRanking
+                TblCertificateGrade::ATTR_LANE => $LaneIndex,
+                TblCertificateGrade::ATTR_RANKING => $LaneRanking
             ));
     }
 
@@ -491,6 +468,28 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCertificateGrade', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param $SubjectAcronym
+     * @param $LaneIndex
+     * @param $LaneRanking
+     * @param bool|true $IsEssential
+     * @param TblStudentLiberationCategory|null $tblStudentLiberationCategory
+     */
+    private function setCertificateSubject(
+        TblCertificate $tblCertificate,
+        $SubjectAcronym,
+        $LaneIndex,
+        $LaneRanking,
+        $IsEssential = true,
+        TblStudentLiberationCategory $tblStudentLiberationCategory = null
+    ) {
+        if (($tblSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym))) {
+            $this->createCertificateSubject($tblCertificate, $LaneIndex, $LaneRanking, $tblSubject,
+                $IsEssential, $tblStudentLiberationCategory);
+        }
     }
 }
