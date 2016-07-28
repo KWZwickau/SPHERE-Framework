@@ -106,9 +106,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Price' => 'Gesamt Preis',
                                     ),
                                 array(
-//                                    'order' => array(
-//                                        array(0, 'desc')
-//                                    ),
+                                    'order'      => array(
+                                        array(0, 'desc')
+                                    ),
                                     'columnDefs' => array(
                                         array('type' => 'de_date', 'targets' => 1),
                                         array('type' => 'de_date', 'targets' => 2),
@@ -189,19 +189,19 @@ class Frontend extends Extension implements IFrontendInterface
                                     new CheckBox('Prepare[StudentNumber]', 'Schülernummer', 1),
                                 )
                                 , Panel::PANEL_TYPE_INFO),
-                            new Panel('Firmendaten', array(
-                                    new CheckBox('Prepare[Client]', 'Mandant', 1),
-                                    new CheckBox('Prepare[Billers]', 'Rechnungssteller', 1),
-                                )
-                                , Panel::PANEL_TYPE_INFO)
-                        ), 3),
-                        new FormColumn(array(
-                            new Info('Hinzufügen von'),
                             new Panel('Bankdaten', array(
                                     new CheckBox('Prepare[BankName]', 'Name der Bank', 1),
                                     new CheckBox('Prepare[Owner]', 'Besitzer des Konto\'s', 1),
                                     new CheckBox('Prepare[IBAN]', 'IBAN', 1),
                                     new CheckBox('Prepare[BIC]', 'BIC', 1)
+                                )
+                                , Panel::PANEL_TYPE_INFO),
+                        ), 3),
+                        new FormColumn(array(
+                            new Info('Hinzufügen von'),
+                            new Panel('Firmendaten', array(
+                                    new CheckBox('Prepare[Client]', 'Mandant', 1),
+                                    new CheckBox('Prepare[Billers]', 'Rechnungssteller', 1),
                                 )
                                 , Panel::PANEL_TYPE_INFO),
                             new Panel('Bankdaten des Rechnungssteller\'s', array(
@@ -262,7 +262,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Filter->SchoolIBAN,
                 $Filter->SchoolBIC,
                 $Filter->SchoolBankName,
-                $Filter->SchoolOwner
+                $Filter->SchoolOwner,
+                false
             );
             if (!empty( $TableContent )) {
                 $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',

@@ -26,17 +26,17 @@ class Accounting implements IApplicationInterface
         /**
          * Register Module
          */
-        Account::registerModule();
+//        Account::registerModule();
         Banking::registerModule();
         SchoolAccount::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Buchhaltung'))
         );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Account'), new Link\Name('FIBU-Konten'),
-                new Link\Icon(new ClipBoard()))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__.'/Account'), new Link\Name('FIBU-Konten'),
+//                new Link\Icon(new ClipBoard()))
+//        );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Banking'), new Link\Name('Debitoren'),
                 new Link\Icon(new Person()))

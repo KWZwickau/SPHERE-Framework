@@ -189,6 +189,12 @@ class Service extends AbstractService
         if (isset( $Item['Value'] ) && empty( $Item['Value'] )) {
             $Stage->setError('Item[Value]', 'Bitte geben Sie einen Standard-Preis an');
             $Error = true;
+        } else {
+            $Item['Value'] = str_replace(',', '.', $Item['Value']);
+            if (!is_numeric($Item['Value']) || $Item['Value'] < 0) {
+                $Stage->setError('Item[Value]', 'Bitte geben Sie eine Natürliche Zahl an');
+                $Error = true;
+            }
         }
         if (!$Error) {
 
@@ -306,9 +312,15 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Calculation['Price'] ) && empty( $Calculation['Price'] )) {
-            $Stage->setError('Calculation[Price]', 'Bitte geben Sie einen Artikel-Preis an');
+        if (isset( $Calculation['Value'] ) && empty( $Calculation['Value'] )) {
+            $Stage->setError('Calculation[Value]', 'Bitte geben Sie einen Artikel-Preis an');
             $Error = true;
+        } else {
+            $Calculation['Value'] = str_replace(',', '.', $Calculation['Value']);
+            if (!is_numeric($Calculation['Value']) || $Calculation['Value'] < 0) {
+                $Stage->setError('Calculation[Value]', 'Bitte geben Sie eine Natürliche Zahl an');
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -351,6 +363,12 @@ class Service extends AbstractService
         if (isset( $Calculation['Value'] ) && empty( $Calculation['Value'] )) {
             $Stage->setError('Calculation[Value]', 'Bitte geben Sie einen Artikel-Preis an');
             $Error = true;
+        } else {
+            $Calculation['Value'] = str_replace(',', '.', $Calculation['Value']);
+            if (!is_numeric($Calculation['Value']) || $Calculation['Value'] < 0) {
+                $Stage->setError('Calculation[Value]', 'Bitte geben Sie eine Natürliche Zahl an');
+                $Error = true;
+            }
         }
 
 //        if (!isset( $Calculation['SchoolType'] ) && !isset( $Calculation['SiblingRank'] )) {

@@ -144,6 +144,9 @@ class Frontend extends Extension implements IFrontendInterface
                                           'Price'         => 'Gesamtpreis',
                                           'Option'        => ''),
                                     array(
+                                        'order'      => array(
+                                            array(0, 'desc')
+                                        ),
                                         'columnDefs' => array(
                                             array('type' => 'de_date', 'targets' => 4),
                                         )
@@ -312,9 +315,10 @@ class Frontend extends Extension implements IFrontendInterface
                         , 4),
                     new LayoutColumn(
                         new Panel('Gesamtbetrag:', $Content, Panel::PANEL_TYPE_SUCCESS,
-                            ( $Buttons ? new PullRight(new Standard('', '/Billing/Bookkeeping/Balance/Paid', new Check(),
+                            ( $Buttons ? new Standard('', '/Billing/Bookkeeping/Balance/Paid', new Check(),
                                     array('Id' => $tblInvoice->getId()), 'Bezahlen')
-                                .new Standard('', '/Billing/Bookkeeping/Balance/Reversal', new Disable(),
+                                .new PullRight(
+                                    new Standard('', '/Billing/Bookkeeping/Balance/Reversal', new Disable(),
                                     array('Id' => $tblInvoice->getId()), 'Stornieren')) :
                                 '' )
                         )
@@ -338,13 +342,13 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Betrag', array(
-                            new TextField('Payment[Value]', '', '', new Money())
+                        new Panel('Verwendungszweck', array(
+                            new TextField('Payment[Purpose]', '', '', new CommodityItem())
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
-                        new Panel('Verwendungszweck', array(
-                            new TextField('Payment[Purpose]', '', '', new CommodityItem())
+                        new Panel('Betrag', array(
+                            new TextField('Payment[Value]', '', '', new Money())
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(

@@ -1530,7 +1530,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Item'] )) {
-            $Global->POST['Item']['Price'] = $tblBasketVerification->getPrice();
+            $Global->POST['Item']['Price'] = str_replace('.', ',', number_format($tblBasketVerification->getValue(), 2));
             $Global->POST['Item']['Quantity'] = $tblBasketVerification->getQuantity();
             $Global->POST['Item']['PriceChoice'] = 'Einzelpreis';
             $Global->savePost();

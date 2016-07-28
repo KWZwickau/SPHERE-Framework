@@ -501,7 +501,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Calculation'] )) {
-                $Global->POST['Calculation']['Value'] = $tblCalculation->getValue();
+                $Global->POST['Calculation']['Value'] = str_replace('.', ',', number_format($tblCalculation->getValue(), 2));
                 if ($tblCalculation->getServiceTblType()) {
                     $Global->POST['Calculation']['SchoolType'] = $tblCalculation->getServiceTblType()->getId();
                 }

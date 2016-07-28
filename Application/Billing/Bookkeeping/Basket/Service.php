@@ -726,6 +726,10 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $Item['Price'] = str_replace(',', '.', $Item['Price']);
+            if (!is_numeric($Item['Price']) || $Item['Price'] < 0) {
+                $Stage->setError('Item[Price]', 'Bitte geben Sie eine Natürliche Zahl an');
+                $Error = true;
+            }
         }
         if (isset( $Item['Quantity'] ) && empty( $Item['Quantity'] )) {
             $Stage->setError('Item[Quantity]', 'Bitte geben Sie eine Anzahl an');

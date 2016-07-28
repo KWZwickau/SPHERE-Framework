@@ -85,7 +85,8 @@ class Invoice implements IModuleInterface
             $Filter->SchoolIBAN,
             $Filter->SchoolBIC,
             $Filter->SchoolBankName,
-            $Filter->SchoolOwner);
+            $Filter->SchoolOwner,
+            true);
         if ($TableContent) {
             $fileLocation = \SPHERE\Application\Transfer\Export\Invoice\Invoice::useService()->createInvoiceListExcel($TableContent, $TableHeader);
             if ($fileLocation) {

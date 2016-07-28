@@ -210,6 +210,7 @@ class Service
      * @param      $SchoolBIC
      * @param      $SchoolBankName
      * @param      $SchoolOwner
+     * @param bool $Export
      *
      * @return array
      */
@@ -227,7 +228,8 @@ class Service
         $SchoolIBAN,
         $SchoolBIC,
         $SchoolBankName,
-        $SchoolOwner
+        $SchoolOwner,
+        $Export = true
     ) {
 
         $tblPersonList = array();
@@ -300,7 +302,8 @@ class Service
                         $SchoolIBAN,
                         $SchoolBIC,
                         $SchoolBankName,
-                        $SchoolOwner
+                        $SchoolOwner,
+                        $Export
                     ) {
 
                         $tblItemList = InvoiceBilling::useService()->getItemAllInvoiceAndPerson($tblInvoice, $tblPerson);
@@ -324,12 +327,19 @@ class Service
                                 $Item['SchoolBankName'] = $tblInvoice->getSchoolBankName();
                                 $Item['SchoolIBAN'] = $tblInvoice->getSchoolIBAN();
                                 $Item['SchoolBIC'] = $tblInvoice->getSchoolBIC();
-
                                 $Item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                                 $Item['Item'] = $tblItem->getName();
-                                $Item['ItemPrice'] = number_format(( $tblItem->getValue() ), 2);
+                                $Item['ItemPrice'] = '';
                                 $Item['Quantity'] = $tblItem->getQuantity();
-                                $Item['Sum'] = number_format(( $tblItem->getValue() * $tblItem->getQuantity() ), 2);
+                                $Item['Sum'] = '';
+
+                                if ($Export) {
+                                    $Item['ItemPrice'] = (float)$tblItem->getValue();
+                                    $Item['Sum'] = $tblItem->getValue() * $tblItem->getQuantity();
+                                } else {
+                                    $Item['ItemPrice'] = str_replace('.', ',', number_format(( $tblItem->getValue() ), 2).' €');
+                                    $Item['Sum'] = str_replace('.', ',', number_format(( $tblItem->getValue() * $tblItem->getQuantity() ), 2)).' €';
+                                }
 
                                 $Item['Reference'] = '';
                                 $tblDebtor = InvoiceBilling::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);

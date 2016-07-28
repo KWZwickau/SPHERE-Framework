@@ -145,6 +145,9 @@ class Frontend extends Extension implements IFrontendInterface
                                           'Reversal'      => 'Storniert',
                                           'Option'        => ''),
                                     array(
+                                        'order'      => array(
+                                            array(0, 'desc')
+                                        ),
                                         'columnDefs' => array(
                                             array('type' => 'de_date', 'targets' => 1),
                                             array('type' => 'de_date', 'targets' => 2),
@@ -269,7 +272,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Content[] = 'Gesamtbetrag: '.new PullRight(Balance::useService()->getPriceString($SummaryPrice));
         if (( $PaidMoney = Balance::useService()->getPaidFromInvoice($tblInvoice) ) > 0) {
             $result = $SummaryPrice - $PaidMoney;
-            $Content[] = new Bold('Fehlender Betrag: '.new PullRight(Balance::useService()->getPriceString($result)));
+            if ($result >= 0) {
+                $Content[] = new Bold('Fehlender Betrag: '.new PullRight(Balance::useService()->getPriceString($result)));
+            } else {
+                $Content[] = new \SPHERE\Common\Frontend\Message\Repository\Danger(new Bold('Betrag überschritten: '.new PullRight(Balance::useService()->getPriceString($result))));
+            }
         }
         $Button = false;
         if ($tblInvoice->getIsPaid()) {
