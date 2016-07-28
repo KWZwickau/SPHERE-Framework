@@ -255,7 +255,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Description' => 'Beschreibung',
                 'Option'      => 'Option'
             ), array(
-                'order'      => array(array(0, 'asc')),
+                'order'      => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc')),
                 'columnDefs' => array(
                     array('width' => '1%', 'targets' => 0),
                     array('width' => '1%', 'targets' => 3),

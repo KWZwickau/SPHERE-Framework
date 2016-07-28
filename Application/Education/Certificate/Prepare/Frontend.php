@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Document;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -43,6 +44,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Icon\Repository\Star;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -1608,7 +1610,6 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $PrepareId
      * @param null $PersonId
-     * @param null $Data
      * @param null $Content
      * @param bool $IsChange
      *
@@ -1617,7 +1618,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCertificate(
         $PrepareId = null,
         $PersonId = null,
-        $Data = null,
         $Content = null,
         $IsChange = false
     ) {
@@ -1707,12 +1707,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPerson);
                             if ($tblPrepareInformationAll) {
                                 foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
-                                    if ($tblPrepareInformation->getField() == 'SchoolType') {
+                                    if ($tblPrepareInformation->getField() == 'SchoolType'
+                                        && method_exists($Certificate, 'selectValuesSchoolType')
+                                    ) {
                                         $Global->POST['Content']['Input'][$tblPrepareInformation->getField()] =
-                                            /** @var CheBeGs $Certificate */
                                             array_search($tblPrepareInformation->getValue(),
                                                 $Certificate->selectValuesSchoolType());
-                                    } elseif ($tblPrepareInformation->getField() == 'Type') {
+                                    } elseif ($tblPrepareInformation->getField() == 'Type'
+                                        && method_exists($Certificate, 'selectValuesType')
+                                    ) {
                                         $Global->POST['Content']['Input'][$tblPrepareInformation->getField()] =
                                             /** @var CheBeGs $Certificate */
                                             array_search($tblPrepareInformation->getValue(),
@@ -1750,11 +1753,13 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$Placeholder];
                                                 if ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\SelectBox') {
                                                     $selectBoxData = array();
-                                                    if ($Placeholder == 'Content.Input.SchoolType') {
-                                                        /** @var CheBeGs $Certificate */
+                                                    if ($Placeholder == 'Content.Input.SchoolType'
+                                                        && method_exists($Certificate, 'selectValuesSchoolType')
+                                                    ) {
                                                         $selectBoxData = $Certificate->selectValuesSchoolType();
-                                                    } elseif ($Placeholder == 'Content.Input.Type') {
-                                                        /** @var CheBeGs $Certificate */
+                                                    } elseif ($Placeholder == 'Content.Input.Type'
+                                                        && method_exists($Certificate, 'selectValuesType')
+                                                    ) {
                                                         $selectBoxData = $Certificate->selectValuesType();
                                                     }
                                                     $Placeholder = (new SelectBox($FieldName, $Label, $selectBoxData));
@@ -1805,42 +1810,53 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblPerson, $Content, $Certificate));
                 }
             } else {
-                if ($Data === null && $tblPrepareStudent) {
-                    $Global = $this->getGlobal();
-                    $Global->POST['Data'] = $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate()->getId() : 0;
-                    $Global->savePost();
-                }
-
-                // ToDo Begrenzung auf Schulart und Bildungsgang
+                $CertificateList = array();
                 $tblConsumer = Consumer::useService()->getConsumerBySession();
-                $tblCertificateAll = Generator::useService()->getCertificateAllByConsumer();
+                if ($tblConsumer && $tblConsumer->getAcronym() == 'DEMO') {
+                    $tblCertificateAll = Generator::useService()->getCertificateAll();
+                } else {
+                    $tblCertificateAll = Generator::useService()->getCertificateAllByConsumer();
+                }
                 if ($tblConsumer) {
                     $tblCertificateConsumer = Generator::useService()->getCertificateAllByConsumer($tblConsumer);
                     if ($tblCertificateConsumer) {
                         $tblCertificateAll = array_merge($tblCertificateConsumer, $tblCertificateAll);
                     }
+
+                    $CertificateList = array();
+                    foreach ($tblCertificateAll as $item) {
+
+                        $CertificateList[] = array_merge($item->__toArray(), array(
+                                'Typ' => '<div class="text-center">' . ($item->getServiceTblConsumer()
+                                        ? new Small(new Muted($item->getServiceTblConsumer()->getAcronym())) . '<br/>' . new Star()
+                                        : new Document() . '<br/>' . new Small(new Muted('Standard'))
+                                    ) . '</div>',
+                                'Option' => new Standard(
+                                    '', '/Education/Certificate/Prepare/Certificate/Select', new Select(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'PersonId' => $tblPerson->getId(),
+                                        'CertificateId' => $item->getId()
+                                    ), 'Auswählen')
+                            )
+                        );
+                    }
                 }
 
-                $form = new Form(
-                    new FormGroup(
-                        new FormRow(
-                            new FormColumn(
-                                new SelectBox(
-                                    'Data',
-                                    'Zeugnisvorlage',
-                                    array('{{ Name }} - {{ Description }}' => $tblCertificateAll)
-                                )
-                            )
+                $contentLayout = empty($CertificateList)
+                    ? new Warning('Keine Zeugnisvorlagen verfügbar.')
+                    : new TableData($CertificateList, null, array(
+                        'Typ' => 'Typ',
+                        'Name' => 'Name',
+                        'Description' => 'Beschreibung',
+                        'Option' => 'Option'
+                    ), array(
+                        'order' => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc')),
+                        'columnDefs' => array(
+                            array('width' => '1%', 'targets' => 0),
+                            array('width' => '1%', 'targets' => 3),
                         )
-                    )
-                );
-                $form->appendFormButton(new Primary('Speichern', new Save()))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-                $contentLayout = $tblCertificateAll
-                    ? new Well(Prepare::useService()->updatePrepareStudentSetCertificate($form,
-                        $tblPrepare, $tblPerson, $Data))
-                    : new Warning('Keine Zeugnisvorlagen verfügbar.');
+                    ));
             }
 
             $Stage->setContent(
@@ -1925,6 +1941,72 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
 
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     * @param null $CertificateId
+     *
+     * @return Stage|string
+     */
+    public function frontendSelectCertificate($PrepareId = null, $PersonId = null, $CertificateId = null)
+    {
+
+        $Stage = new Stage('Zeugnisvorlage', 'Auswählen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/Prepare/Division', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblCertificate = Generator::useService()->getCertificateById($CertificateId);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+
+        if ($tblPrepare && $tblCertificate && $tblPerson) {
+            $tblDivision = $tblPrepare->getServiceTblDivision();
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnisvorbereitung',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision ? $tblDivision->getDisplayName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    $tblPerson->getLastFirstName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                Prepare::useService()->updatePrepareStudentSetCertificate(
+                                    $tblPrepare, $tblPerson, $tblCertificate
+                                )
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung oder Zeugnisvorlage nicht gefunden.', new Ban());
         }
     }
 

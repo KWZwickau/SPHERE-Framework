@@ -9,8 +9,8 @@
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC\CheBeGs;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
@@ -554,60 +554,40 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param $Data
+     * @param TblCertificate $tblCertificate
      *
-     * @return IFormInterface|string
+     * @return string
      */
     public function updatePrepareStudentSetCertificate(
-        IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        $Data
+        TblCertificate $tblCertificate
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
+        if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+            (new Data($this->getBinding()))->updatePrepareStudent(
+                $tblPrepareStudent,
+                $tblCertificate,
+                $tblPrepareStudent->isApproved(),
+                $tblPrepareStudent->isPrinted(),
+                $tblPrepareStudent->getExcusedDays(),
+                $tblPrepareStudent->getUnexcusedDays()
+            );
+        } else {
+            (new Data($this->getBinding()))->createPrepareStudent(
+                $tblPrepare,
+                $tblPerson,
+                $tblCertificate
+            );
         }
 
-        $Error = false;
-        $tblCertificate = Generator::useService()->getCertificateById($Data);
-        if (!$tblCertificate) {
-            $Stage->setError('Data', 'Bitte wählen Sie eine Zeugnisvorlage aus');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                (new Data($this->getBinding()))->updatePrepareStudent(
-                    $tblPrepareStudent,
-                    $tblCertificate,
-                    $tblPrepareStudent->isApproved(),
-                    $tblPrepareStudent->isPrinted(),
-                    $tblPrepareStudent->getExcusedDays(),
-                    $tblPrepareStudent->getUnexcusedDays()
-                );
-            } else {
-                (new Data($this->getBinding()))->createPrepareStudent(
-                    $tblPrepare,
-                    $tblPerson,
-                    $tblCertificate
-                );
-            }
-
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Zeugnisvorlage wurde ausgewählt.')
-            . new Redirect('/Education/Certificate/Prepare/Certificate', Redirect::TIMEOUT_SUCCESS, array(
-                'PrepareId' => $tblPrepare->getId(),
-                'PersonId' => $tblPerson->getId()
-            ));
-        }
-
-        return $Stage;
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Zeugnisvorlage wurde ausgewählt.')
+        . new Redirect('/Education/Certificate/Prepare/Certificate', Redirect::TIMEOUT_SUCCESS, array(
+            'PrepareId' => $tblPrepare->getId(),
+            'PersonId' => $tblPerson->getId()
+        ));
     }
 
     /**
@@ -718,11 +698,13 @@ class Service extends AbstractService
 
         if (isset($Content['Input']) && is_array($Content['Input'])) {
             foreach ($Content['Input'] as $field => $value) {
-                if ($field == 'SchoolType') {
-                    /** @var CheBeGs $Certificate */
+                if ($field == 'SchoolType'
+                    && method_exists($Certificate, 'selectValuesSchoolType')
+                ) {
                     $value = $Certificate->selectValuesSchoolType()[$value];
-                } elseif ($field == 'Type') {
-                    /** @var CheBeGs $Certificate */
+                } elseif ($field == 'Type'
+                    && method_exists($Certificate, 'selectValuesType')
+                ) {
                     $value = $Certificate->selectValuesType()[$value];
                 }
 
