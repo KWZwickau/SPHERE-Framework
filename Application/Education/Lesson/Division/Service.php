@@ -1045,7 +1045,7 @@ class Service extends AbstractService
      *
      * @return int
      */
-    public function countDivisionSubjectUsedByDivision(TblDivision $tblDivision)
+    public function countDivisionSubjectForSubjectTeacherByDivision(TblDivision $tblDivision)
     {
 
         $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
@@ -1075,7 +1075,9 @@ class Service extends AbstractService
                                     }
                                 }
                                 // Count Subject's - (Added Count + Subject without Group) - Found Teacher's in Group's
-                                $SubjectUsedCount += ( count($tblDivisionSubjectActiveList) - 2 ) - count($TeacherGroup);
+                                if (( count($tblDivisionSubjectActiveList) - 1 ) == count($TeacherGroup)) {
+                                    $SubjectUsedCount--;
+                                }
                             }
                         }
                     }
@@ -1086,15 +1088,53 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblSubject $tblSubject
      * @param TblDivision $tblDivision
      *
-     * @return bool|TblDivisionSubject[]
+     * @return int
+     */
+    public function countDivisionSubjectGroupTeacherByDivision(TblDivision $tblDivision)
+    {
+
+        $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+        $TeacherGroupCount = 0;
+        if ($DivisionSubjectList) {
+            foreach ($DivisionSubjectList as $DivisionSubject) {
+
+                if ($DivisionSubject->getTblSubjectGroup()) {
+                    $SubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
+                    $tblDivisionSubject = Division::useService()->getDivisionSubjectBySubjectAndDivisionWithoutGroup($DivisionSubject->getServiceTblSubject(), $tblDivision);
+                    $tblSubjectTeacherList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubject);
+                    if (!$SubjectTeacherList && !$tblSubjectTeacherList) {
+                        $TeacherGroupCount++;
+                    }
+                }
+            }
+        }
+        return $TeacherGroupCount;
+    }
+
+    /**
+     * @param TblSubject  $tblSubject
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|Service\Entity\TblDivisionSubject[]
      */
     public function getDivisionSubjectBySubjectAndDivision(TblSubject $tblSubject, TblDivision $tblDivision)
     {
 
         return (new Data($this->getBinding()))->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision);
+    }
+
+    /**
+     * @param TblSubject  $tblSubject
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivisionSubject
+     */
+    public function getDivisionSubjectBySubjectAndDivisionWithoutGroup(TblSubject $tblSubject, TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectBySubjectAndDivisionWithoutGroup($tblSubject, $tblDivision);
     }
 
     /**
