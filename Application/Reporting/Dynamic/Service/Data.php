@@ -115,18 +115,29 @@ class Data extends AbstractData
 
     /**
      * @param TblDynamicFilter $tblDynamicFilter
+     * @param null|int         $FilterPileOrder
      *
-     * @return false|TblDynamicFilterMask[]
+     * @return false|Entity\TblDynamicFilterMask[]
      */
-    public function getDynamicFilterMaskAllByFilter(TblDynamicFilter $tblDynamicFilter)
+    public function getDynamicFilterMaskAllByFilter(TblDynamicFilter $tblDynamicFilter, $FilterPileOrder = null)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblDynamicFilterMask',
-            array(
-                TblDynamicFilterMask::TBL_DYNAMIC_FILTER => $tblDynamicFilter->getId()
-            )
-        );
+        if ($FilterPileOrder === null) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblDynamicFilterMask',
+                array(
+                    TblDynamicFilterMask::TBL_DYNAMIC_FILTER => $tblDynamicFilter->getId()
+                )
+            );
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblDynamicFilterMask',
+                array(
+                    TblDynamicFilterMask::TBL_DYNAMIC_FILTER         => $tblDynamicFilter->getId(),
+                    TblDynamicFilterMask::PROPERTY_FILTER_PILE_ORDER => $FilterPileOrder
+                )
+            );
+        }
     }
 
     /**
@@ -194,15 +205,114 @@ class Data extends AbstractData
     public function addDynamicFilterMask(TblDynamicFilter $tblDynamicFilter, $FilterPileOrder, $FilterClassName)
     {
 
-        $Entity = new TblDynamicFilterMask();
-        $Entity->setTblDynamicFilter($tblDynamicFilter);
-        $Entity->setFilterPileOrder($FilterPileOrder);
-        $Entity->setFilterClassName($FilterClassName);
+        $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDynamicFilterMask',
+            array(
+                TblDynamicFilterMask::TBL_DYNAMIC_FILTER         => $tblDynamicFilter->getId(),
+                TblDynamicFilterMask::PROPERTY_FILTER_PILE_ORDER => $FilterPileOrder
+            ));
 
-        $this->getConnection()->getEntityManager()->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        if (!$Entity) {
+            $Entity = new TblDynamicFilterMask();
+            $Entity->setTblDynamicFilter($tblDynamicFilter);
+            $Entity->setFilterPileOrder($FilterPileOrder);
+            $Entity->setFilterClassName($FilterClassName);
+
+            $this->getConnection()->getEntityManager()->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblDynamicFilter $tblDynamicFilter
+     * @param int              $FilterPileOrder
+     *
+     * @return bool
+     */
+    public function removeDynamicFilterMask(TblDynamicFilter $tblDynamicFilter, $FilterPileOrder)
+    {
+
+        /** @var TblDynamicFilterMask $Entity */
+        $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDynamicFilterMask',
+            array(
+                TblDynamicFilterMask::TBL_DYNAMIC_FILTER         => $tblDynamicFilter->getId(),
+                TblDynamicFilterMask::PROPERTY_FILTER_PILE_ORDER => $FilterPileOrder
+            ));
+
+        if ($Entity) {
+
+            // Kill Childs (MaskOption)
+            if (( $OptionList = $this->getDynamicFilterOptionAll($Entity) )) {
+                foreach ($OptionList as $Option) {
+                    $this->removeDynamicFilterOption($Entity, $Option->getFilterFieldName());
+                }
+            }
+
+            $this->getConnection()->getEntityManager()->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDynamicFilterMask $tblDynamicFilterMask
+     *
+     * @return false|TblDynamicFilterOption[]
+     */
+    public function getDynamicFilterOptionAll(TblDynamicFilterMask $tblDynamicFilterMask = null)
+    {
+
+        if (null === $tblDynamicFilterMask) {
+            return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblDynamicFilterOption'
+            );
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblDynamicFilterOption',
+                array(
+                    TblDynamicFilterOption::TBL_DYNAMIC_FILTER_MASK => $tblDynamicFilterMask->getId()
+                )
+            );
+        }
+    }
+
+    /**
+     * @param TblDynamicFilterMask $tblDynamicFilterMask
+     * @param string               $FilterFieldName
+     *
+     * @return bool
+     */
+    public function removeDynamicFilterOption(
+        TblDynamicFilterMask $tblDynamicFilterMask,
+        $FilterFieldName
+    ) {
+
+        $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDynamicFilterOption', array(
+                TblDynamicFilterOption::TBL_DYNAMIC_FILTER_MASK    => $tblDynamicFilterMask->getId(),
+                TblDynamicFilterOption::PROPERTY_FILTER_FIELD_NAME => $FilterFieldName
+            )
+        );
+
+        if ($Entity) {
+
+            // Kill Child (MaskSearch)
+//            if(($OptionList = $this->getDynamicFilterSearchById( $Entity ))) {
+//                foreach($OptionList as $Option) {
+//                    $this->removeDynamicFilterOption($Entity, $Option->getFilterFieldName());
+//                }
+//            }
+
+            $this->getConnection()->getEntityManager()->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -218,14 +328,22 @@ class Data extends AbstractData
         $IsMandatory = false
     ) {
 
-        $Entity = new TblDynamicFilterOption();
-        $Entity->setTblDynamicFilterMask($tblDynamicFilterMask);
-        $Entity->setFilterFieldName($FilterFieldName);
-        $Entity->setMandatory($IsMandatory);
+        $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDynamicFilterOption', array(
+                TblDynamicFilterOption::TBL_DYNAMIC_FILTER_MASK    => $tblDynamicFilterMask->getId(),
+                TblDynamicFilterOption::PROPERTY_FILTER_FIELD_NAME => $FilterFieldName
+            )
+        );
 
-        $this->getConnection()->getEntityManager()->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        if (!$Entity) {
+            $Entity = new TblDynamicFilterOption();
+            $Entity->setTblDynamicFilterMask($tblDynamicFilterMask);
+            $Entity->setFilterFieldName($FilterFieldName);
+            $Entity->setMandatory($IsMandatory);
 
+            $this->getConnection()->getEntityManager()->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
         return $Entity;
     }
 

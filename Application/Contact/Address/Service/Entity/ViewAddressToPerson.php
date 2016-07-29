@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
@@ -15,6 +16,25 @@ use SPHERE\System\Database\Binding\AbstractView;
  */
 class ViewAddressToPerson extends AbstractView
 {
+
+    const TBL_TO_PERSON_ID = 'TblToPerson_Id';
+    const TBL_TO_PERSON_SERVICE_TBL_PERSON = 'TblToPerson_serviceTblPerson';
+    const TBL_TO_PERSON_REMARK = 'TblToPerson_Remark';
+    const TBL_TYPE_ID = 'TblType_Id';
+    const TBL_TYPE_NAME = 'TblType_Name';
+    const TBL_TYPE_DESCRIPTION = 'TblType_Description';
+    const TBL_ADDRESS_ID = 'TblAddress_Id';
+    const TBL_ADDRESS_STREET_NAME = 'TblAddress_StreetName';
+    const TBL_ADDRESS_STREET_NUMBER = 'TblAddress_StreetNumber';
+    const TBL_ADDRESS_POST_OFFICE_BOX = 'TblAddress_PostOfficeBox';
+    const TBL_ADDRESS_COUNTY = 'TblAddress_County';
+    const TBL_ADDRESS_NATION = 'TblAddress_Nation';
+    const TBL_CITY_ID = 'TblCity_Id';
+    const TBL_CITY_CODE = 'TblCity_Code';
+    const TBL_CITY_NAME = 'TblCity_Name';
+    const TBL_CITY_DISTRICT = 'TblCity_District';
+    const TBL_STATE_ID = 'TblState_Id';
+    const TBL_STATE_NAME = 'TblState_Name';
 
     /**
      * @Column(type="string")
@@ -113,18 +133,18 @@ class ViewAddressToPerson extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition('TblToPerson_Remark', 'Adresse: Bemerkungen');
-        $this->setNameDefinition('TblType_Name', 'Adresse: Adresstyp');
-        $this->setNameDefinition('TblType_Description', 'Adresse: Adresstyp-Bemerkung');
-        $this->setNameDefinition('TblAddress_StreetName', 'Adresse: Strasse');
-        $this->setNameDefinition('TblAddress_StreetNumber', 'Adresse: Hausnummer');
-        $this->setNameDefinition('TblAddress_PostOfficeBox', 'Adresse: Postfach');
-        $this->setNameDefinition('TblAddress_County', 'Adresse: Kreis');
-        $this->setNameDefinition('TblAddress_Nation', 'Adresse: Land');
-        $this->setNameDefinition('TblCity_Code', 'Adresse: PLZ');
-        $this->setNameDefinition('TblCity_Name', 'Adresse: Stadt');
-        $this->setNameDefinition('TblCity_District', 'Adresse: Ortsteil');
-        $this->setNameDefinition('TblState_Name', 'Adresse: Bundesland');
+        $this->setNameDefinition(self::TBL_TO_PERSON_REMARK, 'Adresse: Bemerkungen');
+        $this->setNameDefinition(self::TBL_TYPE_NAME, 'Adresse: Adresstyp');
+        $this->setNameDefinition(self::TBL_TYPE_DESCRIPTION, 'Adresse: Adresstyp-Bemerkung');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Adresse: Strasse');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Adresse: Hausnummer');
+        $this->setNameDefinition(self::TBL_ADDRESS_POST_OFFICE_BOX, 'Adresse: Postfach');
+        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY, 'Adresse: Kreis');
+        $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Adresse: Land');
+        $this->setNameDefinition(self::TBL_CITY_CODE, 'Adresse: PLZ');
+        $this->setNameDefinition(self::TBL_CITY_NAME, 'Adresse: Stadt');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Adresse: Ortsteil');
+        $this->setNameDefinition(self::TBL_STATE_NAME, 'Adresse: Bundesland');
     }
 
     /**
@@ -135,6 +155,10 @@ class ViewAddressToPerson extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView('TblToPerson_serviceTblPersonTo', new ViewPerson(), 'TblPerson_Id');
+        $this->addForeignView(self::TBL_TO_PERSON_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+        $this->addForeignView(self::TBL_TO_PERSON_SERVICE_TBL_PERSON, new ViewRelationshipToPerson(),
+            ViewRelationshipToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM
+        );
+
     }
 }

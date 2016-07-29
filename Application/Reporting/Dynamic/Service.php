@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -84,13 +85,14 @@ class Service extends AbstractService
 
     /**
      * @param TblDynamicFilter $tblDynamicFilter
+     * @param null|int         $FilterPileOrder
      *
      * @return false|TblDynamicFilterMask[]
      */
-    public function getDynamicFilterMaskAllByFilter(TblDynamicFilter $tblDynamicFilter)
+    public function getDynamicFilterMaskAllByFilter(TblDynamicFilter $tblDynamicFilter, $FilterPileOrder = null)
     {
 
-        return ( new Data($this->getBinding()) )->getDynamicFilterMaskAllByFilter($tblDynamicFilter);
+        return ( new Data($this->getBinding()) )->getDynamicFilterMaskAllByFilter($tblDynamicFilter, $FilterPileOrder);
     }
 
     /**
@@ -102,6 +104,16 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getDynamicFilterOptionById($Id);
+    }
+
+    /**
+     * @param TblDynamicFilterMask $tblDynamicFilterMask
+     *
+     * @return false|TblDynamicFilterOption[]
+     */
+    public function getDynamicFilterOptionAllByMask(TblDynamicFilterMask $tblDynamicFilterMask = null)
+    {
+        return ( new Data($this->getBinding()) )->getDynamicFilterOptionAll($tblDynamicFilterMask);
     }
 
     /**
@@ -163,6 +175,50 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface   $Form
+     * @param TblDynamicFilter $tblDynamicFilter
+     * @param array            $FilterFieldName
+     *
+     * @return Form|string
+     */
+    public function createDynamicFilterOption(IFormInterface $Form, TblDynamicFilter $tblDynamicFilter, $FilterFieldName)
+    {
+        if (null === $FilterFieldName) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if ($Error) {
+            return $Form;
+        }
+
+        // Remove all Mask-Option-Checkboxes
+        if(($tblDynamicFilterMaskList = $this->getDynamicFilterMaskAllByFilter( $tblDynamicFilter ))) {
+            foreach($tblDynamicFilterMaskList as $tblDynamicFilterMask ) {
+                if(($tblDynamicFilterOptionList = $this->getDynamicFilterOptionAllByMask($tblDynamicFilterMask))) {
+                    foreach($tblDynamicFilterOptionList as $tblDynamicFilterOption ) {
+                        $this->deleteDynamicFilterOption( $tblDynamicFilterMask, $tblDynamicFilterOption->getFilterFieldName() );
+                    }
+                }
+            }
+        }
+
+        foreach ($FilterFieldName as $FilterPileOrder => $MaskFieldSelection) {
+            if(count($tblDynamicFilterMask = $this->getDynamicFilterMaskAllByFilter($tblDynamicFilter, $FilterPileOrder)) == 1) {
+                foreach ($MaskFieldSelection as $MaskFieldName => $Selected) {
+                    Debugger::screenDump($MaskFieldName);
+                    $this->insertDynamicFilterOption(current($tblDynamicFilterMask), $MaskFieldName);
+                }
+            }
+        }
+
+        Debugger::screenDump( $tblDynamicFilter, $FilterFieldName );
+
+        return $Form;
+    }
+
+    /**
      * @param string     $FilterName
      * @param TblAccount $tblAccount
      *
@@ -172,5 +228,85 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getDynamicFilterAllByName($FilterName, $tblAccount);
+    }
+
+    /**
+     * @param TblDynamicFilter $tblDynamicFilter
+     * @param int              $FilterPileOrder
+     * @param string           $FilterClassName
+     *
+     * @return bool
+     */
+    public function insertDynamicFilterMask(TblDynamicFilter $tblDynamicFilter, $FilterPileOrder, $FilterClassName)
+    {
+
+        if (( new Data($this->getBinding()) )->addDynamicFilterMask(
+            $tblDynamicFilter, $FilterPileOrder, $FilterClassName
+        )
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblDynamicFilter $tblDynamicFilter
+     * @param int              $FilterPileOrder
+     *
+     * @return bool
+     */
+    public function deleteDynamicFilterMask(TblDynamicFilter $tblDynamicFilter, $FilterPileOrder)
+    {
+
+        if (( new Data($this->getBinding()) )->removeDynamicFilterMask(
+            $tblDynamicFilter, $FilterPileOrder
+        )
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblDynamicFilterMask $tblDynamicFilterMask
+     * @param string               $FilterFieldName
+     * @param bool                 $IsMandatory
+     *
+     * @return bool
+     */
+    public function insertDynamicFilterOption(
+        TblDynamicFilterMask $tblDynamicFilterMask,
+        $FilterFieldName,
+        $IsMandatory = false
+    ) {
+
+        if (( new Data($this->getBinding()) )->addDynamicFilterOption(
+            $tblDynamicFilterMask, $FilterFieldName, $IsMandatory)
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblDynamicFilterMask $tblDynamicFilterMask
+     * @param string               $FilterFieldName
+     *
+     * @return bool
+     */
+    public function deleteDynamicFilterOption(
+        TblDynamicFilterMask $tblDynamicFilterMask,
+        $FilterFieldName
+    ) {
+        if (( new Data($this->getBinding()) )->removeDynamicFilterOption(
+            $tblDynamicFilterMask, $FilterFieldName)
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

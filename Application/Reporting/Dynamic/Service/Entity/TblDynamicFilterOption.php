@@ -18,6 +18,7 @@ class TblDynamicFilterOption extends Element
 {
 
     const TBL_DYNAMIC_FILTER_MASK = 'tblDynamicFilterMask';
+    const PROPERTY_FILTER_FIELD_NAME = 'FilterFieldName';
 
     /**
      * @Column(type="bigint")

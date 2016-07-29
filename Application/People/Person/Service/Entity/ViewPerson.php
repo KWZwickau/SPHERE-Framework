@@ -17,6 +17,16 @@ use SPHERE\System\Database\Binding\AbstractView;
 class ViewPerson extends AbstractView
 {
 
+    const TBL_SALUTATION_ID = 'TblSalutation_Id';
+    const TBL_SALUTATION_SALUTATION = 'TblSalutation_Salutation';
+    const TBL_SALUTATION_IS_LOCKED = 'TblSalutation_IsLocked';
+    const TBL_PERSON_ID = 'TblPerson_Id';
+    const TBL_PERSON_TITLE = 'TblPerson_Title';
+    const TBL_PERSON_FIRST_NAME = 'TblPerson_FirstName';
+    const TBL_PERSON_SECOND_NAME = 'TblPerson_SecondName';
+    const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
+    const TBL_PERSON_BIRTH_NAME = 'TblPerson_BirthName';
+
     /**
      * @Column(type="string")
      */
@@ -29,7 +39,6 @@ class ViewPerson extends AbstractView
      * @Column(type="string")
      */
     protected $TblSalutation_IsLocked;
-
     /**
      * @Column(type="string")
      */
@@ -74,12 +83,12 @@ class ViewPerson extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition('TblSalutation_Salutation', 'Person: Anrede');
-        $this->setNameDefinition('TblPerson_Title', 'Person: Titel');
-        $this->setNameDefinition('TblPerson_FirstName', 'Person: Vorname');
-        $this->setNameDefinition('TblPerson_SecondName', 'Person: Zweitname');
-        $this->setNameDefinition('TblPerson_LastName', 'Person: Nachname');
-        $this->setNameDefinition('TblPerson_BirthName', 'Person: Geburtsname');
+        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Person: Anrede');
+        $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Person: Titel');
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Person: Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME, 'Person: Zweitname');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Person: Nachname');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME, 'Person: Geburtsname');
     }
 
     /**
@@ -90,7 +99,7 @@ class ViewPerson extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView('TblPerson_Id', new ViewRelationshipToPerson(), 'TblToPerson_serviceTblPersonFrom');
-        $this->addForeignView('TblMember_serviceTblPerson', new ViewAddressToPerson(), 'TblToPerson_serviceTblPerson');
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewRelationshipToPerson(), ViewRelationshipToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
     }
 }
