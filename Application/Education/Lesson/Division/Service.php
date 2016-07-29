@@ -1055,24 +1055,27 @@ class Service extends AbstractService
 
                 if (!$DivisionSubject->getTblSubjectGroup()) {
                     if ($DivisionSubject->getServiceTblSubject()) {
-                        $tblDivisionSubjectActiveList = Division::useService()
-                            ->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(),
-                                $tblDivision);
-                        $TeacherGroup = array();
-                        if ($tblDivisionSubjectActiveList) {
-                            /**@var TblDivisionSubject $tblDivisionSubjectActive */
-                            foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
-                                $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
-                                if ($TempList) {
-                                    foreach ($TempList as $Temp) {
-                                        if ($Temp->getServiceTblPerson()) {
-                                            array_push($TeacherGroup, $Temp->getId());
-                                        }
+                        if (Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject)) {
+                            // One Teacher for Subject without Groups (Ok)
+                            // Teacher is able to teach all Groups of this Subject
+                        } else {
+                            $SubjectUsedCount++;
+                            $tblDivisionSubjectActiveList = Division::useService()
+                                ->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(),
+                                    $tblDivision);
+                            // Found more than 1 Subject? (Subject without Group + Subject with Group)
+                            if ($tblDivisionSubjectActiveList && count($tblDivisionSubjectActiveList) > 1) {
+                                /**@var TblDivisionSubject $tblDivisionSubjectActive */
+                                $TeacherGroup = array();
+                                foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
+                                    $SubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
+                                    // Found Teacher in Subject with Group?
+                                    if ($SubjectTeacherList) {
+                                        $TeacherGroup[] = true;
                                     }
                                 }
-                            }
-                            if (empty($TeacherGroup)) {
-                                $SubjectUsedCount = $SubjectUsedCount + 1;
+                                // Count Subject's - (Added Count + Subject without Group) - Found Teacher's in Group's
+                                $SubjectUsedCount += ( count($tblDivisionSubjectActiveList) - 2 ) - count($TeacherGroup);
                             }
                         }
                     }
