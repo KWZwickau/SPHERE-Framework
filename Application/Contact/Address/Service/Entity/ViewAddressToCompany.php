@@ -93,12 +93,46 @@ class ViewAddressToCompany extends AbstractView
     protected $TblState_Name;
 
     /**
+     * Overwrite this method to return View-ObjectName as View-DisplayName
+     *
+     * @return string View-Gui-Name of Class
+     */
+    public function getViewGuiName()
+    {
+
+        return 'Adressdaten (Firma)';
+    }
+
+
+    /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
      *
      * @return void
      */
     public function loadNameDefinition()
     {
-        // TODO: Implement loadNameDefinition() method.
+        $this->setNameDefinition('TblToPerson_Remark', 'Adresse: Bemerkungen');
+        $this->setNameDefinition('TblType_Name', 'Adresse: Adresstyp');
+        $this->setNameDefinition('TblType_Description', 'Adresse: Adresstyp-Bemerkung');
+        $this->setNameDefinition('TblAddress_StreetName', 'Adresse: Strasse');
+        $this->setNameDefinition('TblAddress_StreetNumber', 'Adresse: Hausnummer');
+        $this->setNameDefinition('TblAddress_PostOfficeBox', 'Adresse: Postfach');
+        $this->setNameDefinition('TblAddress_County', 'Adresse: Kreis');
+        $this->setNameDefinition('TblAddress_Nation', 'Adresse: Land');
+        $this->setNameDefinition('TblCity_Code', 'Adresse: PLZ');
+        $this->setNameDefinition('TblCity_Name', 'Adresse: Stadt');
+        $this->setNameDefinition('TblCity_District', 'Adresse: Ortsteil');
+        $this->setNameDefinition('TblState_Name', 'Adresse: Bundesland');
+    }
+
+    /**
+     * Use this method to add ForeignViews to Graph with "addForeignView()"
+     *
+     * @return void
+     */
+    public function loadViewGraph()
+    {
+
+//        $this->addForeignView('TblToPerson_serviceTblPersonTo', new ViewPerson(), 'TblPerson_Id');
     }
 }

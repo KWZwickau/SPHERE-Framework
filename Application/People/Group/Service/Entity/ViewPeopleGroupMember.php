@@ -5,7 +5,9 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
@@ -87,5 +89,7 @@ class ViewPeopleGroupMember extends AbstractView
     {
 
         $this->addForeignView('TblMember_serviceTblPerson', new ViewPerson(), 'TblPerson_Id');
+        $this->addForeignView('TblMember_serviceTblPerson', new ViewAddressToPerson(), 'TblToPerson_serviceTblPerson');
+        $this->addForeignView('TblMember_serviceTblPerson', new ViewRelationshipToPerson(), 'TblToPerson_serviceTblPersonFrom');
     }
 }

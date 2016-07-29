@@ -87,7 +87,7 @@ class ViewRelationshipToPerson extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Personenbeziehung';
+        return 'Personenbeziehungen';
     }
 
 
@@ -98,7 +98,9 @@ class ViewRelationshipToPerson extends AbstractView
      */
     public function loadNameDefinition()
     {
-        // TODO: Implement loadNameDefinition() method.
+
+        $this->setNameDefinition('TblType_Name', 'Beziehung: Beziehungstyp');
+        $this->setNameDefinition('TblType_Description', 'Beziehung: Beziehungstyp-Bemerkung');
     }
 
     /**

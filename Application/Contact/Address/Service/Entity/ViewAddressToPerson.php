@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
@@ -93,6 +94,18 @@ class ViewAddressToPerson extends AbstractView
     protected $TblState_Name;
 
     /**
+     * Overwrite this method to return View-ObjectName as View-DisplayName
+     *
+     * @return string View-Gui-Name of Class
+     */
+    public function getViewGuiName()
+    {
+
+        return 'Adressdaten (Person)';
+    }
+
+
+    /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
      *
      * @return void
@@ -100,17 +113,28 @@ class ViewAddressToPerson extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition('TblToPerson_Remark', 'Person-Adresse Bemerkungen');
-        $this->setNameDefinition('TblType_Name', 'Person-Adresse Adresstyp');
-        $this->setNameDefinition('TblType_Description', 'Person-Adresse Adresstyp-Bemerkung');
-        $this->setNameDefinition('TblAddress_StreetName', 'Person-Adresse Strasse');
-        $this->setNameDefinition('TblAddress_StreetNumber', 'Person-Adresse Hausnummer');
-        $this->setNameDefinition('TblAddress_PostOfficeBox', 'Person-Adresse Postfach');
-        $this->setNameDefinition('TblAddress_County', 'Person-Adresse Kreis');
-        $this->setNameDefinition('TblAddress_Nation', 'Person-Adresse Land');
-        $this->setNameDefinition('TblCity_Code', 'Person-Adresse PLZ');
-        $this->setNameDefinition('TblCity_Name', 'Person-Adresse Stadt');
-        $this->setNameDefinition('TblCity_District', 'Person-Adresse Ortsteil');
-        $this->setNameDefinition('TblState_Name', 'Person-Adresse Bundesland');
+        $this->setNameDefinition('TblToPerson_Remark', 'Adresse: Bemerkungen');
+        $this->setNameDefinition('TblType_Name', 'Adresse: Adresstyp');
+        $this->setNameDefinition('TblType_Description', 'Adresse: Adresstyp-Bemerkung');
+        $this->setNameDefinition('TblAddress_StreetName', 'Adresse: Strasse');
+        $this->setNameDefinition('TblAddress_StreetNumber', 'Adresse: Hausnummer');
+        $this->setNameDefinition('TblAddress_PostOfficeBox', 'Adresse: Postfach');
+        $this->setNameDefinition('TblAddress_County', 'Adresse: Kreis');
+        $this->setNameDefinition('TblAddress_Nation', 'Adresse: Land');
+        $this->setNameDefinition('TblCity_Code', 'Adresse: PLZ');
+        $this->setNameDefinition('TblCity_Name', 'Adresse: Stadt');
+        $this->setNameDefinition('TblCity_District', 'Adresse: Ortsteil');
+        $this->setNameDefinition('TblState_Name', 'Adresse: Bundesland');
+    }
+
+    /**
+     * Use this method to add ForeignViews to Graph with "addForeignView()"
+     *
+     * @return void
+     */
+    public function loadViewGraph()
+    {
+
+        $this->addForeignView('TblToPerson_serviceTblPersonTo', new ViewPerson(), 'TblPerson_Id');
     }
 }
