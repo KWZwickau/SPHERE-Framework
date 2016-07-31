@@ -7,7 +7,7 @@ use SPHERE\System\Database\Fitting\Element;
 class Node7 extends AbstractNode
 {
 
-    protected function parseResult($List)
+    protected function parseResult($List, $Timeout = 60)
     {
 
         array_walk($List[6], function (Element $Node6) use (&$Result, $List) {

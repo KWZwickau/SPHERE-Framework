@@ -2,6 +2,7 @@
 namespace SPHERE\System\Database\Binding;
 
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class AbstractView
@@ -159,5 +160,34 @@ abstract class AbstractView extends Element
 
         $this->NameDefinitionList[$PropertyName] = $DisplayName;
         return $this;
+    }
+
+    /**
+     * @return AbstractService
+     */
+    abstract public function getViewService();
+
+    /**
+     * @param AbstractView $ForeignView
+     * @return string
+     */
+    public function getForeignLinkPropertyParent(AbstractView $ForeignView)
+    {
+
+        $this->loadViewGraph();
+        // Index 0 = THIS-View Property-Name
+        return $this->ForeignViewList[$ForeignView->getViewObjectName()][0];
+    }
+
+    /**
+     * @param AbstractView $ForeignView
+     * @return string
+     */
+    public function getForeignLinkPropertyChild(AbstractView $ForeignView)
+    {
+
+        $this->loadViewGraph();
+        // Index 2 = Foreign-View Property-Name
+        return $this->ForeignViewList[$ForeignView->getViewObjectName()][2];
     }
 }

@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
@@ -137,4 +139,14 @@ class ViewRelationshipToPerson extends AbstractView
         $this->addForeignView(self::TBL_TO_PERSON_SERVICE_TBL_PERSON_TO, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
 
     }
+
+    /**
+     * @return AbstractService
+     */
+    public function getViewService()
+    {
+        return Relationship::useService();
+    }
+
+
 }

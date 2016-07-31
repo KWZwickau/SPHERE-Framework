@@ -54,7 +54,7 @@ abstract class AbstractData extends Cacheable
         $Query->useQueryCache(true);
 
         // TODO: Remove
-        //$this->getDebugger()->screenDump( $Query->getSQL() );
+//        $this->getDebugger()->screenDump( $Query->getSQL() );
 
         return $Query->getResult();
     }

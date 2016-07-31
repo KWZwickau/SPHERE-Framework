@@ -1,7 +1,8 @@
 <?php
 namespace SPHERE\Application\Reporting\Dynamic;
 
-use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToCompany;
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
@@ -26,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\Icon\Repository\View;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -44,6 +46,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -51,7 +55,9 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractView;
+use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -62,9 +68,9 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int         $DynamicFilter
+     * @param int $DynamicFilter
      * @param null|string $DynamicFilterMask
-     * @param null|array  $FilterFieldName
+     * @param null|array $FilterFieldName
      *
      * @return Stage
      */
@@ -84,13 +90,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Add/Remove Filter Mask
         if ($DynamicFilterMask) {
-            if (( $DynamicFilterMask = json_decode(base64_decode($DynamicFilterMask)) )) {
-                if( $DynamicFilterMask->Action == 'ADD' ) {
+            if (($DynamicFilterMask = json_decode(base64_decode($DynamicFilterMask)))) {
+                if ($DynamicFilterMask->Action == 'ADD') {
                     Dynamic::useService()->insertDynamicFilterMask(
                         $tblDynamicFilter, $DynamicFilterMask->FilterPileOrder, $DynamicFilterMask->FilterClassName
                     );
                 }
-                if( $DynamicFilterMask->Action == 'REMOVE' ) {
+                if ($DynamicFilterMask->Action == 'REMOVE') {
                     Dynamic::useService()->deleteDynamicFilterMask(
                         $tblDynamicFilter, $DynamicFilterMask->FilterPileOrder
                     );
@@ -135,7 +141,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $Name = $Property->getName();
                     if (!preg_match('!(_Id|_service|_tbl|_Is|Locked|MetaTable|^Id$|^Entity)!s', $Name)) {
                         $FieldList[] = new CheckBox(
-                            'FilterFieldName['.$tblDynamicFilterMask->getFilterPileOrder().']['.$Name.']', $View->getNameDefinition($Name), 1
+                            'FilterFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $Name . ']',
+                            $View->getNameDefinition($Name), 1
                         );
                     }
                 }
@@ -143,19 +150,19 @@ class Frontend extends Extension implements IFrontendInterface
                 $SelectedFilterList[] = new LayoutColumn(
                     (string)new Panel(
                         new PullClear(
-                            ( count($SelectedFilterList) < 5 ? new PullLeft(new ChevronRight()) : new PullLeft(new More()) )
-                            .new PullRight($View->getViewGuiName())
+                            (count($SelectedFilterList) < 5 ? new PullLeft(new ChevronRight()) : new PullLeft(new More()))
+                            . new PullRight($View->getViewGuiName())
                         ), $FieldList
                         , Panel::PANEL_TYPE_INFO, array(
-                        ( $tblDynamicFilterMask == $tblDynamicFilterMaskLast
-                            ? new Standard('', new Route(__NAMESPACE__.'/Setup'), new Remove(), array(
-                                'DynamicFilter'     => $DynamicFilter,
+                        ($tblDynamicFilterMask == $tblDynamicFilterMaskLast
+                            ? new Standard('', new Route(__NAMESPACE__ . '/Setup'), new Remove(), array(
+                                'DynamicFilter' => $DynamicFilter,
                                 'DynamicFilterMask' => base64_encode(json_encode(array(
                                     'FilterPileOrder' => $tblDynamicFilterMaskLast->getFilterPileOrder(),
-                                    'Action'          => 'REMOVE'
+                                    'Action' => 'REMOVE'
                                 )))
                             ))
-                            : '' )
+                            : '')
                     )), 2);
             }
 
@@ -177,7 +184,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $SelectedFilterList[] = new FormColumn(new Panel(new Small(new Muted(
                     new PullClear(
                         new PullLeft('Freier Platz für Filter')
-                        .( count($SelectedFilterList) < 5 ? new PullRight(new More()) : new PullRight(new More()) )
+                        . (count($SelectedFilterList) < 5 ? new PullRight(new More()) : new PullRight(new More()))
                     )
                 )), array(new Paragraph(''))), 2);
             }
@@ -198,20 +205,20 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $FilterMaskTableList[] = array(
-                'Name'      => new Center($AvailableView->getViewGuiName()),
+                'Name' => new Center($AvailableView->getViewGuiName()),
                 'FieldList' => implode(', ', $FieldList),
                 'ChildList' => implode(', ', $ViewList),
-                'Option'    =>
+                'Option' =>
 
-                    new Standard('Hinzufügen', new Route(__NAMESPACE__.'/Setup'), new ChevronDown(), array(
-                        'DynamicFilter'     => $DynamicFilter,
+                    new Standard('Hinzufügen', new Route(__NAMESPACE__ . '/Setup'), new ChevronDown(), array(
+                        'DynamicFilter' => $DynamicFilter,
                         'DynamicFilterMask' => base64_encode(json_encode(array(
-                            'FilterPileOrder' => ( $tblDynamicFilterMaskLast
+                            'FilterPileOrder' => ($tblDynamicFilterMaskLast
                                 ? $tblDynamicFilterMaskLast->getFilterPileOrder() + 1
                                 : 1
                             ),
                             'FilterClassName' => $AvailableView->getViewClassName(),
-                            'Action'          => 'ADD'
+                            'Action' => 'ADD'
                         )))
                     ))
             );
@@ -223,10 +230,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($FilterMaskTableList, null, array(
-                                'Name'      => 'Suchen nach',
+                                'Name' => 'Suchen nach',
                                 'FieldList' => 'Verfügbare Suchfelder',
                                 'ChildList' => 'Möglich weitere Filter',
-                                'Option'    => ''
+                                'Option' => ''
                             ))
                         )
                     )
@@ -236,13 +243,13 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Well(
                                 Dynamic::useService()->createDynamicFilterOption(
-                                    ( new Form(
+                                    (new Form(
                                         new FormGroup(
                                             new FormRow(
                                                 $SelectedFilterList
                                             )
                                         )
-                                    ) )->appendFormButton(
+                                    ))->appendFormButton(
                                         new Primary('Speichern', new Save())
                                     ), $tblDynamicFilter, $FilterFieldName
                                 )
@@ -256,10 +263,181 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param int $DynamicFilter
+     * @param array $SearchFieldName
+     * @return Stage
+     */
+    public function frontendRunFilter($DynamicFilter = 0, $SearchFieldName = array())
+    {
+        // BlackFire.io
+        $DynamicFilter = 2;
+
+        $Stage = new Stage('Flexible Auswertung', 'Suchen');
+        $Stage->setMessage('');
+
+        $tblDynamicFilter = Dynamic::useService()->getDynamicFilterById($DynamicFilter);
+
+        // Get All Filter Masks
+        $tblDynamicFilterMaskAll = Dynamic::useService()->getDynamicFilterMaskAllByFilter($tblDynamicFilter);
+
+        if ($tblDynamicFilterMaskAll) {
+
+            // Sort MASK-List in PILE-Order (Graph-Network)
+            $tblDynamicFilterMaskAll = $this->getSorter($tblDynamicFilterMaskAll)
+                ->sortObjectBy(TblDynamicFilterMask::PROPERTY_FILTER_PILE_ORDER);
+
+        } else {
+            $tblDynamicFilterMaskAll = array();
+        }
+
+        $SelectedFilterList = array();
+        /**
+         * Prepare Selected-Filter Gui
+         */
+        /** @var TblDynamicFilterMask $tblDynamicFilterMask */
+        foreach ($tblDynamicFilterMaskAll as $Index => $tblDynamicFilterMask) {
+
+            if (($tblDynamicFilterOptionList = Dynamic::useService()->getDynamicFilterOptionAllByMask(
+                $tblDynamicFilterMask
+            ))
+            ) {
+                $FieldList = array();
+                $View = $tblDynamicFilterMask->getFilterClassInstance();
+                foreach ($tblDynamicFilterOptionList as $tblDynamicFilterOption) {
+                    $FieldList[] = new TextField(
+                        'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $tblDynamicFilterOption->getFilterFieldName() . ']',
+                        $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName()),
+                        $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName())
+                    );
+                }
+
+                $SelectedFilterList[] = new LayoutColumn(
+                    (string)new Panel($View->getViewGuiName(), $FieldList, Panel::PANEL_TYPE_INFO)
+                    , 2);
+            }
+        }
+
+        // Search
+        $Filter = $SearchFieldName;
+
+        if (!empty($Filter)) {
+            ksort($Filter);
+            array_walk($Filter, function (&$Input) {
+
+                array_walk($Input, function (&$String) {
+
+                    if (!empty($String)) {
+                        $String = explode(' ', $String);
+                    } else {
+                        $String = false;
+                    }
+                });
+                $Input = array_filter($Input);
+            });
+            $Filter = array_values($Filter);
+        }
+
+        if (true || !empty($Filter)) {
+            /**
+             * Prepare Pile-Filter Structure
+             */
+            $Pile = new Pile();
+
+            /** @var AbstractView $Last */
+            $Last = null;
+            /** @var AbstractView $Next */
+            $Next = null;
+            /** @var TblDynamicFilterMask $tblDynamicFilterMask */
+            foreach ($tblDynamicFilterMaskAll as $Index => $tblDynamicFilterMask) {
+                $Current = $tblDynamicFilterMask->getFilterClassInstance();
+                if (count($tblDynamicFilterMaskAll) > $Index + 1) {
+                    $Next = $tblDynamicFilterMaskAll[$Index + 1]->getFilterClassInstance();
+                } else {
+                    $Next = null;
+                }
+
+                $Pile->addPile($Current->getViewService(), $Current,
+                    ($Last ? $Last->getForeignLinkPropertyChild($Current) : null),
+                    ($Next ? $Current->getForeignLinkPropertyParent($Next) : null)
+                );
+                $Last = $Current;
+            }
+
+            $Result = $Pile->searchPile($Filter, 10);
+
+            $Table = array();
+            if ($Result) {
+                array_walk($Result, function ($Row) use (&$Table, $Filter) {
+
+                    $RowSet = array();
+                    array_walk($Row, function (AbstractView $Element) use (&$RowSet, $Filter) {
+
+                        $RowSet = array_merge($RowSet, $Element->__toView());
+                    });
+                    array_push($Table, $RowSet);
+                });
+            }
+            $Timeout = $Pile->isTimeout();
+
+//            if( !$Timeout ) {
+//                Debugger::screenDump( $Table );
+//                /** @var PhpExcel $Document */
+//                $Document = Document::getDocument('Export.xlsx');
+//                foreach( $Table as $RowIndex => $Row ) {
+//                    $ColumnIndex = 0;
+//                    foreach( $Row as $Value ) {
+//                        $ColumnIndex ++;
+//                        $Document->setValue( $Document->getCell($ColumnIndex, $RowIndex), $Value );
+//                    }
+//                }
+//
+//            }
+        } else {
+            $Table = array();
+            $Timeout = false;
+        }
+
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                (new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            $SelectedFilterList
+                                        )
+                                    )
+                                ))->appendFormButton(
+                                    new Primary('Suchen', new Search())
+                                )
+                            )
+                        )
+                    )
+                ), new Title('Suche')),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            ($Timeout
+                                ? new Danger('Die Suche konnte auf Grund der Datenmenge nicht abgeschlossen werden. Bitte geben Sie weitere Filter an, um die Datenmenge einzuschränken')
+                                : new Success('Die Suche wurde vollständig durchgeführt.')),
+                            new TableData($Table)
+                        ))
+                    )
+                ), new Title('Ergebnis')),
+            ))
+        );
+
+
+        return $Stage;
+    }
 
     /**
      * @param string $FilterName
-     * @param int    $IsPublic
+     * @param int $IsPublic
      *
      * @return Stage
      */
@@ -291,29 +469,29 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Option = '';
             if ($tblAccount == $tblDynamicFilter->getServiceTblAccount()) {
-                $Option = ( new LinkGroup() )
+                $Option = (new LinkGroup())
                     ->addLink(new Standard('', '', new Edit(), array(), 'Bearbeiten'))
                     ->addLink(new Standard('', '', new Remove(), array(), 'Löschen'));
-                $Option .= ( new LinkGroup() )
-                    ->addLink(new Standard('', new Route(__NAMESPACE__.'/Setup'), new Setup(),
+                $Option .= (new LinkGroup())
+                    ->addLink(new Standard('', new Route(__NAMESPACE__ . '/Setup'), new Setup(),
                         array('DynamicFilter' => $tblDynamicFilter->getId()), 'Einstellungen'
                     ));
             }
-            $Option .= ( new LinkGroup() )->addLink(new Standard('', new Route(__NAMESPACE__.'/Run'), new View(),
+            $Option .= (new LinkGroup())->addLink(new Standard('', new Route(__NAMESPACE__ . '/Filter'), new View(),
                 array('DynamicFilter' => $tblDynamicFilter->getId()),
                 'Anzeigen / Verwenden'
             ));
 
             array_push($DynamicFilterList, array(
-                'Option'                               => $Option,
+                'Option' => $Option,
                 TblDynamicFilter::PROPERTY_FILTER_NAME => $tblDynamicFilter->getFilterName(),
-                TblDynamicFilter::PROPERTY_IS_PUBLIC   => new Center(
-                    ( $tblAccount == $tblDynamicFilter->getServiceTblAccount()
-                        ? ( $tblDynamicFilter->isPublic()
-                            ? new Person().new Container(new Label('Sichtbar', Label::LABEL_TYPE_WARNING))
-                            : new Person().new Container(new Label('Privat', Label::LABEL_TYPE_SUCCESS))
+                TblDynamicFilter::PROPERTY_IS_PUBLIC => new Center(
+                    ($tblAccount == $tblDynamicFilter->getServiceTblAccount()
+                        ? ($tblDynamicFilter->isPublic()
+                            ? new Person() . new Container(new Label('Sichtbar', Label::LABEL_TYPE_WARNING))
+                            : new Person() . new Container(new Label('Privat', Label::LABEL_TYPE_SUCCESS))
                         )
-                        : new PersonGroup().new Container(new Label('Geteilt', Label::LABEL_TYPE_INFO))
+                        : new PersonGroup() . new Container(new Label('Geteilt', Label::LABEL_TYPE_INFO))
                     )
                 )
             ));
@@ -325,9 +503,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($DynamicFilterList, null, array(
-                                'IsPublic'   => 'Sichtbarkeit',
+                                'IsPublic' => 'Sichtbarkeit',
                                 'FilterName' => 'Name der Auswertung',
-                                'Option'     => ''
+                                'Option' => ''
                             ), array(
                                 "columnDefs" => array(
                                     array("width" => "5%", "targets" => array(0)),
@@ -335,7 +513,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             ))
                         )
-                    ), new Title(new Database().' Verfügbare Auswertungen')
+                    ), new Title(new Database() . ' Verfügbare Auswertungen')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
@@ -347,7 +525,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ), new Title(new PlusSign().' Neue Auswertung anlegen')
+                    ), new Title(new PlusSign() . ' Neue Auswertung anlegen')
                 ),
             ))
         );
