@@ -250,6 +250,25 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblSubject  $tblSubject
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivisionSubject
+     */
+    public function getDivisionSubjectBySubjectAndDivisionWithoutGroup(TblSubject $tblSubject, TblDivision $tblDivision)
+    {
+
+        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+            array(
+                TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP   => null,
+            ));
+
+        return $Entity;
+    }
+
+    /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
      * @return bool|TblSubjectTeacher[]
