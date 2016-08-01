@@ -201,7 +201,14 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutRow(new LayoutColumn(array(
                         new Headline('Verfügbare Personen', 'in dieser Gruppe'),
-                        new TableData($Result, null, $ColumnArray)
+                        new TableData($Result, null, $ColumnArray, array(
+                            'order'      => array(
+                                array(0, 'asc')
+                            ),
+                            'columnDefs' => array(
+                                array('type' => 'german-string', 'targets' => 0),
+                            )
+                        ))
                     )))
                 )))
             );
