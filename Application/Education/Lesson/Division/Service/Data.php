@@ -211,7 +211,7 @@ class Data extends AbstractData
         if ($EntityList) {
             /** @var TblDivisionSubject $item */
             foreach ($EntityList as &$item) {
-                if (!$item->getTblDivision()) {
+                if (!$item->getTblDivision() || !$item->getServiceTblSubject()) {
                     $item = false;
                 }
             }
@@ -1592,5 +1592,39 @@ class Data extends AbstractData
         } else {
             return 0;
         }
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function exitsDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+            array(
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()   ,
+                TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            )
+        ) ? true : false;
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function exitsSubjectStudent(TblDivisionSubject $tblDivisionSubject, TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
+            array(
+                TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()   ,
+                TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            )
+        ) ? true : false;
     }
 }
