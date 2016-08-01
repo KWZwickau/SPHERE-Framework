@@ -254,8 +254,8 @@ class Service extends AbstractService
                             $tblPeriodTemp = $tblPeriod;
                         }
                     }
-                    if (new \DateTime($From) < new \DateTime($Date->format('d.m.Y')) &&
-                        new \DateTime($To) > new \DateTime($Date->format('d.m.Y'))
+                    if (new \DateTime($From) <= new \DateTime($Date->format('d.m.Y')) &&
+                        new \DateTime($To) >= new \DateTime($Date->format('d.m.Y'))
                     ) {
                         $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
                         if ($tblYearTempList) {
@@ -303,7 +303,6 @@ class Service extends AbstractService
 
         $Now = new \DateTime('now');
         return $this->getYearAllByDate($Now);
-
     }
 
     /**

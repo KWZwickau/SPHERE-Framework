@@ -290,11 +290,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblSchoolTypeAll = Type::useService()->getTypeAll();
 
-        if ($future) {
-            $tblYearAll = Term::useService()->getYearAllFutureYears(1);
-        } else {
+//        if ($future) {
+//            $tblYearAll = Term::useService()->getYearAllFutureYears(1);
+//        } else {
             $tblYearAll = Term::useService()->getYearAllSinceYears(0);
-        }
+//        }
 
         return new Form(
             new FormGroup(array(
