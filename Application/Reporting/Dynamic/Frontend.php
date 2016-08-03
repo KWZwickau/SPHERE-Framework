@@ -271,7 +271,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendRunFilter($DynamicFilter = 0, $SearchFieldName = array())
     {
         // BlackFire.io
-        $DynamicFilter = 2;
+//        $DynamicFilter = 2;
 
         $Stage = new Stage('Flexible Auswertung', 'Suchen');
         $Stage->setMessage('');
