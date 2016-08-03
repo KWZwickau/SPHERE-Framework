@@ -5,6 +5,7 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person as ChemnitzPerson;
 use SPHERE\Application\Reporting\Custom\Hormersdorf\Person\Person as HormersdorfPerson;
+use SPHERE\Application\Reporting\Custom\Herrnhut\Person\Person as HerrnhutPerson;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -26,6 +27,9 @@ class Custom implements IApplicationInterface
         }
         if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym === 'DEMO') {
             HormersdorfPerson::registerModule();
+        }
+        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym === 'DEMO') {
+            HerrnhutPerson::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(
