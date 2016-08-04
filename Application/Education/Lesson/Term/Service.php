@@ -223,6 +223,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $String
+     *
+     * @return false|Service\Entity\TblYear[]
+     */
+    public function getYearByName($String)
+    {
+        return (new Data($this->getBinding()))->getYearByName($String);
+    }
+
+    /**
      * @param \DateTime $Date
      *
      * @return bool|TblYear[]

@@ -956,9 +956,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address'      => 'Adresse',
                                         'PhoneNumbers' => 'Telefonnummer',
                                         'Group'        => 'Schüler&shy;gruppe',
-                                        'Orientation'  => 'Profil/NK/VK',
+                                        'Orientation'  => 'NK/Profil',
                                         'Education'    => 'Bildungsgang',
-                                        'Elective'    => 'Wahlfach',
+                                        'Elective'     => 'Wahlfach',
                                     ),
                                     array(
                                         "pageLength" => -1,
