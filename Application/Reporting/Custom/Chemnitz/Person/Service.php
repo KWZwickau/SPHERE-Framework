@@ -2,8 +2,10 @@
 namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use MOC\V\Component\Document\Exception\DocumentTypeException;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -11,9 +13,11 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -110,9 +114,9 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return false|Temporary
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createClassListExcel($PersonList, $tblPersonList)
     {
@@ -240,9 +244,9 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return Temporary
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createStaffListExcel($PersonList, $tblPersonList)
     {
@@ -387,9 +391,9 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return Temporary
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createSchoolFeeListExcel($PersonList, $tblPersonList)
     {
@@ -514,9 +518,9 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return Temporary
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createMedicListExcel($PersonList, $tblPersonList)
     {
@@ -706,9 +710,9 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return Temporary
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createInterestedPersonListExcel($PersonList, $tblPersonList)
     {
@@ -820,9 +824,9 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return false|Temporary
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createParentTeacherConferenceListExcel($PersonList, $tblPersonList)
     {
@@ -865,12 +869,12 @@ class Service
     }
 
     /**
-     * @return array
+     * @return false|array
      */
     public function createClubMemberList()
     {
 
-        $tblGroup = Group::useService()->getGroupByName('Verein');
+        $tblGroup = Group::useService()->getGroupByMetaTable( TblGroup::META_TABLE_CLUB );
         $TableContent = array();
         if ($tblGroup) {
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
@@ -923,9 +927,9 @@ class Service
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return false|Temporary
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createClubMemberListExcel($PersonList, $tblPersonList)
     {
@@ -1350,9 +1354,9 @@ class Service
      * @param array $tblPersonList
      * @param $DivisionId
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|Temporary
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createPrintClassListExcel($PersonList, $tblPersonList, $DivisionId)
     {
