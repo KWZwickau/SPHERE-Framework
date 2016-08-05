@@ -74,12 +74,24 @@ class Custom implements IModuleInterface
          */
         if ($consumerAcronym === 'EZGH' || $consumerAcronym === 'DEMO') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Herrnhut/Common/ProfileList/Download',
+                __NAMESPACE__.'\Herrnhut\Common::downloadProfileList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Herrnhut/Common/SignList/Download',
                 __NAMESPACE__.'\Herrnhut\Common::downloadSignList'
             ));
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Herrnhut/Common/LanguageList/Download',
                 __NAMESPACE__.'\Herrnhut\Common::downloadLanguageList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Herrnhut/Common/ClassList/Download',
+                __NAMESPACE__.'\Herrnhut\Common::downloadClassList'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Herrnhut/Common/ExtendedClassList/Download',
+                __NAMESPACE__.'\Herrnhut\Common::downloadExtendedClassList'
             ));
         }
     }

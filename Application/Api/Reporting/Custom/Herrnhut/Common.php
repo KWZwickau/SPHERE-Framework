@@ -18,6 +18,32 @@ class Common
      *
      * @return string|bool
      */
+    public function downloadProfileList($DivisionId = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $PersonList = Person::useService()->createProfileList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = Person::useService()->createProfileListExcel($PersonList, $tblPersonList);
+
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Herrnhut Klassenliste Profile ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return string|bool
+     */
     public function downloadSignList($DivisionId = null)
     {
 
@@ -56,7 +82,59 @@ class Common
                     $fileLocation = Person::useService()->createLanguageListExcel($PersonList, $tblPersonList);
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Herrnhut Fremdsprachenliste ".$tblDivision->getDisplayName()
+                        "Herrnhut Klassenliste Fremdsprachen ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return string|bool
+     */
+    public function downloadClassList($DivisionId = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $PersonList = Person::useService()->createClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = Person::useService()->createClassListExcel($PersonList, $tblPersonList);
+
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Herrnhut Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return string|bool
+     */
+    public function downloadExtendedClassList($DivisionId = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $PersonList = Person::useService()->createExtendedClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = Person::useService()->createExtendedClassListExcel($PersonList, $tblPersonList);
+
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Herrnhut Erweiterte Klassenliste ".$tblDivision->getDisplayName()
                         ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
                 }
             }
