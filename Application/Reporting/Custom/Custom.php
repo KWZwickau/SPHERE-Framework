@@ -28,7 +28,7 @@ class Custom implements IApplicationInterface
         if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym === 'DEMO') {
             HormersdorfPerson::registerModule();
         }
-        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EZGH' || $consumerAcronym === 'DEMO') {
             HerrnhutPerson::registerModule();
         }
 
