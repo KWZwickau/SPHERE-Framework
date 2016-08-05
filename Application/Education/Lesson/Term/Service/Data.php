@@ -355,6 +355,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $String
+     *
+     * @return false|TblYear[]
+     */
+    public function getYearByName($String)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblYear', array(
+                TblYear::ATTR_YEAR => $String
+            ));
+    }
+
+    /**
      * @param string $Name
      *
      * @return bool|TblPeriod

@@ -1533,8 +1533,10 @@ class Service extends AbstractService
 
                             if ($tblSubjectTeacherList) {
                                 foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
-                                    (new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubjectCopy,
-                                        $tblSubjectTeacher->getServiceTblPerson());
+                                    if ($tblSubjectTeacher->getServiceTblPerson()) {
+                                        (new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubjectCopy,
+                                            $tblSubjectTeacher->getServiceTblPerson());
+                                    }
                                 }
                             }
                         }

@@ -38,7 +38,7 @@ class Data extends AbstractData
         $this->createGroup('Sorgeberechtigt', '', '', true, 'CUSTODY');
         $this->createGroup('Mitarbeiter', 'Alle Mitarbeiter', '', true, 'STAFF');
         $this->createGroup('Lehrer', 'Alle Mitarbeiter, welche einer Lehrtätigkeit nachgehen', '', true, 'TEACHER');
-        $this->createGroup('Vereinsmitglieder', '', '', true, 'CLUB');
+        $this->createGroup('Vereinsmitglieder', '', '', true, TblGroup::META_TABLE_CLUB);
     }
 
     /**
