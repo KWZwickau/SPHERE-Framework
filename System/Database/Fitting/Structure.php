@@ -132,14 +132,14 @@ class Structure
 
             foreach( $TableStatus as $Status ) {
 
-                if( $Status['Collation'] != 'utf8_swedish_ci'
+                if( $Status['Collation'] != 'latin1_german2_ci'
                     && (
                         $Schema->hasTable( $Status['Name'] )
                         || $this->Database->getSchema()->hasTable( $Status['Name'] )
                     )
                 ) {
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8 collate utf8_swedish_ci;" );
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8 collate utf8_swedish_ci;" );
+                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8 collate latin1_german2_ci;" );
+                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8 collate latin1_german2_ci;" );
                 }
             }
 
