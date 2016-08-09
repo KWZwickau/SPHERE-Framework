@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Reporting\Custom\Chemnitz;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person;
 
 /**
@@ -122,7 +123,7 @@ class Common
         $PersonList = Person::useService()->createClubMemberList();
 
         if ($PersonList) {
-            $tblGroup = Group::useService()->getGroupByMetaTable('CLUB');
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CLUB);
             if ($tblGroup) {
                 $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
                 if ($tblPersonList) {
