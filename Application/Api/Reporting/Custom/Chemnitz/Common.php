@@ -122,7 +122,7 @@ class Common
         $PersonList = Person::useService()->createClubMemberList();
 
         if ($PersonList) {
-            $tblGroup = Group::useService()->getGroupByName('Verein');
+            $tblGroup = Group::useService()->getGroupByMetaTable('CLUB');
             if ($tblGroup) {
                 $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
                 if ($tblPersonList) {
