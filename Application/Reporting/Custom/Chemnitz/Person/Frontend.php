@@ -4,6 +4,7 @@ namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -798,7 +799,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('ESZC Auswertung', 'Liste der Vereinsmitglieder');
         $tblPersonList = array();
-        $clubGroup = Group::useService()->getGroupByName('Verein');
+        $clubGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CLUB);
         if ($clubGroup) {
             $tblPersonList = Group::useService()->getPersonAllByGroup($clubGroup);
         }
