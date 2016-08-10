@@ -94,6 +94,16 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'\Herrnhut\Common::downloadExtendedClassList'
             ));
         }
+
+        /*
+         * Coswig
+         */
+        if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'DEMO') {
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Coswig/Common/ClassList/Download',
+                __NAMESPACE__.'\Coswig\Common::downloadClassList'
+            ));
+        }
     }
 
     /**
