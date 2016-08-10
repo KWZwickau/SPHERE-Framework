@@ -109,7 +109,7 @@ class Service extends Extension
             $export->setValue($export->getCell(0, 3), "lfdNr.");
             $export->setValue($export->getCell(1, 3), "Name");
             $export->setValue($export->getCell(2, 3), "Vorname");
-            $export->setValue($export->getCell(3, 3), "Unterschrift");
+            $export->setValue($export->getCell(3, 3), "Profil");
 
             // Settings Header
             $export = $this->setHeader($export, 2, 3, 3);
@@ -857,7 +857,7 @@ class Service extends Extension
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell(0, 0), "lfdNr.");
             $export->setValue($export->getCell(1, 0), "Name");
-            $export->setValue($export->getCell(2, 0), "Telefon-Nr");
+            $export->setValue($export->getCell(2, 0), "Telefon-Nr.");
             $export->setValue($export->getCell(3, 0), "Im Notfall zu Verständigen");
             $export->setValue($export->getCell(4, 0), "Erziehungsberechtigte");
             $export->setValue($export->getCell(5, 0), "SJ Zugang");
