@@ -104,7 +104,7 @@ abstract class AbstractLogic
                 return $this->getExpressionBuilder()->like('E.' . $Property,
                     $this->getExpressionBuilder()->literal('%' . $Value . '%'));
             case self::COMPARISON_IN:
-                return $this->getExpressionBuilder()->in('E.' . $Property, $Value);
+                return $this->getExpressionBuilder()->in('E.' . $Property, array_unique( $Value ));
             default:
                 return $this->getExpressionBuilder()->eq('E.' . $Property,
                     $this->getExpressionBuilder()->literal($Value));
@@ -120,7 +120,7 @@ abstract class AbstractLogic
     }
 
     /**
-     * @return \Doctrine\ORM\Query\Expr\Base
+     * @return \Doctrine\ORM\Query\Expr\Base[]
      */
     final protected function getLogic()
     {
