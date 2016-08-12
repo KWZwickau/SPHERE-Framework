@@ -1,8 +1,6 @@
 <?php
 namespace SPHERE\Application\Reporting\Dynamic;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
-use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
@@ -50,6 +48,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Navigation\Link\Route;
@@ -57,7 +56,6 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -311,9 +309,24 @@ class Frontend extends Extension implements IFrontendInterface
                         $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName())
                     );
                 }
+//
+//                $LinkList = array();
+//                $ForeignViewList = $View->getForeignViewList();
+//                /** @var AbstractView $ForeignView */
+//                foreach ($ForeignViewList as $ForeignView) {
+//                    $LinkList[] = new CheckBox(
+//                        'LinkForeignView['.$ForeignView[1]->getViewClassName().']', $ForeignView[1]->getViewGuiName(), 1
+//                    );
+//                }
 
                 $SelectedFilterList[] = new LayoutColumn(
-                    (string)new Panel($View->getViewGuiName(), $FieldList, Panel::PANEL_TYPE_INFO)
+                    (string)new Panel(
+                        new PullClear(implode(array(
+                            new PullLeft($View->getViewGuiName()),
+                            new PullRight(new ChevronRight())
+                        )))
+
+                        , $FieldList, Panel::PANEL_TYPE_INFO/*, new Listing($LinkList)*/)
                     , 2);
             }
         }
@@ -371,9 +384,25 @@ class Frontend extends Extension implements IFrontendInterface
                 array_walk($Result, function ($Row) use (&$Table, $Filter) {
 
                     $RowSet = array();
-                    array_walk($Row, function (AbstractView $Element) use (&$RowSet, $Filter) {
+                    $Index = 1;
+                    array_walk($Row, function (AbstractView $Element) use (&$RowSet, $Filter, &$Index) {
 
-                        $RowSet = array_merge($RowSet, $Element->__toView());
+                        $RowData = $Element->__toView();
+                        $RowKeys = array_keys($RowData);
+
+                        if (array_intersect(array_keys($RowSet), $RowKeys)) {
+
+                            array_walk($RowKeys, function (&$K) use ($Index) {
+
+                                $K = $K.' '.new Small(new Label(new Info($Index), Label::LABEL_TYPE_NORMAL));
+                            });
+                            $Index++;
+                        }
+
+                        $RowSet = array_merge($RowSet, array_combine($RowKeys, array_values($RowData)));
+
+//                        Debugger::screenDump( get_class($Element), $Element->getForeignViewList(), $Element->__toView() );
+//                        $RowSet = array_merge($RowSet, $Element->__toView());
                     });
                     array_push($Table, $RowSet);
                 });

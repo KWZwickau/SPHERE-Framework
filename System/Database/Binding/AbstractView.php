@@ -2,7 +2,6 @@
 namespace SPHERE\System\Database\Binding;
 
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class AbstractView
@@ -150,25 +149,13 @@ abstract class AbstractView extends Element
     }
 
     /**
-     * @param string $PropertyName
-     * @param string $DisplayName
-     *
-     * @return AbstractView
-     */
-    protected function setNameDefinition($PropertyName, $DisplayName)
-    {
-
-        $this->NameDefinitionList[$PropertyName] = $DisplayName;
-        return $this;
-    }
-
-    /**
      * @return AbstractService
      */
     abstract public function getViewService();
 
     /**
      * @param AbstractView $ForeignView
+     *
      * @return string
      */
     public function getForeignLinkPropertyParent(AbstractView $ForeignView)
@@ -181,6 +168,7 @@ abstract class AbstractView extends Element
 
     /**
      * @param AbstractView $ForeignView
+     *
      * @return string
      */
     public function getForeignLinkPropertyChild(AbstractView $ForeignView)
@@ -189,5 +177,38 @@ abstract class AbstractView extends Element
         $this->loadViewGraph();
         // Index 2 = Foreign-View Property-Name
         return $this->ForeignViewList[$ForeignView->getViewObjectName()][2];
+    }
+
+    /**
+     * Magic Getter for Properties
+     *
+     * @param $PropertyName
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    public function __get($PropertyName)
+    {
+
+        if (!empty( $PropertyName )) {
+            if (property_exists($this, $PropertyName)) {
+                /** @noinspection PhpVariableVariableInspection */
+                return $this->$PropertyName;
+            }
+        }
+        throw new \Exception('Property '.$PropertyName.' not found in '.get_class($this));
+    }
+
+    /**
+     * @param string $PropertyName
+     * @param string $DisplayName
+     *
+     * @return AbstractView
+     */
+    protected function setNameDefinition($PropertyName, $DisplayName)
+    {
+
+        $this->NameDefinitionList[$PropertyName] = $DisplayName;
+        return $this;
     }
 }

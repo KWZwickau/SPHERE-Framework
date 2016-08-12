@@ -2,8 +2,8 @@
 namespace SPHERE\System\Database\Filter\Link;
 
 use SPHERE\System\Cache\Handler\DataCacheHandler;
-use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Logic\AndLogic;
 use SPHERE\System\Database\Filter\Logic\OrLogic;
 use SPHERE\System\Database\Fitting\Element;
@@ -22,6 +22,8 @@ abstract class AbstractNode extends Extension
     private $PathList = array();
     /** @var Probe[] $ProbeList */
     private $ProbeList = array();
+    /** @var int|true $Timeout */
+    private $Timeout = 0;
 
     /**
      *
@@ -189,17 +191,6 @@ abstract class AbstractNode extends Extension
      */
     abstract protected function parseResult($List, $Timeout = 60);
 
-    /** @var int|true $Timeout */
-    private $Timeout = 0;
-
-    /**
-     * @param int $Timeout
-     */
-    protected function setTimeout($Timeout)
-    {
-        $this->Timeout = time() + $Timeout;
-    }
-
     /**
      * @return bool
      */
@@ -208,6 +199,15 @@ abstract class AbstractNode extends Extension
         return true;
         }
         return false;
+    }
+
+    /**
+     * @param int $Timeout
+     */
+    protected function setTimeout($Timeout)
+    {
+
+        $this->Timeout = time() + $Timeout;
     }
 
     /**
@@ -223,21 +223,23 @@ abstract class AbstractNode extends Extension
         }
     }
 
-    private static $NodeCache = null;
+    /**
+     * @param int   $ParentKey      Id of Parent-Property
+     * @param array $List
+     * @param int   $ChildListIndex Index of Child-View-List
+     *
+     * @return array
+     */
+    protected function filterNodeList($ParentKey, $List, $ChildListIndex)
+    {
 
-    protected function fetchArray( Element $Node ) {
+        return array_filter($List[$ChildListIndex], function (AbstractView $Item) use ($ParentKey, $ChildListIndex) {
 
-        if( self::$NodeCache === null ) {
-            self::$NodeCache = $this->getCache(new MemoryHandler());
-        }
-
-        $Key = get_class($Node) . '(' . $Node->getId() . ')::__toArray';
-        if (($Parsed = self::$NodeCache->getValue($Key, __CLASS__))) {
-            return $Parsed;
-        } else {
-            $Data = $Node->__toArray();
-            self::$NodeCache->setValue($Key, $Data, 300, __CLASS__);
-        }
-        return $Data;
+            $ChildKey = $Item->__get($this->getPath($ChildListIndex)[0]);
+            if ($ParentKey == $ChildKey) {
+                return true;
+            }
+            return false;
+        });
     }
 }
