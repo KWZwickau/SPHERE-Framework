@@ -815,8 +815,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'LastName'     => 'Name',
                                         'FirstName'    => 'Vorname',
                                         'PhoneNumbers' => 'Telefon-Nr.',
-                                        'Emergency'    => 'Im Notfall zu Verständigen',
+                                        'Email'        => 'E-Mail',
                                         'Parents'      => 'Erziehungsberechtigte',
+                                        'Entrance'     => 'Aufnahme',
+                                        'Leaving'      => 'Abgang',
                                     ),
                                     array(
                                         'order'      => array(
