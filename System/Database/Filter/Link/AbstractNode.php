@@ -143,7 +143,7 @@ abstract class AbstractNode extends Extension
         if (!empty( $Restriction )) {
             $Logic->addLogic(
                 (new OrLogic($this->getProbe($ProbeIndex)->useBuilder()))->addCriteriaList(
-                    $Restriction, OrLogic::COMPARISON_EXACT
+                    $Restriction, OrLogic::COMPARISON_IN
                 )
             );
         }
