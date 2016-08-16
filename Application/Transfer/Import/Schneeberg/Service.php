@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Extension\Repository\Debugger;
@@ -559,7 +560,7 @@ class Service
                             if ($typ == 'A') {
                                 $remark = 'Angestellt';
                             } elseif ($typ == 'H') {
-                                $remark = 'Honoar-Kraft';
+                                $remark = 'Honorar-Kraft';
                             } else {
                                 $remark = 'GTA-Kraft';
                             }
@@ -870,10 +871,23 @@ class Service
                                     $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
                                 }
 
+                                $day = trim($Document->getValue($Document->getCell($Location['Schüler_Geburtsdatum'],
+                                    $RunY)));
+                                if ($day !== '') {
+                                    try {
+                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    } catch (\Exception $ex) {
+                                        $birthday = '';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
+                                    }
+
+                                } else {
+                                    $birthday = '';
+                                }
+
                                 Common::useService()->insertMeta(
                                     $tblPerson,
-                                    trim($Document->getValue($Document->getCell($Location['Schüler_Geburtsdatum'],
-                                        $RunY))),
+                                    $birthday,
                                     trim($Document->getValue($Document->getCell($Location['Schüler_Geburtsort'],
                                         $RunY))),
                                     $gender,
@@ -1224,50 +1238,30 @@ class Service
                                     }
                                 }
 
-//                                for ($i = 1; $i <= 6; $i++) {
-//                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon' . $i],
-//                                        $RunY)));
-//                                    if ($phoneNumber != '') {
-//                                        $tblType = Phone::useService()->getTypeById(1);
-//                                        if (0 === strpos($phoneNumber, '01')) {
-//                                            $tblType = Phone::useService()->getTypeById(2);
-//                                        }
-//
-//                                        if (($pos = stripos($phoneNumber, ' '))) {
-//                                            $remark = substr($phoneNumber, $pos + 1);
-//                                            $phoneNumber = substr($phoneNumber, 0, $pos);
-//                                        } else {
-//                                            $remark = '';
-//                                        }
-//
-//                                        if ($i == 3) {
-//                                            if ($tblPersonMother) {
-//                                                Phone::useService()->insertPhoneToPerson(
-//                                                    $tblPersonMother,
-//                                                    $phoneNumber,
-//                                                    $tblType,
-//                                                    $remark
-//                                                );
-//                                            }
-//                                        } elseif ($i == 4) {
-//                                            if ($tblPersonFather) {
-//                                                Phone::useService()->insertPhoneToPerson(
-//                                                    $tblPersonFather,
-//                                                    $phoneNumber,
-//                                                    $tblType,
-//                                                    $remark
-//                                                );
-//                                            }
-//                                        } else {
-//                                            Phone::useService()->insertPhoneToPerson(
-//                                                $tblPerson,
-//                                                $phoneNumber,
-//                                                $tblType,
-//                                                $remark
-//                                            );
-//                                        }
-//                                    }
-//                                }
+                                for ($i = 1; $i <= 6; $i++) {
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon' . $i],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $tblType = Phone::useService()->getTypeById(1);
+                                        if (0 === strpos($phoneNumber, '01')) {
+                                            $tblType = Phone::useService()->getTypeById(2);
+                                        }
+
+                                        if (($pos = stripos($phoneNumber, ' '))) {
+                                            $remark = substr($phoneNumber, $pos + 1);
+                                            $phoneNumber = substr($phoneNumber, 0, $pos);
+                                        } else {
+                                            $remark = '';
+                                        }
+
+                                        Phone::useService()->insertPhoneToPerson(
+                                            $tblPerson,
+                                            $phoneNumber,
+                                            $tblType,
+                                            $remark
+                                        );
+                                    }
+                                }
 
                                 $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email'],
                                     $RunY)));
@@ -1357,9 +1351,20 @@ class Service
                                 if ($tblStudent) {
 
                                     // Schülertransfer
-                                    $enrollmentDate = trim($Document->getValue($Document->getCell($Location['Schüler_Einschulung_am'],
+                                    $day = trim($Document->getValue($Document->getCell($Location['Schüler_Einschulung_am'],
                                         $RunY)));
-                                    if ($enrollmentDate !== '' && date_create($enrollmentDate) !== false) {
+                                    if ($day !== '') {
+                                        try {
+                                            $enrollmentDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                        } catch (\Exception $ex) {
+                                            $enrollmentDate = '';
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Einschulung_am Datum: ' . $ex->getMessage();
+                                        }
+
+                                    } else {
+                                        $enrollmentDate = '';
+                                    }
+                                    if ($enrollmentDate !== '') {
                                         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
                                         Student::useService()->insertStudentTransfer(
                                             $tblStudent,
@@ -1371,8 +1376,20 @@ class Service
                                             ''
                                         );
                                     }
-                                    $arriveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
+
+                                    $day = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
                                         $RunY)));
+                                    if ($day !== '') {
+                                        try {
+                                            $arriveDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                        } catch (\Exception $ex) {
+                                            $arriveDate = '';
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Aufnahme_am Datum: ' . $ex->getMessage();
+                                        }
+
+                                    } else {
+                                        $arriveDate = '';
+                                    }
                                     $arriveSchool = null;
                                     $company = trim($Document->getValue($Document->getCell($Location['Schüler_abgebende_Schule_ID'],
                                         $RunY)));
@@ -1388,41 +1405,64 @@ class Service
                                         $tblLastSchoolType = false;
                                     }
                                     if ($company != '') {
+                                        $company = str_pad(
+                                            $company,
+                                            2,
+                                            "0",
+                                            STR_PAD_LEFT
+                                        );
                                         $arriveSchool = Company::useService()->getCompanyByDescription($company);
                                     }
-                                    if ($arriveDate !== '' && date_create($arriveDate) !== false) {
 
-                                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
-                                        Student::useService()->insertStudentTransfer(
-                                            $tblStudent,
-                                            $tblStudentTransferType,
-                                            $arriveSchool ? $arriveSchool : null,
-                                            $tblLastSchoolType ? $tblLastSchoolType : null,
-                                            null,
-                                            $arriveDate,
-                                            ''
-                                        );
-                                    }
-                                    $leaveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Abgang_am'],
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        $arriveSchool ? $arriveSchool : null,
+                                        $tblLastSchoolType ? $tblLastSchoolType : null,
+                                        null,
+                                        $arriveDate,
+                                        ''
+                                    );
+                                    $day = trim($Document->getValue($Document->getCell($Location['Schüler_Abgang_am'],
                                         $RunY)));
+                                    if ($day == '') {
+                                        $day = trim($Document->getValue($Document->getCell($Location['Schüler_Schulpflicht_endet_am'],
+                                            $RunY)));
+                                    }
+                                    if ($day !== '') {
+                                        try {
+                                            $leaveDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                        } catch (\Exception $ex) {
+                                            $leaveDate = '';
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Abgang_am Datum: ' . $ex->getMessage();
+                                        }
+
+                                    } else {
+                                        $leaveDate = '';
+                                    }
                                     $leaveSchool = null;
                                     $company = trim($Document->getValue($Document->getCell($Location['Schüler_aufnehmende_Schule_ID'],
                                         $RunY)));
                                     if ($company != '') {
+                                        $company = str_pad(
+                                            $company,
+                                            2,
+                                            "0",
+                                            STR_PAD_LEFT
+                                        );
                                         $leaveSchool = Company::useService()->getCompanyByDescription($company);
                                     }
-                                    if ($leaveDate !== '' && date_create($leaveDate) !== false) {
-                                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
-                                        Student::useService()->insertStudentTransfer(
-                                            $tblStudent,
-                                            $tblStudentTransferType,
-                                            $leaveSchool ? $leaveSchool : null,
-                                            null,
-                                            null,
-                                            $leaveDate,
-                                            ''
-                                        );
-                                    }
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        $leaveSchool ? $leaveSchool : null,
+                                        null,
+                                        null,
+                                        $leaveDate,
+                                        ''
+                                    );
 
                                     $tblCourse = null;
                                     if (($course = trim($Document->getValue($Document->getCell($Location['Fächer_Bildungsgang'],
@@ -1542,6 +1582,15 @@ class Service
                     }
 
                     Debugger::screenDump($error);
+
+                    // delete company description (fuxschool id)
+                    $tblCompanyAll = Company::useService()->getCompanyAll();
+                    if ($tblCompanyAll) {
+                        foreach ($tblCompanyAll as $tblCompany) {
+                            Company::useService()->updateCompanyWithoutForm($tblCompany, $tblCompany->getName(),
+                                $tblCompany->getExtendedName(), '');
+                        }
+                    }
 
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
@@ -1785,8 +1834,6 @@ class Service
                                 } else {
                                     $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Schülers wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
                                 }
-
-                                // ToDo JohK Fotoerlaubnis
 
                                 $tblStudent = Student::useService()->insertStudent($tblPerson, '');
                                 if ($tblStudent) {
@@ -2261,18 +2308,18 @@ class Service
                                 $tblMother = false;
                                 $tblFather = false;
                                 $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($student);
-                                if ($tblRelationshipList){
-                                    foreach ($tblRelationshipList as $tblRelationship){
+                                if ($tblRelationshipList) {
+                                    foreach ($tblRelationshipList as $tblRelationship) {
                                         if ($tblRelationship->getServiceTblPersonFrom()
                                             && $tblRelationship->getServiceTblPersonTo()
                                             && $tblRelationship->getServiceTblPersonTo()->getId() == $student->getId()
-                                        ){
+                                        ) {
                                             if (($tblCommon = Common::useService()->getCommonByPerson($tblRelationship->getServiceTblPersonFrom()))
                                                 && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                                             ) {
-                                                if ($tblCommonBirthDates->getGender() == TblCommonBirthDates::VALUE_GENDER_FEMALE){
+                                                if ($tblCommonBirthDates->getGender() == TblCommonBirthDates::VALUE_GENDER_FEMALE) {
                                                     $tblMother = $tblRelationship->getServiceTblPersonFrom();
-                                                } elseif ($tblCommonBirthDates->getGender() == TblCommonBirthDates::VALUE_GENDER_MALE){
+                                                } elseif ($tblCommonBirthDates->getGender() == TblCommonBirthDates::VALUE_GENDER_MALE) {
                                                     $tblFather = $tblRelationship->getServiceTblPersonFrom();
                                                 }
                                             }
@@ -2305,7 +2352,7 @@ class Service
 
                                     $address = trim($Document->getValue($Document->getCell($Location['Mail Mutter'],
                                         $RunY)));
-                                    if ($address !== ''){
+                                    if ($address !== '') {
                                         Mail::useService()->insertMailToPerson(
                                             $tblMother,
                                             $address,
@@ -2340,7 +2387,7 @@ class Service
 
                                     $address = trim($Document->getValue($Document->getCell($Location['Mail Vater'],
                                         $RunY)));
-                                    if ($address !== ''){
+                                    if ($address !== '') {
                                         Mail::useService()->insertMailToPerson(
                                             $tblFather,
                                             $address,
@@ -2350,12 +2397,12 @@ class Service
                                     }
                                 }
 
-                                foreach($Emergency as $key => $location){
+                                foreach ($Emergency as $key => $location) {
                                     $number = trim($Document->getValue($Document->getCell($location,
                                         $RunY)));
                                     if ($number !== '') {
                                         $remark = '';
-                                        if (($pos = strpos($number, '|')) !== false){
+                                        if (($pos = strpos($number, '|')) !== false) {
                                             $remark = trim(substr($number, $pos + 1));
                                             $number = trim(substr($number, 0, $pos));
                                         }
@@ -2401,4 +2448,132 @@ class Service
         return new Danger('File nicht gefunden');
     }
 
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     * @return IFormInterface|Danger|Success|string
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createCompaniesFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'E.nummer' => null,
+                    'Einrichtungsname' => null,
+                    'Straße' => null,
+                    'Plz' => null,
+                    'Ort' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countCompany = 0;
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        $companyName = trim($Document->getValue($Document->getCell($Location['Einrichtungsname'],
+                            $RunY)));
+
+                        if ($companyName) {
+                            $tblCompany = Company::useService()->insertCompany(
+                                $companyName,
+                                trim($Document->getValue($Document->getCell($Location['E.nummer'], $RunY)))
+                            );
+                            if ($tblCompany) {
+                                $countCompany++;
+
+                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON'),
+                                    $tblCompany
+                                );
+                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('SCHOOL'),
+                                    $tblCompany
+                                );
+
+                                $streetName = '';
+                                $streetNumber = '';
+                                $street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                    $RunY)));
+                                if (preg_match_all('!\d+!', $street, $matches)) {
+                                    $pos = strpos($street, $matches[0][0]);
+                                    if ($pos !== null) {
+                                        $streetName = trim(substr($street, 0, $pos));
+                                        $streetNumber = trim(substr($street, $pos));
+                                    }
+                                }
+                                $zipCode = trim($Document->getValue($Document->getCell($Location['Plz'],
+                                    $RunY)));
+                                $city = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                    $RunY)));
+
+                                if ($streetName && $streetNumber && $zipCode && $city) {
+                                    Address::useService()->insertAddressToCompany(
+                                        $tblCompany,
+                                        $streetName,
+                                        $streetNumber,
+                                        $zipCode,
+                                        $city,
+                                        '',
+                                        ''
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    return
+                        new Success('Es wurden ' . $countCompany . ' Schulen erfolgreich angelegt.');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Info(json_encode($Location)) .
+                    new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
 }
