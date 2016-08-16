@@ -1247,18 +1247,11 @@ class Service
                                             $tblType = Phone::useService()->getTypeById(2);
                                         }
 
-                                        if (($pos = stripos($phoneNumber, ' '))) {
-                                            $remark = substr($phoneNumber, $pos + 1);
-                                            $phoneNumber = substr($phoneNumber, 0, $pos);
-                                        } else {
-                                            $remark = '';
-                                        }
-
                                         Phone::useService()->insertPhoneToPerson(
                                             $tblPerson,
                                             $phoneNumber,
                                             $tblType,
-                                            $remark
+                                            ''
                                         );
                                     }
                                 }
