@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 08.07.2016
- * Time: 09:03
- */
-
 namespace SPHERE\Application\Education\ClassRegister;
 
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
@@ -16,9 +9,13 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -170,7 +167,10 @@ class ClassRegister implements IApplicationInterface
                     $absence = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
                         . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
                     $studentTable[] = array(
-                        'Name' => $tblPerson->getLastFirstName(),
+                        'Number' => (count($studentTable) +1),
+                        'Name' => new PullClear(
+                            new PullLeft( new ResizeVertical().' '.$tblPerson->getLastFirstName() )
+                        ),
                         'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Birthday' => $birthday,
                         'Course' => $course,
@@ -207,6 +207,7 @@ class ClassRegister implements IApplicationInterface
                             new LayoutColumn($buttonList),
                             new LayoutColumn(array(
                                 new TableData($studentTable, null, array(
+                                    'Number' => '#',
                                     'Name' => 'Name',
                                     'Address' => 'Addresse',
                                     'Birthday' => 'Geburtsdatum',
@@ -219,6 +220,17 @@ class ClassRegister implements IApplicationInterface
                                     ),
                                     "paging" => false, // Deaktivieren Blättern
                                     "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                    'ExtensionRowReorder' => array(
+                                        'Enabled' => true,
+                                        'Url' => '/Api/Education/ClassRegister/Reorder',
+                                        'Event' => array(
+//                                            'Success' => 'console.log(1,this);',
+                                            'Error' => 'window.location.reload();',
+                                        ),
+                                        'Data' => array(
+                                            'Division' => $tblDivision->getId()
+                                        )
+                                    )
                                 ))
                             ))
                         ))

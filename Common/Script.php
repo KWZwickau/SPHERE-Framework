@@ -79,6 +79,53 @@ class Script extends Extension
             'jQuery.Mask', '/Library/jQuery.InputMask/3.1.63/dist/jquery.inputmask.bundle.min.js',
             "'undefined' !== typeof jQuery.fn.inputmask"
         );
+
+
+        $this->setSource(
+            'jQuery.DataTable',
+            '/Library/DataTables/DataTables-1.10.12/js/jquery.dataTables.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable"
+        );
+        $this->setSource(
+            'jQuery.DataTable.Bootstrap',
+            '/Library/DataTables/DataTables-1.10.12/js/dataTables.bootstrap.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable.ext.renderer.pageButton.bootstrap"
+        );
+        $this->setSource(
+            'jQuery.DataTable.Responsive',
+            '/Library/DataTables/Responsive-2.1.0/js/dataTables.responsive.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
+        );
+        $this->setSource(
+            'jQuery.DataTable.RowReorder',
+            '/Library/DataTables/RowReorder-1.1.2/js/dataTables.rowReorder.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable.RowReorder"
+        );
+
+//        <script type="text/javascript" src="Bootstrap-3.3.6/js/bootstrap.js"></script>
+//        <script type="text/javascript" src="JSZip-2.5.0/jszip.js"></script>
+//        <script type="text/javascript" src="pdfmake-0.1.18/build/pdfmake.js"></script>
+//        <script type="text/javascript" src="pdfmake-0.1.18/build/vfs_fonts.js"></script>
+//        <script type="text/javascript" src="DataTables-1.10.12/js/jquery.dataTables.js"></script>
+//        <script type="text/javascript" src="DataTables-1.10.12/js/dataTables.bootstrap.js"></script>
+//        <script type="text/javascript" src="AutoFill-2.1.2/js/dataTables.autoFill.js"></script>
+//        <script type="text/javascript" src="AutoFill-2.1.2/js/autoFill.bootstrap.js"></script>
+//        <script type="text/javascript" src="Buttons-1.2.2/js/dataTables.buttons.js"></script>
+//        <script type="text/javascript" src="Buttons-1.2.2/js/buttons.bootstrap.js"></script>
+//        <script type="text/javascript" src="Buttons-1.2.2/js/buttons.colVis.js"></script>
+//        <script type="text/javascript" src="Buttons-1.2.2/js/buttons.flash.js"></script>
+//        <script type="text/javascript" src="Buttons-1.2.2/js/buttons.html5.js"></script>
+//        <script type="text/javascript" src="Buttons-1.2.2/js/buttons.print.js"></script>
+//        <script type="text/javascript" src="ColReorder-1.3.2/js/dataTables.colReorder.js"></script>
+//        <script type="text/javascript" src="FixedColumns-3.2.2/js/dataTables.fixedColumns.js"></script>
+//        <script type="text/javascript" src="FixedHeader-3.1.2/js/dataTables.fixedHeader.js"></script>
+//        <script type="text/javascript" src="KeyTable-2.1.3/js/dataTables.keyTable.js"></script>
+//        <script type="text/javascript" src="Responsive-2.1.0/js/dataTables.responsive.js"></script>
+//        <script type="text/javascript" src="RowReorder-1.1.2/js/dataTables.rowReorder.js"></script>
+//        <script type="text/javascript" src="Scroller-1.4.2/js/dataTables.scroller.js"></script>
+//        <script type="text/javascript" src="Select-1.2.0/js/dataTables.select.js"></script>
+
+/*
         $this->setSource(
             'jQuery.DataTable',
             '/Library/jQuery.DataTables/1.10.7/media/js/jquery.dataTables.min.js',
@@ -89,6 +136,7 @@ class Script extends Extension
             '/Library/jQuery.DataTables/1.10.7/extensions/Responsive/js/dataTables.responsive.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
         );
+*/
         $this->setSource(
             'jQuery.DataTable.Plugin.Sorting.DateTime',
             '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/date-de.js',
@@ -99,6 +147,7 @@ class Script extends Extension
             '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/german-string.js',
             "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['german-string-asc']"
         );
+        /*
 //        $this->setSource(
 //            'jQuery.DataTable.Plugin.Sorting.Weekday',
 //            '/Library/jQuery.DataTables.Plugins/1.0.1/sorting/weekday.js',
@@ -109,6 +158,8 @@ class Script extends Extension
             '/Library/jQuery.DataTables.Plugins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.ext.renderer.pageButton.bootstrap"
         );
+*/
+
         $this->setSource(
             'Bootstrap.DatetimePicker',
             '/Library/Bootstrap.DateTimePicker/4.14.30/build/js/bootstrap-datetimepicker.min.js',
@@ -159,11 +210,13 @@ class Script extends Extension
         $this->setModule(
             'ModTable',
             array(
-//                'jQuery.DataTable.Plugin.Sorting.Weekday',
+////                'jQuery.DataTable.Plugin.Sorting.Weekday',
                 'jQuery.DataTable.Plugin.Sorting.DateTime',
                 'jQuery.DataTable.Plugin.Sorting.GermanString',
-                'Bootstrap.DataTable',
+//                'Bootstrap.DataTable',
+'jQuery.DataTable.RowReorder',
                 'jQuery.DataTable.Responsive',
+'jQuery.DataTable.Bootstrap',
                 'jQuery.DataTable',
                 'jQuery'
             )
