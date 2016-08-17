@@ -16,6 +16,7 @@ use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\System\Extension\Extension;
@@ -110,7 +111,6 @@ class Service extends Extension
                         . ' & ' . $father->getFirstSecondName() . ' ' . $father->getLastName();
                 }
 
-
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
                     $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
@@ -144,6 +144,18 @@ class Service extends Extension
                     }
                     if (!empty($phoneNumbers)){
                         $Item['PhoneMother'] = implode(', ', $phoneNumbers);
+                    }
+                }
+
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                if ($tblStudent){
+                    $tblStudentAgreementAllByStudent = Student::useService()->getStudentAgreementAllByStudent($tblStudent);
+                    if ($tblStudentAgreementAllByStudent){
+                        foreach ($tblStudentAgreementAllByStudent as $tblStudentAgreement){
+                            if ($tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId() == 1 ){
+                                $Item['Photo'] = 'X';
+                            }
+                        }
                     }
                 }
 
