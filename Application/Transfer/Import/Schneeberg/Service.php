@@ -1662,18 +1662,21 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
+                    'Klasse' => null,
                     'Name' => null,
+                    'm / w' => null,
                     'Vorname' => null,
                     'Geburtsdatum' => null,
+                    'Geburtsort' => null,
+                    'regulär / vz / rst' => null,
                     'Einschulung am' => null,
-                    'Adresse' => null,
+                    'GS - Einzugsgebiet' => null,
                     'Nr' => null,
+                    'Adresse' => null,
+                    'Ortsteil' => null,
                     'PLZ' => null,
                     'Ort' => null,
-                    'Ortsteil' => null,
                     'Konfession' => null,
-                    'Klassenstufe' => null,
-                    'Einschulung-Bemerkung' => null,
                     'Bemerkung' => null,
                     'Fotoerlaubnis' => null,
                 );
@@ -1718,11 +1721,25 @@ class Service
                             } else {
                                 $countStudent++;
 
-                                $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
+                                $gender = trim($Document->getValue($Document->getCell($Location['m / w'],
+                                    $RunY)));
+                                if ($gender == 'm') {
+                                    $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
+                                } elseif ($gender == 'w') {
+                                    $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
+                                } else {
+                                    $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
+                                }
                                 $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
                                     $RunY)));
                                 if ($day !== '') {
-                                    $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    try {
+                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    } catch (\Exception $ex) {
+                                        $birthday = '';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
+                                    }
+
                                 } else {
                                     $birthday = '';
                                 }
@@ -1730,7 +1747,8 @@ class Service
                                 Common::useService()->insertMeta(
                                     $tblPerson,
                                     $birthday,
-                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsort'],
+                                        $RunY))),
                                     $gender,
                                     '',
                                     trim($Document->getValue($Document->getCell($Location['Konfession'],
@@ -1746,7 +1764,7 @@ class Service
                                 // division
                                 $tblDivision = false;
                                 $year = 16;
-                                $division = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
+                                $division = trim($Document->getValue($Document->getCell($Location['Klasse'],
                                     $RunY)));
                                 if ($division !== '') {
                                     $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
@@ -1775,21 +1793,17 @@ class Service
                                         }
 
                                         if ($tblSchoolType) {
-                                            if ($division != '10') {
-                                                $pos = 1;
-                                                $level = substr($division, 0, $pos);
-                                                $division = substr($division, $pos);
-                                            } else {
-                                                $level = $division;
-                                                $division = '';
-                                            }
-                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
-                                            if ($tblLevel) {
-                                                $tblDivision = Division::useService()->insertDivision(
-                                                    $tblYear,
-                                                    $tblLevel,
-                                                    $division
-                                                );
+                                            if (strlen($division) == 2) {
+                                                $level = substr($division, 0, 1);
+                                                $division = substr($division, 1, 1);
+                                                $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                                if ($tblLevel) {
+                                                    $tblDivision = Division::useService()->insertDivision(
+                                                        $tblYear,
+                                                        $tblLevel,
+                                                        $division
+                                                    );
+                                                }
                                             }
                                         }
                                     }
@@ -1835,9 +1849,20 @@ class Service
                                     $day = trim($Document->getValue($Document->getCell($Location['Einschulung am'],
                                         $RunY)));
                                     if ($day !== '') {
-                                        $enrollmentDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                        try {
+                                            $enrollmentDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                        } catch (\Exception $ex) {
+                                            $enrollmentDate = '';
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Einschulung am Datum: ' . $ex->getMessage();
+                                        }
+
                                     } else {
                                         $enrollmentDate = '';
+                                    }
+                                    $remark = trim($Document->getValue($Document->getCell($Location['GS - Einzugsgebiet'],
+                                        $RunY)));
+                                    if ($remark !== '') {
+                                        $remark = 'GS - Einzugsgebiet: ' . $remark;
                                     }
                                     if ($enrollmentDate !== '') {
                                         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
@@ -1848,8 +1873,8 @@ class Service
                                             null,
                                             null,
                                             $enrollmentDate,
-                                            trim($Document->getValue($Document->getCell($Location['Einschulung-Bemerkung'],
-                                                $RunY)))
+                                            trim($remark . ' ' . trim($Document->getValue($Document->getCell($Location['regulär / vz / rst'],
+                                                    $RunY))))
                                         );
                                     }
 
@@ -1864,6 +1889,24 @@ class Service
                                         null,
                                         ''
                                     );
+
+                                    /*
+                                    * photo agreement
+                                    */
+                                    $photo = trim($Document->getValue($Document->getCell($Location['Fotoerlaubnis'],
+                                        $RunY)));
+                                    if ($photo === '1') {
+                                        $tblCategory = Student::useService()->getStudentAgreementCategoryById(1);
+                                        if ($tblCategory) {
+                                            $tblStudentAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblCategory);
+                                            if ($tblStudentAgreementTypeAll) {
+                                                foreach ($tblStudentAgreementTypeAll as $tblStudentAgreementType) {
+                                                    Student::useService()->insertStudentAgreement($tblStudent,
+                                                        $tblStudentAgreementType);
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1959,7 +2002,6 @@ class Service
                     $custodyLastNameLocation => null,
                     $custodyFirstNameLocation => null,
                     'Sorgerecht' => null,
-                    'Geburtsdatum' => null,
                     'Adresse' => null,
                     'Hnr' => null,
                     'PLZ' => null,
@@ -1968,17 +2010,21 @@ class Service
                     'Konfession' => null,
                     'Beruf' => null,
                     'Arbeitgeber' => null,
-                    'Sorgerecht-Bemerkung' => null
                 );
 
                 if ($custodyBirthNameLocation) {
                     $Location[$custodyBirthNameLocation] = null;
                 }
 
+                $locationRemarkCustody = null;
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
+                    }
+
+                    if ($Value == 'Sorgerecht-Bemerkung') {
+                        $locationRemarkCustody = $RunX;
                     }
                 }
 
@@ -2055,18 +2101,10 @@ class Service
                                             $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
                                         }
 
-                                        $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
-                                            $RunY)));
-                                        if ($day !== '') {
-                                            $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                        } else {
-                                            $birthday = '';
-                                        }
-
                                         if (!Common::useService()->getCommonByPerson($tblPerson)) {
                                             Common::useService()->insertMeta(
                                                 $tblPerson,
-                                                $birthday,
+                                                '',
                                                 '',
                                                 $gender,
                                                 '',
@@ -2106,6 +2144,11 @@ class Service
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigten wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
                                         }
 
+                                        $remark = '';
+                                        if ($locationRemarkCustody) {
+                                            $remark = trim($Document->getValue($Document->getCell($locationRemarkCustody,
+                                                $RunY)));
+                                        }
                                         if (!Custody::useService()->getCustodyByPerson($tblPerson)) {
                                             Custody::useService()->insertMeta(
                                                 $tblPerson,
@@ -2113,8 +2156,7 @@ class Service
                                                     $RunY))),
                                                 trim($Document->getValue($Document->getCell($Location['Arbeitgeber'],
                                                     $RunY))),
-                                                trim($Document->getValue($Document->getCell($Location['Sorgerecht-Bemerkung'],
-                                                    $RunY)))
+                                                $remark
                                             );
                                         }
 
@@ -2130,8 +2172,7 @@ class Service
                                             $tblPerson,
                                             $student,
                                             $tblType,
-                                            trim($Document->getValue($Document->getCell($Location['Sorgerecht-Bemerkung'],
-                                                $RunY)))
+                                            $remark
                                         );
                                     }
                                 }
@@ -2171,8 +2212,10 @@ class Service
      *
      * @return false|TblPerson|TblPerson[]
      */
-    private function getStudentsByName($firstName, $lastName)
-    {
+    private function getStudentsByName(
+        $firstName,
+        $lastName
+    ) {
         $tblStudentAll = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('STUDENT'));
         $list = array();
         if ($tblStudentAll) {
@@ -2201,7 +2244,8 @@ class Service
      * @return IFormInterface|Danger|string
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createContactsFromFile(
+    public
+    function createContactsFromFile(
         IFormInterface $Form = null,
         UploadedFile $File = null
     ) {
