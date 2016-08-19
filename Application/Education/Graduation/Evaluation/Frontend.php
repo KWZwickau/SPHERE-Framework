@@ -1685,9 +1685,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblDivisionSubject->getTblSubjectGroup()) {
             $tblStudentAll = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-            if ($tblStudentAll) {
-                $tblStudentAll = $this->getSorter($tblStudentAll)->sortObjectBy('LastFirstName');
-            }
         } else {
             $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
         }

@@ -890,7 +890,11 @@ class Frontend extends Extension implements IFrontendInterface
                 "columnDefs"     => array(
                     array(
                         "orderable" => false,
-                        "targets"   => array(1,2,3,4,5,6,7,8,9)
+                        "targets"   => 0
+                    ),
+                    array(
+                        "orderable" => false,
+                        "targets"   => '_all'
                     ),
                 ),
                 'pageLength' => -1
