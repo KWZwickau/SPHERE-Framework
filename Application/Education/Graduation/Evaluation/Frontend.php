@@ -1685,14 +1685,17 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblDivisionSubject->getTblSubjectGroup()) {
             $tblStudentAll = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            if ($tblStudentAll) {
+                $tblStudentAll = $this->getSorter($tblStudentAll)->sortObjectBy('LastFirstName');
+            }
         } else {
             $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
         }
         if ($tblStudentAll) {
-            $tblStudentAll = $this->getSorter($tblStudentAll)->sortObjectBy('LastFirstName');
             /** @var TblPerson $tblPerson */
             foreach ($tblStudentAll as $tblPerson) {
                 $average = false;
+                $studentList[$tblPerson->getId()]['Number'] = count($studentList) + 1;
                 $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                     . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
             }
@@ -1701,6 +1704,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTask) {
             $period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
             $tableColumns = array(
+                'Number' => '#',
                 'Name' => 'Schüler',
             );
 
@@ -1713,7 +1717,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $dataList = array();
                 $periodListCount = array();
-                $columnDefinition['Number'] = 'Nr.';
+                $columnDefinition['Number'] = '#';
                 $columnDefinition['Student'] = "Schüler";
 
                 $tblPeriodList = false;
@@ -1794,13 +1798,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 if ($tblStudentList) {
-
-                    // Sortierung der Schüler nach Nachname --> Vorname
-                    foreach ($tblStudentList as $key => $row) {
-                        $name[$key] = strtoupper($row->getLastName());
-                        $firstName[$key] = strtoupper($row->getFirstSecondName());
-                    }
-                    array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $tblStudentList);
 
                     $count = 1;
                     // Ermittlung der Zensuren zu den Schülern
@@ -1956,6 +1953,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
                 $tableColumns = array(
+                    'Number' => '#',
                     'Name' => 'Schüler',
                     'Grade' => 'Zensur',
                     'Trend' => 'Tendenz',
@@ -1964,6 +1962,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             } else {
                 $tableColumns = array(
+                    'Number' => '#',
                     'Name' => 'Schüler',
                     'Grade' => 'Zensur',
                     'Comment' => 'Vermerk Notenänderung',
@@ -2680,6 +2679,7 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($testList as $tblTest) {
                             $tblSubject = $tblTest->getServiceTblSubject();
                             if ($tblSubject && $tblTest->getServiceTblDivision()) {
+                                $tableHeaderList[$tblDivision->getId()]['Number'] = '#';
                                 $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
                                 $tableHeaderList[$tblDivision->getId()]['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
 
@@ -2706,8 +2706,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 } else {
                                     $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
                                     if ($tblDivisionStudentAll) {
+                                        $count = 1;
                                         foreach ($tblDivisionStudentAll as $tblPerson) {
-
+                                            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                 $tblTest, $tblSubject, $tblPerson, $studentList);
                                         }
@@ -2735,6 +2736,7 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
 
                     // Kopfnoten
+                    $tableHeaderList[$tblDivision->getId()]['Number'] = '#';
                     $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
                     $grades = array();
 
@@ -2770,8 +2772,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     } else {
                                         $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
                                         if ($tblDivisionStudentAll) {
+                                            $count = 1;
                                             foreach ($tblDivisionStudentAll as $tblPerson) {
-
+                                                $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
                                                     $tblTest, $tblPerson, $studentList, $grades);
                                             }
@@ -2938,6 +2941,7 @@ class Frontend extends Extension implements IFrontendInterface
         $studentList,
         $grades
     ) {
+
         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
             $tblPerson->getLastFirstName();
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,

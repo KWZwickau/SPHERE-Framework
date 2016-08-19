@@ -716,7 +716,7 @@ class Frontend extends Extension implements IFrontendInterface
         $dataList = array();
         $columnDefinition = array();
         $periodListCount = array();
-        $columnDefinition['Number'] = 'Nr.';
+        $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
         // Tabellenkopf mit Test-Code und Datum erstellen
         if ($tblPeriodList) {
@@ -769,13 +769,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($tblStudentList) {
-
-            // Sortierung der Schüler nach Nachname --> Vorname
-            foreach ($tblStudentList as $key => $row) {
-                $name[$key] = strtoupper($row->getLastName());
-                $firstName[$key] = strtoupper($row->getFirstSecondName());
-            }
-            array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $tblStudentList);
 
             $count = 1;
             // Ermittlung der Zensuren zu den Schülern
@@ -892,7 +885,16 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tableData = new TableData(
-            $dataList, null, $columnDefinition, array('pageLength' => -1)
+            $dataList, null, $columnDefinition,
+            array(
+                "columnDefs"     => array(
+                    array(
+                        "orderable" => false,
+                        "targets"   => array(1,2,3,4,5,6,7,8,9)
+                    ),
+                ),
+                'pageLength' => -1
+            )
         );
 
         // oberste Tabellen-Kopf-Zeile erstellen

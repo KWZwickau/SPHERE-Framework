@@ -539,6 +539,7 @@ class Data extends AbstractData
 
         $EntityList = array();
         if (!empty ( $TempList )) {
+            $TempList = $this->getSorter($TempList)->sortObjectBy('SortOrder');
             /** @var TblDivisionStudent $tblDivisionStudent */
             foreach ($TempList as $tblDivisionStudent) {
                 if ($tblDivisionStudent->getServiceTblPerson() && $tblDivisionStudent->getTblDivision()) {
@@ -1626,5 +1627,56 @@ class Data extends AbstractData
                 TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             )
         ) ? true : false;
+    }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     * @param integer $SortOrder
+     *
+     * @return bool
+     */
+    public function updateDivisionStudentSortOrder(TblDivisionStudent $tblDivisionStudent, $SortOrder)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblDivisionStudent $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionStudent', $tblDivisionStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setSortOrder($SortOrder);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionStudent[]
+     */
+    public function getDivisionStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+            array(
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
+
+        $EntityList = array();
+        if (!empty ( $TempList )) {
+            /** @var TblDivisionStudent $tblDivisionStudent */
+            foreach ($TempList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getServiceTblPerson() && $tblDivisionStudent->getTblDivision()) {
+                    array_push($EntityList, $tblDivisionStudent);
+                }
+            }
+        }
+
+        return empty( $EntityList ) ? false : $this->getSorter($EntityList)->sortObjectBy('SortOrder');
     }
 }

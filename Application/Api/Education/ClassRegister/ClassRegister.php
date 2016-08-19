@@ -2,12 +2,11 @@
 namespace SPHERE\Application\Api\Education\ClassRegister;
 
 use SPHERE\Application\Api\Response;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
-use SPHERE\System\Authenticator\Authenticator;
-use SPHERE\System\Authenticator\Type\Post;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -21,7 +20,7 @@ class ClassRegister extends Extension implements IModuleInterface
     public static function registerModule()
     {
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Reorder', __CLASS__.'::reorderDivision'
+            __NAMESPACE__ . '/Reorder', __CLASS__ . '::reorderDivision'
         ));
     }
 
@@ -47,12 +46,34 @@ class ClassRegister extends Extension implements IModuleInterface
      *
      * @return Response
      */
-    public function reorderDivision( $Reorder = null, $Additional = null )
+    public function reorderDivision($Reorder = null, $Additional = null)
     {
-        // TODO: Update Order
 
+        if ($Additional
+            && $Reorder
+            && isset($Additional['DivisionId'])
+            && ($tblDivision = Division::useService()->getDivisionById($Additional['DivisionId']))
+        ) {
 
+            $tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
+            if ($tblDivisionStudentAll) {
+                // update SortOrder for deleted Person etc.
+                $count = 1;
+                foreach ($tblDivisionStudentAll as $tblDivisionStudent) {
+                    Division::useService()->updateDivisionStudentSortOrder($tblDivisionStudent, $count++);
+                }
+                foreach ($Reorder as $item) {
+                    if (isset($item['pre']) && isset($item['post'])) {
+                        $pre = $item['pre'] - 1;
+                        $post = $item['post'];
 
+                        if (isset($tblDivisionStudentAll[$pre])) {
+                            Division::useService()->updateDivisionStudentSortOrder($tblDivisionStudentAll[$pre], $post);
+                        }
+                    }
+                }
+            }
+        }
 
         return (new Response())->addData($Reorder)->addData($Additional);
     }

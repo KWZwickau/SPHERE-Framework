@@ -1075,7 +1075,7 @@ class Service extends AbstractService
                                     }
                                 }
                                 // Count Subject's - (Added Count + Subject without Group) - Found Teacher's in Group's
-                                if (( count($tblDivisionSubjectActiveList) - 1 ) == count($TeacherGroup)) {
+                                if ((count($tblDivisionSubjectActiveList) - 1) == count($TeacherGroup)) {
                                     $SubjectUsedCount--;
                                 }
                             }
@@ -1102,7 +1102,8 @@ class Service extends AbstractService
 
                 if ($DivisionSubject->getTblSubjectGroup()) {
                     $SubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
-                    $tblDivisionSubject = Division::useService()->getDivisionSubjectBySubjectAndDivisionWithoutGroup($DivisionSubject->getServiceTblSubject(), $tblDivision);
+                    $tblDivisionSubject = Division::useService()->getDivisionSubjectBySubjectAndDivisionWithoutGroup($DivisionSubject->getServiceTblSubject(),
+                        $tblDivision);
                     $tblSubjectTeacherList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubject);
                     if (!$SubjectTeacherList && !$tblSubjectTeacherList) {
                         $TeacherGroupCount++;
@@ -1114,7 +1115,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblSubject  $tblSubject
+     * @param TblSubject $tblSubject
      * @param TblDivision $tblDivision
      *
      * @return bool|Service\Entity\TblDivisionSubject[]
@@ -1126,7 +1127,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblSubject  $tblSubject
+     * @param TblSubject $tblSubject
      * @param TblDivision $tblDivision
      *
      * @return false|TblDivisionSubject
@@ -1134,7 +1135,8 @@ class Service extends AbstractService
     public function getDivisionSubjectBySubjectAndDivisionWithoutGroup(TblSubject $tblSubject, TblDivision $tblDivision)
     {
 
-        return (new Data($this->getBinding()))->getDivisionSubjectBySubjectAndDivisionWithoutGroup($tblSubject, $tblDivision);
+        return (new Data($this->getBinding()))->getDivisionSubjectBySubjectAndDivisionWithoutGroup($tblSubject,
+            $tblDivision);
     }
 
     /**
@@ -1630,16 +1632,16 @@ class Service extends AbstractService
             foreach ($tblDivisionList as $tblDivision) {
                 if ($this->exitsDivisionStudent($tblDivision, $tblPerson)) {
                     $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
-                    if ($tblDivisionSubjectList){
-                        foreach ($tblDivisionSubjectList as $tblDivisionSubject){
-                            if (!$tblDivisionSubject->getTblSubjectGroup()){
+                    if ($tblDivisionSubjectList) {
+                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                            if (!$tblDivisionSubject->getTblSubjectGroup()) {
                                 $groups = $this->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                                     $tblDivisionSubject->getTblDivision(),
                                     $tblDivisionSubject->getServiceTblSubject()
                                 );
-                                if ($groups){
-                                    foreach ($groups as $item){
-                                        if ($this->exitsSubjectStudent($item, $tblPerson)){
+                                if ($groups) {
+                                    foreach ($groups as $item) {
+                                        if ($this->exitsSubjectStudent($item, $tblPerson)) {
                                             $resultList[$item->getId()] = $item;
                                         }
                                     }
@@ -1654,5 +1656,28 @@ class Service extends AbstractService
         }
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     * @param integer $SortOrder
+     *
+     * @return bool
+     */
+    public function updateDivisionStudentSortOrder(TblDivisionStudent $tblDivisionStudent, $SortOrder)
+    {
+
+        return (new Data($this->getBinding()))->updateDivisionStudentSortOrder($tblDivisionStudent, $SortOrder);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionStudent[]
+     */
+    public function getDivisionStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionStudentAllByDivision($tblDivision);
     }
 }

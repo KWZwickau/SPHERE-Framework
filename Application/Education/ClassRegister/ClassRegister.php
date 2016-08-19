@@ -15,7 +15,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -224,11 +223,11 @@ class ClassRegister implements IApplicationInterface
                                         'Enabled' => true,
                                         'Url' => '/Api/Education/ClassRegister/Reorder',
                                         'Event' => array(
-//                                            'Success' => 'console.log(1,this);',
+                                            'Success' => 'console.log(1,this);',
                                             'Error' => 'window.location.reload();',
                                         ),
                                         'Data' => array(
-                                            'Division' => $tblDivision->getId()
+                                            'DivisionId' => $tblDivision->getId()
                                         )
                                     )
                                 ))
