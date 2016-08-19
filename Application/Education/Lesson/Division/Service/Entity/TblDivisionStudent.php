@@ -83,7 +83,7 @@ class TblDivisionStudent extends Element
     }
 
     /**
-     * @return integer
+     * @return integer|null
      */
     public function getSortOrder()
     {
@@ -91,7 +91,7 @@ class TblDivisionStudent extends Element
     }
 
     /**
-     * @param integer $SortOrder
+     * @param integer|null $SortOrder
      */
     public function setSortOrder($SortOrder)
     {

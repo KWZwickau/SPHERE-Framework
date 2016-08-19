@@ -332,7 +332,8 @@ class Service extends AbstractService
     public function addStudentToDivision(TblDivision $tblDivision, TblPerson $tblPerson)
     {
 
-        return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson);
+        $SortOrder = $this->getDivisionStudentSortOrderMax($tblDivision) +  1;
+        return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson, $SortOrder);
     }
 
     /**
@@ -689,13 +690,14 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson $tblPerson
+     * @param null|integer $SortOrder
      *
      * @return TblDivisionStudent
      */
-    public function insertDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function insertDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson, $SortOrder = null)
     {
 
-        return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson);
+        return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson, $SortOrder);
     }
 
     /**
@@ -1350,11 +1352,14 @@ class Service extends AbstractService
                     $this->addSubjectWithGroups($tblDivision, $tblDivisionCopy);
                 }
 
-
-                $tblDivisionStudentList = $this->getStudentAllByDivision($tblDivision);
+                $tblDivisionStudentList = $this->getDivisionStudentAllByDivision($tblDivision);
                 if ($tblDivisionStudentList) {
                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        (new Data($this->getBinding()))->addDivisionStudent($tblDivisionCopy, $tblDivisionStudent);
+                        (new Data($this->getBinding()))->addDivisionStudent(
+                            $tblDivisionCopy,
+                            $tblDivisionStudent->getServiceTblPerson(),
+                            $tblDivisionStudent->getSortOrder()
+                        );
                     }
                 }
 
@@ -1679,5 +1684,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDivisionStudentAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int|null
+     */
+    public function getDivisionStudentSortOrderMax(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionStudentSortOrderMax($tblDivision);
     }
 }

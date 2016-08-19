@@ -17,6 +17,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
  * Class Data
@@ -539,12 +540,30 @@ class Data extends AbstractData
 
         $EntityList = array();
         if (!empty ( $TempList )) {
-            $TempList = $this->getSorter($TempList)->sortObjectBy('SortOrder');
+
+            // ist Klassenliste sortiert
+            $isSorted = false;
+            /** @var TblDivisionStudent $tblDivisionStudent */
+            foreach ($TempList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getSortOrder() !== null){
+                    $isSorted = true;
+                    break;
+                }
+            }
+
+            if ($isSorted) {
+                $TempList = $this->getSorter($TempList)->sortObjectBy('SortOrder');
+            }
+
             /** @var TblDivisionStudent $tblDivisionStudent */
             foreach ($TempList as $tblDivisionStudent) {
                 if ($tblDivisionStudent->getServiceTblPerson() && $tblDivisionStudent->getTblDivision()) {
                     array_push($EntityList, $tblDivisionStudent->getServiceTblPerson());
                 }
+            }
+
+            if (!$isSorted){
+                $EntityList = $this->getSorter($EntityList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
             }
         }
         return empty( $EntityList ) ? false : $EntityList;
@@ -723,11 +742,12 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
+     * @param null|integer $SortOrder
      *
      * @return TblDivisionStudent
      */
-    public function addDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function addDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson, $SortOrder = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -740,6 +760,7 @@ class Data extends AbstractData
             $Entity = new TblDivisionStudent();
             $Entity->setTblDivision($tblDivision);
             $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setSortOrder($SortOrder);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -1678,5 +1699,29 @@ class Data extends AbstractData
         }
 
         return empty( $EntityList ) ? false : $this->getSorter($EntityList)->sortObjectBy('SortOrder');
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int|null
+     */
+    public function getDivisionStudentSortOrderMax(TblDivision $tblDivision)
+    {
+
+        $list = $this->getDivisionStudentAllByDivision($tblDivision);
+        $max = null;
+        if ($list){
+            $max = 0;
+            foreach ($list as $tblDivisionStudent){
+                if ($tblDivisionStudent->getSortOrder() !== null
+                    && $tblDivisionStudent->getSortOrder() > $max
+                ){
+                    $max = $tblDivisionStudent->getSortOrder();
+                }
+            }
+        }
+
+        return $max;
     }
 }
