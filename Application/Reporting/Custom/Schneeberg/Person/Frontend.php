@@ -154,7 +154,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($PersonList, null,
                                     array(
-                                        'Count' => '',
+                                        'Number' => '#',
                                         'LastName' => 'Name',
                                         'FirstName' => 'Vorname',
                                         'Birthday' => 'Geburtsdatum',

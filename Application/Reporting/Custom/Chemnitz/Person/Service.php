@@ -46,8 +46,10 @@ class Service extends Extension
         $TableContent = array();
 
         if (!empty($tblPersonList)) {
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            $count = 1;
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
 
+                $Item['Number'] = $count++;
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['City'] = $Item['Address'] = '';
@@ -324,9 +326,10 @@ class Service extends Extension
                 $Item['FatherSalutation'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
                 $Item['MotherSalutation'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
                 $Item['Reply'] = $Item['Records'] = $Item['LastSchoolFee'] = $Item['Remarks'] = '';
-                if (($debtorList = Banking::useService()->getDebtorAllByPerson($tblPerson))) {
-                    $Item['DebtorNumber'] = $debtorList[0]->getDebtorNumber();
-                }
+                // ToDo Sydney Debitorennummer
+//                if (($debtorList = Banking::useService()->getDebtorAllByPerson($tblPerson))) {
+//                    $Item['DebtorNumber'] = $debtorList[0]->getDebtorNumber();
+//                }
 
                 if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $address = $addressList[0];
@@ -480,8 +483,10 @@ class Service extends Extension
         $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
         if (!empty($tblPersonList)) {
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            $count = 1;
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
 
+                $Item['Number'] = $count++;
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['Birthday'] = '';
@@ -806,11 +811,10 @@ class Service extends Extension
         $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
         if (!empty($tblPersonList)) {
-//            foreach ($studentList as $tblPerson) {
-//                $tblPerson->Attendance = '';
-//            }
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            $count = 1;
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
 
+                $Item['Number'] = $count++;
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['Attendance'] = '';
@@ -1000,10 +1004,11 @@ class Service extends Extension
         $tblStudentGroup2 = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable('STUDENT_GROUP_2');
         if (!empty($tblPersonList)) {
 
-            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+            $count = 1;
 
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblStudentGroup1, $tblStudentGroup2, $tblDivision) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblStudentGroup1, $tblStudentGroup2, $tblDivision, &$count) {
 
+                $Item['Number'] = $count++;
                 $Item['Orientation'] = '';
                 $Item['Education'] = '';
                 $Item['ExcelNameRow2'] = '';

@@ -17,6 +17,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
  * Class Data
@@ -34,8 +35,8 @@ class Data extends AbstractData
     /**
      * @param TblType $tblType
      * @param         $Name
-     * @param string  $Description
-     * @param bool    $Checked
+     * @param string $Description
+     * @param bool $Checked
      *
      * @return null|object|TblLevel
      */
@@ -44,7 +45,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager(false);
         $Entity = $Manager->getEntity('TblLevel')->findOneBy(array(
-            TblLevel::ATTR_NAME        => $Name,
+            TblLevel::ATTR_NAME => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
         ));
         if (null === $Entity) {
@@ -62,10 +63,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYear  $tblYear
+     * @param TblYear $tblYear
      * @param TblLevel $tblLevel
-     * @param string   $Name
-     * @param string   $Description
+     * @param string $Name
+     * @param string $Description
      *
      * @return null|object|TblDivision
      */
@@ -74,10 +75,10 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivision')->findOneBy(array(
-            TblDivision::ATTR_YEAR  => $tblYear->getId(),
-            TblDivision::ATTR_NAME  => $Name,
-            TblDivision::ATTR_LEVEL => ( $tblLevel ? $tblLevel->getId() : null ),
-            'EntityRemove'          => null
+            TblDivision::ATTR_YEAR => $tblYear->getId(),
+            TblDivision::ATTR_NAME => $Name,
+            TblDivision::ATTR_LEVEL => ($tblLevel ? $tblLevel->getId() : null),
+            'EntityRemove' => null
         ));
 
         if (null === $Entity) {
@@ -203,7 +204,8 @@ class Data extends AbstractData
     public function getDivisionSubjectByDivision(TblDivision $tblDivision)
     {
 
-        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionSubject',
             array(
                 TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
@@ -218,11 +220,11 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
 
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
-     * @param TblSubject  $tblSubject
+     * @param TblSubject $tblSubject
      * @param TblDivision $tblDivision
      *
      * @return bool|TblDivisionSubject[]
@@ -230,10 +232,11 @@ class Data extends AbstractData
     public function getDivisionSubjectBySubjectAndDivision(TblSubject $tblSubject, TblDivision $tblDivision)
     {
 
-        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionSubject',
             array(
                 TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
             ));
 
         if ($EntityList) {
@@ -246,11 +249,11 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
 
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
-     * @param TblSubject  $tblSubject
+     * @param TblSubject $tblSubject
      * @param TblDivision $tblDivision
      *
      * @return false|TblDivisionSubject
@@ -261,8 +264,8 @@ class Data extends AbstractData
         $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
             array(
                 TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
-                TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP   => null,
+                TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
+                TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP => null,
             ));
 
         return $Entity;
@@ -305,17 +308,47 @@ class Data extends AbstractData
     {
 
         $TempList = $this->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+        $tblDivision = $tblDivisionSubject->getTblDivision();
 
         $EntityList = array();
-        if (!empty ( $TempList )) {
+        if (!empty ($TempList)) {
+
+            $isSorted = $this->isDivisionSorted($tblDivisionSubject->getTblDivision());
+            if ($isSorted) {
+                $max = $this->getDivisionStudentSortOrderMax($tblDivision);
+            } else {
+                $max = 1;
+            }
+            $count = 1;
+
             /** @var TblSubjectStudent $tblSubjectStudent */
             foreach ($TempList as $tblSubjectStudent) {
                 if ($tblSubjectStudent->getServiceTblPerson()) {
-                    array_push($EntityList, $tblSubjectStudent->getServiceTblPerson());
+                    if ($isSorted) {
+                        $tblDivisionStudent = $this->getDivisionStudentByDivisionAndPerson(
+                            $tblDivision, $tblSubjectStudent->getServiceTblPerson()
+                        );
+                        if ($tblDivisionStudent) {
+                            $key = $tblDivisionStudent->getSortOrder() !== null
+                                ? $tblDivisionStudent->getSortOrder()
+                                : $max + $count++;
+                            $EntityList[$key] = $tblSubjectStudent->getServiceTblPerson();
+                        }
+                    } else {
+                        $EntityList[$count++] = $tblSubjectStudent->getServiceTblPerson();
+                    }
                 }
             }
+
+            if ($isSorted) {
+                ksort($EntityList);
+            } else {
+                $EntityList = $this->getSorter($EntityList)->sortObjectBy('LastFirstName',
+                    new StringGermanOrderSorter());
+            }
         }
-        return empty( $EntityList ) ? false : $EntityList;
+
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -326,9 +359,10 @@ class Data extends AbstractData
     public function getDivisionByLevel(TblLevel $tblLevel)
     {
 
-        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivision', array(
-            TblDivision::ATTR_LEVEL => $tblLevel->getId()
-        ));
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_LEVEL => $tblLevel->getId()
+            ));
     }
 
     /**
@@ -339,9 +373,10 @@ class Data extends AbstractData
     public function getDivisionByYear(TblYear $tblYear)
     {
 
-        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivision', array(
-            TblDivision::ATTR_YEAR => $tblYear->getId()
-        ));
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_YEAR => $tblYear->getId()
+            ));
     }
 
     /**
@@ -359,8 +394,8 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYear       $tblYear
-     * @param string        $Name
+     * @param TblYear $tblYear
+     * @param string $Name
      * @param TblLevel|null $tblLevel
      *
      * @return bool
@@ -370,9 +405,9 @@ class Data extends AbstractData
 
         if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
             array(
-                TblDivision::ATTR_YEAR  => $tblYear->getId(),
-                TblDivision::ATTR_NAME  => $Name,
-                TblDivision::ATTR_LEVEL => ( $tblLevel ? $tblLevel->getId() : null ),
+                TblDivision::ATTR_YEAR => $tblYear->getId(),
+                TblDivision::ATTR_NAME => $Name,
+                TblDivision::ATTR_LEVEL => ($tblLevel ? $tblLevel->getId() : null),
             ))
         ) {
             return true;
@@ -383,7 +418,7 @@ class Data extends AbstractData
     /**
      * @param               $Name
      * @param TblLevel|null $tblLevel
-     * @param TblYear       $tblYear
+     * @param TblYear $tblYear
      *
      * @return bool|false|Element
      */
@@ -399,18 +434,18 @@ class Data extends AbstractData
         } else {
             $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
                 array(
-                    TblDivision::ATTR_NAME  => $Name,
+                    TblDivision::ATTR_NAME => $Name,
                     TblDivision::ATTR_LEVEL => $tblLevel->getId(),
-                    TblDivision::ATTR_YEAR  => $tblYear->getId(),
+                    TblDivision::ATTR_YEAR => $tblYear->getId(),
                 ));
         }
 
-        return ( $Entity ? $Entity : false );
+        return ($Entity ? $Entity : false);
     }
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool|TblDivisionTeacher
      */
@@ -419,15 +454,15 @@ class Data extends AbstractData
 
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
             array(
-                TblDivisionTeacher::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             ));
-        return ( $Entity ? $Entity : false );
+        return ($Entity ? $Entity : false);
     }
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool|TblDivisionCustody
      */
@@ -436,10 +471,10 @@ class Data extends AbstractData
 
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
             array(
-                TblDivisionCustody::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionCustody::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             ));
-        return ( $Entity ? $Entity : false );
+        return ($Entity ? $Entity : false);
     }
 
     /**
@@ -452,15 +487,15 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
-            TblSubjectGroup::ATTR_NAME        => $Name,
+            TblSubjectGroup::ATTR_NAME => $Name,
             TblSubjectGroup::ATTR_DESCRIPTION => $Description
         ));
-        return ( $Entity ? $Entity : false );
+        return ($Entity ? $Entity : false);
     }
 
     /**
      * @param TblType $tblType
-     * @param string  $Name
+     * @param string $Name
      *
      * @return bool|TblLevel
      */
@@ -468,10 +503,10 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
-            TblLevel::ATTR_NAME        => $Name,
+            TblLevel::ATTR_NAME => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
         ));
-        return ( $Entity ? $Entity : false );
+        return ($Entity ? $Entity : false);
     }
 
     /**
@@ -485,10 +520,10 @@ class Data extends AbstractData
 
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectGroup',
             array(
-                TblSubjectGroup::ATTR_NAME        => $Name,
+                TblSubjectGroup::ATTR_NAME => $Name,
                 TblSubjectGroup::ATTR_DESCRIPTION => $Description
             ));
-        return ( $Entity ? $Entity : false );
+        return ($Entity ? $Entity : false);
     }
 
     /**
@@ -503,7 +538,7 @@ class Data extends AbstractData
             array(
                 TblLevel::SERVICE_TBL_TYPE => $serviceTblType->getId(),
             ));
-        return ( $Entity ? $Entity : false );
+        return ($Entity ? $Entity : false);
     }
 
     /**
@@ -532,21 +567,42 @@ class Data extends AbstractData
     public function getStudentAllByDivision(TblDivision $tblDivision)
     {
 
-        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionStudent',
             array(
                 TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
 
         $EntityList = array();
-        if (!empty ( $TempList )) {
+        if (!empty ($TempList)) {
+
+            // ist Klassenliste sortiert
+            $isSorted = false;
+            /** @var TblDivisionStudent $tblDivisionStudent */
+            foreach ($TempList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getSortOrder() !== null) {
+                    $isSorted = true;
+                    break;
+                }
+            }
+
+            if ($isSorted) {
+                $TempList = $this->getSorter($TempList)->sortObjectBy('SortOrder');
+            }
+
             /** @var TblDivisionStudent $tblDivisionStudent */
             foreach ($TempList as $tblDivisionStudent) {
                 if ($tblDivisionStudent->getServiceTblPerson() && $tblDivisionStudent->getTblDivision()) {
                     array_push($EntityList, $tblDivisionStudent->getServiceTblPerson());
                 }
             }
+
+            if (!$isSorted) {
+                $EntityList = $this->getSorter($EntityList)->sortObjectBy('LastFirstName',
+                    new StringGermanOrderSorter());
+            }
         }
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -557,13 +613,14 @@ class Data extends AbstractData
     public function getTeacherAllByDivision(TblDivision $tblDivision)
     {
 
-        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
+        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionTeacher',
             array(
                 TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
 
         $EntityList = array();
-        if (!empty ( $TempList )) {
+        if (!empty ($TempList)) {
             /** @var TblDivisionTeacher $tblDivisionTeacher */
             foreach ($TempList as $tblDivisionTeacher) {
                 if ($tblDivisionTeacher->getServiceTblPerson() && $tblDivisionTeacher->getTblDivision()) {
@@ -571,7 +628,7 @@ class Data extends AbstractData
                 }
             }
         }
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -588,7 +645,7 @@ class Data extends AbstractData
             TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
         ));
 
-        if (!empty ( $EntityList )) {
+        if (!empty ($EntityList)) {
             /** @var TblDivisionTeacher $singleEntity */
             foreach ($EntityList as $singleEntity) {
                 if ($singleEntity->getServiceTblPerson()) {
@@ -602,7 +659,7 @@ class Data extends AbstractData
             }
         }
 
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -613,7 +670,8 @@ class Data extends AbstractData
     public function getCustodyAllByDivision(TblDivision $tblDivision)
     {
 
-        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
+        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionCustody',
             array(
                 TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
@@ -623,7 +681,7 @@ class Data extends AbstractData
 //        ));
         $EntityList = array();
 
-        if (!empty ( $TempList )) {
+        if (!empty ($TempList)) {
             /** @var TblDivisionCustody $tblDivisionCustody */
             foreach ($TempList as $tblDivisionCustody) {
                 if ($tblDivisionCustody->getServiceTblPerson()) {
@@ -631,7 +689,7 @@ class Data extends AbstractData
                 }
             }
         }
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -648,7 +706,7 @@ class Data extends AbstractData
             TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
         ));
 
-        if (!empty ( $EntityList )) {
+        if (!empty ($EntityList)) {
             /** @var TblDivisionCustody $singleEntity */
             foreach ($EntityList as $singleEntity) {
                 if ($singleEntity->getServiceTblPerson()) {
@@ -662,7 +720,7 @@ class Data extends AbstractData
             }
         }
 
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -678,7 +736,7 @@ class Data extends AbstractData
         ));
         $EntityList = array();
 
-        if (!empty ( $TempList )) {
+        if (!empty ($TempList)) {
             /** @var TblSubjectTeacher $tblSubjectTeacher */
             foreach ($TempList as $tblSubjectTeacher) {
                 if ($tblSubjectTeacher->getServiceTblPerson()) {
@@ -686,7 +744,7 @@ class Data extends AbstractData
                 }
             }
         }
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -697,7 +755,8 @@ class Data extends AbstractData
     public function getSubjectAllByDivision(TblDivision $tblDivision)
     {
 
-        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionSubject',
             array(
                 TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
@@ -707,7 +766,7 @@ class Data extends AbstractData
 //        ));
         $EntityList = array();
 
-        if (!empty ( $TempList )) {
+        if (!empty ($TempList)) {
             /** @var TblDivisionSubject $tblDivisionSubject */
             foreach ($TempList as $tblDivisionSubject) {
                 if (!$tblDivisionSubject->getTblSubjectGroup()) {
@@ -717,28 +776,30 @@ class Data extends AbstractData
                 }
             }
         }
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
+     * @param null|integer $SortOrder
      *
      * @return TblDivisionStudent
      */
-    public function addDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function addDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson, $SortOrder = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionStudent')
             ->findOneBy(array(
-                TblDivisionStudent::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null === $Entity) {
             $Entity = new TblDivisionStudent();
             $Entity->setTblDivision($tblDivision);
             $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setSortOrder($SortOrder);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -747,8 +808,8 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
-     * @param null        $Description
+     * @param TblPerson $tblPerson
+     * @param null $Description
      *
      * @return null|object|TblDivisionTeacher
      */
@@ -758,7 +819,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionTeacher')
             ->findOneBy(array(
-                TblDivisionTeacher::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null === $Entity) {
@@ -774,8 +835,8 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
-     * @param null        $Description
+     * @param TblPerson $tblPerson
+     * @param null $Description
      *
      * @return null|object|TblDivisionCustody
      */
@@ -785,7 +846,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionCustody')
             ->findOneBy(array(
-                TblDivisionCustody::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionCustody::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null === $Entity) {
@@ -800,8 +861,8 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDivision          $tblDivision
-     * @param TblSubject           $tblSubject
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
      *
      * @return null|object|TblDivisionSubject
@@ -816,15 +877,15 @@ class Data extends AbstractData
         if ($tblSubjectGroup === null) {
             $Entity = $Manager->getEntity('TblDivisionSubject')
                 ->findOneBy(array(
-                    TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                    TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
                     TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
                 ));
         } else {
             $Entity = $Manager->getEntity('TblDivisionSubject')
                 ->findOneBy(array(
-                    TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                    TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
                     TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                    TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP   => $tblSubjectGroup->getId()
+                    TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
                 ));
         }
 
@@ -840,7 +901,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPerson          $tblPerson
+     * @param TblPerson $tblPerson
      * @param TblDivisionSubject $tblDivisionSubject
      *
      * @return null|object|TblSubjectStudent
@@ -851,7 +912,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSubjectStudent')
             ->findOneBy(array(
-                TblSubjectStudent::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                TblSubjectStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
                 TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
             ));
         if (null === $Entity) {
@@ -866,7 +927,7 @@ class Data extends AbstractData
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
-     * @param TblPerson          $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return null|object|TblSubjectTeacher
      */
@@ -876,7 +937,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSubjectTeacher')
             ->findOneBy(array(
-                TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
                 TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
             ));
 
@@ -892,7 +953,7 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool
      */
@@ -902,7 +963,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionStudent')
             ->findOneBy(array(
-                TblDivisionStudent::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {
@@ -916,7 +977,7 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool
      */
@@ -926,7 +987,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionTeacher')
             ->findOneBy(array(
-                TblDivisionTeacher::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {
@@ -940,7 +1001,7 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool
      */
@@ -950,7 +1011,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionCustody')
             ->findOneBy(array(
-                TblDivisionCustody::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionCustody::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {
@@ -964,7 +1025,7 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblSubject  $tblSubject
+     * @param TblSubject $tblSubject
      *
      * @return bool
      */
@@ -974,7 +1035,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $EntityList = $Manager->getEntity('TblDivisionSubject')
             ->findBy(array(
-                TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
             ));
         if ($EntityList) {
@@ -1112,7 +1173,7 @@ class Data extends AbstractData
     /**
      * @param TblDivision $tblDivision
      * @param             $Name
-     * @param string      $Description
+     * @param string $Description
      *
      * @return bool
      */
@@ -1138,9 +1199,9 @@ class Data extends AbstractData
 
     /**
      * @param TblLevel $tblLevel
-     * @param TblType  $tblType
-     * @param string   $Name
-     * @param string   $Description
+     * @param TblType $tblType
+     * @param string $Name
+     * @param string $Description
      *
      * @return bool
      */
@@ -1167,8 +1228,8 @@ class Data extends AbstractData
 
     /**
      * @param TblSubjectGroup $tblSubjectGroup
-     * @param string          $Name
-     * @param string          $Description
+     * @param string $Name
+     * @param string $Description
      *
      * @return bool
      */
@@ -1275,7 +1336,7 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
 
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -1292,7 +1353,8 @@ class Data extends AbstractData
 //
 //        return $result ? $result : 0;
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDivisionStudent',
             array(
                 TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
@@ -1325,7 +1387,8 @@ class Data extends AbstractData
 //
 //        return $result ? $result : 0;
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDivisionTeacher',
             array(
                 TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
@@ -1357,7 +1420,8 @@ class Data extends AbstractData
 //
 //        return $result ? $result : 0;
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDivisionCustody',
             array(
                 TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
@@ -1389,7 +1453,8 @@ class Data extends AbstractData
 //
 //        return $result ? $result : 0;
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDivisionSubject',
             array(
                 TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
             ));
@@ -1433,7 +1498,7 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblSubject  $tblSubject
+     * @param TblSubject $tblSubject
      *
      * @return bool|TblDivisionSubject[]
      */
@@ -1446,7 +1511,7 @@ class Data extends AbstractData
         $tempList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblDivisionSubject',
             array(
-                TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
             )
         );
@@ -1460,7 +1525,7 @@ class Data extends AbstractData
             }
         }
 
-        return empty( $resultList ) ? false : $resultList;
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
@@ -1478,8 +1543,8 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDivision          $tblDivision
-     * @param TblSubject           $tblSubject
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
      *
      * @return bool|TblDivisionSubject
@@ -1494,7 +1559,7 @@ class Data extends AbstractData
             return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
                 'TblDivisionSubject',
                 array(
-                    TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                    TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
                     TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
                 )
             );
@@ -1502,9 +1567,9 @@ class Data extends AbstractData
             return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
                 'TblDivisionSubject',
                 array(
-                    TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                    TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
                     TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                    TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP   => $tblSubjectGroup->getId(),
+                    TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
                 )
             );
         }
@@ -1535,12 +1600,12 @@ class Data extends AbstractData
             $EntityList = array_filter($EntityList);
         }
 
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
-     * @param TblPerson          $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool|TblSubjectStudent
      */
@@ -1552,7 +1617,7 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
             array(
                 TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
-                TblSubjectStudent::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId()
+                TblSubjectStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             )
         );
     }
@@ -1575,7 +1640,8 @@ class Data extends AbstractData
 //
 //        return $count ? $count : 0;
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblSubjectStudent',
             array(
                 TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
             ));
@@ -1605,7 +1671,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
             array(
-                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()   ,
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId(),
                 TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             )
         ) ? true : false;
@@ -1622,9 +1688,120 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
             array(
-                TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()   ,
+                TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
                 TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             )
         ) ? true : false;
+    }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     * @param integer $SortOrder
+     *
+     * @return bool
+     */
+    public function updateDivisionStudentSortOrder(TblDivisionStudent $tblDivisionStudent, $SortOrder)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblDivisionStudent $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionStudent', $tblDivisionStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setSortOrder($SortOrder);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionStudent[]
+     */
+    public function getDivisionStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionStudent',
+            array(
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
+
+        $EntityList = array();
+        if (!empty ($TempList)) {
+            /** @var TblDivisionStudent $tblDivisionStudent */
+            foreach ($TempList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getServiceTblPerson() && $tblDivisionStudent->getTblDivision()) {
+                    array_push($EntityList, $tblDivisionStudent);
+                }
+            }
+        }
+
+        return empty($EntityList) ? false : $this->getSorter($EntityList)->sortObjectBy('SortOrder');
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int|null
+     */
+    public function getDivisionStudentSortOrderMax(TblDivision $tblDivision)
+    {
+
+        $list = $this->getDivisionStudentAllByDivision($tblDivision);
+        $max = null;
+        if ($list) {
+            $max = 0;
+            foreach ($list as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getSortOrder() !== null
+                    && $tblDivisionStudent->getSortOrder() > $max
+                ) {
+                    $max = $tblDivisionStudent->getSortOrder();
+                }
+            }
+        }
+
+        return $max;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    private function isDivisionSorted(TblDivision $tblDivision)
+    {
+
+        $list = $this->getDivisionStudentAllByDivision($tblDivision);
+        foreach ($list as $tblDivisionStudent) {
+            if ($tblDivisionStudent->getSortOrder() !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDivisionStudent
+     */
+    public function getDivisionStudentByDivisionAndPerson(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+            array(
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId(),
+                TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            )
+        );
     }
 }

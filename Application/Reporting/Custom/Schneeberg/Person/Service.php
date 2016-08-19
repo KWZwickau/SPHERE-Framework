@@ -41,7 +41,6 @@ class Service extends Extension
         $TableContent = array();
         if (!empty( $tblPersonList )) {
 
-            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
             $count = 0;
 
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
@@ -56,7 +55,7 @@ class Service extends Extension
                 $Item['PhoneFather'] = '';
                 $Item['Photo'] = '';
 
-                $Item['Count'] = ++$count;
+                $Item['Number'] = ++$count;
 
                 $father = false;
                 $mother = false;
@@ -201,7 +200,7 @@ class Service extends Extension
             foreach ($PersonList as $PersonData) {
                 $row++;
                 $column = 0;
-                $export->setValue($export->getCell($column++, $row), $PersonData['Count']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Number']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);

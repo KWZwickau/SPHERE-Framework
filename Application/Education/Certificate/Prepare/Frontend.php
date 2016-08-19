@@ -474,6 +474,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         $studentTable[] = array(
+                            'Number' => count($studentTable) + 1,
                             'Name' => $tblPerson->getLastFirstName(),
                             'Address' => $tblAddress ? $tblAddress->getGuiTwoRowString() : '',
                             'Birthday' => $birthday,
@@ -652,6 +653,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 '<br>',
                                 new TableData($studentTable, null, array(
+                                    'Number' => '#',
                                     'Name' => 'Name',
                                     'Address' => 'Adresse',
                                     'Birthday' => 'Geburts&shy;datum',
@@ -934,6 +936,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
 
             $tableData = array();
+            $tableHeader['Number'] = '#';
             $tableHeader['Student'] = 'Schüler';
             if (($tblDivision = $tblPrepare->getServiceTblDivision())
                 && ($tblYear = $tblDivision->getServiceTblYear())
@@ -941,6 +944,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentAllByDivision) {
                     foreach ($tblStudentAllByDivision as $tblPerson) {
+                        $tableData[$tblPerson->getId()]['Number'] = count($tableData) +1;
                         $tableData[$tblPerson->getId()]['Student'] = $tblPerson->getLastFirstName();
                         $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear(
                             $tblPerson, $tblYear
@@ -1218,6 +1222,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
 
             $dataTable = array();
+            $headerTable['Number'] = '#';
             $headerTable['Student'] = 'Name';
 
             $tblGradeTypeList = array();
@@ -1248,6 +1253,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $isApproved = false;
                         }
 
+                        $dataTable[$tblPerson->getId()]['Number'] = count($dataTable) + 1;
                         $dataTable[$tblPerson->getId()]['Student'] = $tblPerson->getLastFirstName();
                         $dataTable[$tblPerson->getId()]['Option'] =
                             $isApproved
