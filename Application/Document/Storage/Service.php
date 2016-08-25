@@ -86,7 +86,7 @@ class Service extends AbstractService
     /**
      * @param string $Name
      * @param string $Description
-     * @param bool   $IsLocked
+     * @param bool $IsLocked
      * @param string $Identifier
      *
      * @return TblPartition
@@ -98,10 +98,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param Certificate $Certificate
-     * @param DummyFile   $File
+     * @param DummyFile $File
      *
      * @return bool|TblFile
      * @throws \Exception
@@ -124,11 +124,11 @@ class Service extends AbstractService
             if ($tblYear) {
                 $tblDirectory = $this->createDirectory(
                     $tblPartition, $tblYear->getYear(), $tblYear->getDescription(), null, true,
-                    'TBL-YEAR-ID:'.$tblYear->getId()
+                    'TBL-YEAR-ID:' . $tblYear->getId()
                 );
                 $tblDirectory = $this->createDirectory(
                     $tblPartition, $tblPerson->getLastFirstName(), '', $tblDirectory, true,
-                    'TBL-PERSON-ID:'.$tblPerson->getId()
+                    'TBL-PERSON-ID:' . $tblPerson->getId()
                 );
                 $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
                 if ($tblFileType) {
@@ -137,8 +137,8 @@ class Service extends AbstractService
                         $tblBinary,
                         $tblDirectory,
                         $tblFileType,
-                        $tblYear->getYear().' - '.$tblPerson->getLastFirstName().' - '.$Certificate->getCertificateName(),
-                        'Erstellt: '.date('d.m.Y H:i:s'),
+                        $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - ' . $Certificate->getCertificateName(),
+                        'Erstellt: ' . date('d.m.Y H:i:s'),
                         true
                     );
                     if ($tblFile) {
@@ -166,11 +166,11 @@ class Service extends AbstractService
 
     /**
      * @param TblPartition $tblPartition
-     * @param string       $Name
-     * @param string       $Description
+     * @param string $Name
+     * @param string $Description
      * @param TblDirectory $tblDirectory
-     * @param bool         $IsLocked
-     * @param string       $Identifier
+     * @param bool $IsLocked
+     * @param string $Identifier
      *
      * @return TblDirectory
      */
@@ -216,12 +216,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBinary    $tblBinary
+     * @param TblBinary $tblBinary
      * @param TblDirectory $tblDirectory
-     * @param TblFileType  $tblFileType
-     * @param string       $Name
-     * @param string       $Description
-     * @param bool         $IsLocked
+     * @param TblFileType $tblFileType
+     * @param string $Name
+     * @param string $Description
+     * @param bool $IsLocked
      *
      * @return TblFile
      */
@@ -270,5 +270,85 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getReferenceTypeById($Id);
+    }
+
+    /**
+     * @param TblPartition $tblPartition
+     *
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAllByPartition(TblPartition $tblPartition)
+    {
+
+        return (new Data($this->getBinding()))->getDirectoryAllByPartition($tblPartition);
+    }
+
+    /**
+     * @param TblDirectory $tblDirectory
+     *
+     * @return false|TblFile[]
+     */
+    public function getFileAllByDirectory(TblDirectory $tblDirectory)
+    {
+
+        return (new Data($this->getBinding()))->getFileAllByDirectory($tblDirectory);
+    }
+
+    /**
+     * @return false|TblFile[]
+     */
+    public function getCertificateRevisionFileAll()
+    {
+        $tblPartition = $this->getPartitionByIdentifier(
+            TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
+        );
+
+        $resultList = array();
+        $tblDirectoryList = $this->getDirectoryAllByPartition($tblPartition);
+        if ($tblDirectoryList) {
+            foreach ($tblDirectoryList as $tblDirectory) {
+                $tblFileList = $this->getFileAllByDirectory($tblDirectory);
+                if ($tblFileList) {
+                    foreach ($tblFileList as $tblFile) {
+                        $resultList[] = $tblFile;
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblFile[]
+     */
+    public function getCertificateRevisionFileAllByPerson(TblPerson $tblPerson)
+    {
+
+        $tblPartition = $this->getPartitionByIdentifier(
+            TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
+        );
+
+        $resultList = array();
+        $tblDirectoryList = $this->getDirectoryAllByPartition($tblPartition);
+        if ($tblDirectoryList) {
+            foreach ($tblDirectoryList as $tblDirectory) {
+                if (strpos($tblDirectory->getIdentifier(), 'TBL-PERSON-ID:') !== false) {
+                    $personId = substr($tblDirectory->getIdentifier(), strlen('TBL-PERSON-ID:'));
+                    if ($personId == $tblPerson->getId()) {
+                        $tblFileList = $this->getFileAllByDirectory($tblDirectory);
+                        if ($tblFileList) {
+                            foreach ($tblFileList as $tblFile) {
+                                $resultList[] = $tblFile;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 }

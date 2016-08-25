@@ -105,6 +105,32 @@ class Creator
     }
 
     /**
+     * @param null $FileId
+     *
+     * @return Stage|string
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function downloadPdf($FileId = null)
+    {
+
+        if (($tblFile = Storage::useService()->getFileById($FileId))) {
+
+            $File = new DummyFile('pdf');
+            $File->setFileContent(stream_get_contents($tblFile->getTblBinary()->getBinaryBlob()));
+            $File->saveFile();
+
+            return FileSystem::getDownload($File->getFileLocation(),
+                $tblFile->getName()
+                . " " . date("Y-m-d H:i:s") . ".pdf")->__toString();
+
+        } else {
+
+            return new Stage('Zeugnis', 'Nicht gefunden');
+        }
+    }
+
+    /**
      * @param Certificate $Certificate
      * @param array $Data
      *
