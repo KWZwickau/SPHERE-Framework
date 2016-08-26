@@ -282,7 +282,12 @@ class BeMi extends Certificate
                             ->styleMarginTop('10px')
                             , '80%')
                         ->addElementColumn((new Element())
-                            ->setContent('---')
+                            ->setContent('
+                                {% if(Content.Grade.Data.AverageOthers is not empty) %}
+                                    {{ Content.Grade.Data.AverageOthers }}
+                                {% else %}
+                                    ---
+                                {% endif %}')
                             ->stylePaddingTop()
                             ->stylePaddingBottom()
                             ->styleMarginTop('5px')

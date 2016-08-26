@@ -861,14 +861,14 @@ class Service extends AbstractService
                 && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                     $tblStudent, $tblSubjectType
                 ))
-            ){
+            ) {
                 $tempList = array();
-                foreach ($tblSubjectList as $tblStudentSubject){
-                    if ($tblStudentSubject->getServiceTblSubject()){
+                foreach ($tblSubjectList as $tblStudentSubject) {
+                    if ($tblStudentSubject->getServiceTblSubject()) {
                         $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
                     }
                 }
-                if (!empty($tempList)){
+                if (!empty($tempList)) {
                     $Content['Subject']['Team'] = implode(', ', $tempList);
                 }
             }
@@ -947,13 +947,23 @@ class Service extends AbstractService
             // Zeugnisdatum
             $Content['Input']['Date'] = $tblPrepare->getDate();
 
-            // Notendurchschnitt für Bildungsempfehlung
+            // Notendurchschnitt der angegebenen Fächer für Bildungsempfehlung
             if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                 && $tblCertificate->getName() == 'Bildungsempfehlung'
             ) {
                 $average = $this->calcSubjectGradesAverage($tblPrepareStudent);
                 if ($average) {
                     $Content['Grade']['Data']['Average'] = str_replace('.', ',', $average);
+                }
+            }
+
+            // Notendurchschnitt aller anderen Fächer für Bildungsempfehlung
+            if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                && $tblCertificate->getName() == 'Bildungsempfehlung'
+            ) {
+                $average = $this->calcSubjectGradesAverageOthers($tblPrepareStudent);
+                if ($average) {
+                    $Content['Grade']['Data']['AverageOthers'] = str_replace('.', ',', $average);
                 }
             }
         }
@@ -992,6 +1002,55 @@ class Service extends AbstractService
                             }
                         }
 
+                    }
+                }
+
+                if (!empty($gradeList)) {
+                    return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return bool|float
+     */
+    private function calcSubjectGradesAverageOthers(TblPrepareStudent $tblPrepareStudent)
+    {
+
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+        ) {
+
+            $tblPrepareGradeList = $this->getPrepareGradeAllByPerson(
+                $tblPrepare,
+                $tblPerson,
+                Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+            );
+
+            if ($tblPrepareGradeList) {
+                $gradeList = array();
+                foreach ($tblPrepareGradeList as $tblPrepareGrade) {
+                    if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
+                        $tblCertificateSubject = Generator::useService()->getCertificateSubjectBySubject(
+                            $tblCertificate,
+                            $tblSubject
+                        );
+                        if (!$tblCertificateSubject
+                            && $tblPrepareGrade && $tblPrepareGrade->getGrade() != ''
+                        ) {
+                            $grade = str_replace('+', '', $tblPrepareGrade->getGrade());
+                            $grade = str_replace('-', '', $grade);
+                            if (is_numeric($grade)) {
+                                $gradeList[] = $grade;
+                            }
+                        }
                     }
                 }
 

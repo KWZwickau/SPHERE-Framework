@@ -335,16 +335,20 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @return Slice
+     * @param bool|true $isSlice
+     *
+     * @return Section[]|Slice
      * @throws \Exception
      */
-    protected function getSubjectLanes()
+    protected function getSubjectLanes($isSlice = true)
     {
 
         $SubjectSlice = (new Slice());
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
+
+        $SectionList = array();
 
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
@@ -438,10 +442,17 @@ abstract class Certificate extends Extension
                 }
 
                 $SubjectSlice->addSection($SubjectSection);
+
+                $SectionList[] = $SubjectSection;
+
             }
         }
 
-        return $SubjectSlice;
+        if ($isSlice) {
+            return $SubjectSlice;
+        } else {
+            return $SectionList;
+        }
     }
 
     /**

@@ -69,9 +69,17 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
                     }
 
-                    $this->createCertificate(
+                    $tblCertificate = $this->createCertificate(
                         'Bildungsempfehlung', 'Gymnasium', 'ESZC\CheBeGym', $tblConsumerCertificate
                     );
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                    }
+
                     $this->createCertificate(
                         'Bildungsempfehlung', 'Mittelschule', 'ESZC\CheBeMi', $tblConsumerCertificate
                     );
@@ -511,6 +519,23 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCertificateSubject', $Id);
         return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblCertificateSubject
+     */
+    public function getCertificateSubjectBySubject(TblCertificate $tblCertificate, TblSubject $tblSubject)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateSubject',
+            array(
+                TblCertificateSubject::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateSubject::SERVICE_TBL_SUBJECT => $tblSubject->getId()
+            )
+        );
     }
 
     /**
