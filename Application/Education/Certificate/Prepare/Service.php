@@ -873,6 +873,24 @@ class Service extends AbstractService
                 }
             }
 
+            // Fremdsprache ab Klassenstufe
+            if ($tblStudent
+                && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                    $tblStudent, $tblSubjectType
+                ))
+            ) {
+                if ($tblSubjectList) {
+                    foreach ($tblSubjectList as $tblStudentSubject) {
+                        if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                            && ($level = $tblStudentSubject->getServiceTblLevelFrom())
+                        ) {
+                            $Content['Subject']['Level'][$tblSubject->getAcronym()] = $level->getName();
+                        }
+                    }
+                }
+            }
+
             // Division
             if (($tblLevel = $tblDivision->getTblLevel())) {
                 $Content['Division']['Data']['Level']['Name'] = $tblLevel->getName();
