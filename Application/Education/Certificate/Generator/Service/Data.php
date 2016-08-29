@@ -25,9 +25,37 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createCertificate('Bildungsempfehlung', 'Grundschule Klasse 4', 'BeGs');
-        $this->createCertificate('Bildungsempfehlung', 'Mittelschule Klasse 5-6', 'BeMi');
-        $this->createCertificate('Bildungsempfehlung', '§ 34 Abs. 3 SOFS', 'BeSOFS');
+        $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Grundschule Klasse 4', 'BeGs');
+        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+
+            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+
+            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+        }
+
+        $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Mittelschule Klasse 5-6', 'BeMi');
+        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+
+            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+
+            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+        }
+
+        $tblCertificate = $this->createCertificate('Bildungsempfehlung', '§ 34 Abs. 3 SOFS', 'BeSOFS');
+        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+
+            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+            $this->setCertificateSubject($tblCertificate, 'GE', 1, 2);
+            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 3);
+
+            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+            $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+        }
+
         $this->createCertificate('Grundschule Halbjahresinformation', '', 'GsHjInfo');
         $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse', 'GsHjOneInfo');
         $this->createCertificate('Grundschule Jahreszeugnis', '', 'GsJ');

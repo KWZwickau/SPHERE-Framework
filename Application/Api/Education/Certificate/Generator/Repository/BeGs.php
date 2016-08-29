@@ -21,6 +21,17 @@ class BeGs extends Certificate
     /**
      * @return array
      */
+    public function selectValuesType()
+    {
+        return array(
+            1 => "der Halbjahresinformation",
+            2 => "der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz"
+        );
+    }
+
+    /**
+     * @return array
+     */
     public function selectValuesSchoolType()
     {
         return array(
@@ -226,17 +237,21 @@ class BeGs extends Certificate
                             ->setContent('
                             {% if Content.Person.Common.BirthDates.Gender == 2 %}
                                                 Die Schülerin
-                                            {% else %}
-                                              {% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                                    Der Schüler
-                                                {% else %}
-                                                  Die Schülerin/Der Schüler¹
-                                                {% endif %}
-                                            {% endif %}
+                            {% else %}
+                                {% if Content.Person.Common.BirthDates.Gender == 1 %}
+                                    Der Schüler
+                                {% else %}
+                                    Die Schülerin/Der Schüler¹
+                                {% endif %}
+                            {% endif %}
+                            {% if Content.Input.Type is not empty %}
+                                 {{ Content.Input.Type }}
+                            {% else %}
                                 hat ausweislich der Halbjahresinformation /
-                            der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz¹
-                             vom
-                             {% if(Content.Input.DateCertifcate is not empty) %}
+                                der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz¹
+                            {% endif %}
+                                vom
+                            {% if(Content.Input.DateCertifcate is not empty) %}
                                 {{ Content.Input.DateCertifcate }}
                             {% else %}
                                 ______________
@@ -279,7 +294,7 @@ class BeGs extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('2. Gutachten³')
+                        ->setContent('2. Gutachten²')
                         ->styleTextSize('16px')
                         ->styleTextBold()
                         ->styleMarginTop('6px')
@@ -435,16 +450,26 @@ class BeGs extends Certificate
                     )
                 )
                 ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('¹ Nichtzutreffendes streichen.'
-                            . new Container('² An sorbische Schulen, an denen Sorbisch je nach Unterrichtsfach und Klassenstufe
-                            Unterrichtssprache ist, kann nach Entscheidung ')
-                            . new Container('&nbsp;&nbsp;der Schulkonferenz gem. § 21 Abs. 5 SOGS das
-                            Fach Deutsch durch das Fach Sorbisch ersetzt werden.')
-                            . new Container('³ Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->styleBorderBottom()
+                            , '30%')
+                        ->addElementColumn((new Element())
+                            , '70%')
+                    )->styleMarginTop('10px')
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent(
+                            '¹ Nichtzutreffendes streichen.'
+//                            . new Container('² An sorbische Schulen, an denen Sorbisch je nach Unterrichtsfach und Klassenstufe
+//                            Unterrichtssprache ist, kann nach Entscheidung ')
+//                            . new Container('&nbsp;&nbsp;der Schulkonferenz gem. § 21 Abs. 5 SOGS das
+//                            Fach Deutsch durch das Fach Sorbisch ersetzt werden.')
+                                . new Container('² Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
+                            )
+                            ->styleTextSize('9px')
+                            ->styleMarginTop('5px')
                         )
-                        ->styleTextSize('9px')
-                        ->styleMarginTop('5px')
                     )
                 )
             )
