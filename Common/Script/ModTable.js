@@ -1,4 +1,4 @@
-(function($)
+(function ($)
 {
     'use strict';
     /**
@@ -6,7 +6,7 @@
      * @returns {$.fn.ModTable}
      * @constructor
      */
-    $.fn.ModTable = function(options)
+    $.fn.ModTable = function (options)
     {
 
         var Table;
@@ -51,11 +51,32 @@
                 Enabled: false,
                 Url: '/Api/',
                 Event: {
-                    Success: function()
+                    Success: function ()
                     {
                         Table.processing(false);
                     },
-                    Error: function()
+                    Error: function ()
+                    {
+                        Table.processing(false);
+                    },
+                },
+                Data: {
+                    // User-Data (additional)
+                }
+            },
+            ExtensionRowExchange: {
+                Enabled: false,
+                Url: '/Api/',
+                Connect: {
+                    From: 'SourceTableClass',
+                    To: 'TargetTableClass',
+                },
+                Event: {
+                    Success: function ()
+                    {
+                        Table.processing(false);
+                    },
+                    Error: function ()
                     {
                         Table.processing(false);
                     },
@@ -65,6 +86,21 @@
                 }
             }
         }, options);
+
+        /**
+         * Register: Processing Api
+         *
+         * Table.processing(true) - Show processing message
+         * Table.processing(false) - Hide processing message
+         */
+        jQuery.fn.dataTable.Api.register('processing()', function (show)
+        {
+            return this.iterator('table', function (ctx)
+            {
+                ctx.oApi._fnProcessingDisplay(ctx, show);
+            });
+        });
+
 
         // Rewrite Custom-Settings to Api-Settings
         if (settings.ExtensionRowReorder.Enabled) {
@@ -107,19 +143,24 @@
             }
         }
 
-        /**
-         * Register: Processing Api
-         *
-         * Table.processing(true) - Show processing message
-         * Table.processing(false) - Hide processing message
-         */
-        jQuery.fn.dataTable.Api.register('processing()', function(show)
-        {
-            return this.iterator('table', function(ctx)
-            {
-                ctx.oApi._fnProcessingDisplay(ctx, show);
-            });
-        });
+        // Rewrite Custom-Settings to Api-Settings
+        if (settings.ExtensionRowExchange.Enabled) {
+            settings.processing = true;
+            settings.responsive = false;
+
+            if( options.ExtensionRowExchange.Event ) {
+                if (options.ExtensionRowExchange.Event.Success) {
+                    settings.ExtensionRowExchange.Event.Success = new Function(
+                        options.ExtensionRowExchange.Event.Success
+                    )
+                }
+                if (options.ExtensionRowExchange.Event.Error) {
+                    settings.ExtensionRowExchange.Event.Error = new Function(
+                        options.ExtensionRowExchange.Event.Error
+                    )
+                }
+            }
+        }
 
         /**
          * Activate: DataTable
@@ -129,33 +170,75 @@
         /**
          * Register: RowReorder-Extension
          */
-        Table.on('row-reorder', function(Event, Diff)
-        {
-            Table.processing(true);
-            var postData = {};
-            for (var i = 0, ien = Diff.length; i < ien; i++) {
-                var rowData = Table.row(Diff[i].node).data();
-                postData[i] = {
-                    pre: Diff[i].oldData,
-                    post: Diff[i].newData
-                }
-            }
-            if (settings.ExtensionRowReorder.Url) {
-                $.post(settings.ExtensionRowReorder.Url,
-                    {'Reorder': postData, 'Additional': settings.ExtensionRowReorder.Data}, "json")
-                    .fail(settings.ExtensionRowReorder.Event.Error)
-                    .fail(function()
-                    {
-                        Table.processing(false);
-                    })
-                    .success(settings.ExtensionRowReorder.Event.Success)
-                    .done(function()
-                    {
-                        Table.processing(false);
-                    })
-            }
-        });
+        if (settings.ExtensionRowReorder.Enabled) {
 
+            Table.on('row-reorder', function (Event, Diff)
+            {
+                Table.processing(true);
+                var postData = {};
+                for (var i = 0, ien = Diff.length; i < ien; i++) {
+                    var rowData = Table.row(Diff[i].node).data();
+                    postData[i] = {
+                        pre: Diff[i].oldData,
+                        post: Diff[i].newData
+                    }
+                }
+                if (settings.ExtensionRowReorder.Url) {
+                    $.post(settings.ExtensionRowReorder.Url,
+                        {'Reorder': postData, 'Additional': settings.ExtensionRowReorder.Data}, "json")
+                        .fail(settings.ExtensionRowReorder.Event.Error)
+                        .fail(function ()
+                        {
+                            Table.processing(false);
+                        })
+                        .success(settings.ExtensionRowReorder.Event.Success)
+                        .done(function ()
+                        {
+                            Table.processing(false);
+                        })
+                }
+            });
+        }
+
+        /**
+         * Register: RowExchange-Extension
+         */
+        if (settings.ExtensionRowExchange.Enabled) {
+
+            $(this).addClass(settings.ExtensionRowExchange.Connect.From);
+
+            Table.on('click', 'tbody tr', function ()
+            {
+                Table.processing(true);
+
+                var ExchangeTarget = $('table.' + settings.ExtensionRowExchange.Connect.To).DataTable();
+                var SourceRow = $(this);
+                var TargetRow = Table.row(SourceRow);
+                ExchangeTarget.row.add(SourceRow).draw();
+                var Data = TargetRow.data();
+                TargetRow.remove().draw();
+                if (settings.ExtensionRowExchange.Url) {
+                    $.post(settings.ExtensionRowExchange.Url,
+                        {
+                            'Direction': settings.ExtensionRowExchange.Connect,
+                            'Row': Data,
+                            'Additional': settings.ExtensionRowExchange.Data
+                        }, "json")
+                        .fail(settings.ExtensionRowExchange.Event.Error)
+                        .fail(function ()
+                        {
+                            Table.processing(false);
+                            ExchangeTarget.processing(false);
+                        })
+                        .success(settings.ExtensionRowExchange.Event.Success)
+                        .done(function ()
+                        {
+                            Table.processing(false);
+                            ExchangeTarget.processing(false);
+                        })
+                }
+            });
+        }
         return this;
     };
 

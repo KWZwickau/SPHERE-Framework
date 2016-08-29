@@ -630,7 +630,17 @@ class Frontend
                             ( empty( $tblAccessList )
                                 ? new Warning('Keine Rechte vergeben')
                                 : new TableData($tblAccessList, null,
-                                    array('Route' => 'Route', 'Option' => ''))
+                                    array('Route' => 'Route', 'Option' => '')
+//                                    ,array(
+//                                        'ExtensionRowExchange' => array(
+//                                            'Enabled' => true,
+//                                            'Connect' => array(
+//                                                'From' => 'LeftTableClass',
+//                                                'To' => 'RightTableClass',
+//                                            ),
+//                                        )
+//                                    )
+                                )
                             )
                         ), 6),
                         new LayoutColumn(array(
@@ -638,7 +648,17 @@ class Frontend
                             ( empty( $tblAccessListAvailable )
                                 ? new Info('Keine weiteren Rechte verfügbar')
                                 : new TableData($tblAccessListAvailable, null,
-                                    array('Route' => 'Route ', 'Option' => ' '))
+                                    array('Route' => 'Route ', 'Option' => ' ')
+//                                    , array(
+//                                        'ExtensionRowExchange' => array(
+//                                            'Enabled' => true,
+//                                            'Connect' => array(
+//                                                'From' => 'RightTableClass',
+//                                                'To' => 'LeftTableClass',
+//                                            ),
+//                                        )
+//                                    )
+                                )
                             )
                         ), 6)
                     ))
