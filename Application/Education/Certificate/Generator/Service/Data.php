@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeTyp
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -56,9 +57,44 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
         }
 
-        $this->createCertificate('Grundschule Halbjahresinformation', '', 'GsHjInfo');
+        $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', '', 'GsHjInformation');
+        if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+            $this->setCertificateGradeAllStandard($tblCertificate);
+        }
+        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+
+            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+            $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
+            $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+            $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+
+            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true, Student::useService()->getStudentLiberationCategoryById(1));
+            $this->setCertificateSubject($tblCertificate, 'REV', 2, 3, false);
+            $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
+        }
+
         $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse', 'GsHjOneInfo');
-        $this->createCertificate('Grundschule Jahreszeugnis', '', 'GsJ');
+
+        $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', '', 'GsJa');
+        if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+            $this->setCertificateGradeAllStandard($tblCertificate);
+        }
+        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+
+            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+            $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
+            $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+            $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+
+            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true, Student::useService()->getStudentLiberationCategoryById(1));
+            $this->setCertificateSubject($tblCertificate, 'REV', 2, 3, false);
+            $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
+        }
+
         $this->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse', 'GsJOne');
         $this->createCertificate('Gymnasium Abgangszeugnis', 'Hauptschulabschluss Klasse 9', 'GymAbgHs');
         $this->createCertificate('Gymnasium Abgangszeugnis', 'Realschulabschluss Klasse 10', 'GymAbgRs');

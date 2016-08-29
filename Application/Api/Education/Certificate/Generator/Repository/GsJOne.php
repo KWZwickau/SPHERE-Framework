@@ -38,7 +38,7 @@ class GsJOne extends Certificate
                         ->styleTextSize('30px')
                     )
                     ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                            '200px') )
+                            '64px') )
                         , '25%')
                 );
         } else {
@@ -47,7 +47,7 @@ class GsJOne extends Certificate
                     ->addElementColumn(( new Element() ), '25%')
                     ->addElementColumn(( new Element() ))
                     ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                            '200px') )
+                            '64px') )
                         , '25%')
                 );
         }

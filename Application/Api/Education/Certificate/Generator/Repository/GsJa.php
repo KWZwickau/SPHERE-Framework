@@ -11,11 +11,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class GsJ
+ * Class GsJa
  *
  * @package SPHERE\Application\Api\Education\Certificate\Certificate\Repository
  */
-class GsJ extends Certificate
+class GsJa extends Certificate
 {
 
     /**
@@ -39,7 +39,7 @@ class GsJ extends Certificate
                         ->styleTextSize('30px')
                     )
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                            '200px'))
+                            '64px'))
                         , '25%')
                 );
         } else {
@@ -48,7 +48,7 @@ class GsJ extends Certificate
                     ->addElementColumn((new Element()), '25%')
                     ->addElementColumn((new Element()))
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                            '200px'))
+                            '64px'))
                         , '25%')
                 );
         }
@@ -318,7 +318,7 @@ class GsJ extends Certificate
                             , '30%')
                         ->addElementColumn((new Element())
                             , '70%')
-                    )->styleMarginTop('75px')
+                    )->styleMarginTop('20px')
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Notenerläuterung:' . new Container('
