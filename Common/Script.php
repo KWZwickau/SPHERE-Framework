@@ -175,6 +175,11 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.selectpicker"
         );
         $this->setSource(
+            'Bootstrap.Notify',
+            '/Library/Bootstrap.Notify/3.1.3/dist/bootstrap-notify.min.js',
+            "'undefined' !== typeof jQuery.notify"
+        );
+        $this->setSource(
             'Twitter.Typeahead', '/Library/Twitter.Typeahead/0.11.1/dist/typeahead.bundle.min.js',
             "'undefined' !== typeof jQuery.fn.typeahead"
         );
@@ -202,6 +207,7 @@ class Script extends Extension
         $this->setModule(
             'ModAlways', array(/*'Highlight.js',*/
                 'List.Js',
+                'Bootstrap.Notify',
                 'Bootstrap',
                 'jQuery.Ui',
                 'jQuery'

@@ -5,6 +5,9 @@ use SPHERE\Application\Api\Response;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Success;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Extension\Extension;
@@ -73,8 +76,8 @@ class ClassRegister extends Extension implements IModuleInterface
                     }
                 }
             }
+            return (new Response())->addData( new Success().' Die Sortierung der Schüler wurde erfolgreich aktualisiert.');
         }
-
-        return (new Response())->addData($Reorder)->addData($Additional);
+        return (new Response())->addError( 'Fehler!', new HazardSign().' Die Sortierung der Schüler konnte nicht aktualisiert werden.', 0);
     }
 }

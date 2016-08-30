@@ -1,4 +1,4 @@
-(function ($)
+(function($)
 {
     'use strict';
     /**
@@ -6,7 +6,7 @@
      * @returns {$.fn.ModTable}
      * @constructor
      */
-    $.fn.ModTable = function (options)
+    $.fn.ModTable = function(options)
     {
 
         var Table;
@@ -51,13 +51,47 @@
                 Enabled: false,
                 Url: '/Api/',
                 Event: {
-                    Success: function ()
+                    Success: function(Data)
                     {
+                        try {
+                            Data = $.parseJSON(Data);
+                        } catch (e) {
+                            Data = { 'Error': [], 'Data': '{Empty Response}' }
+                        }
                         Table.processing(false);
+                        $.notify({
+                            // options
+                            message: Data.Error[0] ? Data.Error[0].Description : Data.Data
+                        }, {
+                            // settings
+                            type: Data.Error[0] ? 'danger' : 'success',
+                            delay: Data.Error[0] ? 5000 : 1000,
+                            placement: {
+                                from: "top",
+                                align: "center"
+                            }
+                        });
                     },
-                    Error: function ()
+                    Error: function(Data)
                     {
+                        try {
+                            Data = $.parseJSON(Data);
+                        } catch (e) {
+                            Data = { 'Error': [], 'Data': '{Empty Response}' }
+                        }
                         Table.processing(false);
+
+                        $.notify({
+                            // options
+                            message: 'Die Aktion konnte nicht ausgeführt werden.'
+                        }, {
+                            // settings
+                            type: 'danger',
+                            placement: {
+                                from: "top",
+                                align: "center"
+                            }
+                        });
                     },
                 },
                 Data: {
@@ -67,18 +101,57 @@
             ExtensionRowExchange: {
                 Enabled: false,
                 Url: '/Api/',
+                Handler: {
+                    From: 'SourceHandlerClass',
+                    To: 'TargetHandlerClass',
+                },
                 Connect: {
                     From: 'SourceTableClass',
                     To: 'TargetTableClass',
                 },
                 Event: {
-                    Success: function ()
+                    Success: function(Data)
                     {
+                        try {
+                            Data = $.parseJSON(Data);
+                        } catch (e) {
+                            Data = { 'Error': [], 'Data': '{Empty Response}' }
+                        }
                         Table.processing(false);
+
+                        $.notify({
+                            // options
+                            message: Data.Error[0] ? Data.Error[0].Description : Data.Data
+                        }, {
+                            // settings
+                            type: Data.Error[0] ? 'danger' : 'success',
+                            delay: Data.Error[0] ? 5000 : 1000,
+                            placement: {
+                                from: "top",
+                                align: "center"
+                            }
+                        });
                     },
-                    Error: function ()
+                    Error: function(Data)
                     {
+                        try {
+                            Data = $.parseJSON(Data);
+                        } catch (e) {
+                            Data = { 'Error': [], 'Data': '{Empty Response}' }
+                        }
                         Table.processing(false);
+
+                        $.notify({
+                            // options
+                            message: 'Die Aktion konnte nicht ausgeführt werden.'
+                        }, {
+                            // settings
+                            type: 'danger',
+                            placement: {
+                                from: "top",
+                                align: "center"
+                            }
+                        });
                     },
                 },
                 Data: {
@@ -93,14 +166,13 @@
          * Table.processing(true) - Show processing message
          * Table.processing(false) - Hide processing message
          */
-        jQuery.fn.dataTable.Api.register('processing()', function (show)
+        jQuery.fn.dataTable.Api.register('processing()', function(show)
         {
-            return this.iterator('table', function (ctx)
+            return this.iterator('table', function(ctx)
             {
                 ctx.oApi._fnProcessingDisplay(ctx, show);
             });
         });
-
 
         // Rewrite Custom-Settings to Api-Settings
         if (settings.ExtensionRowReorder.Enabled) {
@@ -131,15 +203,17 @@
                 ];
             }
 
-            if (options.ExtensionRowReorder.Event.Success) {
-                settings.ExtensionRowReorder.Event.Success = new Function(
-                    options.ExtensionRowReorder.Event.Success
-                )
-            }
-            if (options.ExtensionRowReorder.Event.Error) {
-                settings.ExtensionRowReorder.Event.Error = new Function(
-                    options.ExtensionRowReorder.Event.Error
-                )
+            if (options.ExtensionRowReorder.Event) {
+                if (options.ExtensionRowReorder.Event.Success) {
+                    settings.ExtensionRowReorder.Event.Success = new Function(
+                        options.ExtensionRowReorder.Event.Success
+                    )
+                }
+                if (options.ExtensionRowReorder.Event.Error) {
+                    settings.ExtensionRowReorder.Event.Error = new Function(
+                        options.ExtensionRowReorder.Event.Error
+                    )
+                }
             }
         }
 
@@ -148,7 +222,7 @@
             settings.processing = true;
             settings.responsive = false;
 
-            if( options.ExtensionRowExchange.Event ) {
+            if (options.ExtensionRowExchange.Event) {
                 if (options.ExtensionRowExchange.Event.Success) {
                     settings.ExtensionRowExchange.Event.Success = new Function(
                         options.ExtensionRowExchange.Event.Success
@@ -172,7 +246,7 @@
          */
         if (settings.ExtensionRowReorder.Enabled) {
 
-            Table.on('row-reorder', function (Event, Diff)
+            Table.on('row-reorder', function(Event, Diff)
             {
                 Table.processing(true);
                 var postData = {};
@@ -185,14 +259,19 @@
                 }
                 if (settings.ExtensionRowReorder.Url) {
                     $.post(settings.ExtensionRowReorder.Url,
-                        {'Reorder': postData, 'Additional': settings.ExtensionRowReorder.Data}, "json")
+                        /**
+                         * @deprecated Reorder
+                         * @see Data
+                         */
+                        {'Reorder': postData, 'Data': postData, 'Additional': settings.ExtensionRowReorder.Data},
+                        "json")
                         .fail(settings.ExtensionRowReorder.Event.Error)
-                        .fail(function ()
+                        .fail(function()
                         {
                             Table.processing(false);
                         })
                         .success(settings.ExtensionRowReorder.Event.Success)
-                        .done(function ()
+                        .done(function()
                         {
                             Table.processing(false);
                         })
@@ -207,36 +286,48 @@
 
             $(this).addClass(settings.ExtensionRowExchange.Connect.From);
 
-            Table.on('click', 'tbody tr', function ()
+            Table.on('click', 'tbody tr .' + settings.ExtensionRowExchange.Handler.From, function()
             {
+
                 Table.processing(true);
 
                 var ExchangeTarget = $('table.' + settings.ExtensionRowExchange.Connect.To).DataTable();
-                var SourceRow = $(this);
+                var SourceRow = $(this).closest('tr');
+                var Payload = $(this).closest('td').find('span.ExchangeData').html();
+                var PostData = $.parseJSON(Payload);
+
+                $(this).removeClass(
+                    settings.ExtensionRowExchange.Handler.From
+                ).addClass(
+                    settings.ExtensionRowExchange.Handler.To
+                )
+
                 var TargetRow = Table.row(SourceRow);
                 ExchangeTarget.row.add(SourceRow).draw();
-                var Data = TargetRow.data();
                 TargetRow.remove().draw();
                 if (settings.ExtensionRowExchange.Url) {
                     $.post(settings.ExtensionRowExchange.Url,
                         {
                             'Direction': settings.ExtensionRowExchange.Connect,
-                            'Row': Data,
+                            'Data': PostData,
                             'Additional': settings.ExtensionRowExchange.Data
                         }, "json")
                         .fail(settings.ExtensionRowExchange.Event.Error)
-                        .fail(function ()
+                        .fail(function()
                         {
                             Table.processing(false);
                             ExchangeTarget.processing(false);
                         })
                         .success(settings.ExtensionRowExchange.Event.Success)
-                        .done(function ()
+                        .done(function()
                         {
                             Table.processing(false);
                             ExchangeTarget.processing(false);
                         })
                 }
+            }).on('mouseover', 'tbody tr .' + settings.ExtensionRowExchange.Handler.From, function()
+            {
+                $(this).css('cursor', 'pointer');
             });
         }
         return this;

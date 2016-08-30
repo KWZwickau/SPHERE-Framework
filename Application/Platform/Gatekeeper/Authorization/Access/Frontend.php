@@ -8,13 +8,16 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
@@ -27,12 +30,14 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
+use SPHERE\Common\Frontend\Link\Repository\Exchange;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
@@ -398,7 +403,8 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Plus(),
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
+                    '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Plus(),
                     array(
                         'Id'       => $Id,
                         'tblLevel' => $Entity->getId()
@@ -411,11 +417,12 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Minus(), array(
-                    'Id'       => $Id,
-                    'tblLevel' => $Entity->getId(),
-                    'Remove'   => true
-                ))
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                    '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Minus(), array(
+                        'Id'       => $Id,
+                        'tblLevel' => $Entity->getId(),
+                        'Remove'   => true
+                    ))
             );
         }, $Id);
 
@@ -497,7 +504,8 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Plus(),
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
+                    '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Plus(),
                     array(
                         'Id'           => $Id,
                         'tblPrivilege' => $Entity->getId()
@@ -510,7 +518,8 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Minus(),
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                    '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Minus(),
                     array(
                         'Id'           => $Id,
                         'tblPrivilege' => $Entity->getId(),
@@ -556,30 +565,13 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendPrivilegeGrantRight($Id, $tblRight, $Remove = null)
+    public function frontendPrivilegeGrantRight($Id)
     {
 
         $Stage = new Stage('Berechtigungen', 'Privileg');
         $this->menuButton($Stage);
 
         $tblPrivilege = Access::useService()->getPrivilegeById($Id);
-        if ($tblPrivilege && null !== $tblRight && ( $tblRight = Access::useService()->getRightById($tblRight) )) {
-            if ($Remove) {
-                Access::useService()->removePrivilegeRight($tblPrivilege, $tblRight);
-                $Stage->setContent(
-                    new Redirect('/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', 0,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            } else {
-                Access::useService()->addPrivilegeRight($tblPrivilege, $tblRight);
-                $Stage->setContent(
-                    new Redirect('/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', 0,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            }
-        }
         $tblAccessList = Access::useService()->getRightAllByPrivilege($tblPrivilege);
         if (!$tblAccessList) {
             $tblAccessList = array();
@@ -596,27 +588,20 @@ class Frontend
         array_walk($tblAccessListAvailable, function (TblRight &$Entity, $Index, $Id) {
 
             /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Plus(),
-                    array(
-                        'Id'       => $Id,
-                        'tblRight' => $Entity->getId()
-                    ))
-            );
+            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_PLUS, array(
+                'Id'       => $Id,
+                'tblRight' => $Entity->getId()
+            ) );
         }, $Id);
 
         /** @noinspection PhpUnusedParameterInspection */
         array_walk($tblAccessList, function (TblRight &$Entity, $Index, $Id) {
 
             /** @noinspection PhpUndefinedFieldInspection */
-            $Entity->Option = new PullRight(
-                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Minus(),
-                    array(
-                        'Id'       => $Id,
-                        'tblRight' => $Entity->getId(),
-                        'Remove'   => true
-                    ))
-            );
+            $Entity->Exchange = new Exchange( Exchange::EXCHANGE_TYPE_MINUS, array(
+                'Id'       => $Id,
+                'tblRight' => $Entity->getId()
+            ) );
         }, $Id);
 
         $Stage->setContent(
@@ -630,16 +615,27 @@ class Frontend
                             ( empty( $tblAccessList )
                                 ? new Warning('Keine Rechte vergeben')
                                 : new TableData($tblAccessList, null,
-                                    array('Route' => 'Route', 'Option' => '')
-//                                    ,array(
-//                                        'ExtensionRowExchange' => array(
-//                                            'Enabled' => true,
-//                                            'Connect' => array(
-//                                                'From' => 'LeftTableClass',
-//                                                'To' => 'RightTableClass',
-//                                            ),
-//                                        )
-//                                    )
+                                    array('Exchange' => '', 'Route' => 'Route'), array(
+                                        'order'                => array(array(1, 'asc')),
+                                        'columnDefs'           => array(
+                                            array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                        ),
+                                        'ExtensionRowExchange' => array(
+                                            'Enabled' => true,
+                                            'Url' => '/Api/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
+                                            'Handler' => array(
+                                                'From' => 'glyphicon-minus-sign',
+                                                'To'   => 'glyphicon-plus-sign',
+                                            ),
+                                            'Connect' => array(
+                                                'From' => 'TableCurrent',
+                                                'To'   => 'TableAvailable',
+                                            ),
+                                            'Data' => array(
+                                                'tblPrivilegeRight' => 1
+                                            )
+                                        )
+                                    )
                                 )
                             )
                         ), 6),
@@ -648,16 +644,24 @@ class Frontend
                             ( empty( $tblAccessListAvailable )
                                 ? new Info('Keine weiteren Rechte verfügbar')
                                 : new TableData($tblAccessListAvailable, null,
-                                    array('Route' => 'Route ', 'Option' => ' ')
-//                                    , array(
-//                                        'ExtensionRowExchange' => array(
-//                                            'Enabled' => true,
-//                                            'Connect' => array(
-//                                                'From' => 'RightTableClass',
-//                                                'To' => 'LeftTableClass',
-//                                            ),
-//                                        )
-//                                    )
+                                    array('Exchange' => ' ', 'Route' => 'Route '), array(
+                                        'order'                => array(array(1, 'asc')),
+                                        'columnDefs'           => array(
+                                            array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                        ),
+                                        'ExtensionRowExchange' => array(
+                                            'Enabled' => true,
+                                            'Url' => '/Api/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
+                                            'Handler' => array(
+                                                'From' => 'glyphicon-plus-sign',
+                                                'To'   => 'glyphicon-minus-sign',
+                                            ),
+                                            'Connect' => array(
+                                                'From' => 'TableAvailable',
+                                                'To'   => 'TableCurrent',
+                                            ),
+                                        )
+                                    )
                                 )
                             )
                         ), 6)
