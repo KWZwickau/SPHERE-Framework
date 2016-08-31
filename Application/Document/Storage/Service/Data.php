@@ -252,6 +252,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDirectory $tblDirectory
+     *
+     * @return false|TblFile[]
+     */
+    public function getFileAllByDirectory(TblDirectory $tblDirectory)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFile',
+            array(
+                TblFile::ATTR_TBL_DIRECTORY => $tblDirectory->getId()
+            ));
+    }
+
+    /**
      * @return false|TblFile[]
      */
     public function getFileAll()
@@ -282,6 +296,20 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDirectory',
             array(
                 TblDirectory::ATTR_TBL_DIRECTORY => ( $tblDirectory ? $tblDirectory->getId() : null )
+            ));
+    }
+
+    /**
+     * @param TblPartition $tblPartition
+     *
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAllByPartition(TblPartition $tblPartition)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDirectory',
+            array(
+                TblDirectory::ATTR_TBL_PARTITION => $tblPartition->getId()
             ));
     }
 

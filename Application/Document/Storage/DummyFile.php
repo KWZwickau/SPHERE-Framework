@@ -12,6 +12,10 @@ use MOC\V\Core\GlobalsKernel\GlobalsKernel;
 class DummyFile
 {
 
+    /** @var string $FileName */
+    private $FileDirectory = '';
+    /** @var string $FileName */
+    private $FileName = '';
     /** @var string $FileLocation */
     private $FileLocation = '';
     /** @var string $FileContent */
@@ -28,7 +32,9 @@ class DummyFile
     public function __construct($Extension = 'document-storage', $Prefix = 'SPHERE-Temporary', $Destruct = true)
     {
 
-        $Location = sys_get_temp_dir().DIRECTORY_SEPARATOR.$Prefix.'-'.md5(uniqid($Prefix, true)).'.'.$Extension;
+        $this->FileDirectory = sys_get_temp_dir();
+        $this->FileName = $Prefix.'-'.md5(uniqid($Prefix, true)).'.'.$Extension;
+        $Location = $this->FileDirectory.DIRECTORY_SEPARATOR.$this->FileName;
         $this->setFileLocation($Location);
         $this->Destruct = (bool)$Destruct;
     }
@@ -134,5 +140,23 @@ class DummyFile
     {
 
         return FileSystem::getFileLoader($this->getFileLocation())->getMimeType();
+    }
+
+    /**
+     * @return string
+     */
+    public function getFileName()
+    {
+
+        return $this->FileName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFileDirectory()
+    {
+
+        return $this->FileDirectory;
     }
 }

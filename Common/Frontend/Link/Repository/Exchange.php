@@ -31,13 +31,13 @@ class Exchange extends Extension implements ILinkInterface
 
         switch ($Type) {
             case Exchange::EXCHANGE_TYPE_MINUS:
-                $Handler = new Center(new MinusSign());
+                $Handler = new Center('<span class="btn btn-default">'.new MinusSign().'</span>');
                 break;
             case Exchange::EXCHANGE_TYPE_PLUS:
-                $Handler = new Center(new PlusSign());
+                $Handler = new Center('<span class="btn btn-default">'.new PlusSign().'</span>');
                 break;
             default:
-                $Handler = new Center(new PlusSign());
+                $Handler = new Center('<span class="btn btn-default">'.new PlusSign().'</span>');
                 break;
         }
 
