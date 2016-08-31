@@ -402,15 +402,48 @@ class Data extends AbstractData
             if ($tblConsumer->getAcronym() == 'FESH' || $tblConsumer->getAcronym() == 'DEMO') {
                 $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('FESH');
                 if ($tblConsumerCertificate) {
-                    $this->createCertificate(
+                    $tblCertificate = $this->createCertificate(
                         'Halbjahresinformation', '', 'FESH\HorHj', $tblConsumerCertificate
                     );
+                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+                    }
+
                     $this->createCertificate(
                         'Halbjahresinformation', '1. Klasse', 'FESH\HorHjOne', $tblConsumerCertificate
                     );
-                    $this->createCertificate(
+
+                    $tblCertificate = $this->createCertificate(
                         'Jahreszeugnis', '', 'FESH\HorJ', $tblConsumerCertificate
                     );
+                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+                    }
+
                     $this->createCertificate(
                         'Jahreszeugnis', '1. Klasse', 'FESH\HorJOne', $tblConsumerCertificate
                     );
