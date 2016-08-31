@@ -123,7 +123,7 @@ class Service extends AbstractService
      * @param TblPerson   $tblPerson
      * @param TblDivision $tblDivision
      * @param Certificate $Certificate
-     * @param DummyFile   $File
+     * @param FilePointer $File
      *
      * @return bool|TblFile
      * @throws \Exception
@@ -132,7 +132,7 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         TblDivision $tblDivision,
         Certificate $Certificate,
-        DummyFile $File
+        FilePointer $File
     ) {
 
         // Load Tmp

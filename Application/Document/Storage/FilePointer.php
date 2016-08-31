@@ -5,12 +5,11 @@ use MOC\V\Core\FileSystem\FileSystem;
 use MOC\V\Core\GlobalsKernel\GlobalsKernel;
 
 /**
- * @deprecated
- * Class DummyFile
+ * Class FilePointer
  *
  * @package SPHERE\Application\Document\Storage
  */
-class DummyFile
+class FilePointer extends DummyFile
 {
 
     /** @var string $FileName */
@@ -26,9 +25,7 @@ class DummyFile
     private $Destruct = true;
 
     /**
-     * @deprecated
-     *
-*@param string $Extension
+     * @param string $Extension
      * @param string $Prefix
      * @param bool   $Destruct
      */
@@ -43,7 +40,7 @@ class DummyFile
     }
 
     /**
-     * @deprecated
+     *
      */
     public function __destruct()
     {
@@ -54,22 +51,20 @@ class DummyFile
     }
 
     /**
-     * @deprecated
      * @return string
      */
     public function getRealPath()
     {
 
         $SERVER = GlobalsKernel::getGlobals()->getSERVER();
-        $SplFileInfo = (new \SplFileInfo($this->getFileLocation()));
+        $SplFileInfo = ( new \SplFileInfo($this->getFileLocation()) );
         if (!$SplFileInfo->getRealPath()) {
-            $SplFileInfo = (new \SplFileInfo($SERVER['DOCUMENT_ROOT'].$this->getFileLocation()));
+            $SplFileInfo = ( new \SplFileInfo($SERVER['DOCUMENT_ROOT'].$this->getFileLocation()) );
         }
         return $SplFileInfo->getRealPath() ? $SplFileInfo->getRealPath() : '';
     }
 
     /**
-     * @deprecated
      * @return string
      */
     public function getFileLocation()
@@ -79,9 +74,7 @@ class DummyFile
     }
 
     /**
-     * @deprecated
-     *
-*@param string $FileLocation
+     * @param string $FileLocation
      */
     public function setFileLocation($FileLocation)
     {
@@ -90,7 +83,7 @@ class DummyFile
     }
 
     /**
-     * @deprecated
+     *
      */
     public function loadFile()
     {
@@ -99,7 +92,7 @@ class DummyFile
     }
 
     /**
-     * @deprecated
+     *
      */
     public function saveFile()
     {
@@ -111,7 +104,6 @@ class DummyFile
     }
 
     /**
-     * @deprecated
      * @return string
      */
     public function getFileContent()
@@ -121,9 +113,7 @@ class DummyFile
     }
 
     /**
-     * @deprecated
-     *
-*@param string $FileContent
+     * @param string $FileContent
      */
     public function setFileContent($FileContent)
     {
@@ -132,7 +122,6 @@ class DummyFile
     }
 
     /**
-     * @deprecated
      * @return bool
      */
     public function getFileExists()
@@ -145,7 +134,6 @@ class DummyFile
     }
 
     /**
-     * @deprecated
      * @return false|null|string
      */
     public function getMimeType()
@@ -155,7 +143,6 @@ class DummyFile
     }
 
     /**
-     * @deprecated
      * @return string
      */
     public function getFileName()
@@ -165,7 +152,6 @@ class DummyFile
     }
 
     /**
-     * @deprecated
      * @return string
      */
     public function getFileDirectory()

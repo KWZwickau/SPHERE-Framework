@@ -5,7 +5,7 @@ use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Document\Storage\DummyFile;
+use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\People\Person\Person;
@@ -67,6 +67,47 @@ class Creator
     }
 
     /**
+     * @param Certificate $Certificate
+     * @param array       $Data
+     *
+     * @return FilePointer
+     */
+    private function buildDummyFile(Certificate $Certificate, $Data = array())
+    {
+
+        $tblYear = isset( $Data['Division']['Data']['Year'] ) ? $Data['Division']['Data']['Year'] : '';
+        $personName = '';
+        if (isset( $Data['Person']['Data']['Name']['First'] ) && isset( $Data['Person']['Data']['Name']['Last'] )) {
+            $personName = $Data['Person']['Data']['Name']['Last'].', '.$Data['Person']['Data']['Name']['First'];
+        }
+        $Prefix = md5($tblYear.$personName.( isset( $Data['Person']['Student']['Id'] ) ? $Data['Person']['Student']['Id'] : '' ));
+
+        // Create Tmp
+        $File = Storage::createFilePointer('pdf', $Prefix);
+        /** @var DomPdf $Document */
+        $Document = Document::getPdfDocument($File->getFileLocation());
+        $Document->setContent($Certificate->createCertificate($Data));
+        $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+        return $File;
+    }
+
+    /**
+     * @param FilePointer $File
+     * @param string      $FileName
+     *
+     * @return string
+     */
+    private function buildDownloadFile(FilePointer $File, $FileName = '')
+    {
+
+        return FileSystem::getDownload(
+            $File->getRealPath(),
+            $FileName ? $FileName : "Zeugnis-Test-".date("Y-m-d H:i:s").".pdf"
+        )->__toString();
+    }
+
+    /**
      * @param null $PrepareId
      * @param null $PersonId
      *
@@ -102,46 +143,5 @@ class Creator
         }
 
         return new Stage('Zeugnis', 'Nicht gefunden');
-    }
-
-    /**
-     * @param Certificate $Certificate
-     * @param array $Data
-     *
-     * @return DummyFile
-     */
-    private function buildDummyFile(Certificate $Certificate, $Data = array())
-    {
-
-        $tblYear = isset($Data['Division']['Data']['Year']) ? $Data['Division']['Data']['Year'] : '';
-        $personName = '';
-        if (isset($Data['Person']['Data']['Name']['First']) && isset($Data['Person']['Data']['Name']['Last'])) {
-            $personName = $Data['Person']['Data']['Name']['Last'] . ', ' . $Data['Person']['Data']['Name']['First'];
-        }
-        $Prefix = md5($tblYear . $personName . (isset($Data['Person']['Student']['Id']) ? $Data['Person']['Student']['Id'] : ''));
-
-        // Create Tmp
-        $File = new DummyFile('pdf', $Prefix);
-        /** @var DomPdf $Document */
-        $Document = Document::getPdfDocument($File->getFileLocation());
-        $Document->setContent($Certificate->createCertificate($Data));
-        $Document->saveFile(new FileParameter($File->getFileLocation()));
-
-        return $File;
-    }
-
-    /**
-     * @param DummyFile $File
-     * @param string $FileName
-     *
-     * @return string
-     */
-    private function buildDownloadFile(DummyFile $File, $FileName = '')
-    {
-
-        return FileSystem::getDownload(
-            $File->getRealPath(),
-            $FileName ? $FileName : "Zeugnis-Test-" . date("Y-m-d H:i:s") . ".pdf"
-        )->__toString();
     }
 }

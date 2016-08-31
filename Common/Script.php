@@ -127,11 +127,6 @@ class Script extends Extension
 
 /*
         $this->setSource(
-            'jQuery.DataTable',
-            '/Library/jQuery.DataTables/1.10.7/media/js/jquery.dataTables.min.js',
-            "'undefined' !== typeof jQuery.fn.DataTable"
-        );
-        $this->setSource(
             'jQuery.DataTable.Responsive',
             '/Library/jQuery.DataTables/1.10.7/extensions/Responsive/js/dataTables.responsive.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
@@ -153,11 +148,6 @@ class Script extends Extension
 //            '/Library/jQuery.DataTables.Plugins/1.0.1/sorting/weekday.js',
 //            "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['weekday-pre']"
 //        );
-        $this->setSource(
-            'Bootstrap.DataTable',
-            '/Library/jQuery.DataTables.Plugins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.min.js',
-            "'undefined' !== typeof jQuery.fn.DataTable.ext.renderer.pageButton.bootstrap"
-        );
 */
 
         $this->setSource(
@@ -216,13 +206,12 @@ class Script extends Extension
         $this->setModule(
             'ModTable',
             array(
-////                'jQuery.DataTable.Plugin.Sorting.Weekday',
+//                'jQuery.DataTable.Plugin.Sorting.Weekday',
                 'jQuery.DataTable.Plugin.Sorting.DateTime',
                 'jQuery.DataTable.Plugin.Sorting.GermanString',
-//                'Bootstrap.DataTable',
-'jQuery.DataTable.RowReorder',
+                'jQuery.DataTable.RowReorder',
                 'jQuery.DataTable.Responsive',
-'jQuery.DataTable.Bootstrap',
+                'jQuery.DataTable.Bootstrap',
                 'jQuery.DataTable',
                 'jQuery'
             )
