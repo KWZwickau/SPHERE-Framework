@@ -312,18 +312,90 @@ class Data extends AbstractData
             if ($tblConsumer->getAcronym() == 'EVSC' || $tblConsumer->getAcronym() == 'DEMO') {
                 $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EVSC');
                 if ($tblConsumerCertificate) {
-                    $this->createCertificate(
+
+                    $tblCertificate = $this->createCertificate(
                         'Halbjahresinformation', 'Primarstufe', 'EVSC\CosHjPri', $tblConsumerCertificate
                     );
-                    $this->createCertificate(
+                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+                    }
+
+                    $tblCertificate = $this->createCertificate(
                         'Halbjahresinformation', 'Sekundarstufe', 'EVSC\CosHjSek', $tblConsumerCertificate
                     );
-                    $this->createCertificate(
+                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 6);
+                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
+                    }
+
+                    $tblCertificate = $this->createCertificate(
                         'Jahreszeugnis', 'Primarstufe', 'EVSC\CosJPri', $tblConsumerCertificate
                     );
-                    $this->createCertificate(
+                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+                    }
+
+                    $tblCertificate = $this->createCertificate(
                         'Jahreszeugnis', 'Sekundarstufe', 'EVSC\CosJSek', $tblConsumerCertificate
                     );
+                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 6);
+                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
+                    }
                 }
             }
 
