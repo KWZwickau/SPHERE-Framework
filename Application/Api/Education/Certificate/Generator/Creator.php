@@ -67,6 +67,47 @@ class Creator
     }
 
     /**
+     * @param Certificate $Certificate
+     * @param array       $Data
+     *
+     * @return FilePointer
+     */
+    private function buildDummyFile(Certificate $Certificate, $Data = array())
+    {
+
+        $tblYear = isset( $Data['Division']['Data']['Year'] ) ? $Data['Division']['Data']['Year'] : '';
+        $personName = '';
+        if (isset( $Data['Person']['Data']['Name']['First'] ) && isset( $Data['Person']['Data']['Name']['Last'] )) {
+            $personName = $Data['Person']['Data']['Name']['Last'].', '.$Data['Person']['Data']['Name']['First'];
+        }
+        $Prefix = md5($tblYear.$personName.( isset( $Data['Person']['Student']['Id'] ) ? $Data['Person']['Student']['Id'] : '' ));
+
+        // Create Tmp
+        $File = Storage::createFilePointer('pdf', $Prefix);
+        /** @var DomPdf $Document */
+        $Document = Document::getPdfDocument($File->getFileLocation());
+        $Document->setContent($Certificate->createCertificate($Data));
+        $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+        return $File;
+    }
+
+    /**
+     * @param FilePointer $File
+     * @param string      $FileName
+     *
+     * @return string
+     */
+    private function buildDownloadFile(FilePointer $File, $FileName = '')
+    {
+
+        return FileSystem::getDownload(
+            $File->getRealPath(),
+            $FileName ? $FileName : "Zeugnis-Test-".date("Y-m-d H:i:s").".pdf"
+        )->__toString();
+    }
+
+    /**
      * @param null $PrepareId
      * @param null $PersonId
      *
@@ -116,7 +157,7 @@ class Creator
 
         if (($tblFile = Storage::useService()->getFileById($FileId))) {
 
-            $File = new DummyFile('pdf');
+            $File = Storage::createFilePointer('pdf');
             $File->setFileContent(stream_get_contents($tblFile->getTblBinary()->getBinaryBlob()));
             $File->saveFile();
 
@@ -128,46 +169,5 @@ class Creator
 
             return new Stage('Zeugnis', 'Nicht gefunden');
         }
-    }
-
-    /**
-     * @param Certificate $Certificate
-     * @param array       $Data
-     *
-     * @return FilePointer
-     */
-    private function buildDummyFile(Certificate $Certificate, $Data = array())
-    {
-
-        $tblYear = isset( $Data['Division']['Data']['Year'] ) ? $Data['Division']['Data']['Year'] : '';
-        $personName = '';
-        if (isset( $Data['Person']['Data']['Name']['First'] ) && isset( $Data['Person']['Data']['Name']['Last'] )) {
-            $personName = $Data['Person']['Data']['Name']['Last'].', '.$Data['Person']['Data']['Name']['First'];
-        }
-        $Prefix = md5($tblYear.$personName.( isset( $Data['Person']['Student']['Id'] ) ? $Data['Person']['Student']['Id'] : '' ));
-
-        // Create Tmp
-        $File = Storage::createFilePointer('pdf', $Prefix);
-        /** @var DomPdf $Document */
-        $Document = Document::getPdfDocument($File->getFileLocation());
-        $Document->setContent($Certificate->createCertificate($Data));
-        $Document->saveFile(new FileParameter($File->getFileLocation()));
-
-        return $File;
-    }
-
-    /**
-     * @param FilePointer $File
-     * @param string      $FileName
-     *
-     * @return string
-     */
-    private function buildDownloadFile(FilePointer $File, $FileName = '')
-    {
-
-        return FileSystem::getDownload(
-            $File->getRealPath(),
-            $FileName ? $FileName : "Zeugnis-Test-".date("Y-m-d H:i:s").".pdf"
-        )->__toString();
     }
 }

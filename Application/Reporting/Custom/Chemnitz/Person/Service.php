@@ -6,24 +6,23 @@ use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
-use SPHERE\Application\Document\Explorer\Storage\Storage;
-use SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary;
+use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -117,7 +116,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return false|Temporary
+     * @return false|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
@@ -126,7 +125,7 @@ class Service extends Extension
 
         if (!empty($PersonList)) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
@@ -247,7 +246,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return Temporary
+     * @return false|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
@@ -256,7 +255,7 @@ class Service extends Extension
 
         if (!empty($PersonList)) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
@@ -395,7 +394,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return Temporary
+     * @return false|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
@@ -404,7 +403,7 @@ class Service extends Extension
 
         if (!empty($PersonList)) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());      //ToDO Header kürzen?
             $export->setValue($export->getCell("0", "0"), "Deb.-Nr.");
@@ -524,7 +523,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return Temporary
+     * @return false|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
@@ -533,7 +532,7 @@ class Service extends Extension
 
         if (!empty($PersonList)) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Name");
@@ -717,7 +716,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return Temporary
+     * @return false|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
@@ -726,7 +725,7 @@ class Service extends Extension
 
         if (!empty($PersonList)) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anmeldedatum");
@@ -830,7 +829,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return false|Temporary
+     * @return false|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
@@ -839,7 +838,7 @@ class Service extends Extension
 
         if (!empty($PersonList)) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Name");
@@ -933,7 +932,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return false|Temporary
+     * @return false|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
@@ -942,7 +941,7 @@ class Service extends Extension
 
         if (!empty($PersonList)) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
@@ -1000,8 +999,8 @@ class Service extends Extension
 
         $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
-        $tblStudentGroup1 = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable('STUDENT_GROUP_1');
-        $tblStudentGroup2 = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable('STUDENT_GROUP_2');
+        $tblStudentGroup1 = Group::useService()->getGroupByMetaTable('STUDENT_GROUP_1');
+        $tblStudentGroup2 = Group::useService()->getGroupByMetaTable('STUDENT_GROUP_2');
         if (!empty($tblPersonList)) {
 
             $count = 1;
@@ -1373,7 +1372,7 @@ class Service extends Extension
      * @param array $tblPersonList
      * @param $DivisionId
      *
-     * @return bool|Temporary
+     * @return bool|FilePointer
      * @throws TypeFileException
      * @throws DocumentTypeException
      */
@@ -1388,7 +1387,7 @@ class Service extends Extension
             }
             array_multisort($sort, SORT_ASC, $PersonList);
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
 

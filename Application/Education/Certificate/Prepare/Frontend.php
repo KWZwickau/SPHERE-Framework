@@ -44,6 +44,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\Icon\Repository\Star;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -63,7 +64,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class Frontend
@@ -177,11 +177,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 'Bearbeiten'
                             ))
                             . (new Standard(
-                                '', '/Education/Certificate/Prepare/Division', new EyeOpen(),
+                                '', '/Education/Certificate/Prepare/Division', new Setup(),
                                 array(
                                     'PrepareId' => $tblPrepare->getId(),
                                 )
-                                , 'Anzeigen und Bearbeiten'
+                                , 'Einstellungen'
                             ))
                     );
                 }
@@ -242,6 +242,24 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage . new Danger('Klasse nicht gefunden.', new Ban());
         }
+    }
+
+    /**
+     * @return Form
+     */
+    private function formPrepare()
+    {
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 3
+                ),
+                new FormColumn(
+                    new TextField('Data[Name]', 'Name', 'Name'), 9
+                ),
+            )),
+        )));
     }
 
     /**
@@ -317,25 +335,6 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
         }
     }
-
-    /**
-     * @return Form
-     */
-    private function formPrepare()
-    {
-
-        return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 3
-                ),
-                new FormColumn(
-                    new TextField('Data[Name]', 'Name', 'Name'), 9
-                ),
-            )),
-        )));
-    }
-
 
     /**
      * @param null $PrepareId
