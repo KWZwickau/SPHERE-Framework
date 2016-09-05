@@ -23,25 +23,32 @@ class Exchange extends Extension implements ILinkInterface
     /**
      * Exchange constructor.
      *
-     * @param int   $Type EXCHANGE_TYPE_{PLUS|MINUS}
-     * @param array $Data
+     * @param int|string $Handler EXCHANGE_TYPE_{PLUS|MINUS} or Css-Selector
+     * @param array      $Data
+     * @param string     $Title   Button-Text
      */
-    public function __construct($Type, $Data = array())
+    public function __construct($Handler, $Data = array(), $Title = '')
     {
 
-        switch ($Type) {
-            case Exchange::EXCHANGE_TYPE_MINUS:
-                $Handler = new Center('<span class="btn btn-default">'.new MinusSign().'</span>');
-                break;
-            case Exchange::EXCHANGE_TYPE_PLUS:
-                $Handler = new Center('<span class="btn btn-default">'.new PlusSign().'</span>');
-                break;
-            default:
-                $Handler = new Center('<span class="btn btn-default">'.new PlusSign().'</span>');
-                break;
+        if (is_integer($Handler)) {
+
+            switch ($Handler) {
+                case Exchange::EXCHANGE_TYPE_MINUS:
+                    $Button = new Center('<span class="btn btn-default">'.new MinusSign().' '.$Title.'</span>');
+                    break;
+                case Exchange::EXCHANGE_TYPE_PLUS:
+                    $Button = new Center('<span class="btn btn-default">'.new PlusSign().' '.$Title.'</span>');
+                    break;
+                default:
+                    $Button = new Center('<span class="btn btn-default">'.new PlusSign().' '.$Title.'</span>');
+                    break;
+            }
+        } else {
+            $Button = new Center('<span class="btn btn-default '.$Handler.'">'.new PlusSign().' '.$Title.'</span>');
         }
 
-        $this->Content = $Handler.'<span class="ExchangeData" style="display: none;">'.json_encode($Data, JSON_FORCE_OBJECT).'</span>';
+        $this->Content = $Button.'<span class="ExchangeData" style="display: none;">'
+            .json_encode($Data, JSON_FORCE_OBJECT).'</span>';
     }
 
 

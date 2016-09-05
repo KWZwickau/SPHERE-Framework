@@ -59,11 +59,13 @@
                             Data = { 'Error': [], 'Data': '{Empty Response}' }
                         }
                         Table.processing(false);
+                        $.notifyClose();
                         $.notify({
                             // options
                             message: Data.Error[0] ? Data.Error[0].Description : Data.Data
                         }, {
                             // settings
+                            newest_on_top: true,
                             type: Data.Error[0] ? 'danger' : 'success',
                             delay: Data.Error[0] ? 5000 : 1000,
                             placement: {
@@ -80,12 +82,13 @@
                             Data = { 'Error': [], 'Data': '{Empty Response}' }
                         }
                         Table.processing(false);
-
+                        $.notifyClose();
                         $.notify({
                             // options
                             message: 'Die Aktion konnte nicht ausgeführt werden.'
                         }, {
                             // settings
+                            newest_on_top: true,
                             type: 'danger',
                             placement: {
                                 from: "top",
@@ -118,12 +121,13 @@
                             Data = { 'Error': [], 'Data': '{Empty Response}' }
                         }
                         Table.processing(false);
-
+                        $.notifyClose();
                         $.notify({
                             // options
                             message: Data.Error[0] ? Data.Error[0].Description : Data.Data
                         }, {
                             // settings
+                            newest_on_top: true,
                             type: Data.Error[0] ? 'danger' : 'success',
                             delay: Data.Error[0] ? 5000 : 1000,
                             placement: {
@@ -140,12 +144,13 @@
                             Data = { 'Error': [], 'Data': '{Empty Response}' }
                         }
                         Table.processing(false);
-
+                        $.notifyClose();
                         $.notify({
                             // options
                             message: 'Die Aktion konnte nicht ausgeführt werden.'
                         }, {
                             // settings
+                            newest_on_top: true,
                             type: 'danger',
                             placement: {
                                 from: "top",
@@ -285,6 +290,63 @@
         if (settings.ExtensionRowExchange.Enabled) {
 
             $(this).addClass(settings.ExtensionRowExchange.Connect.From);
+            var $Table = $(this);
+
+            if (settings.ExtensionRowExchange.Handler.All) {
+                $('span.' + settings.ExtensionRowExchange.Handler.All).on('click', function()
+                {
+                    Table.processing(true);
+
+                    var ExchangeTarget = $('table.' + settings.ExtensionRowExchange.Connect.To).DataTable();
+
+                    var SourceRows = Table.rows()[0];
+                    $(SourceRows).each(function(Index)
+                    {
+
+                        var SourceRow = $Table.find('tbody tr:eq(' + Index + ')');
+                        var Payload = SourceRow.find('td span.ExchangeData').html();
+                        var Handler = SourceRow.find('td span.' + settings.ExtensionRowExchange.Handler.From);
+
+                        if (Payload) {
+
+                            Handler.removeClass(
+                                settings.ExtensionRowExchange.Handler.From
+                            ).addClass(
+                                settings.ExtensionRowExchange.Handler.To
+                            )
+
+                            var PostData = $.parseJSON(Payload);
+                            var TargetRow = Table.row(SourceRow);
+
+                            if (settings.ExtensionRowExchange.Url) {
+                                $.post(settings.ExtensionRowExchange.Url,
+                                    {
+                                        'Direction': settings.ExtensionRowExchange.Connect,
+                                        'Data': PostData,
+                                        'Additional': settings.ExtensionRowExchange.Data
+                                    }, "json")
+                                    .fail(settings.ExtensionRowExchange.Event.Error)
+                                    .fail(function()
+                                    {
+                                        Table.processing(false);
+                                        ExchangeTarget.processing(false);
+                                    })
+                                    .success(settings.ExtensionRowExchange.Event.Success)
+                                    .success(function()
+                                    {
+                                        ExchangeTarget.row.add(SourceRow).draw();
+                                        TargetRow.remove().draw();
+                                    })
+                                    .done(function()
+                                    {
+                                        Table.processing(false);
+                                        ExchangeTarget.processing(false);
+                                    })
+                            }
+                        }
+                    })
+                })
+            }
 
             Table.on('click', 'tbody tr .' + settings.ExtensionRowExchange.Handler.From, function()
             {

@@ -8,16 +8,13 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
-use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
-use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
@@ -37,7 +34,6 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
@@ -560,8 +556,6 @@ class Frontend
 
     /**
      * @param integer      $Id
-     * @param null|integer $tblRight
-     * @param null|bool    $Remove
      *
      * @return Stage
      */
@@ -612,9 +606,7 @@ class Frontend
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Rechte', 'Zugewiesen'),
-                            ( empty( $tblAccessList )
-                                ? new Warning('Keine Rechte vergeben')
-                                : new TableData($tblAccessList, null,
+                            new TableData($tblAccessList, null,
                                     array('Exchange' => '', 'Route' => 'Route'), array(
                                         'order'                => array(array(1, 'asc')),
                                         'columnDefs'           => array(
@@ -630,20 +622,14 @@ class Frontend
                                             'Connect' => array(
                                                 'From' => 'TableCurrent',
                                                 'To'   => 'TableAvailable',
-                                            ),
-                                            'Data' => array(
-                                                'tblPrivilegeRight' => 1
                                             )
                                         )
                                     )
-                                )
                             )
                         ), 6),
                         new LayoutColumn(array(
                             new \SPHERE\Common\Frontend\Layout\Repository\Title('Rechte', 'Verfügbar'),
-                            ( empty( $tblAccessListAvailable )
-                                ? new Info('Keine weiteren Rechte verfügbar')
-                                : new TableData($tblAccessListAvailable, null,
+                            new TableData($tblAccessListAvailable, null,
                                     array('Exchange' => ' ', 'Route' => 'Route '), array(
                                         'order'                => array(array(1, 'asc')),
                                         'columnDefs'           => array(
@@ -655,6 +641,7 @@ class Frontend
                                             'Handler' => array(
                                                 'From' => 'glyphicon-plus-sign',
                                                 'To'   => 'glyphicon-minus-sign',
+                                                'All'  => 'TableCurrentAll'
                                             ),
                                             'Connect' => array(
                                                 'From' => 'TableAvailable',
@@ -662,7 +649,6 @@ class Frontend
                                             ),
                                         )
                                     )
-                                )
                             )
                         ), 6)
                     ))
