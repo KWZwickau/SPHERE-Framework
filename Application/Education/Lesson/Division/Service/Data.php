@@ -17,7 +17,6 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
  * Class Data
@@ -343,8 +342,7 @@ class Data extends AbstractData
             if ($isSorted) {
                 ksort($EntityList);
             } else {
-                $EntityList = $this->getSorter($EntityList)->sortObjectBy('LastFirstName',
-                    new StringGermanOrderSorter());
+                $EntityList = $this->getSorter($EntityList)->sortObjectBy('LastFirstName');
             }
         }
 
@@ -598,8 +596,7 @@ class Data extends AbstractData
             }
 
             if (!$isSorted) {
-                $EntityList = $this->getSorter($EntityList)->sortObjectBy('LastFirstName',
-                    new StringGermanOrderSorter());
+                $EntityList = $this->getSorter($EntityList)->sortObjectBy('LastFirstName');
             }
         }
         return empty($EntityList) ? false : $EntityList;
@@ -1755,7 +1752,7 @@ class Data extends AbstractData
     {
 
         $list = $this->getDivisionStudentAllByDivision($tblDivision);
-        $max = null;
+        $max = 0;
         if ($list) {
             $max = 0;
             foreach ($list as $tblDivisionStudent) {
