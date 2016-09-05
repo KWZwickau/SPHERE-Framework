@@ -778,7 +778,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $count++;
                 $data['Student'] = $tblPerson->getLastFirstName();
 
-                // Zenur des Schülers zum Test zuordnen und Durchschnitte berechnen
+                // Zensur des Schülers zum Test zuordnen und Durchschnitte berechnen
                 if (!empty($columnDefinition)) {
                     foreach ($columnDefinition as $column => $value) {
                         if (strpos($column, 'Test') !== false) {
@@ -873,9 +873,9 @@ class Frontend extends Extension implements IFrontendInterface
                             $data[$column] = new Muted($average ? $average : '');
                         }
                     } elseif (strpos($column, 'Number') !== false) {
-                        $data[$column] = new Muted('&#216;');
+//                        $data[$column] = new Muted('&#216;');
                     } elseif (strpos($column, 'Student') !== false) {
-                        $data[$column] = new Muted('Fach-Klasse');
+                        $data[$column] = new Muted('&#216; Fach-Klasse');
                     } else {
                         $data[$column] = '';
                     }
@@ -887,14 +887,10 @@ class Frontend extends Extension implements IFrontendInterface
         $tableData = new TableData(
             $dataList, null, $columnDefinition,
             array(
-                "columnDefs"     => array(
+                "columnDefs" => array(
                     array(
                         "orderable" => false,
-                        "targets"   => 0
-                    ),
-                    array(
-                        "orderable" => false,
-                        "targets"   => '_all'
+                        "targets" => '_all'
                     ),
                 ),
                 'pageLength' => -1
