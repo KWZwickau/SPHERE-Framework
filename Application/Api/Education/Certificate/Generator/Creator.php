@@ -67,6 +67,70 @@ class Creator
     }
 
     /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     *
+     * @return Stage|string
+     */
+    public function previewPdf($PrepareId = null, $PersonId = null)
+    {
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+
+            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
+                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                    if (class_exists($CertificateClass)) {
+
+                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                        $Certificate = new $CertificateClass();
+
+                        // get Content
+                        $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+
+                        $File = $this->buildDummyFile($Certificate, $Content);
+
+                        $FileName = "Zeugnis Muster " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s") . ".pdf";
+
+                        return $this->buildDownloadFile($File, $FileName);
+                    }
+                }
+            }
+
+        }
+
+        return new Stage('Zeugnis', 'Nicht gefunden');
+    }
+
+    /**
+     * @param null $FileId
+     *
+     * @return Stage|string
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function downloadPdf($FileId = null)
+    {
+
+        if (($tblFile = Storage::useService()->getFileById($FileId))) {
+
+            $File = new DummyFile('pdf');
+            $File->setFileContent(stream_get_contents($tblFile->getTblBinary()->getBinaryBlob()));
+            $File->saveFile();
+
+            return FileSystem::getDownload($File->getFileLocation(),
+                $tblFile->getName()
+                . " " . date("Y-m-d H:i:s") . ".pdf")->__toString();
+
+        } else {
+
+            return new Stage('Zeugnis', 'Nicht gefunden');
+        }
+    }
+
+    /**
      * @param Certificate $Certificate
      * @param array       $Data
      *
@@ -105,43 +169,5 @@ class Creator
             $File->getRealPath(),
             $FileName ? $FileName : "Zeugnis-Test-".date("Y-m-d H:i:s").".pdf"
         )->__toString();
-    }
-
-    /**
-     * @param null $PrepareId
-     * @param null $PersonId
-     *
-     * @return Stage|string
-     */
-    public function previewPdf($PrepareId = null, $PersonId = null)
-    {
-
-        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
-            && ($tblPerson = Person::useService()->getPersonById($PersonId))
-        ) {
-
-            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
-                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
-                    if (class_exists($CertificateClass)) {
-
-                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                        $Certificate = new $CertificateClass();
-
-                        // get Content
-                        $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-
-                        $File = $this->buildDummyFile($Certificate, $Content);
-
-                        $FileName = "Zeugnis Muster " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s") . ".pdf";
-
-                        return $this->buildDownloadFile($File, $FileName);
-                    }
-                }
-            }
-
-        }
-
-        return new Stage('Zeugnis', 'Nicht gefunden');
     }
 }

@@ -462,18 +462,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblGroup  $tblGroup
-     * @param TblPerson $tblPerson
-     *
-     * @return bool
-     */
-    public function removeGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
-    {
-
-        return (new Data($this->getBinding()))->removeGroupPerson($tblGroup, $tblPerson);
-    }
-
-    /**
      * @param TblGroup $tblGroup
      * @param          $DataAddPerson
      */
@@ -486,30 +474,6 @@ class Service extends AbstractService
                 $this->addGroupPerson($tblGroup, $tblPerson);
             }
         }
-    }
-
-    /**
-     * @param TblGroup  $tblGroup
-     * @param TblPerson $tblPerson
-     *
-     * @return bool|TblMember
-     */
-    public function existsGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
-    {
-
-        return (new Data($this->getBinding()))->existsGroupPerson($tblGroup, $tblPerson);
-    }
-
-    /**
-     * @param TblGroup  $tblGroup
-     * @param TblPerson $tblPerson
-     *
-     * @return TblMember
-     */
-    public function addGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
-    {
-
-        return (new Data($this->getBinding()))->addGroupPerson($tblGroup, $tblPerson);
     }
 
     /**
@@ -545,17 +509,6 @@ class Service extends AbstractService
             'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
             'FilterDivisionId' => $tblDivision ? $tblDivision->getId() : null,
         ));
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblGroup
-     */
-    public function getGroupById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getGroupById($Id);
     }
 
     /**
@@ -599,33 +552,4 @@ class Service extends AbstractService
             return false;
         }
     }
-
-    /**
-     * @param TblGroup $tblGroup
-     * @param $DataAddPerson
-     */
-    private function addPersonListToGroup(TblGroup $tblGroup, $DataAddPerson)
-    {
-        foreach ($DataAddPerson as $personId => $value) {
-            $tblPerson = Person::useService()->getPersonById($personId);
-            if ($tblPerson && !$this->existsGroupPerson($tblGroup, $tblPerson)) {
-                $this->addGroupPerson($tblGroup, $tblPerson);
-            }
-        }
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     * @param $DataRemovePerson
-     */
-    private function removePersonListFromGroup(TblGroup $tblGroup, $DataRemovePerson)
-    {
-        foreach ($DataRemovePerson as $personId => $value) {
-            $tblPerson = Person::useService()->getPersonById($personId);
-            if ($tblPerson) {
-                $this->removeGroupPerson($tblGroup, $tblPerson);
-            }
-        }
-    }
-
 }

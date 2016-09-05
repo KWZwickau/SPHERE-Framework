@@ -293,4 +293,62 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getReferenceTypeById($Id);
     }
+
+    /**
+     * @return false|TblFile[]
+     */
+    public function getCertificateRevisionFileAll()
+    {
+        $tblPartition = $this->getPartitionByIdentifier(
+            TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
+        );
+
+        $resultList = array();
+        $tblDirectoryList = $this->getDirectoryAllByPartition($tblPartition);
+        if ($tblDirectoryList) {
+            foreach ($tblDirectoryList as $tblDirectory) {
+                $tblFileList = $this->getFileAllByDirectory($tblDirectory);
+                if ($tblFileList) {
+                    foreach ($tblFileList as $tblFile) {
+                        $resultList[] = $tblFile;
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblFile[]
+     */
+    public function getCertificateRevisionFileAllByPerson(TblPerson $tblPerson)
+    {
+
+        $tblPartition = $this->getPartitionByIdentifier(
+            TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
+        );
+
+        $resultList = array();
+        $tblDirectoryList = $this->getDirectoryAllByPartition($tblPartition);
+        if ($tblDirectoryList) {
+            foreach ($tblDirectoryList as $tblDirectory) {
+                if (strpos($tblDirectory->getIdentifier(), 'TBL-PERSON-ID:') !== false) {
+                    $personId = substr($tblDirectory->getIdentifier(), strlen('TBL-PERSON-ID:'));
+                    if ($personId == $tblPerson->getId()) {
+                        $tblFileList = $this->getFileAllByDirectory($tblDirectory);
+                        if ($tblFileList) {
+                            foreach ($tblFileList as $tblFile) {
+                                $resultList[] = $tblFile;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
 }
