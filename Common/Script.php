@@ -275,9 +275,9 @@ class Script extends Extension
         if (!in_array($Alias, self::$SourceList)) {
             $RealPath = FileSystem::getFileLoader($Location)->getRealPath();
             if( !empty($RealPath) ) {
-                $cTag = '?cTAG' . md5_file($RealPath);
+                $cTag = '?cTAG-' . md5_file($RealPath);
             } else {
-                $cTag = '?cTAG' . 'MISS-'.time();
+                $cTag = '?cTAG-' . 'MISS-'.time();
             }
             self::$SourceList[$Alias] = "Client.Source('" . $Alias . "','" . $PathBase . $Location . $cTag . "',function(){return " . $Test . ";});";
         }
@@ -293,9 +293,9 @@ class Script extends Extension
         if (!in_array($Alias, self::$ModuleList)) {
             $RealPath = FileSystem::getFileLoader('/Common/Script/' . $Alias . '.js')->getRealPath();
             if( !empty($RealPath) ) {
-                $cTag = '?cTAG' . md5_file($RealPath);
+                $cTag = '?cTAG-' . md5_file($RealPath);
             } else {
-                $cTag = '?cTAG' . 'MISS-'.time();
+                $cTag = '?cTAG-' . 'MISS-'.time();
             }
             self::$ModuleList[$Alias] = "Client.Module('" . $Alias . "'," . json_encode($Dependencies) . ",'" . $cTag . "');";
         }

@@ -183,16 +183,15 @@
         // Rewrite Custom-Settings to Api-Settings
         if (settings.ExtensionRowReorder.Enabled) {
             settings.processing = true;
+            settings.paging = false;
 
             if (settings.responsive) {
                 settings.rowReorder = {
                     selector: 'td:nth-child(2)',
-                    update: true,
                     snapX: 0
                 }
             } else {
                 settings.rowReorder = {
-                    update: true,
                     snapX: 0
                 };
             }

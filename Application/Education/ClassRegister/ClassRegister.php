@@ -223,18 +223,14 @@ class ClassRegister implements IApplicationInterface
                                     'Absence' => 'Fehlzeiten (E, U)',
                                     'Option' => ''
                                 ), array(
-                                    'order' => array(
-                                        array('0', 'asc'),
-                                    ),
-                                    "paging" => false, // Deaktivieren Blättern
-                                    "iDisplayLength" => -1,    // Alle Einträge zeigen
                                     'ExtensionRowReorder' => array(
                                         'Enabled' => true,
                                         'Url' => '/Api/Education/ClassRegister/Reorder',
-//                                        'Event' => array(
-//                                            'Success' => 'console.log(1,this);',
-//                                            'Error' => 'window.location.reload();',
-//                                        ),
+                                        'Event' => array(
+                                            // FIX Reload Page: GUI DT < VS. > DATA DT
+                                            'Success' => 'window.location.reload();',
+                                            'Error' => 'window.location.reload();',
+                                        ),
                                         'Data' => array(
                                             'DivisionId' => $tblDivision->getId()
                                         )
