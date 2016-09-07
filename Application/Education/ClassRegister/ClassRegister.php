@@ -226,11 +226,6 @@ class ClassRegister implements IApplicationInterface
                                     'ExtensionRowReorder' => array(
                                         'Enabled' => true,
                                         'Url' => '/Api/Education/ClassRegister/Reorder',
-                                        'Event' => array(
-                                            // FIX Reload Page: GUI DT < VS. > DATA DT
-                                            'Success' => 'window.location.reload();',
-                                            'Error' => 'window.location.reload();',
-                                        ),
                                         'Data' => array(
                                             'DivisionId' => $tblDivision->getId()
                                         )

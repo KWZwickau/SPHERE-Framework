@@ -183,15 +183,19 @@
         // Rewrite Custom-Settings to Api-Settings
         if (settings.ExtensionRowReorder.Enabled) {
             settings.processing = true;
-            settings.paging = false;
+
+            // Find FIRST Column Name for Sequence
+            var dataSrc = settings.aoColumns ? settings.aoColumns[0] : settings.columns[0].data;
 
             if (settings.responsive) {
                 settings.rowReorder = {
+                    dataSrc: dataSrc ? dataSrc: 0,
                     selector: 'td:nth-child(2)',
                     snapX: 0
                 }
             } else {
                 settings.rowReorder = {
+                    dataSrc: dataSrc ? dataSrc: 0,
                     snapX: 0
                 };
             }
@@ -200,7 +204,7 @@
                 settings.columnDefs = settings.columnDefs.concat([
                     {orderable: true, targets: 0},
                     {orderable: false, targets: '_all'},
-                    {className: 'reorder', targets: settings.responsive ? 1 : 0},
+                    {className: 'reorder', targets: settings.responsive ? 1 : 0}
                 ]);
             } else {
                 settings.columnDefs = [
