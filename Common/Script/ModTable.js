@@ -95,7 +95,7 @@
                                 align: "center"
                             }
                         });
-                    },
+                    }
                 },
                 Data: {
                     // User-Data (additional)
@@ -107,10 +107,11 @@
                 Handler: {
                     From: 'SourceHandlerClass',
                     To: 'TargetHandlerClass',
+                    All: null
                 },
                 Connect: {
                     From: 'SourceTableClass',
-                    To: 'TargetTableClass',
+                    To: 'TargetTableClass'
                 },
                 Event: {
                     Success: function(Data)
@@ -157,7 +158,7 @@
                                 align: "center"
                             }
                         });
-                    },
+                    }
                 },
                 Data: {
                     // User-Data (additional)
@@ -186,25 +187,27 @@
             if (settings.responsive) {
                 settings.rowReorder = {
                     selector: 'td:nth-child(2)',
+                    update: true,
                     snapX: 0
                 }
             } else {
                 settings.rowReorder = {
+                    update: true,
                     snapX: 0
                 };
             }
 
             if (settings.columnDefs) {
                 settings.columnDefs = settings.columnDefs.concat([
-//                     {orderable: false, targets: '_all'},
-//                     {orderable: true, targets: 0},
-//                     {className: 'reorder', targets: settings.responsive ? 1 : 0},
+                    {orderable: true, targets: 0},
+                    {orderable: false, targets: '_all'},
+                    {className: 'reorder', targets: settings.responsive ? 1 : 0},
                 ]);
             } else {
                 settings.columnDefs = [
                     {orderable: true, targets: 0},
                     {orderable: false, targets: '_all'},
-                    {className: 'reorder', targets: settings.responsive ? 1 : 0},
+                    {className: 'reorder', targets: settings.responsive ? 1 : 0}
                 ];
             }
 
@@ -256,10 +259,16 @@
                 Table.processing(true);
                 var postData = {};
                 for (var i = 0, ien = Diff.length; i < ien; i++) {
-                    var rowData = Table.row(Diff[i].node).data();
-                    postData[i] = {
-                        pre: Diff[i].oldData,
-                        post: Diff[i].newData
+                    if( Diff[i].oldData ) {
+                        postData[i] = {
+                            pre: Diff[i].oldData,
+                            post: Diff[i].newData
+                        }
+                    } else {
+                        postData[i] = {
+                            pre: Diff[i].oldPosition +1,
+                            post: Diff[i].newPosition +1
+                        }
                     }
                 }
                 if (settings.ExtensionRowReorder.Url) {
@@ -313,7 +322,7 @@
                                 settings.ExtensionRowExchange.Handler.From
                             ).addClass(
                                 settings.ExtensionRowExchange.Handler.To
-                            )
+                            );
 
                             var PostData = $.parseJSON(Payload);
                             var TargetRow = Table.row(SourceRow);
@@ -362,7 +371,7 @@
                     settings.ExtensionRowExchange.Handler.From
                 ).addClass(
                     settings.ExtensionRowExchange.Handler.To
-                )
+                );
 
                 var TargetRow = Table.row(SourceRow);
                 ExchangeTarget.row.add(SourceRow).draw();
