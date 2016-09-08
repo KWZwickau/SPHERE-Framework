@@ -10,6 +10,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
@@ -30,6 +31,7 @@ use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\Application\IApplicationInterface;
+use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 
 /**
  * Class ClassRegister
@@ -56,6 +58,9 @@ class ClassRegister implements IApplicationInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Sort', __CLASS__ . '::frontendSortDivision')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\DivisionList', __CLASS__ . '::frontendDivisionList')
         );
     }
 
@@ -200,6 +205,11 @@ class ClassRegister implements IApplicationInterface
                     'DivisionId' => $tblDivision->getId()
                 )
             );
+            $buttonList[] = new Standard(
+                'Klassenliste (Auswertung)', '/Education/ClassRegister/DivisionList', new EyeOpen(), array(
+                    'DivisionId' => $tblDivision->getId()
+                )
+            );
 
             $Stage->setContent(
                 new Layout(array(
@@ -281,6 +291,23 @@ class ClassRegister implements IApplicationInterface
             . new Danger('Klassen nicht vorhanden.', new Ban())
             . new Redirect('/Education/ClassRegister', Redirect::TIMEOUT_ERROR);
         }
+    }
 
+    /**
+     * @param null $DivisionId
+     *
+     * @return string
+     */
+    public function frontendDivisionList($DivisionId = null)
+    {
+
+        $Stage = new Stage('Klassenbuch', 'Klassenliste');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/ClassRegister/Selected', new ChevronLeft(), array('DivisionId' => $DivisionId)
+        ));
+
+        ReportingPerson::useFrontend()->showClassList($Stage, $DivisionId);
+
+        return $Stage;
     }
 }
