@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Api\Document\Standard;
 
+use SPHERE\Application\Api\Document\Creator;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -26,8 +27,19 @@ class Standard extends Extension implements IModuleInterface
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/EnrollmentDocument/Create', __NAMESPACE__.'\Creator::createPdf'
+            __NAMESPACE__ . '/EnrollmentDocument/Create', __CLASS__ . '::createEnrollmentDocumentPdf'
         ));
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createEnrollmentDocumentPdf($PersonId = null)
+    {
+
+        return Creator::createPdf($PersonId, __NAMESPACE__ . '\Repository\EnrollmentDocument');
     }
 
     /**

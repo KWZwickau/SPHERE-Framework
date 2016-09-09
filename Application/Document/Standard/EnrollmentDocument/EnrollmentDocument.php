@@ -82,8 +82,7 @@ class EnrollmentDocument extends AbstractModule implements IModuleInterface
                             'SPHERE\Application\Api\Document\Standard\EnrollmentDocument\Create',
                             new Download(),
                             array(
-                                'PersonId' => $tblPerson->getId(),
-                                'DocumentName' => 'EnrollmentDocument'
+                                'PersonId' => $tblPerson->getId()
                             ),
                             'Schulbescheinigung herunterladen'
                         )
