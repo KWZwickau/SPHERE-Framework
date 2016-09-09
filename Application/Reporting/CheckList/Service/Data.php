@@ -193,6 +193,58 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblObjectType $tblObjectType
+     * @param TblList       $tblList
+     * @param               $ObjectId
+     *
+     * @return bool|TblListObjectList
+     */
+    public function getObjectByObjectTypeAndListAndId(TblObjectType $tblObjectType, TblList $tblList, $ObjectId)
+    {
+
+        $tblListObjectElementList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblListObjectElementList',
+            array(
+                TblListObjectElementList::ATTR_TBL_LIST           => $tblList->getId(),
+                TblListObjectElementList::ATTR_TBL_OBJECT_TYPE    => $tblObjectType->getId(),
+                TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT => $ObjectId
+            ));
+        $result = '';
+        if ($tblListObjectElementList) {
+            /** @var TblListObjectList $tblListObjectElement */
+            foreach ($tblListObjectElementList as $tblListObjectElement) {
+                $result = $tblListObjectElement->getServiceTblObject();
+            }
+        }
+        return ( $result == '' ) ? false : $result;
+    }
+
+    /**
+     * @param TblList            $tblList
+     * @param TblListElementList $tblListElementList
+     * @param TblObjectType      $tblObjectType
+     * @param                    $ObjectId
+     *
+     * @return false|TblListObjectElementList
+     */
+    public function getListObjectElementListByListAndListElementListAndObjectTypeAndObjectId(
+        TblList $tblList,
+        TblListElementList $tblListElementList,
+        TblObjectType $tblObjectType,
+        $ObjectId
+    ) {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblListObjectElementList',
+            array(
+                TblListObjectElementList::ATTR_TBL_LIST              => $tblList->getId(),
+                TblListObjectElementList::ATTR_TBL_LIST_ELEMENT_LIST => $tblListElementList->getId(),
+                TblListObjectElementList::ATTR_TBL_OBJECT_TYPE       => $tblObjectType->getId(),
+                TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT    => $ObjectId
+            ));
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblListElementList
@@ -295,6 +347,28 @@ class Data extends AbstractData
                 TblListObjectElementList::ATTR_TBL_LIST           => $tblList->getId(),
                 TblListObjectElementList::ATTR_TBL_OBJECT_TYPE    => $tblObjectType->getId(),
                 TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
+            ));
+    }
+
+    /**
+     * @param TblList       $tblList
+     * @param TblObjectType $tblObjectType
+     * @param Element       $ObjectId
+     *
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByListAndObjectTypeAndListElementListAndObjectId(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        $ObjectId
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblListObjectElementList',
+            array(
+                TblListObjectElementList::ATTR_TBL_LIST           => $tblList->getId(),
+                TblListObjectElementList::ATTR_TBL_OBJECT_TYPE    => $tblObjectType->getId(),
+                TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT => $ObjectId
             ));
     }
 

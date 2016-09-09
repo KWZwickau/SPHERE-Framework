@@ -112,6 +112,30 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getObjectAllByListAndObjectType($tblList, $tblObjectType);
     }
 
+    public function getObjectByObjectTypeAndListAndId(TblObjectType $tblObjectType, TblList $tblList, $ObjectId)
+    {
+
+        return ( new Data($this->getBinding()) )->getObjectByObjectTypeAndListAndId($tblObjectType, $tblList, $ObjectId);
+    }
+
+    /**
+     * @param TblList            $tblList
+     * @param TblListElementList $tblListElementList
+     * @param TblObjectType      $tblObjectType
+     * @param                    $ObjectId
+     *
+     * @return false|TblListObjectElementList
+     */
+    public function getListObjectElementListByListAndListElementListAndObjectTypeAndObjectId(
+        TblList $tblList,
+        TblListElementList $tblListElementList,
+        TblObjectType $tblObjectType,
+        $ObjectId
+    ) {
+
+        return ( new Data($this->getBinding()) )->getListObjectElementListByListAndListElementListAndObjectTypeAndObjectId($tblList, $tblListElementList, $tblObjectType, $ObjectId);
+    }
+
     /**
      * @param $Identifier
      *
@@ -466,6 +490,38 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getListObjectListById($Id);
     }
 
+    public function updateListObjectElement(
+        IFormInterface $Stage = null,
+        TblList $tblList = null,
+        TblObjectType $tblObjectType = null,
+        $ObjectId = null,
+        $Data = null
+    ) {
+
+        if (!empty( $Data ) && $tblObjectType) {
+            foreach ($Data as $ElementId => $Element) {
+                $tblListElementList = $this->getListElementListById($ElementId);
+                if ($tblObjectType->getIdentifier() === 'PERSON') {
+                    $tblObject = Person::useService()->getPersonById($ObjectId);
+                } else {   // COMPANY
+                    $tblObject = Company::useService()->getCompanyById($ObjectId);
+                }
+
+                // ToDO Insert Data
+
+//                    (new Data($this->getBinding()))->updateObjectElementToList(
+//                        $tblList,
+//                        $tblObjectType,
+//                        $tblListElementList,
+//                        $tblObject,
+//                        $value
+//                    );
+
+            }
+        }
+
+    }
+
     /**
      * @param IFormInterface|null $Stage
      * @param null $Id
@@ -636,6 +692,24 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
             $tblList, $tblObjectType, $tblObject
+        );
+    }
+
+    /**
+     * @param TblList       $tblList
+     * @param TblObjectType $tblObjectType
+     * @param               $ObjectId
+     *
+     * @return bool|Service\Entity\TblListObjectElementList[]
+     */
+    public function getListObjectElementListByListAndObjectTypeAndListElementListAndObjectId(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        $ObjectId
+    ) {
+
+        return ( new Data($this->getBinding()) )->getListObjectElementListByListAndObjectTypeAndListElementListAndObjectId(
+            $tblList, $tblObjectType, $ObjectId
         );
     }
 
