@@ -6,11 +6,10 @@
  * Time: 10:35
  */
 
-namespace SPHERE\Application\Api\Document\Standard;
+namespace SPHERE\Application\Api\Document;
 
 use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Person\Person;
@@ -27,24 +26,27 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 class Creator extends Extension
 {
 
-    public function createPdf($PersonId = null, $DocumentName = null)
+    /**
+     * @param null $PersonId
+     * @param $DocumentClass
+     *
+     * @return Stage|string
+     */
+    public static function createPdf($PersonId, $DocumentClass)
     {
 
-        if (($tblPerson = Person::useService()->getPersonById($PersonId)) && $DocumentName) {
-            $DocumentClass = '\SPHERE\Application\Api\Document\Standard\Repository\\' . $DocumentName;
-            if (class_exists($DocumentClass)) {
-                /** @var AbstractDocument $Document */
-                $Document = new $DocumentClass();
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && class_exists($DocumentClass)
+        ) {
+            /** @var AbstractDocument $Document */
+            $Document = new $DocumentClass();
 
-                $Data['Person']['Id'] = $tblPerson->getId();
-                $File = $this->buildDummyFile($Document, $Data);
+            $Data['Person']['Id'] = $tblPerson->getId();
+            $File = self::buildDummyFile($Document, $Data);
 
-                $FileName = $Document->getName() . ' '  . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
+            $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
 
-                return $this->buildDownloadFile($File, $FileName);
-            }
-
-
+            return self::buildDownloadFile($File, $FileName);
         }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');
@@ -56,7 +58,7 @@ class Creator extends Extension
      *
      * @return FilePointer
      */
-    private function buildDummyFile(AbstractDocument $DocumentClass, $Data = array())
+    private static function buildDummyFile(AbstractDocument $DocumentClass, $Data = array())
     {
 
         // Create Tmp
@@ -71,16 +73,16 @@ class Creator extends Extension
 
     /**
      * @param FilePointer $File
-     * @param string      $FileName
+     * @param string $FileName
      *
      * @return string
      */
-    private function buildDownloadFile(FilePointer $File, $FileName = '')
+    private static function buildDownloadFile(FilePointer $File, $FileName = '')
     {
 
         return FileSystem::getDownload(
             $File->getRealPath(),
-            $FileName ? $FileName : "Dokument ".date("Y-m-d").".pdf"
+            $FileName ? $FileName : "Dokument " . date("Y-m-d") . ".pdf"
         )->__toString();
     }
 }
