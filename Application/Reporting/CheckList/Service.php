@@ -490,6 +490,12 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getListObjectListById($Id);
     }
 
+    public function updateListElementListSortOrder(TblListElementList $tblListElementList, $SortOrder)
+    {
+
+        return ( new Data($this->getBinding()) )->updateListElementListSortOrder($tblListElementList, $SortOrder);
+    }
+
     public function updateListObjectElement(
         IFormInterface $Stage = null,
         TblList $tblList = null,
@@ -498,28 +504,70 @@ class Service extends AbstractService
         $Data = null
     ) {
 
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $tblObject = false;
+        if ($tblObjectType->getIdentifier() === 'PERSON') {
+            $tblObject = Person::useService()->getPersonById($ObjectId);
+        } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {   // COMPANY
+            $tblObject = Company::useService()->getCompanyById($ObjectId);
+        }
+        $tblListObjectElementList = false;
+        if ($tblList != null && $tblObjectType != null && $tblObject) {
+            $tblListObjectElementList = CheckList::useService()->getListObjectElementListByListAndObjectTypeAndListElementListAndObject($tblList, $tblObjectType, $tblObject);
+        }
+        if ($tblListObjectElementList) {
+            foreach ($tblListObjectElementList as $tblListObjectElement) {
+                $ElementTypeIdentifier = '';
+                if (( $tblElementList = $tblListObjectElement->getTblListElementList() )) {
+                    if (( $tblElementType = $tblElementList->getTblElementType() )) {
+                        $ElementTypeIdentifier = $tblElementType->getIdentifier();
+                    }
+                }
+                if (( $tblObjectElement = $tblListObjectElement->getTblListElementList() )) {
+                    $ElementId = $tblObjectElement->getId();
+                    if ($ElementTypeIdentifier == 'CHECKBOX') {
+                        if (!isset( $Data[$ElementId] )) {
+                            $tblListElementList = $this->getListElementListById($ElementId);
+                            ( new Data($this->getBinding()) )->updateObjectElementToList(
+                                $tblList,
+                                $tblObjectType,
+                                $tblListElementList,
+                                $tblObject,
+                                null
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         if (!empty( $Data ) && $tblObjectType) {
             foreach ($Data as $ElementId => $Element) {
                 $tblListElementList = $this->getListElementListById($ElementId);
-                if ($tblObjectType->getIdentifier() === 'PERSON') {
-                    $tblObject = Person::useService()->getPersonById($ObjectId);
-                } else {   // COMPANY
-                    $tblObject = Company::useService()->getCompanyById($ObjectId);
-                }
 
-                // ToDO Insert Data
-
-//                    (new Data($this->getBinding()))->updateObjectElementToList(
-//                        $tblList,
-//                        $tblObjectType,
-//                        $tblListElementList,
-//                        $tblObject,
-//                        $value
-//                    );
+                ( new Data($this->getBinding()) )->updateObjectElementToList(
+                    $tblList,
+                    $tblObjectType,
+                    $tblListElementList,
+                    $tblObject,
+                    $Element
+                );
 
             }
         }
 
+        return $Stage;
+//        .new Redirect('/Reporting/CheckList/Object/Element/Edit',Redirect::TIMEOUT_SUCCESS,
+//            array('ObjectId' => $ObjectId,
+//                  'ListId' => $tblList->getId(),
+//                  'ObjectTypeId' => $tblObjectType->getId(),
+//                ));
     }
 
     /**

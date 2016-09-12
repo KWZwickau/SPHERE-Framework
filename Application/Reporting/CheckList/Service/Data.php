@@ -264,9 +264,37 @@ class Data extends AbstractData
     public function getListElementListByList(TblList $tblList)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+        $TempList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblListElementList',
             array(TblListElementList::ATTR_TBL_LIST => $tblList->getId()));
+        $EntityList = array();
+        if (!empty ( $TempList )) {
+
+            // ist Check-List sortiert
+            $isSorted = false;
+            /** @var TblListElementList $tblListElementList */
+            foreach ($TempList as $tblListElementList) {
+                if ($tblListElementList->getSortOrder() !== null) {
+                    $isSorted = true;
+                    break;
+                }
+            }
+
+            if ($isSorted) {
+                $TempList = $this->getSorter($TempList)->sortObjectBy('SortOrder');
+                /** @var TblListElementList $tblListElementList */
+                if ($TempList) {
+                    foreach ($TempList as $tblListElementList) {
+                        array_push($EntityList, $tblListElementList);
+                    }
+                }
+            }
+
+            if (!$isSorted) {
+                $EntityList = $TempList;
+            }
+        }
+        return empty( $EntityList ) ? false : $EntityList;
     }
 
     /**
@@ -611,6 +639,31 @@ class Data extends AbstractData
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblListElementList $tblListElementList
+     * @param integer            $SortOrder
+     *
+     * @return bool
+     */
+    public function updateListElementListSortOrder(TblListElementList $tblListElementList, $SortOrder)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblListElementList $Entity */
+        $Entity = $Manager->getEntityById('TblListElementList', $tblListElementList->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setSortOrder($SortOrder);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
             return true;
         }
         return false;

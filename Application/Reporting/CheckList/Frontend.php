@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
@@ -54,6 +55,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -208,7 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblList->getName() .
                                     ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
                                         . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
-                                    Panel::PANEL_TYPE_INFO
+                                    Panel::PANEL_TYPE_SUCCESS
                                 )
                             ),
                         ))
@@ -260,7 +262,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('Check-Liste', new Bold($tblList->getName()) .
                                 ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
                                     . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
-                                Panel::PANEL_TYPE_INFO),
+                                Panel::PANEL_TYPE_SUCCESS),
                             new Panel(new Question() . ' Diese Liste wirklich löschen?', array(
                                 $tblList->getName() . ' ' . $tblList->getDescription()
                             ),
@@ -325,8 +327,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
 
+                $count = 0;
                 if ($tblListElementListByList) {
                     foreach ($tblListElementListByList as &$tblListElementList) {
+                        $count++;
+                        if ($tblListElementList->getSortOrder() != '') {
+                            $tblListElementList->Number = $tblListElementList->getSortOrder();
+                        } else {
+                            $tblListElementList->Number = $count;
+                        }
+                        $tblListElementList->Named = new PullClear(
+                            new PullLeft(new ResizeVertical().' '.$tblListElementList->getName())
+                        );
                         $tblListElementList->Type = $tblListElementList->getTblElementType()->getName();
                         $tblListElementList->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
@@ -349,19 +361,38 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel('Check-Liste', new Bold($tblList->getName()) .
                                         ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
                                             . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
-                                        Panel::PANEL_TYPE_INFO),
-                                    12
+                                        Panel::PANEL_TYPE_SUCCESS),
+                                    4
                                 ),
                             ))
                         )),
                         new LayoutGroup(array(
                             new LayoutRow(array(
+//                                new LayoutColumn(array(
+//                                    new TableData($tblListElementListByList, null,
+//                                        array(
+//                                            'Name' => 'Name',
+//                                            'Type' => 'Typ',
+//                                            'Option' => ''
+//                                        )
+//                                    )
+//                                )),
                                 new LayoutColumn(array(
                                     new TableData($tblListElementListByList, null,
                                         array(
-                                            'Name' => 'Name',
-                                            'Type' => 'Typ',
+                                            'Number' => '#',
+                                            'Named'  => 'Name',
+                                            'Type'   => 'Typ',
                                             'Option' => ''
+                                        )
+                                        , array(
+                                            'ExtensionRowReorder' => array(
+                                                'Enabled' => true,
+                                                'Url'     => '/Api/Reporting/CheckList/Reorder',
+                                                'Data'    => array(
+                                                    'Id' => $tblList->getId()
+                                                )
+                                            )
                                         )
                                     )
                                 ))
@@ -403,9 +434,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
-     * @return Stage
+     * @return string
      */
     public function frontendListElementRemove($Id = null)
     {
@@ -813,8 +844,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel('Check-Liste', new Bold($tblList->getName()) .
                                         ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
                                             . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
-                                        Panel::PANEL_TYPE_INFO),
-                                    12
+                                        Panel::PANEL_TYPE_SUCCESS),
+                                    4
                                 ),
                                 new LayoutColumn(new Well(
                                     CheckList::useService()->getObjectType(
@@ -887,7 +918,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $ObjectTypeId
      * @param null $Option
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendListObjectAdd($ListId = null, $ObjectId = null, $ObjectTypeId = null, $Option = null)
     {
@@ -1084,9 +1115,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
-     * @return Stage
+     * @return string
      */
     public function frontendListObjectRemove(
         $Id = null
@@ -1449,8 +1480,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('Check-Liste', new Bold($tblList->getName()).
                                 ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
                                     .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
-                                Panel::PANEL_TYPE_INFO),
-                            12
+                                Panel::PANEL_TYPE_SUCCESS),
+                            4
                         ),
                     ))
                 )),
@@ -1489,6 +1520,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendListObjectElementEdit($ObjectId = null, $ListId = null, $ObjectTypeId = null, $Data = null)
     {
+//        Debugger::screenDump($ObjectId, $ListId, $ObjectTypeId, $Data);
 
         $Stage = new Stage('Eintrag', 'Bearbeiten');
         if ($ObjectId == null || $ListId == null || $ObjectTypeId == null) {
@@ -1525,7 +1557,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // set Post
         $tblListObjectElementList = CheckList::useService()->getListObjectElementListByList($tblList);
-        if ($tblListObjectElementList) {
+        if ($tblListObjectElementList && empty( $Data )) {
             $Global = $this->getGlobal();
             foreach ($tblListObjectElementList as $item) {
                 if ($item->getServiceTblObject()) {
@@ -1571,9 +1603,15 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel(( $tblCompany ? 'Firma' : 'Person' ), $PanelName, Panel::PANEL_TYPE_SUCCESS)
-                            , 4)
-                    ,
+                            new Panel(( $tblCompany ? 'Firma' : ( $tblPerson ? 'Person' : '' ) ), $PanelName, Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Check-Liste', new Bold($tblList->getName()).
+                                ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
+                                Panel::PANEL_TYPE_SUCCESS),
+                            4
+                        ),
                         new LayoutColumn(new Well(
                             CheckList::useService()->updateListObjectElement(
                                 $Form, $tblList, $tblObjectType, $ObjectId, $Data
@@ -1597,7 +1635,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $SchoolOption1Id
      * @param null $SchoolOption2Id
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendListObjectElementEdits(
         $Id = null,
@@ -1954,7 +1992,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('Check-Liste', new Bold($tblList->getName()).
                                 ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
                                     .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
-                                Panel::PANEL_TYPE_INFO),
+                                Panel::PANEL_TYPE_SUCCESS),
                             $hasFilter ? 6 : 12
                         ),
                         ( $hasFilter ?
