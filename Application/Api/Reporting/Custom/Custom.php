@@ -114,6 +114,16 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'\Schneeberg\Person::downloadClassList'
             ));
         }
+
+        /*
+        * Radebeul
+        */
+        if ($consumerAcronym === 'EVSR' || $consumerAcronym === 'DEMO') {
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Radebeul/Person/ParentTeacherConferenceList/Download',
+                __NAMESPACE__.'\Radebeul\Person::downloadParentTeacherConferenceList'
+            ));
+        }
     }
 
     /**
