@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Api\Document;
 
+use SPHERE\Application\Api\Document\Custom\Custom;
 use SPHERE\Application\Api\Document\Standard\Standard;
 use SPHERE\Application\IApplicationInterface;
 
@@ -23,5 +24,6 @@ class Document implements IApplicationInterface
     {
 
         Standard::registerModule();
+        Custom::registerModule();
     }
 }
