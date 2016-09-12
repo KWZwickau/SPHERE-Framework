@@ -266,7 +266,7 @@ class Data extends AbstractData
 
         $TempList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblListElementList',
-            array(TblListElementList::ATTR_TBL_LIST => $tblList->getId()));
+            array(TblListElementList::ATTR_TBL_LIST => $tblList->getId()), array('EntityCreate' => self::ORDER_ASC));
         $EntityList = array();
         if (!empty ( $TempList )) {
 

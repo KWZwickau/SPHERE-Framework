@@ -490,12 +490,27 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getListObjectListById($Id);
     }
 
+    /**
+     * @param TblListElementList $tblListElementList
+     * @param                    $SortOrder
+     *
+     * @return bool
+     */
     public function updateListElementListSortOrder(TblListElementList $tblListElementList, $SortOrder)
     {
 
         return ( new Data($this->getBinding()) )->updateListElementListSortOrder($tblListElementList, $SortOrder);
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblList|null        $tblList
+     * @param TblObjectType|null  $tblObjectType
+     * @param null                $ObjectId
+     * @param null                $Data
+     *
+     * @return IFormInterface|string
+     */
     public function updateListObjectElement(
         IFormInterface $Stage = null,
         TblList $tblList = null,
@@ -503,11 +518,11 @@ class Service extends AbstractService
         $ObjectId = null,
         $Data = null
     ) {
-
         /**
          * Skip to Frontend
          */
-        if (null === $Data) {
+        $Global = $this->getGlobal();
+        if (null === $Data && !isset( $Global->POST['Button'] )) {
             return $Stage;
         }
 
@@ -563,11 +578,8 @@ class Service extends AbstractService
         }
 
         return $Stage;
-//        .new Redirect('/Reporting/CheckList/Object/Element/Edit',Redirect::TIMEOUT_SUCCESS,
-//            array('ObjectId' => $ObjectId,
-//                  'ListId' => $tblList->getId(),
-//                  'ObjectTypeId' => $tblObjectType->getId(),
-//                ));
+//        .new Redirect('/Reporting/CheckList/Object/Element/Show', Redirect::TIMEOUT_SUCCESS,
+//            array('Id' => $tblList->getId()));
     }
 
     /**
@@ -1247,7 +1259,7 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        return new Redirect('/Reporting/CheckList/Object/Element/Edit', Redirect::TIMEOUT_SUCCESS, array(
+        return new Redirect('/Reporting/CheckList/Object/Element/Show', Redirect::TIMEOUT_SUCCESS, array(
             'Id'              => $ListId,
             'YearPersonId'    => $Filter['Year'],
             'LevelPersonId'   => $Filter['Level'],
