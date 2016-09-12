@@ -184,8 +184,14 @@
         if (settings.ExtensionRowReorder.Enabled) {
             settings.processing = true;
 
-            // Find FIRST Column Name for Sequence
-            var dataSrc = settings.aoColumns ? settings.aoColumns[0] : settings.columns[0].data;
+            // Find FIRST Column Name (.column(0).dataSrc()) for Sequence
+            var dataSrc = 0;
+            if( settings.aoColumns ) {
+                dataSrc = settings.aoColumns[0];
+            }
+            if( settings.columns ) {
+                dataSrc = settings.columns[0].data;
+            }
 
             if (settings.responsive) {
                 settings.rowReorder = {
