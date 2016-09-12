@@ -179,7 +179,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $Id
      * @param $Subject
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendChangeSubject($Id, $Subject)
     {
@@ -446,6 +446,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroup = Subject::useService()->getGroupById($Id);
         if ($tblGroup) {
             $Stage->setTitle($tblGroup->getName());
+            $Stage->setMessage($tblGroup->getName().' für viele Schüler gleichzeitig ändern');
+
             $tblCategoryList = Subject::useService()->getCategoryAllByGroup($tblGroup);
             if ($tblCategoryList) {
                 foreach ($tblCategoryList as $tblCategory) {
@@ -466,11 +468,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Content[$Subject->getId()]['Short'] = $Subject->getAcronym();
                 $Content[$Subject->getId()]['Description'] = $Subject->getDescription();
                 $Content[$Subject->getId()]['Option'] = ( $tblGroup->getName() == 'Wahlfach' ?
-                    new Standard($tblGroup->getName().' 1', '/Education/Lesson/Subject/Link/Person/Add', new PersonGroup(), array(
+                    new Standard('1. '.$tblGroup->getName(), '/Education/Lesson/Subject/Link/Person/Add', new PersonGroup(), array(
                         'Id'        => $tblGroup->getId(),
                         'SubjectId' => $Subject->getId(),
                         'Group'     => 1
-                    )).new Standard($tblGroup->getName().' 2', '/Education/Lesson/Subject/Link/Person/Add', new PersonGroup(), array(
+                    )).new Standard('2. '.$tblGroup->getName(), '/Education/Lesson/Subject/Link/Person/Add', new PersonGroup(), array(
                         'Id'        => $tblGroup->getId(),
                         'SubjectId' => $Subject->getId(),
                         'Group'     => 2
@@ -488,7 +490,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($Content, new \SPHERE\Common\Frontend\Table\Repository\Title($tblGroup->getName().' Auswahl')
+                            new TableData($Content, new \SPHERE\Common\Frontend\Table\Repository\Title($tblGroup->getName(), ' Auswahl')
                                 , array('Name'        => 'Fach',
                                         'Short'       => 'Kürzel',
                                         'Description' => 'Beschreibung',
@@ -524,7 +526,7 @@ class Frontend extends Extension implements IFrontendInterface
         $FilterDivisionId = null
     ) {
 
-        $Stage = new Stage('', 'Massenzuweisung');
+        $Stage = new Stage('Kategorie', 'Fach:');
         $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
         $tblSubjectGroup = Subject::useService()->getGroupById($Id);
         $SubjectGroup = '';
@@ -545,8 +547,14 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage->setContent(new Warning('Fach nicht gefunden'));
         }
 
-        $Stage->setTitle($SubjectGroup);
+        if ($SubjectGroup == 'Wahlfach') {
+
+            $Stage->setTitle($Group.'. '.$SubjectGroup);
+        } else {
+            $Stage->setTitle($SubjectGroup);
+        }
         $Stage->setDescription('Fach: '.new Success($tblSubject->getName()));
+        $Stage->setMessage($SubjectGroup.' für viele Schüler gleichzeitig ändern');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject/Link/Person', new ChevronLeft(), array('Id' => $Id)));
 
         if ($tblGroup) {   //  = Group::useService()->getGroupById($Id))
@@ -621,19 +629,20 @@ class Frontend extends Extension implements IFrontendInterface
 
             if (!$tblFilterDivision) {
                 $displayAvailablePersons = new Warning(
-                    'Zum Eintragen vom Fach: '.$tblSubject->getName().' als '.$SubjectGroup.' für mehrere Personen schränken Sie bitte den Personenkreis über die Suche (Klasse) ein.',
+                    'Zum eintragen vom Fach: '.$tblSubject->getName().' als '.$SubjectGroup.' für mehrere Personen schränken Sie bitte den Personenkreis über die Suche (Klasse) ein.',
                     new Exclamation()
                 );
             } elseif ($tblPersonAll) {
 
                 $displayAvailablePersons = new TableData(
                     $tblPersonAll,
-                    new \SPHERE\Common\Frontend\Table\Repository\Title('Weitere Personen', 'hinzufügen'),
+                    new \SPHERE\Common\Frontend\Table\Repository\Title('Fach "'.$tblSubject->getName().'" von der Kategorie "'.$SubjectGroup.'" der Personen',
+                        'hinzufügen'),
                     array(
                         'Check'       => new Center(new Small('Hinzufügen ').new Enable()),
                         'DisplayName' => 'Name',
                         'Address'     => 'Adresse',
-                        'Groups'      => 'Gruppen/Klasse '
+                        'Groups'      => 'Klasse'
                     ),
                     array(
                         "columnDefs"     => array(
@@ -671,13 +680,13 @@ class Frontend extends Extension implements IFrontendInterface
                             ( $tblPersonList
                                 ? new TableData(
                                     $tblPersonList,
-                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Mitglieder der Gruppe "'.$tblGroup->getName().'"',
+                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Fach "'.$tblSubject->getName().'" von der Kategorie "'.$SubjectGroup.'" der Personen',
                                         'entfernen'),
                                     array(
                                         'Check'       => new Center(new Small('Entfernen ').new Disable()),
                                         'DisplayName' => 'Name',
                                         'Address'     => 'Adresse',
-                                        'Groups'      => 'Gruppen/Klasse'
+                                        'Groups'      => 'Klasse'
                                     ),
                                     array(
                                         "columnDefs"     => array(
@@ -719,24 +728,25 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(new Layout(array(
                 new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel(
-                                'Gruppe',
-                                $tblGroup->getName().' '.new Small(new Muted($tblGroup->getDescription())),
-                                Panel::PANEL_TYPE_INFO
-                            ), 12
-                        ),
-                    ))
+                    new LayoutRow(array())
                 )),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Well(
-                                Subject::useService()->getFilter(
-                                    $this->formFilter(), $Id, $SubjectId, $Filter
-                                )
-                            ), 12
+                            new Well(new Layout(
+                                    new LayoutGroup(
+                                        new LayoutRow(array(
+                                            new LayoutColumn(
+                                                new Panel('Gruppe', $tblGroup->getName().' '.new Small(new Muted($tblGroup->getDescription())))
+                                                , 6),
+                                            new LayoutColumn(
+                                                Subject::useService()->getFilter(
+                                                    $this->formFilter(), $Id, $SubjectId, $Filter
+                                                ), 6
+                                            )
+                                        ))
+                                    ))
+                            )
                         )
                     ))
                 ), new Title('Personensuche')),
@@ -764,7 +774,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             ))
                         ))
-                    ), new Title('Zusammensetzung', 'der Gruppe')) : null )
+                    ), new Title('Personen mit dem Fach "'.$tblSubject->getName().'" ', 'der Kategorie "'.$SubjectGroup.'"')) : null )
             )));
 
         } else {
@@ -804,10 +814,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // current Divisions
-//        $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
-        $displayDivisionList = array();
-
-        $result['Groups'] = ( !empty( $groups ) ? implode(', ', $groups).( $displayDivisionList ? ', '.$displayDivisionList : '' ) : '' );
+        $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
+        // current Groups
+//        $displayDivisionList = array();
+//        $result['Groups'] = ( !empty( $groups ) ? implode(', ', $groups).( $displayDivisionList ? ', '.$displayDivisionList : '' ) : '' );
+        $result['Groups'] = $displayDivisionList;
 
         return $result;
     }
@@ -836,7 +847,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                        new SelectBox('Filter[Group]', 'Gruppe', array('Name' => $tblGroupAll)), 6
 //                    ),
                     new FormColumn(
-                        new SelectBox('Filter[Division]', 'Klasse', array('DisplayName' => $tblDivisionList)), 6
+                        new SelectBox('Filter[Division]', 'Klasse', array('DisplayName' => $tblDivisionList)), 12
                     ),
                     new FormColumn(
                         new Primary('Suchen', new Filter())
