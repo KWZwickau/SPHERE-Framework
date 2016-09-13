@@ -33,6 +33,9 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/PhoneList'), new Link\Name('Telefonliste'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/KindergartenList'), new Link\Name('Kinderhausliste'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'
@@ -48,6 +51,10 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/PhoneList',
             __NAMESPACE__.'\Frontend::frontendPhoneList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/KindergartenList',
+            __NAMESPACE__.'\Frontend::frontendKindergartenList'
         ));
     }
 

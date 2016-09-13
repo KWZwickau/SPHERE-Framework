@@ -449,4 +449,128 @@ class Service extends Extension
 
         return false;
     }
+
+    /**
+     *
+     * @param TblGroup $tblGroup
+     *
+     * @return array
+     */
+    public function createKindergartenList(TblGroup $tblGroup)
+    {
+
+        $TableContent = array();
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if ($tblPersonList) {
+            $count = 1;
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+            /** @var TblPerson $tblPerson */
+            foreach ($tblPersonList as $tblPerson) {
+                $Item['Number'] = $count++;
+                $Item['LastName'] = $tblPerson->getLastName();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['Kindergarten'] = '';
+                $Item['Birthday'] = '';
+
+                if (($tblStudent = $tblPerson->getStudent())) {
+                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE'))
+                        && (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType)))
+                        && ($tblCompany = $tblTransfer->getServiceTblCompany())
+                        && ($tblNurseryGroup = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('NURSERY'))
+                        && \SPHERE\Application\Corporation\Group\Group::useService()->existsGroupCompany($tblNurseryGroup,
+                            $tblCompany)
+                    ) {
+                        $Item['Kindergarten'] = $tblCompany->getDisplayName();
+                    }
+                }
+
+                if ($tblPerson->getCommon()
+                    && ($tblCommonBirthDates = $tblPerson->getCommon()->getTblCommonBirthDates())
+                ) {
+                    $Item['Birthday'] = $tblCommonBirthDates->getBirthday();
+                }
+
+                array_push($TableContent, $Item);
+            }
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param $PersonList
+     *
+     * @return bool|FilePointer
+     * @throws DocumentTypeException
+     * @throws \MOC\V\Component\Document\Component\Exception\ComponentException
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     */
+    public function createKindergartenListExcel(TblGroup $tblGroup, $PersonList)
+    {
+
+        if (!empty($PersonList)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $row = 0;
+            $column = 0;
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $export->setValue($export->getCell(0, $row), 'Klassenliste - Kinderhaus');
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
+            $row++;
+            $export->setValue($export->getCell(0, $row), 'Klasse: ' . $tblGroup->getName());
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
+            $row++;
+            $export->setValue($export->getCell(3, $row), date('d.m.Y'));
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setAlignmentRight();
+
+            $export->setStyle($export->getCell(0, 0), $export->getCell(3, $row))->setBorderOutline();
+
+            $row++;
+            $row++;
+            $export->setValue($export->getCell($column++, $row), 'lfdNr.');
+            $export->setValue($export->getCell($column++, $row), 'Name');
+            $export->setValue($export->getCell($column++, $row), 'Vorname');
+            $export->setValue($export->getCell($column++, $row), 'Geburtstag');
+            $export->setValue($export->getCell($column, $row), 'Kinderhaus');
+
+            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setBorderAll();
+
+            foreach ($PersonList as $PersonData) {
+                $row++;
+                $column = 0;
+
+                $export->setValue($export->getCell($column, $row), $PersonData['Number']);
+                $export->setStyle($export->getCell(0, $row), $export->getCell($column++, $row))->setAlignmentCenter();
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);
+                $export->setValue($export->getCell($column, $row), $PersonData['Kindergarten']);
+
+                $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setBorderAll();
+            }
+
+            $column = 0;
+            // Spaltenbreite
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(6);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(30);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(30);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(15);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(40);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
 }

@@ -400,4 +400,107 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    /**
+     * @param $GroupId
+     *
+     * @return Stage
+     */
+    public function frontendKindergartenList($GroupId = null)
+    {
+
+        $Stage = new Stage('Individuelle Auswertung', 'Kinderhausliste');
+        if (null !== $GroupId) {
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Radebeul/Person/KindergartenList',
+                new ChevronLeft()));
+        }
+
+        $tblGroupAll = Group::useService()->getGroupAll();
+        if ($GroupId !== null) {
+            $tblGroup = Division::useService()->getDivisionById($GroupId);
+            if ($tblGroup) {
+                $PersonList = Person::useService()->createParentTeacherConferenceList($tblGroup);
+                if ($PersonList) {
+                    $Stage->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Custom/Radebeul/Person/KindergartenList/Download',
+                            new Download(),
+                            array('GroupId' => $tblGroup->getId()))
+                    );
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+                }
+            }
+        }
+
+        $TableContent = array();
+        if ($tblGroupAll) {
+            array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$TableContent) {
+
+                $Item['Name'] = $tblGroup->getName();
+                $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/KindergartenList',
+                    new EyeOpen(),
+                    array('GroupId' => $tblGroup->getId()));
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        if ($GroupId === null) {
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($TableContent, null,
+                                    array(
+                                        'Name' => 'Gruppe',
+                                        'Option' => '',
+                                    )
+                                )
+                                , 12)
+                        ), new Title(new Listing() . ' Übersicht')
+                    )
+                )
+            );
+        } else {
+            if (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+                $personList = Person::useService()->createKindergartenList($tblGroup);
+
+                $Stage->setContent(
+                    new Layout(array(
+                        new LayoutGroup(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Gruppe', $tblGroup->getName(),
+                                        Panel::PANEL_TYPE_SUCCESS)
+                                )
+                            ))
+                        ),
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new TableData($personList, null,
+                                        array(
+                                            'Number' => 'lfdNr.',
+                                            'LastName' => 'Name',
+                                            'FirstName' => 'Vorname',
+                                            'Birthday' => 'Geburtstag',
+                                            'Kindergarten' => 'Kinderhaus',
+                                        ),
+                                        array(
+                                            "pageLength" => -1,
+                                            "responsive" => false,
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ))
+                );
+            }
+        }
+
+        return $Stage;
+    }
 }
