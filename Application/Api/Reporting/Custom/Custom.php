@@ -127,6 +127,10 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'/Radebeul/Person/DenominationList/Download',
                 __NAMESPACE__.'\Radebeul\Person::downloadDenominationList'
             ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Radebeul/Person/PhoneList/Download',
+                __NAMESPACE__.'\Radebeul\Person::downloadPhoneList'
+            ));
         }
     }
 

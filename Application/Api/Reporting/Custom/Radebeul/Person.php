@@ -10,6 +10,7 @@ namespace SPHERE\Application\Api\Reporting\Custom\Radebeul;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Reporting\Custom\Radebeul\Person\Person as RadebeulPerson;
 
 /**
@@ -60,6 +61,29 @@ class Person
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "Radebeul Religionszugehörigkeit " . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param null $GroupId
+     *
+     * @return bool|string
+     */
+    public function downloadPhoneList($GroupId = null)
+    {
+
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+        if ($tblGroup) {
+            $PersonList = RadebeulPerson::useService()->createPhoneList($tblGroup);
+            if ($PersonList) {
+                $fileLocation = RadebeulPerson::useService()->createPhoneListExcel($PersonList);
+
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Radebeul Telefonliste " . $tblGroup->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+            }
         }
 
         return false;
