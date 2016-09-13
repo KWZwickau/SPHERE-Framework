@@ -9,12 +9,12 @@
 namespace SPHERE\Application\Reporting\SerialLetter\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -42,12 +42,53 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblSerialPerson
+     */
+    public function getSerialPersonById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSerialPerson',
+            $Id);
+    }
+
+    /**
      * @return bool|TblSerialLetter[]
      */
     public function getSerialLetterAll()
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSerialLetter');
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return false|TblSerialPerson[]
+     */
+    public function getSerialPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSerialPerson',
+            array(TblSerialPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()));
+    }
+
+    public function getPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSerialPerson',
+            array(TblSerialPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()));
+        $tblPersonList = array();
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                /** @var TblSerialPerson $Entity */
+                $tblPersonList[] = $Entity->getServiceTblPerson();
+            }
+        }
+
+        return ( empty( $tblPersonList ) ? false : $tblPersonList );
+
     }
 
     /**
@@ -82,14 +123,12 @@ class Data extends AbstractData
 
     /**
      * @param $Name
-     * @param TblGroup $tblGroup
      * @param string $Description
      *
      * @return TblSerialLetter
      */
     public function createSerialLetter(
         $Name,
-        TblGroup $tblGroup,
         $Description = ''
     ) {
 
@@ -98,14 +137,41 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblSerialLetter')
             ->findOneBy(array(
                 TblSerialLetter::ATTR_NAME => $Name,
-                TblSerialLetter::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
             ));
 
         if (null === $Entity) {
             $Entity = new TblSerialLetter();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setServiceTblGroup($tblGroup);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
+     *
+     * @return null|object|TblSerialPerson
+     */
+    public function addSerialPerson(TblSerialLetter $tblSerialLetter, TblPerson $tblPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblSerialPerson')
+            ->findOneBy(array(
+                TblSerialPerson::ATTR_TBL_SERIAL_LETTER  => $tblSerialLetter->getId(),
+                TblSerialPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblSerialPerson();
+            $Entity->setTblSerialLetter($tblSerialLetter);
+            $Entity->setServiceTblPerson($tblPerson);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -117,7 +183,6 @@ class Data extends AbstractData
     /**
      * @param TblSerialLetter $tblSerialLetter
      * @param $Name
-     * @param TblGroup $tblGroup
      * @param $Description
      *
      * @return bool
@@ -125,7 +190,6 @@ class Data extends AbstractData
     public function updateSerialLetter(
         TblSerialLetter $tblSerialLetter,
         $Name,
-        TblGroup $tblGroup,
         $Description
     ) {
 
@@ -136,7 +200,6 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setName($Name);
-            $Entity->setServiceTblGroup($tblGroup);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -226,6 +289,32 @@ class Data extends AbstractData
 
         /** @var TblSerialLetter $Entity */
         $Entity = $Manager->getEntityById('TblSerialLetter', $tblSerialLetter->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
+     *
+     * @return bool
+     */
+    public function removeSerialPerson(TblSerialLetter $tblSerialLetter, TblPerson $tblPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblSerialPerson')
+            ->findOneBy(array(
+                TblSerialPerson::ATTR_TBL_SERIAL_LETTER  => $tblSerialLetter->getId(),
+                TblSerialPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
+
+        /** @var TblSerialPerson $Entity */
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);

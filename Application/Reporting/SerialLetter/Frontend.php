@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -45,9 +46,11 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Exchange;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -74,12 +77,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblSerialLetterAll) {
             foreach ($tblSerialLetterAll as &$tblSerialLetter) {
-                $tblSerialLetter->Group = $tblSerialLetter->getServiceTblGroup() ? $tblSerialLetter->getServiceTblGroup()->getName() : '';
                 $tblSerialLetter->Option =
                     (new Standard(new Edit(), '/Reporting/SerialLetter/Edit', null,
                         array('Id' => $tblSerialLetter->getId()), 'Bearbeiten'))
                     . (new Standard(new Remove(), '/Reporting/SerialLetter/Destroy', null,
                         array('Id' => $tblSerialLetter->getId()), 'Löschen'))
+                    .( new Standard(new PersonIcon(), '/Reporting/SerialLetter/Person/Select', null,
+                        array('Id' => $tblSerialLetter->getId()), 'Peresonen auswählen') )
                     . (new Standard(new ListingTable(), '/Reporting/SerialLetter/Select', null,
                         array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen'))
                     . (new Standard(new EyeOpen(), '/Reporting/SerialLetter/Export', null,
@@ -99,7 +103,6 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new TableData($tblSerialLetterAll, null, array(
                                 'Name' => 'Name',
-                                'Group' => 'Personengruppe',
                                 'Description' => 'Beschreibung',
                                 'Option' => '',
                             ))
@@ -138,13 +141,10 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new TextField('SerialLetter[Name]', 'Name', 'Name'), 8
+                    new TextField('SerialLetter[Name]', 'Name', 'Name'), 4
                 ),
                 new FormColumn(
-                    new SelectBox('SerialLetter[Group]', 'Personengruppe', array('Name' => $tblGroupAll)), 4
-                ),
-                new FormColumn(
-                    new TextField('SerialLetter[Description]', 'Beschreibung', 'Beschreibung'), 12
+                    new TextField('SerialLetter[Description]', 'Beschreibung', 'Beschreibung'), 8
                 )
             ))
         )));
@@ -165,8 +165,6 @@ class Frontend extends Extension implements IFrontendInterface
             if ($SerialLetter == null) {
                 $Global = $this->getGlobal();
                 $Global->POST['SerialLetter']['Name'] = $tblSerialLetter->getName();
-                $Global->POST['SerialLetter']['Group'] = $tblSerialLetter->getServiceTblGroup()
-                    ? $tblSerialLetter->getServiceTblGroup()->getId() : 0;
                 $Global->POST['SerialLetter']['Description'] = $tblSerialLetter->getDescription();
                 $Global->savePost();
             }
@@ -176,11 +174,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         new Panel('Name', $tblSerialLetter->getName() . ' '
                             . new Small(new Muted($tblSerialLetter->getDescription())), Panel::PANEL_TYPE_INFO), 8
-                    ),
-                    new LayoutColumn(
-                        new Panel('Gruppe',
-                            $tblSerialLetter->getServiceTblGroup() ? $tblSerialLetter->getServiceTblGroup()->getName() : '',
-                            Panel::PANEL_TYPE_INFO), 4
                     ),
                     new LayoutColumn(
                         new Well(
@@ -198,6 +191,180 @@ class Frontend extends Extension implements IFrontendInterface
             . new Danger('Serienbrief nicht gefunden', new Exclamation())
             . new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
         }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $PersonId
+     * @param null $Movement
+     *
+     * @return Stage|string
+     */
+    public function frontendSerialLetterPersonSelected($Id = null, $PersonId = null, $Movement = null)
+    {
+
+        $Stage = new Stage('Personen für Serienbriefe', 'Auswählen');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
+        $tblSerialLetter = ( $Id == null ? false : SerialLetter::useService()->getSerialLetterById($Id) );
+        if (!$tblSerialLetter) {
+            return $Stage.new Danger('Serienbrief nicht gefunden', new Exclamation());
+        }
+
+        $tblPersonAll = Person::useService()->getPersonAll();
+        $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
+        $tblPersonList = array();
+        if ($tblSerialPersonList) {
+            foreach ($tblSerialPersonList as $tblSerialPerson) {
+                $tblPersonList[] = $tblSerialPerson->getServiceTblPerson();
+            }
+        }
+        if (!empty( $tblPersonList ) && $tblPersonAll) {
+            $tblPersonAll = array_udiff($tblPersonAll, $tblPersonList,
+                function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
+
+                    return $tblPersonA->getId() - $tblPersonB->getId();
+                }
+            );
+        }
+        if ($PersonId != null && $Movement == 1) {
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+            if ($tblPerson) {
+                SerialLetter::useService()->addSerialPerson($tblSerialLetter, $tblPerson);
+                $Stage->setContent(new Success('Person erfolgreich aufgenommen'));
+            } else {
+                $Stage->setContent(new Danger('Person konnte nicht hinzugefügt werden'));
+            }
+            return $Stage.new Redirect('/Reporting/SerialLetter/Person/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id));
+        }
+        if ($PersonId != null && $Movement == 2) {
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+            if ($tblPerson) {
+                SerialLetter::useService()->removeSerialPerson($tblSerialLetter, $tblPerson);
+                $Stage->setContent(new Success('Person erfolgreich entfernt'));
+            } else {
+                $Stage->setContent(new Danger('Person konnte nicht entfernt werden'));
+            }
+            return $Stage.new Redirect('/Reporting/SerialLetter/Person/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id));
+        }
+
+
+        array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($Id) {
+
+            /** @noinspection PhpUndefinedFieldInspection */
+            $tblPerson->Exchange = new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(
+                'Id'       => $Id,
+                'PersonId' => $tblPerson->getId()
+            ));
+            /** @noinspection PhpUndefinedFieldInspection */
+            $tblPerson->Name = $tblPerson->getFullName();
+            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+            /** @noinspection PhpUndefinedFieldInspection */
+            $tblPerson->Address = new WarningMessage('Keine Adresse hinterlegt!');
+            if ($tblAddress) {
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->Address = $tblAddress->getGuiString();
+            }
+        });
+
+        if ($tblPersonList) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblPersonList, function (TblPerson &$tblPerson) use ($Id) {
+
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->Exchange = new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(
+                    'Id'       => $Id,
+                    'PersonId' => $tblPerson->getId()
+                ));
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->Name = $tblPerson->getFullName();
+                $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->Address = new WarningMessage('Keine Adresse hinterlegt!');
+                if ($tblAddress) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblPerson->Address = $tblAddress->getGuiString();
+                }
+
+            });
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Name', $tblSerialLetter->getName().' '
+                                .new Small(new Muted($tblSerialLetter->getDescription())), Panel::PANEL_TYPE_INFO), 4
+                        ),
+                        new LayoutColumn(
+                            new Well(
+                                ''
+                            ), 4
+                        ),
+                        new LayoutColumn(
+                            new Well(
+                                ''
+                            ), 4
+                        ),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Title('Rechte', 'Zugewiesen'),
+                            new TableData($tblPersonList, null,
+                                array('Exchange' => '',
+                                      'Name'     => 'Name',
+                                      'Address'  => 'Adresse'), array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    ),
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-minus-sign',
+                                            'To'   => 'glyphicon-plus-sign',
+                                        ),
+                                        'Connect' => array(
+                                            'From' => 'TableCurrent',
+                                            'To'   => 'TableAvailable',
+                                        )
+                                    )
+                                )
+                            )
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Title('Rechte', 'Verfügbar'),
+                            new TableData($tblPersonAll, null,
+                                array('Exchange' => ' ',
+                                      'Name'     => 'Name',
+                                      'Address'  => 'Adresse'), array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    ),
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-plus-sign',
+                                            'To'   => 'glyphicon-minus-sign',
+                                            'All'  => 'TableCurrentAll'
+                                        ),
+                                        'Connect' => array(
+                                            'From' => 'TableAvailable',
+                                            'To'   => 'TableCurrent',
+                                        ),
+                                    )
+                                )
+                            )
+                        ), 6)
+                    ))
+                ))
+            )
+        );
 
         return $Stage;
     }
@@ -311,7 +478,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         if (empty($subDataList)) {
-                            $dataList[$tblPerson->getId()]['Addresses'] = new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                            $dataList[$tblPerson->getId()]['Addresses'] = new WarningMessage(
                                 'Keine Adressen hinterlegt!', new Exclamation()
                             );
                         } else {
@@ -443,7 +610,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             $countAddresses == 0
                                 ? new LayoutColumn(
-                                new \SPHERE\Common\Frontend\Message\Repository\Warning('Keine Adressen ausgewählt.',
+                                new WarningMessage('Keine Adressen ausgewählt.',
                                     new Exclamation())
                             )
                                 : null,
