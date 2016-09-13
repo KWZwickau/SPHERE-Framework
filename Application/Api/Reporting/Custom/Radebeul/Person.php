@@ -34,13 +34,32 @@ class Person
             if ($PersonList) {
                 $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblPersonList) {
-                    $fileLocation = RadebeulPerson::useService()->createParentTeacherConferenceListExcel($PersonList);
+                    $fileLocation = RadebeulPerson::useService()->createParentTeacherConferenceListExcel($tblDivision,
+                        $PersonList);
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Radebeul Anwesenheitsliste für Elternabende ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                        "Radebeul Anwesenheitsliste für Elternabende " . $tblDivision->getDisplayName()
+                        . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
                 }
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function downloadDenominationList()
+    {
+
+        $countArray = array();
+        $PersonList = RadebeulPerson::useService()->createDenominationList($countArray);
+        if ($PersonList) {
+            $fileLocation = RadebeulPerson::useService()->createDenominationListExcel($PersonList, $countArray);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Radebeul Religionszugehörigkeit " . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
         }
 
         return false;

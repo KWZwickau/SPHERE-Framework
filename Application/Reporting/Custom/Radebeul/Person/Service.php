@@ -12,11 +12,11 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
-use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Extension\Extension;
 
@@ -55,13 +55,14 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
+     * @param TblDivision $tblDivision
+     * @param $PersonList
      *
-     * @return false|FilePointer
-     * @throws TypeFileException
+     * @return bool|FilePointer
      * @throws DocumentTypeException
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      */
-    public function createParentTeacherConferenceListExcel($PersonList)
+    public function createParentTeacherConferenceListExcel(TblDivision $tblDivision, $PersonList)
     {
 
         if (!empty($PersonList)) {
@@ -78,7 +79,7 @@ class Service extends Extension
             $export->setValue($export->getCell("0", $row++), "Datum:");
             $export->setValue($export->getCell("0", $row++), "Thema:");
             $row++;
-            $export->setValue($export->getCell("0", $row++), "Klasse:");
+            $export->setValue($export->getCell("0", $row++), "Klasse: " . $tblDivision->getDisplayName());
             $row++;
             $headerRow = $row;
             $export->setValue($export->getCell("0", $row), "lfdNr.");
@@ -114,6 +115,123 @@ class Service extends Extension
             $export->setStyle($export->getCell(1, 0), $export->getCell(1, $row))->setColumnWidth(26);
             $export->setStyle($export->getCell(2, 0), $export->getCell(2, $row))->setColumnWidth(26);
             $export->setStyle($export->getCell(3, 0), $export->getCell(3, $row))->setColumnWidth(30);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $countArray
+     *
+     * @return array
+     */
+    public function createDenominationList(&$countArray)
+    {
+
+        $TableContent = array();
+        $countArray = array(
+            'All' => 0,
+            'RK' => 0,
+            'EV' => 0,
+            'KEINE' => 0
+        );
+        $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+        if ($tblGroup) {
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            if ($tblPersonList) {
+                $count = 1;
+                foreach ($tblPersonList as $tblPerson) {
+                    $countArray['All'] = $count;
+                    $Item['Number'] = $count++;
+                    $Item['LastName'] = $tblPerson->getLastName();
+                    $Item['FirstName'] = $tblPerson->getFirstSecondName();
+
+                    if (($tblCommon = $tblPerson->getCommon())
+                        && $tblCommon->getTblCommonInformation()
+                    ) {
+                        $denomination = trim($tblCommon->getTblCommonInformation()->getDenomination());
+                        $Item['Denomination'] = $denomination;
+                        if (isset($countArray[strtoupper($denomination)])) {
+                            $countArray[strtoupper($denomination)]++;
+                        } else {
+                            $countArray['KEINE']++;
+                        }
+                    } else {
+                        $Item['Denomination'] = '';
+                        $countArray['KEINE']++;
+                    }
+
+                    array_push($TableContent, $Item);
+                }
+            }
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $PersonList
+     * @param $countArray
+     *
+     * @return bool|FilePointer
+     * @throws DocumentTypeException
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     */
+    public function createDenominationListExcel($PersonList, $countArray)
+    {
+
+        if (!empty($PersonList)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $row = 0;
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            // Spaltenbreite
+            $export->setStyle($export->getCell(0, 0), $export->getCell(0, $row))->setColumnWidth(8);
+            $export->setStyle($export->getCell(1, 0), $export->getCell(1, $row))->setColumnWidth(26);
+            $export->setStyle($export->getCell(2, 0), $export->getCell(2, $row))->setColumnWidth(26);
+            $export->setStyle($export->getCell(3, 0), $export->getCell(3, $row))->setColumnWidth(30);
+
+            $export->setValue($export->getCell(0, $row), "Religionszugehörigkeit");
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
+            $row++;
+
+            $export->setValue($export->getCell(0, $row),
+                "Evangelische Grundschule Radebeul Staatlich genehmigte Ersatzschule                       "
+                . date('d.m.Y'));
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
+
+            $export->setStyle($export->getCell(0, 0), $export->getCell(3, $row))->setBorderOutline(2);
+
+            foreach ($PersonList as $PersonData) {
+                $row++;
+
+                $export->setValue($export->getCell(0, $row), $PersonData['Number']);
+                $export->setValue($export->getCell(1, $row), $PersonData['LastName']);
+                $export->setValue($export->getCell(2, $row), $PersonData['FirstName']);
+                $export->setValue($export->getCell(3, $row), $PersonData['Denomination']);
+
+                // Gittertrennlinie
+                $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setBorderBottom();
+            }
+
+            $row++;
+            $export->setValue($export->getCell("0", $row),
+                "   Schüler:    " . $countArray['All']
+                . "             Evangelisch:    " . $countArray['EV']
+                . "             Katholisch:    " . $countArray['RK']
+                . "             ohne Angabe:    " . $countArray['KEINE']
+            );
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setBorderAll();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

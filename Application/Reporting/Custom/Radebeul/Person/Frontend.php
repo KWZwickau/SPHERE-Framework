@@ -214,4 +214,75 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    /**
+     * @return Stage
+     */
+    public function frontendDenominationList()
+    {
+
+        $Stage = new Stage('Individuelle Auswertung', 'Anwesenheitsliste Elternabende');
+        $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+
+        $countArray = array();
+        $PersonList = Person::useService()->createDenominationList($countArray);
+        if ($PersonList){
+            $Stage->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Custom/Radebeul/Person/DenominationList/Download',
+                    new Download()
+                )
+            );
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'Number' => 'lfdNr.',
+                                    'LastName' => 'Name',
+                                    'FirstName' => 'Vorname',
+                                    'Denomination' => 'Religion',
+                                ),
+                                array(
+                                    "pageLength" => -1,
+                                    "responsive" => false
+                                )
+                            )
+                        )
+                    )
+                ),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Schüler', array(
+                                $countArray['All'],
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 3),
+                        new LayoutColumn(
+                            new Panel('Evangelisch', array(
+                                $countArray['EV'],
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 3),
+                        new LayoutColumn(
+                            new Panel('Katholisch', array(
+                                $countArray['RK'],
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 3),
+                        new LayoutColumn(
+                            new Panel('Ohne Angabe', array(
+                                $countArray['KEINE'],
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 3),
+                    )),
+                ))
+            ))
+        );
+
+        return $Stage;
+    }
 }
