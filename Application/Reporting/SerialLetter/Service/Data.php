@@ -74,6 +74,10 @@ class Data extends AbstractData
             array(TblSerialPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()));
     }
 
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @return false|TblPerson[]
+     */
     public function getPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
     {
 
@@ -86,6 +90,7 @@ class Data extends AbstractData
                 $tblPersonList[] = $Entity->getServiceTblPerson();
             }
         }
+        $tblPersonList = array_filter( $tblPersonList );
 
         return ( empty( $tblPersonList ) ? false : $tblPersonList );
 

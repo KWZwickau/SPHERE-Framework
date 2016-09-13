@@ -88,6 +88,10 @@ class Service extends AbstractService
         return ( new Data($this->getBinding()) )->getSerialPersonBySerialLetter($tblSerialLetter);
     }
 
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @return false|TblPerson[]
+     */
     public function getPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
     {
         return ( new Data($this->getBinding()) )->getPersonBySerialLetter($tblSerialLetter);
