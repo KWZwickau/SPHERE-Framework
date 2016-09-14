@@ -38,20 +38,21 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
+use SPHERE\Common\Frontend\Icon\Repository\Setup;
+use SPHERE\Common\Frontend\Icon\Repository\View;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
-use SPHERE\Common\Frontend\Layout\Repository\Listing as ListingLayout;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -98,15 +99,15 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSerialLetterAll) {
             foreach ($tblSerialLetterAll as &$tblSerialLetter) {
                 $tblSerialLetter->Option =
-                    (new Standard(new Edit(), '/Reporting/SerialLetter/Edit', null,
+                    (new Standard('', '/Reporting/SerialLetter/Edit', new Edit(),
                         array('Id' => $tblSerialLetter->getId()), 'Bearbeiten'))
-                    . (new Standard(new Remove(), '/Reporting/SerialLetter/Destroy', null,
+                    . (new Standard('', '/Reporting/SerialLetter/Destroy', new Remove(),
                         array('Id' => $tblSerialLetter->getId()), 'Löschen'))
-                    . (new Standard(new PersonIcon(), '/Reporting/SerialLetter/Person/Select', null,
+                    . (new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
                         array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') )
-                    .( new Standard(new ListingTable(), '/Reporting/SerialLetter/Address', null,
+                    .( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
                         array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen'))
-                    . (new Standard(new EyeOpen(), '/Reporting/SerialLetter/Export', null,
+                    . (new Standard('', '/Reporting/SerialLetter/Export', new View(),
                         array('Id' => $tblSerialLetter->getId()),
                         'Addressliste für Serienbriefe anzeigen und herunterladen'));
             }
@@ -529,9 +530,9 @@ class Frontend extends Extension implements IFrontendInterface
             'Anzahl eingetragener Adressen für Serienbriefe: '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
-            .( new Standard(new ListingTable(), '/Reporting/SerialLetter/Address', null,
+            .( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
                 array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen') )
-            .( new Standard(new EyeOpen(), '/Reporting/SerialLetter/Export', null,
+            .( new Standard('', '/Reporting/SerialLetter/Export', new View(),
                 array('Id' => $tblSerialLetter->getId()),
                 'Addressliste für Serienbriefe anzeigen und herunterladen') )
         );
@@ -670,7 +671,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $Id, $tblSerialLetter) {
             $Item['Name'] = $tblPerson->getLastFirstName();
-            $Item['Address'] = '';
+            $Item['Address'] = array();
             $Item['Option'] = new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
                 array('Id'       => $Id,
                       'PersonId' => $tblPerson->getId()));
@@ -679,53 +680,49 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblAddressPersonList) {
                 $Data = array();
                 foreach ($tblAddressPersonList as $tblAddressPerson) {
-                    $Data['Salutation'][$tblAddressPerson->getId()] = '&nbsp;';
-                    $Data['PersonTo'][$tblAddressPerson->getId()] = '&nbsp;';
-                    $Data['Street'][$tblAddressPerson->getId()] = '&nbsp;';
-                    $Data['Code'][$tblAddressPerson->getId()] = '&nbsp;';
-                    $Data['City'][$tblAddressPerson->getId()] = '&nbsp;';
-                    $Data['State'][$tblAddressPerson->getId()] = '&nbsp;';
 
-                    if ($tblAddressPerson->getServiceTblSalutation()) {
-                        $Data['Salutation'][$tblAddressPerson->getId()] = $tblAddressPerson->getServiceTblSalutation()->getSalutation();
-                    }
                     if (( $tblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
-                        if ($tblPersonTo = $tblToPerson->getServiceTblPerson()) {
-                            $Data['PersonTo'][$tblAddressPerson->getId()] = $tblPersonTo->getFullName();
+                        if ($tblAddressPerson->getServiceTblSalutation()) {
+                            if ($tblPersonTo = $tblToPerson->getServiceTblPerson()) {
+                                $Data[] = $tblAddressPerson->getServiceTblSalutation()->getSalutation().' '.$tblPersonTo->getLastFirstName();
+                            }
+                        } else {
+                            if ($tblPersonTo = $tblToPerson->getServiceTblPerson()) {
+                                $Data[] = $tblPersonTo->getLastFirstName();
+                            }
                         }
                         if (( $tblAddress = $tblToPerson->getTblAddress() )) {
-                            $Data['Street'][$tblAddressPerson->getId()] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+                            $Data[] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
                             if (( $tblCity = $tblAddress->getTblCity() )) {
-                                $Data['Code'][$tblAddressPerson->getId()] = $tblCity->getCode();
-                                $Data['City'][$tblAddressPerson->getId()] = $tblCity->getDisplayName();
+                                $Data[] = $tblCity->getCode().' '.$tblCity->getDisplayName();
                             }
                             if (( $tblState = $tblAddress->getTblState() )) {
-                                $Data['State'][$tblAddressPerson->getId()] = $tblState->getName();
+                                $Data[] = $tblState->getName();
                             }
                         }
                     }
+
+                    if (!empty( $Data )) {
+                        $Item['Address'][] = new LayoutColumn(
+                            new Panel( '', $Data )
+                        , 3);
+                    }
+                    $Data = array();
                 }
 
-                if (!empty( $Data )) {
-                    $Item['Address'] = new Well(new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(array(
-                                ( isset( $Data['Salutation'] ) ? new LayoutColumn(new ListingLayout($Data['Salutation']), 1)
-                                    : new LayoutColumn(new ListingLayout(''), 2) ),
-                                ( isset( $Data['PersonTo'] ) ? new LayoutColumn(new ListingLayout($Data['PersonTo']), 3)
-                                    : new LayoutColumn(new ListingLayout(''), 2) ),
-                                ( isset( $Data['Street'] ) ? new LayoutColumn(new ListingLayout($Data['Street']), 3)
-                                    : new LayoutColumn(new ListingLayout(''), 2) ),
-                                ( isset( $Data['Code'] ) ? new LayoutColumn(new ListingLayout($Data['Code']), 1)
-                                    : new LayoutColumn(new ListingLayout(''), 2) ),
-                                ( isset( $Data['City'] ) ? new LayoutColumn(new ListingLayout($Data['City']), 2)
-                                    : new LayoutColumn(new ListingLayout(''), 2) ),
-                                ( isset( $Data['State'] ) ? new LayoutColumn(new ListingLayout($Data['State']), 2)
-                                    : new LayoutColumn(new ListingLayout(''), 2) )
-                            ))
+                $Item['Address'] = array_filter( $Item['Address'] );
+
+                $Item['Address'] = (string)new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            $Item['Address']
                         )
-                    ));
-                }
+                    )
+                );
+            }
+
+            if( empty( $Item['Address'] ) ) {
+                $Item['Address'] = new WarningMessage( 'Keine Adressen ausgewählt!' );
             }
 
             array_push($TableContent, $Item);
@@ -736,9 +733,9 @@ class Frontend extends Extension implements IFrontendInterface
             'Anzahl eingetragener Adressen für Serienbriefe: '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
-            .( new Standard(new PersonIcon(), '/Reporting/SerialLetter/Person/Select', null,
+            .( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
                 array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') )
-            .( new Standard(new EyeOpen(), '/Reporting/SerialLetter/Export', null,
+            .( new Standard('', '/Reporting/SerialLetter/Export', new View(),
                 array('Id' => $tblSerialLetter->getId()),
                 'Addressliste für Serienbriefe anzeigen und herunterladen') )
         );
@@ -764,6 +761,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Name'    => 'Name',
                                 'Address' => 'Serienbrief Adresse',
                                 'Option'  => '',
+                            ), array(
+                                'columnDefs' => array(
+                                    array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                                    array( 'width' => '15%', 'targets' => 0)
+                                )
                             ))
                         )
                     ))
@@ -899,11 +901,11 @@ class Frontend extends Extension implements IFrontendInterface
             'Anzahl eingetragener Adressen für Serienbriefe: '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
-            .( new Standard(new PersonIcon(), '/Reporting/SerialLetter/Person/Select', null,
+            .( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
                 array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') )
-            .( new Standard(new Listing(), '/Reporting/SerialLetter/Address', null,
+            .( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
                 array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen') )
-            .( new Standard(new EyeOpen(), '/Reporting/SerialLetter/Export', null,
+            .( new Standard('', '/Reporting/SerialLetter/Export', new View(),
                 array('Id' => $tblSerialLetter->getId()),
                 'Addressliste für Serienbriefe anzeigen und herunterladen') )
         );
@@ -1058,9 +1060,9 @@ class Frontend extends Extension implements IFrontendInterface
                 'Anzahl eingetragener Adressen für Serienbriefe: '.$SerialLetterCount,);
             $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                     .' Person(en)', Label::LABEL_TYPE_INFO)
-                .( new Standard(new PersonIcon(), '/Reporting/SerialLetter/Person/Select', null,
+                .( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
                     array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') )
-                .( new Standard(new Listing(), '/Reporting/SerialLetter/Address', null,
+                .( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
                     array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen') )
             );
 
