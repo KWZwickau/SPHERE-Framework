@@ -76,6 +76,10 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ * @package SPHERE\Application\Reporting\SerialLetter
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -396,19 +400,23 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPersonSearch = $SearchResult;
 
         $tblPersonList = SerialLetter::useService()->getPersonBySerialLetter($tblSerialLetter);
+
         if (!empty( $tblPersonList ) && !empty( $tblPersonSearch )) {
 
-            $tblPersonSearch = array_udiff($tblPersonSearch, $tblPersonList,
-                function ($tblPersonA, $tblPersonB) {
-                    if ($tblPersonA instanceof TblPerson && !$tblPersonB instanceof TblPerson) {
-                        return $tblPersonA->getId() - $tblPersonB['TblPerson_Id'];
-                    }
-                    if (!$tblPersonA instanceof TblPerson && $tblPersonB instanceof TblPerson) {
-                        return $tblPersonA['TblPerson_Id'] - $tblPersonB->getId();
-                    }
-                    return 0;
+            $tblPersonIdList = array();
+            array_walk( $tblPersonList, function( TblPerson $tblPerson ) use( &$tblPersonIdList ) {
+                if( !in_array( $tblPerson->getId(), $tblPersonIdList ) ) {
+                    array_push( $tblPersonIdList, $tblPerson->getId() );
                 }
-            );
+            });
+
+            array_filter( $tblPersonSearch, function( &$Item ) use( $tblPersonIdList ) {
+                if( in_array( $Item['TblPerson_Id'], $tblPersonIdList ) ) {
+                    $Item = false;
+                }
+            });
+
+            $tblPersonSearch = array_filter( $tblPersonSearch );
         }
 
         if ($tblPersonList) {
@@ -599,7 +607,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(array(
-                                            ( !empty( $tblPersonSearch ) ?
+                                            ( empty( $tblPersonSearch )
+                                                ? new WarningMessage('Keine Ergebnisse bei aktueller Filterung '.new SuccessText(new Filter()))
+                                                : ''
+                                            ),
+
                                                 new TableData($tblPersonSearch, null,
                                                 array('Exchange' => ' ',
                                                     'Name' => 'Name',
@@ -622,7 +634,6 @@ class Frontend extends Extension implements IFrontendInterface
                                                     )
                                                 )
                                             )
-                                                : new WarningMessage('keine Ergebnisse bei aktueller Filterung '.new SuccessText(new Filter())) )
                                         ), 12)
                                     ))
                                 ))
