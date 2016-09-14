@@ -65,6 +65,18 @@ class Data extends AbstractData
     /**
      * @param TblSerialLetter $tblSerialLetter
      *
+     * @return false|int
+     */
+    public function getSerialLetterCount(TblSerialLetter $tblSerialLetter)
+    {
+
+        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAddressPerson',
+            array(TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()));
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
      * @return false|TblSerialPerson[]
      */
     public function getSerialPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
@@ -269,6 +281,30 @@ class Data extends AbstractData
 
         $EntityItems = $Manager->getEntity('TblAddressPerson')
             ->findBy(array(TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()));
+        if (null !== $EntityItems) {
+            foreach ($EntityItems as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
+     *
+     * @return bool
+     */
+    public function destroyAddressPersonAllBySerialLetterAndPerson(TblSerialLetter $tblSerialLetter, TblPerson $tblPerson)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $EntityItems = $Manager->getEntity('TblAddressPerson')
+            ->findBy(array(TblAddressPerson::ATTR_TBL_SERIAL_LETTER  => $tblSerialLetter->getId(),
+                           TblAddressPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
         if (null !== $EntityItems) {
             foreach ($EntityItems as $Entity) {
                 Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),

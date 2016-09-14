@@ -67,7 +67,7 @@ class SerialLetter implements IModuleInterface
                 ->createSerialLetterExcel($tblSerialLetter);
             if ($fileLocation) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Adressen f�r Serienbrief " . $tblSerialLetter->getName() . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+                    "Adressen für Serienbrief ".$tblSerialLetter->getName()." ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }
 
@@ -101,6 +101,9 @@ class SerialLetter implements IModuleInterface
             $tblSerialLetter = SerialLetterApp::useService()->getSerialLetterById($Id);
             if ($tblSerialLetter && null !== $PersonId && ( $tblPerson = Person::useService()->getPersonById($PersonId) )) {
                 if ($Remove) {
+                    // remove added Address for SerialLetter
+                    SerialLetterApp::useService()->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
+
                     SerialLetterApp::useService()->removeSerialPerson($tblSerialLetter, $tblPerson);
                 } else {
                     SerialLetterApp::useService()->addSerialPerson($tblSerialLetter, $tblPerson);

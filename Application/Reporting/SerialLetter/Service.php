@@ -80,6 +80,17 @@ class Service extends AbstractService
     /**
      * @param TblSerialLetter $tblSerialLetter
      *
+     * @return false|int
+     */
+    public function getSerialLetterCount(TblSerialLetter $tblSerialLetter)
+    {
+
+        return ( new Data($this->getBinding()) )->getSerialLetterCount($tblSerialLetter);
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
      * @return false|TblSerialPerson[]
      */
     public function getSerialPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
@@ -158,11 +169,11 @@ class Service extends AbstractService
 
 
     /**
-     * @param IFormInterface $Form
+     * @param IFormInterface  $Form
      * @param TblSerialLetter $tblSerialLetter
-     * @param $Check
+     * @param                 $Check
      *
-     * @return IFormInterface
+     * @return IFormInterface|string
      */
     public function setPersonAddressSelection(
         IFormInterface $Form,
@@ -177,13 +188,12 @@ class Service extends AbstractService
             return $Form;
         }
 
-        // alle Einträge zum Serienbrief löschen
-        (new Data($this->getBinding()))->destroyAddressPersonAllBySerialLetter($tblSerialLetter);
-
         if (!empty($Check)) {
             foreach ($Check as $personId => $list) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 if ($tblPerson) {
+                    // alle Einträge zum Serienbrief dieser Person löschen
+                    ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
                     if (is_array($list) && !empty($list)) {
                         foreach ($list as $key => $item) {
                             if (isset($item['Address'])) {
@@ -205,12 +215,15 @@ class Service extends AbstractService
                             }
                         }
                     }
+                    return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                    .new Redirect('/Reporting/SerialLetter/Address/Edit', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblSerialLetter->getId(), 'PersonId' => $tblPerson->getId()));
                 }
             }
         }
 
         return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        . new Redirect('/Reporting/SerialLetter/Select', Redirect::TIMEOUT_SUCCESS,
+        .new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS,
             array('Id' => $tblSerialLetter->getId()));
     }
 
@@ -348,5 +361,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroySerialLetter($tblSerialLetter);
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
+     *
+     * @return bool
+     */
+    public function destroyAddressPersonAllBySerialLetterAndPerson(TblSerialLetter $tblSerialLetter, TblPerson $tblPerson)
+    {
+
+        return ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
     }
 }
