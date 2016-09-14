@@ -699,4 +699,118 @@ class Service extends Extension
 
         return false;
     }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return array
+     */
+    public function createDiseaseList(TblGroup $tblGroup)
+    {
+
+        $TableContent = array();
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if ($tblPersonList) {
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+            /** @var TblPerson $tblPerson */
+            foreach ($tblPersonList as $tblPerson) {
+                $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, ' ');
+                $Item['LastName'] = $tblPerson->getLastName();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['Disease'] = '';
+
+                if (($tblStudent = $tblPerson->getStudent())
+                 && ($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
+                ) {
+                   $Item['Disease'] = $tblMedicalRecord->getDisease();
+                }
+
+                array_push($TableContent, $Item);
+            }
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param $PersonList
+     *
+     * @return bool|FilePointer
+     * @throws DocumentTypeException
+     * @throws \MOC\V\Component\Document\Component\Exception\ComponentException
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     */
+    public function createDiseaseListExcel(TblGroup $tblGroup, $PersonList)
+    {
+
+        if (!empty($PersonList)) {
+
+            $division = array();
+            $lastName = array();
+            $firstName = array();
+            foreach ($PersonList as $key => $row) {
+                $division[$key] = strtoupper($row['Division']);
+                $lastName[$key] = strtoupper($row['LastName']);
+                $firstName[$key] = strtoupper($row['FirstName']);
+            }
+            array_multisort($division, SORT_ASC, $lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $row = 0;
+            $column = 0;
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $export->setValue($export->getCell(0, $row), 'Klassenliste - Allergie');
+            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setFontBold();
+            $row++;
+            $export->setValue($export->getCell(0, $row), 'Klasse: ' . $tblGroup->getName());
+            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setFontBold();
+            $row++;
+            $export->setValue($export->getCell(2, $row), date('d.m.Y'));
+            $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->setAlignmentRight();
+
+            $export->setStyle($export->getCell(0, 0), $export->getCell(2, $row))->setBorderOutline();
+
+            $row++;
+            $row++;
+            $export->setValue($export->getCell($column++, $row), 'Klasse');
+            $export->setValue($export->getCell($column++, $row), 'Name');
+            $export->setValue($export->getCell($column++, $row), 'Vorname');
+            $export->setValue($export->getCell($column, $row), 'Allergie');
+
+            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setBorderAll();
+
+            foreach ($PersonList as $PersonData) {
+                $row++;
+                $column = 0;
+
+                $export->setValue($export->getCell($column++, $row), $PersonData['Division']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
+                $export->setValue($export->getCell($column, $row), $PersonData['Disease']);
+
+                $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setBorderAll();
+            }
+
+            $column = 0;
+            // Spaltenbreite
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(10);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(60);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
 }

@@ -578,4 +578,104 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    /**
+     * @param $GroupId
+     *
+     * @return Stage
+     */
+    public function frontendDiseaseList($GroupId = null)
+    {
+
+        $Stage = new Stage('Individuelle Auswertung', 'Allergieliste');
+        if (null !== $GroupId) {
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Radebeul/Person/DiseaseList',
+                new ChevronLeft()));
+        }
+
+        $tblGroupAll = Group::useService()->getGroupAll();
+        $TableContent = array();
+        if ($tblGroupAll) {
+            array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$TableContent) {
+
+                $Item['Name'] = $tblGroup->getName();
+                $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/DiseaseList',
+                    new EyeOpen(),
+                    array('GroupId' => $tblGroup->getId()));
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        if ($GroupId === null) {
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($TableContent, null,
+                                    array(
+                                        'Name' => 'Gruppe',
+                                        'Option' => '',
+                                    )
+                                )
+                                , 12)
+                        ), new Title(new Listing() . ' Übersicht')
+                    )
+                )
+            );
+        } else {
+            if (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+                $personList = Person::useService()->createDiseaseList($tblGroup);
+                if ($personList) {
+                    $Stage->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Custom/Radebeul/Person/DiseaseList/Download',
+                            new Download(),
+                            array('GroupId' => $tblGroup->getId()))
+                    );
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+                }
+
+                $Stage->setContent(
+                    new Layout(array(
+                        new LayoutGroup(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Gruppe', $tblGroup->getName(),
+                                        Panel::PANEL_TYPE_SUCCESS)
+                                )
+                            ))
+                        ),
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new TableData($personList, null,
+                                        array(
+                                            'Division' => 'Klasse',
+                                            'LastName' => 'Name',
+                                            'FirstName' => 'Vorname',
+                                            'Disease' => 'Allergie',
+                                        ),
+                                        array(
+                                            "pageLength" => -1,
+                                            "responsive" => false,
+                                            'order' => array(
+                                                array(0, 'asc'),
+                                                array(1, 'asc'),
+                                                array(2, 'asc')
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ))
+                );
+            }
+        }
+
+        return $Stage;
+    }
 }

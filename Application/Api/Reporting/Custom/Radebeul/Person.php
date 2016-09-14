@@ -134,4 +134,27 @@ class Person
 
         return false;
     }
+
+    /**
+     * @param null $GroupId
+     *
+     * @return bool|string
+     */
+    public function downloadDiseaseList($GroupId = null)
+    {
+
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+        if ($tblGroup) {
+            $PersonList = RadebeulPerson::useService()->createDiseaseList($tblGroup);
+            if ($PersonList) {
+                $fileLocation = RadebeulPerson::useService()->createDiseaseListExcel($tblGroup, $PersonList);
+
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Radebeul Allergieliste " . $tblGroup->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+            }
+        }
+
+        return false;
+    }
 }
