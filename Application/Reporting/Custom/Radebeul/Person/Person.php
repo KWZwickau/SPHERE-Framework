@@ -24,6 +24,9 @@ class Person extends AbstractModule implements IModuleInterface
     public static function registerModule()
     {
 
+        /*
+         * Navigation
+         */
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/ParentTeacherConferenceList'), new Link\Name('Anwesenheitsliste für Elternabende'))
         );
@@ -36,7 +39,13 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/KindergartenList'), new Link\Name('Kinderhausliste'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/RegularSchoolList'), new Link\Name('Stammschulenliste'))
+        );
 
+        /*
+         * Route
+         */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'
         ));
@@ -55,6 +64,10 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/KindergartenList',
             __NAMESPACE__.'\Frontend::frontendKindergartenList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/RegularSchoolList',
+            __NAMESPACE__.'\Frontend::frontendRegularSchoolList'
         ));
     }
 

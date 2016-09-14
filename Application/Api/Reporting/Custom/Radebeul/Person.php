@@ -111,4 +111,27 @@ class Person
 
         return false;
     }
+
+    /**
+     * @param null $GroupId
+     *
+     * @return bool|string
+     */
+    public function downloadRegularSchoolList($GroupId = null)
+    {
+
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+        if ($tblGroup) {
+            $PersonList = RadebeulPerson::useService()->createRegularSchoolList($tblGroup);
+            if ($PersonList) {
+                $fileLocation = RadebeulPerson::useService()->createRegularSchoolListExcel($PersonList);
+
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Radebeul Stammschulenliste " . $tblGroup->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+            }
+        }
+
+        return false;
+    }
 }

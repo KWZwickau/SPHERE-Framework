@@ -135,6 +135,10 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'/Radebeul/Person/KindergartenList/Download',
                 __NAMESPACE__.'\Radebeul\Person::downloadKindergartenList'
             ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Radebeul/Person/RegularSchoolList/Download',
+                __NAMESPACE__.'\Radebeul\Person::downloadRegularSchoolList'
+            ));
         }
     }
 

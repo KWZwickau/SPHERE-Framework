@@ -477,12 +477,26 @@ class Service extends Extension
                     if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE'))
                         && (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                             $tblTransferType)))
-                        && ($tblCompany = $tblTransfer->getServiceTblCompany())
-                        && ($tblNurseryGroup = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('NURSERY'))
-                        && \SPHERE\Application\Corporation\Group\Group::useService()->existsGroupCompany($tblNurseryGroup,
-                            $tblCompany)
                     ) {
-                        $Item['Kindergarten'] = $tblCompany->getDisplayName();
+                        if (($tblCompany = $tblTransfer->getServiceTblCompany())
+                            && ($tblNurseryGroup = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('NURSERY'))
+                            && \SPHERE\Application\Corporation\Group\Group::useService()->existsGroupCompany($tblNurseryGroup,
+                                $tblCompany)
+                        ) {
+                            $Item['Kindergarten'] = $tblCompany->getDisplayName();
+                        }
+                        elseif (($remark = $tblTransfer->getRemark())
+                            && ($pos = strpos($remark, 'Kita:')) !== false
+                        ) {
+                            $startPos = $pos + strlen('Kita:');
+                            if (($pos2 = strpos($remark, 'Staatliche Schule:')) !== false
+                                && $pos2 > $pos
+                            ) {
+                                $Item['Kindergarten'] = trim(substr($remark, $startPos, $pos2 - $startPos));
+                            } else {
+                                $Item['Kindergarten'] = trim(substr($remark, $startPos));
+                            }
+                        }
                     }
                 }
 
@@ -561,10 +575,122 @@ class Service extends Extension
             $column = 0;
             // Spaltenbreite
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(6);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(30);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(30);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(15);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(40);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(50);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * @param TblGroup $tblGroup
+     *
+     * @return array
+     */
+    public function createRegularSchoolList(TblGroup $tblGroup)
+    {
+
+        $TableContent = array();
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if ($tblPersonList) {
+            $count = 1;
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+            /** @var TblPerson $tblPerson */
+            foreach ($tblPersonList as $tblPerson) {
+                $Item['Number'] = $count++;
+                $Item['LastName'] = $tblPerson->getLastName();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['RegularSchool'] = '';
+
+                if (($tblStudent = $tblPerson->getStudent())) {
+                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE'))
+                        && (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType)))
+                    ) {
+                        if (($remark = $tblTransfer->getRemark())
+                            && ($pos = strpos($remark, 'Staatliche Schule:')) !== false
+                        ) {
+                            $startPos = $pos + strlen('Staatliche Schule:');
+                            if (($pos2 = strpos($remark, 'Kita:')) !== false
+                                && $pos2 > $pos
+                            ) {
+                                $Item['RegularSchool'] = trim(substr($remark, $startPos, $pos2 - $startPos));
+                            } else {
+                                $Item['RegularSchool'] = trim(substr($remark, $startPos));
+                            }
+                        }
+                    }
+                }
+
+                array_push($TableContent, $Item);
+            }
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $PersonList
+     *
+     * @return bool|FilePointer
+     * @throws DocumentTypeException
+     * @throws \MOC\V\Component\Document\Component\Exception\ComponentException
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     */
+    public function createRegularSchoolListExcel($PersonList)
+    {
+
+        if (!empty($PersonList)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $row = 0;
+            $column = 0;
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $export->setValue($export->getCell(0, $row), 'Stammschulenübersicht');
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontSize(14);
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
+            $row++;
+            $export->setValue($export->getCell(0, $row),
+                'Evangelische Grundschule Radebeul Staatlich genehmigte Ersatzschule                 '
+                . date('d.m.Y')
+            );
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, 0), $export->getCell(3, $row))->setBorderOutline();
+            $row++;
+            $export->setValue($export->getCell($column++, $row), 'Nr.');
+            $export->setValue($export->getCell($column++, $row), 'Name');
+            $export->setValue($export->getCell($column++, $row), 'Vorname');
+            $export->setValue($export->getCell($column, $row), 'Stammschule');
+
+            foreach ($PersonList as $PersonData) {
+                $row++;
+                $column = 0;
+
+                $export->setValue($export->getCell($column++, $row), $PersonData['Number']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
+                $export->setValue($export->getCell($column, $row), $PersonData['RegularSchool']);
+
+                $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setBorderAll();
+            }
+
+            $column = 0;
+            // Spaltenbreite
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(6);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(20);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(20);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(44);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
