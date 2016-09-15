@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 27.04.2016
- * Time: 14:51
- */
 
 namespace SPHERE\Application\Reporting\SerialLetter\Service;
 
@@ -354,6 +348,27 @@ class Data extends AbstractData
                 TblSerialPerson::ATTR_TBL_SERIAL_LETTER  => $tblSerialLetter->getId(),
                 TblSerialPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             ));
+
+        /** @var TblSerialPerson $Entity */
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSerialPerson $tblSerialPerson
+     *
+     * @return bool
+     */
+    public function destroySerialPerson(TblSerialPerson $tblSerialPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntityById('TblSerialPerson', $tblSerialPerson->getId());
 
         /** @var TblSerialPerson $Entity */
         if (null !== $Entity) {

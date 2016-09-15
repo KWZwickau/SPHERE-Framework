@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 19.04.2016
- * Time: 08:10
- */
 
 namespace SPHERE\Application\Reporting\SerialLetter;
 
@@ -13,7 +7,7 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
-use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -248,6 +242,11 @@ class Service extends AbstractService
             $tblToPerson, $tblSalutation);
     }
 
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     */
     public function createSerialLetterExcel(TblSerialLetter $tblSerialLetter)
     {
 
@@ -256,7 +255,7 @@ class Service extends AbstractService
 
             $row = 0;
             $column = 0;
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell($column++, $row), "Anrede");
@@ -301,16 +300,39 @@ class Service extends AbstractService
         return false;
     }
 
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
+     *
+     * @return null|object|TblSerialPerson
+     */
     public function addSerialPerson(TblSerialLetter $tblSerialLetter, TblPerson $tblPerson)
     {
 
         return ( new Data($this->getBinding()) )->addSerialPerson($tblSerialLetter, $tblPerson);
     }
 
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
+     *
+     * @return bool
+     */
     public function removeSerialPerson(TblSerialLetter $tblSerialLetter, TblPerson $tblPerson)
     {
 
         return ( new Data($this->getBinding()) )->removeSerialPerson($tblSerialLetter, $tblPerson);
+    }
+
+    /**
+     * @param TblSerialPerson $tblSerialPerson
+     *
+     * @return bool
+     */
+    public function destroySerialPerson(TblSerialPerson $tblSerialPerson)
+    {
+
+        return ( new Data($this->getBinding()) )->destroySerialPerson($tblSerialPerson);
     }
 
     /**
@@ -360,7 +382,20 @@ class Service extends AbstractService
     public function destroySerialLetter(TblSerialLetter $tblSerialLetter)
     {
 
-        return (new Data($this->getBinding()))->destroySerialLetter($tblSerialLetter);
+        $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
+        if ($tblSerialPersonList) {
+            foreach ($tblSerialPersonList as $tblSerialPerson) {
+                $tblPerson = $tblSerialPerson->getServiceTblPerson();
+                if ($tblPerson) {
+                    // Destroy Address
+                    SerialLetter::useService()->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
+                }
+                // Destroy SerialPerson
+                SerialLetter::useService()->destroySerialPerson($tblSerialPerson);
+            }
+        }
+        // Destroy SerialLetter
+        return ( new Data($this->getBinding()) )->destroySerialLetter($tblSerialLetter);
     }
 
     /**

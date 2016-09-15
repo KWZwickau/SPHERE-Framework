@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 19.04.2016
- * Time: 08:10
- */
 
 namespace SPHERE\Application\Reporting\SerialLetter;
 
@@ -23,6 +17,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -38,6 +33,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -96,21 +92,25 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblSerialLetterAll = SerialLetter::useService()->getSerialLetterAll();
 
+        $TableContent = array();
         if ($tblSerialLetterAll) {
-            foreach ($tblSerialLetterAll as &$tblSerialLetter) {
-                $tblSerialLetter->Option =
-                    (new Standard('', '/Reporting/SerialLetter/Edit', new Edit(),
-                        array('Id' => $tblSerialLetter->getId()), 'Bearbeiten'))
-                    . (new Standard('', '/Reporting/SerialLetter/Destroy', new Remove(),
-                        array('Id' => $tblSerialLetter->getId()), 'Löschen'))
-                    . (new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+            array_walk($tblSerialLetterAll, function (TblSerialLetter $tblSerialLetter) use (&$TableContent) {
+                $Item['Name'] = $tblSerialLetter->getName();
+                $Item['Description'] = $tblSerialLetter->getDescription();
+                $Item['Option'] =
+                    ( new Standard('', '/Reporting/SerialLetter/Edit', new Edit(),
+                        array('Id' => $tblSerialLetter->getId()), 'Bearbeiten') )
+                    .( new Standard('', '/Reporting/SerialLetter/Destroy', new Remove(),
+                        array('Id' => $tblSerialLetter->getId()), 'Löschen') )
+                    .( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
                         array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') )
                     .( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
-                        array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen'))
-                    . (new Standard('', '/Reporting/SerialLetter/Export', new View(),
+                        array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen') )
+                    .( new Standard('', '/Reporting/SerialLetter/Export', new View(),
                         array('Id' => $tblSerialLetter->getId()),
-                        'Addressliste für Serienbriefe anzeigen und herunterladen'));
-            }
+                        'Addressliste für Serienbriefe anzeigen und herunterladen') );
+                array_push($TableContent, $Item);
+            });
         }
 
         $Form = $this->formSerialLetter()
@@ -122,21 +122,21 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData($tblSerialLetterAll, null, array(
-                                'Name' => 'Name',
+                            new TableData($TableContent, null, array(
+                                'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option' => '',
+                                'Option'      => '',
                             ))
                         ))
                     ))
-                ), new Title(new ListingTable() . ' Übersicht')),
+                ), new Title(new ListingTable().' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Well(SerialLetter::useService()->createSerialLetter($Form, $SerialLetter))
                         ))
                     ))
-                ), new Title(new PlusSign() . ' Hinzufügen'))
+                ), new Title(new PlusSign().' Hinzufügen'))
             ))
         );
 
@@ -182,7 +182,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Bearbeiten');
 
-        if (($tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id))) {
+        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
+
+        if (( $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id) )) {
             if ($SerialLetter == null) {
                 $Global = $this->getGlobal();
                 $Global->POST['SerialLetter']['Name'] = $tblSerialLetter->getName();
@@ -193,24 +195,25 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Name', $tblSerialLetter->getName() . ' '
-                            . new Small(new Muted($tblSerialLetter->getDescription())), Panel::PANEL_TYPE_INFO), 8
+                        new Panel('Name', $tblSerialLetter->getName().' '
+                            .new Small(new Muted($tblSerialLetter->getDescription())), Panel::PANEL_TYPE_INFO), 8
                     ),
-                    new LayoutColumn(
+                    new LayoutColumn(array(
+                        new Title(new Edit().' Bearbeiten'),
                         new Well(
                             SerialLetter::useService()->updateSerialLetter(
                                 $this->formSerialLetter()->appendFormButton(new Primary('Speichern', new Save())),
                                 $tblSerialLetter, $SerialLetter
                             )
                         )
-                    )
+                    ))
                 ))))
             );
 
         } else {
             return $Stage
-            . new Danger('Serienbrief nicht gefunden', new Exclamation())
-            . new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
+            .new Danger('Serienbrief nicht gefunden', new Exclamation())
+            .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
         }
 
         return $Stage;
@@ -231,9 +234,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Personen für Serienbriefe', 'Auswählen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
-        $tblSerialLetter = ($Id == null ? false : SerialLetter::useService()->getSerialLetterById($Id));
+        $tblSerialLetter = ( $Id == null ? false : SerialLetter::useService()->getSerialLetterById($Id) );
         if (!$tblSerialLetter) {
-            return $Stage . new Danger('Serienbrief nicht gefunden', new Exclamation());
+            return $Stage.new Danger('Serienbrief nicht gefunden', new Exclamation());
         }
 
         $Filter = false;
@@ -265,8 +268,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Filter = $FilterGroup;
 
             $Pile = new Pile();
-            $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(), null, 'TblMember_serviceTblPerson');
-            $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID, null);
+            $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(), null, 'TblMember_serviceTblPerson');
+            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID, null);
             // Group->Person
         }
         // Database Join with foreign Key
@@ -285,11 +288,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Result = array();
         $Timeout = null;
-        if ($Filter && isset($Pile)) {
+        if ($Filter && isset( $Pile )) {
             // Preparation Filter
             array_walk($Filter, function (&$Input) {
 
-                if (!empty($Input)) {
+                if (!empty( $Input )) {
                     $Input = explode(' ', $Input);
                     $Input = array_filter($Input);
                 } else {
@@ -301,7 +304,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($FilterPerson) {
                 array_walk($FilterPerson, function (&$Input) {
 
-                    if (!empty($Input)) {
+                    if (!empty( $Input )) {
                         $Input = explode(' ', $Input);
                         $Input = array_filter($Input);
                     } else {
@@ -363,7 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         /**
-         * @var int $Index
+         * @var int                                                        $Index
          * @var ViewPeopleGroupMember[]|ViewDivisionStudent[]|ViewPerson[] $Row
          */
         $SearchResult = array();
@@ -378,7 +381,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             /** @noinspection PhpUndefinedFieldInspection */
             $DataPerson['Exchange'] = (string)new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(
-                'Id' => $Id,
+                'Id'       => $Id,
                 'PersonId' => $DataPerson['TblPerson_Id']
             ));
             $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
@@ -405,19 +408,19 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblPersonList ) && !empty( $tblPersonSearch )) {
 
             $tblPersonIdList = array();
-            array_walk( $tblPersonList, function( TblPerson $tblPerson ) use( &$tblPersonIdList ) {
-                if( !in_array( $tblPerson->getId(), $tblPersonIdList ) ) {
-                    array_push( $tblPersonIdList, $tblPerson->getId() );
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$tblPersonIdList) {
+                if (!in_array($tblPerson->getId(), $tblPersonIdList)) {
+                    array_push($tblPersonIdList, $tblPerson->getId());
                 }
             });
 
-            array_filter( $tblPersonSearch, function( &$Item ) use( $tblPersonIdList ) {
-                if( in_array( $Item['TblPerson_Id'], $tblPersonIdList ) ) {
+            array_filter($tblPersonSearch, function (&$Item) use ($tblPersonIdList) {
+                if (in_array($Item['TblPerson_Id'], $tblPersonIdList)) {
                     $Item = false;
                 }
             });
 
-            $tblPersonSearch = array_filter( $tblPersonSearch );
+            $tblPersonSearch = array_filter($tblPersonSearch);
         }
 
         if ($tblPersonList) {
@@ -426,7 +429,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 /** @noinspection PhpUndefinedFieldInspection */
                 $tblPerson->Exchange = new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(
-                    'Id' => $Id,
+                    'Id'       => $Id,
                     'PersonId' => $tblPerson->getId()
                 ));
                 /** @noinspection PhpUndefinedFieldInspection */
@@ -526,8 +529,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
-        $PanelContent = array($tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-            'Anzahl eingetragener Adressen für Serienbriefe: '.$SerialLetterCount,);
+        $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
+            'Adresse(n): '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
             .( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
@@ -555,20 +558,20 @@ class Frontend extends Extension implements IFrontendInterface
                                                       'Name'     => 'Name',
                                                       'Address'  => 'Adresse'),
                                                 array(
-                                                    'order' => array(array(1, 'asc')),
-                                                    'columnDefs' => array(
+                                                    'order'                => array(array(1, 'asc')),
+                                                    'columnDefs'           => array(
                                                         array('orderable' => false, 'width' => '1%', 'targets' => 0)
                                                     ),
                                                     'ExtensionRowExchange' => array(
                                                         'Enabled' => true,
-                                                        'Url' => '/Api/Reporting/SerialLetter/Exchange',
+                                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
                                                         'Handler' => array(
                                                             'From' => 'glyphicon-minus-sign',
-                                                            'To' => 'glyphicon-plus-sign',
+                                                            'To'   => 'glyphicon-plus-sign',
                                                         ),
                                                         'Connect' => array(
                                                             'From' => 'TableCurrent',
-                                                            'To' => 'TableAvailable',
+                                                            'To'   => 'TableAvailable',
                                                         )
                                                     )
                                                 )
@@ -580,7 +583,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 6),
 
                         new LayoutColumn(array(
-                            new Title('Personen', 'Verfügbar'),
+                            new Title(new PersonIcon().' Personen', 'Verfügbar'),
 
                             new Layout(
                                 new LayoutGroup(array(
@@ -615,22 +618,22 @@ class Frontend extends Extension implements IFrontendInterface
 
                                                 new TableData($tblPersonSearch, null,
                                                 array('Exchange' => ' ',
-                                                    'Name' => 'Name',
-                                                    'Address' => 'Adresse'), array(
-                                                    'order' => array(array(1, 'asc')),
+                                                      'Name'     => 'Name',
+                                                      'Address'  => 'Adresse'), array(
+                                                        'order'            => array(array(1, 'asc')),
                                                     'columnDefs' => array(
                                                         array('orderable' => false, 'width' => '1%', 'targets' => 0)
                                                     ),
                                                     'ExtensionRowExchange' => array(
                                                         'Enabled' => true,
-                                                        'Url' => '/Api/Reporting/SerialLetter/Exchange',
+                                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
                                                         'Handler' => array(
                                                             'From' => 'glyphicon-plus-sign',
-                                                            'To' => 'glyphicon-minus-sign'
+                                                            'To'   => 'glyphicon-minus-sign'
                                                         ),
                                                         'Connect' => array(
                                                             'From' => 'TableAvailable',
-                                                            'To' => 'TableCurrent',
+                                                            'To'   => 'TableCurrent',
                                                         ),
                                                     )
                                                 )
@@ -655,8 +658,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendPersonAddress(
         $Id = null
-    )
-    {
+    ) {
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen auswählen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
         $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id);
@@ -704,13 +706,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                     if (!empty( $Data )) {
                         $Item['Address'][] = new LayoutColumn(
-                            new Panel( '', $Data )
-                        , 3);
+                            new Panel('', $Data)
+                            , 3);
                     }
                     $Data = array();
                 }
 
-                $Item['Address'] = array_filter( $Item['Address'] );
+                $Item['Address'] = array_filter($Item['Address']);
 
                 $Item['Address'] = (string)new Layout(
                     new LayoutGroup(
@@ -721,16 +723,16 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }
 
-            if( empty( $Item['Address'] ) ) {
-                $Item['Address'] = new WarningMessage( 'Keine Adressen ausgewählt!' );
+            if (empty( $Item['Address'] )) {
+                $Item['Address'] = new WarningMessage('Keine Adressen ausgewählt!');
             }
 
             array_push($TableContent, $Item);
         });
 
         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
-        $PanelContent = array($tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-            'Anzahl eingetragener Adressen für Serienbriefe: '.$SerialLetterCount,);
+        $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
+            'Adresse(n): '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
             .( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
@@ -745,7 +747,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new Title(new Listing().' Adressen', 'Zuweisung'),
+                            new Title(new Setup().' Adressen', 'Zuweisung'),
                             new Layout(
                                 new LayoutGroup(
                                     new LayoutRow(
@@ -764,7 +766,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), array(
                                 'columnDefs' => array(
                                     array('orderable' => false, 'width' => '1%', 'targets' => -1),
-                                    array( 'width' => '15%', 'targets' => 0)
+                                    array('width' => '15%', 'targets' => 0)
                                 )
                             ))
                         )
@@ -834,30 +836,32 @@ class Frontend extends Extension implements IFrontendInterface
 
         $dataList = array();
         $columnList = array(
-            'Person'       => 'Person',
-            'Relationship' => 'Beziehung',
-            'Address'      => 'Adressen',
-            'Salutation'   => 'Anrede'
+            'Person'     => 'Person',
+//            'Relationship' => 'Beziehung',
+            'Address'    => 'Adressen',
+            'Salutation' => 'Anrede'
         );
 
         $personCount = 0;
         $tblAddressToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
         if ($tblAddressToPersonList) {
             foreach ($tblAddressToPersonList as $tblToPerson) {
+
                 $dataList[$tblPerson->getId()]['Number'] = ++$personCount;
                 $dataList[$tblPerson->getId()]['Person'] = $tblPerson->getLastFirstName();
                 $subDataList[] = array(
-                    'Person'       => $tblToPerson->getServiceTblPerson() ? $tblToPerson->getServiceTblPerson()->getFullName() : '',
-                    'Relationship' => '',
-                    'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Address]',
+                    'Person'     => $tblToPerson->getServiceTblPerson() ? $tblToPerson->getServiceTblPerson()->getFullName() : '',
+//                    'Relationship' => '',
+                    'Address'    => new CheckBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Address]',
                         '&nbsp; '.$tblToPerson->getTblAddress()->getGuiString(), 1),
-                    'Salutation'   => new SelectBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Salutation]',
+                    'Salutation' => new SelectBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Salutation]',
                         '', array('Salutation' => $tblSalutationAll))
                 );
             }
         }
 
         $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+        $PersonToPersonId = array();
         if ($tblRelationshipAll) {
             foreach ($tblRelationshipAll as $tblRelationship) {
                 if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
@@ -868,21 +872,28 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     if ($tblAddressToPersonList) {
                         foreach ($tblAddressToPersonList as $tblToPerson) {
-                            $subDataList[] = array(
-                                'Person'       => $tblToPerson->getServiceTblPerson() ? $tblToPerson->getServiceTblPerson()->getFullName() : '',
-                                'Relationship' => $tblRelationship->getTblType()->getName(),
-                                'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Address]',
-                                    '&nbsp; '.$tblToPerson->getTblAddress()->getGuiString(), 1),
-                                'Salutation'   => new SelectBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Salutation]',
-                                    '', array('Salutation' => $tblSalutationAll))
-                            );
+
+                            $PersonIdAddressIdNow = ( $tblToPerson->getServiceTblPerson() ? $tblToPerson->getServiceTblPerson()->getId() : '' ).'.'.
+                                ( $tblToPerson->getTblAddress() ? $tblToPerson->getTblAddress()->getId() : '' );
+                            // ignore duplicated Person by Relationship
+                            if (!array_key_exists($PersonIdAddressIdNow, $PersonToPersonId)) {
+                                $subDataList[] = array(
+                                    'Person'     => $tblToPerson->getServiceTblPerson() ? $tblToPerson->getServiceTblPerson()->getFullName() : '',
+//                                    'Relationship' => $tblRelationship->getTblType()->getName(),
+                                    'Address'    => new CheckBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Address]',
+                                        '&nbsp; '.$tblToPerson->getTblAddress()->getGuiString(), 1),
+                                    'Salutation' => new SelectBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Salutation]',
+                                        '', array('Salutation' => $tblSalutationAll))
+                                );
+                                $PersonToPersonId[$PersonIdAddressIdNow] = $PersonIdAddressIdNow;
+                            }
                         }
                     }
                 }
             }
         }
 
-        if ($tblAddressToPersonList && isset( $subDataList )) {
+        if (isset( $subDataList )) {
             $Form = new Form(
                 new FormGroup(
                     new FormRow(
@@ -897,8 +908,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblPersonList = SerialLetter::useService()->getPersonBySerialLetter($tblSerialLetter);
         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
-        $PanelContent = array($tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-            'Anzahl eingetragener Adressen für Serienbriefe: '.$SerialLetterCount,);
+        $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
+            'Adresse(n): '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
             .( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
@@ -916,7 +927,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Verwendete Adresse(n): '.( $tblAddressPersonList === false ? 0 : count($tblAddressPersonList) ),
             Panel::PANEL_TYPE_SUCCESS);
 
-        if ($tblAddressToPersonList && isset( $Form )) {
+        if (isset( $Form )) {
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
@@ -960,7 +971,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $PanelPerson
                                 , 6),
                             new LayoutColumn(
-                                new WarningMessage('Die Person '.$tblPerson->getFullName().' sowie die in Beziehung gesetzte Personen besitzen keine Adresse. Zur Person '
+                                new WarningMessage('Die Person '.$tblPerson->getFullName().' sowie die in Beziehung gesetzten Personen besitzen keine Adresse. Zur Person '
                                     .new Standard('', '/People/Person', new PersonIcon(), array('Id' => $tblPerson->getId())))
                                 , 12)
                         ))
@@ -979,12 +990,11 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSerialLetterExport(
         $Id = null
-    )
-    {
+    ) {
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen herunterladen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
 
-        if (($tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id))) {
+        if (( $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id) )) {
 
             $dataList = array();
             $columnList = array(
@@ -1056,8 +1066,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
-            $PanelContent = array($tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-                'Anzahl eingetragener Adressen für Serienbriefe: '.$SerialLetterCount,);
+            $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
+                'Adresse(n): '.$SerialLetterCount,);
             $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                     .' Person(en)', Label::LABEL_TYPE_INFO)
                 .( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
@@ -1077,7 +1087,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                                 : null,
                             new LayoutColumn(
-                                new Title(new Listing().' Adressen', 'Übersicht')
+                                new Title(new EyeOpen().' Adressen', 'Übersicht')
                             ),
                             new LayoutColumn(
                                 new Panel('Serienbrief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter),
@@ -1094,7 +1104,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
-            return $Stage . new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation());
+            return $Stage.new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation());
         }
     }
 
