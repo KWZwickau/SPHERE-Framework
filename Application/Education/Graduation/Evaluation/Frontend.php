@@ -1264,6 +1264,32 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblDivision = $tblTest->getServiceTblDivision();
 
+            $panel = false;
+            if (($tblTestLinkList = $tblTest->getLinkedTestAll())){
+                $panelContent = array();
+                foreach ($tblTestLinkList as $tblTestItem) {
+                    $division = $tblTestItem->getServiceTblDivision();
+                    $subject = $tblTestItem->getServiceTblSubject();
+                    $group = $tblTestItem->getServiceTblSubjectGroup();
+                    if ($division && $subject) {
+                        $panelContent[] = $division->getDisplayName() . ' - ' . $subject->getAcronym()
+                            . ($group ? ' - ' . $group->getName() : '');
+                    }
+                }
+                if (!empty($panelContent)){
+                    sort($panelContent);
+                    $panel = new Panel(
+                        'Verknüpfte Leistungsüberprüfungen',
+                        $panelContent,
+                        Panel::PANEL_TYPE_INFO
+                    );
+                }
+            }
+            if ($panel){
+                $Stage->setMessage(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
+                    . ' Verknüpfte Leistungsüberprüfungen werden mit bearbeitet.'));
+            }
+
             $Stage->setContent(
                 new Layout (array(
                     new LayoutGroup(array(
@@ -1289,6 +1315,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     Panel::PANEL_TYPE_INFO), 3
                             )
                         )),
+                        $panel
+                            ? new LayoutRow(array(
+                            new LayoutColumn(
+                                $panel
+                            ),
+                        ))
+                            : null,
                     )),
                     new LayoutGroup(array(
                         new LayoutRow(array(
@@ -1383,11 +1416,33 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             if (!$Confirm) {
+                $panel = false;
+                if (($tblTestLinkList = $tblTest->getLinkedTestAll())){
+                    $panelContent = array();
+                    foreach ($tblTestLinkList as $tblTestItem) {
+                        $division = $tblTestItem->getServiceTblDivision();
+                        $subject = $tblTestItem->getServiceTblSubject();
+                        $group = $tblTestItem->getServiceTblSubjectGroup();
+                        if ($division && $subject) {
+                            $panelContent[] = $division->getDisplayName() . ' - ' . $subject->getAcronym()
+                                . ($group ? ' - ' . $group->getName() : '');
+                        }
+                    }
+                    if (!empty($panelContent)){
+                        sort($panelContent);
+                        $panel = new Panel(
+                            new Exclamation() . ' Diese verknüpften Leistungsüberprüfungen werden ebenfalls gelöscht',
+                            $panelContent,
+                            Panel::PANEL_TYPE_DANGER
+                        );
+                    }
+                }
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                             new Panel('Test', ($tblTest->getDescription() !== '' ? '&nbsp;&nbsp;'
                                 . new Muted(new Small(new Small($tblTest->getDescription()))) : ''),
                                 Panel::PANEL_TYPE_INFO),
+                            $panel ? $panel : null,
                             new Panel(new Question() . ' Diesen Test wirklich löschen?', array(
                                 $tblTest->getDescription() ? $tblTest->getDescription() : null
                             ),

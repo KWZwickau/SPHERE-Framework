@@ -268,13 +268,26 @@ class Service extends AbstractService
         }
 
         $tblTest = $this->getTestById($Id);
-        (new Data($this->getBinding()))->updateTest(
-            $tblTest,
-            $Test['Description'],
-            $Test['Date'],
-            $Test['CorrectionDate'],
-            $Test['ReturnDate']
-        );
+        if ($tblTest) {
+            (new Data($this->getBinding()))->updateTest(
+                $tblTest,
+                $Test['Description'],
+                $Test['Date'],
+                $Test['CorrectionDate'],
+                $Test['ReturnDate']
+            );
+            if (($tblTestLinkList = $tblTest->getLinkedTestAll())){
+                foreach ($tblTestLinkList as $tblTestItem){
+                    (new Data($this->getBinding()))->updateTest(
+                        $tblTestItem,
+                        $Test['Description'],
+                        $Test['Date'],
+                        $Test['CorrectionDate'],
+                        $Test['ReturnDate']
+                    );
+                }
+            }
+        }
 
         if (!$tblTest->getServiceTblDivision()) {
             return new Danger(new Ban() . ' Klasse nicht gefunden')
@@ -800,6 +813,11 @@ class Service extends AbstractService
      */
     public function destroyTest(TblTest $tblTest)
     {
+        if (($tblTestLinkList = $tblTest->getLinkedTestAll())) {
+            foreach ($tblTestLinkList as $tblTestItem) {
+                (new Data($this->getBinding()))->destroyTest($tblTestItem);
+            }
+        }
 
         return (new Data($this->getBinding()))->destroyTest($tblTest);
     }
@@ -859,8 +877,10 @@ class Service extends AbstractService
      *
      * @return bool|Panel
      */
-    public function getTestLinkPanel(TblYear $tblYear, TblDivisionSubject $tblDivisionSubjectSelected)
-    {
+    public function getTestLinkPanel(
+        TblYear $tblYear,
+        TblDivisionSubject $tblDivisionSubjectSelected
+    ) {
         $panel = false;
         if ($tblDivisionSubjectSelected !== null) {
             $tblPerson = false;
@@ -915,7 +935,7 @@ class Service extends AbstractService
                 }
             }
             if (!empty($list)) {
-                $checkList = array();
+                $itemList = array();
                 foreach ($list as $key => $item) {
                     /** @var TblDivision $division */
                     $division = $item['tblDivision'];
@@ -925,16 +945,17 @@ class Service extends AbstractService
                     $group = $item['tblSubjectGroup'];
                     $name = $division->getDisplayName() . ' - ' . $subject->getAcronym()
                         . ($group ? ' - ' . $group->getName() : '');
-                    $checkList[$name] = new CheckBox(
-                        'Test[Link][' . $key . ']',
-                        $name,
-                        1
-                    );
+                    $itemList[$name] =
+                         new CheckBox(
+                            'Test[Link][' . $key . ']',
+                            $name,
+                            1
+                        );
                 }
-                ksort($checkList);
+                ksort($itemList);
                 $panel = new Panel(
                     'Leistungsüberprüfungen verknüpfen',
-                    $checkList,
+                    $itemList,
                     Panel::PANEL_TYPE_PRIMARY
                 );
             }
