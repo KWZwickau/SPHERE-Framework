@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -30,9 +29,9 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -56,6 +55,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Schulkonten', 'Übersicht');
+        $Stage->setMessage(new Info('Hier werden alle Kontodaten der Schule bezüglich der Rechnungsstellung festgelegt.'));
 
         $tblSchoolAccountList = SchoolAccount::useService()->getSchoolAccountAll();
         $TableContent = array();
