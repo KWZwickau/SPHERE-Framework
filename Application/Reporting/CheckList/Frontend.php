@@ -15,6 +15,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -94,10 +95,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Check-Listen', 'Übersicht');
 
         $tblListAll = CheckList::useService()->getListAll();
+        $TableContent = array();
 
         if ($tblListAll) {
-            foreach ($tblListAll as &$tblList) {
-                $tblList->Option =
+            array_walk($tblListAll, function (TblList $tblList) use (&$TableContent) {
+                $Item['Name'] = $tblList->getName();
+                $Item['Description'] = $tblList->getDescription();
+                $Item['Option'] =
                     (new Standard('',
                         '/Reporting/CheckList/Edit', new Edit(),
                         array('Id' => $tblList->getId()), 'Liste bearbeiten'))
@@ -112,7 +116,9 @@ class Frontend extends Extension implements IFrontendInterface
                         array('ListId' => $tblList->getId()), 'Person / Firma / Gruppe / Klasse auswählen'))
                     .( new Standard(new View(), '/Reporting/CheckList/Object/Element/Show', new CommodityItem(),
                         array('Id' => $tblList->getId()), 'Check-Listen-Inhalt anzeigen') );
-            }
+
+                array_push($TableContent, $Item);
+            });
         }
 
         $Form = $this->formList()
@@ -124,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData($tblListAll, null, array(
+                            new TableData($TableContent, null, array(
                                 'Name' => 'Name',
                                 'Description' => 'Beschreibung',
                                 'Option' => '',
@@ -387,6 +393,9 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Data'    => array(
                                                     'Id' => $tblList->getId()
                                                 )
+                                            ),
+                                            'columnDefs'          => array(
+                                                array('width' => '1%', 'targets' => 0)
                                             )
                                         )
                                     )
@@ -521,12 +530,12 @@ class Frontend extends Extension implements IFrontendInterface
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
                                 /** @var PersonGroupEntity $tblObject */
                                 $tblListObjectList->DisplayName = $tblObject->getName()
-                                    . ' (' . PersonGroup::useService()->countPersonAllByGroup($tblObject) . ')';
+                                    .' ('.PersonGroup::useService()->countMemberAllByGroup($tblObject).')';
                                 $tblListObjectList->Groups = '';
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
                                 /** @var CompanyGroupEntity $tblObject */
                                 $tblListObjectList->DisplayName = $tblObject->getName()
-                                    . ' (' . CompanyGroup::useService()->countCompanyAllByGroup($tblObject) . ')';
+                                    .' ('.CompanyGroup::useService()->countMemberAllByGroup($tblObject).')';
                                 $tblListObjectList->Groups = '';
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
                                 /** @var TblDivision $tblObject */
@@ -699,7 +708,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $Global->POST['Option'][$tblPersonGroup->getId()] = 1;
                                     $Global->savePost();
                                     $tblPersonGroup->DisplayName = $tblPersonGroup->getName()
-                                        . ' (' . PersonGroup::useService()->countPersonAllByGroup($tblPersonGroup) . ')';
+                                        .' ('.PersonGroup::useService()->countMemberAllByGroup($tblPersonGroup).')';
                                     $tblPersonGroup->Groups = '';
                                     $tblPersonGroup->Option =
                                         (new Form(
@@ -743,7 +752,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $Global->POST['Option'][$tblCompanyGroup->getId()] = 1;
                                     $Global->savePost();
                                     $tblCompanyGroup->DisplayName = $tblCompanyGroup->getName()
-                                        . ' (' . CompanyGroup::useService()->countCompanyAllByGroup($tblCompanyGroup) . ')';
+                                        .' ('.CompanyGroup::useService()->countMemberAllByGroup($tblCompanyGroup).')';
                                     $tblCompanyGroup->Groups = '';
                                     $tblCompanyGroup->Option =
                                         (new Form(
@@ -1569,7 +1578,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList/Object/Element/Show', new ChevronLeft(), array('Id' => $tblList->getId())));
 
-        $FormColumnArray = array();
+        $formColumnArray = array();
+        $formRowArray = array();
         $tblPerson = false;
         $tblCompany = false;
         $PanelName = '';
@@ -1611,22 +1621,34 @@ class Frontend extends Extension implements IFrontendInterface
 //                $PanelList[] = new Panel($tblListElement->getName(), new TextField('Data[Field'.$count.']'), Panel::PANEL_TYPE_INFO);
 
                 if ($tblListElement->getTblElementType()->getIdentifier() === 'CHECKBOX') {
-                    $FormColumnArray[$count] = new FormColumn(new Panel($tblListElement->getName(), new CheckBox(
+                    $formColumnArray[] = new FormColumn(new Panel($tblListElement->getName(), new CheckBox(
                         'Data['.$tblListElement->getId().']',
                         ' ', 1), Panel::PANEL_TYPE_INFO), 2);
                 } elseif ($tblListElement->getTblElementType()->getIdentifier() === 'DATE') {
-                    $FormColumnArray[$count] = new FormColumn(new Panel($tblListElement->getName(), new DatePicker(
+                    $formColumnArray[] = new FormColumn(new Panel($tblListElement->getName(), new DatePicker(
                         'Data['.$tblListElement->getId().']',
-                        '', '', new Calendar()), Panel::PANEL_TYPE_INFO), 3);
+                        '', '', new Calendar()), Panel::PANEL_TYPE_INFO), 2);
                 } elseif ($tblListElement->getTblElementType()->getIdentifier() === 'TEXT') {
-                    $FormColumnArray[$count] = new FormColumn(new Panel($tblListElement->getName(), new TextField(
+                    $formColumnArray[] = new FormColumn(new Panel($tblListElement->getName(), new TextField(
                         'Data['.$tblListElement->getId().']',
-                        '', '', new Comment()), Panel::PANEL_TYPE_INFO), 4);
+                        '', '', new Comment()), Panel::PANEL_TYPE_INFO), 2);
                 }
+
+                if ($count % 6 === 0) {
+                    // fill 6 FormColumns in FormRow
+//                    $formRowArray[] = new FormRow(new FormColumn( new \SPHERE\Common\Frontend\Form\Repository\Title('Spalte ' ), 12)); // .($count - 6).' - '.$count )
+                    $formRowArray[] = new FormRow($formColumnArray);
+                    $formColumnArray = array();
+                }
+            }
+            // Fill rest of FormColumns in FormRow
+            if (!empty( $formColumnArray )) {
+                $formRowArray[] = new FormRow($formColumnArray);
             }
         }
 
-        $Form = new Form(new FormGroup(new FormRow($FormColumnArray)));
+
+        $Form = new Form(new FormGroup($formRowArray));
         $Form->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 

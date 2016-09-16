@@ -438,7 +438,7 @@ class Data extends AbstractData
     /**
      * @param TblList $tblList
      *
-     * @return int
+     * @return false|int|Element
      */
     public function countListElementListByList(TblList $tblList)
     {
@@ -670,15 +670,13 @@ class Data extends AbstractData
     }
 
     /**
-     * add Entity if not exists
-     *
      * @param TblList            $tblList
      * @param TblObjectType      $tblObjectType
      * @param TblListElementList $tblListElementList
      * @param Element            $tblObject
      * @param                    $Value
      *
-     * @return TblListElementList
+     * @return TblListObjectElementList
      */
     public function updateObjectElementToList(
         TblList $tblList,
@@ -705,13 +703,14 @@ class Data extends AbstractData
             $Entity->setValue($Value);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            return $Entity;
         } else {
             $Protocol = clone $Entity;
             $Entity->setValue($Value);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
         }
-        return $Entity;
     }
 
     /**
