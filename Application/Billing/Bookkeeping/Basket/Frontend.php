@@ -163,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         ));
-        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()));
+        $Form->appendFormButton(new Primary('Speichern', new Save()));
         $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
@@ -203,7 +203,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $Basket
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendChangeBasket($Id = null, $Basket = null)
     {
@@ -243,7 +243,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             ))
         ));
-        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()));
+        $Form->appendFormButton(new Primary('Speichern', new Save()));
         $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket);
@@ -289,10 +289,10 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null       $Id
-     * @param bool|false $Confirm
+     * @param null $Id
+     * @param bool $Confirm
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendDestroyBasket($Id = null, $Confirm = false)
     {
@@ -408,7 +408,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendBasketContent($Id = null)
     {
@@ -678,7 +678,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $CommodityId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendAddBasketCommodity($Id = null, $CommodityId = null)
     {
@@ -708,7 +708,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $ItemId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendAddBasketItem($Id = null, $ItemId = null)
     {
@@ -738,7 +738,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendRemoveBasketItem($Id = null)
     {
@@ -998,7 +998,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $PersonId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendAddBasketPerson($Id = null, $PersonId = null)
     {
@@ -1028,7 +1028,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendRemoveBasketPerson($Id = null)
     {
@@ -2010,6 +2010,10 @@ class Frontend extends Extension implements IFrontendInterface
         $date = (new \DateTime($Date))->format('ym');
         foreach ($InvoiceDataList as &$InvoiceList) {
 
+            // prepare to count 0 if empty
+            if (!$tblInvoiceList) {
+                $tblInvoiceList = array();
+            }
             $count = count($tblInvoiceList) + $InvoiceCount;
             $count = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
 
