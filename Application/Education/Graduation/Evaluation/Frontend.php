@@ -1265,7 +1265,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivision = $tblTest->getServiceTblDivision();
 
             $panel = false;
-            if (($tblTestLinkList = $tblTest->getLinkedTestAll())){
+            if (($tblTestLinkList = $tblTest->getLinkedTestAll())) {
                 $panelContent = array();
                 foreach ($tblTestLinkList as $tblTestItem) {
                     $division = $tblTestItem->getServiceTblDivision();
@@ -1276,7 +1276,7 @@ class Frontend extends Extension implements IFrontendInterface
                             . ($group ? ' - ' . $group->getName() : '');
                     }
                 }
-                if (!empty($panelContent)){
+                if (!empty($panelContent)) {
                     sort($panelContent);
                     $panel = new Panel(
                         'Verknüpfte Leistungsüberprüfungen',
@@ -1285,7 +1285,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 }
             }
-            if ($panel){
+            if ($panel) {
                 $Stage->setMessage(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
                     . ' Verknüpfte Leistungsüberprüfungen werden mit bearbeitet.'));
             }
@@ -1417,7 +1417,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             if (!$Confirm) {
                 $panel = false;
-                if (($tblTestLinkList = $tblTest->getLinkedTestAll())){
+                if (($tblTestLinkList = $tblTest->getLinkedTestAll())) {
                     $panelContent = array();
                     foreach ($tblTestLinkList as $tblTestItem) {
                         $division = $tblTestItem->getServiceTblDivision();
@@ -1428,7 +1428,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 . ($group ? ' - ' . $group->getName() : '');
                         }
                     }
-                    if (!empty($panelContent)){
+                    if (!empty($panelContent)) {
                         sort($panelContent);
                         $panel = new Panel(
                             new Exclamation() . ' Diese verknüpften Leistungsüberprüfungen werden ebenfalls gelöscht',
@@ -1664,7 +1664,7 @@ class Frontend extends Extension implements IFrontendInterface
         /*
          * set grade mirror
          */
-        $gradeMirror = $this->setGradeMirror($tblTest, $tblScoreType ? $tblScoreType : null, $gradeList, $Grade);
+        $gradeMirror = $this->setGradeMirror($tblScoreType ? $tblScoreType : null, $gradeList, $Grade);
 
         $studentList = array();
         $studentTestList = array();
@@ -3163,6 +3163,22 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        if (($tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest))) {
+            foreach ($tblGradeList as $tblGrade) {
+                if (($tblPerson = $tblGrade->getServiceTblPerson()) && !isset($studentList[$tblPerson->getId()])) {
+                    $studentTestList[$tblPerson->getId()] = $tblTest;
+                    $studentList[$tblPerson->getId()]['Number'] = count($studentList) + 1;
+                    $studentList[$tblPerson->getId()]['Name'] = new Muted($tblPerson->getLastFirstName()) . ($isDivisionSubjectNamed
+                            ? new Muted(' (' . $tblDivisionSubject->getTblDivision()->getDisplayName()
+                                . ' - ' . $tblDivisionSubject->getServiceTblSubject()->getAcronym()
+                                . ($tblDivisionSubject->getTblSubjectGroup() ? ' - ' . $tblDivisionSubject->getTblSubjectGroup()->getName() : '')
+                                . ')')
+                            : ''
+                        );
+                }
+            }
+        }
+
         return $studentList;
     }
 
@@ -3243,7 +3259,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return array|Bold
      */
-    private function setGradeMirror(TblTest $tblTest, TblScoreType $tblScoreType = null, $gradeList, $Grade)
+    private function setGradeMirror(TblScoreType $tblScoreType = null, $gradeList, $Grade)
     {
         $minRange = null;
         $maxRange = null;
@@ -3255,6 +3271,7 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $mirror = array();
                 $count = 0;
+                $sum = 0;
 
                 $description = '';
                 if ($tblScoreType->getIdentifier() == 'GRADES') {
@@ -3283,6 +3300,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $gradeValue = intval(round(floatval($tblGrade->getGrade()), 0));
                                 if ($gradeValue >= $minRange && $gradeValue <= $maxRange) {
                                     $mirror[$gradeValue]++;
+                                    $sum += $gradeValue;
                                     $count++;
                                 }
                             }
@@ -3296,10 +3314,13 @@ class Frontend extends Extension implements IFrontendInterface
                             ($count > 0 ? ' (' . (round(($mirror[$i] / $count) * 100, 0)) . '%)' : '');
                     }
                 }
-                $average = Gradebook::useService()->getAverageByTest($tblTest);
-                if ($average) {
-                    $gradeMirror[] = new Bold('Fach-Klassen &#216;: ' . $average);
+
+                if ($count > 0){
+                    $average = $sum/$count;
+                } else {
+                    $average = '';
                 }
+                $gradeMirror[] = new Bold('Fach-Klassen &#216;: ' . $average);
             }
         } else {
             $gradeMirror = new Bold(new Warning(
@@ -3350,14 +3371,15 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblGradeList as $tblGrade) {
                 if (($tblPerson = $tblGrade->getServiceTblPerson())
                 ) {
-                    if ($tblSubjectGroup
-                        && Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)
-                    ) {
-                        $countGrades++;
-                    } elseif (!$tblSubjectGroup
-                        && Division::useService()->exitsDivisionStudent($tblDivision, $tblPerson)
-                    ) {
-                        $countGrades++;
+                    $countGrades++;
+                    if ($tblSubjectGroup) {
+                        if (!Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
+                            $countStudents++;
+                        }
+                    } else {
+                        if (!Division::useService()->exitsDivisionStudent($tblDivision, $tblPerson)) {
+                            $countStudents++;
+                        }
                     }
                 }
             }

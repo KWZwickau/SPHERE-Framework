@@ -728,6 +728,19 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
 
+        $addStudentList = array();
+        $studentArray = array();
+        if ($tblDivisionSubject->getTblSubjectGroup()) {
+            $tblStudentList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+        } else {
+            $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        }
+        if ($tblStudentList) {
+            foreach ($tblStudentList as $tblPersonStudent) {
+                $studentArray[$tblPersonStudent->getId()] = $tblPersonStudent;
+            }
+        }
+
         $dataList = array();
         $columnDefinition = array();
         $periodListCount = array();
@@ -762,6 +775,18 @@ class Frontend extends Extension implements IFrontendInterface
                                     . ($tblTest->getServiceTblGradeType()->isHighlighted()
                                         ? $tblTest->getServiceTblGradeType()->getCode()
                                         : new Muted($tblTest->getServiceTblGradeType()->getCode()));
+
+                                // für Schüler, welche nicht mehr in der Klasse sind
+                                $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
+                                if ($tblGradeList) {
+                                    foreach ($tblGradeList as $tblGradeItem) {
+                                        if (($tblPersonItem = $tblGradeItem->getServiceTblPerson())
+                                            && !isset($studentArray[$tblPersonItem->getId()])
+                                        ) {
+                                            $addStudentList[$tblPersonItem->getId()] = $tblPersonItem;
+                                        }
+                                    }
+                                }
                             }
                         }
                         $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
@@ -776,13 +801,15 @@ class Frontend extends Extension implements IFrontendInterface
             $columnDefinition['YearAverage'] = '&#216;';
         }
 
-        // Tabellen-Inhalt erstellen
-        if ($tblDivisionSubject->getTblSubjectGroup()) {
-            $tblStudentList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-        } else {
-            $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        if (!empty($addStudentList)) {
+            if ($tblStudentList) {
+                $tblStudentList = array_merge(array_values($tblStudentList), array_values($addStudentList));
+            } else {
+                $tblStudentList = $addStudentList;
+            }
         }
 
+        // Tabellen-Inhalt erstellen
         if ($tblStudentList) {
 
             $count = 1;
@@ -791,7 +818,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $data = array();
                 $data['Number'] = $count % 5 == 0 ? new Bold($count) : $count;
                 $count++;
-                $data['Student'] = $tblPerson->getLastFirstName();
+                $data['Student'] = isset($addStudentList[$tblPerson->getId()])
+                    ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
 
                 // Zensur des Schülers zum Test zuordnen und Durchschnitte berechnen
                 if (!empty($columnDefinition)) {
@@ -3419,7 +3447,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
                             }
-                            if ($count > $maxGradeCount){
+                            if ($count > $maxGradeCount) {
                                 $maxGradeCount = $count;
                             }
                         }
@@ -3432,9 +3460,9 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if (!empty($dataList)){
-            foreach ($dataList as $divisionSubjectId => $array){
-                foreach($columnDefinition as $column => $name) {
+        if (!empty($dataList)) {
+            foreach ($dataList as $divisionSubjectId => $array) {
+                foreach ($columnDefinition as $column => $name) {
                     if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($divisionSubjectId))) {
                         $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                             $tblDivisionSubject->getTblDivision(),
