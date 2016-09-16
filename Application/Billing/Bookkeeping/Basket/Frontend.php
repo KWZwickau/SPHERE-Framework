@@ -63,7 +63,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -896,9 +895,6 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(array(
-                        $displayAvailablePersons
-                    ), 6),
-                    new FormColumn(array(
                         ( $tblPersonList
                             ? new TableData(
                                 $tblPersonList,
@@ -937,6 +933,9 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                             : new Warning('Keine Personen zugewiesen.', new Exclamation())
                         )
+                    ), 6),
+                    new FormColumn(array(
+                        $displayAvailablePersons
                     ), 6),
                 ))
             ),
@@ -2011,7 +2010,7 @@ class Frontend extends Extension implements IFrontendInterface
         $date = (new \DateTime($Date))->format('ym');
         foreach ($InvoiceDataList as &$InvoiceList) {
 
-            $count = Count($tblInvoiceList) + $InvoiceCount;
+            $count = count($tblInvoiceList) + $InvoiceCount;
             $count = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
 
             $SellerContent = '';
