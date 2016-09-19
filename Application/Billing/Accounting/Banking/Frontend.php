@@ -34,10 +34,10 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -112,14 +112,6 @@ class Frontend extends Extension implements IFrontendInterface
                             'Id' => $tblPerson->getId()
                         ), 'Debitor/Mandatsreferenz'))->__toString();
 
-//                if (!empty( $DebtorArray )) {
-//                    $Item['Option'] .=
-//                        (new Standard('', '/Billing/Accounting/Banking/View',
-//                            new Edit(), array(
-//                                'Id' => $tblPerson->getId()
-//                            ), 'Bearbeiten'))->__toString();
-//                }
-
                 array_push($TableContent, $Item);
             });
         }
@@ -134,7 +126,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Person'    => 'Person',
                                     'Address'   => 'Adresse',
                                     'Debtor'    => 'Debitor-Nummer',
-                                    'Reference' => 'Referenz',
+                                    'Reference' => 'Mandatsreferenz',
                                     'Option'    => ''
                                 ))
                         )
@@ -221,7 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Title(new ListingTable().' Übersicht Referenz(en)'),
                             ( empty( $TableContentReference ) ? new Warning('Keine Mandats-Referenzen vergeben') :
                                 new TableData($TableContentReference, null,
-                                    array('Reference'     => 'Referenz',
+                                    array('Reference'     => 'Mandatsreferenz-Nummer',
                                           'ReferenceDate' => 'Gültig ab:',
                                           'Owner'         => 'Kontoinhaber',
                                           'BankName'      => 'Name der Bank',
@@ -847,7 +839,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )
         );
-        $Form->appendFormButton(new Primary('Speichern', new Save()));
+        $Form->appendFormButton(new Primary('Speichern und Weiter', new Save()));
         $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
@@ -859,7 +851,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 Banking::useService()->createDebtorSelection(
                                     $Form, $tblBasket, $Data
                                 ) : new Success('Artikelbezogene Bezahler sind bekannt.')
-                                .new Redirect('/Billing/Accounting/DebtorSelection/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
+                                .new Warning('Drücken Sie '.
+                                    new Standard('Weiter', '/Billing/Accounting/DebtorSelection/Payment/Choose', new Setup(), array('Id' => $tblBasket->getId()))
+                                    .' um die Debitor-Nummer / Mandatsreferenz auzuwählen')
+//                                .new Redirect('/Billing/Accounting/DebtorSelection/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()))
+                            )
                         )
                     )
                 )
@@ -920,7 +916,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Person'] = $tblPerson->getFullName();
                     $Item['PersonPayers'] = $tblPersonPayers->getFullName();
                     $Item['Item'] = $tblItem->getName();
-                    $Item['Reference'] = new Warning('Der Debitor besitzt keine Referenzen');
+                    $Item['Reference'] = new Warning('Der Debitor besitzt keine Mandatsreferenz<br/>(Fakturierung/Buchhaltung/Debitoren)');
                     $Item['Payment'] = $tblDebtorSelection->getServiceTblPaymentType()->getName();
 
                     $tblBankReferenceList = array();
@@ -984,7 +980,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Item'         => 'Artikel',
                             'Payment'      => 'Bezahlart',
                             'Debtor'       => 'Debitor-Nummer',
-                            'Reference'    => 'Referenz-Nummer',
+                            'Reference'    => 'Mandatsreferenz-Nummer',
                         ), null) // array("bPaginate" => false))
                     )
                 )
@@ -1239,7 +1235,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )
         );
-        $Form->appendFormButton(new Primary('Speichern', new Save()));
+        $Form->appendFormButton(new Primary('Speichern und Weiter', new Save()));
         $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
@@ -1296,7 +1292,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Person'] = $tblPerson->getFullName();
                 $Item['PersonPayers'] = $tblPersonPayers->getFullName();
                 $Item['Item'] = $tblItem->getName();
-                $Item['Reference'] = new Warning('Der Debitor besitzt keine Referenzen');
+                $Item['Reference'] = new Warning('Der Debitor besitzt keine Mandatsreferenz<br/>(Fakturierung/Buchhaltung/Debitoren)');
                 $Item['Payment'] = $tblPaymentTypeSelection->getName();
 
                 $tblBankReferenceList = array();
@@ -1364,7 +1360,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Item'         => 'Artikel',
                             'Payment'      => 'Bezahlart',
                             'SelectDebtor' => 'Debitor-Nummer',
-                            'Reference'    => 'Referenz-Nummer',
+                            'Reference'    => 'Mandatsreferenz-Nummer',
                         ), null) // array("bPaginate" => false))
                     )
                 ),

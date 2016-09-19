@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -1128,18 +1129,16 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if (!Basket::useService()->checkSelectedPayer($tblBasket)) {
-            $Stage->setContent(new Warning('fehlende Bezahler weiterleitung erfolgt.'));
-            return $Stage.new Redirect('/Billing/Accounting/DebtorSelection/Payment/Selection', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+            $Stage->setContent(
+                $this->layoutBasket($tblBasket)
+                .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new Warning('Fehlende Bezahler! Drücken Sie auf '.
+                        new Standard('Weiter', '/Billing/Accounting/DebtorSelection/Payment/Selection', new Setup(), array('Id' => $tblBasket->getId()))
+                        .' um die fehlenden Zahlungseinstellungen vorzunehmen.')
+                ))))
+            );
+            return $Stage; //.new Redirect('/Billing/Accounting/DebtorSelection/Payment/Selection', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
         }
-
-//        $Stage->addButton(new Backward());
-
-//        $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Danger('Berechnungen leeren', '/Billing/Bookkeeping/Basket/Verification/Destroy', new Disable()
-//            , array('BasketId' => $tblBasket->getId())));
-//        $Stage->addButton(new Standard('Zahlung fakturieren', '/Billing/Accounting/DebtorSelection/Payment/Selection', new Ok()
-//            , array('Id' => $tblBasket->getId())));
-//        $Stage->addButton(new Standard('Rechnung Test', '/Billing/Bookkeeping/Basket/Invoice/Create', new EyeOpen()
-//            , array('Id' => $tblBasket->getId())));
 
         $tblPersonList = Basket::useService()->getPersonAllByBasket($tblBasket);
         if (!$tblPersonList) {

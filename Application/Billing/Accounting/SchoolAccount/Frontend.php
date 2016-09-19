@@ -35,6 +35,8 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -55,7 +57,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Schulkonten', 'Übersicht');
-        $Stage->setMessage(new Info('Hier werden alle Kontodaten der Schule bezüglich der Rechnungsstellung festgelegt.'));
+        $Stage->setMessage(new Info('Hier werden alle Kontodaten der Schule für die Rechnungserstellung festgelegt.'));
 
         $tblSchoolAccountList = SchoolAccount::useService()->getSchoolAccountAll();
         $TableContent = array();
@@ -64,13 +66,23 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCompany = $tblSchoolAccount->getServiceTblCompany();
                 $tblType = $tblSchoolAccount->getServiceTblType();
                 if ($tblCompany && $tblType) {
+                    $Item['BankName'] = '';
+                    $Item['Owner'] = '';
+                    $Item['IBAN'] = '';
+                    $Item['BIC'] = '';
+                    $Item['CompanyName'] = '';
                     $tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblType);
                     if ($tblSchool) {
                         $Item['BankName'] = $tblSchoolAccount->getBankName();
                         $Item['Owner'] = $tblSchoolAccount->getOwner();
                         $Item['IBAN'] = $tblSchoolAccount->getIBAN();
                         $Item['BIC'] = $tblSchoolAccount->getBIC();
-                        $Item['CompanyName'] = $tblCompany->getDisplayName();
+                        if ($tblSchoolAccount->getServiceTblType()) {
+                            $Item['CompanyName'] = new WarningText(new Small($tblSchoolAccount->getServiceTblType()->getName()))
+                                .' '.$tblCompany->getDisplayName();
+                        } else {
+                            $Item['CompanyName'] = $tblCompany->getDisplayName();
+                        }
 
                         $Item['Option'] = new Standard('', '/Billing/Accounting/SchoolAccount/Edit', new Edit(), array('Id' => $tblSchoolAccount->getId()))
                             .new Standard('', '/Billing/Accounting/SchoolAccount/Destroy', new Disable(), array('Id' => $tblSchoolAccount->getId()));
@@ -81,7 +93,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Owner'] = $tblSchoolAccount->getOwner();
                         $Item['IBAN'] = $tblSchoolAccount->getIBAN();
                         $Item['BIC'] = $tblSchoolAccount->getBIC();
-                        $Item['CompanyName'] = $tblCompany->getDisplayName();
+                        if ($tblSchoolAccount->getServiceTblType()) {
+                            $Item['CompanyName'] = $tblSchoolAccount->getServiceTblType()->getName().' '.$tblCompany->getDisplayName();
+                        } else {
+                            $Item['CompanyName'] = $tblCompany->getDisplayName();
+                        }
 
                         $Item['Option'] = new Standard('', '/Billing/Accounting/SchoolAccount/Destroy', new Disable(), array('Id' => $tblSchoolAccount->getId()));
 
