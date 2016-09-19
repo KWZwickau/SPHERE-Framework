@@ -13,8 +13,10 @@
             </span>
         {% endif %}
         {% endif %}
-        <input type="number" class="form-control" name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}"
-               value="{{ ElementValue }}" {% if( Disabled is not empty ) %}disabled{% endif %} {% if( Required is not empty ) %}required{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}/>
+        <input type="email" class="form-control" name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}"
+               value="{{ ElementValue }}" {% if( Disabled is not empty ) %}disabled{% endif %}
+                {% if( Required is not empty ) %}required{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}
+        />
         {{ ElementFeedbackIcon }}
         {% if( ElementIcon is not empty ) %}
     </div>

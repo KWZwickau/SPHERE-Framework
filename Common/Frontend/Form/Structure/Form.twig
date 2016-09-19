@@ -2,6 +2,8 @@
       action="{{ FormAction }}{{ FormData }}{% if( Hash is not empty ) %}#{{ Hash }}{% endif %}"
       method="post"
       enctype="multipart/form-data"
+      data-toggle="validator"
+      role="form"
     >
     {% for FormGroup in GridGroupList %}
         {% if( FormGroup.getFormTitle is not empty ) %}

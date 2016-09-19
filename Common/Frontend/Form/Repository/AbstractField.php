@@ -269,6 +269,16 @@ abstract class AbstractField extends Extension implements IFieldInterface
     }
 
     /**
+     * @return AbstractField
+     */
+    public function setRequired()
+    {
+
+        $this->Template->setVariable('Required', true);
+        return $this;
+    }
+
+    /**
      * Set Tabulator-Order (Index)
      *
      * @param int $Index
