@@ -104,14 +104,27 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson $Person
+     * @deprecated
+     *
+*@param TblPerson $Person
      *
      * @return false|TblDebtor[]
      */
     public function getDebtorByPerson(TblPerson $Person)
     {
 
-        return (new Data($this->getBinding()))->getDebtorByPerson($Person);
+        return ( new Data($this->getBinding()) )->getDebtorAllByPerson($Person);
+    }
+
+    /**
+     * @param TblPerson $Person
+     *
+     * @return false|TblDebtor[]
+     */
+    public function getDebtorAllByPerson(TblPerson $Person)
+    {
+
+        return ( new Data($this->getBinding()) )->getDebtorAllByPerson($Person);
     }
 
     /**
@@ -353,7 +366,7 @@ class Service extends AbstractService
             if ($Error === true && !empty( $PersonArray )) {
                 /** @var TblPerson $Person */
                 foreach ($PersonArray as $Person) {
-                    $Stage .= new Warning('Bezahler für '.$Person->getfullName().' ist noch nicht eingerichtet');
+                    $Stage .= new Warning('Bezahler für '.$Person->getFullName().' ist noch nicht eingerichtet');
                 }
             }
         }

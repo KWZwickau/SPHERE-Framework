@@ -95,7 +95,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblAddress) {
                     $Item['Address'] = $tblAddress->getGuiString();
                 }
-                $tblDebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+                $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPerson);
                 $Item['Debtor'] = '';
                 if ($tblDebtorList) {
                     $Item['Debtor'] = new SuccessText(count($tblDebtorList).'x Vorhanden');
@@ -157,7 +157,7 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
         }
 
-        $tblDebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+        $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPerson);
         if ($tblDebtorList) {
             $TableContentDebtor = array();
             array_walk($tblDebtorList, function (TblDebtor $tblDebtor) use (&$TableContentDebtor, $tblPerson) {
@@ -540,7 +540,7 @@ class Frontend extends Extension implements IFrontendInterface
         $PersonPanel = '';
         if ($tblPerson) {
 
-//            $tblDebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+//            $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPerson);
 //            if ($tblDebtorList) {
 //                foreach ($tblDebtorList as $tblDebtorOne) {
 //                    $DebtorContent[] = $tblDebtorOne->getDebtorNumber();
@@ -772,7 +772,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ) {
                                 $tblPerson = $tblRelationShip->getServiceTblPersonFrom();
                                 if ($tblPerson) {
-                                    $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+                                    $tblDebtor = Banking::useService()->getDebtorAllByPerson($tblPerson);
                                     if ($tblDebtor) {
                                         $PaymentPerson[] = $tblPerson;
                                     }
@@ -780,7 +780,7 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         });
                     }
-                    $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+                    $tblDebtor = Banking::useService()->getDebtorAllByPerson($tblPerson);
                     if ($tblDebtor) {
                         $PaymentPerson[] = $tblPerson;
                     }
@@ -932,12 +932,12 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $DebtorArray = array();
-//                    if (Banking::useService()->getDebtorByPerson($tblPerson)) {
-//                        $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+//                    if (Banking::useService()->getDebtorAllByPerson($tblPerson)) {
+//                        $DebtorList = Banking::useService()->getDebtorAllByPerson($tblPerson);
 //                        $DebtorArray = array_merge($DebtorArray, $DebtorList);
 //                    }
-                    if (Banking::useService()->getDebtorByPerson($tblPersonPayers)) {
-                        $DebtorList = Banking::useService()->getDebtorByPerson($tblPersonPayers);
+                    if (Banking::useService()->getDebtorAllByPerson($tblPersonPayers)) {
+                        $DebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonPayers);
                         $DebtorArray = array_merge($DebtorArray, $DebtorList);
                     }
 
@@ -1163,7 +1163,7 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblRelationShip->getTblType()->getName() !== 'Arzt' &&
                                 $tblRelationShip->getTblType()->getName() !== 'Geschwisterkind'
                             ) {
-                                $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+                                $tblDebtor = Banking::useService()->getDebtorAllByPerson($tblPerson);
                                 if ($tblDebtor) {
                                     $PaymentPerson[] = $tblPerson;
                                 }
@@ -1171,7 +1171,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     });
                 }
-                $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+                $tblDebtor = Banking::useService()->getDebtorAllByPerson($tblPerson);
                 if ($tblDebtor) {
                     $PaymentPerson[] = $tblPerson;
                 }
@@ -1308,12 +1308,12 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $DebtorArray = array();
-//                if (Banking::useService()->getDebtorByPerson($tblPerson)) {
-//                    $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+//                if (Banking::useService()->getDebtorAllByPerson($tblPerson)) {
+//                    $DebtorList = Banking::useService()->getDebtorAllByPerson($tblPerson);
 //                    $DebtorArray = array_merge($DebtorArray, $DebtorList);
 //                }
-                if (Banking::useService()->getDebtorByPerson($tblPersonPayers)) {
-                    $DebtorList = Banking::useService()->getDebtorByPerson($tblPersonPayers);
+                if (Banking::useService()->getDebtorAllByPerson($tblPersonPayers)) {
+                    $DebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonPayers);
                     $DebtorArray = array_merge($DebtorArray, $DebtorList);
                 }
 

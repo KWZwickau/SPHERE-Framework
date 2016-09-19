@@ -113,7 +113,7 @@ class Data extends AbstractData
      *
      * @return false|TblDebtor[]
      */
-    public function getDebtorByPerson(TblPerson $tblPerson)
+    public function getDebtorAllByPerson(TblPerson $tblPerson)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtor',
