@@ -203,7 +203,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 3),
                         new FormColumn(array(
                             new Info('Hinzufügen von'),
-                            new Panel('Firmendaten', array(
+                            new Panel('Schuldaten', array(
                                     new CheckBox('Prepare[Client]', 'Mandant', 1),
                                     new CheckBox('Prepare[Billers]', 'Rechnungssteller', 1),
                                 )
