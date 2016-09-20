@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\Frontend as FrontendMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
@@ -55,7 +56,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -67,6 +67,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -74,12 +75,11 @@ use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
@@ -87,7 +87,7 @@ use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
  *
  * @package SPHERE\Application\Education\Graduation\Gradebook
  */
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends FrontendMinimumGradeCount
 {
 
     const SCORE_RULE = 0;
@@ -219,7 +219,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param      $GradeType
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendEditGradeType($Id = null, $GradeType = null)
     {
@@ -1000,7 +1000,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $YearId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendStudentGradebook($YearId = null)
     {
@@ -1266,7 +1266,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblScoreConditions = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
                 if ($tblScoreConditions) {
-                    $tblScoreConditions = $this->getSorter($tblScoreConditions)->sortObjectList('Priority');
+                    $tblScoreConditions = $this->getSorter($tblScoreConditions)->sortObjectBy('Priority');
 
                     $count = 1;
                     /** @var TblScoreCondition $tblScoreCondition */
@@ -1774,7 +1774,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $tblGradeTypeId
      * @param null $GradeType
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendScoreGroupGradeTypeAdd(
         $tblScoreGroupId = null,
@@ -2561,7 +2561,7 @@ class Frontend extends Extension implements IFrontendInterface
                             foreach ($subjectList as &$tblSubject) {
                                 $isDisabled = false;
                                 if ($tblSubject->getId() === -1) {
-                                    $name = new \SPHERE\Common\Frontend\Text\Repository\Italic((
+                                    $name = new Italic((
                                         $tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym() . ' ') : '') . $tblSubject->getName()
                                     );
                                 } else {
@@ -2597,7 +2597,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                                $tblNewSubject->setName('Alle verfügbaren Fächer');
                                 $tblNewSubject = new CheckBox(
                                     'Data[' . $tblDivision->getId() . '][-1]',
-                                    new \SPHERE\Common\Frontend\Text\Repository\Italic('Alle  verfügbaren Fächer'),
+                                    new Italic('Alle  verfügbaren Fächer'),
                                     1
                                 );
 
@@ -2873,7 +2873,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param bool|false $Confirm
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendDestroyGradeType(
         $Id = null,
@@ -2920,7 +2920,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             (Gradebook::useService()->destroyGradeType($tblGradeType)
-                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
                                     . ' Der Zensuren-Typ wurde gelöscht')
                                 : new Danger(new Ban() . ' Der Zensuren-Typ konnte nicht gelöscht werden')
                             ),
@@ -3073,7 +3073,7 @@ class Frontend extends Extension implements IFrontendInterface
                             foreach ($subjectList as &$tblSubject) {
                                 $isDisabled = false;
                                 if ($tblSubject->getId() === -1) {
-                                    $name = new \SPHERE\Common\Frontend\Text\Repository\Italic((
+                                    $name = new Italic((
                                         $tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym() . ' ') : '') . $tblSubject->getName()
                                     );
                                 } else {
@@ -3112,7 +3112,7 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($countSubject > 0) {
                                 $tblNewSubject = new CheckBox(
                                     'Data[' . $tblDivision->getId() . '][-1]',
-                                    new \SPHERE\Common\Frontend\Text\Repository\Italic('Alle  verfügbaren Fächer'),
+                                    new Italic('Alle  verfügbaren Fächer'),
                                     1
                                 );
 
@@ -3272,7 +3272,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $DivisionId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendTeacherSelectStudent($DivisionId = null)
     {

@@ -22,14 +22,13 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Education\Graduation\Gradebook\Service
  */
-class Data extends AbstractData
+class Data extends \SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\Data
 {
 
     public function setupDatabaseContent()
@@ -717,7 +716,7 @@ class Data extends AbstractData
     /**
      * @param TblScoreRule $tblScoreRule
      *
-     * @return array|TblScoreCondition[]
+     * @return false|TblScoreCondition[]
      */
     public function getScoreConditionsByRule(TblScoreRule $tblScoreRule)
     {

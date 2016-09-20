@@ -39,6 +39,7 @@ class Setup extends AbstractSetup
         $this->setTableScoreGroupGradeTypeList($Schema, $tblGradeType, $tblScoreGroup);
         $this->setTableScoreRuleDivisionSubject($Schema, $tblScoreRule, $tblScoreType);
         $this->setTableScoreRuleSubjectGroup($Schema, $tblScoreRule);
+        $this->setTableMinimumGradeCount($Schema, $tblGradeType);
 
         /**
          * Migration & Protocol
@@ -334,6 +335,31 @@ class Setup extends AbstractSetup
         }
 
         $this->getConnection()->addForeignKey($Table, $tblScoreRule, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblGradeType
+     *
+     * @return Table
+     */
+    private function setTableMinimumGradeCount(Schema &$Schema, Table $tblGradeType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblMinimumGradeCount');
+        if (!$Table->hasColumn('serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        if (!$Table->hasColumn('serviceTblLevel')) {
+            $Table->addColumn('serviceTblLevel', 'bigint', array('notnull' => false));
+        }
+        if (!$Table->hasColumn('Count')) {
+            $Table->addColumn('Count', 'integer');
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
 
         return $Table;
     }

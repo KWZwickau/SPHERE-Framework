@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\Service as ServiceMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
@@ -43,14 +44,13 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Education\Graduation\Gradebook
  */
-class Service extends AbstractService
+class Service extends ServiceMinimumGradeCount
 {
 
     const PREG_MATCH_DECIMAL_NUMBER = '!^[0-9]+((\.|,)[0-9]+)?$!is';
@@ -670,9 +670,9 @@ class Service extends AbstractService
     /**
      * @param TblGradeType $tblGradeType
      * @param TblScoreGroup $tblScoreGroup
-     * @param               $Multiplier
+     * @param $Multiplier
      *
-     * @return TblScoreGroupGradeTypeList
+     * @return string
      */
     public function addScoreGroupGradeTypeList(
         TblGradeType $tblGradeType,
@@ -759,7 +759,7 @@ class Service extends AbstractService
      * @param TblGradeType $tblGradeType
      * @param TblScoreCondition $tblScoreCondition
      *
-     * @return TblScoreConditionGradeTypeList
+     * @return string
      */
     public function addScoreConditionGradeTypeList(
         TblGradeType $tblGradeType,
@@ -802,7 +802,7 @@ class Service extends AbstractService
      * @param TblScoreRule $tblScoreRule
      * @param TblScoreCondition $tblScoreCondition
      *
-     * @return TblScoreRuleConditionList
+     * @return string
      */
     public function addScoreRuleConditionList(
         TblScoreRule $tblScoreRule,
@@ -918,7 +918,7 @@ class Service extends AbstractService
                 if ($tblScoreConditionsByRule) {
                     if (count($tblScoreConditionsByRule) > 1) {
                         $tblScoreConditionsByRule =
-                            $this->getSorter($tblScoreConditionsByRule)->sortObjectList('Priority');
+                            $this->getSorter($tblScoreConditionsByRule)->sortObjectBy('Priority');
                         if ($tblScoreConditionsByRule) {
                             /** @var TblScoreCondition $item */
                             foreach ($tblScoreConditionsByRule as $item) {
@@ -1426,7 +1426,7 @@ class Service extends AbstractService
      * @param TblYear $tblYear
      * @param $Data
      *
-     * @return IFormInterface
+     * @return IFormInterface|string
      */
     public function updateScoreRuleDivisionSubject(
         IFormInterface $Stage = null,
@@ -1530,7 +1530,7 @@ class Service extends AbstractService
      * @param TblYear $tblYear
      * @param $Data
      *
-     * @return IFormInterface
+     * @return IFormInterface|string
      */
     public function updateScoreRuleSubjectGroup(
         IFormInterface $Stage = null,
@@ -1603,7 +1603,7 @@ class Service extends AbstractService
      * @param TblYear $tblYear
      * @param $Data
      *
-     * @return IFormInterface
+     * @return IFormInterface|string
      */
     public function updateScoreTypeDivisionSubject(
         IFormInterface $Stage = null,
