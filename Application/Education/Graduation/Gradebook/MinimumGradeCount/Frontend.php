@@ -20,13 +20,19 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -34,8 +40,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -78,10 +87,15 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     if (($tblSubject = $tblMinimumGradeCount->getServiceTblSubject())) {
                         $item['Subject'] = $tblSubject->getAcronym() . ' - ' . $tblSubject->getName();
+                    } else {
+                        $item['Subject'] = '';
                     }
                     if (($tblGradeType = $tblMinimumGradeCount->getTblGradeType())) {
                         $item['GradeType'] = $tblGradeType->getCode() . ' - ' . $tblGradeType->getName();
+                    } else {
+                        $item['GradeType'] = '';
                     }
+                    $item['Count'] = $tblMinimumGradeCount->getCount();
 
                     $item['Option'] = (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Edit',
                             new Edit(), array(
@@ -94,7 +108,7 @@ class Frontend extends Extension implements IFrontendInterface
                 });
         }
 
-        $Form = $this->formMinimumGradeCount()
+        $Form = $this->formCreateMinimumGradeCount()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
@@ -109,6 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Level' => 'Klassenstufe',
                                     'Subject' => 'Fach',
                                     'GradeType' => 'Zensuren-Typ',
+                                    'Count' => 'Anzahl',
                                     'Option' => ''
                                 ),
                                 array(
@@ -125,10 +140,11 @@ class Frontend extends Extension implements IFrontendInterface
                 ), new Title(new Listing() . ' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(
+                        new LayoutColumn(array(
+                            new Warning('* Pflichtfeld'),
                             new Well(Gradebook::useService()->createMinimumGradeCount($Form,
                                 $MinimumGradeCount))
-                        )
+                        ))
                     ))
                 ), new Title(new PlusSign() . ' Hinzufügen'))
             ))
@@ -140,7 +156,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    private function formMinimumGradeCount()
+    private function formCreateMinimumGradeCount()
     {
 
         $tblLevelAll = Division::useService()->getLevelAll();
@@ -170,5 +186,177 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
             )),
         )));
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Count
+     * @return Stage|string
+     */
+    public function frontendEditMinimumGradeCount($Id = null, $Count = null)
+    {
+
+        $Stage = new Stage('Mindestnotenanzahl', 'Bearbeiten');
+        $Stage->addButton(
+            new Standard('Zurück', '/Education/Graduation/Gradebook/MinimumGradeCount', new ChevronLeft())
+        );
+
+        $tblMinimumGradeCount = Gradebook::useService()->getMinimumGradeCountById($Id);
+        if ($tblMinimumGradeCount) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['Count'] = $tblMinimumGradeCount->getCount();
+                $Global->savePost();
+            }
+
+            $tblLevel = $tblMinimumGradeCount->getServiceTblLevel();
+            if ($tblLevel) {
+                $tblSchoolType = $tblLevel->getServiceTblType();
+            } else {
+                $tblSchoolType = false;
+            }
+            $tblSubject = $tblMinimumGradeCount->getServiceTblSubject();
+            $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
+
+            $Form = $this->formEditMinimumGradeCount()
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Schulart',
+                                    $tblSchoolType ? $tblSchoolType->getName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ), 3
+                            ),
+                            new LayoutColumn(
+                                new Panel(
+                                    'Klassenstufe',
+                                    $tblLevel ? $tblLevel->getName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ), 3
+                            ),
+                            $tblSubject ? new LayoutColumn(
+                                new Panel(
+                                    'Fach',
+                                    $tblSubject->getAcronym() . ' - ' . $tblSubject->getName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ), 3
+                            ) : null,
+                            $tblGradeType ? new LayoutColumn(
+                                new Panel(
+                                    'Zensuren-Typ',
+                                    $tblGradeType->getCode() . ' - ' . $tblGradeType->getName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ), 3
+                            ) : null,
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Warning('* Pflichtfeld'),
+                                new Well(Gradebook::useService()->updateMinimumGradeCount($Form, $tblMinimumGradeCount,
+                                    $Count))
+                            )),
+                        ))
+                    ), new Title(new Edit() . ' Bearbeiten'))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return $Stage . new Danger(new Ban() . ' Mindestnotenanzahl nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/MinimumGradeCount', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @return Form
+     */
+    private function formEditMinimumGradeCount()
+    {
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new NumberField('Count', '', 'Anzahl ' . new Warning('*'), new Quantity())
+                ),
+            )),
+        )));
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyMinimumGradeCount(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Stage = new Stage('Mindesnotenanzahl', 'Löschen');
+
+        $tblMinimumGradeCount = Gradebook::useService()->getMinimumGradeCountById($Id);
+        if ($tblMinimumGradeCount) {
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/MinimumGradeCount', new ChevronLeft())
+            );
+
+            if (!$Confirm) {
+
+                $tblLevel = $tblMinimumGradeCount->getServiceTblLevel();
+                if ($tblLevel) {
+                    $tblSchoolType = $tblLevel->getServiceTblType();
+                } else {
+                    $tblSchoolType = false;
+                }
+                $tblSubject = $tblMinimumGradeCount->getServiceTblSubject();
+                $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new Question() . ' Diese Mindestnotenanzahl wirklich löschen?',
+                            array(
+                                $tblSchoolType ? 'Schulart: ' . $tblSchoolType->getName() : null,
+                                $tblLevel ? 'Klassenstufe: ' . $tblLevel->getName() : null,
+                                $tblSubject ? 'Fach: ' . $tblSubject->getAcronym() . ' - ' . $tblSubject->getName() : null,
+                                $tblGradeType ? 'Zensuren-Typ: ' . $tblGradeType->getCode() . ' - ' . $tblGradeType->getName() : null,
+                            ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Graduation/Gradebook/MinimumGradeCount/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            . new Standard(
+                                'Nein', '/Education/Graduation/Gradebook/MinimumGradeCount', new Disable())
+                        )
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Gradebook::useService()->destroyMinimumGradeCount($tblMinimumGradeCount)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Die Mindestnotenanzahl wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Mindestnotenanzahl konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Education/Graduation/Gradebook/MinimumGradeCount', Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+        } else {
+            return $Stage . new Danger('Mindestnotenanzahl nicht gefunden.', new Ban())
+            . new Redirect('/Education/Graduation/Gradebook/MinimumGradeCount', Redirect::TIMEOUT_ERROR);
+        }
+
+        return $Stage;
     }
 }
