@@ -351,32 +351,32 @@ class Service extends AbstractService
 
         if (!isset( $Data['Person'] ) || empty( $Data['Person'] )) {
 //            $Stage->setError('Data[Person]', 'Bitte geben sie eine Person an');
-            $WarningColumn[] = new FormColumn(new Warning('Bitte geben sie eine Person an'), 3);
+            $WarningColumn[] = new FormColumn(new Warning('Bitte geben sie eine Person an'), 4);
             $Error = true;
         } else {
 
             $tblPerson = Person::useService()->getPersonById($Data['Person']);
             if (!$tblPerson) {
-                $WarningColumn[] = new FormColumn(new Warning('PersonenID nicht gefunden'), 3);
+                $WarningColumn[] = new FormColumn(new Warning('PersonenID nicht gefunden'), 4);
 //                $Stage->setError('Data[Person]', 'PersonenID nicht gefunden');
                 $Error = true;
             } else {
-                $WarningColumn[] = new FormColumn(new HiddenField(''), 3);
+                $WarningColumn[] = new FormColumn(new HiddenField(''), 4);
             }
         }
 
         if (!isset( $Data['Item'] ) || empty( $Data['Item'] )) {
-            $WarningColumn[] = new FormColumn(new Warning('Bitte geben sie einen Artikel an'), 3);
+            $WarningColumn[] = new FormColumn(new Warning('Bitte geben sie einen Artikel an'), 4);
 //            $Stage->setError('Data[Item]', 'Bitte geben sie einen Artikel an');
             $Error = true;
         } else {
             $tblItem = Item::useService()->getItemById($Data['Item']);
             if (!$tblItem) {
-                $WarningColumn[] = new FormColumn(new Warning('ArtikelID nicht gefunden'), 3);
+                $WarningColumn[] = new FormColumn(new Warning('ArtikelID nicht gefunden'), 4);
 //                $Stage->setError('Data[Item]', 'ArtikelID nicht gefunden');
                 $Error = true;
             } else {
-                $WarningColumn[] = new FormColumn(new HiddenField(''), 3);
+                $WarningColumn[] = new FormColumn(new HiddenField(''), 4);
             }
 
         }
@@ -442,7 +442,7 @@ class Service extends AbstractService
             }
         }
 
-        $Stage->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Warning('Ihr Eintrag wurde nicht gespeichert!'), 3))));
+        $Stage->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Warning('Ihr Eintrag wurde nicht gespeichert!'), 4))));
         return $Stage;
     }
 

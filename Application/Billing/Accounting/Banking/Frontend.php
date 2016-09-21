@@ -64,6 +64,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title as TitleTable;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
@@ -964,7 +965,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         new Panel('Debitor-Nr',
                             ( $tblDebtorList === false
-                                ? new Warning('Fehlende Debitor-Nr! Bitte zuerst eintragen.')
+                                ? new Danger('Fehlende Debitor-Nr! Bitte zuerst eintragen.')
                                 : array(new SelectBox('Data[Debtor]', '',
                                     array('{{ DebtorNumber }}' => $tblDebtorList), new TileBig()))
                             )
@@ -972,7 +973,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new Panel('Mandatsreferenz',
                             ( $tblBankReferenceList === false
-                                ? new Warning('Fehlende Mandatsreferenz! Bitte zuerst eintragen.')
+                                ? new Danger('Fehlende Mandatsreferenz! Bitte zuerst eintragen.')
                                 : ( $tblBankReferenceList === null
                                     ? new Success('Keine Mandatsreferenz benötigt')
                                     : array(new SelectBox('Data[Reference]', '',
@@ -1233,7 +1234,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ DebtorNumber }}' => $DebtorArray));
 //                                    '{{ DebtorNumber }} - {{ ServiceTblPerson.FullName }}' => $DebtorArray));
                     } else {
-                        $Item['Debtor'] = new \SPHERE\Common\Frontend\Text\Repository\Danger('Debitor benötigt!');
+                        $Item['Debtor'] = new DangerText('Debitor benötigt!');
                     }
 
                     if ($tblBankReferenceList && count($tblBankReferenceList) == 1) {
@@ -1608,7 +1609,7 @@ class Frontend extends Extension implements IFrontendInterface
                         array('{{ DebtorNumber }}' => $DebtorArray)
                     );
                 } else {
-                    $Item['SelectDebtor'] = new \SPHERE\Common\Frontend\Text\Repository\Danger('Debitor benötigt!');
+                    $Item['SelectDebtor'] = new DangerText('Debitor benötigt!');
                 }
 
                 if (( $tblRef = $tblDebtorSelection->getTblBankReference() )) {
