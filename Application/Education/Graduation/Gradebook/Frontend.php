@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubje
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -718,6 +719,15 @@ class Frontend extends FrontendMinimumGradeCount
             }
         }
 
+        // Mindestnotenanzahlen
+        if ($tblDivisionSubject) {
+            $minimumGradeCountPanel = $this->getMinimumGradeCountPanel($tblDivisionSubject);
+            $tblMinimumGradeCountList = Gradebook::useService()->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject);
+        } else {
+            $minimumGradeCountPanel = false;
+            $tblMinimumGradeCountList = false;
+        }
+
         $errorRowList = array();
 
         $tblYear = $tblDivision->getServiceTblYear();
@@ -735,6 +745,7 @@ class Frontend extends FrontendMinimumGradeCount
         $columnDefinition['Student'] = "Schüler";
         // Tabellenkopf mit Test-Code und Datum erstellen
         if ($tblPeriodList) {
+            /** @var TblPeriod $tblPeriod */
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($tblDivisionSubject->getServiceTblSubject()) {
                     $count = 0;
@@ -774,6 +785,12 @@ class Frontend extends FrontendMinimumGradeCount
                 }
             }
             $columnDefinition['YearAverage'] = '&#216;';
+            if ($tblMinimumGradeCountList) {
+                $countMinimumGradeCount = 1;
+                foreach ($tblMinimumGradeCountList as $item) {
+                    $columnDefinition['MinimumGradeCount' . $item->getId()] = '#' . $countMinimumGradeCount++;
+                }
+            }
         }
 
         // Tabellen-Inhalt erstellen
@@ -869,6 +886,12 @@ class Frontend extends FrontendMinimumGradeCount
                         } elseif (strpos($column, 'Period') !== false) {
                             // keine Tests in der Periode vorhanden
                             $data[$column] = '';
+                        } elseif (strpos($column, 'MinimumGradeCount') !== false) {
+                            $minimumGradeCountId = str_replace('MinimumGradeCount', '', $column);
+                            if (($tblMinimumGradeCount = Gradebook::useService()->getMinimumGradeCountById($minimumGradeCountId))) {
+                                $data[$column] = Gradebook::useService()->getMinimumGradeCountInfo($tblDivisionSubject,
+                                    $tblPerson, $tblMinimumGradeCount);
+                            }
                         }
                     }
                 }
@@ -908,7 +931,10 @@ class Frontend extends FrontendMinimumGradeCount
                         "targets" => '_all'
                     ),
                 ),
-                'pageLength' => -1
+                'pageLength' => -1,
+                'paging' => false,
+                'info' => false,
+                'responsive' => false
             )
         );
 
@@ -961,6 +987,7 @@ class Frontend extends FrontendMinimumGradeCount
                                     )),
                                     Panel::PANEL_TYPE_INFO
                                 ), 6),
+                                $minimumGradeCountPanel ? new LayoutColumn($minimumGradeCountPanel) : null,
                                 new LayoutColumn(
                                     $tableData
                                 )
@@ -1682,6 +1709,7 @@ class Frontend extends FrontendMinimumGradeCount
                 }
 
                 if ($tblScoreGroupGradeTypeListByGroup) {
+                    /** @var TblScoreGroupGradeTypeList $tblScoreGroupGradeTypeList */
                     foreach ($tblScoreGroupGradeTypeListByGroup as &$tblScoreGroupGradeTypeList) {
                         if ($tblScoreGroupGradeTypeList->getTblGradeType()) {
                             $tblScoreGroupGradeTypeList->Name = $tblScoreGroupGradeTypeList->getTblGradeType()->getName();
@@ -2748,6 +2776,7 @@ class Frontend extends FrontendMinimumGradeCount
                                     $tblDivision, $tblSubject
                                 );
                                 if ($tblDivisionSubjectWhereGroup) {
+                                    /** @var TblDivisionSubject $tblDivisionSubject */
                                     foreach ($tblDivisionSubjectWhereGroup as $tblDivisionSubject) {
                                         $isDisabled = false;
                                         $name = ($tblSubject->getAcronym() ? new Bold($tblSubject->getAcronym() . ' ') : '')
@@ -3046,6 +3075,7 @@ class Frontend extends FrontendMinimumGradeCount
                             // set Post
                             if ($Data == null) {
                                 $Global = $this->getGlobal();
+                                /** @var TblSubject $subject */
                                 foreach ($subjectList as $subject) {
                                     $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
                                         $tblDivision, $subject
@@ -3288,6 +3318,7 @@ class Frontend extends FrontendMinimumGradeCount
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblStudentList) {
                 $count = 1;
+                /** @var TblPerson $tblPerson */
                 foreach ($tblStudentList as $tblPerson) {
                     $studentTable[] = array(
                         'Number' => $count++,
@@ -3419,7 +3450,7 @@ class Frontend extends FrontendMinimumGradeCount
                                     }
                                 }
                             }
-                            if ($count > $maxGradeCount){
+                            if ($count > $maxGradeCount) {
                                 $maxGradeCount = $count;
                             }
                         }
@@ -3432,9 +3463,9 @@ class Frontend extends FrontendMinimumGradeCount
             }
         }
 
-        if (!empty($dataList)){
-            foreach ($dataList as $divisionSubjectId => $array){
-                foreach($columnDefinition as $column => $name) {
+        if (!empty($dataList)) {
+            foreach ($dataList as $divisionSubjectId => $array) {
+                foreach ($columnDefinition as $column => $name) {
                     if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($divisionSubjectId))) {
                         $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                             $tblDivisionSubject->getTblDivision(),
@@ -3562,4 +3593,64 @@ class Frontend extends FrontendMinimumGradeCount
         return $Stage;
     }
 
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return false|Panel
+     */
+    private function getMinimumGradeCountPanel(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $tblMinimumGradeCountList = Gradebook::useService()->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject);
+        if ($tblMinimumGradeCountList) {
+
+            $minimumGradeCountContent = array();
+            $count = 1;
+
+            foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
+
+                $minimumGradeCountContent[] = array(
+                    'Number' => '#' . $count++,
+                    'SchoolType' => $tblMinimumGradeCount->getSchoolTypeDisplayName(),
+                    'Level' => $tblMinimumGradeCount->getLevelDisplayName(),
+                    'Subject' => $tblMinimumGradeCount->getSubjectDisplayName(),
+                    'GradeType' => $tblMinimumGradeCount->getGradeTypeDisplayName(),
+                    'Count' => $tblMinimumGradeCount->getCount()
+                );
+            }
+
+            if (!empty($minimumGradeCountContent)) {
+
+                return new Panel(
+                    'Mindesnotenanzahl',
+                    new TableData($minimumGradeCountContent, null,
+                        array(
+                            'Number' => 'Nummer',
+                            'SchoolType' => 'Schulart',
+                            'Level' => 'Klassenstufe',
+                            'Subject' => 'Fach',
+                            'GradeType' => 'Zensuren-Typ',
+                            'Count' => 'Anzahl',
+                        ),
+                        array(
+
+                            "columnDefs" => array(
+                                array(
+                                    "orderable" => false,
+                                    "targets" => '_all'
+                                ),
+                            ),
+                            'pageLength' => -1,
+                            'paging' => false,
+                            'info' => false,
+                            'searching' => false
+                        )
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                );
+            }
+        }
+
+        return false;
+    }
 }

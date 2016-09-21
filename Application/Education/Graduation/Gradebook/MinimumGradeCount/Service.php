@@ -8,15 +8,23 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount;
 
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Success as TextSuccess;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -61,6 +69,18 @@ abstract class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getMinimumGradeCountAll();
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return false|TblMinimumGradeCount[]
+     */
+    public function getMinimumGradeCountAllByDivisionSubject(
+        TblDivisionSubject $tblDivisionSubject
+    ) {
+
+        return (new Data($this->getBinding()))->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject);
     }
 
     /**
@@ -156,5 +176,53 @@ abstract class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyMinimumGradeCount($tblMinimumGradeCount);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblPerson $tblPerson
+     * @param TblMinimumGradeCount $tblMinimumGradeCount
+     *
+     * @return TextSuccess|Warning
+     */
+    public function getMinimumGradeCountInfo(
+        TblDivisionSubject $tblDivisionSubject,
+        TblPerson $tblPerson,
+        TblMinimumGradeCount $tblMinimumGradeCount
+    ) {
+
+        $count = 0;
+
+        if (($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
+        ) {
+
+            $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
+
+            $tblGradeList = Gradebook::useService()->getGradesByStudent($tblPerson, $tblDivision, $tblSubject, $tblTestType);
+            if ($tblGradeList){
+                /** @var TblGrade $tblGrade */
+                foreach ($tblGradeList as $tblGrade){
+                   if ($tblGrade->getGrade()
+                       && $tblGrade->getTblGradeType()
+                   ){
+                       if ($tblGradeType){
+                           if ($tblGradeType->getId() == $tblGrade->getTblGradeType()){
+                               $count++;
+                           }
+                       } else {
+                           $count++;
+                       }
+                   }
+                }
+            }
+        }
+
+        if ($count < $tblMinimumGradeCount->getCount()){
+            return new Warning(new Disable() . ' '. $count);
+        } else {
+            return new TextSuccess(new Ok() . ' ' . $count);
+        }
     }
 }

@@ -43,7 +43,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -66,7 +66,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Mindestnotenanzahl', 'Übersicht');
         $Stage->setMessage(
-            'Hier werden die Mindestnotenanzahlen verwaltet.'
+            'Hier werden die Mindestnotenanzahlen verwaltet.' . '<br>' .
+            'Es muss mindestens eine Klassenstufe vergeben werden für diese dann die Mindestnotenanzahl berücksichtigt wird.' . '<br>' .
+            'Optional kann die Mindestnotenanzahl auf ein Fach und/oder ein Zensuren-Typ beschränkt werden.'
         );
 
         $tblMinimumGradeCountAll = Gradebook::useService()->getMinimumGradeCountAll();
@@ -75,41 +77,24 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblMinimumGradeCountAll) {
             array_walk($tblMinimumGradeCountAll,
                 function (TblMinimumGradeCount $tblMinimumGradeCount) use (&$TableContent) {
-
-                    $item['SchoolType'] = '';
-                    if (($tblLevel = $tblMinimumGradeCount->getServiceTblLevel())) {
-                        $item['Level'] = $tblLevel->getName();
-                        if (($tblSchoolType = $tblLevel->getServiceTblType())) {
-                            $item['SchoolType'] = $tblSchoolType->getName();
-                        }
-                    } else {
-                        $item['Level'] = '';
-                    }
-                    if (($tblSubject = $tblMinimumGradeCount->getServiceTblSubject())) {
-                        $item['Subject'] = $tblSubject->getAcronym() . ' - ' . $tblSubject->getName();
-                    } else {
-                        $item['Subject'] = '';
-                    }
-                    if (($tblGradeType = $tblMinimumGradeCount->getTblGradeType())) {
-                        $item['GradeType'] = $tblGradeType->getCode() . ' - ' . $tblGradeType->getName();
-                    } else {
-                        $item['GradeType'] = '';
-                    }
-                    $item['Count'] = $tblMinimumGradeCount->getCount();
-
-                    $item['Option'] = (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Edit',
-                            new Edit(), array(
-                                'Id' => $tblMinimumGradeCount->getId()
-                            ), 'Bearbeiten'))
-                        . (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Destroy', new Remove(),
-                            array('Id' => $tblMinimumGradeCount->getId()), 'Löschen'));
-
-                    array_push($TableContent, $item);
+                    array_push($TableContent, array(
+                        'SchoolType' => $tblMinimumGradeCount->getSchoolTypeDisplayName(),
+                        'Level' => $tblMinimumGradeCount->getLevelDisplayName(),
+                        'Subject' => $tblMinimumGradeCount->getSubjectDisplayName(),
+                        'GradeType' => $tblMinimumGradeCount->getGradeTypeDisplayName(),
+                        'Count' => $tblMinimumGradeCount->getCount(),
+                        'Option' => (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Edit',
+                                new Edit(), array(
+                                    'Id' => $tblMinimumGradeCount->getId()
+                                ), 'Bearbeiten'))
+                            . (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Destroy',
+                                new Remove(),
+                                array('Id' => $tblMinimumGradeCount->getId()), 'Löschen'))
+                    ));
                 });
         }
 
         $Form = $this->formCreateMinimumGradeCount()
-            ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
@@ -140,11 +125,10 @@ class Frontend extends Extension implements IFrontendInterface
                 ), new Title(new Listing() . ' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Warning('* Pflichtfeld'),
+                        new LayoutColumn(
                             new Well(Gradebook::useService()->createMinimumGradeCount($Form,
-                                $MinimumGradeCount))
-                        ))
+                                $MinimumGradeCount)
+                            ))
                     ))
                 ), new Title(new PlusSign() . ' Hinzufügen'))
             ))
@@ -170,8 +154,10 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[Level]', 'Schulart - Klassenstufe ' . new Warning('*'),
-                        array('{{ serviceTblType.Name }} - {{ Name }}' => $tblLevelAll)), 3
+                    new SelectBox('MinimumGradeCount[Level]', 'Schulart - Klassenstufe '
+                        . new DangerText('*'),
+                        array('{{ serviceTblType.Name }} - {{ Name }}' => $tblLevelAll)),
+                    3
                 ),
                 new FormColumn(
                     new SelectBox('MinimumGradeCount[Subject]', 'Fach',
@@ -182,9 +168,15 @@ class Frontend extends Extension implements IFrontendInterface
                         array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)), 3
                 ),
                 new FormColumn(
-                    new NumberField('MinimumGradeCount[Count]', '', 'Anzahl ' . new Warning('*'), new Quantity()), 3
+                    new NumberField('MinimumGradeCount[Count]', '',
+                        'Anzahl ' . new DangerText('*'), new Quantity()), 3
                 ),
             )),
+            new FormRow(array(
+                new FormColumn(array(
+                    new DangerText(new Primary('Speichern', new Save()) . ' * Pflichtfeld')
+                )),
+            ))
         )));
     }
 
@@ -219,7 +211,6 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
 
             $Form = $this->formEditMinimumGradeCount()
-                ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
             $Stage->setContent(
                 new Layout(array(
@@ -257,11 +248,10 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutGroup(array(
                         new LayoutRow(array(
-                            new LayoutColumn(array(
-                                new Warning('* Pflichtfeld'),
+                            new LayoutColumn(
                                 new Well(Gradebook::useService()->updateMinimumGradeCount($Form, $tblMinimumGradeCount,
-                                    $Count))
-                            )),
+                                    $Count)
+                                )),
                         ))
                     ), new Title(new Edit() . ' Bearbeiten'))
                 ))
@@ -283,9 +273,14 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new NumberField('Count', '', 'Anzahl ' . new Warning('*'), new Quantity())
+                    new NumberField('Count', '', 'Anzahl ' . new DangerText('*'), new Quantity())
                 ),
             )),
+            new FormRow(array(
+                new FormColumn(array(
+                    new DangerText(new Primary('Speichern', new Save()) . ' * Pflichtfeld')
+                )),
+            ))
         )));
     }
 

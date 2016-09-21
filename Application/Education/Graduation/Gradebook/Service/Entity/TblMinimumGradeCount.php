@@ -132,4 +132,52 @@ class TblMinimumGradeCount extends Element
     {
         $this->Count = $Count;
     }
+
+    /**
+     * @return string
+     */
+    public function getSchoolTypeDisplayName()
+    {
+        if ($this->getServiceTblLevel() && ($tblSchoolType = $this->getServiceTblLevel()->getServiceTblType())) {
+            return $tblSchoolType->getName();
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getLevelDisplayName()
+    {
+        if ($this->getServiceTblLevel()){
+            return $this->getServiceTblLevel()->getName();
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubjectDisplayName()
+    {
+        if (($tblSubject = $this->getServiceTblSubject())){
+            return $tblSubject ? $tblSubject->getAcronym() . ' - ' . $tblSubject->getName() : '';
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getGradeTypeDisplayName()
+    {
+        if (($tblGradeType = $this->getTblGradeType())){
+            return $tblGradeType ? $tblGradeType->getCode() . ' - ' . $tblGradeType->getName() : '';
+        } else {
+            return '';
+        }
+    }
 }

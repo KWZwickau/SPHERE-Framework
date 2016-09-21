@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -63,6 +64,54 @@ abstract class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMinimumGradeCount');
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return false|TblMinimumGradeCount[]
+     */
+    public function getMinimumGradeCountAllByDivisionSubject(
+        TblDivisionSubject $tblDivisionSubject
+    ) {
+
+        if (($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+        ) {
+
+            $levelList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblMinimumGradeCount',
+                array(
+                    TblMinimumGradeCount::ATTR_SERVICE_TBL_LEVEL => $tblLevel->getId(),
+                    TblMinimumGradeCount::ATTR_SERVICE_TBL_SUBJECT => null
+                )
+            );
+            if (!$levelList){
+                $levelList = array();
+            }
+
+            if (!empty($levelList)) {
+                $levelList = $this->getSorter($levelList)->sortObjectBy('GradeTypeDisplayName');
+            }
+
+            $subjectList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblMinimumGradeCount',
+                array(
+                    TblMinimumGradeCount::ATTR_SERVICE_TBL_LEVEL => $tblLevel->getId(),
+                    TblMinimumGradeCount::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                )
+            );
+
+            if ($subjectList) {
+                $subjectList = $this->getSorter($subjectList)->sortObjectBy('GradeTypeDisplayName');
+                $levelList = array_merge($levelList, $subjectList);
+            }
+
+            return empty($levelList) ? false : $levelList;
+        }
+
+        return false;
     }
 
     /**
