@@ -408,13 +408,12 @@ class Service extends Extension
 
         $TableContent = array();
 
+        $All = 0;
+
         if (!empty( $tblPersonList )) {
-
-            $All = 0;
-
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
-                $All++;
-                $Item['Number'] = $All;
+//                $All++;
+//                $Item['Number'] = $All;
                 $Item['Name'] = $tblPerson->getLastFirstName();
                 $Item['Gender'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
@@ -466,6 +465,20 @@ class Service extends Extension
                     }
                 }
                 array_push($TableContent, $Item);
+            });
+        }
+        if (!empty( $TableContent )) {
+            foreach ($TableContent as $key => $row) {
+                $month[$key] = substr($row['Birthday'], 3, 2);
+                $day[$key] = substr($row['Birthday'], 0, 2);
+                $year[$key] = substr($row['Birthday'], 6, 4);
+            }
+            array_multisort($month, SORT_ASC, $day, SORT_ASC, $day, SORT_DESC, $TableContent);
+
+
+            array_walk($TableContent, function (&$Row) use (&$All) {
+                $All++;
+                $Row['Number'] = $All;
             });
         }
 
