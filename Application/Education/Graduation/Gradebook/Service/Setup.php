@@ -187,6 +187,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblScoreGroup', 'Multiplier')) {
             $Table->addColumn('Multiplier', 'string');
         }
+        if (!$Table->hasColumn('IsEveryGradeASingleGroup')){
+            $Table->addColumn('IsEveryGradeASingleGroup', 'boolean');
+        }
 
         return $Table;
     }
