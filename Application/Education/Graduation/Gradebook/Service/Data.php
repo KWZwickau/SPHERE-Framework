@@ -128,7 +128,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param TblTestType $tblTestType
      * @param $Grade
      * @param string $Comment
-     * @param $Trend
+     * @param int $Trend
+     * @param null $Date
      *
      * @return TblGrade
      */
@@ -143,7 +144,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         TblTestType $tblTestType,
         $Grade,
         $Comment,
-        $Trend = 0
+        $Trend = 0,
+        $Date = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -160,6 +162,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Entity->setGrade($Grade);
         $Entity->setComment($Comment);
         $Entity->setTrend($Trend);
+        $Entity->setDate($Date ? new \DateTime($Date) : null);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -324,7 +327,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param TblGrade $tblGrade
      * @param $Grade
      * @param string $Comment
-     * @param $Trend
+     * @param int $Trend
+     * @param null $Date
      *
      * @return bool
      */
@@ -332,7 +336,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         TblGrade $tblGrade,
         $Grade,
         $Comment = '',
-        $Trend = 0
+        $Trend = 0,
+        $Date = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -344,6 +349,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setGrade($Grade);
             $Entity->setComment($Comment);
             $Entity->setTrend($Trend);
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

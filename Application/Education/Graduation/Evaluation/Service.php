@@ -198,9 +198,10 @@ class Service extends AbstractService
             $this->getTestTypeByIdentifier('TEST'),
             null,
             $Test['Description'],
-            $Test['Date'],
-            $Test['CorrectionDate'],
-            $Test['ReturnDate']
+            isset($Test['IsContinues']) ? null : $Test['Date'],
+            isset($Test['IsContinues']) ? null : $Test['CorrectionDate'],
+            isset($Test['IsContinues']) ? null : $Test['ReturnDate'],
+            isset($Test['IsContinues'])
         );
 
         return new Success('Die Leistungsüberprüfung ist angelegt worden',
@@ -239,13 +240,22 @@ class Service extends AbstractService
             return $Stage;
         }
 
+        $Error = false;
+        if (isset($Test['Date']) && empty($Test['Date'])) {
+            $Stage->setError('Test[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+        if ($Error) {
+            return $Stage;
+        }
+
         $tblTest = $this->getTestById($Id);
         (new Data($this->getBinding()))->updateTest(
             $tblTest,
             $Test['Description'],
-            $Test['Date'],
-            $Test['CorrectionDate'],
-            $Test['ReturnDate']
+            isset($Test['Date']) ?  $Test['Date'] : null,
+            isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
+            isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null
         );
 
         if (!$tblTest->getServiceTblDivision()) {

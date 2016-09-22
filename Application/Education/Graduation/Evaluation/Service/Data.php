@@ -305,6 +305,7 @@ class Data extends AbstractData
      * @param null $Date
      * @param null $CorrectionDate
      * @param null $ReturnDate
+     * @param bool $IsContinues
      *
      * @return TblTest
      */
@@ -319,7 +320,8 @@ class Data extends AbstractData
         $Description = '',
         $Date = null,
         $CorrectionDate = null,
-        $ReturnDate = null
+        $ReturnDate = null,
+        $IsContinues = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -336,6 +338,7 @@ class Data extends AbstractData
         $Entity->setDate($Date ? new \DateTime($Date) : null);
         $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
         $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
+        $Entity->setIsContinues($IsContinues);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

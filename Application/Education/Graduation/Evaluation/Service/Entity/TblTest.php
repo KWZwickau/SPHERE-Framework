@@ -93,6 +93,11 @@ class TblTest extends Element
     protected $serviceTblDivision;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsContinues;
+
+    /**
      * @return string
      */
     public function getDate()
@@ -343,5 +348,21 @@ class TblTest extends Element
     {
 
         $this->tblTask = ( null === $tblTask ? null : $tblTask->getId() );
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isContinues()
+    {
+        return $this->IsContinues;
+    }
+
+    /**
+     * @param boolean $IsContinues
+     */
+    public function setIsContinues($IsContinues)
+    {
+        $this->IsContinues = (boolean) $IsContinues;
     }
 }

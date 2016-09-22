@@ -349,9 +349,11 @@ class Service extends ServiceScoreRule
             }
         }
 
-        // grund bei Noten-Änderung angeben
         $errorEdit = false;
+        // Grund bei Noten-Änderung angeben
         $errorNoGrade = false;
+        // Datum ist Pflichtfeld bei einem fortlaufenden Test
+        $errorNoDate = false;
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
@@ -366,10 +368,13 @@ class Service extends ServiceScoreRule
                 if ($tblGrade && !isset($value['Attendance']) && $gradeValue === '') {
                     $errorNoGrade = true;
                 }
+                if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue && empty($value['Date'])) {
+                    $errorNoDate = true;
+                }
             }
         }
 
-        if ($errorRange || $errorEdit || $errorNoGrade) {
+        if ($errorRange || $errorEdit || $errorNoGrade || $errorNoDate) {
             if ($errorRange) {
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
@@ -388,6 +393,13 @@ class Service extends ServiceScoreRule
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
                             'Bereits eingetragene Zensuren können nur über "Nicht teilgenommen" entfernt werden.
+                            Die Daten wurden nicht gespeichert.', new Exclamation())
+                    ))));
+            }
+            if ($errorNoDate) {
+                $Stage->prependGridGroup(
+                    new FormGroup(new FormRow(new FormColumn(new Danger(
+                            'Bei einem fortlaufenden Datum muss zu jeder Zensur ein Datum angegeben werden.
                             Die Daten wurden nicht gespeichert.', new Exclamation())
                     ))));
             }
@@ -424,7 +436,8 @@ class Service extends ServiceScoreRule
                                 $tblTest->getTblTestType(),
                                 null,
                                 trim($value['Comment']),
-                                $trend
+                                0,
+                                null
                             );
                         } elseif (trim($value['Grade']) !== '') {
                             (new Data($this->getBinding()))->createGrade(
@@ -438,7 +451,8 @@ class Service extends ServiceScoreRule
                                 $tblTest->getTblTestType(),
                                 $grade,
                                 trim($value['Comment']),
-                                $trend
+                                $trend,
+                                isset($value['Date']) ? $value['Date'] : null
                             );
                         }
                     } elseif ($tblGrade) {
@@ -448,14 +462,16 @@ class Service extends ServiceScoreRule
                                 $tblGrade,
                                 null,
                                 trim($value['Comment']),
-                                $trend
+                                0,
+                                null
                             );
                         } else {
                             (new Data($this->getBinding()))->updateGrade(
                                 $tblGrade,
                                 $grade,
                                 trim($value['Comment']),
-                                $trend
+                                $trend,
+                                isset($value['Date']) ? $value['Date'] : null
                             );
                         }
                     }

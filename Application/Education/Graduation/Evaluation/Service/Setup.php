@@ -131,6 +131,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblGradeType')) {
             $Table->addColumn('serviceTblGradeType', 'bigint', array('notnull' => false));
         }
+        if (!$Table->hasColumn('IsContinues')){
+            $Table->addColumn('IsContinues', 'boolean');
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
         $this->getConnection()->addForeignKey($Table, $tblTask, true);

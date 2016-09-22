@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRul
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -59,6 +60,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
@@ -321,6 +323,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblDivisionAll as $tblDivision) {
                 $tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                 if ($tblDivisionSubjectAllByDivision) {
+                    /** @var TblDivisionSubject $tblDivisionSubject */
                     foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
                         if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                             if ($tblDivisionSubject->getTblSubjectGroup()) {
@@ -908,7 +911,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Subject' => $tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '',
                     'DisplayPeriod' => $tblTask
                         ? $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()
-                        : $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '',
+                        : ($tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : ''),
                     'GradeType' => $gradeType,
                     'DisplayDescription' => $tblTask ? $tblTask->getName() : $tblTest->getDescription(),
                     'CorrectionDate' => $tblTest->getCorrectionDate(),
@@ -1127,6 +1130,14 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
+                    new CheckBox('Test[IsContinues]', new Bold('fortlaufendes Datum (z.B. für Mündliche Noten)'), 1,
+                        array(
+                            'Test[Date]',
+                            'Test[CorrectionDate]',
+                            'Test[ReturnDate]'
+                        ))
+                ),
+                new FormColumn(
                     new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
                 ),
                 new FormColumn(
@@ -1245,7 +1256,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextField('Test[Description]', '1. Klassenarbeit', 'Beschreibung'), 12
                     ),
                 )),
-                new FormRow(array(
+                $tblTest->isContinues()
+                    ? null
+                    : new FormRow(array(
                     new FormColumn(
                         new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
                     ),
@@ -1591,6 +1604,9 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                     $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Comment'] = $tblGrade->getComment();
+                    if ($tblTest->isContinues()){
+                        $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Date'] = $tblGrade->getDate();
+                    }
                 }
             }
             $Global->savePost();
@@ -1939,24 +1955,18 @@ class Frontend extends Extension implements IFrontendInterface
             $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
             $gradeType = $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '';
 
+            $tableColumns = array();
+            $tableColumns['Number'] = '#';
+            $tableColumns['Name'] = 'Schüler';
+            $tableColumns['Grade'] = 'Zensur';
             if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
-                $tableColumns = array(
-                    'Number' => '#',
-                    'Name' => 'Schüler',
-                    'Grade' => 'Zensur',
-                    'Trend' => 'Tendenz',
-                    'Comment' => 'Vermerk Notenänderung',
-                    'Attendance' => 'Nicht teilgenommen'
-                );
-            } else {
-                $tableColumns = array(
-                    'Number' => '#',
-                    'Name' => 'Schüler',
-                    'Grade' => 'Zensur',
-                    'Comment' => 'Vermerk Notenänderung',
-                    'Attendance' => 'Nicht teilgenommen'
-                );
+                $tableColumns['Trend'] = 'Tendenz';
             }
+            if ($tblTest->isContinues()) {
+                $tableColumns['Date'] = 'Datum';
+            }
+            $tableColumns['Comment'] = 'Vermerk Notenänderung';
+            $tableColumns['Attendance'] = 'Nicht teilgenommen';
         }
 
         if ($studentList) {
@@ -1966,7 +1976,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                     $tblPerson);
                 $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                    $tabIndex, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
+                    $tabIndex, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null, $tblTest
                 );
             }
         }
@@ -2019,12 +2029,12 @@ class Frontend extends Extension implements IFrontendInterface
                 , new Primary('Speichern', new Save()))
             , $tblTest->getId(), $Grade, $BasicRoute, $tblScoreType ? $tblScoreType : null
         );
-        $warningNoScoreType = new \SPHERE\Common\Frontend\Message\Repository\Warning('Kein Bewertungssystem hinterlegt.
+        $warningNoScoreType = new WarningMessage('Kein Bewertungssystem hinterlegt.
                                 Zensuren können erst vergeben werden nachdem für diese Fach-Klasse ein Bewertungssystem
                                 hinterlegt wurde.', new Ban());
         if ($tblTask) {
             if ($tblTask->isBeforeEditPeriod()) {
-                $content = new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                $content = new WarningMessage(
                         'Zensuren können erst ab erreichen des Bearbeitungszeitraums vergeben werden.',
                         new Exclamation()
                     )
@@ -2033,7 +2043,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($IsEdit) {
                     $content = $tblScoreType ? $serviceForm : $warningNoScoreType;
                 } else {
-                    $content = new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                    $content = new WarningMessage(
                             'Zensuren können von Ihnen nur innerhalb des Bearbeitungszeitraums vergeben werden. Zur Nachträglichen Bearbeitung der Zensuren
                              wenden Sie sich bitte an den Klassenlehrer oder die Schulleitung.',
                             new Exclamation()
@@ -2098,14 +2108,14 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )),
                     (($tblTask && !$IsEdit && !$tblTask->isInEditPeriod())
-                        ? new LayoutRow(new LayoutColumn(new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                        ? new LayoutRow(new LayoutColumn(new WarningMessage(
                                 'Sie befinden sich nicht mehr im Bearbeitungszeitraum.
                             Zensuren können von Ihnen nicht mehr eingetragen werden.', new Exclamation())
                         ))
                         : null
                     ),
                     ($hasPreviewGrades
-                        ? new LayoutRow(new LayoutColumn(new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                        ? new LayoutRow(new LayoutColumn(new WarningMessage(
                             'Es wurden noch nicht alle Notenvorschläge gespeichert.', new Exclamation()
                         )))
                         : null
@@ -2132,8 +2142,9 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $student
      * @param $tabIndex
      * @param bool $IsTaskAndInPeriod
-     *
      * @param TblScoreType|null $tblScoreType
+     * @param TblTest $tblTest
+     *
      * @return array
      */
     private function contentEditTestGradeTableRow(
@@ -2143,7 +2154,8 @@ class Frontend extends Extension implements IFrontendInterface
         $student,
         &$tabIndex,
         $IsTaskAndInPeriod = false,
-        TblScoreType $tblScoreType = null
+        TblScoreType $tblScoreType = null,
+        TblTest $tblTest = null
     ) {
 
         if ($tblScoreType === null) {
@@ -2180,6 +2192,12 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
             }
+
+            if ($tblTest && $tblTest->isContinues()) {
+                $student[$tblPerson->getId()]['Date']
+                    = (new DatePicker('Grade[' . $tblPerson->getId() . '][Date]', '', ''))->setTabIndex($tabIndex++);
+            }
+
             $student[$tblPerson->getId()]['Comment']
                 = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', $labelComment,
                 new Comment()))->setTabIndex(1000 + $tabIndex);
@@ -2506,12 +2524,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         ($isLocked ?
                             new LayoutColumn(
-                                new \SPHERE\Common\Frontend\Message\Repository\Warning('Es wurden bereits Zensuren zum Notenauftrag vergeben. Klassen können nicht mehr zu diesem Notenauftrag
+                                new WarningMessage('Es wurden bereits Zensuren zum Notenauftrag vergeben. Klassen können nicht mehr zu diesem Notenauftrag
                                 hinzugefügt oder von diesem Notenauftrag entfernt werden.', new Exclamation())
                             ) : null),
                         (!$hasEdit ?
                             new LayoutColumn(
-                                new \SPHERE\Common\Frontend\Message\Repository\Warning('Der Bearbeitungszeitraum ist abgelaufen. Klassen können nicht mehr zu diesem Notenauftrag
+                                new WarningMessage('Der Bearbeitungszeitraum ist abgelaufen. Klassen können nicht mehr zu diesem Notenauftrag
                                 hinzugefügt oder von diesem Notenauftrag entfernt werden.', new Exclamation())
                             ) : null),
                     ))
@@ -2625,7 +2643,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             ),
-                            $tblDivisionAllByTask ? null : new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                            $tblDivisionAllByTask ? null : new WarningMessage(
                                 'Es sind keine Klassen zu diesem Notenauftrag zugeordnet.', new Exclamation()
                             )
                         )),
