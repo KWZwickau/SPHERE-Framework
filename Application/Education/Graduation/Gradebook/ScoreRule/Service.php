@@ -199,7 +199,8 @@ abstract class Service extends ServiceMinimumGrade
             (new Data($this->getBinding()))->createScoreGroup(
                 $ScoreGroup['Name'],
                 isset($ScoreGroup['Round']) ? $ScoreGroup['Round'] : '',
-                $ScoreGroup['Multiplier']
+                $ScoreGroup['Multiplier'],
+                isset($ScoreGroup['IsEveryGradeASingleGroup'])
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfasst worden')
             . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_SUCCESS);
@@ -529,7 +530,8 @@ abstract class Service extends ServiceMinimumGrade
                 $tblScoreGroup,
                 $ScoreGroup['Name'],
                 isset($ScoreGroup['Round']) ? $ScoreGroup['Round'] : '',
-                $ScoreGroup['Multiplier']
+                $ScoreGroup['Multiplier'],
+                isset($ScoreGroup['IsEveryGradeASingleGroup'])
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_SUCCESS);

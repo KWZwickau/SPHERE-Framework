@@ -223,11 +223,11 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param                     $Id
-     * @param                     $Test
-     * @param string $BasicRoute
+     * @param $Id
+     * @param $Test
+     * @param $BasicRoute
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function updateTest(IFormInterface $Stage = null, $Id, $Test, $BasicRoute)
     {

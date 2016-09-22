@@ -282,19 +282,19 @@ class Service extends ServiceScoreRule
                 $tblSubject
             );
 
-            if ($tblScoreType && $tblScoreType->getIdentifier() !== 'VERBAL' ){
+            if ($tblScoreType && $tblScoreType->getIdentifier() !== 'VERBAL') {
                 $tblGradeList = $this->getGradeAllByTest($tblTest);
-                if ($tblGradeList){
+                if ($tblGradeList) {
                     $sum = 0;
                     $count = 0;
-                    foreach ($tblGradeList as $tblGrade){
+                    foreach ($tblGradeList as $tblGrade) {
                         if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
                             $sum += floatval($tblGrade->getGrade());
                             $count++;
                         }
                     }
 
-                    if ($count > 0){
+                    if ($count > 0) {
                         return round($sum / $count, 2);
                     }
                 }
@@ -340,7 +340,7 @@ class Service extends ServiceScoreRule
         if (!empty($Grade) && $tblScoreType && $tblScoreType->getPattern() !== '') {
             foreach ($Grade as $personId => $value) {
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
-                if (!isset($value['Attendance']) && $gradeValue !== '' ) {
+                if (!isset($value['Attendance']) && $gradeValue !== '') {
                     if (!preg_match('!' . $tblScoreType->getPattern() . '!is', $gradeValue)) {
                         $errorRange = true;
                         break;
@@ -363,7 +363,7 @@ class Service extends ServiceScoreRule
                 ) {
                     $errorEdit = true;
                 }
-                if ($tblGrade && !isset($value['Attendance']) && $gradeValue === ''){
+                if ($tblGrade && !isset($value['Attendance']) && $gradeValue === '') {
                     $errorNoGrade = true;
                 }
             }
@@ -522,7 +522,7 @@ class Service extends ServiceScoreRule
             $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
         );
 
-        // entfernen aller Noten nach dem Stichtag (bei Stichtagsnotenauftäge
+        // entfernen aller Noten nach dem Stichtag (bei Stichtagsnotenauftägen)
         if ($taskDate && $tblGradeList) {
             $tempGradeList = array();
             $taskDate = new \DateTime($taskDate);
@@ -689,14 +689,24 @@ class Service extends ServiceScoreRule
                 foreach ($result as $conditionId => $groups) {
                     if (!empty($groups)) {
                         foreach ($groups as $groupId => $group) {
-                            if (!empty($group)) {
+                            if (!empty($group)
+                                && ($tblScoreGroupItem = Gradebook::useService()->getScoreGroupById($groupId))
+                            ) {
+
+                                $countGrades = 0;
                                 foreach ($group as $value) {
-                                    if (isset($averageGroup[$conditionId][$groupId])) {
-                                        $averageGroup[$conditionId][$groupId]['Value'] += $value['Value'];
-                                        $averageGroup[$conditionId][$groupId]['Multiplier'] += $value['Multiplier'];
+                                    if ($tblScoreGroupItem->isEveryGradeASingleGroup()) {
+                                        $countGrades++;
+                                        $averageGroup[$conditionId][$groupId][$countGrades]['Value'] = $value['Value'];
+                                        $averageGroup[$conditionId][$groupId][$countGrades]['Multiplier'] = $value['Multiplier'];
                                     } else {
-                                        $averageGroup[$conditionId][$groupId]['Value'] = $value['Value'];
-                                        $averageGroup[$conditionId][$groupId]['Multiplier'] = $value['Multiplier'];
+                                        if (isset($averageGroup[$conditionId][$groupId])) {
+                                            $averageGroup[$conditionId][$groupId]['Value'] += $value['Value'];
+                                            $averageGroup[$conditionId][$groupId]['Multiplier'] += $value['Multiplier'];
+                                        } else {
+                                            $averageGroup[$conditionId][$groupId]['Value'] = $value['Value'];
+                                            $averageGroup[$conditionId][$groupId]['Multiplier'] = $value['Multiplier'];
+                                        }
                                     }
                                 }
                             }
@@ -708,11 +718,25 @@ class Service extends ServiceScoreRule
                     $average = 0;
                     $totalMultiplier = 0;
                     foreach ($averageGroup[$tblScoreCondition->getId()] as $groupId => $group) {
-                        $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
-                        $multiplier = floatval($tblScoreGroup->getMultiplier());
-                        if ($group['Value'] > 0) {
-                            $totalMultiplier += $multiplier;
-                            $average += $multiplier * ($group['Value'] / $group['Multiplier']);
+                        if (($tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId))) {
+                            $multiplier = floatval($tblScoreGroup->getMultiplier());
+                            if ($tblScoreGroup->isEveryGradeASingleGroup() && is_array($group)) {
+
+                                foreach ($group as $itemValue) {
+                                    if (isset($itemValue['Value']) && isset($itemValue['Multiplier']) && $itemValue['Value'] > 0) {
+                                        $totalMultiplier += $multiplier;
+                                        $average += $multiplier * ($itemValue['Value'] / $itemValue['Multiplier']);
+                                    }
+                                }
+
+                            } else {
+
+                                if (isset($group['Value']) && isset($group['Multiplier']) && $group['Value'] > 0) {
+                                    $totalMultiplier += $multiplier;
+                                    $average += $multiplier * ($group['Value'] / $group['Multiplier']);
+                                }
+
+                            }
                         }
                     }
 

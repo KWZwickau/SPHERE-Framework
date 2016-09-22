@@ -101,7 +101,7 @@ class TblScoreGroup extends Element
     }
 
     /**
-     * @return mixed
+     * @return boolean
      */
     public function isEveryGradeASingleGroup()
     {
@@ -109,7 +109,7 @@ class TblScoreGroup extends Element
     }
 
     /**
-     * @param mixed $IsEveryGradeASingleGroup
+     * @param boolean $IsEveryGradeASingleGroup
      */
     public function setIsEveryGradeASingleGroup($IsEveryGradeASingleGroup)
     {

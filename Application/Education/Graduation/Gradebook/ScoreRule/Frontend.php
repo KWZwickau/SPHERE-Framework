@@ -97,9 +97,10 @@ class Frontend extends FrontendMinimumGradeCount
 
         $this->setScoreStageMenuButtons($Stage, self::SCORE_RULE);
 
+        $contentTable = array();
         $tblScoreRuleAll = Gradebook::useService()->getScoreRuleAll();
         if ($tblScoreRuleAll) {
-            foreach ($tblScoreRuleAll as &$tblScoreRule) {
+            foreach ($tblScoreRuleAll as $tblScoreRule) {
 
                 $structure = array();
                 if ($tblScoreRule->getDescription() != '') {
@@ -140,7 +141,9 @@ class Frontend extends FrontendMinimumGradeCount
                                 $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Zensuren-Gruppe: '
                                     . $tblScoreConditionGroupList->getTblScoreGroup()->getName()
                                     . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
-                                    . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier();
+                                    . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier()
+                                    . ($tblScoreConditionGroupList->getTblScoreGroup()->isEveryGradeASingleGroup()
+                                        ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Noten einzeln ' : '');
 
                                 $tblGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListByGroup(
                                     $tblScoreConditionGroupList->getTblScoreGroup()
@@ -166,21 +169,19 @@ class Frontend extends FrontendMinimumGradeCount
                     $structure[] = new Warning('Keine Berechnungsvariante hinterlegt.', new Ban());
                 }
 
-                if (empty($structure)) {
-                    $tblScoreRule->Structure = '';
-                } else {
-                    $tblScoreRule->Structure = implode('<br>', $structure);
-                }
-
-                $tblScoreRule->Option =
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
-                        array('Id' => $tblScoreRule->getId()), 'Bearbeiten')) .
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Select', new Listing(),
-                        array('Id' => $tblScoreRule->getId()), 'Berechnungsvarianten auswählen')) .
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Division', new Equalizer(),
-                        array('Id' => $tblScoreRule->getId()), 'Fach-Klassen zuordnen')) .
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/SubjectGroup', new Group(),
-                        array('Id' => $tblScoreRule->getId()), 'Fachgruppen zuordnen'));
+                $contentTable[] = array(
+                    'Name' => $tblScoreRule->getName(),
+                    'Structure' => empty($structure) ? '' : implode('<br>', $structure),
+                    'Option' =>
+                        (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
+                            array('Id' => $tblScoreRule->getId()), 'Bearbeiten')) .
+                        (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Select', new Listing(),
+                            array('Id' => $tblScoreRule->getId()), 'Berechnungsvarianten auswählen')) .
+                        (new Standard('', '/Education/Graduation/Gradebook/Score/Division', new Equalizer(),
+                            array('Id' => $tblScoreRule->getId()), 'Fach-Klassen zuordnen')) .
+                        (new Standard('', '/Education/Graduation/Gradebook/Score/SubjectGroup', new Group(),
+                            array('Id' => $tblScoreRule->getId()), 'Fachgruppen zuordnen'))
+                );
             }
         }
 
@@ -193,7 +194,7 @@ class Frontend extends FrontendMinimumGradeCount
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData($tblScoreRuleAll, null, array(
+                            new TableData($contentTable, null, array(
                                 'Name' => 'Name',
                                 'Structure' => '',
                                 'Option' => '',
@@ -286,9 +287,10 @@ class Frontend extends FrontendMinimumGradeCount
         );
         $this->setScoreStageMenuButtons($Stage, self::SCORE_CONDITION);
 
+        $contentTable = array();
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
         if ($tblScoreConditionAll) {
-            foreach ($tblScoreConditionAll as &$tblScoreCondition) {
+            foreach ($tblScoreConditionAll as $tblScoreCondition) {
                 $scoreGroups = '';
                 $tblScoreGroups = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition);
                 if ($tblScoreGroups) {
@@ -316,16 +318,20 @@ class Frontend extends FrontendMinimumGradeCount
                     $gradeTypes = implode(', ', $gradeTypes);
                 }
 
-                $tblScoreCondition->ScoreGroups = $scoreGroups;
-                $tblScoreCondition->GradeTypes = $gradeTypes;
-                $tblScoreCondition->Option =
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Edit(),
-                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select', new Listing(),
-                        array('Id' => $tblScoreCondition->getId()), 'Zensuren-Gruppen auswählen')) .
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Select',
-                        new Equalizer(),
-                        array('Id' => $tblScoreCondition->getId()), 'Zensuren-Typen (Bedingungen) auswählen'));
+                $contentTable[] = array(
+                    'Name' => $tblScoreCondition->getName(),
+                    'ScoreGroups' => $scoreGroups,
+                    'GradeTypes' => $gradeTypes,
+                    'Priority' => $tblScoreCondition->getPriority(),
+                    'Option' =>
+                        (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Edit(),
+                            array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
+                        (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select', new Listing(),
+                            array('Id' => $tblScoreCondition->getId()), 'Zensuren-Gruppen auswählen')) .
+                        (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Select',
+                            new Equalizer(),
+                            array('Id' => $tblScoreCondition->getId()), 'Zensuren-Typen (Bedingungen) auswählen'))
+                );
             }
         }
 
@@ -338,7 +344,7 @@ class Frontend extends FrontendMinimumGradeCount
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData($tblScoreConditionAll, null, array(
+                            new TableData($contentTable, null, array(
                                 'Name' => 'Name',
                                 'ScoreGroups' => 'Zensuren-Gruppen',
                                 'GradeTypes' => 'Zensuren-Typen (Bedingungen)',
@@ -397,13 +403,16 @@ class Frontend extends FrontendMinimumGradeCount
             'Hier werden die Zensuren-Gruppen verwaltet.' . '<br>' .
             'Die Zensuren-Gruppe bildet die 3. Ebene der Berechnungsvorschriften und setzt sich aus einem Faktor
             und Zensuren-Typen zusammen.' . '<br>' .
-            'Der Faktor gibt an, wie die Zensuren-Gruppe als ganzes zu anderen Zensuren-Gruppen gewichtet wird.' . '<br>'
+            'Der Faktor gibt an, wie die Zensuren-Gruppe als ganzes zu anderen Zensuren-Gruppen gewichtet wird.' . '<br>' .
+            'Über die Option ' . new Italic('Noten einzeln')
+            . ' werden alle Noten dieser Zensurengruppe nicht zu einem Durchschnitt zusammen gerechnet, sondern alle Noten dieser Gruppe einzeln gewertet.'
         );
         $this->setScoreStageMenuButtons($Stage, self::GRADE_GROUP);
 
+        $contentTable = array();
         $tblScoreGroupAll = Gradebook::useService()->getScoreGroupAll();
         if ($tblScoreGroupAll) {
-            foreach ($tblScoreGroupAll as &$tblScoreGroup) {
+            foreach ($tblScoreGroupAll as $tblScoreGroup) {
                 $gradeTypes = '';
                 $tblScoreGroupGradeTypes = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
                 if ($tblScoreGroupGradeTypes) {
@@ -418,13 +427,19 @@ class Frontend extends FrontendMinimumGradeCount
                 if (($length = strlen($gradeTypes)) > 2) {
                     $gradeTypes = substr($gradeTypes, 0, $length - 2);
                 }
-                $tblScoreGroup->DisplayMultiplier = $tblScoreGroup->getDisplayMultiplier();
-                $tblScoreGroup->GradeTypes = $gradeTypes;
-                $tblScoreGroup->Option =
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Edit(),
-                        array('Id' => $tblScoreGroup->getId()), 'Bearbeiten')) .
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/GradeType/Select', new Listing(),
-                        array('Id' => $tblScoreGroup->getId()), 'Zensuren-Typen auswählen'));
+
+                $contentTable[] = array(
+                    'Name' => $tblScoreGroup->getName(),
+                    'Multiplier' => $tblScoreGroup->getMultiplier(),
+                    'GradeTypes' => $gradeTypes,
+                    'IsEveryGradeASingleGroup' => $tblScoreGroup->isEveryGradeASingleGroup() ? 'Ja' : new Muted('Nein'),
+                    'Option' =>
+                        (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Edit(),
+                            array('Id' => $tblScoreGroup->getId()), 'Bearbeiten'))
+                        . (new Standard('', '/Education/Graduation/Gradebook/Score/Group/GradeType/Select',
+                            new Listing(),
+                            array('Id' => $tblScoreGroup->getId()), 'Zensuren-Typen auswählen'))
+                );
             }
         }
 
@@ -437,11 +452,11 @@ class Frontend extends FrontendMinimumGradeCount
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData($tblScoreGroupAll, null, array(
+                            new TableData($contentTable, null, array(
                                 'Name' => 'Name',
-                                'DisplayMultiplier' => 'Faktor',
+                                'Multiplier' => 'Faktor',
                                 'GradeTypes' => 'Zensuren-Typen',
-//                                'Round' => 'Runden',
+                                'IsEveryGradeASingleGroup' => 'Noten einzeln',
                                 'Option' => '',
                             ))
                         ))
@@ -471,11 +486,14 @@ class Frontend extends FrontendMinimumGradeCount
                 new FormColumn(
                     new TextField('ScoreGroup[Name]', '', 'Name'), 10
                 ),
-//                new FormColumn(
-//                    new TextField('ScoreGroup[Round]', '', 'Rundung'), 2
-//                ),
                 new FormColumn(
                     new TextField('ScoreGroup[Multiplier]', '', 'Faktor'), 2
+                ),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new CheckBox('ScoreGroup[IsEveryGradeASingleGroup]',
+                        'Noten einzeln (Noten dieser Gruppe als eigene Gruppe betrachten)', 1)
                 )
             ))
         )));
@@ -523,46 +541,51 @@ class Frontend extends FrontendMinimumGradeCount
                     );
                 }
 
+                $contentSelectedTable = array();
                 if ($tblScoreGroupGradeTypeListByGroup) {
                     /** @var TblScoreGroupGradeTypeList $tblScoreGroupGradeTypeList */
-                    foreach ($tblScoreGroupGradeTypeListByGroup as &$tblScoreGroupGradeTypeList) {
+                    foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
+
                         if ($tblScoreGroupGradeTypeList->getTblGradeType()) {
-                            $tblScoreGroupGradeTypeList->Name = $tblScoreGroupGradeTypeList->getTblGradeType()->getName();
-                            $tblScoreGroupGradeTypeList->DisplayMultiplier = $tblScoreGroupGradeTypeList->getDisplayMultiplier();
-                            $tblScoreGroupGradeTypeList->Option =
-                                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                    'Entfernen', '/Education/Graduation/Gradebook/Score/Group/GradeType/Remove',
-                                    new Minus(), array(
-                                    'Id' => $tblScoreGroupGradeTypeList->getId()
-                                )))->__toString();
-                        } else {
-                            $tblScoreGroupGradeTypeList = false;
+                            $contentSelectedTable[] = array(
+                                'Name' => $tblScoreGroupGradeTypeList->getTblGradeType()->getName(),
+                                'DisplayMultiplier' => $tblScoreGroupGradeTypeList->getDisplayMultiplier(),
+                                'Option' =>
+                                    (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                        'Entfernen', '/Education/Graduation/Gradebook/Score/Group/GradeType/Remove',
+                                        new Minus(), array(
+                                        'Id' => $tblScoreGroupGradeTypeList->getId()
+                                    )))->__toString()
+                            );
                         }
                     }
-                    $tblScoreGroupGradeTypeListByGroup = array_filter($tblScoreGroupGradeTypeListByGroup);
                 }
 
+                $contentAvailableTable = array();
                 if ($tblGradeTypeAll) {
                     foreach ($tblGradeTypeAll as $tblGradeType) {
-                        $tblGradeType->Option =
-                            (new Form(
-                                new FormGroup(
-                                    new FormRow(array(
-                                        new FormColumn(
-                                            new TextField('GradeType[Multiplier]', 'Faktor', '', new Quantity()
-                                            )
-                                            , 7),
-                                        new FormColumn(
-                                            new Primary('Hinzufügen',
-                                                new Plus())
-                                            , 5)
-                                    ))
-                                ), null,
-                                '/Education/Graduation/Gradebook/Score/Group/GradeType/Add', array(
-                                    'tblScoreGroupId' => $tblScoreGroup->getId(),
-                                    'tblGradeTypeId' => $tblGradeType->getId()
-                                )
-                            ))->__toString();
+                        $contentAvailableTable[] = array(
+                            'Name' => $tblGradeType->getName(),
+                            'Option' =>
+                                (new Form(
+                                    new FormGroup(
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new TextField('GradeType[Multiplier]', 'Faktor', '', new Quantity()
+                                                )
+                                                , 7),
+                                            new FormColumn(
+                                                new Primary('Hinzufügen',
+                                                    new Plus())
+                                                , 5)
+                                        ))
+                                    ), null,
+                                    '/Education/Graduation/Gradebook/Score/Group/GradeType/Add', array(
+                                        'tblScoreGroupId' => $tblScoreGroup->getId(),
+                                        'tblGradeTypeId' => $tblGradeType->getId()
+                                    )
+                                ))->__toString()
+                        );
                     }
                 }
 
@@ -583,7 +606,7 @@ class Frontend extends FrontendMinimumGradeCount
                             new LayoutRow(array(
                                 new LayoutColumn(array(
                                     new Title('Ausgewählte', 'Zensuren-Typen'),
-                                    new TableData($tblScoreGroupGradeTypeListByGroup, null,
+                                    new TableData($contentSelectedTable, null,
                                         array(
                                             'Name' => 'Name',
                                             'DisplayMultiplier' => 'Faktor',
@@ -594,7 +617,7 @@ class Frontend extends FrontendMinimumGradeCount
                                 ),
                                 new LayoutColumn(array(
                                     new Title('Verfügbare', 'Zensuren-Typen'),
-                                    new TableData($tblGradeTypeAll, null,
+                                    new TableData($contentAvailableTable, null,
                                         array(
                                             'Name' => 'Name',
                                             'Option' => 'Faktor'
@@ -718,7 +741,9 @@ class Frontend extends FrontendMinimumGradeCount
                 if ($tblScoreConditionGroupListByCondition) {
                     foreach ($tblScoreConditionGroupListByCondition as &$tblScoreConditionGroupList) {
                         $tblScoreConditionGroupList->Name = $tblScoreConditionGroupList->getTblScoreGroup()->getName()
-                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier() . ')'));
+                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier()
+                                .  ($tblScoreConditionGroupList->getTblScoreGroup()->isEveryGradeASingleGroup()
+                                    ? ', Noten einzeln' : '') . ')'));
                         $tblScoreConditionGroupList->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                 'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/Group/Remove',
@@ -731,7 +756,9 @@ class Frontend extends FrontendMinimumGradeCount
                 if ($tblScoreGroupAll) {
                     foreach ($tblScoreGroupAll as $tblScoreGroup) {
                         $tblScoreGroup->DisplayName = $tblScoreGroup->getName()
-                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getDisplayMultiplier() . ')'));
+                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getDisplayMultiplier()
+                                . ($tblScoreGroup->isEveryGradeASingleGroup()
+                                    ? ', Noten einzeln' : '') . ')'));
                         $tblScoreGroup->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                 'Hinzufügen',
@@ -906,6 +933,7 @@ class Frontend extends FrontendMinimumGradeCount
                 $Global->POST['ScoreGroup']['Name'] = $tblScoreGroup->getName();
                 $Global->POST['ScoreGroup']['Round'] = $tblScoreGroup->getRound();
                 $Global->POST['ScoreGroup']['Multiplier'] = $tblScoreGroup->getDisplayMultiplier();
+                $Global->POST['ScoreGroup']['IsEveryGradeASingleGroup'] = $tblScoreGroup->isEveryGradeASingleGroup();
 
                 $Global->savePost();
             }

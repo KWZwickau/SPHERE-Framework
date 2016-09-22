@@ -383,13 +383,15 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
      * @param $Name
      * @param $Round
      * @param $Multiplier
+     * @param $IsEveryGradeASingleGroup
      *
      * @return TblScoreGroup
      */
     public function createScoreGroup(
         $Name,
         $Round,
-        $Multiplier
+        $Multiplier,
+        $IsEveryGradeASingleGroup
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -404,6 +406,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity->setName($Name);
             $Entity->setRound($Round);
             $Entity->setMultiplier($Multiplier);
+            $Entity->setIsEveryGradeASingleGroup($IsEveryGradeASingleGroup);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -652,13 +655,16 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
      * @param $Name
      * @param $Round
      * @param $Multiplier
+     * @param $IsEveryGradeASingleGroup
+     *
      * @return bool
      */
     public function updateScoreGroup(
         TblScoreGroup $tblScoreGroup,
         $Name,
         $Round,
-        $Multiplier
+        $Multiplier,
+        $IsEveryGradeASingleGroup
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -670,6 +676,8 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity->setName($Name);
             $Entity->setRound($Round);
             $Entity->setMultiplier($Multiplier);
+            $Entity->setIsEveryGradeASingleGroup($IsEveryGradeASingleGroup);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
