@@ -418,7 +418,7 @@ class Service extends ServiceScoreRule
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
-                if ($studentTestList && isset($studentTestList[$personId])){
+                if ($studentTestList && isset($studentTestList[$personId])) {
                     $tblTestByPerson = $studentTestList[$personId];
                 } else {
                     $tblTestByPerson = $tblTest;
@@ -435,7 +435,9 @@ class Service extends ServiceScoreRule
 
                     $grade = str_replace(',', '.', trim($value['Grade']));
 
-                    if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestByPerson, $tblPerson))) {
+                    if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestByPerson,
+                        $tblPerson))
+                    ) {
                         if (isset($value['Attendance'])) {
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
@@ -555,11 +557,21 @@ class Service extends ServiceScoreRule
             $tempGradeList = array();
             $taskDate = new \DateTime($taskDate);
             foreach ($tblGradeList as $item) {
-                if ($item->getServiceTblTest() && $item->getServiceTblTest()->getDate()) {
-                    $testDate = new \DateTime($item->getServiceTblTest()->getDate());
-                    // Noten nur vom vor dem Stichtag
-                    if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')) {
-                        $tempGradeList[] = $item;
+                if ($item->getServiceTblTest()) {
+                    // Zensuren-Datum
+                    if ($item->getServiceTblTest()->isContinues() && $item->getDate()) {
+                        $gradeDate = new \DateTime($item->getDate());
+                        // Noten nur vom vor dem Stichtag
+                        if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
+                            $tempGradeList[] = $item;
+                        }
+                    } // Test-Datum
+                    elseif ($item->getServiceTblTest()->getDate()) {
+                        $testDate = new \DateTime($item->getServiceTblTest()->getDate());
+                        // Noten nur vom vor dem Stichtag
+                        if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')) {
+                            $tempGradeList[] = $item;
+                        }
                     }
                 }
             }
@@ -572,7 +584,15 @@ class Service extends ServiceScoreRule
             foreach ($tblGradeList as $tblGrade) {
                 $tblTest = $tblGrade->getServiceTblTest();
                 if ($tblTest) {
-                    if ($tblTest->getReturnDate()) {
+                    // Noten-Datum
+                    if ($tblTest->isContinues() && $tblGrade->getDate()) {
+                        $gradeDate = (new \DateTime($tblGrade->getDate()))->format("Y-m-d");
+                        $now = (new \DateTime('now'))->format("Y-m-d");
+                        if ($gradeDate <= $now) {
+                            $filteredGradeList[$tblGrade->getId()] = $tblGrade;
+                        }
+                    } // Test-Datum
+                    elseif ($tblTest->getReturnDate()) {
                         $testDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
                         $now = (new \DateTime('now'))->format("Y-m-d");
                         if ($testDate <= $now) {

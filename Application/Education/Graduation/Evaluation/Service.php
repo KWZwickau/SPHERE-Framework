@@ -222,9 +222,10 @@ class Service extends AbstractService
                         $this->getTestTypeByIdentifier('TEST'),
                         null,
                         $Test['Description'],
-                        $Test['Date'],
-                        $Test['CorrectionDate'],
-                        $Test['ReturnDate']
+                        isset($Test['IsContinues']) ? null : $Test['Date'],
+                        isset($Test['IsContinues']) ? null : $Test['CorrectionDate'],
+                        isset($Test['IsContinues']) ? null : $Test['ReturnDate'],
+                        isset($Test['IsContinues'])
                     );
 
                     $this->createTestLink($tblTestAdd, $LinkId);

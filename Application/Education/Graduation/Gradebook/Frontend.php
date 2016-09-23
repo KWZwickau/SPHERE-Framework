@@ -815,6 +815,7 @@ class Frontend extends FrontendScoreRule
 
             $count = 1;
             // Ermittlung der Zensuren zu den Schülern
+            /** @var TblPerson $tblPerson */
             foreach ($tblStudentList as $tblPerson) {
                 $data = array();
                 $data['Number'] = $count % 5 == 0 ? new Bold($count) : $count;
@@ -831,10 +832,21 @@ class Frontend extends FrontendScoreRule
                             if ($tblTest) {
                                 $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
                                 if ($tblGrade) {
-                                    $data[$column] = $tblTest->getServiceTblGradeType()
-                                        ? ($tblTest->getServiceTblGradeType()->isHighlighted()
-                                            ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade())
-                                        : $tblGrade->getDisplayGrade();
+                                    $displayGradeDate = false;
+                                    if ($tblTest->isContinues() && $tblGrade->getDate()){
+                                        if (strlen($tblGrade->getDate()) > 6) {
+                                            $displayGradeDate = substr($tblGrade->getDate(), 0, 6);
+                                        }
+                                    }
+
+                                    $data[$column] =
+                                        ($tblTest->getServiceTblGradeType()
+                                            ? ($tblTest->getServiceTblGradeType()->isHighlighted()
+                                                ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade())
+                                            : $tblGrade->getDisplayGrade())
+                                        . ($displayGradeDate
+                                            ? new Small(new Muted(' (' . $displayGradeDate . ')'))
+                                            : '');
                                 } else {
                                     $data[$column] = '';
                                 }
@@ -1420,8 +1432,8 @@ class Frontend extends FrontendScoreRule
     ) {
 
         $Stage = new Stage('Bewertungssystem', 'Fach-Klassen einem Bewertungssystem zuordnen');
-        $Stage->setMessage('Hier können dem ausgewählten Bewertungssystem Fach-Klassen zugeordnet werden. <br>
-        ' . new Bold(new Exclamation() . ' Hinweis:') . ' Sobald Zensuren für eine Fach-Klasse vergeben wurden,
+        $Stage->setMessage('Hier können dem ausgewählten Bewertungssystem Fach-Klassen zugeordnet werden.' . '<br>'
+        . new Bold(new Exclamation() . ' Hinweis:') . ' Sobald Zensuren für eine Fach-Klasse vergeben wurden,
         kann das Bewertungssystem dieser Fach-Klasse nicht mehr geändert werden. Außerdem kann die Fach-Klasse immer nur ein Bewertungssystem besitzen.');
         $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Type', new ChevronLeft()));
 
