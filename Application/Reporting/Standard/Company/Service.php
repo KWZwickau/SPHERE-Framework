@@ -15,6 +15,7 @@ use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
  * Class Service
@@ -64,7 +65,7 @@ class Service extends Extension
         $count = 0;
         if ($groupList) {
 
-            $groupList = $this->getSorter($groupList)->sortObjectBy('DisplayName');
+            $groupList = $this->getSorter($groupList)->sortObjectBy('DisplayName', new StringGermanOrderSorter());
 
             /** @var TblCompany $tblCompany */
             foreach ($groupList as $tblCompany) {

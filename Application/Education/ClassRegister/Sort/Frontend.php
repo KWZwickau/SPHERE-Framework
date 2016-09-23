@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
  * Class Frontend
@@ -35,7 +36,7 @@ class Frontend
         $Stage = new Stage('Klassenbuch', 'Schüler sortieren');
 
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            if (Division::useService()->sortDivisionStudentByProperty($tblDivision)) {
+            if (Division::useService()->sortDivisionStudentByProperty($tblDivision, 'LastFirstName', new StringGermanOrderSorter())) {
                 return $Stage . new Success(
                     'Die Schüler der Klasse wurden erfolgreich sortiert.',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success()
