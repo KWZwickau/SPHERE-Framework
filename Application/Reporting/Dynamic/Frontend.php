@@ -9,6 +9,7 @@ use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilter;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilterMask;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\View;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -46,7 +48,11 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Table\Structure\TableFoot;
+use SPHERE\Common\Frontend\Table\Structure\TableHead;
+use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -56,6 +62,7 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -427,6 +434,26 @@ class Frontend extends Extension implements IFrontendInterface
             $Timeout = false;
         }
 
+        $TableData = new TableData($Table, null,array(),
+            array(
+                'responsive' => false
+            )
+        );
+
+        $ExportCounter = count(current($Table));
+        $ExportSwitchRow = array();
+        for( $Run = 0; $Run < $ExportCounter; $Run++ ) {
+            $ExportSwitchRow[] = new TableColumn(
+                (new SelectBox('Export['.$Run.']','',array(1=>'Exportieren',2=>'Ignorieren')))
+            );
+        }
+
+
+        $TableData->prependHead(
+            new TableHead(
+                (new TableRow( $ExportSwitchRow ))
+            )
+        );
 
         $Stage->setContent(
             new Layout(array(
@@ -452,8 +479,17 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             ($Timeout
                                 ? new Danger('Die Suche konnte auf Grund der Datenmenge nicht abgeschlossen werden. Bitte geben Sie weitere Filter an, um die Datenmenge einzuschränken')
-                                : new Success('Die Suche wurde vollständig durchgeführt.')),
-                            new TableData($Table)
+                                : new Success('Die Suche wurde vollständig durchgeführt.')
+                            ),
+                            new Form(
+                                new FormGroup(
+                                    new FormRow(
+                                        new FormColumn(
+                                            $TableData
+                                        )
+                                    )
+                                )
+                            , new Primary('Download'))
                         ))
                     )
                 ), new Title('Ergebnis')),

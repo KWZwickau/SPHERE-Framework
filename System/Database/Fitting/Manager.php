@@ -96,6 +96,9 @@ class Manager extends Extension
     final public function killEntity($Entity)
     {
 
+        if( !$this->EntityManager->contains( $Entity ) ) {
+            $Entity = $this->EntityManager->merge($Entity);
+        }
         $this->EntityManager->remove($Entity);
         $this->flushCache(get_class($Entity));
         (new DataCacheHandler(__METHOD__))->addDependency($Entity)->clearData();
