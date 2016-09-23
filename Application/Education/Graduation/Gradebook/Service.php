@@ -311,6 +311,7 @@ class Service extends ServiceScoreRule
      * @param null $Grade
      * @param $BasicRoute
      * @param TblScoreType|null $tblScoreType
+     * @param null $studentTestList
      *
      * @return IFormInterface|string
      */
@@ -319,7 +320,8 @@ class Service extends ServiceScoreRule
         $TestId = null,
         $Grade = null,
         $BasicRoute,
-        TblScoreType $tblScoreType = null
+        TblScoreType $tblScoreType = null,
+        $studentTestList = null
     ) {
 
         /**
@@ -358,7 +360,12 @@ class Service extends ServiceScoreRule
             foreach ($Grade as $personId => $value) {
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
                 $tblPerson = Person::useService()->getPersonById($personId);
-                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
+                if ($studentTestList && isset($studentTestList[$personId])) {
+                    $tblTestOfPerson = $studentTestList[$personId];
+                } else {
+                    $tblTestOfPerson = $tblTest;
+                }
+                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson, $tblPerson);
                 if ($tblGrade && empty($value['Comment']) && !isset($value['Attendance'])
                     && ($gradeValue != $tblGrade->getGrade()
                         || (isset($value['Trend']) && $value['Trend'] != $tblGrade->getTrend()))
@@ -411,8 +418,13 @@ class Service extends ServiceScoreRule
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
+                if ($studentTestList && isset($studentTestList[$personId])){
+                    $tblTestByPerson = $studentTestList[$personId];
+                } else {
+                    $tblTestByPerson = $tblTest;
+                }
 
-                if ($tblTest->getServiceTblDivision() && $tblTest->getServiceTblSubject()) {
+                if ($tblTestByPerson->getServiceTblDivision() && $tblTestByPerson->getServiceTblSubject()) {
 
                     // set trend
                     if (isset($value['Trend'])) {
@@ -423,17 +435,17 @@ class Service extends ServiceScoreRule
 
                     $grade = str_replace(',', '.', trim($value['Grade']));
 
-                    if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
+                    if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestByPerson, $tblPerson))) {
                         if (isset($value['Attendance'])) {
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
-                                $tblTest->getServiceTblDivision(),
-                                $tblTest->getServiceTblSubject(),
-                                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
-                                $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
-                                $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
-                                $tblTest,
-                                $tblTest->getTblTestType(),
+                                $tblTestByPerson->getServiceTblDivision(),
+                                $tblTestByPerson->getServiceTblSubject(),
+                                $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
+                                $tblTestByPerson->getServiceTblPeriod() ? $tblTestByPerson->getServiceTblPeriod() : null,
+                                $tblTestByPerson->getServiceTblGradeType() ? $tblTestByPerson->getServiceTblGradeType() : null,
+                                $tblTestByPerson,
+                                $tblTestByPerson->getTblTestType(),
                                 null,
                                 trim($value['Comment']),
                                 0,
@@ -442,13 +454,13 @@ class Service extends ServiceScoreRule
                         } elseif (trim($value['Grade']) !== '') {
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
-                                $tblTest->getServiceTblDivision(),
-                                $tblTest->getServiceTblSubject(),
-                                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
-                                $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
-                                $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
-                                $tblTest,
-                                $tblTest->getTblTestType(),
+                                $tblTestByPerson->getServiceTblDivision(),
+                                $tblTestByPerson->getServiceTblSubject(),
+                                $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
+                                $tblTestByPerson->getServiceTblPeriod() ? $tblTestByPerson->getServiceTblPeriod() : null,
+                                $tblTestByPerson->getServiceTblGradeType() ? $tblTestByPerson->getServiceTblGradeType() : null,
+                                $tblTestByPerson,
+                                $tblTestByPerson->getTblTestType(),
                                 $grade,
                                 trim($value['Comment']),
                                 $trend,

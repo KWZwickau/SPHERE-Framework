@@ -365,4 +365,13 @@ class TblTest extends Element
     {
         $this->IsContinues = (boolean) $IsContinues;
     }
+
+    /**
+     * @return false|TblTest[]
+     */
+    public function getLinkedTestAll()
+    {
+
+        return Evaluation::useService()->getTestLinkAllByTest($this);
+    }
 }
