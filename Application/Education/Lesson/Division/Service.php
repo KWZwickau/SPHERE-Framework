@@ -1249,11 +1249,15 @@ class Service extends AbstractService
 
                 if ($DivisionSubject->getTblSubjectGroup()) {
                     $SubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
-                    $tblDivisionSubject = Division::useService()->getDivisionSubjectBySubjectAndDivisionWithoutGroup($DivisionSubject->getServiceTblSubject(),
-                        $tblDivision);
-                    $tblSubjectTeacherList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubject);
-                    if (!$SubjectTeacherList && !$tblSubjectTeacherList) {
-                        $TeacherGroupCount++;
+                    if ($DivisionSubject->getServiceTblSubject()) {
+                        $tblDivisionSubject = Division::useService()->getDivisionSubjectBySubjectAndDivisionWithoutGroup($DivisionSubject->getServiceTblSubject(),
+                            $tblDivision);
+                        if ($tblDivisionSubject) {
+                            $tblSubjectTeacherList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubject);
+                            if (!$SubjectTeacherList && !$tblSubjectTeacherList) {
+                                $TeacherGroupCount++;
+                            }
+                        }
                     }
                 }
             }
@@ -1904,5 +1908,4 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson);
     }
-
 }

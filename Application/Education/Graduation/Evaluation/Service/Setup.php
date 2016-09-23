@@ -27,7 +27,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblTestType = $this->setTableTestType($Schema);
         $tblTask = $this->setTableTask($Schema, $tblTestType);
-        $this->setTableTest($Schema, $tblTestType, $tblTask);
+        $tblTest = $this->setTableTest($Schema, $tblTestType, $tblTask);
+        $this->setTableTestLink($Schema, $tblTest);
 
         /**
          * Migration & Protocol
@@ -134,6 +135,25 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
         $this->getConnection()->addForeignKey($Table, $tblTask, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblTest
+     *
+     * @return Table
+     */
+    private function setTableTestLink(Schema &$Schema, Table $tblTest)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblTestLink');
+        if (!$Table->hasColumn('LinkId')){
+            $Table->addColumn('LinkId', 'bigint');
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblTest, true);
 
         return $Table;
     }

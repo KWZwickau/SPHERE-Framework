@@ -344,4 +344,13 @@ class TblTest extends Element
 
         $this->tblTask = ( null === $tblTask ? null : $tblTask->getId() );
     }
+
+    /**
+     * @return false|TblTest[]
+     */
+    public function getLinkedTestAll()
+    {
+
+        return Evaluation::useService()->getTestLinkAllByTest($this);
+    }
 }
