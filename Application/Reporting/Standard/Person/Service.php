@@ -7,7 +7,7 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -89,12 +89,18 @@ class Service extends Extension
                     $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
                     $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
                     $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
+                    if ($Item['District'] !== '') {
+                        $Pre = substr($Item['District'], 0, 2);
+                        if ($Pre != 'OT') {
+                            $Item['District'] = 'OT '.$Item['District'];
+                        }
+                    }
 
                     $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . ' ' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName().' '.
-                        ( $Item['District'] != '' ? 'OT '.$Item['District'] : '' );
+                        $Item['District'];
                 } else {
                     $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                     $Item['Address'] = '';
@@ -121,7 +127,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -130,7 +136,7 @@ class Service extends Extension
 
         if (!empty( $PersonList )) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
@@ -234,12 +240,18 @@ class Service extends Extension
                     $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
                     $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
                     $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
+                    if ($Item['District'] !== '') {
+                        $Pre = substr($Item['District'], 0, 2);
+                        if ($Pre != 'OT') {
+                            $Item['District'] = 'OT '.$Item['District'];
+                        }
+                    }
 
                     $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . ' ' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName().' '.
-                        ( $Item['District'] != '' ? 'OT '.$Item['District'] : '' );;
+                        $Item['District'];
                 }
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
@@ -338,7 +350,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -347,7 +359,7 @@ class Service extends Extension
 
         if (!empty( $PersonList )) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Schülernummer");
@@ -442,12 +454,18 @@ class Service extends Extension
                     $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
                     $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
                     $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
+                    if ($Item['District'] !== '') {
+                        $Pre = substr($Item['District'], 0, 2);
+                        if ($Pre != 'OT') {
+                            $Item['District'] = 'OT '.$Item['District'];
+                        }
+                    }
 
                     $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . ' ' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName().' '.
-                        ( $Item['District'] != '' ? 'OT '.$Item['District'] : '' );;
+                        $Item['District'];
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -489,7 +507,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -498,7 +516,7 @@ class Service extends Extension
 
         if (!empty( $PersonList )) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
@@ -594,12 +612,18 @@ class Service extends Extension
                     $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
                     $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
                     $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
+                    if ($Item['District'] !== '') {
+                        $Pre = substr($Item['District'], 0, 2);
+                        if ($Pre != 'OT') {
+                            $Item['District'] = 'OT '.$Item['District'];
+                        }
+                    }
 
                     $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . '<br/>' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName().' '.
-                        ( $Item['District'] != '' ? 'OT '.$Item['District'] : '' );
+                        $Item['District'];
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -682,7 +706,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -691,7 +715,7 @@ class Service extends Extension
 
         if (!empty( $PersonList )) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Schülernummer");
@@ -837,12 +861,18 @@ class Service extends Extension
                     $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
                     $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
                     $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
+                    if ($Item['District'] !== '') {
+                        $Pre = substr($Item['District'], 0, 2);
+                        if ($Pre != 'OT') {
+                            $Item['District'] = 'OT '.$Item['District'];
+                        }
+                    }
 
                     $Item['Address'] = $address->getTblAddress()->getStreetName().' '.
                         $address->getTblAddress()->getStreetNumber() . ' ' .
                         $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName().' '.
-                        ( $Item['District'] != '' ? 'OT '.$Item['District'] : '' );
+                        $Item['District'];
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -891,7 +921,7 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -900,7 +930,7 @@ class Service extends Extension
 
         if (!empty( $PersonList )) {
 
-            $fileLocation = Storage::useWriter()->getTemporary('xlsx');
+            $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
