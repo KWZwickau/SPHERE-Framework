@@ -335,7 +335,7 @@ class Service extends AbstractService
 
         $orderMax = $this->getDivisionStudentSortOrderMax($tblDivision);
         if ($orderMax == 0) {
-            $orderMax = $this->sortDivisionStudentByProperty($tblDivision);
+            $orderMax = $this->sortDivisionStudentByProperty($tblDivision, 'LastFirstName', new Sorter\StringGermanOrderSorter());
         }
         $SortOrder = $orderMax + 1;
         return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson, $SortOrder);
@@ -534,10 +534,10 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
-     * @param array $Group
-     * @param int $DivisionSubjectId
+     * @param $Group
+     * @param $DivisionSubjectId
      *
-     * @return null|object|TblDivisionSubject|IFormInterface
+     * @return IFormInterface|string
      */
     public
     function addSubjectToDivisionWithGroup(
