@@ -18,6 +18,8 @@ abstract class AbstractField extends Extension implements IFieldInterface
     protected $Name;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
+    /** @var bool $isForceDefaultValue */
+    protected $isForceDefaultValue = false;
 
     /**
      * @return string
@@ -159,6 +161,9 @@ abstract class AbstractField extends Extension implements IFieldInterface
 
         $Global = $this->getGlobal();
         if ($Force || !isset( $Global->POST[$this->getName()] )) {
+            if( $Force ) {
+                $this->isForceDefaultValue = true;
+            }
             $Global->POST[$this->getName()] = $Value;
             $Global->savePost();
         }

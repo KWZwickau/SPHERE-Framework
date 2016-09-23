@@ -696,11 +696,11 @@ class Data extends AbstractData
         /**
          * @var TblSession $Entity
          */
-        $Entity = $Manager->getEntityById('TblSession', $tblSession->getId());
+        $Entity = $this->getForceEntityById( __METHOD__, $Manager, 'TblSession', $tblSession->getId() );
 
-        if (null !== $Entity) {
-            // Skip till half of Timeout
-            $Gap = ( ( time() + $Timeout ) - ( $Timeout / 10 ) );
+        if ($Entity) {
+            // Skip permanent Timeout
+            $Gap = ( ( time() + $Timeout ) - ( $Timeout / 100 ) );
 
             if ($Gap > $Entity->getTimeout()) {
                 $Entity->setTimeout(time() + $Timeout);
