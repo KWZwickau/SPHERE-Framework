@@ -203,9 +203,10 @@ class Service extends AbstractService
             $this->getTestTypeByIdentifier('TEST'),
             null,
             $Test['Description'],
-            $Test['Date'],
-            $Test['CorrectionDate'],
-            $Test['ReturnDate']
+            isset($Test['IsContinues']) ? null : $Test['Date'],
+            isset($Test['IsContinues']) ? null : $Test['CorrectionDate'],
+            isset($Test['IsContinues']) ? null : $Test['ReturnDate'],
+            isset($Test['IsContinues'])
         );
         if (isset($Test['Link']) && $tblTest) {
             $LinkId = $this->getNextLinkId();
@@ -221,9 +222,10 @@ class Service extends AbstractService
                         $this->getTestTypeByIdentifier('TEST'),
                         null,
                         $Test['Description'],
-                        $Test['Date'],
-                        $Test['CorrectionDate'],
-                        $Test['ReturnDate']
+                        isset($Test['IsContinues']) ? null : $Test['Date'],
+                        isset($Test['IsContinues']) ? null : $Test['CorrectionDate'],
+                        isset($Test['IsContinues']) ? null : $Test['ReturnDate'],
+                        isset($Test['IsContinues'])
                     );
 
                     $this->createTestLink($tblTestAdd, $LinkId);
@@ -251,11 +253,11 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param                     $Id
-     * @param                     $Test
-     * @param string $BasicRoute
+     * @param $Id
+     * @param $Test
+     * @param $BasicRoute
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function updateTest(IFormInterface $Stage = null, $Id, $Test, $BasicRoute)
     {
@@ -267,23 +269,32 @@ class Service extends AbstractService
             return $Stage;
         }
 
+        $Error = false;
+        if (isset($Test['Date']) && empty($Test['Date'])) {
+            $Stage->setError('Test[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+        if ($Error) {
+            return $Stage;
+        }
+
         $tblTest = $this->getTestById($Id);
         if ($tblTest) {
             (new Data($this->getBinding()))->updateTest(
                 $tblTest,
                 $Test['Description'],
-                $Test['Date'],
-                $Test['CorrectionDate'],
-                $Test['ReturnDate']
+                isset($Test['Date']) ?  $Test['Date'] : null,
+                isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
+                isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null
             );
             if (($tblTestLinkList = $tblTest->getLinkedTestAll())){
                 foreach ($tblTestLinkList as $tblTestItem){
                     (new Data($this->getBinding()))->updateTest(
                         $tblTestItem,
                         $Test['Description'],
-                        $Test['Date'],
-                        $Test['CorrectionDate'],
-                        $Test['ReturnDate']
+                        isset($Test['Date']) ?  $Test['Date'] : null,
+                        isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
+                        isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null
                     );
                 }
             }
