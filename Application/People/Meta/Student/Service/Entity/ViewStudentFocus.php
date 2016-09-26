@@ -6,7 +6,6 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -18,10 +17,6 @@ use SPHERE\System\Database\Binding\AbstractView;
 class ViewStudentFocus extends AbstractView
 {
 
-    const TBL_STUDENT_ID = 'TblStudent_Id';
-    const TBL_STUDENT_SERVICE_TBL_PERSON = 'TblStudent_serviceTblPerson';
-//    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
-//    const TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE = 'TblStudent_SchoolAttendanceStartDate';
     const TBL_STUDENT_FOCUS_ID = 'TblStudentFocus_Id';
     const TBL_STUDENT_FOCUS_TBL_STUDENT = 'TblStudentFocus_tblStudent';
     const TBL_STUDENT_FOCUS_TBL_STUDENT_FOCUS_TYPE = 'TblStudentFocus_tblStudentFocusType';
@@ -29,22 +24,6 @@ class ViewStudentFocus extends AbstractView
     const TBL_STUDENT_FOCUS_TYPE_NAME = 'TblStudentFocusType_Name';
 //    const TBL_STUDENT_FOCUS_TYPE_DESCRIPTION = 'TblStudentFocusType_Description';
 
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudent_Id;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudent_serviceTblPerson;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblStudent_Identifier;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblStudent_SchoolAttendanceStartDate;
     /**
      * @Column(type="string")
      */
@@ -89,11 +68,7 @@ class ViewStudentFocus extends AbstractView
     public function loadNameDefinition()
     {
 
-//        $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schüler: Schülernummer');
-//        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Schüler: Schulpflicht beginn');
-        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_NAME, 'Schwerpunkte: Name');
-//        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_DESCRIPTION, 'Schwerpunkte: Beschreibung');
-
+        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_NAME, 'Förderbedarf: Schwerpunkte');
     }
 
     /**
@@ -104,8 +79,11 @@ class ViewStudentFocus extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView(self::TBL_STUDENT_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
-        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_ID);
+        $this->addForeignView(self::TBL_STUDENT_FOCUS_TBL_STUDENT, new ViewStudent(), ViewStudent::TBL_STUDENT_ID);
+//        $this->addForeignView(self::TBL_STUDENT_FOCUS_TBL_STUDENT, new ViewStudentAgreement(), ViewStudentAgreement::TBL_STUDENT_AGREEMENT_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_FOCUS_TBL_STUDENT, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_DISORDER_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_FOCUS_TBL_STUDENT, new ViewStudentLiberation(), ViewStudentLiberation::TBL_STUDENT_LIBERATION_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_FOCUS_TBL_STUDENT, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_TRANSFER_TBL_STUDENT);
     }
 
     /**

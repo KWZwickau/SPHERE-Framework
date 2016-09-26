@@ -6,7 +6,6 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -18,37 +17,15 @@ use SPHERE\System\Database\Binding\AbstractView;
 class ViewStudentLiberation extends AbstractView
 {
 
-    const TBL_STUDENT_ID = 'TblStudent_Id';
-    const TBL_STUDENT_SERVICE_TBL_PERSON = 'TblStudent_serviceTblPerson';
-//    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
-//    const TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE = 'TblStudent_SchoolAttendanceStartDate';
     const TBL_STUDENT_LIBERATION_ID = 'TblStudentLiberation_Id';
     const TBL_STUDENT_LIBERATION_TBL_STUDENT = 'TblStudentLiberation_tblStudent';
     const TBL_STUDENT_LIBERATION_TBL_STUDENT_LIBERATION_TYPE = 'TblStudentLiberation_tblStudentLiberationType';
     const TBL_STUDENT_LIBERATION_TYPE_ID = 'TblStudentLiberationType_Id';
     const TBL_STUDENT_LIBERATION_TYPE_NAME = 'TblStudentLiberationType_Name';
-//    const TBL_STUDENT_LIBERATION_TYPE_DESCRIPTION = 'TblStudentLiberationType_Description';
     const TBL_STUDENT_LIBERATION_TYPE_TBL_STUDENT_LIBERATION_CATEGORY = 'TblStudentLiberationType_tblStudentLiberationCategory';
     const TBL_STUDENT_LIBERATION_CATEGORY_ID = 'TblStudentLiberationCategory_Id';
     const TBL_STUDENT_LIBERATION_CATEGORY_NAME = 'TblStudentLiberationCategory_Name';
-//    const TBL_STUDENT_LIBERATION_CATEGORY_DESCRIPTION = 'TblStudentLiberationCategory_Description';
 
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudent_Id;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudent_serviceTblPerson;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblStudent_Identifier;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblStudent_SchoolAttendanceStartDate;
     /**
      * @Column(type="string")
      */
@@ -69,10 +46,6 @@ class ViewStudentLiberation extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentLiberationType_Name;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblStudentLiberationType_Description;
     /**
      * @Column(type="string")
      */
@@ -85,10 +58,6 @@ class ViewStudentLiberation extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentLiberationCategory_Name;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblStudentLiberationCategory_Description;
 
     /**
      * Overwrite this method to return View-ObjectName as View-DisplayName
@@ -109,12 +78,8 @@ class ViewStudentLiberation extends AbstractView
     public function loadNameDefinition()
     {
 
-//        $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schüler: Schülernummer');
-//        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Schüler: Schulpflicht beginn');
-        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_TYPE_NAME, 'Typ: '.self::TBL_STUDENT_LIBERATION_CATEGORY_NAME);
-//        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_TYPE_DESCRIPTION, 'Typ: Beschreibung');
-//        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_CATEGORY_NAME, 'Kategorie: Fach der Befreiung');
-//        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_CATEGORY_DESCRIPTION, 'Kategorie: Beschreibung');
+        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_TYPE_NAME, 'Typ: Typ der Befreiung');
+        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_CATEGORY_NAME, 'Kategorie: Art der Befreiung');
 
     }
 
@@ -126,7 +91,11 @@ class ViewStudentLiberation extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView(self::TBL_STUDENT_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+        $this->addForeignView(self::TBL_STUDENT_LIBERATION_TBL_STUDENT, new ViewStudent(), ViewStudent::TBL_STUDENT_ID);
+//        $this->addForeignView(self::TBL_STUDENT_LIBERATION_TBL_STUDENT, new ViewStudentAgreement(), ViewStudentAgreement::TBL_STUDENT_AGREEMENT_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_LIBERATION_TBL_STUDENT, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_DISORDER_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_LIBERATION_TBL_STUDENT, new ViewStudentFocus(), ViewStudentFocus::TBL_STUDENT_FOCUS_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_LIBERATION_TBL_STUDENT, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_TRANSFER_TBL_STUDENT);
     }
 
     /**

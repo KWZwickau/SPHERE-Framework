@@ -29,6 +29,10 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
 use SPHERE\Application\People\Person\Person;
@@ -117,6 +121,51 @@ class Service extends Integration
     {
 
         return ( new Data($this->getBinding()) )->viewStudentLiberation();
+    }
+
+    /**
+     * @return false|ViewStudentLocker[]
+     */
+    public function viewStudentLocker()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentLocker();
+    }
+
+    /**
+     * @return false|ViewStudentMedicalRecord[]
+     */
+    public function viewStudentMedicalRecord()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentMedicalRecord();
+    }
+
+//    /**
+//     * @return false|ViewStudentSubject[]
+//     */
+//    public function viewStudentSubject()
+//    {
+//
+//        return ( new Data($this->getBinding()) )->viewStudentSubject();
+//    }
+
+    /**
+     * @return false|ViewStudentTransfer[]
+     */
+    public function viewStudentTransfer()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentTransfer();
+    }
+
+    /**
+     * @return false|ViewStudentTransport[]
+     */
+    public function viewStudentTransport()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentTransport();
     }
 
     /**

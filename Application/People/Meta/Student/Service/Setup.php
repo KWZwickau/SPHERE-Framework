@@ -16,6 +16,11 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberation;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\System\Database\Binding\AbstractSetup;
 use SPHERE\System\Database\Fitting\View;
 
@@ -98,12 +103,10 @@ class Setup extends AbstractSetup
 //        );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentDisorder') )
-                ->addLink(new TblStudent(), 'Id', new TblStudentDisorder(), 'tblStudent')
                 ->addLink(new TblStudentDisorder(), 'tblStudentDisorderType', new TblStudentDisorderType(), 'Id')
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentFocus') )
-                ->addLink(new TblStudent(), 'Id', new TblStudentFocus(), 'tblStudent')
                 ->addLink(new TblStudentFocus(), 'tblStudentFocusType', new TblStudentFocusType(), 'Id')
         );
         $this->getConnection()->createView(
@@ -112,9 +115,29 @@ class Setup extends AbstractSetup
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentLiberation') )
-                ->addLink(new TblStudent(), 'Id', new TblStudentLiberation(), 'tblStudent')
                 ->addLink(new TblStudentLiberation(), 'tblStudentLiberationType', new TblStudentLiberationType(), 'Id')
                 ->addLink(new TblStudentLiberationType(), 'tblStudentLiberationCategory', new TblStudentLiberationCategory(), 'Id')
+        );
+        $this->getConnection()->createView(
+            ( new View($this->getConnection(), 'viewStudentLocker') )
+                ->addLink(new TblStudent(), 'tblStudentLocker', new TblStudentLocker(), 'Id')
+        );
+        $this->getConnection()->createView(
+            ( new View($this->getConnection(), 'viewStudentMedicalRecord') )
+                ->addLink(new TblStudent(), 'tblStudentMedicalRecord', new TblStudentMedicalRecord(), 'Id')
+        );
+//        $this->getConnection()->createView(
+//            ( new View($this->getConnection(), 'viewStudentSubject') )
+//                ->addLink(new TblStudentSubject(), 'tblStudentSubjectRanking', new TblStudentSubjectRanking(), 'Id')
+//                ->addLink(new TblStudentSubject(), 'tblStudentSubjectType', new TblStudentSubjectType(), 'Id')
+//        );
+        $this->getConnection()->createView(
+            ( new View($this->getConnection(), 'viewStudentTransfer') )
+                ->addLink(new TblStudentTransfer(), 'tblStudentTransferType', new TblStudentTransferType(), 'Id')
+        );
+        $this->getConnection()->createView(
+            ( new View($this->getConnection(), 'viewStudentTransport') )
+                ->addLink(new TblStudent(), 'tblStudentTransport', new TblStudentTransport(), 'Id')
         );
 
         return $this->getConnection()->getProtocol($Simulate);

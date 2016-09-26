@@ -14,6 +14,10 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLiberation;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -111,6 +115,61 @@ class Data extends Integration
 
         return $this->getCachedEntityList(
             __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentLiberation'
+        );
+    }
+
+    /**
+     * @return false|ViewStudentLocker[]
+     */
+    public function viewStudentLocker()
+    {
+
+        return $this->getCachedEntityList(
+            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentLocker'
+        );
+    }
+
+    /**
+     * @return false|ViewStudentMedicalRecord[]
+     */
+    public function viewStudentMedicalRecord()
+    {
+
+        return $this->getCachedEntityList(
+            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentMedicalRecord'
+        );
+    }
+
+//    /**
+//     * @return false|ViewStudentSubject[]
+//     */
+//    public function viewStudentSubject()
+//    {
+//
+//        return $this->getCachedEntityList(
+//            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentSubject'
+//        );
+//    }
+
+    /**
+     * @return false|ViewStudentTransfer[]
+     */
+    public function viewStudentTransfer()
+    {
+
+        return $this->getCachedEntityList(
+            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentTransfer'
+        );
+    }
+
+    /**
+     * @return false|ViewStudentTransport[]
+     */
+    public function viewStudentTransport()
+    {
+
+        return $this->getCachedEntityList(
+            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentTransport'
         );
     }
 

@@ -12,22 +12,25 @@ use SPHERE\System\Database\Binding\AbstractView;
 
 /**
  * @Entity
- * @Table(name="viewStudent")
+ * @Table(name="viewStudentMedicalRecord")
  * @Cache(usage="READ_ONLY")
  */
-class ViewStudent extends AbstractView
+class ViewStudentMedicalRecord extends AbstractView
 {
 
     const TBL_STUDENT_ID = 'TblStudent_Id';
     const TBL_STUDENT_SERVICE_TBL_PERSON = 'TblStudent_serviceTblPerson';
-    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
-    const TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE = 'TblStudent_SchoolAttendanceStartDate';
     const TBL_STUDENT_TBL_STUDENT_MEDICAL_RECORD = 'TblStudent_tblStudentMedicalRecord';
     const TBL_STUDENT_TBL_STUDENT_TRANSPORT = 'TblStudent_tblStudentTransport';
     const TBL_STUDENT_TBL_STUDENT_BILLING = 'TblStudent_tblStudentBilling';
     const TBL_STUDENT_TBL_STUDENT_LOCKER = 'TblStudent_tblStudentLocker';
     const TBL_STUDENT_TBL_STUDENT_BAPTISM = 'TblStudent_tblStudentBaptism';
     const TBL_STUDENT_TBL_STUDENT_INTEGRATION = 'TblStudent_tblStudentIntegration';
+    const TBL_STUDENT_MEDICAL_RECORD_ID = 'TblStudentMedicalRecord_Id';
+    const TBL_STUDENT_MEDICAL_RECORD_DISEASE = 'TblStudentMedicalRecord_Disease';
+    const TBL_STUDENT_MEDICAL_RECORD_MEDICATION = 'TblStudentMedicalRecord_Medication';
+    const TBL_STUDENT_MEDICAL_RECORD_SERVICE_TBL_PERSON_ATTENDING_DICTOR = 'TblStudentMedicalRecord_serviceTblPersonAttendingDoctor';
+    const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
 
     /**
      * @Column(type="string")
@@ -37,14 +40,6 @@ class ViewStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudent_serviceTblPerson;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudent_Identifier;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudent_SchoolAttendanceStartDate;
     /**
      * @Column(type="string")
      */
@@ -69,6 +64,26 @@ class ViewStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudent_tblStudentIntegration;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_Disease;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_Medication;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_serviceTblPersonAttendingDoctor;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_Insurance;
 
     /**
      * Overwrite this method to return View-ObjectName as View-DisplayName
@@ -78,7 +93,7 @@ class ViewStudent extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Schüler-Akte';
+        return 'Schüler (Krankenakte)';
     }
 
     /**
@@ -89,8 +104,9 @@ class ViewStudent extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schüler: Schülernummer');
-        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Schüler: Schulpflicht beginn');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_DISEASE, 'Krankenakte: Krankheiten / Allergien');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION, 'Krankenakte: Mediakamente');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE, 'Krankenakte: Krankenkasse');
     }
 
     /**
@@ -102,6 +118,7 @@ class ViewStudent extends AbstractView
     {
 
         $this->addForeignView(self::TBL_STUDENT_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudent(), ViewStudent::TBL_STUDENT_ID);
         $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentAgreement(), ViewStudentAgreement::TBL_STUDENT_AGREEMENT_TBL_STUDENT);
         $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_BAPTISM, new ViewStudentBaptism(), ViewStudentBaptism::TBL_STUDENT_BAPTISM_ID);
         $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_DISORDER_TBL_STUDENT);

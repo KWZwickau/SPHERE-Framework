@@ -20,15 +20,18 @@ class ViewStudentIntegration extends AbstractView
 
     const TBL_STUDENT_ID = 'TblStudent_Id';
     const TBL_STUDENT_SERVICE_TBL_PERSON = 'TblStudent_serviceTblPerson';
-//    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
-//    const TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE = 'TblStudent_SchoolAttendanceStartDate';
+    const TBL_STUDENT_TBL_STUDENT_MEDICAL_RECORD = 'TblStudent_tblStudentMedicalRecord';
+    const TBL_STUDENT_TBL_STUDENT_TRANSPORT = 'TblStudent_tblStudentTransport';
+    const TBL_STUDENT_TBL_STUDENT_BILLING = 'TblStudent_tblStudentBilling';
+    const TBL_STUDENT_TBL_STUDENT_LOCKER = 'TblStudent_tblStudentLocker';
+    const TBL_STUDENT_TBL_STUDENT_BAPTISM = 'TblStudent_tblStudentBaptism';
+    const TBL_STUDENT_TBL_STUDENT_INTEGRATION = 'TblStudent_tblStudentIntegration';
     const TBL_STUDENT_INTEGRATION_ID = 'TblStudentFocus_Id';
     const TBL_STUDENT_INTEGRATION_SERVICE_TBL_PERSON = 'TblStudentIntegration_serviceTblPerson';
     const TBL_STUDENT_INTEGRATION_SERVICE_TBL_COMPANY = 'TblStudentIntegration_serviceTblCompany';
     const TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE = 'TblStudentIntegration_CoachingRequestDate';
     const TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE = 'TblStudentIntegration_CoachingCounselDate';
     const TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE = 'TblStudentIntegration_CoachingDecisionDate';
-    const TBL_STUDENT_INTEGRATION_COACHING_REQUIRED = 'TblStudentIntegration_CoachingRequired';
     const TBL_STUDENT_INTEGRATION_COACHING_TIME = 'TblStudentIntegration_CoachingTime';
     const TBL_STUDENT_INTEGRATION_COACHING_REMARK = 'TblStudentIntegration_CoachingRemark';
 
@@ -40,14 +43,30 @@ class ViewStudentIntegration extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudent_serviceTblPerson;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblStudent_Identifier;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblStudent_SchoolAttendanceStartDate;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentMedicalRecord;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentTransport;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentBilling;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentLocker;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentBaptism;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentIntegration;
     /**
      * @Column(type="string")
      */
@@ -72,10 +91,6 @@ class ViewStudentIntegration extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentIntegration_CoachingDecisionDate;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentIntegration_CoachingRequired;
     /**
      * @Column(type="string")
      */
@@ -104,12 +119,9 @@ class ViewStudentIntegration extends AbstractView
     public function loadNameDefinition()
     {
 
-//        $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schüler: Schülernummer');
-//        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Schüler: Schulpflicht beginn');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE, 'Förderantrag: Beantragung');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE, 'Förderantrag: Beratgung');
         $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE, 'Förderantrag vom');
         $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE, 'Förderantrag: Bescheid SBA');
-//        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED, 'Förderantrag: Beantragung');
         $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_TIME, 'Förderung: Wochenstunden');
         $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REMARK, 'Förderung: Bemerkung');
 
@@ -124,6 +136,17 @@ class ViewStudentIntegration extends AbstractView
     {
 
         $this->addForeignView(self::TBL_STUDENT_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudent(), ViewStudent::TBL_STUDENT_ID);
+        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentAgreement(), ViewStudentAgreement::TBL_STUDENT_AGREEMENT_TBL_STUDENT);
+        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_BAPTISM, new ViewStudentBaptism(), ViewStudentBaptism::TBL_STUDENT_BAPTISM_ID);
+        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_DISORDER_TBL_STUDENT);
+        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentFocus(), ViewStudentFocus::TBL_STUDENT_FOCUS_TBL_STUDENT);
+        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_INTEGRATION, new ViewStudentIntegration(), ViewStudentIntegration::TBL_STUDENT_INTEGRATION_ID);
+        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentLiberation(), ViewStudentLiberation::TBL_STUDENT_LIBERATION_TBL_STUDENT);
+        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_LOCKER, new ViewStudentLocker(), ViewStudentLocker::TBL_STUDENT_LOCKER_ID);
+        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_MEDICAL_RECORD, new ViewStudentMedicalRecord(), ViewStudentMedicalRecord::TBL_STUDENT_MEDICAL_RECORD_ID);
+        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_TRANSFER_TBL_STUDENT);
+        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_TRANSPORT, new ViewStudentTransport(), ViewStudentTransport::TBL_STUDENT_TRANSPORT_ID);
     }
 
     /**
