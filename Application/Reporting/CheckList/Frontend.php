@@ -338,7 +338,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Number' => ( $tblListElementList->getSortOrder() != ''
                                 ? $tblListElementList->getSortOrder()
                                 : $count
-                            );
+                            ),
                             'Named' => new PullClear(
                                 new PullLeft(new ResizeVertical().' '.$tblListElementList->getName())
                             ),
