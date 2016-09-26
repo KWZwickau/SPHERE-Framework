@@ -6,6 +6,12 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLiberation;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -103,6 +109,13 @@ class ViewPerson extends AbstractView
 
         $this->addForeignView(self::TBL_PERSON_ID, new ViewRelationshipToPerson(), ViewRelationshipToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudent(), ViewStudent::TBL_STUDENT_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentBaptism(), ViewStudentBaptism::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentBilling(), ViewStudentBilling::TBL_STUDENT_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentFocus(), ViewStudentFocus::TBL_STUDENT_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentIntegration(), ViewStudentIntegration::TBL_STUDENT_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentLiberation(), ViewStudentLiberation::TBL_STUDENT_SERVICE_TBL_PERSON);
     }
 
     /**

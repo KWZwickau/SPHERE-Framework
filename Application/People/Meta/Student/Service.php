@@ -23,6 +23,12 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus;
+use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
 use SPHERE\Application\People\Person\Person;
@@ -40,6 +46,78 @@ use SPHERE\Common\Window\Redirect;
  */
 class Service extends Integration
 {
+
+    /**
+     * @return false|ViewStudent[]
+     */
+    public function viewPerson()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudent();
+    }
+
+    /**
+     * @return false|ViewStudentAgreement[]
+     */
+    public function viewStudentAgreement()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentAgreement();
+    }
+
+    /**
+     * @return false|ViewStudentBaptism[]
+     */
+    public function viewStudentBaptism()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentBaptism();
+    }
+
+//    /**
+//     * @return false|ViewStudentBilling[]
+//     */
+//    public function viewStudentBilling()
+//    {
+//
+//        return (new Data($this->getBinding()))->viewStudentBilling();
+//    }
+
+    /**
+     * @return false|ViewStudentDisorder[]
+     */
+    public function viewStudentDisorder()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentDisorder();
+    }
+
+    /**
+     * @return false|ViewStudentFocus[]
+     */
+    public function viewStudentFocus()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentFocus();
+    }
+
+    /**
+     * @return false|ViewStudentIntegration[]
+     */
+    public function viewStudentIntegration()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentIntegration();
+    }
+
+    /**
+     * @return false|ViewStudentIntegration[]
+     */
+    public function viewStudentLiberation()
+    {
+
+        return ( new Data($this->getBinding()) )->viewStudentLiberation();
+    }
 
     /**
      * @param bool $doSimulation

@@ -31,7 +31,7 @@ abstract class AbstractView extends Element
                 if ($Object->hasProperty($Key)) {
                     $Property = $Object->getProperty($Key);
                     if ($Property->isProtected() || $Property->isPublic()) {
-                        if (!preg_match('!(_Id|_service|_tbl|Locked|MetaTable|^Id$|^Entity)!s', $Key)) {
+                        if (!preg_match('!(_Id$|_service|_tbl|Locked|MetaTable|^Id$|^Entity)!s', $Key)) {
                             if ($Value instanceof \DateTime) {
                                 $Result[$this->getNameDefinition($Key)] = $Value->format('d.m.Y H:i:s');
                             } else {
