@@ -17,10 +17,25 @@ use SPHERE\System\Database\Binding\AbstractView;
 class ViewYearPeriod extends AbstractView
 {
 
+    const TBL_YEAR_ID = 'TblYear_Id';
+    const TBL_YEAR_YEAR = 'TblYear_Year';
+    const TBL_YEAR_DESCRIPTION = 'TblYear_Description';
+//    const TBL_YEAR_NAME = 'TblYear_Name';
+
+    const TBL_YEAR_PERIOD_ID = 'TblYearPeriod_Id';
+    const TBL_YEAR_PERIOD_TBL_YEAR = 'TblYearPeriod_tblYear';
+    const TBL_YEAR_PERIOD_TBL_PERIOD = 'TblYearPeriod_tblPeriod';
+
+    const TBL_PERIOD_ID = 'TblPeriod_Id';
+    const TBL_PERIOD_NAME = 'TblPeriod_Name';
+    const TBL_PERIOD_DESCRIPTION = 'TblPeriod_Description';
+    const TBL_PERIOD_FROM_DATE = 'TblPeriod_FromDate';
+    const TBL_PERIOD_TO_DATE = 'TblPeriod_ToDate';
+
     /**
      * @Column(type="string")
      */
-    protected $TblYear_Name;
+    protected $TblYear_Id;
     /**
      * @Column(type="string")
      */
@@ -29,10 +44,15 @@ class ViewYearPeriod extends AbstractView
      * @Column(type="string")
      */
     protected $TblYear_Description;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $TblYear_Name;
+
     /**
      * @Column(type="string")
      */
-    protected $TblYear_Id;
+    protected $TblYearPeriod_Id;
     /**
      * @Column(type="string")
      */
@@ -41,10 +61,11 @@ class ViewYearPeriod extends AbstractView
      * @Column(type="string")
      */
     protected $TblYearPeriod_tblPeriod;
+
     /**
      * @Column(type="string")
      */
-    protected $TblYearPeriod_Id;
+    protected $TblPeriod_Id;
     /**
      * @Column(type="string")
      */
@@ -61,10 +82,17 @@ class ViewYearPeriod extends AbstractView
      * @Column(type="string")
      */
     protected $TblPeriod_ToDate;
+
     /**
-     * @Column(type="string")
+     * Overwrite this method to return View-ObjectName as View-DisplayName
+     *
+     * @return string Gui-Name of Class
      */
-    protected $TblPeriod_Id;
+    public function getViewGuiName()
+    {
+
+        return 'Jahrgang';
+    }
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -73,7 +101,13 @@ class ViewYearPeriod extends AbstractView
      */
     public function loadNameDefinition()
     {
-        // TODO: Implement loadNameDefinition() method.
+
+        $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Jahr: Jahr');
+        $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Jahr: Beschreibung');
+        $this->setNameDefinition(self::TBL_PERIOD_NAME, 'Zeitraum: Name');
+        $this->setNameDefinition(self::TBL_PERIOD_FROM_DATE, 'Zeitraum: Start');
+        $this->setNameDefinition(self::TBL_PERIOD_TO_DATE, 'Zeitraum: Ende');
+        $this->setNameDefinition(self::TBL_PERIOD_DESCRIPTION, 'Zeitraum: Beschreibung');
     }
 
     /**

@@ -21,7 +21,7 @@ class Data extends AbstractData
     /**
      * @return false|ViewPeopleMetaProspect[]
      */
-    public function viewPeopleMetaViewPeopleMetaProspect()
+    public function viewPeopleMetaProspect()
     {
 
         return $this->getCachedEntityList(

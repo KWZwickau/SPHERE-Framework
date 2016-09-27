@@ -132,7 +132,7 @@ class ViewPeopleMetaProspect extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView(self::TBL_PROSPECT_SERVICE_TBL_PERSON, new ViewPerson(), 'TblPerson_Id');
+        $this->addForeignView(self::TBL_PROSPECT_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
     }
 
     /**

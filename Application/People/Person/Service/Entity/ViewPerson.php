@@ -6,11 +6,13 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\People\Meta\Club\Service\Entity\ViewPeopleMetaClub;
 use SPHERE\Application\People\Meta\Common\Service\Entity\ViewPeopleMetaCommon;
 use SPHERE\Application\People\Meta\Custody\Service\Entity\ViewPeopleMetaCustody;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
+use SPHERE\Application\People\Meta\Teacher\Service\Entity\ViewPeopleMetaTeacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -115,6 +117,8 @@ class ViewPerson extends AbstractView
         $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaCommon(), ViewPeopleMetaCommon::TBL_COMMON_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaCustody(), ViewPeopleMetaCustody::TBL_CUSTODY_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaProspect(), ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaTeacher(), ViewPeopleMetaTeacher::TBL_TEACHER_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewDivisionStudent(), ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON);
     }
 
     /**

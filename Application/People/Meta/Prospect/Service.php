@@ -26,10 +26,10 @@ class Service extends AbstractService
     /**
      * @return false|ViewPeopleMetaProspect[]
      */
-    public function viewPeopleMetaViewPeopleMetaProspect()
+    public function viewPeopleMetaProspect()
     {
 
-        return ( new Data($this->getBinding()) )->viewPeopleMetaViewPeopleMetaProspect();
+        return ( new Data($this->getBinding()) )->viewPeopleMetaProspect();
     }
 
     /**
