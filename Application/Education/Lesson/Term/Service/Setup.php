@@ -41,7 +41,7 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewYearPeriod') )
-                ->addLink(new TblYear(), 'Id', new TblYearPeriod(), 'tblYear')
+                ->addLink(new TblYearPeriod(), 'tblYear', new TblYear(), 'Id')
                 ->addLink(new TblYearPeriod(), 'tblPeriod', new TblPeriod(), 'Id')
         );
 
