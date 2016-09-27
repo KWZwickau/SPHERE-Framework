@@ -89,6 +89,7 @@ class Setup extends AbstractSetup
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentAgreement') )
+                ->addLink(new TblStudentAgreement(), 'tblStudent', new TblStudent(), 'Id')
                 ->addLink(new TblStudentAgreement(), 'tblStudentAgreementType', new TblStudentAgreementType(), 'Id')
                 ->addLink(new TblStudentAgreementType(), 'tblStudentAgreementCategory', new TblStudentAgreementCategory(), 'Id')
         );
@@ -103,6 +104,7 @@ class Setup extends AbstractSetup
 //        );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentDisorder') )
+                ->addLink(new TblStudentDisorder(), 'tblStudent', new TblStudent(), 'Id')
                 ->addLink(new TblStudentDisorder(), 'tblStudentDisorderType', new TblStudentDisorderType(), 'Id')
         );
         $this->getConnection()->createView(
