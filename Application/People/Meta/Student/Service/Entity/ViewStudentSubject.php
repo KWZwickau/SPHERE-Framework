@@ -25,8 +25,10 @@ class ViewStudentSubject extends AbstractView
     const TBL_STUDENT_SUBJECT_SERVICE_TBL_SUBJECT = 'TblStudentSubject_serviceTblSubject';
     const TBL_STUDENT_SUBJECT_SERVICE_TBL_LEVEL_FROM = 'TblStudentSubject_serviceTblLevelFrom';
     const TBL_STUDENT_SUBJECT_SERVICE_TBL_LEVEL_TILL = 'TblStudentSubject_serviceTblLevelTill';
+
     const TBL_STUDENT_SUBJECT_RANKING_ID = 'TblStudentSubjectRanking_Id';
     const TBL_STUDENT_SUBJECT_RANKING_NAME = 'TblStudentSubjectRanking_Name';
+
     const TBL_STUDENT_SUBJECT_TYPE_ID = 'TblStudentSubjectType_Id';
     const TBL_STUDENT_SUBJECT_TYPE_NAME = 'TblStudentSubjectType_Name';
 
@@ -58,6 +60,7 @@ class ViewStudentSubject extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentSubject_serviceTblLevelTill;
+
     /**
      * @Column(type="string")
      */
@@ -70,6 +73,7 @@ class ViewStudentSubject extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentSubjectRanking_Name;
+
     /**
      * @Column(type="string")
      */

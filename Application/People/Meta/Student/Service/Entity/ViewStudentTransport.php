@@ -26,6 +26,7 @@ class ViewStudentTransport extends AbstractView
     const TBL_STUDENT_TBL_STUDENT_LOCKER = 'TblStudent_tblStudentLocker';
     const TBL_STUDENT_TBL_STUDENT_BAPTISM = 'TblStudent_tblStudentBaptism';
     const TBL_STUDENT_TBL_STUDENT_INTEGRATION = 'TblStudent_tblStudentIntegration';
+
     const TBL_STUDENT_TRANSPORT_ID = 'TblStudentTransport_Id';
     const TBL_STUDENT_TRANSPORT_ROUTE = 'TblStudentTransport_Route';
     const TBL_STUDENT_TRANSPORT_STATION_ENTRANCE = 'TblStudentTransport_StationEntrance';
@@ -64,6 +65,7 @@ class ViewStudentTransport extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudent_tblStudentIntegration;
+
     /**
      * @Column(type="string")
      */

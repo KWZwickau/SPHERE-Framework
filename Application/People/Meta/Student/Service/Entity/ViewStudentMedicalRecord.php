@@ -26,10 +26,11 @@ class ViewStudentMedicalRecord extends AbstractView
     const TBL_STUDENT_TBL_STUDENT_LOCKER = 'TblStudent_tblStudentLocker';
     const TBL_STUDENT_TBL_STUDENT_BAPTISM = 'TblStudent_tblStudentBaptism';
     const TBL_STUDENT_TBL_STUDENT_INTEGRATION = 'TblStudent_tblStudentIntegration';
+
     const TBL_STUDENT_MEDICAL_RECORD_ID = 'TblStudentMedicalRecord_Id';
     const TBL_STUDENT_MEDICAL_RECORD_DISEASE = 'TblStudentMedicalRecord_Disease';
     const TBL_STUDENT_MEDICAL_RECORD_MEDICATION = 'TblStudentMedicalRecord_Medication';
-    const TBL_STUDENT_MEDICAL_RECORD_SERVICE_TBL_PERSON_ATTENDING_DICTOR = 'TblStudentMedicalRecord_serviceTblPersonAttendingDoctor';
+    const TBL_STUDENT_MEDICAL_RECORD_SERVICE_TBL_PERSON_ATTENDING_DOCTOR = 'TblStudentMedicalRecord_serviceTblPersonAttendingDoctor';
     const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
 
     /**
@@ -64,6 +65,7 @@ class ViewStudentMedicalRecord extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudent_tblStudentIntegration;
+
     /**
      * @Column(type="string")
      */

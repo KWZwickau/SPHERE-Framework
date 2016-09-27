@@ -25,6 +25,7 @@ class ViewStudentTransfer extends AbstractView
     const TBL_STUDENT_TRANSFER_REMARK = 'TblStudentTransfer_Remark';
     const TBL_STUDENT_TRANSFER_TBL_STUDENT = 'TblStudentTransfer_tblStudent';
     const TBL_STUDENT_TRANSFER_TBL_STUDENT_TRANSFER_TYPE = 'TblStudentTransfer_tblStudentTransferType';
+
     const TBL_STUDENT_TRANSFER_TYPE_ID = 'TblStudentTransferType_Id';
     const TBL_STUDENT_TRANSFER_TYPE_NAME = 'TblStudentTransferType_Name';
 
@@ -60,6 +61,7 @@ class ViewStudentTransfer extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentTransfer_tblStudentTransferType;
+
     /**
      * @Column(type="string")
      */

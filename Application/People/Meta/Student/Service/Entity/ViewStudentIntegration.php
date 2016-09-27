@@ -26,6 +26,7 @@ class ViewStudentIntegration extends AbstractView
     const TBL_STUDENT_TBL_STUDENT_LOCKER = 'TblStudent_tblStudentLocker';
     const TBL_STUDENT_TBL_STUDENT_BAPTISM = 'TblStudent_tblStudentBaptism';
     const TBL_STUDENT_TBL_STUDENT_INTEGRATION = 'TblStudent_tblStudentIntegration';
+
     const TBL_STUDENT_INTEGRATION_ID = 'TblStudentFocus_Id';
     const TBL_STUDENT_INTEGRATION_SERVICE_TBL_PERSON = 'TblStudentIntegration_serviceTblPerson';
     const TBL_STUDENT_INTEGRATION_SERVICE_TBL_COMPANY = 'TblStudentIntegration_serviceTblCompany';
@@ -67,6 +68,7 @@ class ViewStudentIntegration extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudent_tblStudentIntegration;
+
     /**
      * @Column(type="string")
      */

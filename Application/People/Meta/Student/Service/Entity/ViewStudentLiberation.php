@@ -20,9 +20,11 @@ class ViewStudentLiberation extends AbstractView
     const TBL_STUDENT_LIBERATION_ID = 'TblStudentLiberation_Id';
     const TBL_STUDENT_LIBERATION_TBL_STUDENT = 'TblStudentLiberation_tblStudent';
     const TBL_STUDENT_LIBERATION_TBL_STUDENT_LIBERATION_TYPE = 'TblStudentLiberation_tblStudentLiberationType';
+
     const TBL_STUDENT_LIBERATION_TYPE_ID = 'TblStudentLiberationType_Id';
     const TBL_STUDENT_LIBERATION_TYPE_NAME = 'TblStudentLiberationType_Name';
     const TBL_STUDENT_LIBERATION_TYPE_TBL_STUDENT_LIBERATION_CATEGORY = 'TblStudentLiberationType_tblStudentLiberationCategory';
+
     const TBL_STUDENT_LIBERATION_CATEGORY_ID = 'TblStudentLiberationCategory_Id';
     const TBL_STUDENT_LIBERATION_CATEGORY_NAME = 'TblStudentLiberationCategory_Name';
 
@@ -38,6 +40,7 @@ class ViewStudentLiberation extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentLiberation_tblStudentLiberationType;
+
     /**
      * @Column(type="string")
      */
@@ -50,6 +53,7 @@ class ViewStudentLiberation extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentLiberationType_tblStudentLiberationCategory;
+
     /**
      * @Column(type="string")
      */

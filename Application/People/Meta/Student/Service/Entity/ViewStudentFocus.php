@@ -20,6 +20,7 @@ class ViewStudentFocus extends AbstractView
     const TBL_STUDENT_FOCUS_ID = 'TblStudentFocus_Id';
     const TBL_STUDENT_FOCUS_TBL_STUDENT = 'TblStudentFocus_tblStudent';
     const TBL_STUDENT_FOCUS_TBL_STUDENT_FOCUS_TYPE = 'TblStudentFocus_tblStudentFocusType';
+
     const TBL_STUDENT_FOCUS_TYPE_ID = 'TblStudentFocusType_Id';
     const TBL_STUDENT_FOCUS_TYPE_NAME = 'TblStudentFocusType_Name';
 //    const TBL_STUDENT_FOCUS_TYPE_DESCRIPTION = 'TblStudentFocusType_Description';
@@ -36,6 +37,7 @@ class ViewStudentFocus extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentFocus_tblStudentFocusType;
+
     /**
      * @Column(type="string")
      */

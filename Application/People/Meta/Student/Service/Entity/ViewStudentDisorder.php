@@ -20,6 +20,7 @@ class ViewStudentDisorder extends AbstractView
     const TBL_STUDENT_DISORDER_ID = 'TblStudentDisorder_Id';
     const TBL_STUDENT_DISORDER_TBL_STUDENT = 'TblStudentDisorder_tblStudent';
     const TBL_STUDENT_DISORDER_TBL_STUDENT_DISORDER_TYPE = 'TblStudentDisorder_tblStudentDisorderType';
+
     const TBL_STUDENT_DISORDER_TYPE_ID = 'TblStudentDisorderType_Id';
     const TBL_STUDENT_DISORDER_TYPE_NAME = 'TblStudentDisorderType_Name';
 //    const TBL_STUDENT_DISORDER_TYPE_DESCRIPTION = 'TblStudentDisorderType_Description';
@@ -36,6 +37,7 @@ class ViewStudentDisorder extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentDisorder_tblStudentDisorderType;
+
     /**
      * @Column(type="string")
      */

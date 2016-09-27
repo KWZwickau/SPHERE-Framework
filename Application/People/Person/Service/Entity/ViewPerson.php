@@ -6,6 +6,10 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
+use SPHERE\Application\People\Meta\Club\Service\Entity\ViewPeopleMetaClub;
+use SPHERE\Application\People\Meta\Common\Service\Entity\ViewPeopleMetaCommon;
+use SPHERE\Application\People\Meta\Custody\Service\Entity\ViewPeopleMetaCustody;
+use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
@@ -23,6 +27,7 @@ class ViewPerson extends AbstractView
     const TBL_SALUTATION_ID = 'TblSalutation_Id';
     const TBL_SALUTATION_SALUTATION = 'TblSalutation_Salutation';
     const TBL_SALUTATION_IS_LOCKED = 'TblSalutation_IsLocked';
+
     const TBL_PERSON_ID = 'TblPerson_Id';
     const TBL_PERSON_TITLE = 'TblPerson_Title';
     const TBL_PERSON_FIRST_NAME = 'TblPerson_FirstName';
@@ -42,6 +47,7 @@ class ViewPerson extends AbstractView
      * @Column(type="string")
      */
     protected $TblSalutation_IsLocked;
+
     /**
      * @Column(type="string")
      */
@@ -105,6 +111,10 @@ class ViewPerson extends AbstractView
         $this->addForeignView(self::TBL_PERSON_ID, new ViewRelationshipToPerson(), ViewRelationshipToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewStudent(), ViewStudent::TBL_STUDENT_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaClub(), ViewPeopleMetaClub::TBL_CLUB_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaCommon(), ViewPeopleMetaCommon::TBL_COMMON_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaCustody(), ViewPeopleMetaCustody::TBL_CUSTODY_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaProspect(), ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON);
     }
 
     /**
