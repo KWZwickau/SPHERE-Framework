@@ -10,6 +10,8 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -26,6 +28,28 @@ use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
  */
 class Data extends AbstractData
 {
+
+    /**
+     * @return false|ViewDivisionStudent[]
+     */
+    public function viewDivisionStudent()
+    {
+
+        return $this->getCachedEntityList(
+            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewDivisionStudent'
+        );
+    }
+
+    /**
+     * @return false|ViewDivisionTeacher[]
+     */
+    public function viewDivisionTeacher()
+    {
+
+        return $this->getCachedEntityList(
+            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewDivisionTeacher'
+        );
+    }
 
     public function setupDatabaseContent()
     {

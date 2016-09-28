@@ -11,6 +11,8 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Setup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -36,6 +38,24 @@ use SPHERE\System\Extension\Repository\Sorter;
  */
 class Service extends AbstractService
 {
+
+    /**
+     * @return false|ViewDivisionStudent[]
+     */
+    public function viewDivisionStudent()
+    {
+
+        return ( new Data($this->getBinding()) )->viewDivisionStudent();
+    }
+
+    /**
+     * @return false|ViewDivisionTeacher[]
+     */
+    public function viewDivisionTeacher()
+    {
+
+        return ( new Data($this->getBinding()) )->viewDivisionTeacher();
+    }
 
     /**
      * @param bool $doSimulation
