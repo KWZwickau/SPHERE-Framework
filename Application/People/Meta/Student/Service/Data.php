@@ -91,10 +91,14 @@ class Data extends Integration
         $this->createStudentTransferType('ARRIVE', 'Aufnahme');
         $this->createStudentTransferType('LEAVE', 'Abgabe');
         $this->createStudentTransferType('PROCESS', 'Process');
-        
-        $tblStudentLiberationCategory = $this->createStudentLiberationCategory('Sportbefreihung');
-        if ($tblStudentLiberationCategory) {
+
+        if (($tblStudentLiberationCategory = $this->getStudentLiberationCategoryByName('Sportbefreihung'))){
             $this->updateStudentLiberationCategory($tblStudentLiberationCategory, 'Sportbefreiung');
+        } else {
+            $tblStudentLiberationCategory = $this->createStudentLiberationCategory('Sportbefreiung');
+        }
+
+        if ($tblStudentLiberationCategory) {
             $this->createStudentLiberationType($tblStudentLiberationCategory, 'Nicht befreit');
             $this->createStudentLiberationType($tblStudentLiberationCategory, 'Teilbefreit');
             $this->createStudentLiberationType($tblStudentLiberationCategory, 'Vollbefreit');

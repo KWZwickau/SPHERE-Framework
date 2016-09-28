@@ -231,4 +231,17 @@ abstract class Liberation extends Student
         }
         return false;
     }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentLiberationCategory
+     */
+    public function getStudentLiberationCategoryByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudentLiberationCategory', array(
+            TblStudentLiberationCategory::ATTR_NAME => $Name
+        ));
+    }
 }
