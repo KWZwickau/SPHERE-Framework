@@ -109,6 +109,7 @@ class Setup extends AbstractSetup
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentFocus') )
+                ->addLink(new TblStudentFocus(), 'tblStudent', new TblStudent(), 'Id')
                 ->addLink(new TblStudentFocus(), 'tblStudentFocusType', new TblStudentFocusType(), 'Id')
         );
         $this->getConnection()->createView(
@@ -117,6 +118,7 @@ class Setup extends AbstractSetup
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentLiberation') )
+                ->addLink(new TblStudentLiberation(), 'tblStudent', new TblStudent(), 'Id')
                 ->addLink(new TblStudentLiberation(), 'tblStudentLiberationType', new TblStudentLiberationType(), 'Id')
                 ->addLink(new TblStudentLiberationType(), 'tblStudentLiberationCategory', new TblStudentLiberationCategory(), 'Id')
         );
@@ -130,11 +132,13 @@ class Setup extends AbstractSetup
         );
 //        $this->getConnection()->createView(
 //            ( new View($this->getConnection(), 'viewStudentSubject') )
+//                ->addLink(new TblStudentSubject(), 'tblStudent', new TblStudent(), 'Id')
 //                ->addLink(new TblStudentSubject(), 'tblStudentSubjectRanking', new TblStudentSubjectRanking(), 'Id')
 //                ->addLink(new TblStudentSubject(), 'tblStudentSubjectType', new TblStudentSubjectType(), 'Id')
 //        );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentTransfer') )
+                ->addLink(new TblStudentTransfer(), 'tblStudent', new TblStudent(), 'Id')
                 ->addLink(new TblStudentTransfer(), 'tblStudentTransferType', new TblStudentTransferType(), 'Id')
         );
         $this->getConnection()->createView(

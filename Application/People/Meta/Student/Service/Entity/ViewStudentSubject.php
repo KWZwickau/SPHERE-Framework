@@ -18,6 +18,15 @@ use SPHERE\System\Database\Binding\AbstractView;
 class ViewStudentSubject extends AbstractView
 {
 
+    const TBL_STUDENT_ID = 'TblStudent_Id';
+    const TBL_STUDENT_SERVICE_TBL_PERSON = 'TblStudent_serviceTblPerson';
+    const TBL_STUDENT_TBL_STUDENT_MEDICAL_RECORD = 'TblStudent_tblStudentMedicalRecord';
+    const TBL_STUDENT_TBL_STUDENT_TRANSPORT = 'TblStudent_tblStudentTransport';
+    const TBL_STUDENT_TBL_STUDENT_BILLING = 'TblStudent_tblStudentBilling';
+    const TBL_STUDENT_TBL_STUDENT_LOCKER = 'TblStudent_tblStudentLocker';
+    const TBL_STUDENT_TBL_STUDENT_BAPTISM = 'TblStudent_tblStudentBaptism';
+    const TBL_STUDENT_TBL_STUDENT_INTEGRATION = 'TblStudent_tblStudentIntegration';
+
     const TBL_STUDENT_SUBJECT_ID = 'TblStudentSubject_Id';
     const TBL_STUDENT_SUBJECT_TBL_STUDENT = 'TblStudentSubject_tblStudent';
     const TBL_STUDENT_SUBJECT_TBL_STUDENT_SUBJECT_TYPE = 'TblStudentSubject_tblStudentSubjectType';
@@ -31,6 +40,39 @@ class ViewStudentSubject extends AbstractView
 
     const TBL_STUDENT_SUBJECT_TYPE_ID = 'TblStudentSubjectType_Id';
     const TBL_STUDENT_SUBJECT_TYPE_NAME = 'TblStudentSubjectType_Name';
+
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_serviceTblPerson;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentMedicalRecord;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentTransport;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentBilling;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentLocker;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentBaptism;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_tblStudentIntegration;
 
     /**
      * @Column(type="string")
@@ -118,13 +160,17 @@ class ViewStudentSubject extends AbstractView
     public function loadViewGraph()
     {
 
-        //ToDO
-//        $this->addForeignView(self::TBL_STUDENT_SUBJECT_TBL_STUDENT, new ViewStudent(), ViewStudent::TBL_STUDENT_ID);
-//        $this->addForeignView(self::TBL_STUDENT_SUBJECT_TBL_STUDENT, new ViewStudentAgreement(), ViewStudentAgreement::TBL_STUDENT_AGREEMENT_TBL_STUDENT);
-//        $this->addForeignView(self::TBL_STUDENT_SUBJECT_TBL_STUDENT, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_DISORDER_TBL_STUDENT);
-//        $this->addForeignView(self::TBL_STUDENT_SUBJECT_TBL_STUDENT, new ViewStudentFocus(), ViewStudentFocus::TBL_STUDENT_FOCUS_TBL_STUDENT);
-//        $this->addForeignView(self::TBL_STUDENT_SUBJECT_TBL_STUDENT, new ViewStudentLiberation(), ViewStudentLiberation::TBL_STUDENT_LIBERATION_TBL_STUDENT);
-//        $this->addForeignView(self::TBL_STUDENT_SUBJECT_TBL_STUDENT, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_TRANSFER_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+//        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentAgreement(), ViewStudentAgreement::TBL_STUDENT_AGREEMENT_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_BAPTISM, new ViewStudentBaptism(), ViewStudentBaptism::TBL_STUDENT_BAPTISM_ID);
+//        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_DISORDER_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentFocus(), ViewStudentFocus::TBL_STUDENT_FOCUS_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_INTEGRATION, new ViewStudentIntegration(), ViewStudentIntegration::TBL_STUDENT_INTEGRATION_ID);
+//        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentLiberation(), ViewStudentLiberation::TBL_STUDENT_LIBERATION_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_LOCKER, new ViewStudentLocker(), ViewStudentLocker::TBL_STUDENT_LOCKER_ID);
+//        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_MEDICAL_RECORD, new ViewStudentMedicalRecord(), ViewStudentMedicalRecord::TBL_STUDENT_MEDICAL_RECORD_ID);
+//        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_TRANSFER_TBL_STUDENT);
+//        $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_TRANSPORT, new ViewStudentTransport(), ViewStudentTransport::TBL_STUDENT_TRANSPORT_ID);
     }
 
     /**

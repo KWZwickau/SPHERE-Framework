@@ -131,11 +131,6 @@ class ViewStudentDisorder extends AbstractView
         $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_MEDICAL_RECORD, new ViewStudentMedicalRecord(), ViewStudentMedicalRecord::TBL_STUDENT_MEDICAL_RECORD_ID);
         $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_TRANSFER_TBL_STUDENT);
         $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_TRANSPORT, new ViewStudentTransport(), ViewStudentTransport::TBL_STUDENT_TRANSPORT_ID);
-//        $this->addForeignView(self::TBL_STUDENT_DISORDER_TBL_STUDENT, new ViewStudent(), ViewStudent::TBL_STUDENT_ID);
-//        $this->addForeignView(self::TBL_STUDENT_DISORDER_TBL_STUDENT, new ViewStudentAgreement(), ViewStudentAgreement::TBL_STUDENT_AGREEMENT_TBL_STUDENT);
-//        $this->addForeignView(self::TBL_STUDENT_DISORDER_TBL_STUDENT, new ViewStudentFocus(), ViewStudentFocus::TBL_STUDENT_FOCUS_TBL_STUDENT);
-//        $this->addForeignView(self::TBL_STUDENT_DISORDER_TBL_STUDENT, new ViewStudentLiberation(), ViewStudentLiberation::TBL_STUDENT_LIBERATION_TBL_STUDENT);
-//        $this->addForeignView(self::TBL_STUDENT_DISORDER_TBL_STUDENT, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_TRANSFER_TBL_STUDENT);
     }
 
     /**
