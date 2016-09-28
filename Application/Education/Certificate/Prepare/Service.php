@@ -78,13 +78,14 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $IsGradeInformation
      *
-     * @return false|TblPrepareCertificate[]
+     * @return false|Service\Entity\TblPrepareCertificate[]
      */
-    public function getPrepareAllByDivision(TblDivision $tblDivision)
+    public function getPrepareAllByDivision(TblDivision $tblDivision, $IsGradeInformation = false)
     {
 
-        return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision);
+        return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision, $IsGradeInformation);
     }
 
     /**
@@ -727,7 +728,7 @@ class Service extends AbstractService
      * @param TblPrepareCertificate $tblPrepare
      * @param $tblTask
      */
-    private function updatePrepareSubjectGrades(TblPrepareCertificate $tblPrepare, TblTask $tblTask)
+    public function updatePrepareSubjectGrades(TblPrepareCertificate $tblPrepare, TblTask $tblTask)
     {
         // Löschen der vorhandenen Zensuren
         (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
@@ -1079,5 +1080,45 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param $Date
+     * @param $Name
+     * @param bool $IsGradeInformation
+     *
+     * @return TblPrepareCertificate
+     */
+    public function createPrepareData(
+        TblDivision $tblDivision,
+        $Date,
+        $Name,
+        $IsGradeInformation = false
+    ) {
+
+        return (new Data($this->getBinding()))->createPrepare($tblDivision, $Date, $Name, $IsGradeInformation);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param $Date
+     * @param $Name
+     * @param TblTask|null $tblAppointedDateTask
+     * @param TblTask|null $tblBehaviorTask
+     * @param TblPerson|null $tblPersonSigner
+     *
+     * @return bool
+     */
+    public function updatePrepareData(
+        TblPrepareCertificate $tblPrepare,
+        $Date,
+        $Name,
+        TblTask $tblAppointedDateTask = null,
+        TblTask $tblBehaviorTask = null,
+        TblPerson $tblPersonSigner = null
+    ) {
+
+        return (new Data($this->getBinding()))->updatePrepare($tblPrepare, $Date, $Name, $tblAppointedDateTask, $tblBehaviorTask, $tblPersonSigner);
     }
 }

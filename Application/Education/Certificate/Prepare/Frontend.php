@@ -10,16 +10,19 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC\CheBeGs;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -79,7 +82,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSelectDivision()
     {
 
-        $Stage = new Stage('Klasse', 'Auswählen');
+        $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
 
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
@@ -128,6 +131,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), array(
                                 'order' => array(
                                     array('0', 'desc'),
+                                    array('1', 'asc'),
                                     array('2', 'asc'),
                                 )
                             ))
@@ -949,6 +953,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblPerson, $tblYear
                         );
                         if ($tblDivisionSubjectList) {
+                            /** @var TblDivisionSubject $tblDivisionSubject */
                             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                                 $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject(
                                     $tblPrepare,
@@ -972,6 +977,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // leere Zellen setzen
                     foreach ($tableHeader as $key => $value) {
+                        /** @var TblPerson $tblPerson */
                         foreach ($tblStudentAllByDivision as $tblPerson) {
                             if (!isset($tableData[$tblPerson->getId()][$key])) {
                                 $tableData[$tblPerson->getId()][$key] = '';
@@ -1242,6 +1248,7 @@ class Frontend extends Extension implements IFrontendInterface
             $headerTable['Option'] = '';
 
             if ($tblStudentAllByDivision) {
+                /** @var TblPerson $tblPerson */
                 foreach ($tblStudentAllByDivision as $tblPerson) {
                     if ($tblDivision->getServiceTblYear()) {
 
@@ -1829,6 +1836,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $CertificateList = array();
+                    /** @var TblCertificate $item */
                     foreach ($tblCertificateAll as $item) {
 
                         $CertificateList[] = array_merge($item->__toArray(), array(
