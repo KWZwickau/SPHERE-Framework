@@ -205,4 +205,30 @@ abstract class Liberation extends Student
         }
         return false;
     }
+
+    /**
+     * @param TblStudentLiberationCategory $tblStudentLiberationCategory
+     * @param $Name
+     *
+     * @return bool
+     */
+    public function updateStudentLiberationCategory(
+        TblStudentLiberationCategory $tblStudentLiberationCategory,
+        $Name
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudentLiberationCategory $Entity */
+        $Entity = $Manager->getEntityById('TblStudentLiberationCategory', $tblStudentLiberationCategory->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+
+            $Entity->setName($Name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
 }
