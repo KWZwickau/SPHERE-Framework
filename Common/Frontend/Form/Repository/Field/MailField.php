@@ -28,6 +28,7 @@ class MailField extends AbstractField implements IFieldInterface
 
         $this->Name = $Name;
         $this->Template = $this->getTemplate(__DIR__.'/MailField.twig');
+        $this->Template->setVariable('ElementId', sha1($Name));
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementPlaceholder', $Placeholder);
