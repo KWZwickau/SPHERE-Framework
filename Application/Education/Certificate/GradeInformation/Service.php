@@ -11,8 +11,14 @@ namespace SPHERE\Application\Education\Certificate\GradeInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -160,5 +166,113 @@ class Service
                     'PrepareId' => $tblPrepare->getId()
                 ));
         }
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblTask $tblTask
+     *
+     * @return string
+     */
+    public function updatePrepareSetBehaviorTask(
+        TblPrepareCertificate $tblPrepare,
+        TblTask $tblTask
+    ) {
+
+        // Löschen der vorhandenen Zensuren
+        if ($tblPrepare->getServiceTblBehaviorTask()
+            && $tblPrepare->getServiceTblBehaviorTask()->getId() !== $tblTask->getId()
+        ) {
+            Prepare::useService()->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
+        }
+
+        Prepare::useService()->updatePrepareData(
+            $tblPrepare,
+            $tblPrepare->getDate(),
+            $tblPrepare->getName(),
+            $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
+            $tblTask,
+            $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null
+        );
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnotenauftrag wurde ausgewählt.')
+        . new Redirect('/Education/Certificate/GradeInformation/Setting', Redirect::TIMEOUT_SUCCESS, array(
+            'PrepareId' => $tblPrepare->getId()
+        ));
+
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblScoreType|null $tblScoreType
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePrepareGradeForBehaviorTask(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        TblScoreType $tblScoreType = null,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        if ($tblScoreType === null) {
+            $tblScoreType = Gradebook::useService()->getScoreTypeByIdentifier('GRADES');
+        }
+        $error = false;
+        if (is_array($Data)) {
+            foreach ($Data as $gradeTypeId => $value) {
+                if (trim($value) !== '' && $tblScoreType) {
+                    if (!preg_match('!' . $tblScoreType->getPattern() . '!is', trim($value))) {
+                        $error = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($error) {
+                $Stage->prependGridGroup(
+                    new FormGroup(new FormRow(new FormColumn(new Danger(
+                            'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
+                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                    ))));
+
+                return $Stage;
+            } else {
+                if (($tblTask = $tblPrepare->getServiceTblBehaviorTask())
+                    && ($tblTestType = $tblTask->getTblTestType())
+                    && ($tblDivision = $tblPrepare->getServiceTblDivision())
+                ) {
+                    foreach ($Data as $gradeTypeId => $value) {
+                        if (trim($value) && trim($value) !== ''
+                            && ($tblGradeType = Gradebook::useService()->getGradeTypeById($gradeTypeId))
+                        ) {
+                            Prepare::useService()->updatePrepareGradeForBehavior(
+                                $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType, trim($value)
+                            );
+                        }
+                    }
+
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
+                    . new Redirect('/Education/Certificate/GradeInformation/Setting/BehaviorGrades', Redirect::TIMEOUT_SUCCESS, array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'PersonId' => $tblPerson->getId(),
+                    ));
+
+                }
+            }
+        }
+
+        return $Stage;
     }
 }

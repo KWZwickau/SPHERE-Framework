@@ -731,7 +731,7 @@ class Service extends AbstractService
     public function updatePrepareSubjectGrades(TblPrepareCertificate $tblPrepare, TblTask $tblTask)
     {
         // Löschen der vorhandenen Zensuren
-        (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
+        $this->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
 
         // Zensuren zum Stichtagsnotenauftrag ermitteln
         $tblDivision = $tblPrepare->getServiceTblDivision();
@@ -1119,6 +1119,42 @@ class Service extends AbstractService
         TblPerson $tblPersonSigner = null
     ) {
 
-        return (new Data($this->getBinding()))->updatePrepare($tblPrepare, $Date, $Name, $tblAppointedDateTask, $tblBehaviorTask, $tblPersonSigner);
+        return (new Data($this->getBinding()))->updatePrepare($tblPrepare, $Date, $Name, $tblAppointedDateTask,
+            $tblBehaviorTask, $tblPersonSigner);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblTestType $tblTestType
+     */
+    public function destroyPrepareGrades(
+        TblPrepareCertificate $tblPrepare,
+        TblTestType $tblTestType
+    ) {
+
+        return (new Data($this->getBinding()))->destroyPrepareGrades($tblPrepare, $tblTestType);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblTestType $tblTestType
+     * @param TblGradeType $tblGradeType
+     * @param $Grade
+     *
+     * @return TblPrepareGrade
+     */
+    public function updatePrepareGradeForBehavior(
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblTestType $tblTestType,
+        TblGradeType $tblGradeType,
+        $Grade
+    ) {
+
+        return (new Data($this->getBinding()))->updatePrepareGradeForBehavior($tblPrepare, $tblPerson, $tblDivision,
+            $tblTestType, $tblGradeType, $Grade);
     }
 }

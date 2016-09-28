@@ -10,14 +10,20 @@ namespace SPHERE\Application\Education\Certificate\GradeInformation;
 
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -32,6 +38,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
@@ -502,7 +509,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
             $buttonBehaviorTask = new Standard(
                 'Kopfnotenauftrag wählen',
-                '/Education/Certificate/Prepare/BehaviorTask',
+                '/Education/Certificate/GradeInformation/Setting/BehaviorTask',
                 new Select(),
                 array(
                     'PrepareId' => $tblPrepare->getId()
@@ -511,7 +518,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
             $buttonBehaviorTaskShowGrades = new Standard(
                 'Kopfnoten ansehen und Kopfnoten festlegen',
-                '/Education/Certificate/Prepare/BehaviorGrades',
+                '/Education/Certificate/GradeInformation/Setting/BehaviorGrades',
                 new EyeOpen(),
                 array(
                     'PrepareId' => $tblPrepare->getId(),
@@ -641,7 +648,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendAppointedDateTask($PrepareId = null)
     {
 
-        $Stage = new Stage('Stichtagsnotenauftrag', 'Auswählen');
+        $Stage = new Stage('Noteninformation', 'Stichtagsnotenauftrag auswählen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId
@@ -763,7 +770,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSelectAppointedDateTask($PrepareId = null, $TaskId = null)
     {
 
-        $Stage = new Stage('Stichtagsnotenauftrag', 'Auswählen');
+        $Stage = new Stage('Noteninformation', 'Stichtagsnotenauftrag auswählen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId
@@ -823,7 +830,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUpdateAppointedDateTask($PrepareId = null)
     {
 
-        $Stage = new Stage('Stichtagsnotenauftrag', 'Aktualisieren');
+        $Stage = new Stage('Noteninformation', 'Stichtagsnotenauftrag aktualisieren');
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
         if ($tblPrepare && $tblPrepare->getServiceTblAppointedDateTask()) {
@@ -870,7 +877,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSubjectGrades($PrepareId = null)
     {
 
-        $Stage = new Stage('Fachnoten', 'Übersicht');
+        $Stage = new Stage('Noteninformation', 'Fachnotenübersicht');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId
@@ -965,6 +972,521 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
 
             return $Stage . new Danger('Noteninformation oder Person nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     *
+     * @return Stage|string
+     */
+    public function frontendBehaviorTask($PrepareId = null)
+    {
+
+        $Stage = new Stage('Noteninformation', 'Kopfnotenauftrag auswählen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        $Stage->setMessage(new WarningText(new Bold(new Exclamation() . ' Hinweis:')
+            . ' Bei der Auswahl eines anderen Kopfnotenauftrages werden alle bereits festgelegten Kopfnoten entfernt.'));
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        if ($tblPrepare) {
+            $tblDivision = $tblPrepare->getServiceTblDivision();
+
+            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+            $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType);
+
+
+            $tableContent = array();
+            if ($tblTaskList) {
+                foreach ($tblTaskList as $tblTask) {
+                    if ($tblPrepare->getServiceTblBehaviorTask()) {
+                        $isChosen = $tblTask->getId() == $tblPrepare->getServiceTblBehaviorTask()->getId();
+                    } else {
+                        $isChosen = false;
+                    }
+                    $tableContent[] = array(
+                        'Date' => $isChosen ? new Bold($tblTask->getDate()) : $tblTask->getDate(),
+                        'Name' => $isChosen ? new Bold($tblTask->getName()) : $tblTask->getName(),
+                        'Period' => $tblTask->getServiceTblPeriod()
+                            ? $tblTask->getServiceTblPeriod()->getDisplayName()
+                            : 'Gesamtes Schuljahr',
+                        'Option' => $isChosen
+                            ? ''
+                            : new Standard(
+                                '',
+                                '/Education/Certificate/GradeInformation/Setting/BehaviorTask/Select',
+                                new Select(),
+                                array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                    'TaskId' => $tblTask->getId()
+                                ),
+                                'Auswählen'
+                            )
+                    );
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Noteninformation',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Kopfnotenauftrag',
+                                    array(
+                                        $tblPrepare->getServiceTblBehaviorTask()
+                                            ? $tblPrepare->getServiceTblBehaviorTask()->getName()
+                                            . ' ' . $tblPrepare->getServiceTblBehaviorTask()->getDate()
+                                            : new Exclamation() . ' Kein Kopfnotenauftrag ausgewählt',
+                                    ),
+                                    $tblPrepare->getServiceTblBehaviorTask()
+                                        ? Panel::PANEL_TYPE_SUCCESS
+                                        : Panel::PANEL_TYPE_WARNING
+                                ),
+                            ), 12),
+                            new LayoutColumn(array(
+                                $tblTaskList
+                                    ? new TableData($tableContent, null, array(
+                                    'Date' => 'Stichtag',
+                                    'Name' => 'Name',
+                                    'Period' => 'Zeitraum',
+                                    'Option' => ''
+                                ),
+                                    array(
+                                        'order' => array(
+                                            array(0, 'desc')
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 0)
+                                        ),
+                                        "paging" => false, // Deaktivieren Blättern
+                                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                    )
+                                )
+                                    : new Warning('Für diese Klasse sind keine Kopfnotenaufträge vorhanden.',
+                                    new Exclamation())
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Noteninformation nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $TaskId
+     *
+     * @return Stage|string
+     */
+    public function frontendSelectBehaviorTask($PrepareId = null, $TaskId = null)
+    {
+
+        $Stage = new Stage('Noteninformation', 'Kopfnotenauftrag auswählen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        $Stage->setMessage(new WarningText(new Bold(new Exclamation() . ' Hinweis:')
+            . ' Bei der Auswahl eines anderen Kopfnotenauftrages werden alle bereits festgelegten Kopfnoten entfernt.'));
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblTask = Evaluation::useService()->getTaskById($TaskId);
+
+        if ($tblPrepare && $tblTask) {
+            $tblDivision = $tblPrepare->getServiceTblDivision();
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Noteninformation',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                GradeInformation::useService()->updatePrepareSetBehaviorTask(
+                                    $tblPrepare, $tblTask
+                                )
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Noteninformation oder Notenauftrag nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     *
+     * @return Stage|string
+     */
+    public function frontendBehaviorGrades($PrepareId = null)
+    {
+
+        $Stage = new Stage('Noteninformation', 'Kopfnotenübersicht');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        if ($tblPrepare && ($tblDivision = $tblPrepare->getServiceTblDivision())) {
+            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+
+            $dataTable = array();
+            $headerTable['Number'] = '#';
+            $headerTable['Student'] = 'Name';
+
+            $tblGradeTypeList = array();
+            $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
+            $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask());
+            if ($tblTestAllByTask) {
+                foreach ($tblTestAllByTask as $tblTest) {
+                    if (($tblGradeType = $tblTest->getServiceTblGradeType())) {
+                        if (!isset($tblGradeTypeList[$tblGradeType->getId()])) {
+                            $tblGradeTypeList[$tblGradeType->getId()] = $tblGradeType;
+                            $headerTable['GradeType' . $tblGradeType->getId()] = $tblGradeType->getCode() . ' ('
+                                . $tblGradeType->getName() . ')';
+                        }
+                    }
+                }
+            }
+
+            $headerTable['Option'] = '';
+
+            if ($tblStudentAllByDivision) {
+                /** @var TblPerson $tblPerson */
+                foreach ($tblStudentAllByDivision as $tblPerson) {
+                    if ($tblDivision->getServiceTblYear()) {
+
+                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
+                        if ($tblPrepareStudent) {
+                            $isApproved = $tblPrepareStudent->isApproved();
+                        } else {
+                            $isApproved = false;
+                        }
+
+                        $dataTable[$tblPerson->getId()]['Number'] = count($dataTable) + 1;
+                        $dataTable[$tblPerson->getId()]['Student'] = $tblPerson->getLastFirstName();
+                        $dataTable[$tblPerson->getId()]['Option'] =
+                            $isApproved
+                                ? ''
+                                : new Standard(
+                                '',
+                                '/Education/Certificate/GradeInformation/Setting/BehaviorGrades/Edit',
+                                new Edit(),
+                                array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                    'PersonId' => $tblPerson->getId()
+                                ),
+                                'Kopfnoten bearbeiten'
+                            );
+
+                        /** @var TblGradeType $tblGradeType */
+                        foreach ($tblGradeTypeList as $tblGradeType) {
+                            $tblPrepareGrade = Prepare::useService()->getPrepareGradeByGradeType(
+                                $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType
+                            );
+                            $dataTable[$tblPerson->getId()]['GradeType' . $tblGradeType->getId()] = $tblPrepareGrade
+                                ? $tblPrepareGrade->getGrade()
+                                : '';
+                        }
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Noteninformation',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new TableData(
+                                    $dataTable,
+                                    null,
+                                    $headerTable,
+                                    null
+                                )
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Noteninformation oder Person nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     * @param null $Data
+     * @return Stage|string
+     */
+    public function frontendEditBehaviorGrades($PrepareId = null, $PersonId = null, $Data = null)
+    {
+
+        $Stage = new Stage('Noteninformation', 'Kopfnoten festlegen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/GradeInformation/Setting/BehaviorGrades', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblScoreType = false;
+        if ($tblPrepare) {
+            $tblDivision = $tblPrepare->getServiceTblDivision();
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+            $tempTable = array();
+            $dataTable = array();
+            $headerTable = array(
+                'GradeType' => 'Zensuren-Typ',
+                'Grades' => 'Zensuren',
+                'Average' => '&#216;',
+                'Grade' => 'Zensur',
+            );
+            $gradeList = array();
+            if ($tblDivision && $tblPerson) {
+
+                $data = array();
+                $tblGradeTypeList = array();
+                $tblScoreType = $tblPrepare->getServiceTblBehaviorTask()->getServiceTblScoreType();
+                $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask());
+                if ($tblTestAllByTask) {
+                    foreach ($tblTestAllByTask as $tblTest) {
+                        if (($tblGradeType = $tblTest->getServiceTblGradeType())) {
+                            if (!isset($tblGradeTypeList[$tblGradeType->getId()])) {
+                                $tblGradeTypeList[$tblGradeType->getId()] = $tblGradeType;
+                                $dataTable[$tblGradeType->getId()]['GradeType'] = $tblGradeType->getCode() . ' ('
+                                    . $tblGradeType->getName() . ')';
+                            }
+                            if (($tblSubject = $tblTest->getServiceTblSubject())
+                                && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                    $tblPerson))
+                            ) {
+                                $data[$tblGradeType->getId()][$tblSubject->getId()] = $tblGrade;
+                                if (!$tblScoreType && $tblGrade->getServiceTblDivision() && $tblGrade->getServiceTblSubject()) {
+                                    Gradebook::useService()->getScoreTypeByDivisionAndSubject($tblGrade->getServiceTblDivision(),
+                                        $tblGrade->getServiceTblSubject());
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Zusammensetzen (für Anzeige) der vergebenen Kopfnoten
+                foreach ($data as $gradeTypeId => $subjects) {
+                    $tblGradeType = Gradebook::useService()->getGradeTypeById($gradeTypeId);
+                    if ($tblGradeType && is_array($subjects)) {
+                        /** @var TblGrade $grade */
+                        foreach ($subjects as $subjectId => $grade) {
+                            $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                            if ($tblSubject) {
+                                if ($grade->getGrade() && is_numeric($grade->getGrade())) {
+                                    $gradeList[$tblGradeType->getId()][] = floatval($grade->getGrade());
+                                }
+                                if (isset($tempTable[$tblGradeType->getId()])) {
+                                    $tempTable[$tblGradeType->getId()] .= ' | '
+                                        . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                } else {
+                                    $tempTable[$tblGradeType->getId()] =
+                                        $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // calc average
+                foreach ($gradeList as $gradeTypeId => $valueArray) {
+                    $count = count($valueArray);
+                    $dataTable[$gradeTypeId]['Average'] = $count > 0 ? round(array_sum($valueArray) / $count, 2) : '';
+                }
+
+                // Post setzen
+                if ($Data === null
+                    && ($tblTask = $tblPrepare->getServiceTblBehaviorTask())
+                    && ($tblTestType = $tblTask->getTblTestType())
+                ) {
+                    $Global = $this->getGlobal();
+                    /** @var TblGradeType $tblGradeType */
+                    foreach ($tblGradeTypeList as $tblGradeType) {
+                        $tblPrepareGrade = Prepare::useService()->getPrepareGradeByGradeType(
+                            $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType
+                        );
+                        if ($tblPrepareGrade) {
+                            $Global->POST['Data'][$tblGradeType->getId()] = $tblPrepareGrade->getGrade();
+                        }
+                    }
+                    $Global->savePost();
+                }
+
+                /** @var TblGradeType $tblGradeType */
+                foreach ($tblGradeTypeList as $tblGradeType) {
+                    if (!isset($dataTable[$tblGradeType->getId()]['Average'])) {
+                        $dataTable[$tblGradeType->getId()]['Average'] = '';
+                    }
+
+                    // Zensuren-Eingaben-Spalte
+                    if ($tblScoreType && $tblScoreType->getIdentifier() == 'VERBAL') {
+                        $dataTable[$tblGradeType->getId()]['Grade']
+                            = new TextField('Data[' . $tblGradeType->getId() . ']', '', '', new Quote());
+                    } else {
+                        $dataTable[$tblGradeType->getId()]['Grade']
+                            = new NumberField('Data[' . $tblGradeType->getId() . ']', '', '');
+                    }
+                }
+
+                // fehlende Kopfnoten anzeigen
+                if ($tblDivision->getServiceTblYear()) {
+                    $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                        $tblDivision->getServiceTblYear()
+                    );
+                    if ($tblDivisionSubjectList) {
+                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                            $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                            if ($tblSubject) {
+                                /** @var TblGradeType $tblGradeType */
+                                foreach ($tblGradeTypeList as $tblGradeType) {
+                                    if (!isset($data[$tblGradeType->getId()][$tblSubject->getId()])) {
+                                        $text = new WarningText('f');
+                                        if (isset($tempTable[$tblGradeType->getId()])) {
+                                            $tempTable[$tblGradeType->getId()] .= ' | '
+                                                . $tblSubject->getAcronym() . ':' . $text;
+                                        } else {
+                                            $tempTable[$tblGradeType->getId()] =
+                                                $tblSubject->getAcronym() . ':' . $text;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (is_array($tempTable)) {
+                    foreach ($tempTable as $gradeTypeId => $value) {
+                        $dataTable[$gradeTypeId]['Grades'] = $value;
+                    }
+                }
+            }
+
+            $form = new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new TableData(
+                                $dataTable,
+                                null,
+                                $headerTable,
+                                null
+                            )
+                        )
+                    )
+                )
+            );
+            $form->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Noteninformation',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision ? $tblDivision->getDisplayName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    $tblPerson ? $tblPerson->getLastFirstName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                GradeInformation::useService()->updatePrepareGradeForBehaviorTask($form, $tblPrepare, $tblPerson,
+                                    $tblScoreType ? $tblScoreType : null, $Data)
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
         }
     }
 }
