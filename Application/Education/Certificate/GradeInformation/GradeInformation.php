@@ -42,6 +42,9 @@ class GradeInformation implements IModuleInterface
             __NAMESPACE__ . '\Setting', __NAMESPACE__ . '\Frontend::frontendSetting')
         );
 
+        /*
+         * AppointedDateTask
+         */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting\AppointedDateTask', __NAMESPACE__ . '\Frontend::frontendAppointedDateTask')
         );
@@ -55,6 +58,9 @@ class GradeInformation implements IModuleInterface
             __NAMESPACE__ . '\Setting\SubjectGrades', __NAMESPACE__ . '\Frontend::frontendSubjectGrades')
         );
 
+        /*
+         *  BehaviorTask
+         */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting\BehaviorTask', __NAMESPACE__ . '\Frontend::frontendBehaviorTask')
         );
@@ -66,6 +72,19 @@ class GradeInformation implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting\BehaviorGrades\Edit', __NAMESPACE__ . '\Frontend::frontendEditBehaviorGrades')
+        );
+
+        /*
+         * Template
+         */
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Setting\Template', __NAMESPACE__ . '\Frontend::frontendTemplate')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Setting\Template\Show', __NAMESPACE__ . '\Frontend::frontendShowTemplate')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Setting\Template\Select', __NAMESPACE__ . '\Frontend::frontendSelectTemplate')
         );
     }
 

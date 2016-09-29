@@ -8,22 +8,28 @@
 
 namespace SPHERE\Application\Education\Certificate\GradeInformation;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -32,6 +38,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Document;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -42,6 +50,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
+use SPHERE\Common\Frontend\Icon\Repository\Star;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -50,6 +59,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -57,7 +67,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -371,6 +381,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentList) {
+                    /** @var TblPerson $tblPerson */
                     foreach ($tblStudentList as $tblPerson) {
                         $tblAddress = $tblPerson->fetchMainAddress();
                         $birthday = '';
@@ -469,17 +480,18 @@ class Frontend extends Extension implements IFrontendInterface
                             'Template' => ($tblCertificate
                                 ? new Success(new Enable() . ' ' . $tblCertificate->getName()
                                     . ($tblCertificate->getDescription() ? '<br>' . $tblCertificate->getDescription() : ''))
-                                : new WarningText(new Exclamation() . ' Keine Zeugnisvorlage ausgewählt')),
+                                : new WarningText(new Exclamation() . ' Keine Vorlage ausgewählt')),
                             'Option' =>
                                 (new Standard(
-                                    '', '/Education/Certificate/Prepare/Certificate', new Edit(),
+                                    '', '/Education/Certificate/GradeInformation/Setting/Template', new Edit(),
                                     array('PrepareId' => $tblPrepare->getId(), 'PersonId' => $tblPerson->getId()),
-                                    'Zeugnisvorlage auswählen und zusätzliche Informationen bearbeiten'))
+                                    'Vorlage auswählen und zusätzliche Informationen bearbeiten'))
                                 . ($tblCertificate
                                     ? (new Standard(
-                                        '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
+                                        '', '/Education/Certificate/GradeInformation/Setting/Template/Show',
+                                        new EyeOpen(),
                                         array('PrepareId' => $tblPrepare->getId(), 'PersonId' => $tblPerson->getId()),
-                                        'Zeugnisvorschau anzeigen'))
+                                        'Vorschau anzeigen und Herunterladen'))
                                     : '')
                         );
                     }
@@ -777,7 +789,7 @@ class Frontend extends Extension implements IFrontendInterface
             )
         ));
 
-        $Stage->setMessage(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Bold(new Exclamation() . ' Hinweis:')
+        $Stage->setMessage(new WarningText(new Bold(new Exclamation() . ' Hinweis:')
             . ' Bei der Auswahl des Stichtagsnotenauftrags werden alle Zensuren dieses Auftrags übernommen. Dieser Vorgang kann
              einen Augenblick dauern.'));
 
@@ -793,7 +805,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 new Panel(
-                                    'Zeugnisvorbereitung',
+                                    'Noteninformation',
                                     $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
                                     Panel::PANEL_TYPE_INFO
                                 ),
@@ -897,7 +909,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentAllByDivision) {
                     foreach ($tblStudentAllByDivision as $tblPerson) {
-                        $tableData[$tblPerson->getId()]['Number'] = count($tableData) +1;
+                        $tableData[$tblPerson->getId()]['Number'] = count($tableData) + 1;
                         $tableData[$tblPerson->getId()]['Student'] = $tblPerson->getLastFirstName();
                         $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear(
                             $tblPerson, $tblYear
@@ -1000,12 +1012,11 @@ class Frontend extends Extension implements IFrontendInterface
             $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
             $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType);
 
-
             $tableContent = array();
             if ($tblTaskList) {
                 foreach ($tblTaskList as $tblTask) {
                     if ($tblPrepare->getServiceTblBehaviorTask()) {
-                        $isChosen = $tblTask->getId() == $tblPrepare->getServiceTblBehaviorTask()->getId();
+                        $isChosen = ($tblTask->getId() == $tblPrepare->getServiceTblBehaviorTask()->getId());
                     } else {
                         $isChosen = false;
                     }
@@ -1404,6 +1415,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                     if ($tblDivisionSubjectList) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                            /** @var TblSubject $tblSubject */
                             $tblSubject = $tblDivisionSubject->getServiceTblSubject();
                             if ($tblSubject) {
                                 /** @var TblGradeType $tblGradeType */
@@ -1474,7 +1486,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ),
                             ), 4),
                             new LayoutColumn(array(
-                                GradeInformation::useService()->updatePrepareGradeForBehaviorTask($form, $tblPrepare, $tblPerson,
+                                GradeInformation::useService()->updatePrepareGradeForBehaviorTask($form, $tblPrepare,
+                                    $tblPerson,
                                     $tblScoreType ? $tblScoreType : null, $Data)
                             )),
                         ))
@@ -1486,7 +1499,478 @@ class Frontend extends Extension implements IFrontendInterface
 
         } else {
 
-            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+            return $Stage . new Danger('Noteninformation nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     * @param null $Content
+     * @param bool $IsChange
+     *
+     * @return Stage|string
+     */
+    public function frontendTemplate(
+        $PrepareId = null,
+        $PersonId = null,
+        $Content = null,
+        $IsChange = false
+    ) {
+
+        $Stage = new Stage('Noteninformation', 'Vorlage Auswählen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+
+            $tblCourse = false;
+            $tblSchoolType = false;
+            if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+            ) {
+                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                    $tblTransferType);
+                if ($tblStudentTransfer) {
+                    $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                    $tblSchoolType = $tblStudentTransfer->getServiceTblType();
+                }
+            }
+            if (!$tblSchoolType) {
+                $tblSchoolType = $tblDivision->getTblLevel() ? $tblDivision->getTblLevel()->getServiceTblType() : false;
+            }
+
+            $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
+            if ($tblPrepareStudent) {
+                $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+            } else {
+                $tblCertificate = false;
+            }
+
+            if ($tblCertificate && !$IsChange) {
+
+                $form = null;
+                $Certificate = null;
+                if ($tblCertificate) {
+                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                    if (class_exists($CertificateClass)) {
+
+                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                        $Certificate = new $CertificateClass($tblPerson, $tblDivision);
+
+                        $FormField = array(
+                            'Content.Input.Remark' => 'TextArea',
+                        );
+                        $FormLabel = array(
+                            'Content.Input.Remark' => 'Bemerkungen',
+                        );
+
+                        if ($Content === null) {
+                            $Global = $this->getGlobal();
+                            $tblPrepareInformationAll = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
+                                $tblPerson);
+                            if ($tblPrepareInformationAll) {
+                                /** @var TblPrepareInformation $tblPrepareInformation */
+                                foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
+                                    $Global->POST['Content']['Input'][$tblPrepareInformation->getField()]
+                                        = $tblPrepareInformation->getValue();
+                                }
+                            }
+                            $Global->savePost();
+                        }
+
+                        // Create Form, Additional Information from Template
+                        $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
+                        $FormPanelList = array();
+                        if ($PlaceholderList) {
+                            array_walk($PlaceholderList,
+                                function ($Placeholder) use ($Certificate, $FormField, $FormLabel, &$FormPanelList) {
+
+                                    $PlaceholderList = explode('.', $Placeholder);
+                                    $Identifier = array_slice($PlaceholderList, 1);
+
+                                    $FieldName = $PlaceholderList[0] . '[' . implode('][', $Identifier) . ']';
+
+                                    $Type = array_shift($Identifier);
+                                    if (!method_exists($Certificate, 'get' . $Type)) {
+                                        if (isset($FormField[$Placeholder])) {
+                                            if (isset($FormLabel[$Placeholder])) {
+                                                $Label = $FormLabel[$Placeholder];
+                                            } else {
+                                                $Label = $Placeholder;
+                                            }
+                                            if (isset($FormField[$Placeholder])) {
+                                                $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$Placeholder];
+                                                if ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\SelectBox') {
+                                                    $selectBoxData = array();
+                                                    if ($Placeholder == 'Content.Input.SchoolType'
+                                                        && method_exists($Certificate, 'selectValuesSchoolType')
+                                                    ) {
+                                                        $selectBoxData = $Certificate->selectValuesSchoolType();
+                                                    } elseif ($Placeholder == 'Content.Input.Type'
+                                                        && method_exists($Certificate, 'selectValuesType')
+                                                    ) {
+                                                        $selectBoxData = $Certificate->selectValuesType();
+                                                    }
+                                                    $Placeholder = (new SelectBox($FieldName, $Label, $selectBoxData));
+                                                } else {
+                                                    $Placeholder = (new $Field($FieldName, $Label, $Label));
+                                                }
+                                            } else {
+                                                $Placeholder = (new TextField($FieldName, $Label, $Label));
+                                            }
+
+                                            $FormPanelList['Additional'][] = $Placeholder;
+                                        }
+                                    }
+                                });
+                        }
+
+                        foreach ($FormPanelList as $Type => $Payload) {
+                            switch ($Type) {
+                                case 'Additional':
+                                    $Title = 'Zusätzliche Informationen';
+                                    break;
+                                default:
+                                    $Title = 'Informationen';
+                            }
+                            $FormPanelList[] = new FormColumn(new Panel($Title, $Payload, Panel::PANEL_TYPE_INFO));
+                        }
+
+                        if (!empty($FormPanelList)) {
+                            $form = new Form(
+                                new FormGroup(array(
+                                    new FormRow(
+                                        $FormPanelList
+                                    ),
+                                ))
+                            );
+                        }
+                    }
+                }
+
+                if ($form === null) {
+                    $contentLayout = new Warning('Es sind keine zusätzlichen Informationen in der Vorlage vorhanden.',
+                        new Exclamation());
+                } else {
+                    $form->appendFormButton(new Primary('Speichern', new Save()))
+                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+                    $contentLayout = new Well(Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
+                        $tblPerson, $Content, $Certificate));
+                }
+            } else {
+                $TemplateList = array();
+                $tblConsumer = Consumer::useService()->getConsumerBySession();
+                if ($tblConsumer && $tblConsumer->getAcronym() == 'DEMO') {
+                    $tblTemplateAll = Generator::useService()->getGradeInformationTemplateAll();
+                } else {
+                    $tblTemplateAll = false;
+                }
+                if ($tblConsumer) {
+                    if (!$tblTemplateAll){
+                        $tblTemplateAll = array();
+                    }
+
+                    $tblTemplateConsumer = Generator::useService()->getGradeInformationTemplateAllByConsumer($tblConsumer);
+                    if ($tblTemplateConsumer) {
+                        $tblTemplateAll = array_merge($tblTemplateConsumer, $tblTemplateAll);
+                    }
+
+                    $TemplateList = array();
+                    /** @var TblCertificate $item */
+                    foreach ($tblTemplateAll as $item) {
+
+                        $TemplateList[] = array_merge($item->__toArray(), array(
+                                'Typ' => '<div class="text-center">' . ($item->getServiceTblConsumer()
+                                        ? new Small(new Muted($item->getServiceTblConsumer()->getAcronym())) . '<br/>' . new Star()
+                                        : new Document() . '<br/>' . new Small(new Muted('Standard'))
+                                    ) . '</div>',
+                                'Option' => new Standard(
+                                    '', '/Education/Certificate/GradeInformation/Setting/Template/Select', new Select(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'PersonId' => $tblPerson->getId(),
+                                        'TemplateId' => $item->getId()
+                                    ), 'Auswählen')
+                            )
+                        );
+                    }
+                }
+
+                $contentLayout = empty($TemplateList)
+                    ? new Warning('Keine Vorlagen verfügbar.')
+                    : new TableData($TemplateList, null, array(
+                        'Typ' => 'Typ',
+                        'Name' => 'Name',
+                        'Description' => 'Beschreibung',
+                        'Option' => 'Option'
+                    ), array(
+                        'order' => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc')),
+                        'columnDefs' => array(
+                            array('width' => '1%', 'targets' => 0),
+                            array('width' => '1%', 'targets' => 3),
+                        )
+                    ));
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Noteninformation',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    $tblPerson->getLastFirstName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schulart',
+                                    $tblSchoolType
+                                        ? $tblSchoolType->getName()
+                                        : new WarningText(new Exclamation()
+                                        . ' Keine Schulart hinterlegt'),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Bildungsgang',
+                                    $tblCourse
+                                        ? $tblCourse->getName()
+                                        : new WarningText(new Exclamation()
+                                        . ' Kein Bildungsgang hinterlegt'),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Vorlage',
+                                    $tblCertificate
+                                        ? array(
+                                        ($tblCertificate->getName()
+                                            . ($tblCertificate->getDescription() ? ' - ' . $tblCertificate->getDescription() : '')),
+                                        new Standard(
+                                            'Ändern',
+                                            '/Education/Certificate/GradeInformation/Setting/Template',
+                                            new Edit(),
+                                            array(
+                                                'PrepareId' => $tblPrepare->getId(),
+                                                'PersonId' => $tblPerson->getId(),
+                                                'IsChange' => true
+                                            )
+                                        )
+                                    )
+                                        : new WarningText(new Exclamation()
+                                        . ' Keine Vorlage hinterlegt'),
+                                    $tblCertificate
+                                        ? Panel::PANEL_TYPE_SUCCESS
+                                        : Panel::PANEL_TYPE_WARNING
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                $contentLayout
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Noteninformation nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     * @param null $TemplateId
+     *
+     * @return Stage|string
+     */
+    public function frontendSelectTemplate($PrepareId = null, $PersonId = null, $TemplateId = null)
+    {
+
+        $Stage = new Stage('Noteninformation', 'Vorlage auswählen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblCertificate = Generator::useService()->getCertificateById($TemplateId);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+
+        if ($tblPrepare && $tblCertificate && $tblPerson) {
+            $tblDivision = $tblPrepare->getServiceTblDivision();
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Noteninformation',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision ? $tblDivision->getDisplayName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    $tblPerson->getLastFirstName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                GradeInformation::useService()->updatePrepareStudentSetTemplate(
+                                    $tblPrepare, $tblPerson, $tblCertificate
+                                )
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Noteninformation oder Vorlage nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     *
+     * @return Stage|string
+     */
+    public function frontendShowTemplate($PrepareId = null, $PersonId = null)
+    {
+
+        $Stage = new Stage('Noteninformation', 'Vorschau und Herunterladen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/GradeInformation/Setting', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+
+            $Stage->addButton(new External(
+                'Noteninformation herunterladen',
+                '/Api/Education/Certificate/Generator/Preview',
+                new Download(),
+                array(
+                    'PrepareId' => $tblPrepare->getId(),
+                    'PersonId' => $tblPerson->getId(),
+                    'Name' => 'Noteninformation'
+                ), false)
+            );
+
+            $ContentLayout = array();
+
+            $tblCertificate = false;
+            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
+                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                    if (class_exists($CertificateClass)) {
+
+                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
+                        $Template = new $CertificateClass();
+
+                        // get Content
+                        $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+
+                        $ContentLayout = $Template->createCertificate($Content)->getContent();
+                    }
+                }
+            }
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Noteninformation',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    $tblPerson->getLastFirstName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Vorlage',
+                                    $tblCertificate
+                                        ? ($tblCertificate->getName()
+                                        . ($tblCertificate->getDescription() ? ' - ' . $tblCertificate->getDescription() : ''))
+                                        : new WarningText(new Exclamation()
+                                        . ' Keine Vorlage hinterlegt'),
+                                    $tblCertificate
+                                        ? Panel::PANEL_TYPE_SUCCESS
+                                        : Panel::PANEL_TYPE_WARNING
+                                ),
+                            ), 12),
+                            new LayoutColumn(array(
+                                $ContentLayout
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Noteninformation nicht gefunden.', new Ban());
         }
     }
 }

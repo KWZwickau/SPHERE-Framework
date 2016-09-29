@@ -70,7 +70,8 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
 
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true, Student::useService()->getStudentLiberationCategoryById(1));
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true,
+                Student::useService()->getStudentLiberationCategoryById(1));
             $this->setCertificateSubject($tblCertificate, 'REV', 2, 3, false);
             $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
         }
@@ -90,7 +91,8 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
 
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true, Student::useService()->getStudentLiberationCategoryById(1));
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true,
+                Student::useService()->getStudentLiberationCategoryById(1));
             $this->setCertificateSubject($tblCertificate, 'REV', 2, 3, false);
             $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
         }
@@ -306,6 +308,26 @@ class Data extends AbstractData
                     $this->createCertificate(
                         'Habljahresinformation', 'Grundschule Klasse 1', 'ESZC\CheHjInfoGsOne', $tblConsumerCertificate
                     );
+
+                    /*
+                     * Noteninformation
+                     */
+                    if (($tblCertificate = $this->createCertificate('Noteninformation', '',
+                        'ESZC\GradeInformation\ChemnitzGradeInformation', $tblConsumerCertificate, true))
+                        && !$this->getCertificateSubjectAll($tblCertificate)
+                    ) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'MA', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'BIO', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 8);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 9);
+                        $this->setCertificateSubject($tblCertificate, 'RELI', 1, 10);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 1, 11);
+                    }
                 }
             }
 
@@ -457,11 +479,17 @@ class Data extends AbstractData
      * @param string $Description
      * @param string $Certificate
      * @param TblConsumer|null $tblConsumer
+     * @param bool $IsGradeInformation
      *
      * @return null|object|TblCertificate
      */
-    public function createCertificate($Name, $Description, $Certificate, TblConsumer $tblConsumer = null)
-    {
+    public function createCertificate(
+        $Name,
+        $Description,
+        $Certificate,
+        TblConsumer $tblConsumer = null,
+        $IsGradeInformation = false
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -475,6 +503,7 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setCertificate($Certificate);
             $Entity->setServiceTblConsumer($tblConsumer);
+            $Entity->setIsGradeInformation($IsGradeInformation);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -637,7 +666,8 @@ class Data extends AbstractData
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificate', array(
-                TblCertificate::SERVICE_TBL_CONSUMER => ($tblConsumer ? $tblConsumer->getId() : null)
+                TblCertificate::SERVICE_TBL_CONSUMER => ($tblConsumer ? $tblConsumer->getId() : null),
+                TblCertificate::ATTR_IS_GRADE_INFORMATION => false
             )
         );
     }
@@ -648,8 +678,42 @@ class Data extends AbstractData
     public function getCertificateAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificate');
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificate',
+            array(
+                TblCertificate::ATTR_IS_GRADE_INFORMATION => false
+            )
+        );
     }
+
+    /**
+     * @return bool|TblCertificate[]
+     */
+    public function getGradeInformationTemplateAll()
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificate',
+            array(
+                TblCertificate::ATTR_IS_GRADE_INFORMATION => true
+            )
+        );
+    }
+
+    /**
+     * @param null|TblConsumer $tblConsumer
+     *
+     * @return bool|TblCertificate[]
+     */
+    public function getGradeInformationTemplateAllByConsumer(TblConsumer $tblConsumer = null)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificate', array(
+                TblCertificate::SERVICE_TBL_CONSUMER => ($tblConsumer ? $tblConsumer->getId() : null),
+                TblCertificate::ATTR_IS_GRADE_INFORMATION => true
+            )
+        );
+    }
+
 
     /**
      * @param $Id

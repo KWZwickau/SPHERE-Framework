@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\GradeInformation;
 
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
@@ -151,7 +152,8 @@ class Service
 
         $Stage = new Stage('Stichtagsnotenauftrag', 'Aktualisieren');
         if ($tblPrepare->getServiceTblAppointedDateTask()) {
-            Prepare::useService()->updatePrepareSubjectGrades($tblPrepare, $tblPrepare->getServiceTblAppointedDateTask());
+            Prepare::useService()->updatePrepareSubjectGrades($tblPrepare,
+                $tblPrepare->getServiceTblAppointedDateTask());
 
             return $Stage
             . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Stichtagsnotenauftrag wurde ausgewählt.')
@@ -264,15 +266,38 @@ class Service
                     }
 
                     return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
-                    . new Redirect('/Education/Certificate/GradeInformation/Setting/BehaviorGrades', Redirect::TIMEOUT_SUCCESS, array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'PersonId' => $tblPerson->getId(),
-                    ));
+                    . new Redirect('/Education/Certificate/GradeInformation/Setting/BehaviorGrades',
+                        Redirect::TIMEOUT_SUCCESS, array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'PersonId' => $tblPerson->getId(),
+                        ));
 
                 }
             }
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblCertificate $tblCertificate
+     *
+     * @return string
+     */
+    public function updatePrepareStudentSetTemplate(
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        TblCertificate $tblCertificate
+    ) {
+
+        Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $tblCertificate);
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Vorlage wurde ausgewählt.')
+        . new Redirect('/Education/Certificate/GradeInformation/Setting/Template', Redirect::TIMEOUT_SUCCESS, array(
+            'PrepareId' => $tblPrepare->getId(),
+            'PersonId' => $tblPerson->getId()
+        ));
     }
 }

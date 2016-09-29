@@ -1157,4 +1157,33 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->updatePrepareGradeForBehavior($tblPrepare, $tblPerson, $tblDivision,
             $tblTestType, $tblGradeType, $Grade);
     }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblCertificate $tblCertificate
+     */
+    public function updatePrepareStudentSetTemplate(
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        TblCertificate $tblCertificate
+    ) {
+
+        if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+            (new Data($this->getBinding()))->updatePrepareStudent(
+                $tblPrepareStudent,
+                $tblCertificate,
+                $tblPrepareStudent->isApproved(),
+                $tblPrepareStudent->isPrinted(),
+                $tblPrepareStudent->getExcusedDays(),
+                $tblPrepareStudent->getUnexcusedDays()
+            );
+        } else {
+            (new Data($this->getBinding()))->createPrepareStudent(
+                $tblPrepare,
+                $tblPerson,
+                $tblCertificate
+            );
+        }
+    }
 }
