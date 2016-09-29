@@ -312,10 +312,12 @@ class Data extends AbstractData
                     /*
                      * Noteninformation
                      */
-                    if (($tblCertificate = $this->createCertificate('Noteninformation', '',
-                        'ESZC\GradeInformation\ChemnitzGradeInformation', $tblConsumerCertificate, true))
-                        && !$this->getCertificateSubjectAll($tblCertificate)
-                    ) {
+                    $tblCertificate = $this->createCertificate('Noteninformation', '',
+                        'ESZC\GradeInformation\ChemnitzGradeInformation', $tblConsumerCertificate, true);
+                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                         $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
                         $this->setCertificateSubject($tblCertificate, 'MA', 1, 2);
                         $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);

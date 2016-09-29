@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
@@ -934,6 +935,21 @@ class Service extends AbstractService
                     }
                 }
             }
+            // Kopfnoten von Fachlehrern für Noteninformation
+            if ($tblPrepare->isGradeInformation() && ($tblTask = $tblPrepare->getServiceTblBehaviorTask())) {
+                if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask))) {
+                    /** @var TblTest $testItem */
+                    foreach ($tblTestAllByTask as $testItem) {
+                        if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($testItem, $tblPerson))
+                            && $testItem->getServiceTblGradeType()
+                            && $testItem->getServiceTblSubject()
+                        ) {
+                            $Content['Input']['BehaviorTeacher'][$testItem->getServiceTblSubject()->getAcronym()]
+                            [$testItem->getServiceTblGradeType()->getCode()] = $tblGrade->getDisplayGrade();
+                        }
+                    }
+                }
+            }
 
             // Fachnoten
             $tblPrepareGradeSubjectList = Prepare::useService()->getPrepareGradeAllByPerson(
@@ -1184,6 +1200,40 @@ class Service extends AbstractService
                 $tblPerson,
                 $tblCertificate
             );
+        }
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Content
+     * @param Certificate $Certificate
+     */
+    public function updatePrepareInformationDataList(
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        $Content,
+        Certificate $Certificate = null
+    ) {
+
+        if (isset($Content['Input']) && is_array($Content['Input'])) {
+            foreach ($Content['Input'] as $field => $value) {
+                if ($field == 'SchoolType'
+                    && method_exists($Certificate, 'selectValuesSchoolType')
+                ) {
+                    $value = $Certificate->selectValuesSchoolType()[$value];
+                } elseif ($field == 'Type'
+                    && method_exists($Certificate, 'selectValuesType')
+                ) {
+                    $value = $Certificate->selectValuesType()[$value];
+                }
+
+                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
+                    (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
+                } else {
+                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, $field, $value);
+                }
+            }
         }
     }
 }

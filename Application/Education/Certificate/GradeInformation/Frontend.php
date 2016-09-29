@@ -1662,7 +1662,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $form->appendFormButton(new Primary('Speichern', new Save()))
                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-                    $contentLayout = new Well(Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
+                    $contentLayout = new Well(GradeInformation::useService()->updatePrepareInformationList($form, $tblPrepare,
                         $tblPerson, $Content, $Certificate));
                 }
             } else {

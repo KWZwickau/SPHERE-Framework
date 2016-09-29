@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\GradeInformation;
 
+use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
@@ -295,6 +296,30 @@ class Service
         Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $tblCertificate);
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Vorlage wurde ausgewählt.')
+        . new Redirect('/Education/Certificate/GradeInformation/Setting/Template', Redirect::TIMEOUT_SUCCESS, array(
+            'PrepareId' => $tblPrepare->getId(),
+            'PersonId' => $tblPerson->getId()
+        ));
+    }
+
+    public function updatePrepareInformationList(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        $Content,
+        Certificate $Certificate = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Content) {
+            return $Stage;
+        }
+
+        Prepare::useService()->updatePrepareInformationDataList($tblPrepare, $tblPerson, $Content, $Certificate);
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
         . new Redirect('/Education/Certificate/GradeInformation/Setting/Template', Redirect::TIMEOUT_SUCCESS, array(
             'PrepareId' => $tblPrepare->getId(),
             'PersonId' => $tblPerson->getId()
