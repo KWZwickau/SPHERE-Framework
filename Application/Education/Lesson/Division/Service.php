@@ -11,8 +11,10 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionTeacher;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Setup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -40,6 +42,15 @@ class Service extends AbstractService
 {
 
     /**
+     * @return false|ViewDivision[]
+     */
+    public function viewDivision()
+    {
+
+        return ( new Data($this->getBinding()) )->viewDivision();
+    }
+
+    /**
      * @return false|ViewDivisionStudent[]
      */
     public function viewDivisionStudent()
@@ -55,6 +66,15 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->viewDivisionTeacher();
+    }
+
+    /**
+     * @return false|ViewSubjectTeacher[]
+     */
+    public function viewSubjectTeacher()
+    {
+
+        return ( new Data($this->getBinding()) )->viewSubjectTeacher();
     }
 
     /**

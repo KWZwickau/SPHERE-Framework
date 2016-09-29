@@ -89,6 +89,7 @@ class Frontend extends Extension implements IFrontendInterface
             new ViewPeopleGroupMember(),
             new ViewPerson(),
             new ViewAddressToPerson()
+//            ,new ViewYear()
         );
 
         $tblDynamicFilter = Dynamic::useService()->getDynamicFilterById($DynamicFilter);

@@ -6,23 +6,16 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
  * @Entity(readOnly=true)
- * @Table(name="viewDivisionTeacher")
+ * @Table(name="viewDivision")
  * @Cache(usage="READ_ONLY")
  */
-class ViewDivisionTeacher extends AbstractView
+class ViewDivision extends AbstractView
 {
-
-    const TBL_DIVISION_TEACHER_ID = 'TblDivisionTeacher_Id';
-    const TBL_DIVISION_TEACHER_TBL_DIVISION = 'TblDivisionTeacher_tblDivision';
-    const TBL_DIVISION_TEACHER_SERVICE_TBL_PERSON = 'TblDivisionTeacher_serviceTblPerson';
-    const TBL_DIVISION_TEACHER_DESCRIPTION = 'TblDivisionTeacher_Description';
 
     const TBL_LEVEL_ID = 'TblLevel_ID';
     const TBL_LEVEL_NAME = 'TblLevel_Name';
@@ -35,23 +28,6 @@ class ViewDivisionTeacher extends AbstractView
     const TBL_DIVISION_DESCRIPTION = 'TblDivision_Description';
     const TBL_DIVISION_TBL_LEVEL = 'TblDivision_tblLevel';
     const TBL_DIVISION_TBL_YEAR = 'TblDivision_serviceTblYear';
-
-    /**
-     * @Column(type="string")
-     */
-    protected $TblDivisionTeacher_Id;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblDivisionTeacher_tblDivision;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblDivisionTeacher_serviceTblPerson;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblDivisionTeacher_Description;
 
     /**
      * @Column(type="string")
@@ -103,7 +79,7 @@ class ViewDivisionTeacher extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Klassenstufen - Klassenlehrer';
+        return 'Klassenstufen';
     }
 
     /**
@@ -129,8 +105,6 @@ class ViewDivisionTeacher extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView(self::TBL_DIVISION_TEACHER_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
-        $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYear(), ViewYear::TBL_YEAR_ID);
 //        $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYearPeriod(), ViewYearPeriod::TBL_YEAR_PERIOD_TBL_YEAR);
     }
 

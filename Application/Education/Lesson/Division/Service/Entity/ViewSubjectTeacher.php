@@ -6,23 +6,27 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\ViewSubject;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
  * @Entity(readOnly=true)
- * @Table(name="viewDivisionTeacher")
+ * @Table(name="viewSubjectTeacher")
  * @Cache(usage="READ_ONLY")
  */
-class ViewDivisionTeacher extends AbstractView
+class ViewSubjectTeacher extends AbstractView
 {
 
-    const TBL_DIVISION_TEACHER_ID = 'TblDivisionTeacher_Id';
-    const TBL_DIVISION_TEACHER_TBL_DIVISION = 'TblDivisionTeacher_tblDivision';
-    const TBL_DIVISION_TEACHER_SERVICE_TBL_PERSON = 'TblDivisionTeacher_serviceTblPerson';
-    const TBL_DIVISION_TEACHER_DESCRIPTION = 'TblDivisionTeacher_Description';
+    const TBL_SUBJECT_TEACHER_ID = 'TblSubjectTeacher_Id';
+    const TBL_SUBJECT_TEACHER_SERVICE_TBL_PERSON = 'TblSubjectTeacher_serviceTblPerson';
+    const TBL_SUBJECT_TEACHER_TBL_DIVISION_SUBJECT = 'TblSubjectTeacher_tblDivisionSubject';
+
+    const TBL_DIVISION_SUBJECT_ID = 'TblDivisionSubject_Id';
+    const TBL_DIVISION_SUBJECT_SERVICE_TBL_SUBJECT = 'TblDivisionSubject_serviceTblSubject';
+    const TBL_DIVISION_SUBJECT_TBL_SUBJECT_GROUP = 'TblDivisionSubject_tblSubjectGroup';
+    const TBL_DIVISION_SUBJECT_TBL_DIVISION = 'TblDivisionSubject_tblDivision';
 
     const TBL_LEVEL_ID = 'TblLevel_ID';
     const TBL_LEVEL_NAME = 'TblLevel_Name';
@@ -39,19 +43,32 @@ class ViewDivisionTeacher extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblDivisionTeacher_Id;
+    protected $TblSubjectTeacher_Id;
     /**
      * @Column(type="string")
      */
-    protected $TblDivisionTeacher_tblDivision;
+    protected $TblSubjectTeacher_serviceTblPerson;
     /**
      * @Column(type="string")
      */
-    protected $TblDivisionTeacher_serviceTblPerson;
+    protected $TblSubjectTeacher_tblDivisionSubject;
+
     /**
      * @Column(type="string")
      */
-    protected $TblDivisionTeacher_Description;
+    protected $TblDivisionSubject_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblDivisionSubject_serviceTblSubject;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblDivisionSubject_tblSubjectGroup;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblDivisionSubject_tblDivision;
 
     /**
      * @Column(type="string")
@@ -103,7 +120,7 @@ class ViewDivisionTeacher extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Klassenstufen - Klassenlehrer';
+        return 'Klassenstufen - Fachlehrer';
     }
 
     /**
@@ -129,8 +146,8 @@ class ViewDivisionTeacher extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView(self::TBL_DIVISION_TEACHER_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
-        $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYear(), ViewYear::TBL_YEAR_ID);
+        $this->addForeignView(self::TBL_SUBJECT_TEACHER_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+        $this->addForeignView(self::TBL_DIVISION_SUBJECT_SERVICE_TBL_SUBJECT, new ViewSubject(), ViewSubject::TBL_SUBJECT_ID);
 //        $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYearPeriod(), ViewYearPeriod::TBL_YEAR_PERIOD_TBL_YEAR);
     }
 
