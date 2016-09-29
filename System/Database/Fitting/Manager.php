@@ -2,6 +2,7 @@
 namespace SPHERE\System\Database\Fitting;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -57,7 +58,7 @@ class Manager extends Extension
     /**
      * @param string $ClassName
      *
-     * @return Repository
+     * @return Repository|EntityRepository
      */
     final public function getRepository($ClassName)
     {
@@ -66,7 +67,17 @@ class Manager extends Extension
         /** @var \MOC\V\Component\Database\Component\Bridge\Repository\Doctrine2ORM $Connection */
         $Connection = (new Register())->getConnection( $this->Identifier )->getConnection();
         $ClassMetadata = $this->EntityManager->getClassMetadata($this->Namespace.$ClassName);
-        $ClassMetadata->setPrimaryTable( array( 'name' => $Connection->getConnection()->getDatabase().'.'.$ClassMetadata->getTableName() ) );
+        if( 'mssql' == $Connection->getConnection()->getDatabasePlatform()->getName() ) {
+            $ClassMetadata->setPrimaryTable(array(
+                'name' => $ClassMetadata->getTableName(),
+                'schema' => $Connection->getConnection()->getDatabase().'.dbo'
+            ));
+        } else {
+            $ClassMetadata->setPrimaryTable(array(
+                'name' => $ClassMetadata->getTableName(),
+                'schema' => $Connection->getConnection()->getDatabase()
+            ));
+        }
 
         // MUST NOT USE Cache-System
         return $this->EntityManager->getRepository($this->Namespace.$ClassName);
@@ -79,7 +90,7 @@ class Manager extends Extension
      * @throws ORMException
      * @throws OptimisticLockException
      * @throws TransactionRequiredException
-     * @return Entity
+     * @return Entity|object
      */
     final public function getEntityById($ClassName, $Id)
     {
@@ -91,7 +102,7 @@ class Manager extends Extension
     /**
      * @param Element $Entity
      *
-     * @return EntityManager
+     * @return Manager|EntityManager
      */
     final public function killEntity($Entity)
     {
@@ -108,7 +119,7 @@ class Manager extends Extension
     /**
      * @param null|string $Region
      *
-     * @return EntityManager
+     * @return Manager|EntityManager
      */
     final public function flushCache($Region = null)
     {
@@ -189,7 +200,7 @@ class Manager extends Extension
     /**
      * @param Element $Entity
      *
-     * @return EntityManager
+     * @return Manager|EntityManager
      */
     final public function removeEntity($Entity)
     {
@@ -202,7 +213,7 @@ class Manager extends Extension
     /**
      * @param Element $Entity
      *
-     * @return EntityManager
+     * @return Manager|EntityManager
      */
     final public function saveEntity($Entity)
     {
@@ -218,7 +229,7 @@ class Manager extends Extension
      *
      * @param $Entity
      *
-     * @return EntityManager
+     * @return Manager|EntityManager
      */
     final public function bulkSaveEntity($Entity)
     {
@@ -232,7 +243,7 @@ class Manager extends Extension
      *
      * @param $Entity
      *
-     * @return EntityManager
+     * @return Manager|EntityManager
      */
     final public function bulkKillEntity($Entity)
     {
