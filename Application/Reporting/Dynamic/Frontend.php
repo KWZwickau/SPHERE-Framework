@@ -9,6 +9,7 @@ use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilter;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilterMask;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -144,7 +145,11 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var \ReflectionProperty $Property */
                 foreach ($Properties as $Property) {
                     $Name = $Property->getName();
-                    if (!preg_match('!(_Id|_service|_tbl|_Is|Locked|MetaTable|^Id$|^Entity)!s', $Name)) {
+                    if (
+                        !preg_match('!(_Id$|_service|_tbl|_Is|Locked|MetaTable|^Id$|^Entity)!s', $Name)
+                        && !$View->getDisableDefinition( $Name )
+
+                    ) {
                         $FieldList[] = new CheckBox(
                             'FilterFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $Name . ']',
                             $View->getNameDefinition($Name), 1
@@ -310,14 +315,16 @@ class Frontend extends Extension implements IFrontendInterface
                 $FieldList = array();
                 $View = $tblDynamicFilterMask->getFilterClassInstance();
                 foreach ($tblDynamicFilterOptionList as $tblDynamicFilterOption) {
-                    $FieldList[] = new TextField(
-                        'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $tblDynamicFilterOption->getFilterFieldName() . ']',
-                        $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName()),
-                        $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName())
-                    );
+                    if( !$View->getDisableDefinition( $tblDynamicFilterOption->getFilterFieldName() ) ) {
+                        $FieldList[] = new TextField(
+                            'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $tblDynamicFilterOption->getFilterFieldName() . ']',
+                            $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName()),
+                            $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName())
+                        );
+                    }
                 }
 //
-//                $LinkList = array();
+//                $LinkList = array('Zusätzliche Ergebnis-Daten');
 //                $ForeignViewList = $View->getForeignViewList();
 //                /** @var AbstractView $ForeignView */
 //                foreach ($ForeignViewList as $ForeignView) {
@@ -333,7 +340,23 @@ class Frontend extends Extension implements IFrontendInterface
                             new PullRight(new ChevronRight())
                         )))
 
-                        , $FieldList, Panel::PANEL_TYPE_INFO/*, new Listing($LinkList)*/)
+                        , $FieldList, Panel::PANEL_TYPE_INFO/*, new Panel( array_shift( $LinkList ), $LinkList, Panel::PANEL_TYPE_WARNING)*/)
+                    , 2);
+            } else {
+                $View = $tblDynamicFilterMask->getFilterClassInstance();
+                $SelectedFilterList[] = new LayoutColumn(
+                    (string)new Panel(
+                        new PullClear(implode(array(
+                            new PullLeft($View->getViewGuiName()),
+                            new PullRight(new ChevronRight())
+                        )))
+
+                        , array(
+                            new HiddenField(
+                                'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][]'
+                            ).
+                            new \SPHERE\Common\Frontend\Message\Repository\Warning( 'Keine Eigenschaften zur Filterung gewählt' )
+                    ), Panel::PANEL_TYPE_INFO/*, new Panel( array_shift( $LinkList ), $LinkList, Panel::PANEL_TYPE_WARNING)*/)
                     , 2);
             }
         }

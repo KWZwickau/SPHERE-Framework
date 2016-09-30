@@ -62,6 +62,102 @@ abstract class AbstractNode extends Extension
     }
 
     /**
+     * Convert Input to LIKE compatible DateTime-Value
+     *
+     * EXPERIMENTEL
+     * @internal
+     *
+     * @param string $Value
+     * @return string
+     */
+    private function findDateTime($Value)
+    {
+
+        $PatternList = false;
+        $ResultList = array();
+        $DateFormat = 'Y-m-d';
+        $Value = trim( $Value );
+        $Input = explode('.', $Value);
+        $Input = array_filter( $Input );
+        $Size = count( $Input );
+        switch ( $Size ) {
+            case 1: {
+                // No Correction
+                break;
+            }
+            case 2: {
+                // MM-YY equals YY-MM => LIKE '%XX-YY%' { 15-12 AND 12-01 } matches e.g. 2015-12-01 :-)
+                if( preg_match('!^(0?[1-9]|1[012])\.?((19|20)?[0-9]{2})$!is', $Value) ) {
+                    $PatternList = array(
+                        '(0?[1-9]|1[012])\.?((19|20)?[0-9]{2})', // (M)M.YYYY
+                        '(0?[1-9]|1[012])\.?([0-9]{2})', // (M)M.YY
+                    );
+                    $ResultList = array(
+                        'm' => 1,
+                        'y' => 2
+                    );
+                    $DateFormat = 'y-m';
+                } else {
+                    $PatternList = array(
+                        '([0-9]{1,2})\.?([0-9]{1,2})', // (D)D.(M)M
+                    );
+                    $ResultList = array(
+                        'd' => 1,
+                        'm' => 2
+                    );
+                    $DateFormat = 'm-d';
+                }
+                break;
+            }
+            case 3: {
+                $PatternList = array(
+                    '(0?[1-9]|[12][0-9]|3[01])\.?(0?[1-9]|1[012])\.?((19|20)[0-9]{2})', // (M)M.YYYY
+                    '(0?[1-9]|[12][0-9]|3[01])\.?(0?[1-9]|1[012])\.?([0-9]{2})', // (M)M.YY
+                );
+                $ResultList = array(
+                    'd' => 1,
+                    'm' => 2,
+                    'y' => 3
+                );
+                $DateFormat = 'y-m-d';
+                break;
+            }
+        }
+
+        $Found = false;
+        if( $PatternList ) {
+            foreach( $PatternList as $Pattern ) {
+                if( preg_match('!^' . $Pattern . '$!is', $Value, $Matches) ) {
+                    $Found = true;
+                    if( isset($ResultList['d']) ) {
+                        $Day = $Matches[$ResultList['d']];
+                    } else {
+                        $Day = 1;
+                    }
+                    if( isset($ResultList['m']) ) {
+                        $Month = $Matches[$ResultList['m']];
+                    } else {
+                        $Month = 0;
+                    }
+                    if( isset($ResultList['y']) ) {
+                        $Year = $Matches[$ResultList['y']];
+                    } else {
+                        $Year = 0;
+                    }
+                    $DateTime = new \DateTime();
+                    $DateTime->setDate( $Year, $Month, $Day );
+                    $Value = $DateTime->format( $DateFormat );
+                    break;
+                }
+            }
+        }
+        if( !$Found ) {
+            $Value = $Input;
+        }
+        return $Value;
+    }
+
+    /**
      * @param array $Search array( ProbeIndex => array( 'Column' => 'Value', ... ), ... )
      *
      * @param int $Timeout
@@ -86,11 +182,35 @@ abstract class AbstractNode extends Extension
             $ResultCache = array();
 
             $Restriction = array();
+            /**
+             * @var int $Index
+             * @var Probe $Probe
+             */
             foreach ($ProbeList as $Index => $Probe) {
                 if (isset( $Search[$Index] )) {
                     $Filter = $Search[$Index];
                 } else {
                     $Filter = array();
+                }
+
+                // Rewrite DateTime to Database
+                // EXPERIMENTEL
+                if( !empty( $Filter ) ) {
+                    foreach ($Filter as $Expression => $PartList) {
+                        $PartStorage = array();
+                        foreach ($PartList as $Part => $Value) {
+                            if( preg_match( '!^[0-9\.]+$!is', $Value ) ) {
+                                $ReFormat = $this->findDateTime( $Value );
+                                if( is_array( $ReFormat ) ) {
+                                    unset( $Filter[$Expression][$Part] );
+                                    $PartStorage = array_merge( $PartStorage, $ReFormat );
+                                } else {
+                                    $Filter[$Expression][$Part] = $ReFormat;
+                                }
+                            }
+                        }
+                        $Filter[$Expression] = array_unique( array_merge( $Filter[$Expression], $PartStorage ) );
+                    }
                 }
 
                 $Logic = $this->createLogic($Filter, $Restriction, $Index);

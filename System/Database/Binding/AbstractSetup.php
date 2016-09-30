@@ -129,7 +129,7 @@ abstract class AbstractSetup
      */
     final protected function hasColumn( Table $Table, $Name ) {
 
-        return $this->getConnection()->hasColumn( $Table, $Name );
+        return $this->getConnection()->hasColumn( $Table->getName(), $Name );
     }
 
     /**

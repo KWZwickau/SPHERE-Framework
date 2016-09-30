@@ -69,6 +69,17 @@ class ViewPeopleGroupMember extends AbstractView
     protected $TblMember_serviceTblPerson;
 
     /**
+     * Use this method to set disabled Properties with "setDisabledProperty()"
+     *
+     * @return void
+     */
+    public function loadDisableDefinition()
+    {
+        $this->setDisableDefinition( self::TBL_GROUP_REMARK );
+        $this->setDisableDefinition( self::TBL_GROUP_DESCRIPTION );
+    }
+
+    /**
      * Overwrite this method to return View-ObjectName as View-DisplayName
      *
      * @return string View-Gui-Name of Class

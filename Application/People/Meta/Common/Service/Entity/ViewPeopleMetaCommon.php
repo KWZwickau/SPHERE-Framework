@@ -29,6 +29,9 @@ class ViewPeopleMetaCommon extends AbstractView
     const TBL_COMMON_BIRTH_DATES_BIRTHPLACE = 'TblCommonBirthDates_Birthplace';
     const TBL_COMMON_BIRTH_DATES_GENDER = 'TblCommonBirthDates_Gender';
 
+    const TBL_COMMON_BIRTH_DATES_TBL_COMMON_GENDER = 'TblCommonBirthDates_tblCommonGender';
+    const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
+
     const TBL_COMMON_INFORMATION_NATIONALITY = 'TblCommonInformation_Nationality';
     const TBL_COMMON_INFORMATION_DENOMINATION = 'TblCommonInformation_Denomination';
     const TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY = 'TblCommonInformation_AssistanceActivity';
@@ -67,10 +70,15 @@ class ViewPeopleMetaCommon extends AbstractView
      * @Column(type="string")
      */
     protected $TblCommonBirthDates_Birthplace;
+
     /**
      * @Column(type="string")
      */
-    protected $TblCommonBirthDates_Gender;
+    protected $TblCommonBirthDates_tblCommonGender;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCommonGender_Name;
 
     /**
      * @Column(type="string")
@@ -110,7 +118,7 @@ class ViewPeopleMetaCommon extends AbstractView
 
         $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Personendaten: Bemerkungen');
 
-        $this->setNameDefinition(self::TBL_COMMON_BIRTH_DATES_GENDER, 'Personendaten: Geschlecht');
+        $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Personendaten: Geschlecht');
         $this->setNameDefinition(self::TBL_COMMON_BIRTH_DATES_BIRTHPLACE, 'Personendaten: Geburtsort');
         $this->setNameDefinition(self::TBL_COMMON_BIRTH_DATES_BIRTHDAY, 'Personendaten: Geburtsdatum');
 
@@ -137,5 +145,24 @@ class ViewPeopleMetaCommon extends AbstractView
     public function getViewService()
     {
         return Common::useService();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTblCommonBirthDates_Birthday()
+    {
+        if( $this->TblCommonBirthDates_Birthday ) {
+            return (new \DateTime($this->TblCommonBirthDates_Birthday))->format('d.m.Y');
+        }
+        return $this->TblCommonBirthDates_Birthday;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTblCommonInformation_IsAssistance()
+    {
+        return $this->TblCommonInformation_IsAssistance ? 'Ja' : 'Nein';
     }
 }
