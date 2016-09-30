@@ -2,11 +2,11 @@
 /**
  * Created by PhpStorm.
  * User: Kauschke
- * Date: 28.09.2016
- * Time: 15:54
+ * Date: 30.09.2016
+ * Time: 14:45
  */
 
-namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC\GradeInformation;
+namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -20,11 +20,11 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeTyp
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 
 /**
- * Class ChemnitzGradeInformation
+ * Class GradeInformation
  *
- * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC\GradeInformation
+ * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository
  */
-class ChemnitzGradeInformation extends Certificate
+class GradeInformation extends Certificate
 {
 
     /**
