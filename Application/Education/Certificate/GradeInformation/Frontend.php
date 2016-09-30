@@ -1671,7 +1671,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblConsumer && $tblConsumer->getAcronym() == 'DEMO') {
                     $tblTemplateAll = Generator::useService()->getGradeInformationTemplateAll();
                 } else {
-                    $tblTemplateAll = false;
+                    $tblTemplateAll = Generator::useService()->getGradeInformationTemplateAllByConsumer();
                 }
                 if ($tblConsumer) {
                     if (!$tblTemplateAll){
@@ -1710,7 +1710,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Typ' => 'Typ',
                         'Name' => 'Name',
                         'Description' => 'Beschreibung',
-                        'Option' => 'Option'
+                        'Option' => 'Auswählen'
                     ), array(
                         'order' => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc')),
                         'columnDefs' => array(

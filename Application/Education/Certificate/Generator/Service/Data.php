@@ -688,6 +688,30 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|TblCertificate[]
+     */
+    public function getTemplateAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificate');
+    }
+
+    /**
+     * @param null|TblConsumer $tblConsumer
+     *
+     * @return bool|TblCertificate[]
+     */
+    public function getTemplateAllByConsumer(TblConsumer $tblConsumer = null)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificate', array(
+                TblCertificate::SERVICE_TBL_CONSUMER => ($tblConsumer ? $tblConsumer->getId() : null)
+            )
+        );
+    }
+
+    /**
      * @return bool|TblCertificate[]
      */
     public function getGradeInformationTemplateAll()

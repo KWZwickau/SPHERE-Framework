@@ -157,4 +157,13 @@ class TblCertificate extends Element
     {
         $this->IsGradeInformation = $IsGradeInformation;
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayCategory()
+    {
+
+        return $this->isGradeInformation() ? 'Noteninformation' : 'Zeugnis';
+    }
 }
