@@ -96,28 +96,40 @@ abstract class AbstractSetup
      * @param Table  $Table
      * @param        $Name
      * @param string $Type
-     * @param bool   $Null
+     * @param bool   $IsNull
      *
      * @return Table
      */
-    final protected function createColumn(Table $Table, $Name, $Type = self::FIELD_TYPE_STRING, $Null = false)
+    final protected function createColumn(Table $Table, $Name, $Type = self::FIELD_TYPE_STRING, $IsNull = false)
     {
 
         if (!$this->getConnection()->hasColumn($Table->getName(), $Name)) {
-            $Table->addColumn($Name, $Type, array('notnull' => $Null ? false : true));
+            $Table->addColumn($Name, $Type, array('notnull' => $IsNull ? false : true));
         } else {
             $Column = $Table->getColumn($Name);
             // Definition has changed?
-            if ($Column->getNotnull() == $Null
+            if ($Column->getNotnull() == $IsNull
                 || $Column->getType()->getName() != $Type
             ) {
                 $Table->changeColumn($Name, array(
-                    'notnull' => $Null ? false : true,
+                    'notnull' => $IsNull ? false : true,
                     'type'    => Type::getType($Type)
                 ));
             }
         }
         return $Table;
+    }
+
+    /**
+     * Table: Column exists
+     *
+     * @param Table $Table
+     * @param string $Name
+     * @return bool
+     */
+    final protected function hasColumn( Table $Table, $Name ) {
+
+        return $this->getConnection()->hasColumn( $Table->getName(), $Name );
     }
 
     /**
@@ -140,15 +152,15 @@ abstract class AbstractSetup
      *
      * @param Table $Table
      * @param array $FieldList Column-Names
-     * @param bool  $Unique
+     * @param bool  $IsUnique
      *
      * @return Table
      */
-    final protected function createIndex(Table $Table, $FieldList, $Unique = true)
+    final protected function createIndex(Table $Table, $FieldList, $IsUnique = true)
     {
 
         if (!$this->getConnection()->hasIndex($Table, $FieldList)) {
-            if ($Unique) {
+            if ($IsUnique) {
                 $Table->addUniqueIndex($FieldList);
             } else {
                 $Table->addIndex($FieldList);
@@ -166,13 +178,14 @@ abstract class AbstractSetup
      *
      * @param Table $Table
      * @param Table $ForeignTable
+     * @param bool $IsNull
      *
      * @return Table
      */
-    final protected function createForeignKey(Table $Table, Table $ForeignTable)
+    final protected function createForeignKey(Table $Table, Table $ForeignTable, $IsNull = false)
     {
 
-        $this->getConnection()->addForeignKey($Table, $ForeignTable);
+        $this->getConnection()->addForeignKey($Table, $ForeignTable, $IsNull);
         return $Table;
     }
 }

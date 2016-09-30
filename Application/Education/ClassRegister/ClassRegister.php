@@ -356,14 +356,19 @@ class ClassRegister implements IApplicationInterface
                                     'Absence' => 'Fehlzeiten (E, U)',
                                     'Option' => ''
                                 ),
-                                    $isTeacher ? true : array(
+                                    $isTeacher
+                                        ? array(
+                                            'paging' => false
+                                        )
+                                        : array(
                                         'ExtensionRowReorder' => array(
                                             'Enabled' => true,
                                             'Url' => '/Api/Education/ClassRegister/Reorder',
                                             'Data' => array(
                                                 'DivisionId' => $tblDivision->getId()
                                             )
-                                        )
+                                        ),
+                                        'paging' => false
                                     )
                                 )
                             ))

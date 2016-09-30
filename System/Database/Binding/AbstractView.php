@@ -14,6 +14,9 @@ abstract class AbstractView extends Element
     /** @var array $NameDefinitionList */
     private $NameDefinitionList = array();
 
+    /** @var array $DisabledDefinitionList */
+    private $DisableDefinitionList = array();
+
     /** @var AbstractView[] $ForeignViewList */
     private $ForeignViewList = array();
 
@@ -31,7 +34,14 @@ abstract class AbstractView extends Element
                 if ($Object->hasProperty($Key)) {
                     $Property = $Object->getProperty($Key);
                     if ($Property->isProtected() || $Property->isPublic()) {
-                        if (!preg_match('!(_Id$|_service|_tbl|Locked|MetaTable|^Id$|^Entity)!s', $Key)) {
+                        if (
+                            !preg_match('!(_Id$|_service|_tbl|Locked|MetaTable|^Id$|^Entity)!s', $Key)
+                            && !$this->getDisableDefinition( $Key )
+                        ) {
+                            // Replace Value with Getter-Logic Value
+                            if( $Object->hasMethod( 'get'.$Property->getName() ) ) {
+                                $Value = $this->{'get'.$Property->getName()}();
+                            }
                             if ($Value instanceof \DateTime) {
                                 $Result[$this->getNameDefinition($Key)] = $Value->format('d.m.Y H:i:s');
                             } else {
@@ -69,6 +79,43 @@ abstract class AbstractView extends Element
      * @return void
      */
     abstract public function loadNameDefinition();
+
+    /**
+     * TODO: Abstract
+     *
+     * Use this method to set disabled Properties with "setDisabledProperty()"
+     *
+     * @return void
+     */
+    public function loadDisableDefinition(){}
+
+    /**
+     * @param string $PropertyName
+     *
+     * @return AbstractView
+     */
+    protected function setDisableDefinition($PropertyName)
+    {
+
+        $this->DisableDefinitionList[$PropertyName] = true;
+        return $this;
+    }
+
+    /**
+     * @param string $PropertyName
+     *
+     * @return string
+     */
+    public function getDisableDefinition($PropertyName)
+    {
+
+        $this->loadDisableDefinition();
+
+        if (isset( $this->DisableDefinitionList[$PropertyName] )) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @return array
