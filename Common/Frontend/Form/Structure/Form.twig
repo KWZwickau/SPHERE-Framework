@@ -57,9 +57,11 @@
     {
         Client.Use('ModForm', function()
         {
-            {% if FormConfirm is not empty %}
-            jQuery("form#{{ Hash }}").ModForm({notifyChangedMessage: "{{ FormConfirm }}", saveDraftData: {{ EnableSaveDraft }} });
-            {% endif %}
+            jQuery("form#{{ Hash }}").ModForm({
+                {% if FormConfirm is not empty %}notifyChangedMessage: "{{ FormConfirm }}"{% endif %}
+                {% if EnableSaveDraft is not empty %}{% if FormConfirm is not empty %},{% endif %}saveDraftData: {{ EnableSaveDraft }}{% endif %}
+            });
+
         });
     });
 </script>
