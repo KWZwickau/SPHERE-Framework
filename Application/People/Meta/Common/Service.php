@@ -48,6 +48,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Name
+     *
+     * @return TblCommonGender
+     */
+    public function createCommonGender($Name)
+    {
+        return (new Data($this->getBinding()))->createCommonGender($Name);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta

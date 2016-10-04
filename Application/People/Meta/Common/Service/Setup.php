@@ -57,6 +57,8 @@ class Setup extends AbstractSetup
                 $this->hasColumn($tblCommonBirthDates, 'Gender')
                 && $this->hasColumn($tblCommonBirthDates, 'tblCommonGender')
             ) {
+                Common::useService()->createCommonGender( 'Männlich' );
+                Common::useService()->createCommonGender( 'Weiblich' );
                 $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
                 foreach ($tblCommonBirthDatesAll as $tblCommonBirthDates) {
                     Common::useService()->updateCommonBirthDates(

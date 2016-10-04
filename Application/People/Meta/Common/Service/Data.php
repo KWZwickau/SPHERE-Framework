@@ -231,7 +231,7 @@ class Data extends AbstractData
      * @param string              $Birthplace
      * @param int                 $Gender
      *
-     * @return TblCommonBirthDates
+     * @return bool
      */
     public function updateCommonBirthDates(
         TblCommonBirthDates $tblCommonBirthDates,
