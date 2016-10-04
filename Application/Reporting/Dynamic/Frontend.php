@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\Dynamic;
 
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -91,8 +92,9 @@ class Frontend extends Extension implements IFrontendInterface
             new ViewPeopleGroupMember(),
             new ViewPerson(),
             new ViewAddressToPerson()
-//            ,new ViewYear()
+        , new ViewYear()
         , new ViewCompanyGroupMember()
+//        , new ViewItem()
         );
 
         $tblDynamicFilter = Dynamic::useService()->getDynamicFilterById($DynamicFilter);

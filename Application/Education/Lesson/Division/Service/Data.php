@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStuden
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -72,6 +73,17 @@ class Data extends AbstractData
 
         return $this->getCachedEntityList(
             __METHOD__, $this->getConnection()->getEntityManager(), 'ViewSubjectTeacher'
+        );
+    }
+
+    /**
+     * @return false|ViewDivisionSubject[]
+     */
+    public function viewDivisionSubject()
+    {
+
+        return $this->getCachedEntityList(
+            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewDivisionSubject'
         );
     }
 

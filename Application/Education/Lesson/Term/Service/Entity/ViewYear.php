@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -76,6 +77,8 @@ class ViewYear extends AbstractView
         $this->addForeignView(self::TBL_YEAR_ID, new ViewDivision(), ViewDivision::TBL_DIVISION_TBL_YEAR);
         $this->addForeignView(self::TBL_YEAR_ID, new ViewDivisionStudent(), ViewDivisionStudent::TBL_DIVISION_TBL_YEAR);
         $this->addForeignView(self::TBL_YEAR_ID, new ViewDivisionTeacher(), ViewDivisionTeacher::TBL_DIVISION_TBL_YEAR);
+        $this->addForeignView(self::TBL_YEAR_ID, new ViewDivisionSubject(), ViewDivisionSubject::TBL_DIVISION_TBL_YEAR);
+//        $this->addForeignView(self::TBL_YEAR_ID, new ViewDivisionSubject(), ViewDivisionSubject::TBL_DIVISION_TBL_YEAR);
 //        $this->addForeignView(self::TBL_YEAR_ID, new ViewSubjectTeacher(), ViewSubjectTeacher::TBL_DIVISION_TBL_YEAR);
     }
 

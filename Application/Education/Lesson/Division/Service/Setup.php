@@ -65,6 +65,12 @@ class Setup extends AbstractSetup
                 ->addLink(new TblDivisionSubject(), 'Id', new TblSubjectTeacher(), 'tblDivisionSubject')
                 ->addLink(new TblDivision(), 'tblLevel', new TblLevel(), 'Id')
         );
+        $this->getConnection()->createView(
+            ( new View($this->getConnection(), 'viewDivisionSubject') )
+                ->addLink(new TblDivisionSubject(), 'tblDivision', new TblDivision(), 'Id')
+                ->addLink(new TblDivisionSubject(), 'tblSubjectGroup', new TblSubjectGroup(), 'Id')
+                ->addLink(new TblDivision(), 'tblLevel', new TblLevel(), 'Id')
+        );
 
         return $this->getConnection()->getProtocol($Simulate);
     }
