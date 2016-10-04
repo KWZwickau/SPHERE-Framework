@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\ViewSchoolType;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -105,6 +107,11 @@ class ViewDivision extends AbstractView
     public function loadViewGraph()
     {
 
+        $this->addForeignView(self::TBL_DIVISION_ID, new ViewDivisionStudent(), ViewDivisionStudent::TBL_DIVISION_ID);
+        $this->addForeignView(self::TBL_DIVISION_ID, new ViewDivisionTeacher(), ViewDivisionTeacher::TBL_DIVISION_ID);
+        $this->addForeignView(self::TBL_LEVEL_SERVICE_TBL_TYPE, new ViewSchoolType(), ViewSchoolType::TBL_TYPE_ID);
+        $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYear(), ViewYear::TBL_YEAR_ID);
+        $this->addForeignView(self::TBL_DIVISION_ID, new ViewDivisionTeacher(), ViewDivisionTeacher::TBL_DIVISION_ID);
 //        $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYearPeriod(), ViewYearPeriod::TBL_YEAR_PERIOD_TBL_YEAR);
     }
 
