@@ -14,15 +14,15 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Group\Group as GroupCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
+use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -95,25 +95,30 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Schuljahr' => null,
-                    'Klassenstufe' => null,
-                    'Geschlecht' => null,
+                    'Gruppe' => null,
+                    'Geschl.' => null,
                     'Name' => null,
                     'Vorname' => null,
-                    'Geb.-Datum' => null,
                     'Straße' => null,
-                    'PLZ/Wohnort' => null,
-                    'Anmeldedat.' => null,
+                    'Hausnr.' => null,
+                    'PLZ' => null,
+                    'Ort' => null,
+                    'ggf. Ortsteil' => null,
                     'Telefon' => null,
-                    'Sorg1_Vorname' => null,
-                    'Sorg1_Name' => null,
-                    'Sorg2_Vorname' => null,
-                    'Sorg2_Name' => null,
-                    'Konfession' => null,
-                    'derzeitige Schule' => null,
+                    'Geburtsdatum' => null,
+                    'Geburtsort' => null,
+                    'Vorname Mutter' => null,
+                    'Name Mutter' => null,
+                    'Vorname Vater' => null,
+                    'Name Vater' => null,
+                    'Geschwister' => null,
+                    'angemeldet am' => null,
+                    'Anmeldung bestätigt' => null,
                     'Email' => null,
-                    'Bemerkung' => null,
+                    'Staatsangeh.' => null,
+                    'Religion' => null,
                 );
+
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                     if (array_key_exists($Value, $Location)) {
@@ -125,21 +130,24 @@ class Service
                  * Import
                  */
                 if (!in_array(null, $Location, true)) {
-                    $countInterestedPerson = 0;
+                    $countProspect = 0;
                     $countFather = 0;
                     $countMother = 0;
                     $countFatherExists = 0;
                     $countMotherExists = 0;
 
+                    $tblGroupProspect = Group::useService()->getGroupByMetaTable('PROSPECT');
+
                     $error = array();
-
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-
-                        // InterestedPerson
+                        set_time_limit(300);
+                        // Prospect
                         $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
                         $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        if ($firstName === '' || $lastName === '') {
+                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
+                        } else {
 
-                        if ($firstName !== '' && $lastName !== '') {
                             $tblPerson = Person::useService()->insertPerson(
                                 Person::useService()->getSalutationById(3),    //Schüler
                                 '',
@@ -148,38 +156,26 @@ class Service
                                 $lastName,
                                 array(
                                     0 => Group::useService()->getGroupByMetaTable('COMMON'),
-                                    1 => Group::useService()->getGroupByMetaTable('PROSPECT')
+                                    1 => $tblGroupProspect,
                                 )
                             );
 
-                            if ($tblPerson !== false) {
-                                $countInterestedPerson++;
+                            if ($tblPerson === false) {
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte nicht angelegt werden.';
+                            } else {
+                                $countProspect++;
 
-                                $cityName = trim($Document->getValue($Document->getCell($Location['PLZ/Wohnort'],
-                                    $RunY)));
-                                $cityCode = '';
-                                $cityDistrict = '';
-                                $pos = strpos($cityName, " ");
-                                if ($pos !== false) {
-                                    $cityCode = trim(substr($cityName, 0, $pos));
-                                    $cityName = trim(substr($cityName, $pos + 1));
-
-                                    $pos = strpos($cityName, " OT ");
-                                    if ($pos !== false) {
-                                        $cityDistrict = trim(substr($cityName, $pos + 4));
-                                        $cityName = trim(substr($cityName, 0, $pos));
-                                    }
+                                $tblGroup = false;
+                                $group = trim($Document->getValue($Document->getCell($Location['Gruppe'], $RunY)));
+                                if ($group !== '' && !($tblGroup = (Group::useService()->getGroupByName($group)))) {
+                                    $tblGroup = Group::useService()->createGroupFromImport($group);
                                 }
 
-                                $day = trim($Document->getValue($Document->getCell($Location['Geb.-Datum'],
-                                    $RunY)));
-                                if ($day !== '') {
-                                    $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                } else {
-                                    $birthday = '';
+                                if ($tblGroup) {
+                                    Group::useService()->addGroupPerson($tblGroup, $tblPerson);
                                 }
 
-                                $gender = trim($Document->getValue($Document->getCell($Location['Geschlecht'],
+                                $gender = trim($Document->getValue($Document->getCell($Location['Geschl.'],
                                     $RunY)));
                                 if ($gender == 'm') {
                                     $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
@@ -189,267 +185,301 @@ class Service
                                     $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
                                 }
 
+                                $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                    $RunY)));
+                                if ($day !== '') {
+                                    try {
+                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    } catch (\Exception $ex) {
+                                        $birthday = '';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
+                                    }
+
+                                } else {
+                                    $birthday = '';
+                                }
+
                                 Common::useService()->insertMeta(
                                     $tblPerson,
                                     $birthday,
-                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsort'],
+                                        $RunY))),
                                     $gender,
-                                    '',
-                                    trim($Document->getValue($Document->getCell($Location['Konfession'],
+                                    trim($Document->getValue($Document->getCell($Location['Staatsangeh.'],
+                                        $RunY))),
+                                    trim($Document->getValue($Document->getCell($Location['Religion'],
                                         $RunY))),
                                     TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
                                     '',
                                     ''
                                 );
 
-                                // Mittelschule/Oberschule
-                                $tblOptionTypeA = Type::useService()->getTypeById(8);
+                                $tblSchoolType = Type::useService()->getTypeById(6); // Grundschule
 
-                                $remark = '';
-                                $info = trim($Document->getValue($Document->getCell($Location['derzeitige Schule'],
-                                    $RunY)));
-                                if ($info !== '') {
-                                    $remark = 'derzeitige Schule: ' . $info . ' ';
-                                }
-                                $info = trim($Document->getValue($Document->getCell($Location['Bemerkung'], $RunY)));
-                                if ($info !== '') {
-                                    $remark .= 'Bemerkung: ' . $info;
-                                }
-
-                                $day = trim($Document->getValue($Document->getCell($Location['Anmeldedat.'],
-                                    $RunY)));
-                                if ($day !== '') {
-                                    $reservationDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                } else {
-                                    $reservationDate = '';
-                                }
-
-                                Prospect::useService()->insertMeta(
-                                    $tblPerson,
-                                    $reservationDate,
-                                    '',
-                                    '',
-                                    trim($Document->getValue($Document->getCell($Location['Schuljahr'], $RunY))),
-                                    trim($Document->getValue($Document->getCell($Location['Klassenstufe'], $RunY))),
-                                    $tblOptionTypeA,
-                                    null,
-                                    $remark
+                                // Address
+                                $cityCode = str_pad(
+                                    trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
+                                    5,
+                                    "0",
+                                    STR_PAD_LEFT
                                 );
+                                $cityName = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                    $RunY)));
+                                $cityDistrict = trim($Document->getValue($Document->getCell($Location['ggf. Ortsteil'],
+                                    $RunY)));
+                                $streetName = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                    $RunY)));
+                                $streetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
+                                    $RunY)));
+                                if ($streetName !== '' && $streetNumber !== ''
+                                    && $cityCode && $cityName
+                                ) {
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson, $streetName, $streetNumber, $cityCode, $cityName,
+                                        $cityDistrict, ''
+                                    );
+                                }
 
                                 $tblRelationshipTypeCustody = Relationship::useService()->getTypeById(1);
-
-                                // Custody1
-                                $tblPersonCustody1 = null;
-                                $firstNameCustody1 = trim($Document->getValue($Document->getCell($Location['Sorg1_Vorname'],
+                                // Father
+                                $tblPersonFather = null;
+                                $fatherLastName = trim($Document->getValue($Document->getCell($Location['Name Vater'],
                                     $RunY)));
-                                $lastNameCustody1 = trim($Document->getValue($Document->getCell($Location['Sorg1_Name'],
+                                $fatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname Vater'],
                                     $RunY)));
+                                if ($fatherLastName !== '' && $fatherFirstName !== '') {
 
-                                if ($firstNameCustody1 !== '' && $lastNameCustody1 !== '') {
-                                    $tblPersonCustody1Exists = Person::useService()->existsPerson(
-                                        $firstNameCustody1,
-                                        $lastNameCustody1,
+                                    $tblPersonFatherExists = Person::useService()->existsPerson(
+                                        $fatherFirstName,
+                                        $fatherLastName,
                                         $cityCode
                                     );
 
-                                    if (!$tblPersonCustody1Exists) {
-                                        $tblPersonCustody1 = Person::useService()->insertPerson(
-                                            null,
+                                    if (!$tblPersonFatherExists) {
+                                        $tblSalutation = Person::useService()->getSalutationById(1);
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
+
+                                        $tblPersonFather = Person::useService()->insertPerson(
+                                            $tblSalutation,
                                             '',
-                                            $firstNameCustody1,
+                                            $fatherFirstName,
                                             '',
-                                            $lastNameCustody1,
+                                            $fatherLastName,
                                             array(
                                                 0 => Group::useService()->getGroupByMetaTable('COMMON'),
                                                 1 => Group::useService()->getGroupByMetaTable('CUSTODY')
                                             )
                                         );
 
+                                        if ($tblPersonFather) {
+                                            Common::useService()->insertMeta(
+                                                $tblPersonFather,
+                                                '',
+                                                '',
+                                                $gender,
+                                                '',
+                                                '',
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
                                         Relationship::useService()->insertRelationshipToPerson(
-                                            $tblPersonCustody1,
+                                            $tblPersonFather,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
-                                            ''
+                                            'Vater'
                                         );
 
-                                        // Address
-                                        $StreetName = '';
-                                        $StreetNumber = '';
-                                        $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
-                                            $RunY)));
-                                        if (preg_match_all('!\d+!', $Street, $matches)) {
-                                            $pos = strpos($Street, $matches[0][0]);
-                                            if ($pos !== null) {
-                                                $StreetName = trim(substr($Street, 0, $pos));
-                                                $StreetNumber = trim(substr($Street, $pos));
-                                            }
-                                        }
-                                        if ($StreetName && $StreetNumber && $cityCode && $cityName) {
+                                        if ($streetName !== '' && $streetNumber !== '' && $cityCode && $cityName) {
                                             Address::useService()->insertAddressToPerson(
-                                                $tblPersonCustody1, $StreetName, $StreetNumber, $cityCode, $cityName,
-                                                $cityDistrict, ''
+                                                $tblPersonFather,
+                                                $streetName,
+                                                $streetNumber,
+                                                $cityCode,
+                                                $cityName,
+                                                $cityDistrict,
+                                                ''
                                             );
                                         } else {
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigen1 wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Vaters wurde nicht angelegt, da keine vollständige Adresse hinterlegt ist.';
                                         }
 
                                         $countFather++;
                                     } else {
 
                                         Relationship::useService()->insertRelationshipToPerson(
-                                            $tblPersonCustody1Exists,
+                                            $tblPersonFatherExists,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
-                                            ''
+                                            'Vater'
                                         );
 
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+
                                         $countFatherExists++;
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
                                     }
-                                } else {
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte1 wurde nicht angelegt, da sie keinen Namen und Vornamen hat.';
                                 }
 
-                                // Custody2
-                                $tblPersonCustody2 = null;
-                                $firstNameCustody2 = trim($Document->getValue($Document->getCell($Location['Sorg2_Vorname'],
+                                // Mother
+                                $tblPersonMother = null;
+                                $motherLastName = trim($Document->getValue($Document->getCell($Location['Name Mutter'],
                                     $RunY)));
-                                $lastNameCustody2 = trim($Document->getValue($Document->getCell($Location['Sorg2_Name'],
+                                $motherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname Mutter'],
                                     $RunY)));
+                                if ($motherLastName !== '' && $motherFirstName !== '') {
 
-                                if ($firstNameCustody2 !== '' && $lastNameCustody2 !== '') {
-                                    $tblPersonCustody2Exists = Person::useService()->existsPerson(
-                                        $firstNameCustody2,
-                                        $lastNameCustody2,
+                                    $tblPersonMotherExists = Person::useService()->existsPerson(
+                                        $motherFirstName,
+                                        $motherLastName,
                                         $cityCode
                                     );
 
-                                    if (!$tblPersonCustody2Exists) {
-                                        $tblPersonCustody2 = Person::useService()->insertPerson(
-                                            null,
+                                    if (!$tblPersonMotherExists) {
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
+                                        $tblSalutation = Person::useService()->getSalutationById(2);
+
+                                        $tblPersonMother = Person::useService()->insertPerson(
+                                            $tblSalutation,
                                             '',
-                                            $firstNameCustody2,
+                                            $motherFirstName,
                                             '',
-                                            $lastNameCustody2,
+                                            $motherLastName,
                                             array(
                                                 0 => Group::useService()->getGroupByMetaTable('COMMON'),
                                                 1 => Group::useService()->getGroupByMetaTable('CUSTODY')
                                             )
                                         );
 
+                                        if ($tblPersonMother) {
+                                            Common::useService()->insertMeta(
+                                                $tblPersonMother,
+                                                '',
+                                                '',
+                                                $gender,
+                                                '',
+                                                '',
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
                                         Relationship::useService()->insertRelationshipToPerson(
-                                            $tblPersonCustody2,
+                                            $tblPersonMother,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
-                                            ''
+                                            'Mutter'
                                         );
 
-                                        // Address
-                                        $StreetName = '';
-                                        $StreetNumber = '';
-                                        $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
-                                            $RunY)));
-                                        if (preg_match_all('!\d+!', $Street, $matches)) {
-                                            $pos = strpos($Street, $matches[0][0]);
-                                            if ($pos !== null) {
-                                                $StreetName = trim(substr($Street, 0, $pos));
-                                                $StreetNumber = trim(substr($Street, $pos));
-                                            }
-                                        }
-                                        if ($StreetName && $StreetNumber && $cityCode && $cityName) {
+                                        if ($streetName !== '' && $streetNumber !== '' && $cityCode && $cityName) {
                                             Address::useService()->insertAddressToPerson(
-                                                $tblPersonCustody2, $StreetName, $StreetNumber, $cityCode, $cityName,
-                                                $cityDistrict, ''
+                                                $tblPersonMother,
+                                                $streetName,
+                                                $streetNumber,
+                                                $cityCode,
+                                                $cityName,
+                                                $cityDistrict,
+                                                ''
                                             );
                                         } else {
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigen2 wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse der Mutter wurde nicht angelegt, da keine vollständige Adresse hinterlegt ist.';
                                         }
 
                                         $countMother++;
                                     } else {
 
                                         Relationship::useService()->insertRelationshipToPerson(
-                                            $tblPersonCustody2Exists,
+                                            $tblPersonMotherExists,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
-                                            ''
+                                            'Mutter'
                                         );
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
 
                                         $countMotherExists++;
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
-                                    }
-                                } else {
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte1 wurde nicht angelegt, da sie keinen Namen und Vornamen hat.';
-                                }
-
-                                // Address
-                                $StreetName = '';
-                                $StreetNumber = '';
-                                $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
-                                    $RunY)));
-                                if (preg_match_all('!\d+!', $Street, $matches)) {
-                                    $pos = strpos($Street, $matches[0][0]);
-                                    if ($pos !== null) {
-                                        $StreetName = trim(substr($Street, 0, $pos));
-                                        $StreetNumber = trim(substr($Street, $pos));
                                     }
                                 }
-                                if ($StreetName && $StreetNumber && $cityCode && $cityName) {
-                                    Address::useService()->insertAddressToPerson(
-                                        $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''
-                                    );
-                                } else {
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Interessenten wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
-                                }
 
-                                /*
-                                * Phone
-                                */
                                 $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon'],
                                     $RunY)));
-                                if ($phoneNumber !== '') {
-                                    $phoneNumberList = explode(';', $phoneNumber);
-                                    foreach ($phoneNumberList as $phone) {
-                                        $phone = trim($phone);
-                                        $tblType = Phone::useService()->getTypeById(1);
-                                        if (0 === strpos($phone, '01')) {
-                                            $tblType = Phone::useService()->getTypeById(2);
-                                        }
-                                        Phone::useService()->insertPhoneToPerson(
-                                            $tblPerson,
-                                            $phone,
-                                            $tblType,
-                                            ''
-                                        );
+                                if ($phoneNumber != '') {
+                                    $tblType = Phone::useService()->getTypeById(1);
+                                    if (0 === strpos($phoneNumber, '01')) {
+                                        $tblType = Phone::useService()->getTypeById(2);
                                     }
+
+                                    Phone::useService()->insertPhoneToPerson(
+                                        $tblPerson,
+                                        $phoneNumber,
+                                        $tblType,
+                                        ''
+                                    );
                                 }
 
                                 $mailAddress = trim($Document->getValue($Document->getCell($Location['Email'],
                                     $RunY)));
                                 if ($mailAddress != '') {
-                                    Mail::useService()->insertMailToPerson(
-                                        $tblPerson,
-                                        $mailAddress,
-                                        Mail::useService()->getTypeById(1),
-                                        ''
-                                    );
+                                    $mailAddressList = explode(',', $mailAddress);
+                                    foreach ($mailAddressList as $addressItem) {
+                                        Mail::useService()->insertMailToPerson(
+                                            $tblPerson,
+                                            trim($addressItem),
+                                            Mail::useService()->getTypeById(1),
+                                            ''
+                                        );
+                                    }
                                 }
+
+                                $day = trim($Document->getValue($Document->getCell($Location['angemeldet am'],
+                                    $RunY)));
+                                if ($day !== '') {
+                                    try {
+                                        $day = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    } catch (\Exception $ex) {
+                                        $day = '';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Abgang_am Datum: ' . $ex->getMessage();
+                                    }
+                                } else {
+                                    $day = '';
+                                }
+
+                                if ($group !== '' && (($pos = strpos($group, ' ')) !== false)) {
+                                    $year = substr($group, $pos + 1);
+                                    $reservationYear = '20' . str_replace('-', '/', $year);
+                                } else {
+                                    $reservationYear = '';
+                                }
+
+                                $remark = '';
+                                if (($siblings = trim($Document->getValue($Document->getCell($Location['Geschwister'],
+                                    $RunY)))) && $siblings !== '-' ) {
+                                    $remark = 'Geschwister: ' . $siblings;
+                                }
+                                if (($confirmation = trim($Document->getValue($Document->getCell($Location['Anmeldung bestätigt'],
+                                    $RunY))))) {
+                                    $remark = trim($remark . ' Anmeldung bestätigt: ' . $confirmation . ' ');
+                                }
+
+                                Prospect::useService()->insertMeta(
+                                    $tblPerson, $day, '', '', $reservationYear, '', $tblSchoolType, null, $remark
+                                );
                             }
-                        } else {
-                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
                         }
                     }
 
                     Debugger::screenDump($error);
 
                     return
-                        new Success('Es wurden ' . $countInterestedPerson . ' Intessenten erfolgreich angelegt.') .
-                        new Success('Es wurden ' . $countFather . ' Sorgeberechtigte1 erfolgreich angelegt.') .
+                        new Success('Es wurden ' . $countProspect . ' Schüler erfolgreich angelegt.') .
+                        new Success('Es wurden ' . $countFather . ' Sorgeberechtigte2 erfolgreich angelegt.') .
                         ($countFatherExists > 0 ?
-                            new Warning($countFatherExists . ' Sorgeberechtigte1 exisistieren bereits.') : '') .
-                        new Success('Es wurden ' . $countMother . ' Sorgeberechtigte2 erfolgreich angelegt.') .
+                            new Warning($countFatherExists . ' Sorgeberechtigte2 exisistieren bereits.') : '') .
+                        new Success('Es wurden ' . $countMother . ' Sorgeberechtigte1 erfolgreich angelegt.') .
                         ($countMotherExists > 0 ?
-                            new Warning($countMotherExists . ' Sorgeberechtigte2 exisistieren bereits.') : '')
+                            new Warning($countMotherExists . ' Sorgeberechtigte1 exisistieren bereits.') : '')
                         . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel(
                                 'Fehler',
@@ -457,6 +487,7 @@ class Service
                                 Panel::PANEL_TYPE_DANGER
                             )
                         ))));
+
                 } else {
                     Debugger::screenDump($Location);
 
@@ -673,11 +704,11 @@ class Service
                         ($countStaffExists > 0 ?
                             new Warning($countStaffExists . ' Mitarbeiter exisistieren bereits.') : '')
                         . (empty($error) ? '' : new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                            new Panel(
-                                'Fehler',
-                                $error,
-                                Panel::PANEL_TYPE_DANGER
-                            ))
+                                new Panel(
+                                    'Fehler',
+                                    $error,
+                                    Panel::PANEL_TYPE_DANGER
+                                ))
                         ))));
 
                 } else {
@@ -764,7 +795,7 @@ class Service
                     'Email-Adresse' => null,
                     'Hortkind' => null,
                     'Beförderung früh' => null,
-                    'Beförderung nach' => null,
+                    'Beförderung nachm.' => null,
                     'Nr. Schulverzeichnis' => null,
                     'aufgenommen am' => null,
                     'aufgenommen von' => null,
@@ -789,6 +820,13 @@ class Service
                     $countFatherExists = 0;
                     $countMotherExists = 0;
 
+                    if (!($tblGroupFormerStudents = (Group::useService()->getGroupByName('Ehemalige Schüler')))) {
+                        $tblGroupFormerStudents = Group::useService()->createGroupFromImport('Ehemalige Schüler');
+                    }
+                    if (!($tblGroupDayCare = (Group::useService()->getGroupByName('Hort')))) {
+                        $tblGroupDayCare = Group::useService()->createGroupFromImport('Hort');
+                    }
+
                     $error = array();
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         set_time_limit(300);
@@ -799,6 +837,13 @@ class Service
                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
                         } else {
 
+                            $year = trim($Document->getValue($Document->getCell($Location['Schuljahr'], $RunY)));
+                            if ($year == 16) {
+                                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                            } else {
+                                $tblGroup = $tblGroupFormerStudents;
+                            }
+
                             $tblPerson = Person::useService()->insertPerson(
                                 Person::useService()->getSalutationById(3),    //Schüler
                                 '',
@@ -807,7 +852,7 @@ class Service
                                 $lastName,
                                 array(
                                     0 => Group::useService()->getGroupByMetaTable('COMMON'),
-                                    1 => Group::useService()->getGroupByMetaTable('STUDENT'),
+                                    1 => $tblGroup,
                                 )
                             );
 
@@ -816,7 +861,7 @@ class Service
                             } else {
                                 $countStudent++;
 
-                                $gender = trim($Document->getValue($Document->getCell($Location['Schüler_Geschlecht'],
+                                $gender = trim($Document->getValue($Document->getCell($Location['Geschlecht'],
                                     $RunY)));
                                 if ($gender == 'm') {
                                     $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
@@ -843,24 +888,22 @@ class Service
                                 Common::useService()->insertMeta(
                                     $tblPerson,
                                     $birthday,
-                                    trim($Document->getValue($Document->getCell($Location['Schüler_Geburtsort'],
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsort'],
                                         $RunY))),
                                     $gender,
-                                    trim($Document->getValue($Document->getCell($Location['Schüler_Staatsangehörigkeit'],
-                                        $RunY))),
-                                    trim($Document->getValue($Document->getCell($Location['Schüler_Konfession'],
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Bekenntnis'],
                                         $RunY))),
                                     TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
                                     '',
                                     ''
                                 );
 
-                                $tblSchoolType = Type::useService()->getTypeById(8); // Oberschule
+                                $tblSchoolType = Type::useService()->getTypeById(6); // Grundschule
 
                                 // division
                                 $tblDivision = false;
-                                $year = 16;
-                                $division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
+                                $division = trim($Document->getValue($Document->getCell($Location['Klasse'],
                                     $RunY)));
                                 if ($division !== '') {
                                     $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
@@ -889,20 +932,12 @@ class Service
                                         }
 
                                         if ($tblSchoolType) {
-                                            if ($division != '10') {
-                                                $pos = 1;
-                                                $level = substr($division, 0, $pos);
-                                                $division = substr($division, $pos);
-                                            } else {
-                                                $level = $division;
-                                                $division = '';
-                                            }
-                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $division);
                                             if ($tblLevel) {
                                                 $tblDivision = Division::useService()->insertDivision(
                                                     $tblYear,
                                                     $tblLevel,
-                                                    $division
+                                                    ''
                                                 );
                                             }
                                         }
@@ -916,87 +951,53 @@ class Service
                                 }
 
                                 // Address
-                                $studentCityCode = str_pad(
-                                    trim($Document->getValue($Document->getCell($Location['Schüler_Plz'], $RunY))),
+                                $cityCode = str_pad(
+                                    trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
                                     5,
                                     "0",
                                     STR_PAD_LEFT
                                 );
-                                $studentCityName = trim($Document->getValue($Document->getCell($Location['Schüler_Wohnort'],
+                                $cityName = trim($Document->getValue($Document->getCell($Location['Ort'],
                                     $RunY)));
-                                $studentCityDistrict = trim($Document->getValue($Document->getCell($Location['Schüler_Ortsteil'],
+                                $cityDistrict = trim($Document->getValue($Document->getCell($Location['ggf. Ortsteil'],
                                     $RunY)));
-                                $streetName = '';
-                                $streetNumber = '';
-                                $street = trim($Document->getValue($Document->getCell($Location['Schüler_Straße'],
+                                $streetName = trim($Document->getValue($Document->getCell($Location['Straße'],
                                     $RunY)));
-                                if (preg_match_all('!\d+!', $street, $matches)) {
-                                    $pos = strpos($street, $matches[0][0]);
-                                    if ($pos !== null) {
-                                        $streetName = trim(substr($street, 0, $pos));
-                                        $streetNumber = trim(substr($street, $pos));
-                                    }
-                                }
-                                $county = trim($Document->getValue($Document->getCell($Location['Schüler_Landkreis'],
+                                $streetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
                                     $RunY)));
-                                if (trim($Document->getValue($Document->getCell($Location['Schüler_Bundesland'],
-                                        $RunY))) == 'SN'
-                                ) {
-                                    $tblState = Address::useService()->getStateByName('Sachsen');
-                                } else {
-                                    $tblState = false;
-                                }
                                 if ($streetName !== '' && $streetNumber !== ''
-                                    && $studentCityCode && $studentCityName
+                                    && $cityCode && $cityName
                                 ) {
                                     Address::useService()->insertAddressToPerson(
-                                        $tblPerson, $streetName, $streetNumber, $studentCityCode, $studentCityName,
-                                        $studentCityDistrict, '', $county, '', $tblState ? $tblState : null
+                                        $tblPerson, $streetName, $streetNumber, $cityCode, $cityName,
+                                        $cityDistrict, ''
                                     );
                                 }
 
                                 $tblRelationshipTypeCustody = Relationship::useService()->getTypeById(1);
                                 // Father
                                 $tblPersonFather = null;
-                                $fatherLastName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Name'],
+                                $fatherLastName = trim($Document->getValue($Document->getCell($Location['Name Vater'],
                                     $RunY)));
-                                $fatherFirstName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Vorname'],
+                                $fatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname Vater'],
                                     $RunY)));
 
-                                $fatherCityCode = str_pad(
-                                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Plz'],
-                                        $RunY))),
-                                    5,
-                                    "0",
-                                    STR_PAD_LEFT
-                                );
 
-                                if ($fatherLastName != '') {
+                                if ($fatherLastName !== '' && $fatherFirstName !== '') {
 
                                     $tblPersonFatherExists = Person::useService()->existsPerson(
                                         $fatherFirstName,
                                         $fatherLastName,
-                                        $fatherCityCode
+                                        $cityCode
                                     );
 
                                     if (!$tblPersonFatherExists) {
-                                        $gender = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Geschlecht'],
-                                            $RunY)));
-                                        if ($gender == 'm') {
-                                            $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
-                                            $tblSalutation = Person::useService()->getSalutationById(1);
-                                        } elseif ($gender == 'w') {
-                                            $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
-                                            $tblSalutation = Person::useService()->getSalutationById(2);
-                                        } else {
-                                            $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
-                                            $tblSalutation = null;
-                                        }
+                                        $tblSalutation = Person::useService()->getSalutationById(1);
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
 
                                         $tblPersonFather = Person::useService()->insertPerson(
                                             $tblSalutation,
-                                            trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Titel'],
-                                                $RunY))),
+                                            '',
                                             $fatherFirstName,
                                             '',
                                             $fatherLastName,
@@ -1018,14 +1019,36 @@ class Service
                                                 '',
                                                 ''
                                             );
+
+                                            Custody::useService()->insertMeta(
+                                                $tblPersonFather,
+                                                trim($Document->getValue($Document->getCell($Location['Beruf Vater'],
+                                                    $RunY))),
+                                                '',
+                                                ''
+                                            );
                                         }
 
                                         Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonFather,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
-                                            ''
+                                            'Vater'
                                         );
+
+                                        if ($streetName !== '' && $streetNumber !== '' && $cityCode && $cityName) {
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPersonFather,
+                                                $streetName,
+                                                $streetNumber,
+                                                $cityCode,
+                                                $cityName,
+                                                $cityDistrict,
+                                                ''
+                                            );
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Vaters wurde nicht angelegt, da keine vollständige Adresse hinterlegt ist.';
+                                        }
 
                                         $countFather++;
                                     } else {
@@ -1034,10 +1057,10 @@ class Service
                                             $tblPersonFatherExists,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
-                                            ''
+                                            'Vater'
                                         );
 
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte2 wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
 
                                         $countFatherExists++;
                                     }
@@ -1045,44 +1068,26 @@ class Service
 
                                 // Mother
                                 $tblPersonMother = null;
-                                $motherLastName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Name'],
+                                $motherLastName = trim($Document->getValue($Document->getCell($Location['Name Mutter'],
                                     $RunY)));
-                                $motherFirstName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Vorname'],
+                                $motherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname Mutter'],
                                     $RunY)));
-                                $motherCityCode = str_pad(
-                                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Plz'],
-                                        $RunY))),
-                                    5,
-                                    "0",
-                                    STR_PAD_LEFT
-                                );
 
-                                if ($motherLastName != '') {
+                                if ($motherLastName !== '' && $motherFirstName !== '') {
 
                                     $tblPersonMotherExists = Person::useService()->existsPerson(
                                         $motherFirstName,
                                         $motherLastName,
-                                        $studentCityCode
+                                        $cityCode
                                     );
 
                                     if (!$tblPersonMotherExists) {
-                                        $gender = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Geschlecht'],
-                                            $RunY)));
-                                        if ($gender == 'm') {
-                                            $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
-                                            $tblSalutation = Person::useService()->getSalutationById(1);
-                                        } elseif ($gender == 'w') {
-                                            $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
-                                            $tblSalutation = Person::useService()->getSalutationById(2);
-                                        } else {
-                                            $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
-                                            $tblSalutation = null;
-                                        }
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
+                                        $tblSalutation = Person::useService()->getSalutationById(2);
 
                                         $tblPersonMother = Person::useService()->insertPerson(
                                             $tblSalutation,
-                                            trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Titel'],
-                                                $RunY))),
+                                            '',
                                             $motherFirstName,
                                             '',
                                             $motherLastName,
@@ -1104,14 +1109,36 @@ class Service
                                                 '',
                                                 ''
                                             );
+
+                                            Custody::useService()->insertMeta(
+                                                $tblPersonMother,
+                                                trim($Document->getValue($Document->getCell($Location['Beruf Mutter'],
+                                                    $RunY))),
+                                                '',
+                                                ''
+                                            );
                                         }
 
                                         Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonMother,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
-                                            ''
+                                            'Mutter'
                                         );
+
+                                        if ($streetName !== '' && $streetNumber !== '' && $cityCode && $cityName) {
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPersonMother,
+                                                $streetName,
+                                                $streetNumber,
+                                                $cityCode,
+                                                $cityName,
+                                                $cityDistrict,
+                                                ''
+                                            );
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse der Mutter wurde nicht angelegt, da keine vollständige Adresse hinterlegt ist.';
+                                        }
 
                                         $countMother++;
                                     } else {
@@ -1120,212 +1147,79 @@ class Service
                                             $tblPersonMotherExists,
                                             $tblPerson,
                                             $tblRelationshipTypeCustody,
-                                            ''
+                                            'Mutter'
                                         );
 
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte1 wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
 
                                         $countMotherExists++;
                                     }
                                 }
 
-
-                                if ($tblPersonFather !== null) {
-                                    $streetName = '';
-                                    $streetNumber = '';
-                                    $street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Straße'],
-                                        $RunY)));
-                                    if (preg_match_all('!\d+!', $street, $matches)) {
-                                        $pos = strpos($street, $matches[0][0]);
-                                        if ($pos !== null) {
-                                            $streetName = trim(substr($street, 0, $pos));
-                                            $streetNumber = trim(substr($street, $pos));
-                                        }
-                                    }
-
-                                    $city = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
-                                        $RunY)));
-
-                                    if ($streetName !== '' && $streetNumber !== '' && $fatherCityCode && $city) {
-                                        Address::useService()->insertAddressToPerson(
-                                            $tblPersonFather,
-                                            $streetName,
-                                            $streetNumber,
-                                            $fatherCityCode,
-                                            $city,
-                                            trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Ortsteil'],
-                                                $RunY))),
-                                            ''
-                                        );
-                                    } else {
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigte2 wurde nicht angelegt, da keine vollständige Adresse hinterlegt ist.';
-                                    }
-                                }
-                                if ($tblPersonMother !== null) {
-                                    $streetName = '';
-                                    $streetNumber = '';
-                                    $street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Straße'],
-                                        $RunY)));
-                                    if (preg_match_all('!\d+!', $street, $matches)) {
-                                        $pos = strpos($street, $matches[0][0]);
-                                        if ($pos !== null) {
-                                            $streetName = trim(substr($street, 0, $pos));
-                                            $streetNumber = trim(substr($street, $pos));
-                                        }
-                                    }
-
-                                    $city = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
-                                        $RunY)));
-
-                                    if ($streetName !== '' && $streetNumber !== '' && $fatherCityCode && $city) {
-                                        Address::useService()->insertAddressToPerson(
-                                            $tblPersonMother,
-                                            $streetName,
-                                            $streetNumber,
-                                            $motherCityCode,
-                                            $city,
-                                            trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Ortsteil'],
-                                                $RunY))),
-                                            ''
-                                        );
-                                    } else {
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigte1 wurde nicht angelegt, da keine vollständige Adresse hinterlegt ist.';
-                                    }
-                                }
-
-                                for ($i = 1; $i <= 6; $i++) {
-                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon' . $i],
-                                        $RunY)));
-                                    if ($phoneNumber != '') {
-                                        $tblType = Phone::useService()->getTypeById(1);
-                                        if (0 === strpos($phoneNumber, '01')) {
-                                            $tblType = Phone::useService()->getTypeById(2);
-                                        }
-
-                                        Phone::useService()->insertPhoneToPerson(
-                                            $tblPerson,
-                                            $phoneNumber,
-                                            $tblType,
-                                            ''
-                                        );
-                                    }
-                                }
-
-                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email'],
+                                $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon'],
                                     $RunY)));
-                                if ($mailAddress != '') {
-                                    Mail::useService()->insertMailToPerson(
-                                        $tblPerson,
-                                        $mailAddress,
-                                        Mail::useService()->getTypeById(1),
-                                        ''
-                                    );
-                                }
+                                if ($phoneNumber != '') {
+                                    $tblType = Phone::useService()->getTypeById(1);
+                                    if (0 === strpos($phoneNumber, '01')) {
+                                        $tblType = Phone::useService()->getTypeById(2);
+                                    }
 
-                                $faxNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Fax'],
-                                    $RunY)));
-                                if ($faxNumber != '') {
                                     Phone::useService()->insertPhoneToPerson(
                                         $tblPerson,
-                                        $faxNumber,
-                                        Phone::useService()->getTypeById(7),
+                                        $phoneNumber,
+                                        $tblType,
                                         ''
                                     );
+                                }
+
+                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Email-Adresse'],
+                                    $RunY)));
+                                if ($mailAddress != '') {
+                                    $mailAddressList = explode(',', $mailAddress);
+                                    foreach ($mailAddressList as $addressItem) {
+                                        Mail::useService()->insertMailToPerson(
+                                            $tblPerson,
+                                            trim($addressItem),
+                                            Mail::useService()->getTypeById(1),
+                                            ''
+                                        );
+                                    }
+                                }
+
+                                if (trim($Document->getValue($Document->getCell($Location['Hortkind'],
+                                        $RunY))) !== ''
+                                ) {
+                                    Group::useService()->addGroupPerson($tblGroupDayCare, $tblPerson);
                                 }
 
                                 /*
                                  * student
                                  */
-                                $sibling = trim($Document->getValue($Document->getCell($Location['Schüler_Geschwister'],
+                                $earlyTransport = trim($Document->getValue($Document->getCell($Location['Beförderung früh'],
                                     $RunY)));
-                                $tblSiblingRank = false;
-                                if ($sibling !== '') {
-                                    if ($sibling == '0') {
-                                        // do nothing
-                                    } elseif ($sibling == '1') {
-                                        $tblSiblingRank = Relationship::useService()->getSiblingRankById(1);
-                                    } elseif ($sibling == '2') {
-                                        $tblSiblingRank = Relationship::useService()->getSiblingRankById(2);
-                                    } elseif ($sibling == '3') {
-                                        $tblSiblingRank = Relationship::useService()->getSiblingRankById(3);
-                                    } elseif ($sibling == '4') {
-                                        $tblSiblingRank = Relationship::useService()->getSiblingRankById(4);
-                                    } elseif ($sibling == '5') {
-                                        $tblSiblingRank = Relationship::useService()->getSiblingRankById(5);
-                                    } elseif ($sibling == '6') {
-                                        $tblSiblingRank = Relationship::useService()->getSiblingRankById(6);
-                                    } else {
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Geschwisterkind konnte nicht angelegt werden.';
-                                    }
-                                }
-                                $tblStudentBilling = null;
-                                if ($tblSiblingRank) {
-                                    $tblStudentBilling = Student::useService()->insertStudentBilling($tblSiblingRank);
-                                } else {
-                                    $tblStudentBilling = null;
-                                }
-
-                                $coachingRequired = (trim($Document->getValue($Document->getCell($Location['Schüler_Integr_Förderschüler'],
-                                        $RunY))) == '1');
-                                if ($coachingRequired) {
-                                    $tblStudentIntegration = Student::useService()->insertStudentIntegration(
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        true
-                                    );
-                                } else {
-                                    $tblStudentIntegration = null;
-                                }
-
-                                // Versicherungsstatus passt nicht zu unserem Status
-                                $insurance = trim($Document->getValue($Document->getCell($Location['Schüler_Krankenkasse'],
+                                $lateTransport = trim($Document->getValue($Document->getCell($Location['Beförderung nachm.'],
                                     $RunY)));
-                                if ($insurance) {
-                                    $tblStudentMedicalRecord = Student::useService()->insertStudentMedicalRecord(
+                                $tblStudent = Student::useService()->insertStudent(
+                                    $tblPerson,
+                                    trim($Document->getValue($Document->getCell($Location['Nr. Schulverzeichnis'],
+                                        $RunY))),
+                                    null,
+                                    Student::useService()->insertStudentTransport(
                                         '',
                                         '',
-                                        $insurance
-                                    );
-                                } else {
-                                    $tblStudentMedicalRecord = null;
-                                }
-
-                                $tblStudent = Student::useService()->insertStudent($tblPerson, '',
-                                    $tblStudentMedicalRecord, null,
-                                    $tblStudentBilling, null, null, $tblStudentIntegration);
+                                        '',
+                                        trim(($earlyTransport == 'x' ? 'Beförderung früh ' : '')
+                                            . ($lateTransport == 'x' ? 'Beförderung nachm.' : ''))
+                                    ),
+                                    null,
+                                    null,
+                                    null,
+                                    null
+                                );
                                 if ($tblStudent) {
 
                                     // Schülertransfer
-                                    $day = trim($Document->getValue($Document->getCell($Location['Schüler_Einschulung_am'],
-                                        $RunY)));
-                                    if ($day !== '') {
-                                        try {
-                                            $enrollmentDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                        } catch (\Exception $ex) {
-                                            $enrollmentDate = '';
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Einschulung_am Datum: ' . $ex->getMessage();
-                                        }
-
-                                    } else {
-                                        $enrollmentDate = '';
-                                    }
-                                    if ($enrollmentDate !== '') {
-                                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
-                                        Student::useService()->insertStudentTransfer(
-                                            $tblStudent,
-                                            $tblStudentTransferType,
-                                            null,
-                                            null,
-                                            null,
-                                            $enrollmentDate,
-                                            ''
-                                        );
-                                    }
-
-                                    $day = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
+                                    $day = trim($Document->getValue($Document->getCell($Location['aufgenommen am'],
                                         $RunY)));
                                     if ($day !== '') {
                                         try {
@@ -1339,29 +1233,30 @@ class Service
                                         $arriveDate = '';
                                     }
                                     $arriveSchool = null;
-                                    $company = trim($Document->getValue($Document->getCell($Location['Schüler_abgebende_Schule_ID'],
+                                    $company = trim($Document->getValue($Document->getCell($Location['aufgenommen von'],
                                         $RunY)));
-                                    $lastSchoolType = trim($Document->getValue($Document->getCell($Location['Schüler_letzte_Schulart'],
-                                        $RunY)));
-                                    if ($lastSchoolType == 'MS'
-                                        || $lastSchoolType == 'RS'
-                                    ) {
-                                        $tblLastSchoolType = Type::useService()->getTypeById(8); // Oberschule
-                                    } elseif ($lastSchoolType === 'GS') {
-                                        $tblLastSchoolType = Type::useService()->getTypeById(6); // Grundschule
-                                    } else {
-                                        $tblLastSchoolType = false;
-                                    }
-                                    if ($company != '') {
-                                        $company = str_pad(
-                                            $company,
-                                            2,
-                                            "0",
-                                            STR_PAD_LEFT
-                                        );
-                                        $arriveSchool = Company::useService()->getCompanyByDescription($company);
-                                    }
+                                    if ($company !== '' && $company !== '?' && $company !== '-') {
+                                        $arriveSchool = Company::useService()->insertCompany($company);
+                                        if ($arriveSchool) {
+                                            GroupCompany::useService()->addGroupCompany(
+                                                GroupCompany::useService()->getGroupByMetaTable('COMMON'),
+                                                $arriveSchool
+                                            );
 
+                                            if (strpos($company, 'Kiga') !== false) {
+                                                GroupCompany::useService()->addGroupCompany(
+                                                    GroupCompany::useService()->getGroupByMetaTable('NURSERY'),
+                                                    $arriveSchool
+                                                );
+                                            } else {
+                                                GroupCompany::useService()->addGroupCompany(
+                                                    GroupCompany::useService()->getGroupByMetaTable('SCHOOL'),
+                                                    $arriveSchool
+                                                );
+                                            }
+                                        }
+                                    }
+                                    $tblLastSchoolType = false;
                                     $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
                                     Student::useService()->insertStudentTransfer(
                                         $tblStudent,
@@ -1372,12 +1267,9 @@ class Service
                                         $arriveDate,
                                         ''
                                     );
-                                    $day = trim($Document->getValue($Document->getCell($Location['Schüler_Abgang_am'],
+
+                                    $day = trim($Document->getValue($Document->getCell($Location['abgegangen am'],
                                         $RunY)));
-                                    if ($day == '') {
-                                        $day = trim($Document->getValue($Document->getCell($Location['Schüler_Schulpflicht_endet_am'],
-                                            $RunY)));
-                                    }
                                     if ($day !== '') {
                                         try {
                                             $leaveDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
@@ -1385,21 +1277,32 @@ class Service
                                             $leaveDate = '';
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Abgang_am Datum: ' . $ex->getMessage();
                                         }
-
                                     } else {
                                         $leaveDate = '';
                                     }
                                     $leaveSchool = null;
-                                    $company = trim($Document->getValue($Document->getCell($Location['Schüler_aufnehmende_Schule_ID'],
+                                    $company = trim($Document->getValue($Document->getCell($Location['abgegangen nach'],
                                         $RunY)));
-                                    if ($company != '') {
-                                        $company = str_pad(
-                                            $company,
-                                            2,
-                                            "0",
-                                            STR_PAD_LEFT
-                                        );
-                                        $leaveSchool = Company::useService()->getCompanyByDescription($company);
+                                    if ($company !== '' && $company !== '?' && $company !== '-') {
+                                        $leaveSchool = Company::useService()->insertCompany($company);
+                                        if ($leaveSchool) {
+                                            GroupCompany::useService()->addGroupCompany(
+                                                GroupCompany::useService()->getGroupByMetaTable('COMMON'),
+                                                $leaveSchool
+                                            );
+
+                                            if (strpos($company, 'Kiga') !== false) {
+                                                GroupCompany::useService()->addGroupCompany(
+                                                    GroupCompany::useService()->getGroupByMetaTable('NURSERY'),
+                                                    $leaveSchool
+                                                );
+                                            } else {
+                                                GroupCompany::useService()->addGroupCompany(
+                                                    GroupCompany::useService()->getGroupByMetaTable('SCHOOL'),
+                                                    $leaveSchool
+                                                );
+                                            }
+                                        }
                                     }
                                     $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
                                     Student::useService()->insertStudentTransfer(
@@ -1412,133 +1315,22 @@ class Service
                                         ''
                                     );
 
-                                    $tblCourse = null;
-                                    if (($course = trim($Document->getValue($Document->getCell($Location['Fächer_Bildungsgang'],
-                                        $RunY))))
-                                    ) {
-                                        if ($course == 'HS') {
-                                            $tblCourse = Course::useService()->getCourseById(1); // Hauptschule
-                                        } elseif ($course == 'GY') {
-                                            $tblCourse = Course::useService()->getCourseById(3); // Gymnasium
-                                        } elseif ($course == 'RS' || $course == 'ORS') {
-                                            $tblCourse = Course::useService()->getCourseById(2); // Realschule
-                                        } elseif ($course == '') {
-                                            // do nothing
-                                        } else {
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Bildungsgang nicht gefunden.';
-                                        }
-                                    }
                                     $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                                     Student::useService()->insertStudentTransfer(
                                         $tblStudent,
                                         $tblStudentTransferType,
                                         null,
                                         $tblSchoolType ? $tblSchoolType : null,
-                                        $tblCourse ? $tblCourse : null,
+                                        null,
                                         null,
                                         ''
                                     );
-
-                                    /*
-                                     * Fächer
-                                     */
-                                    // Religion
-                                    $subjectReligion = trim($Document->getValue($Document->getCell($Location['Fächer_Religionsunterricht'],
-                                        $RunY)));
-                                    $tblSubject = false;
-                                    if ($subjectReligion !== '') {
-                                        if ($subjectReligion === 'ETH') {
-                                            $tblSubject = Subject::useService()->getSubjectByAcronym('ETH');
-                                        } elseif ($subjectReligion === 'RE/e') {
-                                            $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
-                                        }
-                                        if ($tblSubject) {
-                                            Student::useService()->addStudentSubject(
-                                                $tblStudent,
-                                                Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION'),
-                                                Student::useService()->getStudentSubjectRankingByIdentifier('1'),
-                                                $tblSubject
-                                            );
-                                        }
-                                    }
-
-                                    // Fremdsprachen
-                                    for ($i = 1; $i <= 2; $i++) {
-                                        $subjectLanguage = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache' . $i],
-                                            $RunY)));
-                                        $tblSubject = false;
-                                        if ($subjectLanguage !== '') {
-                                            if ($subjectLanguage === 'EN'
-                                                || $subjectLanguage === 'Englisch'
-                                            ) {
-                                                $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
-                                            } elseif ($subjectLanguage === 'FR'
-                                                || $subjectLanguage === 'Fra'
-                                                || $subjectLanguage === 'Französisch'
-                                            ) {
-                                                $tblSubject = Subject::useService()->getSubjectByAcronym('FR');
-                                            }
-                                            if ($tblSubject) {
-                                                $tblSchoolType = Type::useService()->getTypeById(8); // Oberschule
-                                                $tblFromLevel = false;
-                                                $fromLevel = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache' . $i . '_von'],
-                                                    $RunY)));
-                                                if ($fromLevel !== '') {
-                                                    $tblFromLevel = Division::useService()->insertLevel(
-                                                        $tblSchoolType,
-                                                        $fromLevel
-                                                    );
-                                                }
-
-                                                $tblToLevel = false;
-                                                $toLevel = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache' . $i . '_bis'],
-                                                    $RunY)));
-                                                if ($toLevel !== '') {
-                                                    $tblToLevel = Division::useService()->insertLevel(
-                                                        $tblSchoolType,
-                                                        $toLevel
-                                                    );
-                                                }
-
-                                                Student::useService()->addStudentSubject(
-                                                    $tblStudent,
-                                                    Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'),
-                                                    Student::useService()->getStudentSubjectRankingByIdentifier($i),
-                                                    $tblSubject,
-                                                    $tblFromLevel ? $tblFromLevel : null,
-                                                    $tblToLevel ? $tblToLevel : null
-                                                );
-                                            }
-                                        }
-                                    }
-
-                                    /*
-                                     * Förderung
-                                     */
-                                    $focus = trim($Document->getValue($Document->getCell($Location['Schüler_Förderschwerpunkt'],
-                                        $RunY)));
-                                    if ($focus !== '') {
-                                        if ($focus === 'HÖ') {
-                                            $tblStudentFocusType = Student::useService()->getStudentFocusTypeByName('Hören');
-                                            Student::useService()->addStudentFocus($tblStudent,
-                                                $tblStudentFocusType);
-                                        }
-                                    }
                                 }
                             }
                         }
                     }
 
                     Debugger::screenDump($error);
-
-                    // delete company description (fuxschool id)
-                    $tblCompanyAll = Company::useService()->getCompanyAll();
-                    if ($tblCompanyAll) {
-                        foreach ($tblCompanyAll as $tblCompany) {
-                            Company::useService()->updateCompanyWithoutForm($tblCompany, $tblCompany->getName(),
-                                $tblCompany->getExtendedName(), '');
-                        }
-                    }
 
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
