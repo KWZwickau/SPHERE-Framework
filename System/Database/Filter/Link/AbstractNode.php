@@ -199,13 +199,19 @@ abstract class AbstractNode extends Extension
                     foreach ($Filter as $Expression => $PartList) {
                         $PartStorage = array();
                         foreach ($PartList as $Part => $Value) {
-                            if( preg_match( '!^[0-9\.]+$!is', $Value ) ) {
-                                $ReFormat = $this->findDateTime( $Value );
-                                if( is_array( $ReFormat ) ) {
-                                    unset( $Filter[$Expression][$Part] );
-                                    $PartStorage = array_merge( $PartStorage, $ReFormat );
-                                } else {
-                                    $Filter[$Expression][$Part] = $ReFormat;
+                            // Bool (0,1,2) => (null,true,false)
+                            if(preg_match('!_Is[A-Z]!s', $Expression)) {
+                                $Filter[$Expression][$Part] = ($Value == 0 ? null : ( $Value == 1 ? 1 : 0 ));
+                            } else {
+                                // DateTime
+                                if (preg_match('!^[0-9\.]+$!is', $Value)) {
+                                    $ReFormat = $this->findDateTime($Value);
+                                    if (is_array($ReFormat)) {
+                                        unset($Filter[$Expression][$Part]);
+                                        $PartStorage = array_merge($PartStorage, $ReFormat);
+                                    } else {
+                                        $Filter[$Expression][$Part] = $ReFormat;
+                                    }
                                 }
                             }
                         }
@@ -217,9 +223,9 @@ abstract class AbstractNode extends Extension
 
                 $EntityList = $Probe->findLogic($Logic);
                 // Exit if Path is Empty = NO Result
-                if (empty( $EntityList )) {
-                    return array();
-                }
+//                if (empty( $EntityList )) {
+//                    return array();
+//                }
                 $ResultCache[$Index] = $EntityList;
 
                 $PathCurrent = $this->getPath($Index);
@@ -232,7 +238,7 @@ abstract class AbstractNode extends Extension
                 }
             }
 
-            $Result = $this->parseResult($ResultCache, $Timeout);
+            $Result = $this->parseResult($ResultCache, $Timeout, $ProbeList, $Search);
             if (!$this->isTimeout() && self::$Cache) {
                 $Cache->setData($Result);
             }
@@ -258,6 +264,9 @@ abstract class AbstractNode extends Extension
      */
     public function createLogic($Search, $Restriction, $ProbeIndex)
     {
+
+        // ONLY Valid Id-Lists, NOT! Empty Lists
+        $Restriction = array_filter( $Restriction );
 
         $Logic = (new AndLogic($this->getProbe($ProbeIndex)->useBuilder()));
         if (!empty( $Restriction )) {
@@ -305,11 +314,14 @@ abstract class AbstractNode extends Extension
     }
 
     /**
-     * @param  $List
-     * @param  int $Timeout
+     * @param AbstractView[][] $List
+     * @param int $Timeout
+     * @param Probe[] $ProbeList
+     * @param array $SearchList
+     *
      * @return array
      */
-    abstract protected function parseResult($List, $Timeout = 60);
+    abstract protected function parseResult($List, $Timeout = 60, $ProbeList = array(), $SearchList = array());
 
     /**
      * @return bool

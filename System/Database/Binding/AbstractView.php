@@ -10,6 +10,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 abstract class AbstractView extends Element
 {
+    const DISABLE_PATTERN = '!(_Id$|_service|_tbl|Locked|MetaTable|^Id$|^Entity)!s';
 
     /** @var array $NameDefinitionList */
     private $NameDefinitionList = array();
@@ -35,7 +36,7 @@ abstract class AbstractView extends Element
                     $Property = $Object->getProperty($Key);
                     if ($Property->isProtected() || $Property->isPublic()) {
                         if (
-                            !preg_match('!(_Id$|_service|_tbl|Locked|MetaTable|^Id$|^Entity)!s', $Key)
+                            !preg_match(self::DISABLE_PATTERN, $Key)
                             && !$this->getDisableDefinition( $Key )
                         ) {
                             // Replace Value with Getter-Logic Value
@@ -243,7 +244,28 @@ abstract class AbstractView extends Element
                 return $this->$PropertyName;
             }
         }
-        throw new \Exception('Property '.$PropertyName.' not found in '.get_class($this));
+        throw new \Exception('Property-Getter '.$PropertyName.' not found in '.get_class($this));
+    }
+
+    /**
+     * Magic Setter for Properties
+     *
+     * @param string $PropertyName
+     * @param $Value
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    public function __set($PropertyName, $Value)
+    {
+
+        if (!empty( $PropertyName )) {
+            if (property_exists($this, $PropertyName)) {
+                /** @noinspection PhpVariableVariableInspection */
+                return $this->$PropertyName = $Value;
+            }
+        }
+        throw new \Exception('Property-Setter '.$PropertyName.' not found in '.get_class($this));
     }
 
     /**

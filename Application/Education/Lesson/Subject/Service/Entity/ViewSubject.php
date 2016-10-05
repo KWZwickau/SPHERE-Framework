@@ -83,4 +83,18 @@ class ViewSubject extends AbstractView
     {
         return Subject::useService();
     }
+
+    /**
+     * TODO: Abstract
+     *
+     * Use this method to set disabled Properties with "setDisabledProperty()"
+     *
+     * @return void
+     */
+    public function loadDisableDefinition()
+    {
+        $this->setDisableDefinition( self::TBL_SUBJECT_DESCRIPTION );
+    }
+
+
 }

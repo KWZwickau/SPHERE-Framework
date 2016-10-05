@@ -3,6 +3,7 @@ namespace SPHERE\System\Database\Filter\Link\Repository;
 
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\AbstractNode;
+use SPHERE\System\Database\Filter\Link\Probe;
 
 /**
  * Class Node1
@@ -14,11 +15,13 @@ class Node1 extends AbstractNode
 
     /**
      * @param AbstractView[][] $List
-     * @param int              $Timeout
+     * @param int $Timeout
+     * @param Probe[] $ProbeList
+     * @param array $SearchList
      *
-     * @return mixed
+     * @return array
      */
-    protected function parseResult($List, $Timeout = 60)
+    protected function parseResult($List, $Timeout = 60, $ProbeList = array(), $SearchList = array())
     {
 
         $this->setTimeout($Timeout);
