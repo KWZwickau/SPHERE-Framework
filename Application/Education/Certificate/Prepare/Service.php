@@ -29,6 +29,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -851,6 +852,16 @@ class Service extends AbstractService
                     $tblTransferType);
                 if ($tblStudentTransfer) {
                     $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+
+                    // Abschluss (Bildungsgang)
+                    $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                    if ($tblCourse) {
+                        if ($tblCourse->getName() == 'Hauptschule') {
+                            $Content['Student']['Course']['Degree'] = 'Hauptschulabschlusses';
+                        } elseif ($tblCourse->getName() == 'Realschule') {
+                            $Content['Student']['Course']['Degree'] = 'Realschulabschlusses';
+                        }
+                    }
                 }
             }
             if ($tblCompany) {
@@ -860,12 +871,12 @@ class Service extends AbstractService
             // Arbeitsgemeinschaften
             if ($tblStudent
                 && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
-                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                     $tblStudent, $tblSubjectType
                 ))
             ) {
                 $tempList = array();
-                foreach ($tblSubjectList as $tblStudentSubject) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
                     if ($tblStudentSubject->getServiceTblSubject()) {
                         $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
                     }
@@ -878,12 +889,12 @@ class Service extends AbstractService
             // Fremdsprache ab Klassenstufe
             if ($tblStudent
                 && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                     $tblStudent, $tblSubjectType
                 ))
             ) {
-                if ($tblSubjectList) {
-                    foreach ($tblSubjectList as $tblStudentSubject) {
+                if ($tblStudentSubjectList) {
+                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
                         if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
                             && ($level = $tblStudentSubject->getServiceTblLevelFrom())
                         ) {
@@ -999,6 +1010,37 @@ class Service extends AbstractService
                 $average = $this->calcSubjectGradesAverageOthers($tblPrepareStudent);
                 if ($average) {
                     $Content['Grade']['Data']['AverageOthers'] = str_replace('.', ',', $average);
+                }
+            }
+
+            // Wahlpflichtbereich
+            if ($tblStudent) {
+                // Neigungskurs
+                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                        $tblStudentSubjectType))
+                ) {
+                    /** @var TblStudentSubject $tblStudentSubject */
+                    $tblStudentSubject = current($tblStudentSubjectList);
+                    if (($tblSubjectOrientation = $tblStudentSubject->getServiceTblSubject())) {
+                        $Content['Student']['Orientation'][$tblSubjectOrientation->getAcronym()]['Name'] = $tblSubjectOrientation->getName();
+                    }
+                }
+
+                // 2. Fremdsprache
+                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                        $tblStudentSubjectType))
+                ) {
+                    /** @var TblStudentSubject $tblStudentSubject */
+                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                        if ($tblStudentSubject->getTblStudentSubjectRanking()
+                            && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                            && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
+                        ) {
+                            $Content['Student']['ForeignLanguage'][$tblSubjectForeignLanguage->getAcronym()]['Name'] = $tblSubjectForeignLanguage->getName();
+                        }
+                    }
                 }
             }
         }
