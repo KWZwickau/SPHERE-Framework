@@ -23,6 +23,22 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
         // TODO: Implement setupDatabaseContent() method.
+
+//        if(!$this->getDynamicFilterAllByName('Filter Fehltage')){
+//            $tblAccount = Account::useService()->getAccountBySession();
+//            $Filter = $this->createDynamicFilter($tblAccount, 'Filter Fehltage', true);
+//            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear');
+//            $this->addDynamicFilterOption($Mask, 'TblYear_Year');
+//            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision');
+//            $this->addDynamicFilterOption($Mask, 'TblLevel_Name');
+//            $this->addDynamicFilterOption($Mask, 'TblDivision_Name');
+//            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence');
+//            $this->addDynamicFilterOption($Mask, 'TblAbsence_FromDate');
+//            $this->addDynamicFilterOption($Mask, 'TblAbsence_ToDate');
+//            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+//            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+//            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+//        }
     }
 
     /**

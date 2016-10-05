@@ -20,15 +20,6 @@ use SPHERE\System\Database\Binding\AbstractView;
 class ViewDivisionSubject extends AbstractView
 {
 
-    const TBL_DIVISION_SUBJECT_ID = 'TblDivisionSubject_Id';
-    const TBL_DIVISION_SUBJECT_SERVICE_TBL_SUBJECT = 'TblDivisionSubject_serviceTblSubject';
-    const TBL_DIVISION_SUBJECT_TBL_SUBJECT_GROUP = 'TblDivisionSubject_tblSubjectGroup';
-    const TBL_DIVISION_SUBJECT_TBL_DIVISION = 'TblDivisionSubject_tblDivision';
-
-    const TBL_SUBJECT_GROUP_ID = 'TblSubjectGroup_Id';
-    const TBL_SUBJECT_GROUP_NAME = 'TblSubjectGroup_Name';
-    const TBL_SUBJECT_GROUP_DESCRIPTION = 'TblSubjectGroup_Description';
-
     const TBL_LEVEL_ID = 'TblLevel_ID';
     const TBL_LEVEL_NAME = 'TblLevel_Name';
     const TBL_LEVEL_DESCRIPTION = 'TblLevel_Description';
@@ -41,35 +32,14 @@ class ViewDivisionSubject extends AbstractView
     const TBL_DIVISION_TBL_LEVEL = 'TblDivision_tblLevel';
     const TBL_DIVISION_TBL_YEAR = 'TblDivision_serviceTblYear';
 
-    /**
-     * @Column(type="string")
-     */
-    protected $TblDivisionSubject_Id;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblDivisionSubject_serviceTblSubject;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblDivisionSubject_tblSubjectGroup;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblDivisionSubject_tblDivision;
+    const TBL_DIVISION_SUBJECT_ID = 'TblDivisionSubject_Id';
+    const TBL_DIVISION_SUBJECT_SERVICE_TBL_SUBJECT = 'TblDivisionSubject_serviceTblSubject';
+    const TBL_DIVISION_SUBJECT_TBL_SUBJECT_GROUP = 'TblDivisionSubject_tblSubjectGroup';
+    const TBL_DIVISION_SUBJECT_TBL_DIVISION = 'TblDivisionSubject_tblDivision';
 
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubjectGroup_Id;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubjectGroup_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubjectGroup_Description;
+    const TBL_SUBJECT_GROUP_ID = 'TblSubjectGroup_Id';
+    const TBL_SUBJECT_GROUP_NAME = 'TblSubjectGroup_Name';
+    const TBL_SUBJECT_GROUP_DESCRIPTION = 'TblSubjectGroup_Description';
 
     /**
      * @Column(type="string")
@@ -114,6 +84,36 @@ class ViewDivisionSubject extends AbstractView
     protected $TblDivision_serviceTblYear;
 
     /**
+     * @Column(type="string")
+     */
+    protected $TblDivisionSubject_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblDivisionSubject_serviceTblSubject;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblDivisionSubject_tblSubjectGroup;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblDivisionSubject_tblDivision;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $TblSubjectGroup_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblSubjectGroup_Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblSubjectGroup_Description;
+
+    /**
      * Overwrite this method to return View-ObjectName as View-DisplayName
      *
      * @return string Gui-Name of Class
@@ -137,8 +137,8 @@ class ViewDivisionSubject extends AbstractView
         $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Gruppe: Name');
         $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Gruppe: Beschreibung');
         $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Stufe: Übergreifende Gruppe');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_NAME, 'Gruppe: Gruppenname');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_DESCRIPTION, 'Gruppe: Beschreibung');
+        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_NAME, 'Fachgruppe: Name');
+        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_DESCRIPTION, 'Fachgruppe: Beschreibung');
     }
 
     /**
@@ -162,6 +162,7 @@ class ViewDivisionSubject extends AbstractView
      */
     public function getViewService()
     {
+
         return Division::useService();
     }
 }

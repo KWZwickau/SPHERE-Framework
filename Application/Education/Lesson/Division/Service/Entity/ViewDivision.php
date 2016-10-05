@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\ViewSchoolType;
@@ -113,6 +114,7 @@ class ViewDivision extends AbstractView
         $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYear(), ViewYear::TBL_YEAR_ID);
         $this->addForeignView(self::TBL_DIVISION_ID, new ViewDivisionTeacher(), ViewDivisionTeacher::TBL_DIVISION_ID);
         $this->addForeignView(self::TBL_DIVISION_ID, new ViewDivisionSubject(), ViewDivisionSubject::TBL_DIVISION_SUBJECT_TBL_DIVISION);
+        $this->addForeignView(self::TBL_DIVISION_ID, new ViewAbsence(), ViewAbsence::TBL_ABSENCE_SERVICE_TBL_DIVISION);
 //        $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYearPeriod(), ViewYearPeriod::TBL_YEAR_PERIOD_TBL_YEAR);
     }
 

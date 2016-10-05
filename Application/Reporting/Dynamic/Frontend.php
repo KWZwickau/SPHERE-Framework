@@ -1,11 +1,9 @@
 <?php
 namespace SPHERE\Application\Reporting\Dynamic;
 
-use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilter;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilterMask;
@@ -89,12 +87,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('');
 
         $StartViewList = array(
-            new ViewPeopleGroupMember(),
-            new ViewPerson(),
-            new ViewAddressToPerson()
-        , new ViewYear()
+            new ViewPeopleGroupMember()
+//            ,new ViewPerson()
+//            ,new ViewAddressToPerson()
         , new ViewCompanyGroupMember()
+        , new ViewYear()
 //        , new ViewItem()
+//        , new ViewSubject()
         );
 
         $tblDynamicFilter = Dynamic::useService()->getDynamicFilterById($DynamicFilter);
