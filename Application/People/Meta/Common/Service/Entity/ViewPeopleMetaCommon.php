@@ -183,6 +183,9 @@ class ViewPeopleMetaCommon extends AbstractView
      */
     public function getTblCommonInformation_IsAssistance()
     {
+        if( null === $this->TblCommonInformation_IsAssistance ) {
+            return '';
+        }
         return $this->TblCommonInformation_IsAssistance ? 'Ja' : 'Nein';
     }
 }

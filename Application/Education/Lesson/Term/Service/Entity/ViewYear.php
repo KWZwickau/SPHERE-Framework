@@ -24,7 +24,7 @@ class ViewYear extends AbstractView
     const TBL_YEAR_ID = 'TblYear_Id';
     const TBL_YEAR_YEAR = 'TblYear_Year';
     const TBL_YEAR_DESCRIPTION = 'TblYear_Description';
-//    const TBL_YEAR_NAME = 'TblYear_Name';
+    const TBL_YEAR_NAME = 'TblYear_Name';
 
     /**
      * @Column(type="string")
@@ -38,10 +38,10 @@ class ViewYear extends AbstractView
      * @Column(type="string")
      */
     protected $TblYear_Description;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblYear_Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblYear_Name;
 
     /**
      * Overwrite this method to return View-ObjectName as View-DisplayName
@@ -90,4 +90,26 @@ class ViewYear extends AbstractView
         return Term::useService();
     }
 
+    /**
+     * TODO: Abstract
+     *
+     * Use this method to set disabled Properties with "setDisabledProperty()"
+     *
+     * @return void
+     */
+    public function loadDisableDefinition()
+    {
+        $this->setDisableDefinition( self::TBL_YEAR_NAME );
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTblYear_Year()
+    {
+        if( empty( $this->TblYear_Year ) ) {
+            return $this->TblYear_Name;
+        }
+        return $this->TblYear_Year;
+    }
 }

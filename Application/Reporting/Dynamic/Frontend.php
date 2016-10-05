@@ -7,6 +7,7 @@ use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilter;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilterMask;
+use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilterOption;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
@@ -33,7 +34,6 @@ use SPHERE\Common\Frontend\Icon\Repository\View;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -51,7 +51,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Table\Structure\TableFoot;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Center;
@@ -63,7 +62,6 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -142,6 +140,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblDynamicFilterMask $tblDynamicFilterMask */
             foreach ($tblDynamicFilterMaskAll as $Index => $tblDynamicFilterMask) {
 
+                $tblDynamicFilterOptionAll = Dynamic::useService()->getDynamicFilterOptionAllByMask( $tblDynamicFilterMask );
                 $View = $tblDynamicFilterMask->getFilterClassInstance();
                 $FieldList = array();
                 $Object = new \ReflectionObject($View);
@@ -150,14 +149,27 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($Properties as $Property) {
                     $Name = $Property->getName();
                     if (
-                        !preg_match('!(_Id$|_service|_tbl|_Is|Locked|MetaTable|^Id$|^Entity)!s', $Name)
+                        !preg_match(AbstractView::DISABLE_PATTERN, $Name)
                         && !$View->getDisableDefinition( $Name )
 
                     ) {
-                        $FieldList[] = new CheckBox(
+                        $Enabled = false;
+                        if( $tblDynamicFilterOptionAll ) {
+                            $Enabled = array_filter($tblDynamicFilterOptionAll, function (TblDynamicFilterOption $tblDynamicFilterOption) use ($Name) {
+                                return $tblDynamicFilterOption->getFilterFieldName() == $Name;
+                            });
+                            if( !empty( $Enabled ) ) {
+                                $Enabled = true;
+                            }
+                        }
+                        $CheckBox = new CheckBox(
                             'FilterFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $Name . ']',
                             $View->getNameDefinition($Name), 1
                         );
+                        if( $Enabled ) {
+                            $CheckBox->setDefaultValue(1,true);
+                        }
+                        $FieldList[] = $CheckBox;
                     }
                 }
 
@@ -320,11 +332,24 @@ class Frontend extends Extension implements IFrontendInterface
                 $View = $tblDynamicFilterMask->getFilterClassInstance();
                 foreach ($tblDynamicFilterOptionList as $tblDynamicFilterOption) {
                     if( !$View->getDisableDefinition( $tblDynamicFilterOption->getFilterFieldName() ) ) {
-                        $FieldList[] = new TextField(
-                            'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $tblDynamicFilterOption->getFilterFieldName() . ']',
-                            $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName()),
-                            $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName())
-                        );
+
+                        if(preg_match('!_Is[A-Z]!s', $tblDynamicFilterOption->getFilterFieldName())) {
+                            $FieldList[] = new SelectBox(
+                                'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $tblDynamicFilterOption->getFilterFieldName() . ']',
+                                $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName()),
+                                array(
+                                    0 => '',
+                                    1 => 'Ja',
+                                    2 => 'Nein',
+                                )
+                            );
+                        } else {
+                            $FieldList[] = new TextField(
+                                'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $tblDynamicFilterOption->getFilterFieldName() . ']',
+                                $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName()),
+                                $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName())
+                            );
+                        }
                     }
                 }
 //
