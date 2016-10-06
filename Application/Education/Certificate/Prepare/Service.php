@@ -1015,6 +1015,19 @@ class Service extends AbstractService
 
             // Wahlpflichtbereich
             if ($tblStudent) {
+
+                // Vertiefungskurs
+                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ADVANCED'))
+                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                        $tblStudentSubjectType))
+                ) {
+                    /** @var TblStudentSubject $tblStudentSubject */
+                    $tblStudentSubject = current($tblStudentSubjectList);
+                    if (($tblSubjectAdvanced = $tblStudentSubject->getServiceTblSubject())) {
+                        $Content['Student']['Advanced'][$tblSubjectAdvanced->getAcronym()]['Name'] = $tblSubjectAdvanced->getName();
+                    }
+                }
+
                 // Neigungskurs
                 if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
                     && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
@@ -1040,6 +1053,18 @@ class Service extends AbstractService
                         ) {
                             $Content['Student']['ForeignLanguage'][$tblSubjectForeignLanguage->getAcronym()]['Name'] = $tblSubjectForeignLanguage->getName();
                         }
+                    }
+                }
+
+                // Profil
+                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                        $tblStudentSubjectType))
+                ) {
+                    /** @var TblStudentSubject $tblStudentSubject */
+                    $tblStudentSubject = current($tblStudentSubjectList);
+                    if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
+                        $Content['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name'] = $tblSubjectProfile->getName();
                     }
                 }
             }
