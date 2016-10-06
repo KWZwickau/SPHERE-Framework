@@ -69,10 +69,6 @@ class ViewDivisionStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblLevel_IsChecked;
-    /**
-     * @Column(type="string")
-     */
     protected $TblLevel_serviceTblType;
 
     /**
@@ -83,6 +79,12 @@ class ViewDivisionStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblDivision_Name;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLevel_IsChecked;
+
     /**
      * @Column(type="string")
      */
@@ -115,12 +117,27 @@ class ViewDivisionStudent extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Stufe: Klassenstufe');
-        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Stufe: Beschreibung');
-        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Gruppe: Beschreibung');
-        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Stufe: Übergreifende Gruppe');
+        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Klasse: Stufe');
+//        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Klasse: Beschreibung');
+        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Klasse: Gruppenname');
+//        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Klasse: Beschreibung');
+        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Klasse: Übergreifende Gruppe');
     }
+
+    /**
+     * TODO: Abstract
+     *
+     * Use this method to set disabled Properties with "setDisabledProperty()"
+     *
+     * @return void
+     */
+    public function loadDisableDefinition()
+    {
+        parent::setDisableDefinition(self::TBL_LEVEL_DESCRIPTION);
+        parent::setDisableDefinition(self::TBL_DIVISION_DESCRIPTION);
+        parent::setDisableDefinition(self::TBL_DIVISION_STUDENT_SORT_ORDER);
+    }
+
 
     /**
      * Use this method to add ForeignViews to Graph with "addForeignView()"
@@ -142,5 +159,17 @@ class ViewDivisionStudent extends AbstractView
     public function getViewService()
     {
         return Division::useService();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTblLevel_IsChecked()
+    {
+
+        if (null !== $this->TblLevel_IsChecked) {
+            return $this->TblLevel_IsChecked ? 'Ja' : 'Nein';
+        }
+        return '';
     }
 }

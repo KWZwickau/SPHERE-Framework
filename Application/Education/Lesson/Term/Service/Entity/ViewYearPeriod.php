@@ -103,10 +103,10 @@ class ViewYearPeriod extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Jahr: Jahr');
-        $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Jahr: Beschreibung');
+        $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Jahrgang: Schuljahr');
+        $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Jahrgang: Beschreibung');
         $this->setNameDefinition(self::TBL_PERIOD_NAME, 'Zeitraum: Name');
-        $this->setNameDefinition(self::TBL_PERIOD_FROM_DATE, 'Zeitraum: Start');
+        $this->setNameDefinition(self::TBL_PERIOD_FROM_DATE, 'Zeitraum: Beginn');
         $this->setNameDefinition(self::TBL_PERIOD_TO_DATE, 'Zeitraum: Ende');
         $this->setNameDefinition(self::TBL_PERIOD_DESCRIPTION, 'Zeitraum: Beschreibung');
     }

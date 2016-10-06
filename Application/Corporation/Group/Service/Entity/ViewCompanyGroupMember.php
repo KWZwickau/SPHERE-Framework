@@ -74,7 +74,7 @@ class ViewCompanyGroupMember extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Firmengruppen';
+        return 'Firmengruppe';
     }
 
     /**
@@ -85,9 +85,9 @@ class ViewCompanyGroupMember extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Gruppe: Beschreibung');
-        $this->setNameDefinition(self::TBL_GROUP_REMARK, 'Gruppe: Bemerkungen');
+        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Firmengruppe: Gruppe');
+        $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Firmengruppe: Beschreibung');
+        $this->setNameDefinition(self::TBL_GROUP_REMARK, 'Firmengruppe: Bemerkungen');
     }
 
     /**

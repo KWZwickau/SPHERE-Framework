@@ -7,12 +7,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Meta\Club\Service\Entity\ViewPeopleMetaClub;
-use SPHERE\Application\People\Meta\Common\Service\Entity\ViewPeopleMetaCommon;
-use SPHERE\Application\People\Meta\Custody\Service\Entity\ViewPeopleMetaCustody;
-use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
-use SPHERE\Application\People\Meta\Teacher\Service\Entity\ViewPeopleMetaTeacher;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -104,9 +98,9 @@ class ViewPeopleGroupMember extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Gruppe: Beschreibung');
-        $this->setNameDefinition(self::TBL_GROUP_REMARK, 'Gruppe: Bemerkungen');
+        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Personengruppe: Gruppe');
+        $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Personengruppe: Beschreibung');
+        $this->setNameDefinition(self::TBL_GROUP_REMARK, 'Personengruppe: Bemerkungen');
     }
 
     /**
@@ -118,14 +112,15 @@ class ViewPeopleGroupMember extends AbstractView
     {
 
         $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+
         $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewRelationshipToPerson(), ViewRelationshipToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM);
-        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewStudent(), ViewStudent::TBL_STUDENT_SERVICE_TBL_PERSON);
-        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaClub(), ViewPeopleMetaClub::TBL_CLUB_SERVICE_TBL_PERSON);
-        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaCommon(), ViewPeopleMetaCommon::TBL_COMMON_SERVICE_TBL_PERSON);
-        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaCustody(), ViewPeopleMetaCustody::TBL_CUSTODY_SERVICE_TBL_PERSON);
-        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaProspect(), ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON);
-        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaTeacher(), ViewPeopleMetaTeacher::TBL_TEACHER_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewStudent(), ViewStudent::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaClub(), ViewPeopleMetaClub::TBL_CLUB_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaCommon(), ViewPeopleMetaCommon::TBL_COMMON_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaCustody(), ViewPeopleMetaCustody::TBL_CUSTODY_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaProspect(), ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_MEMBER_SERVICE_TBL_PERSON, new ViewPeopleMetaTeacher(), ViewPeopleMetaTeacher::TBL_TEACHER_SERVICE_TBL_PERSON);
     }
 
     /**

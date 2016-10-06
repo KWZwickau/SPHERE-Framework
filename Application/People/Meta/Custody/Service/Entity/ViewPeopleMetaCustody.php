@@ -11,7 +11,6 @@ use SPHERE\Application\People\Meta\Club\Service\Entity\ViewPeopleMetaClub;
 use SPHERE\Application\People\Meta\Common\Service\Entity\ViewPeopleMetaCommon;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\ViewPeopleMetaTeacher;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
@@ -83,7 +82,7 @@ class ViewPeopleMetaCustody extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView(self::TBL_CUSTODY_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+//        $this->addForeignView(self::TBL_CUSTODY_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
 
         $this->addForeignView(self::TBL_CUSTODY_SERVICE_TBL_PERSON, new ViewRelationshipToPerson(), ViewRelationshipToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM);
         $this->addForeignView(self::TBL_CUSTODY_SERVICE_TBL_PERSON, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);

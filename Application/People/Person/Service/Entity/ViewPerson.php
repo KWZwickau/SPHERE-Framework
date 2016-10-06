@@ -125,6 +125,17 @@ class ViewPerson extends AbstractView
         $this->addForeignView(self::TBL_PERSON_ID, new ViewDivisionTeacher(), ViewDivisionTeacher::TBL_DIVISION_TEACHER_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewSubjectTeacher(), ViewSubjectTeacher::TBL_SUBJECT_TEACHER_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewAbsence(), ViewAbsence::TBL_ABSENCE_SERVICE_TBL_PERSON);
+
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentAgreement(), ViewStudentAgreement::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentBaptism(), ViewStudentBaptism::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentDisorder(), ViewStudentDisorder::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentFocus(), ViewStudentFocus::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentIntegration(), ViewStudentIntegration::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentLiberation(), ViewStudentLiberation::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentLocker(), ViewStudentLocker::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentMedicalRecord(), ViewStudentMedicalRecord::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudentTransport(), ViewStudentTransport::TBL_STUDENT_SERVICE_TBL_PERSON);
     }
 
     /**

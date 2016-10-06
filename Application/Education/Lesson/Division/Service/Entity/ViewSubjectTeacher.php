@@ -7,7 +7,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\ViewSubject;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -85,10 +84,6 @@ class ViewSubjectTeacher extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblLevel_IsChecked;
-    /**
-     * @Column(type="string")
-     */
     protected $TblLevel_serviceTblType;
 
     /**
@@ -99,6 +94,12 @@ class ViewSubjectTeacher extends AbstractView
      * @Column(type="string")
      */
     protected $TblDivision_Name;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLevel_IsChecked;
+
     /**
      * @Column(type="string")
      */
@@ -131,11 +132,24 @@ class ViewSubjectTeacher extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Stufe: Klassenstufe');
-        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Stufe: Beschreibung');
-        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Gruppe: Beschreibung');
-        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Stufe: Übergreifende Gruppe');
+        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Klasse: Stufe');
+        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Klasse: Beschreibung');
+        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Klasse: Gruppenname');
+        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Klasse: Beschreibung');
+        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Klasse: Übergreifende Gruppe');
+    }
+
+    /**
+     * TODO: Abstract
+     *
+     * Use this method to set disabled Properties with "setDisabledProperty()"
+     *
+     * @return void
+     */
+    public function loadDisableDefinition()
+    {
+        parent::setDisableDefinition(self::TBL_LEVEL_DESCRIPTION);
+        parent::setDisableDefinition(self::TBL_DIVISION_DESCRIPTION);
     }
 
     /**
@@ -146,7 +160,7 @@ class ViewSubjectTeacher extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView(self::TBL_SUBJECT_TEACHER_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+//        $this->addForeignView(self::TBL_SUBJECT_TEACHER_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
         $this->addForeignView(self::TBL_DIVISION_SUBJECT_SERVICE_TBL_SUBJECT, new ViewSubject(), ViewSubject::TBL_SUBJECT_ID);
 //        $this->addForeignView(self::TBL_DIVISION_TBL_YEAR, new ViewYearPeriod(), ViewYearPeriod::TBL_YEAR_PERIOD_TBL_YEAR);
     }

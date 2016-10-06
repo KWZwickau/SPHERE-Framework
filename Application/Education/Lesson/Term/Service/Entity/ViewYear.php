@@ -62,8 +62,8 @@ class ViewYear extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Jahr: Jahr');
-        $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Jahr: Beschreibung');
+        $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Jahrgang: Schuljahr');
+        $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Jahrgang: Beschreibung');
     }
 
     /**
