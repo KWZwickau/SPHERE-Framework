@@ -98,4 +98,17 @@ class TblCity extends Element
 
         return $this->Name;
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayDistrict()
+    {
+
+        $district = trim($this->District);
+        if ($district !== '') {
+            return 'OT '.preg_replace('!^OT\s!is', '', $district);
+        }
+        return $district;
+    }
 }
