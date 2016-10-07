@@ -18,14 +18,18 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Database;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\More;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
@@ -49,6 +53,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
@@ -58,6 +63,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Navigation\Link\Route;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\Pile;
@@ -70,6 +76,124 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
+
+    /**
+     * @param string $FilterName
+     * @param int    $IsPublic
+     *
+     * @return Stage
+     */
+    public function frontendCreateFilter($FilterName = null, $IsPublic = 0)
+    {
+
+        $Stage = new Stage('Flexible Auswertung', 'Filter erstellen');
+        $Stage->setMessage('');
+
+        $tblAccount = Account::useService()->getAccountBySession();
+
+        $tblDynamicFilterListOwner = Dynamic::useService()->getDynamicFilterAll($tblAccount);
+        if (!$tblDynamicFilterListOwner) {
+            $tblDynamicFilterListOwner = array();
+        }
+
+        $tblDynamicFilterListPublic = Dynamic::useService()->getDynamicFilterAllByIsPublic();
+        if (!$tblDynamicFilterListPublic) {
+            $tblDynamicFilterListPublic = array();
+        }
+
+        $tblDynamicFilterList = array_unique(
+            array_merge($tblDynamicFilterListPublic, $tblDynamicFilterListOwner)
+        );
+
+        $DynamicFilterList = array();
+        array_walk($tblDynamicFilterList, function (TblDynamicFilter $tblDynamicFilter)
+        use (&$DynamicFilterList, $tblAccount) {
+
+            $Option = '';
+            if ($tblAccount == $tblDynamicFilter->getServiceTblAccount()) {
+                $Option = ( new LinkGroup() )
+                    ->addLink(new Standard('', '/Reporting/Dynamic/Update', new Edit(), array('Id' => $tblDynamicFilter->getId()), 'Bearbeiten'))
+                    ->addLink(new Standard('', '/Reporting/Dynamic/Remove', new Remove(), array('Id' => $tblDynamicFilter->getId()), 'Löschen'));
+                $Option .= ( new LinkGroup() )
+                    ->addLink(new Standard('', new Route(__NAMESPACE__.'/Setup'), new Setup(),
+                        array('DynamicFilter' => $tblDynamicFilter->getId()), 'Einstellungen'
+                    ));
+            }
+            $Option .= ( new LinkGroup() )->addLink(new Standard('', new Route(__NAMESPACE__.'/Filter'), new View(),
+                array('DynamicFilter' => $tblDynamicFilter->getId()),
+                'Anzeigen / Verwenden'
+            ));
+
+            array_push($DynamicFilterList, array(
+                'Option'                               => $Option,
+                TblDynamicFilter::PROPERTY_FILTER_NAME => $tblDynamicFilter->getFilterName(),
+                TblDynamicFilter::PROPERTY_IS_PUBLIC   => new Center(
+                    ( $tblAccount == $tblDynamicFilter->getServiceTblAccount()
+                        ? ( $tblDynamicFilter->isPublic()
+                            ? new Person().new Container(new Label('Sichtbar', Label::LABEL_TYPE_WARNING))
+                            : new Person().new Container(new Label('Privat', Label::LABEL_TYPE_SUCCESS))
+                        )
+                        : new PersonGroup().new Container(new Label('Geteilt', Label::LABEL_TYPE_INFO))
+                    )
+                )
+            ));
+        });
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($DynamicFilterList, null, array(
+                                'IsPublic'   => 'Sichtbarkeit',
+                                'FilterName' => 'Name der Auswertung',
+                                'Option'     => ''
+                            ), array(
+                                "columnDefs" => array(
+                                    array("width" => "5%", "targets" => array(0)),
+                                    array("width" => "15%", "targets" => array(2))
+                                )
+                            ))
+                        )
+                    ), new Title(new Database().' Verfügbare Auswertungen')
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                Dynamic::useService()->createDynamicFilter(
+                                    $this->formCreateFilter()->appendFormButton(new Primary('Speichern', new Save())),
+                                    $FilterName, $IsPublic
+                                )
+                            )
+                        )
+                    ), new Title(new PlusSign().' Neue Auswertung anlegen')
+                ),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Form
+     */
+    private function formCreateFilter()
+    {
+
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Filter definieren', array(
+                            new TextField('FilterName', 'Name der Auswertung', 'Name der Auswertung', new Nameplate()),
+                            new CheckBox('IsPublic', 'Auswertung für Alle sichtbar machen', 1),
+                        ), Panel::PANEL_TYPE_INFO)
+                    ),
+                ))
+            )
+        );
+    }
 
     /**
      * @param int $DynamicFilter
@@ -95,6 +219,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $tblDynamicFilter = Dynamic::useService()->getDynamicFilterById($DynamicFilter);
+        $Stage->addButton(new Standard('Zurück', '/Reporting/Dynamic', new ChevronLeft()));
 
         // Add/Remove Filter Mask
         if ($DynamicFilterMask) {
@@ -235,7 +360,6 @@ class Frontend extends Extension implements IFrontendInterface
                 'FieldList' => implode(', ', $FieldList),
                 'ChildList' => implode(', ', $ViewList),
                 'Option' =>
-
                     new Standard('Hinzufügen', new Route(__NAMESPACE__ . '/Setup'), new ChevronDown(), array(
                         'DynamicFilter' => $DynamicFilter,
                         'DynamicFilterMask' => base64_encode(json_encode(array(
@@ -290,6 +414,111 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param      $Id
+     * @param null $Filter
+     *
+     * @return Stage|string
+     */
+    public function frontendUpdateFilter($Id, $Filter = null)
+    {
+        $Stage = new Stage('Filter', 'Umbenennen');
+
+        $tblDynamicFilter = $Id === null ? false : Dynamic::useService()->getDynamicFilterById($Id);
+        if (!$tblDynamicFilter) {
+            $Stage->setContent(new Warning('Filter konnte nicht aufgerufen werden.'));
+            return $Stage.new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_ERROR);
+        }
+        $Stage->addButton(new Standard('Zurück', '/Reporting/Dynamic', new ChevronLeft()));
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Data'] )) {
+            $Global->POST['Filter']['FilterName'] = $tblDynamicFilter->getFilterName();
+            $Global->savePost();
+        }
+
+        $Form = $this->formDynamicFilter()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                Dynamic::useService()->changeDynamicFilter(
+                                    $Form, $tblDynamicFilter, $Filter
+                                ))
+                            , 6)
+                    ), new Title(new Edit().' Bearbeiten')
+                )
+            )
+        );
+        return $Stage;
+    }
+
+    public function formDynamicFilter()
+    {
+
+        return new Form(
+            new FormGroup(
+                new FormRow(
+                    new FormColumn(
+                        new Panel('Filter', array(new TextField('Filter[FilterName]', '', 'Name des Filters')),
+                            Panel::PANEL_TYPE_INFO)
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @param null $Id
+     * @param bool $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendRemoveFilter($Id = null, $Confirm = false)
+    {
+
+        $Stage = new Stage('Dynamischer Filter', 'Löschen');
+        $tblDynamicFilter = $Id === null ? false : Dynamic::useService()->getDynamicFilterById($Id);
+        if (!$tblDynamicFilter) {
+            $Stage->setContent(new Warning('Filter nicht gefunden'));
+            return $Stage.new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_ERROR);
+        }
+        if (!$Confirm) {
+            $Stage->addButton(new Standard('Zurück', '/Reporting/Dynamic', new ChevronLeft()));
+            $Stage->setContent(
+                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new Panel(new Question().' Dynamischer Filter',
+                        'Filter mit dem Namen "<b>'.$tblDynamicFilter->getFilterName().'</b>" wirklich löschen?',
+                        Panel::PANEL_TYPE_DANGER,
+                        new Standard(
+                            'Ja', '/Reporting/Dynamic/Remove', new Ok(),
+                            array('Id' => $Id, 'Confirm' => true)
+                        )
+                        .new Standard(
+                            'Nein', '/Reporting/Dynamic', new Disable()
+                        )
+                    )
+                    , 6))))
+            );
+        } else {
+
+            // Destroy DynamicFilter
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        Dynamic::useService()->destroyDynamicFilter($tblDynamicFilter)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
+    }
+
+    /**
      * @param int $DynamicFilter
      * @param array $SearchFieldName
      * @return Stage
@@ -303,6 +532,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('');
 
         $tblDynamicFilter = Dynamic::useService()->getDynamicFilterById($DynamicFilter);
+        $Stage->addButton(new Standard('Zurück', '/Reporting/Dynamic', new ChevronLeft()));
 
         // Get All Filter Masks
         $tblDynamicFilterMaskAll = Dynamic::useService()->getDynamicFilterMaskAllByFilter($tblDynamicFilter);
@@ -550,123 +780,5 @@ class Frontend extends Extension implements IFrontendInterface
 
 
         return $Stage;
-    }
-
-    /**
-     * @param string $FilterName
-     * @param int $IsPublic
-     *
-     * @return Stage
-     */
-    public function frontendCreateFilter($FilterName = null, $IsPublic = 0)
-    {
-
-        $Stage = new Stage('Flexible Auswertung', 'Filter erstellen');
-        $Stage->setMessage('');
-
-        $tblAccount = Account::useService()->getAccountBySession();
-
-        $tblDynamicFilterListOwner = Dynamic::useService()->getDynamicFilterAll($tblAccount);
-        if (!$tblDynamicFilterListOwner) {
-            $tblDynamicFilterListOwner = array();
-        }
-
-        $tblDynamicFilterListPublic = Dynamic::useService()->getDynamicFilterAllByIsPublic();
-        if (!$tblDynamicFilterListPublic) {
-            $tblDynamicFilterListPublic = array();
-        }
-
-        $tblDynamicFilterList = array_unique(
-            array_merge($tblDynamicFilterListPublic, $tblDynamicFilterListOwner)
-        );
-
-        $DynamicFilterList = array();
-        array_walk($tblDynamicFilterList, function (TblDynamicFilter $tblDynamicFilter)
-        use (&$DynamicFilterList, $tblAccount) {
-
-            $Option = '';
-            if ($tblAccount == $tblDynamicFilter->getServiceTblAccount()) {
-                $Option = (new LinkGroup())
-                    ->addLink(new Standard('', '', new Edit(), array(), 'Bearbeiten'))
-                    ->addLink(new Standard('', '', new Remove(), array(), 'Löschen'));
-                $Option .= (new LinkGroup())
-                    ->addLink(new Standard('', new Route(__NAMESPACE__ . '/Setup'), new Setup(),
-                        array('DynamicFilter' => $tblDynamicFilter->getId()), 'Einstellungen'
-                    ));
-            }
-            $Option .= (new LinkGroup())->addLink(new Standard('', new Route(__NAMESPACE__ . '/Filter'), new View(),
-                array('DynamicFilter' => $tblDynamicFilter->getId()),
-                'Anzeigen / Verwenden'
-            ));
-
-            array_push($DynamicFilterList, array(
-                'Option' => $Option,
-                TblDynamicFilter::PROPERTY_FILTER_NAME => $tblDynamicFilter->getFilterName(),
-                TblDynamicFilter::PROPERTY_IS_PUBLIC => new Center(
-                    ($tblAccount == $tblDynamicFilter->getServiceTblAccount()
-                        ? ($tblDynamicFilter->isPublic()
-                            ? new Person() . new Container(new Label('Sichtbar', Label::LABEL_TYPE_WARNING))
-                            : new Person() . new Container(new Label('Privat', Label::LABEL_TYPE_SUCCESS))
-                        )
-                        : new PersonGroup() . new Container(new Label('Geteilt', Label::LABEL_TYPE_INFO))
-                    )
-                )
-            ));
-        });
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($DynamicFilterList, null, array(
-                                'IsPublic' => 'Sichtbarkeit',
-                                'FilterName' => 'Name der Auswertung',
-                                'Option' => ''
-                            ), array(
-                                "columnDefs" => array(
-                                    array("width" => "5%", "targets" => array(0)),
-                                    array("width" => "15%", "targets" => array(2))
-                                )
-                            ))
-                        )
-                    ), new Title(new Database() . ' Verfügbare Auswertungen')
-                ),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(
-                                Dynamic::useService()->createDynamicFilter(
-                                    $this->formCreateFilter()->appendFormButton(new Primary('Speichern', new Save())),
-                                    $FilterName, $IsPublic
-                                )
-                            )
-                        )
-                    ), new Title(new PlusSign() . ' Neue Auswertung anlegen')
-                ),
-            ))
-        );
-
-        return $Stage;
-    }
-
-    /**
-     * @return Form
-     */
-    private function formCreateFilter()
-    {
-
-        return new Form(
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Filter definieren', array(
-                            new TextField('FilterName', 'Name der Auswertung', 'Name der Auswertung', new Nameplate()),
-                            new CheckBox('IsPublic', 'Auswertung für Alle sichtbar machen', 1),
-                        ), Panel::PANEL_TYPE_INFO)
-                    ),
-                ))
-            )
-        );
     }
 }

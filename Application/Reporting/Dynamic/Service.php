@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Debugger;
@@ -171,6 +172,73 @@ class Service extends AbstractService
             return new Danger('Die Auswertung konnte nicht erstellt werden',
                 new \SPHERE\Common\Frontend\Icon\Repository\Disable()
             ).new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblDynamicFilter    $tblDynamicFilter
+     * @param                     $Filter
+     *
+     * @return IFormInterface|string
+     */
+    public function changeDynamicFilter(IFormInterface &$Stage = null, TblDynamicFilter $tblDynamicFilter, $Filter)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+
+        if (null === $Filter) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset( $Filter['FilterName'] ) && empty( $Filter['FilterName'] )) {
+            $Stage->setError('Filter[FilterName]', 'Bitte geben sie die Debitorennummer an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            if (( new Data($this->getBinding()) )->updateDynamicFilter($tblDynamicFilter, $Filter['FilterName'])) {
+                return new Success('Der Filtername wurde angepasst')
+                .new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_SUCCESS);
+            } else {
+                return new Danger('Der Filtername konnte nicht angepasst werden')
+                .new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_ERROR);
+            }
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param TblDynamicFilter $tblDynamicFilter
+     *
+     * @return string
+     */
+    public function destroyDynamicFilter(TblDynamicFilter $tblDynamicFilter)
+    {
+        $FilterMaskList = Dynamic::useService()->getDynamicFilterMaskAllByFilter($tblDynamicFilter);
+        if ($FilterMaskList) {
+            foreach ($FilterMaskList as $FilterMask) {
+                $FilterOptionList = Dynamic::useService()->getDynamicFilterOptionAllByMask($FilterMask);
+                if ($FilterOptionList) {
+                    foreach ($FilterOptionList as $FilterOption) {
+                        ( new Data($this->getBinding()) )->removeDynamicFilterOption($FilterMask, $FilterOption->getFilterFieldName());
+                    }
+                }
+                ( new Data($this->getBinding()) )->removeDynamicFilterMask($tblDynamicFilter, $FilterMask->getFilterPileOrder());
+            }
+        }
+
+        $result = ( new Data($this->getBinding()) )->destroyDynamicFilter($tblDynamicFilter);
+        if ($result) {
+            return new Success('Der Dynamische Filter wurde erfolgreich gelöscht')
+            .new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_SUCCESS);
+        } else {
+            return new Warning('Der Dynamische Filter konnte nicht gelöscht werden')
+            .new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_ERROR);
         }
     }
 
