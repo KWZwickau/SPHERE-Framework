@@ -4,7 +4,7 @@ namespace SPHERE\Application\Reporting\SerialLetter;
 
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\ViewSchoolType;
 use SPHERE\Application\Education\School\Type\Type;
@@ -72,6 +72,7 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
@@ -240,6 +241,9 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Danger('Serienbrief nicht gefunden', new Exclamation());
         }
 
+        Debugger::screenDump($FilterYear);
+        Debugger::screenDump($FilterType);
+
         $Filter = false;
         // No Filter Detected
         if (
@@ -278,7 +282,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Filter = $FilterStudent;
 
             $Pile = new Pile();
-            $Pile->addPile(( new ViewYearPeriod() )->getViewService(), new ViewYearPeriod(), null, 'TblYear_Id');
+            $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(), null, 'TblYear_Id');
             $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(), 'TblDivision_serviceTblYear', 'TblDivisionStudent_serviceTblPerson');
             $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID);
             $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(), 'TblDivisionStudent_serviceTblPerson', 'TblLevel_serviceTblType');
@@ -387,19 +391,28 @@ class Frontend extends Extension implements IFrontendInterface
             ));
             $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
             /** @noinspection PhpUndefinedFieldInspection */
-            $DataPerson['Name'] = $tblPerson->getLastFirstName();
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+            $DataPerson['Name'] = false;
+            if ($tblPerson) {
+                $DataPerson['Name'] = $tblPerson->getLastFirstName();
+                $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+            }
+            if (!$DataPerson['Name']) {
+                var_dump($DataPerson['TblPerson_Id']);
+            }
             /** @noinspection PhpUndefinedFieldInspection */
             $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-            if ($tblAddress) {
+            if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
                 /** @noinspection PhpUndefinedFieldInspection */
                 $DataPerson['Address'] = $tblAddress->getGuiString();
             }
 
             // ignore duplicated Person
-            if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
+            if ($DataPerson['Name']) {
+                if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
+                    $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
+                }
             }
+
         }
 
         $tblPersonSearch = $SearchResult;
