@@ -100,6 +100,7 @@ class TblCity extends Element
     }
 
     /**
+     * Display District with "OT District"
      * @return string
      */
     public function getDisplayDistrict()
