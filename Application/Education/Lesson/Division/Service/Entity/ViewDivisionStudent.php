@@ -172,4 +172,17 @@ class ViewDivisionStudent extends AbstractView
         }
         return '';
     }
+
+    /**
+     * @return bool|TblDivisionStudent
+     */
+    public function getTblDivisionStudent()
+    {
+
+        if (null === $this->TblDivisionStudent_Id) {
+            return false;
+        } else {
+            return Division::useService()->getDivisionStudentById($this->TblDivisionStudent_Id);
+        }
+    }
 }

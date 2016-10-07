@@ -4,6 +4,7 @@ namespace SPHERE\System\Database\Filter\Link;
 use SPHERE\System\Cache\Handler\DataCacheHandler;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
+use SPHERE\System\Database\Filter\Link\Repository\NodeException;
 use SPHERE\System\Database\Filter\Logic\AndLogic;
 use SPHERE\System\Database\Filter\Logic\OrLogic;
 use SPHERE\System\Database\Fitting\Element;
@@ -24,6 +25,17 @@ abstract class AbstractNode extends Extension
     private $ProbeList = array();
     /** @var int|true $Timeout */
     private $Timeout = 0;
+    /** @var int $JoinType */
+    private $JoinType = Pile::JOIN_TYPE_INNER;
+
+    /**
+     * AbstractNode constructor.
+     * @param int $JoinType Pile::JOIN_TYPE_INNER
+     */
+    public function __construct( $JoinType = Pile::JOIN_TYPE_INNER )
+    {
+        $this->JoinType = $JoinType;
+    }
 
     /**
      *
@@ -200,11 +212,15 @@ abstract class AbstractNode extends Extension
                         $PartStorage = array();
                         foreach ($PartList as $Part => $Value) {
                             // Bool (0,1,2) => (null,true,false)
-                            if(preg_match('!_Is[A-Z]!s', $Expression)) {
-                                $Filter[$Expression][$Part] = ($Value == 0 ? null : ( $Value == 1 ? 1 : 0 ));
+                            if (preg_match('!_Is[A-Z]!s', $Expression)) {
+                                $Filter[$Expression][$Part] = ($Value == 0 ? null : ($Value == 1 ? 1 : 0));
+                                if( $Filter[$Expression][$Part] === null ) {
+                                    $Filter = array();
+                                    $Search[$Index] = array();
+                                }
                             } else {
                                 // DateTime
-                                if (preg_match('!^[0-9\.]+$!is', $Value)) {
+                                if (preg_match('!^[0-9\.]{2,}$!is', $Value)) {
                                     $ReFormat = $this->findDateTime($Value);
                                     if (is_array($ReFormat)) {
                                         unset($Filter[$Expression][$Part]);
@@ -215,7 +231,9 @@ abstract class AbstractNode extends Extension
                                 }
                             }
                         }
-                        $Filter[$Expression] = array_unique( array_merge( $Filter[$Expression], $PartStorage ) );
+                        if( isset( $Filter[$Expression] ) ) {
+                            $Filter[$Expression] = array_unique(array_merge($Filter[$Expression], $PartStorage));
+                        }
                     }
                 }
 
@@ -223,9 +241,9 @@ abstract class AbstractNode extends Extension
 
                 $EntityList = $Probe->findLogic($Logic);
                 // Exit if Path is Empty = NO Result
-//                if (empty( $EntityList )) {
-//                    return array();
-//                }
+                if ( $this->JoinType == Pile::JOIN_TYPE_INNER && empty( $EntityList )) {
+                    return array();
+                }
                 $ResultCache[$Index] = $EntityList;
 
                 $PathCurrent = $this->getPath($Index);
@@ -238,7 +256,7 @@ abstract class AbstractNode extends Extension
                 }
             }
 
-            $Result = $this->parseResult($ResultCache, $Timeout, $ProbeList, $Search);
+            $Result = $this->parseResult($ResultCache, $Timeout, $ProbeList, $Search, $this->JoinType);
             if (!$this->isTimeout() && self::$Cache) {
                 $Cache->setData($Result);
             }
@@ -318,10 +336,50 @@ abstract class AbstractNode extends Extension
      * @param int $Timeout
      * @param Probe[] $ProbeList
      * @param array $SearchList
+     * @param int $JoinType Pile::JOIN_TYPE_INNER
      *
      * @return array
      */
-    abstract protected function parseResult($List, $Timeout = 60, $ProbeList = array(), $SearchList = array());
+    final protected function parseResult($List, $Timeout = 60, $ProbeList = array(), $SearchList = array(), $JoinType = Pile::JOIN_TYPE_INNER)
+    {
+
+        $this->setTimeout($Timeout);
+
+        $Result = array();
+        try {
+            switch ($JoinType) {
+                case Pile::JOIN_TYPE_INNER:
+                    $Result = $this->innerJoin($List);
+                    break;
+                case Pile::JOIN_TYPE_OUTER:
+                    $Result = $this->outerJoin($List, $ProbeList, $SearchList);
+                    break;
+            }
+        } catch (NodeException $E) {
+            return $Result;
+        }
+        return $Result;
+    }
+
+    /**
+     * @param array $List
+     * @param array $ProbeList
+     * @param array $SearchList
+     *
+     * @return array
+     *
+     * @throws NodeException
+     */
+    abstract protected function outerJoin($List, $ProbeList = array(), $SearchList = array());
+
+    /**
+     * @param array $List
+     *
+     * @return array
+     *
+     * @throws NodeException
+     */
+    abstract protected function innerJoin($List);
 
     /**
      * @return bool

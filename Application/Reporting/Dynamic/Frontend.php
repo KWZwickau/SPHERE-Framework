@@ -629,13 +629,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                 array_walk($Input, function (&$String) {
 
-                    if (!empty($String)) {
+                    if (strlen($String)) {
                         $String = explode(' ', $String);
                     } else {
                         $String = false;
                     }
                 });
-                $Input = array_filter($Input);
+                $Input = array_filter($Input, function( $Value ){
+                    if( is_array( $Value ) || strlen( $Value ) ) {
+                        return true;
+                    }
+                    return false;
+                });
             });
             $Filter = array_values($Filter);
         }
@@ -644,7 +649,7 @@ class Frontend extends Extension implements IFrontendInterface
             /**
              * Prepare Pile-Filter Structure
              */
-            $Pile = new Pile();
+            $Pile = new Pile( Pile::JOIN_TYPE_OUTER );
 
             /** @var AbstractView $Last */
             $Last = null;
@@ -670,11 +675,11 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Table = array();
             if ($Result) {
-                array_walk($Result, function ($Row) use (&$Table, $Filter) {
+                array_walk($Result, function ($Row) use (&$Table) {
 
                     $RowSet = array();
                     $Index = 1;
-                    array_walk($Row, function (AbstractView $Element) use (&$RowSet, $Filter, &$Index) {
+                    array_walk($Row, function (AbstractView $Element) use (&$RowSet, &$Index) {
 
                         $RowData = $Element->__toView();
                         $RowKeys = array_keys($RowData);
@@ -687,11 +692,7 @@ class Frontend extends Extension implements IFrontendInterface
                             });
                             $Index++;
                         }
-
                         $RowSet = array_merge($RowSet, array_combine($RowKeys, array_values($RowData)));
-
-//                        Debugger::screenDump( get_class($Element), $Element->getForeignViewList(), $Element->__toView() );
-//                        $RowSet = array_merge($RowSet, $Element->__toView());
                     });
                     array_push($Table, $RowSet);
                 });

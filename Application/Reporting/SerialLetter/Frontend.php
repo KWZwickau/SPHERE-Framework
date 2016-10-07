@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Reporting\SerialLetter;
 
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -48,6 +49,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\Icon\Repository\View;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -72,7 +74,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
@@ -241,9 +242,6 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Danger('Serienbrief nicht gefunden', new Exclamation());
         }
 
-        Debugger::screenDump($FilterYear);
-        Debugger::screenDump($FilterType);
-
         $Filter = false;
         // No Filter Detected
         if (
@@ -253,9 +251,9 @@ class Frontend extends Extension implements IFrontendInterface
             && $FilterYear === null
             && $FilterType === null
         ) {
+            // set Group Student and Execute Search
             $FilterGroup['TblGroup_Name'] = 'Schüler';
             $Global = $this->getGlobal();
-            // set Group Student
             $Global->POST['FilterGroup']['TblGroup_Name'] = 'Schüler';
 
             // set Year
@@ -272,7 +270,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($FilterGroup) {
             $Filter = $FilterGroup;
 
-            $Pile = new Pile();
+            $Pile = new Pile( Pile::JOIN_TYPE_INNER );
             $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(), null, 'TblMember_serviceTblPerson');
             $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID, null);
             // Group->Person
@@ -281,12 +279,34 @@ class Frontend extends Extension implements IFrontendInterface
         if ($FilterStudent) {
             $Filter = $FilterStudent;
 
-            $Pile = new Pile();
-            $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(), null, 'TblYear_Id');
-            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(), 'TblDivision_serviceTblYear', 'TblDivisionStudent_serviceTblPerson');
-            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID);
-            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(), 'TblDivisionStudent_serviceTblPerson', 'TblLevel_serviceTblType');
-            $Pile->addPile(( new ViewSchoolType() )->getViewService(), new ViewSchoolType(), 'TblType_Id', null);
+            $Pile = new Pile( Pile::JOIN_TYPE_INNER );
+            $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
+                null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
+            );
+            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
+                ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
+            );
+            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(),
+                ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
+            );
+            $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(),
+                ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
+            );
+//
+//            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(),
+//                ViewDivisionStudent::TBL_DIVISION_TBL_YEAR, ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE
+//            );
+//            $Pile->addPile(( new ViewSchoolType() )->getViewService(), new ViewSchoolType(),
+//                ViewSchoolType::TBL_TYPE_ID, null
+//            );
+
+
+
+//            $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(), null, ViewYear::TBL_YEAR_ID);
+//            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(), 'TblDivision_serviceTblYear', 'TblDivisionStudent_serviceTblPerson');
+//            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID);
+//            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(), 'TblDivisionStudent_serviceTblPerson', 'TblLevel_serviceTblType');
+//            $Pile->addPile(( new ViewSchoolType() )->getViewService(), new ViewSchoolType(), 'TblType_Id', null);
             // Term->Division->Person->Division->SchoolType
         }
 
@@ -360,10 +380,11 @@ class Frontend extends Extension implements IFrontendInterface
             // Filter ordered by Database Join with foreign Key
             if ($FilterStudent) {
                 $Result = $Pile->searchPile(array(
-                    0 => $FilterYear,
-                    1 => $Filter,
-                    2 => $FilterPerson,
-                    4 => $FilterType
+                    0 => array( 'TblGroup_Name' => array('Schüler')),
+                    1 => $FilterPerson,
+                    2 => $Filter,
+                    3 => $FilterYear
+//                    4 => $FilterType
                 ));
             }
             // get Timeout status
@@ -379,9 +400,22 @@ class Frontend extends Extension implements IFrontendInterface
             if ($FilterGroup) {
                 /** @var array $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
+                $DataPerson['Division'] = new Small( new Muted( '-NA-' ) );
+
             } else {
                 /** @var array $DataPerson */
-                $DataPerson = $Row[2]->__toArray();
+                $DataPerson = $Row[1]->__toArray();
+                $tblDivisionStudent = $Row[2]->getTblDivisionStudent();
+                if( $tblDivisionStudent ) {
+                    $tblDivision = $tblDivisionStudent->getTblDivision();
+                    if( $tblDivision ) {
+                        $DataPerson['Division'] = new Small( new Muted( 'Gefilterte Klasse:' ) ) . new Container( $tblDivision->getDisplayName() );
+                    } else {
+                        $DataPerson['Division'] = new Small( new Muted( 'Gefilterte Klasse:' ) ) . new Container( '-NA-');
+                    }
+                } else {
+                    $DataPerson['Division'] = new Small( new Muted( 'Gefilterte Klasse:' ) ) . new Container( '-NA-');
+                }
             }
 
             /** @noinspection PhpUndefinedFieldInspection */
@@ -397,7 +431,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
             }
             if (!$DataPerson['Name']) {
-                var_dump($DataPerson['TblPerson_Id']);
+//                var_dump($DataPerson['TblPerson_Id']);
             }
             /** @noinspection PhpUndefinedFieldInspection */
             $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
@@ -456,6 +490,30 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblPerson->Address = $tblAddress->getGuiString();
                 }
 
+
+                $VisitedDivision = new Small( new Muted( '-NA-' ) );
+                $VisitedDivisionList = array();
+                if ($tblPerson !== null) {
+                    $tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                    if ($tblDivisionStudentAllByPerson) {
+                        foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudent) {
+                            $tblDivision = $tblDivisionStudent->getTblDivision();
+                            if ($tblDivision) {
+                                $tblLevel = $tblDivision->getTblLevel();
+                                $tblYear = $tblDivision->getServiceTblYear();
+                                if ($tblLevel && $tblYear) {
+                                    $VisitedDivisionList[] = new Small( new Muted( 'Aktuelle Klasse:' ) ) . new Container( $tblDivision->getDisplayName() );
+                                }
+                            }
+                        }
+
+                        if (!empty( $VisitedDivisionList )) {
+                            rsort($VisitedDivisionList);
+                            $VisitedDivision = current( $VisitedDivisionList );
+                        }
+                    }
+                }
+                $tblPerson->Division = $VisitedDivision;
             });
         }
 
@@ -479,9 +537,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         new AutoCompleter('FilterYear[TblYear_Name]', 'Bildung: Schuljahr', 'Bildung: Schuljahr', array('Name' => Term::useService()->getYearAll())),
                     ), 6),
-                    new FormColumn(array(
-                        new AutoCompleter('FilterType[TblType_Name]', 'Bildung: Schulart', 'Bildung: Schulart', array('Name' => Type::useService()->getTypeAll())),
-                    ), 6),
+//                    new FormColumn(array(
+//                        new AutoCompleter('FilterType[TblType_Name]', 'Bildung: Schulart', 'Bildung: Schulart', array('Name' => Type::useService()->getTypeAll())),
+//                    ), 6),
                 )),
                 new FormRow(array(
                     new FormColumn(array(
@@ -570,7 +628,9 @@ class Frontend extends Extension implements IFrontendInterface
                                             new TableData($tblPersonList, null,
                                                 array('Exchange' => '',
                                                       'Name'     => 'Name',
-                                                      'Address'  => 'Adresse'),
+                                                      'Address'  => 'Adresse',
+                                                      'Division' => 'Klasse'
+                                                ),
                                                 array(
                                                     'order'                => array(array(1, 'asc')),
                                                     'columnDefs'           => array(
@@ -609,7 +669,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             , 6
                                         ),
                                         new LayoutColumn(
-                                            new Panel(new Search() . ' Personen-Suche nach ' . new Bold('Klasse / Schüler'), array(
+                                            new Panel(new Search() . ' Schüler-Suche nach ' . new Bold('Schuljahr / Klasse / Schüler'), array(
                                                 $FormStudent
                                             ), Panel::PANEL_TYPE_INFO)
                                             , 6
@@ -629,11 +689,13 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ? new WarningMessage('Keine Ergebnisse bei aktueller Filterung '.new SuccessText(new Filter()))
                                                 : ''
                                             ),
-
                                                 new TableData($tblPersonSearch, null,
-                                                array('Exchange' => ' ',
-                                                      'Name'     => 'Name',
-                                                      'Address'  => 'Adresse'), array(
+                                                    array('Exchange' => ' ',
+                                                          'Name'     => 'Name',
+                                                          'Address'  => 'Adresse',
+                                                          'Division' => 'Klasse'
+                                                    ),
+                                                    array(
                                                         'order'            => array(array(1, 'asc')),
                                                     'columnDefs' => array(
                                                         array('orderable' => false, 'width' => '1%', 'targets' => 0)
@@ -695,15 +757,16 @@ class Frontend extends Extension implements IFrontendInterface
             $tblAddressPersonList = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
             if ($tblAddressPersonList) {
                 $Data = array();
+                /** @var TblAddressPerson $tblAddressPerson */
                 foreach ($tblAddressPersonList as $tblAddressPerson) {
 
                     if (( $tblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
                         if ($tblAddressPerson->getServiceTblSalutation()) {
-                            if ($tblPersonTo = $tblToPerson->getServiceTblPerson()) {
+                            if (($tblPersonTo = $tblToPerson->getServiceTblPerson())) {
                                 $Data[] = $tblAddressPerson->getServiceTblSalutation()->getSalutation().' '.$tblPersonTo->getLastFirstName();
                             }
                         } else {
-                            if ($tblPersonTo = $tblToPerson->getServiceTblPerson()) {
+                            if (($tblPersonTo = $tblToPerson->getServiceTblPerson())) {
                                 $Data[] = $tblPersonTo->getLastFirstName();
                             }
                         }
