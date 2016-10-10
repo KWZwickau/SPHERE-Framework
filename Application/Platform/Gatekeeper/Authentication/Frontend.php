@@ -48,7 +48,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendWelcome()
     {
 
-        $Stage = new Stage('Willkommen', 'KREDA Professional');
+        $Stage = new Stage('Willkommen','');
         $Stage->addButton(new Backward(true));
         $Stage->setMessage(date('d.m.Y - H:i:s'));
 
@@ -86,18 +86,20 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Prepare Environment
         switch (strtolower($this->getRequest()->getHost())) {
+            case 'www.schulsoftware.schule':
             case 'www.kreda.schule':
-                $Environment = new Standard('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', new Transfer(),
+                $Environment = new Standard('Zur Demo-Umgebung wechseln', 'http://demo.schulsoftware.schule/', new Transfer(),
                     array(),
                     false);
                 break;
+            case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
-                $Environment = new Standard('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', new Transfer(),
+                $Environment = new Standard('Zur Live-Umgebung wechseln', 'http://www.schulsoftware.schule/', new Transfer(),
                     array(),
                     false);
                 break;
             default:
-                $Environment = new Standard('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', new Transfer(),
+                $Environment = new Standard('Zur Demo-Umgebung wechseln', 'http://demo.schulsoftware.schule/', new Transfer(),
                     array(),
                     false);
         }
@@ -209,7 +211,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $View = new Stage('Abmelden', 'Bitte warten...');
         $View->setContent(Account::useService()->destroySession(
-                new Redirect('/Platform/Gatekeeper/Authentication', 5)
+                new Redirect('/Platform/Gatekeeper/Authentication', Redirect::TIMEOUT_SUCCESS)
             ).$this->getCleanLocalStorage());
         return $View;
     }
