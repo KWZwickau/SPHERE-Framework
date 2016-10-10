@@ -137,7 +137,7 @@ class ViewAddressToPerson extends AbstractView
 
         $this->setNameDefinition(self::TBL_TO_PERSON_REMARK, 'Adresse: Bemerkungen');
         $this->setNameDefinition(self::TBL_TYPE_NAME, 'Adresse: Adresstyp');
-        $this->setNameDefinition(self::TBL_TYPE_DESCRIPTION, 'Adresse: Adresstyp-Bemerkung');
+//        $this->setNameDefinition(self::TBL_TYPE_DESCRIPTION, 'Adresse: Adresstyp-Bemerkung');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Adresse: Strasse');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Adresse: Hausnummer');
         $this->setNameDefinition(self::TBL_ADDRESS_POST_OFFICE_BOX, 'Adresse: Postfach');
@@ -147,6 +147,11 @@ class ViewAddressToPerson extends AbstractView
         $this->setNameDefinition(self::TBL_CITY_NAME, 'Adresse: Stadt');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Adresse: Ortsteil');
         $this->setNameDefinition(self::TBL_STATE_NAME, 'Adresse: Bundesland');
+    }
+
+    public function loadDisableDefinition()
+    {
+        $this->setDisableDefinition(self::TBL_TYPE_DESCRIPTION);
     }
 
     /**

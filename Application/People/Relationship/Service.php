@@ -11,6 +11,7 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\Application\People\Relationship\Service\Setup;
@@ -39,6 +40,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->viewRelationshipToPerson();
+    }
+
+    /**
+     * @return false|ViewRelationshipFromPerson[]
+     */
+    public function viewRelationshipFromPerson()
+    {
+
+        return ( new Data($this->getBinding()) )->viewRelationshipFromPerson();
     }
 
     /**

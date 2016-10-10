@@ -13,10 +13,10 @@ use SPHERE\System\Database\Binding\AbstractView;
 
 /**
  * @Entity
- * @Table(name="viewRelationshipToPerson")
+ * @Table(name="viewRelationshipFromPerson")
  * @Cache(usage="READ_ONLY")
  */
-class ViewRelationshipToPerson extends AbstractView
+class ViewRelationshipFromPerson extends AbstractView
 {
 
     const TBL_TO_PERSON_ID = 'TblToPerson_Id';
@@ -106,7 +106,7 @@ class ViewRelationshipToPerson extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Personenbeziehungen von dieser Person';
+        return 'Personenbeziehungen zu dieser Person';
     }
 
 
@@ -121,10 +121,10 @@ class ViewRelationshipToPerson extends AbstractView
         $this->setNameDefinition(self::TBL_TO_PERSON_REMARK, 'Beziehung: Bemerkung');
 
         $this->setNameDefinition(self::TBL_TYPE_NAME, 'Beziehung: Typ');
-        $this->setNameDefinition(self::TBL_TYPE_DESCRIPTION, 'Beziehung: Typ-Bemerkung');
+//        $this->setNameDefinition(self::TBL_TYPE_DESCRIPTION, 'Beziehung: Typ-Bemerkung');
 
         $this->setNameDefinition(self::TBL_GROUP_NAME, 'Beziehung: Kategorie');
-        $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Beziehung: Kategorie-Bemerkung');
+//        $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Beziehung: Kategorie-Bemerkung');
     }
 
     public function loadDisableDefinition()
@@ -143,8 +143,8 @@ class ViewRelationshipToPerson extends AbstractView
     public function loadViewGraph()
     {
 
-        $this->addForeignView(self::TBL_TO_PERSON_SERVICE_TBL_PERSON_TO, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
-        $this->addForeignView(self::TBL_TO_PERSON_SERVICE_TBL_PERSON_TO, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
+        $this->addForeignView(self::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
+        $this->addForeignView(self::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
 
     }
 

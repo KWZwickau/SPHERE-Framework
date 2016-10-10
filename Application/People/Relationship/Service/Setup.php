@@ -47,6 +47,11 @@ class Setup extends AbstractSetup
                 ->addLink(new TblType(), 'tblGroup', new TblGroup())
         );
         $this->getConnection()->createView(
+            ( new View($this->getConnection(), 'viewRelationshipFromPerson') )
+                ->addLink(new TblToPerson(), 'tblType', new TblType())
+                ->addLink(new TblType(), 'tblGroup', new TblGroup())
+        );
+        $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewRelationshipToCompany') )
                 ->addLink(new TblToCompany(), 'tblType', new TblType())
                 ->addLink(new TblType(), 'tblGroup', new TblGroup())

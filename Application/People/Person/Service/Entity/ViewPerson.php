@@ -17,6 +17,7 @@ use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspec
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\ViewPeopleMetaTeacher;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
@@ -114,6 +115,8 @@ class ViewPerson extends AbstractView
     {
 
         $this->addForeignView(self::TBL_PERSON_ID, new ViewRelationshipToPerson(), ViewRelationshipToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM);
+        $this->addForeignView(self::TBL_PERSON_ID, new ViewRelationshipFromPerson(), ViewRelationshipFromPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_TO);
+
         $this->addForeignView(self::TBL_PERSON_ID, new ViewAddressToPerson(), ViewAddressToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewStudent(), ViewStudent::TBL_STUDENT_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaClub(), ViewPeopleMetaClub::TBL_CLUB_SERVICE_TBL_PERSON);
