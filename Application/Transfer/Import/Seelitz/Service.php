@@ -455,11 +455,13 @@ class Service
 
                                 $remark = '';
                                 if (($siblings = trim($Document->getValue($Document->getCell($Location['Geschwister'],
-                                    $RunY)))) && $siblings !== '-' ) {
+                                        $RunY)))) && $siblings !== '-'
+                                ) {
                                     $remark = 'Geschwister: ' . $siblings;
                                 }
                                 if (($confirmation = trim($Document->getValue($Document->getCell($Location['Anmeldung bestätigt'],
-                                    $RunY))))) {
+                                    $RunY))))
+                                ) {
                                     $remark = trim($remark . ' Anmeldung bestätigt: ' . $confirmation . ' ');
                                 }
 
@@ -796,7 +798,7 @@ class Service
                     'Hortkind' => null,
                     'Beförderung früh' => null,
                     'Beförderung nachm.' => null,
-                    'Nr. Schulverzeichnis' => null,
+                    'Nr. M. Ulbricht' => null,
                     'aufgenommen am' => null,
                     'aufgenommen von' => null,
                     'abgegangen am' => null,
@@ -1201,7 +1203,7 @@ class Service
                                     $RunY)));
                                 $tblStudent = Student::useService()->insertStudent(
                                     $tblPerson,
-                                    trim($Document->getValue($Document->getCell($Location['Nr. Schulverzeichnis'],
+                                    trim($Document->getValue($Document->getCell($Location['Nr. M. Ulbricht'],
                                         $RunY))),
                                     null,
                                     Student::useService()->insertStudentTransport(
@@ -1334,6 +1336,445 @@ class Service
 
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
+                        new Success('Es wurden ' . $countFather . ' Sorgeberechtigte2 erfolgreich angelegt.') .
+                        ($countFatherExists > 0 ?
+                            new Warning($countFatherExists . ' Sorgeberechtigte2 exisistieren bereits.') : '') .
+                        new Success('Es wurden ' . $countMother . ' Sorgeberechtigte1 erfolgreich angelegt.') .
+                        ($countMotherExists > 0 ?
+                            new Warning($countMotherExists . ' Sorgeberechtigte1 exisistieren bereits.') : '')
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                'Fehler',
+                                $error,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))));
+
+                } else {
+                    Debugger::screenDump($Location);
+
+                    return new Warning(json_encode($Location)) . new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createKindergartenFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Einschulung' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Straße' => null,
+                    'Hausnr.' => null,
+                    'PLZ' => null,
+                    'Ort' => null,
+                    'ggf. Ortsteil' => null,
+                    'Geburtsdatum' => null,
+                    'Vorname Mutter' => null,
+                    'Name Mutter' => null,
+                    'Vorname Vater' => null,
+                    'Name Vater' => null,
+                    'Krippe' => null,
+                    'Kiga' => null,
+                    'Telefon' => null,
+                    'Email-Adresse Mutter' => null,
+                    'Email-Adresse Vater' => null,
+                    'aufgenommen am' => null,
+                );
+
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countProspect = 0;
+                    $countFather = 0;
+                    $countMother = 0;
+                    $countFatherExists = 0;
+                    $countMotherExists = 0;
+
+                    if (!($tblGroupKrippe = (Group::useService()->getGroupByName('Krippe')))) {
+                        $tblGroupKrippe = Group::useService()->createGroupFromImport('Krippe');
+                    }
+                    if (!($tblGroupKiga = (Group::useService()->getGroupByName('Kiga')))) {
+                        $tblGroupKiga = Group::useService()->createGroupFromImport('Kiga');
+                    }
+
+                    $error = array();
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        set_time_limit(300);
+                        // Kiga
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        if ($firstName === '' || $lastName === '') {
+                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
+                        } else {
+
+                            $tblPerson = Person::useService()->insertPerson(
+                                null,
+                                '',
+                                $firstName,
+                                '',
+                                $lastName,
+                                array(
+                                    0 => Group::useService()->getGroupByMetaTable('COMMON')
+                                )
+                            );
+
+                            if ($tblPerson === false) {
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte nicht angelegt werden.';
+                            } else {
+                                $countProspect++;
+
+                                $group = trim($Document->getValue($Document->getCell($Location['Krippe'], $RunY)));
+                                if ($group !== '') {
+                                    Group::useService()->addGroupPerson($tblGroupKrippe, $tblPerson);
+                                }
+                                $group = trim($Document->getValue($Document->getCell($Location['Kiga'], $RunY)));
+                                if ($group !== '') {
+                                    Group::useService()->addGroupPerson($tblGroupKiga, $tblPerson);
+                                }
+
+
+                                $day = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                    $RunY)));
+                                if ($day !== '') {
+                                    try {
+                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                    } catch (\Exception $ex) {
+                                        $birthday = '';
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
+                                    }
+
+                                } else {
+                                    $birthday = '';
+                                }
+
+                                $remark = trim($Document->getValue($Document->getCell($Location['Einschulung'],
+                                    $RunY)));
+                                if ($remark !== '') {
+                                    $remark = 'Einschulung: ' . $remark;
+                                }
+
+                                $day = trim($Document->getValue($Document->getCell($Location['aufgenommen am'],
+                                    $RunY)));
+                                if ($day !== '') {
+                                    try {
+                                        $day = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                        $remark = trim($remark . ' aufgenommen am: ' . $day);
+                                    } catch (\Exception $ex) {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
+                                    }
+                                }
+
+                                Common::useService()->insertMeta(
+                                    $tblPerson,
+                                    $birthday,
+                                    '',
+                                    TblCommonBirthDates::VALUE_GENDER_NULL,
+                                    '',
+                                    '',
+                                    TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                    '',
+                                    $remark
+                                );
+
+                                // Address
+                                $cityCode = str_pad(
+                                    trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
+                                    5,
+                                    "0",
+                                    STR_PAD_LEFT
+                                );
+                                $cityName = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                    $RunY)));
+                                $cityDistrict = trim($Document->getValue($Document->getCell($Location['ggf. Ortsteil'],
+                                    $RunY)));
+                                $streetName = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                    $RunY)));
+                                $streetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
+                                    $RunY)));
+                                if ($streetName !== '' && $streetNumber !== ''
+                                    && $cityCode && $cityName
+                                ) {
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson, $streetName, $streetNumber, $cityCode, $cityName,
+                                        $cityDistrict, ''
+                                    );
+                                }
+
+                                $tblRelationshipTypeCustody = Relationship::useService()->getTypeById(1);
+                                // Father
+                                $tblPersonFather = null;
+                                $fatherLastName = trim($Document->getValue($Document->getCell($Location['Name Vater'],
+                                    $RunY)));
+                                $fatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname Vater'],
+                                    $RunY)));
+                                if ($fatherLastName !== '' && $fatherFirstName !== '') {
+
+                                    $tblPersonFatherExists = Person::useService()->existsPerson(
+                                        $fatherFirstName,
+                                        $fatherLastName,
+                                        $cityCode
+                                    );
+
+                                    if (!$tblPersonFatherExists) {
+                                        $tblSalutation = Person::useService()->getSalutationById(1);
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
+
+                                        $tblPersonFather = Person::useService()->insertPerson(
+                                            $tblSalutation,
+                                            '',
+                                            $fatherFirstName,
+                                            '',
+                                            $fatherLastName,
+                                            array(
+                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY')
+                                            )
+                                        );
+
+                                        if ($tblPersonFather) {
+                                            Common::useService()->insertMeta(
+                                                $tblPersonFather,
+                                                '',
+                                                '',
+                                                $gender,
+                                                '',
+                                                '',
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPersonFather,
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
+                                            'Vater'
+                                        );
+
+                                        if ($streetName !== '' && $streetNumber !== '' && $cityCode && $cityName) {
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPersonFather,
+                                                $streetName,
+                                                $streetNumber,
+                                                $cityCode,
+                                                $cityName,
+                                                $cityDistrict,
+                                                ''
+                                            );
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Vaters wurde nicht angelegt, da keine vollständige Adresse hinterlegt ist.';
+                                        }
+
+                                        $mailAddress = trim($Document->getValue($Document->getCell($Location['Email-Adresse Vater'],
+                                            $RunY)));
+                                        if ($mailAddress != '') {
+                                            $mailAddressList = explode(',', $mailAddress);
+                                            foreach ($mailAddressList as $addressItem) {
+                                                Mail::useService()->insertMailToPerson(
+                                                    $tblPersonFather,
+                                                    trim($addressItem),
+                                                    Mail::useService()->getTypeById(1),
+                                                    ''
+                                                );
+                                            }
+                                        }
+
+                                        $countFather++;
+                                    } else {
+
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPersonFatherExists,
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
+                                            'Vater'
+                                        );
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Vater wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+
+                                        $countFatherExists++;
+                                    }
+                                }
+
+                                // Mother
+                                $tblPersonMother = null;
+                                $motherLastName = trim($Document->getValue($Document->getCell($Location['Name Mutter'],
+                                    $RunY)));
+                                $motherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname Mutter'],
+                                    $RunY)));
+                                if ($motherLastName !== '' && $motherFirstName !== '') {
+
+                                    $tblPersonMotherExists = Person::useService()->existsPerson(
+                                        $motherFirstName,
+                                        $motherLastName,
+                                        $cityCode
+                                    );
+
+                                    if (!$tblPersonMotherExists) {
+                                        $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
+                                        $tblSalutation = Person::useService()->getSalutationById(2);
+
+                                        $tblPersonMother = Person::useService()->insertPerson(
+                                            $tblSalutation,
+                                            '',
+                                            $motherFirstName,
+                                            '',
+                                            $motherLastName,
+                                            array(
+                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY')
+                                            )
+                                        );
+
+                                        if ($tblPersonMother) {
+                                            Common::useService()->insertMeta(
+                                                $tblPersonMother,
+                                                '',
+                                                '',
+                                                $gender,
+                                                '',
+                                                '',
+                                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                                '',
+                                                ''
+                                            );
+                                        }
+
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPersonMother,
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
+                                            'Mutter'
+                                        );
+
+                                        if ($streetName !== '' && $streetNumber !== '' && $cityCode && $cityName) {
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPersonMother,
+                                                $streetName,
+                                                $streetNumber,
+                                                $cityCode,
+                                                $cityName,
+                                                $cityDistrict,
+                                                ''
+                                            );
+                                        } else {
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse der Mutter wurde nicht angelegt, da keine vollständige Adresse hinterlegt ist.';
+                                        }
+
+                                        $mailAddress = trim($Document->getValue($Document->getCell($Location['Email-Adresse Mutter'],
+                                            $RunY)));
+                                        if ($mailAddress != '') {
+                                            $mailAddressList = explode(',', $mailAddress);
+                                            foreach ($mailAddressList as $addressItem) {
+                                                Mail::useService()->insertMailToPerson(
+                                                    $tblPersonMother,
+                                                    trim($addressItem),
+                                                    Mail::useService()->getTypeById(1),
+                                                    ''
+                                                );
+                                            }
+                                        }
+
+                                        $countMother++;
+                                    } else {
+
+                                        Relationship::useService()->insertRelationshipToPerson(
+                                            $tblPersonMotherExists,
+                                            $tblPerson,
+                                            $tblRelationshipTypeCustody,
+                                            'Mutter'
+                                        );
+
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Mutter wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert. Der Schüler wurde mit der bereits existierenden Person verknüpft';
+
+                                        $countMotherExists++;
+                                    }
+                                }
+
+                                $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon'],
+                                    $RunY)));
+                                if ($phoneNumber != '') {
+                                    if (0 !== strpos($phoneNumber, '0')) {
+                                        $phoneNumber = '0' . $phoneNumber;
+                                    }
+                                    $tblType = Phone::useService()->getTypeById(1);
+                                    if (0 === strpos($phoneNumber, '01')) {
+                                        $tblType = Phone::useService()->getTypeById(2);
+                                    }
+
+                                    Phone::useService()->insertPhoneToPerson(
+                                        $tblPerson,
+                                        $phoneNumber,
+                                        $tblType,
+                                        ''
+                                    );
+                                }
+                            }
+                        }
+                    }
+
+                    Debugger::screenDump($error);
+
+                    return
+                        new Success('Es wurden ' . $countProspect . ' Personen erfolgreich angelegt.') .
                         new Success('Es wurden ' . $countFather . ' Sorgeberechtigte2 erfolgreich angelegt.') .
                         ($countFatherExists > 0 ?
                             new Warning($countFatherExists . ' Sorgeberechtigte2 exisistieren bereits.') : '') .

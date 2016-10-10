@@ -35,10 +35,14 @@ class Seelitz implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/InterestedPerson', __NAMESPACE__ . '\Frontend::frontendInterestedPersonImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Kindergarten', __NAMESPACE__ . '\Frontend::frontendKindergartenImport'
+        ));
 
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStaff'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetInterestedPerson'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetKindergarten'), 2, 2);
     }
 
     /**
@@ -96,6 +100,19 @@ class Seelitz implements IModuleInterface
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
             'Seelitz', 'Interessenten',
             new Standard('', '/Transfer/Import/Seelitz/InterestedPerson', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetKindergarten()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
+            'Seelitz', 'Kindergarten',
+            new Standard('', '/Transfer/Import/Seelitz/Kindergarten', new Upload(), array(), 'Upload')
         );
     }
 }
