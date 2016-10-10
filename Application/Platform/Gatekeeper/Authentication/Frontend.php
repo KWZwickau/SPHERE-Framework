@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Database\Database;
+use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -81,6 +82,10 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendIdentification($CredentialName = null, $CredentialLock = null, $CredentialKey = null)
     {
+
+        if( $CredentialName !== null ) {
+            Protocol::useService()->createLoginAttemptEntry($CredentialName, $CredentialLock, $CredentialKey);
+        }
 
         $View = new Stage('Anmeldung');
 
@@ -167,7 +172,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new Panel('Hardware-Schlüssel *', array(
                                 new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey())
-                            ), Panel::PANEL_TYPE_INFO, new Small('* Optional'))
+                            ), Panel::PANEL_TYPE_INFO, new Small('* Wenn zu Ihrem Zugang ein YubiKey gehört geben Sie zuerst oben Ihren Benutzername und Passwort an, stecken Sie dann bitte den YubiKey an, klicken in das Feld YubiKey und drücken anschließend auf den metallischen Sensor am YubiKey. <br/>Das Formular wird daraufhin automatisch abgeschickt.'))
                         )
                     ))
                 )
