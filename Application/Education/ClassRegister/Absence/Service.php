@@ -94,6 +94,17 @@ class Service extends AbstractService
             $Stage->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
+        if (isset($Data['FromDate']) && !empty($Data['FromDate'])
+            && isset($Data['ToDate']) && !empty($Data['ToDate'])
+        ) {
+            $fromDate = new \DateTime($Data['FromDate']);
+            $toDate = new \DateTime($Data['ToDate']);
+            if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
+                $Stage->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
+                $Error = true;
+            }
+        }
+
         // ToDo setError for RadioBox
         if (!isset($Data['Status'])) {
             $Stage->setError('Data[Status]', 'Bitte geben Sie einen Status an');
@@ -143,6 +154,17 @@ class Service extends AbstractService
             $Stage->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
+        if (isset($Data['FromDate']) && !empty($Data['FromDate'])
+            && isset($Data['ToDate']) && !empty($Data['ToDate'])
+        ) {
+            $fromDate = new \DateTime($Data['FromDate']);
+            $toDate = new \DateTime($Data['ToDate']);
+            if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
+                $Stage->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
+                $Error = true;
+            }
+        }
+
         // ToDo setError for RadioBox
         if (!isset($Data['Status'])) {
             $Stage->setError('Data[Status]', 'Bitte geben Sie einen Status an');
