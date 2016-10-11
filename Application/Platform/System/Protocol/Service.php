@@ -37,6 +37,19 @@ class Service extends AbstractService
     }
 
     /**
+     * Get available Database-Name-List
+     *
+     * (Distinct)
+     *
+     * @return array
+     */
+    public function getProtocolDatabaseNameList()
+    {
+
+        return (new Data($this->getBinding()))->getProtocolDatabaseNameList();
+    }
+
+    /**
      * @return bool|TblProtocol[]
      */
     public function getProtocolAll()
