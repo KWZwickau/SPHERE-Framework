@@ -610,9 +610,13 @@ class Service extends AbstractService
                 $tblCertificate,
                 true,
                 $tblPrepareStudent->isPrinted(),
-                Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                $tblPrepareStudent->getExcusedDays()
+                    ? $tblPrepareStudent->getExcusedDays()
+                    : Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
                     new \DateTime($tblPrepare->getDate())),
-                Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
+                $tblPrepareStudent->getUnexcusedDays()
+                    ? $tblPrepareStudent->getUnexcusedDays()
+                    : Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
                     new \DateTime($tblPrepare->getDate()))
             );
         } else {
@@ -638,10 +642,8 @@ class Service extends AbstractService
                 $tblCertificate,
                 $tblPrepareStudent->isApproved(),
                 true,
-                Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
-                    new \DateTime($tblPrepare->getDate())),
-                Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
-                    new \DateTime($tblPrepare->getDate()))
+                $tblPrepareStudent->getExcusedDays(),
+                $tblPrepareStudent->getUnexcusedDays()
             );
         } else {
             return false;
@@ -666,8 +668,8 @@ class Service extends AbstractService
                 $tblCertificate,
                 false,
                 $tblPrepareStudent->isPrinted(),
-                null,
-                null
+                $tblPrepareStudent->getExcusedDays(),
+                $tblPrepareStudent->getUnexcusedDays()
             );
         } else {
             return false;
@@ -1071,6 +1073,7 @@ class Service extends AbstractService
 
             if ($tblPrepareGradeList) {
                 $gradeList = array();
+                /** @var TblPrepareGrade $tblPrepareGrade */
                 foreach ($tblPrepareGradeList as $tblPrepareGrade) {
                     if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
                         $tblCertificateSubject = Generator::useService()->getCertificateSubjectBySubject(
@@ -1235,5 +1238,68 @@ class Service extends AbstractService
                 }
             }
         }
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function setAbsenceDays(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($Data['ExcusedDays']) && !preg_match('/^[0-9]+/', $Data['ExcusedDays'])) {
+            $Stage->setError('Data[ExcusedDays]', 'Bitte geben Sie die Anzahl der Tage ein');
+            $Error = true;
+        }
+        if (isset($Data['UnexcusedDays']) && !preg_match('/^[0-9]+/', $Data['UnexcusedDays'])) {
+            $Stage->setError('Data[UnexcusedDays]', 'Bitte geben Sie die Anzahl der Tage ein');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                (new Data($this->getBinding()))->updatePrepareStudent(
+                    $tblPrepareStudent,
+                    $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : null,
+                    $tblPrepareStudent->isApproved(),
+                    $tblPrepareStudent->isPrinted(),
+                    $Data['ExcusedDays'],
+                    $Data['UnexcusedDays']
+                );
+            } else {
+                (new Data($this->getBinding()))->createPrepareStudent(
+                    $tblPrepare,
+                    $tblPerson,
+                    null,
+                    false,
+                    false,
+                    $Data['ExcusedDays'],
+                    $Data['UnexcusedDays']
+                );
+            }
+
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Fehlzeiten sind erfasst worden.')
+            . new Redirect('/Education/Certificate/Prepare/Division', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId()
+            ));
+        }
+
+        return $Stage;
     }
 }
