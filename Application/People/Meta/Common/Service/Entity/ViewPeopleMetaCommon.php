@@ -136,6 +136,11 @@ class ViewPeopleMetaCommon extends AbstractView
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_IS_ASSISTANCE, 'Personendaten: Mitarbeitsbereitschaft');
     }
 
+    public function loadDisableDefinition()
+    {
+        $this->setDisableDefinition(self::TBL_COMMON_BIRTH_DATES_GENDER);
+    }
+
     /**
      * Use this method to add ForeignViews to Graph with "addForeignView()"
      *

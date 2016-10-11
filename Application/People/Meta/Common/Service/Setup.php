@@ -60,13 +60,15 @@ class Setup extends AbstractSetup
                 Common::useService()->createCommonGender( 'Männlich' );
                 Common::useService()->createCommonGender( 'Weiblich' );
                 $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
-                foreach ($tblCommonBirthDatesAll as $tblCommonBirthDates) {
-                    Common::useService()->updateCommonBirthDates(
-                        $tblCommonBirthDates,
-                        $tblCommonBirthDates->getBirthday(),
-                        $tblCommonBirthDates->getBirthplace(),
-                        $tblCommonBirthDates->getGender()
-                    );
+                if ($tblCommonBirthDatesAll) {
+                    foreach ($tblCommonBirthDatesAll as $tblCommonBirthDates) {
+                        Common::useService()->updateCommonBirthDates(
+                            $tblCommonBirthDates,
+                            $tblCommonBirthDates->getBirthday(),
+                            $tblCommonBirthDates->getBirthplace(),
+                            $tblCommonBirthDates->getGender()
+                        );
+                    }
                 }
             }
         }
@@ -101,6 +103,9 @@ class Setup extends AbstractSetup
         $this->createColumn( $Table, 'Birthday', self::FIELD_TYPE_DATETIME, true );
         $this->createColumn( $Table, 'Birthplace', self::FIELD_TYPE_STRING );
 
+        if (!$this->getConnection()->hasColumn('tblCommonBirthDates', 'Gender')) {  // ToDO can't remove now (View problem)
+            $Table->addColumn('Gender', 'smallint');
+        }
 
         if( $this->hasColumn( $Table, 'Gender' ) && !$this->hasColumn( $Table, $tblCommonGender->getName() ) ) {
             $this->createColumn($Table, 'Gender', self::FIELD_TYPE_INTEGER, true);
@@ -110,10 +115,6 @@ class Setup extends AbstractSetup
             }
         }
         $this->createForeignKey( $Table, $tblCommonGender, true );
-
-//        if (!$this->getConnection()->hasColumn('tblCommonBirthDates', 'Gender')) {
-//            $Table->addColumn('Gender', 'smallint');
-//        }
 
         return $Table;
     }
