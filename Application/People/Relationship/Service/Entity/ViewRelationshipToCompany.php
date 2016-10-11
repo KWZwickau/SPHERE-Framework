@@ -129,6 +129,22 @@ class ViewRelationshipToCompany extends AbstractView
     }
 
     /**
+     * TODO: Abstract
+     *
+     * Use this method to set disabled Properties with "setDisabledProperty()"
+     *
+     * @return void
+     */
+    public function loadDisableDefinition()
+    {
+        $this->setDisableDefinition(self::TBL_TYPE_DESCRIPTION);
+        $this->setDisableDefinition(self::TBL_GROUP_DESCRIPTION);
+        $this->setDisableDefinition(self::TBL_GROUP_IDENTIFIER);
+        $this->setDisableDefinition(self::TBL_TYPE_IS_BIDIRECTIONAL);
+    }
+
+
+    /**
      * Use this method to add ForeignViews to Graph with "addForeignView()"
      *
      * @return void
