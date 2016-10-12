@@ -84,7 +84,7 @@ class Service extends AbstractService
     public function countPersonAllByGroup(TblGroup $tblGroup)
     {
 
-        return Group::useService()->countPersonAllByGroup($tblGroup);
+        return Group::useService()->countMemberAllByGroup($tblGroup);
     }
 
     /**
@@ -305,5 +305,13 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyPerson($tblPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     */
+    public function softRemovePersonReferences(TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->softRemovePersonReferences($tblPerson);
     }
 }

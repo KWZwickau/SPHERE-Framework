@@ -1,10 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Group\Service;
 
-use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Contact\Mail\Mail;
-use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
@@ -193,7 +189,7 @@ class Data extends AbstractData
                 if (!$V->getServiceTblPerson()
                     && ($tblPerson = $V->getServiceTblPerson(true))
                 ){
-                    $this->softRemovePersonReferences($tblPerson);
+                    Person::useService()->softRemovePersonReferences($tblPerson);
                 }
 
                 $V = $V->getServiceTblPerson();
@@ -296,12 +292,13 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblGroup  $tblGroup
+     * @param TblGroup $tblGroup
      * @param TblPerson $tblPerson
+     * @param bool $IsSoftRemove
      *
      * @return bool
      */
-    public function removeGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
+    public function removeGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson, $IsSoftRemove = false )
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -313,7 +310,11 @@ class Data extends AbstractData
             ));
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
-            $Manager->killEntity($Entity);
+            if ($IsSoftRemove) {
+                $Manager->removeEntity($Entity);
+            } else {
+                $Manager->killEntity($Entity);
+            }
             return true;
         }
         return false;
@@ -389,19 +390,5 @@ class Data extends AbstractData
             TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
             TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     */
-    private function softRemovePersonReferences(TblPerson $tblPerson)
-    {
-
-        $IsSoftRemove = true;
-
-        Address::useService()->removeAddressAllByPerson($tblPerson, $IsSoftRemove);
-        Mail::useService()->removeSoftMailAllByPerson($tblPerson, $IsSoftRemove);
-        Phone::useService()->removeSoftPhoneAllByPerson($tblPerson, $IsSoftRemove);
-        Division::useService()->removePerson($tblPerson, $IsSoftRemove);
     }
 }

@@ -192,13 +192,14 @@ class Service extends AbstractService
 
     /**
      * @param TblAbsence $tblAbsence
+     * @param bool $IsSoftRemove
      *
      * @return bool
      */
-    public function destroyAbsence(TblAbsence $tblAbsence)
+    public function destroyAbsence(TblAbsence $tblAbsence, $IsSoftRemove = false)
     {
 
-        return (new Data($this->getBinding()))->destroyAbsence($tblAbsence);
+        return (new Data($this->getBinding()))->destroyAbsence($tblAbsence, $IsSoftRemove);
     }
 
     /**
@@ -245,5 +246,19 @@ class Service extends AbstractService
         }
 
         return $days;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool $IsSoftRemove
+     */
+    public function destroyAbsenceAllByPerson(TblPerson $tblPerson, $IsSoftRemove = false)
+    {
+
+        if (($tblAbsenceList = $this->getAbsenceAllByPerson($tblPerson))){
+            foreach($tblAbsenceList as $tblAbsence){
+                $this->destroyAbsence($tblAbsence, $IsSoftRemove);
+            }
+        }
     }
 }
