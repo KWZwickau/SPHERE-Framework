@@ -184,13 +184,18 @@ class Data extends AbstractData
 
     /**
      * @param integer $Id
+     * @param bool $IsForced
      *
      * @return bool|TblPerson
      */
-    public function getPersonById($Id)
+    public function getPersonById($Id, $IsForced = false)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
+        if ($IsForced){
+            return $this->getForceEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
+        } else {
+            return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
+        }
     }
 
     /**

@@ -479,10 +479,11 @@ class Data extends AbstractData
 
     /**
      * @param TblToPerson $tblToPerson
+     * @param bool $IsSoftRemove
      *
      * @return bool
      */
-    public function removeAddressToPerson(TblToPerson $tblToPerson)
+    public function removeAddressToPerson(TblToPerson $tblToPerson, $IsSoftRemove = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -490,7 +491,11 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
-            $Manager->killEntity($Entity);
+            if ($IsSoftRemove) {
+                $Manager->removeEntity($Entity);
+            } else {
+                $Manager->killEntity($Entity);
+            }
             return true;
         }
         return false;

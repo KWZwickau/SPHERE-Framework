@@ -88,10 +88,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param array          $Person
+     * @param IFormInterface|null $Form
+     * @param $Person
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function createPerson(IFormInterface $Form = null, $Person)
     {
@@ -184,23 +184,24 @@ class Service extends AbstractService
     }
 
     /**
-     * @param integer $Id
+     * @param $Id
+     * @param bool $IsForced
      *
      * @return bool|TblPerson
      */
-    public function getPersonById($Id)
+    public function getPersonById($Id, $IsForced = false)
     {
 
-        return (new Data($this->getBinding()))->getPersonById($Id);
+        return (new Data($this->getBinding()))->getPersonById($Id, $IsForced);
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Person
-     * @param null|int       $Group
+     * @param IFormInterface|null $Form
+     * @param TblPerson $tblPerson
+     * @param $Person
+     * @param $Group
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function updatePerson(IFormInterface $Form = null, TblPerson $tblPerson, $Person, $Group)
     {

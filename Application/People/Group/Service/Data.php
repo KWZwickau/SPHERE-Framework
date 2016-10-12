@@ -1,6 +1,10 @@
 <?php
 namespace SPHERE\Application\People\Group\Service;
 
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
@@ -186,6 +190,12 @@ class Data extends AbstractData
         if ($EntityList) {
             array_walk($EntityList, function (TblMember &$V) {
 
+                if (!$V->getServiceTblPerson()
+                    && ($tblPerson = $V->getServiceTblPerson(true))
+                ){
+                    $this->softRemovePersonReferences($tblPerson);
+                }
+
                 $V = $V->getServiceTblPerson();
             });
             $EntityList = array_filter($EntityList);
@@ -256,6 +266,7 @@ class Data extends AbstractData
                 $V = $V->getTblGroup();
             });
         }
+        /** @var TblGroup[] $EntityList */
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -380,4 +391,17 @@ class Data extends AbstractData
         ));
     }
 
+    /**
+     * @param TblPerson $tblPerson
+     */
+    private function softRemovePersonReferences(TblPerson $tblPerson)
+    {
+
+        $IsSoftRemove = true;
+
+        Address::useService()->removeAddressAllByPerson($tblPerson, $IsSoftRemove);
+        Mail::useService()->removeSoftMailAllByPerson($tblPerson, $IsSoftRemove);
+        Phone::useService()->removeSoftPhoneAllByPerson($tblPerson, $IsSoftRemove);
+        Division::useService()->removePerson($tblPerson, $IsSoftRemove);
+    }
 }
