@@ -11,6 +11,11 @@ use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilterSearch;
 use SPHERE\Application\Reporting\Dynamic\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -425,282 +430,347 @@ class Service extends AbstractService
         return ( new Data($this->getBinding()) )->addDynamicFilterOption($tblDynamicFilterMask, $FilterFieldName, $IsMandatory);
     }
 
-    public function createStandardFilter(TblAccount $tblAccount)
+    /**
+     * @param IFormInterface $Form
+     * @param TblAccount     $tblAccount
+     * @param null           $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function createStandardFilter(IFormInterface $Form, TblAccount $tblAccount, $Data = null)
     {
 
-        if (!$this->getDynamicFilterAllByName('Adresse-Personen', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Adresse-Personen', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson');
-            $this->addDynamicFilterOption($Mask, 'TblType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_StreetName');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_StreetNumber');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_PostOfficeBox');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_County');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_Nation');
-            $this->addDynamicFilterOption($Mask, 'TblCity_Code');
-            $this->addDynamicFilterOption($Mask, 'TblCity_Name');
-            $this->addDynamicFilterOption($Mask, 'TblCity_District');
-            $this->addDynamicFilterOption($Mask, 'TblState_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_Title');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_SecondName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_BirthName');
+        if ($Data === null) {
+            return $Form;
         }
 
-        if (!$this->getDynamicFilterAllByName('Person-Adressen', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Person-Adressen', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_SecondName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_BirthName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson');
-            $this->addDynamicFilterOption($Mask, 'TblType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_StreetName');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_StreetNumber');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_PostOfficeBox');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_Nation');
-            $this->addDynamicFilterOption($Mask, 'TblCity_Code');
-            $this->addDynamicFilterOption($Mask, 'TblCity_Name');
-            $this->addDynamicFilterOption($Mask, 'TblCity_District');
-        }
+        $MissMatch = array();
+        $Implement = array();
+        foreach ($Data as $Name) {
+            $Match = false;
+            if ($Name === 'Adresse-Personen' && !$this->getDynamicFilterAllByName('Adresse-Personen', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Adresse-Personen', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson');
+                $this->addDynamicFilterOption($Mask, 'TblType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_StreetName');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_StreetNumber');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_PostOfficeBox');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_County');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_Nation');
+                $this->addDynamicFilterOption($Mask, 'TblCity_Code');
+                $this->addDynamicFilterOption($Mask, 'TblCity_Name');
+                $this->addDynamicFilterOption($Mask, 'TblCity_District');
+                $this->addDynamicFilterOption($Mask, 'TblState_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_Title');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_SecondName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_BirthName');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Person-Personenbeziehung-Person', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Person-Personenbeziehung-Person', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson');
-            $this->addDynamicFilterOption($Mask, 'TblType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-        }
+            if ($Name === 'Person-Adressen' && !$this->getDynamicFilterAllByName('Person-Adressen', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Person-Adressen', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_SecondName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_BirthName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson');
+                $this->addDynamicFilterOption($Mask, 'TblType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_StreetName');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_StreetNumber');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_PostOfficeBox');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_Nation');
+                $this->addDynamicFilterOption($Mask, 'TblCity_Code');
+                $this->addDynamicFilterOption($Mask, 'TblCity_Name');
+                $this->addDynamicFilterOption($Mask, 'TblCity_District');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Person-Sorgeberechtigte-Adressen', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Person-Sorgeberechtigte-Adressen', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPerson');
-            $this->addDynamicFilterOption($Mask, 'TblType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_Title');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_SecondName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_BirthName');
-            $Mask = $this->addDynamicFilterMask($Filter, 5, 'SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson');
-            $this->addDynamicFilterOption($Mask, 'TblType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_StreetName');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_StreetNumber');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_PostOfficeBox');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_County');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_Nation');
-            $this->addDynamicFilterOption($Mask, 'TblCity_Code');
-            $this->addDynamicFilterOption($Mask, 'TblCity_Name');
-            $this->addDynamicFilterOption($Mask, 'TblCity_District');
-        }
+            if ($Name === 'Person-Personenbeziehung-Person' && !$this->getDynamicFilterAllByName('Person-Personenbeziehung-Person', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Person-Personenbeziehung-Person', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson');
+                $this->addDynamicFilterOption($Mask, 'TblType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Firmen und Beziehungen', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Firmen und Beziehungen', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany');
-            $this->addDynamicFilterOption($Mask, 'TblCompany_Name');
-            $this->addDynamicFilterOption($Mask, 'TblCompany_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToCompany');
-            $this->addDynamicFilterOption($Mask, 'TblType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_StreetName');
-            $this->addDynamicFilterOption($Mask, 'TblAddress_StreetNumber');
-            $this->addDynamicFilterOption($Mask, 'TblCity_Code');
-            $this->addDynamicFilterOption($Mask, 'TblCity_Name');
-            $this->addDynamicFilterOption($Mask, 'TblCity_District');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany');
-            $this->addDynamicFilterOption($Mask, 'TblType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 5, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_Title');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_SecondName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_BirthName');
-        }
+            if ($Name === 'Person-Sorgeberechtigte-Adressen' && !$this->getDynamicFilterAllByName('Person-Sorgeberechtigte-Adressen', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Person-Sorgeberechtigte-Adressen', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPerson');
+                $this->addDynamicFilterOption($Mask, 'TblType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_Title');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_SecondName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_BirthName');
+                $Mask = $this->addDynamicFilterMask($Filter, 5, 'SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson');
+                $this->addDynamicFilterOption($Mask, 'TblType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_StreetName');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_StreetNumber');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_PostOfficeBox');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_County');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_Nation');
+                $this->addDynamicFilterOption($Mask, 'TblCity_Code');
+                $this->addDynamicFilterOption($Mask, 'TblCity_Name');
+                $this->addDynamicFilterOption($Mask, 'TblCity_District');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Befreiung', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Befreiung', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLiberation');
-            $this->addDynamicFilterOption($Mask, 'TblStudentLiberationType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblStudentLiberationCategory_Name');
-        }
+            if ($Name === 'Firmen und Beziehungen' && !$this->getDynamicFilterAllByName('Firmen und Beziehungen', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Firmen und Beziehungen', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany');
+                $this->addDynamicFilterOption($Mask, 'TblCompany_Name');
+                $this->addDynamicFilterOption($Mask, 'TblCompany_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToCompany');
+                $this->addDynamicFilterOption($Mask, 'TblType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_StreetName');
+                $this->addDynamicFilterOption($Mask, 'TblAddress_StreetNumber');
+                $this->addDynamicFilterOption($Mask, 'TblCity_Code');
+                $this->addDynamicFilterOption($Mask, 'TblCity_Name');
+                $this->addDynamicFilterOption($Mask, 'TblCity_District');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany');
+                $this->addDynamicFilterOption($Mask, 'TblType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 5, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblSalutation_Salutation');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_Title');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_SecondName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_BirthName');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Einverständnis', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Einverständnis', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement');
-            $this->addDynamicFilterOption($Mask, 'TblStudentAgreementType_Name');
-            $this->addDynamicFilterOption($Mask, 'TblStudentAgreementCategory_Name');
-        }
+            if ($Name === 'Schüler-Befreiung' && !$this->getDynamicFilterAllByName('Schüler-Befreiung', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Befreiung', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLiberation');
+                $this->addDynamicFilterOption($Mask, 'TblStudentLiberationType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblStudentLiberationCategory_Name');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Fehltage', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Fehltage', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear');
-            $this->addDynamicFilterOption($Mask, 'TblYear_Year');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision');
-            $this->addDynamicFilterOption($Mask, 'TblLevel_Name');
-            $this->addDynamicFilterOption($Mask, 'TblDivision_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence');
-            $this->addDynamicFilterOption($Mask, 'TblAbsence_FromDate');
-            $this->addDynamicFilterOption($Mask, 'TblAbsence_ToDate');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-        }
+            if ($Name === 'Schüler-Einverständnis' && !$this->getDynamicFilterAllByName('Schüler-Einverständnis', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Einverständnis', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement');
+                $this->addDynamicFilterOption($Mask, 'TblStudentAgreementType_Name');
+                $this->addDynamicFilterOption($Mask, 'TblStudentAgreementCategory_Name');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Förderbedarf-Antrag', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Förderbedarf-Antrag', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration');
-            $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingRequestDate');
-            $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingCounselDate');
-            $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingDecisionDate');
-            $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingTime');
-            $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingRemark');
-        }
+            if ($Name === 'Schüler-Fehltage' && !$this->getDynamicFilterAllByName('Schüler-Fehltage', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Fehltage', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear');
+                $this->addDynamicFilterOption($Mask, 'TblYear_Year');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision');
+                $this->addDynamicFilterOption($Mask, 'TblLevel_Name');
+                $this->addDynamicFilterOption($Mask, 'TblDivision_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence');
+                $this->addDynamicFilterOption($Mask, 'TblAbsence_FromDate');
+                $this->addDynamicFilterOption($Mask, 'TblAbsence_ToDate');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Förderbedarf-Schwerpunkte', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Förderbedarf-Schwerpunkte', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus');
-            $this->addDynamicFilterOption($Mask, 'TblStudentFocusType_Name');
-        }
+            if ($Name === 'Schüler-Förderbedarf-Antrag' && !$this->getDynamicFilterAllByName('Schüler-Förderbedarf-Antrag', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Förderbedarf-Antrag', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration');
+                $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingRequestDate');
+                $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingCounselDate');
+                $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingDecisionDate');
+                $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingTime');
+                $this->addDynamicFilterOption($Mask, 'TblStudentIntegration_CoachingRemark');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Förderbedarf-Teilstörung', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Förderbedarf-Teilstörung', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder');
-            $this->addDynamicFilterOption($Mask, 'TblStudentDisorderType_Name');
-        }
+            if ($Name === 'Schüler-Förderbedarf-Schwerpunkte' && !$this->getDynamicFilterAllByName('Schüler-Förderbedarf-Schwerpunkte', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Förderbedarf-Schwerpunkte', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus');
+                $this->addDynamicFilterOption($Mask, 'TblStudentFocusType_Name');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Krankenakte', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Krankenakte', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord');
-            $this->addDynamicFilterOption($Mask, 'TblStudentMedicalRecord_Disease');
-            $this->addDynamicFilterOption($Mask, 'TblStudentMedicalRecord_Medication');
-            $this->addDynamicFilterOption($Mask, 'TblStudentMedicalRecord_Insurance');
-        }
+            if ($Name === 'Schüler-Förderbedarf-Teilstörung' && !$this->getDynamicFilterAllByName('Schüler-Förderbedarf-Teilstörung', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Förderbedarf-Teilstörung', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder');
+                $this->addDynamicFilterOption($Mask, 'TblStudentDisorderType_Name');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Schließfach', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Schließfach', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker');
-            $this->addDynamicFilterOption($Mask, 'TblStudentLocker_KeyNumber');
-            $this->addDynamicFilterOption($Mask, 'TblStudentLocker_LockerNumber');
-            $this->addDynamicFilterOption($Mask, 'TblStudentLocker_LockerLocation');
-        }
+            if ($Name === 'Schüler-Krankenakte' && !$this->getDynamicFilterAllByName('Schüler-Krankenakte', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Krankenakte', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord');
+                $this->addDynamicFilterOption($Mask, 'TblStudentMedicalRecord_Disease');
+                $this->addDynamicFilterOption($Mask, 'TblStudentMedicalRecord_Medication');
+                $this->addDynamicFilterOption($Mask, 'TblStudentMedicalRecord_Insurance');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Taufe', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Taufe', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism');
-            $this->addDynamicFilterOption($Mask, 'TblStudentBaptism_BaptismDate');
-            $this->addDynamicFilterOption($Mask, 'TblStudentBaptism_Location');
-        }
+            if ($Name === 'Schüler-Schließfach' && !$this->getDynamicFilterAllByName('Schüler-Schließfach', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Schließfach', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker');
+                $this->addDynamicFilterOption($Mask, 'TblStudentLocker_KeyNumber');
+                $this->addDynamicFilterOption($Mask, 'TblStudentLocker_LockerNumber');
+                $this->addDynamicFilterOption($Mask, 'TblStudentLocker_LockerLocation');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Transfer', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Transfer', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer');
-            $this->addDynamicFilterOption($Mask, 'TblStudentTransfer_TransferDate');
-            $this->addDynamicFilterOption($Mask, 'TblStudentTransfer_Remark');
-            $this->addDynamicFilterOption($Mask, 'TblStudentTransferType_Name');
-        }
+            if ($Name === 'Schüler-Taufe' && !$this->getDynamicFilterAllByName('Schüler-Taufe', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Taufe', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism');
+                $this->addDynamicFilterOption($Mask, 'TblStudentBaptism_BaptismDate');
+                $this->addDynamicFilterOption($Mask, 'TblStudentBaptism_Location');
+                $Match = true;
+            }
 
-        if (!$this->getDynamicFilterAllByName('Schüler-Transport', $tblAccount)) {
-            $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Transport', false);
-            $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
-            $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
-            $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
-            $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
-            $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
-            $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
-            $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport');
-            $this->addDynamicFilterOption($Mask, 'TblStudentTransport_Route');
-            $this->addDynamicFilterOption($Mask, 'TblStudentTransport_StationEntrance');
-            $this->addDynamicFilterOption($Mask, 'TblStudentTransport_StationExit');
-            $this->addDynamicFilterOption($Mask, 'TblStudentTransport_Remark');
+            if ($Name === 'Schüler-Transfer' && !$this->getDynamicFilterAllByName('Schüler-Transfer', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Transfer', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer');
+                $this->addDynamicFilterOption($Mask, 'TblStudentTransfer_TransferDate');
+                $this->addDynamicFilterOption($Mask, 'TblStudentTransfer_Remark');
+                $this->addDynamicFilterOption($Mask, 'TblStudentTransferType_Name');
+                $Match = true;
+            }
+
+            if ($Name === 'Schüler-Transport' && !$this->getDynamicFilterAllByName('Schüler-Transport', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Schüler-Transport', false);
+                $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember');
+                $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
+                $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\People\Person\Service\Entity\ViewPerson');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_FirstName');
+                $this->addDynamicFilterOption($Mask, 'TblPerson_LastName');
+                $Mask = $this->addDynamicFilterMask($Filter, 3, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent');
+                $this->addDynamicFilterOption($Mask, 'TblStudent_Identifier');
+                $Mask = $this->addDynamicFilterMask($Filter, 4, 'SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport');
+                $this->addDynamicFilterOption($Mask, 'TblStudentTransport_Route');
+                $this->addDynamicFilterOption($Mask, 'TblStudentTransport_StationEntrance');
+                $this->addDynamicFilterOption($Mask, 'TblStudentTransport_StationExit');
+                $this->addDynamicFilterOption($Mask, 'TblStudentTransport_Remark');
+                $Match = true;
+            }
+            if (!$Match) {
+                $MissMatch[] = $Name;
+            }
+            if ($Match) {
+                $Implement[] = $Name;
+            }
+        }
+        if (empty( $MissMatch )) {
+            return new Success('Standard-Auswertungen hinzugefügt')
+            .new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_SUCCESS);
+        } else {
+            return // $Form.
+                new Layout(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Warning('Folgende Standard-Auswertungen konnten nicht erstellt werden:')
+                                , 6),
+                            new LayoutColumn(
+                                new Success('Folgende Standard-Auswertungen wurden erstellt:')
+                                , 6)
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Warning(new Listing($MissMatch))
+                                , 6),
+                            new LayoutColumn(
+                                new Success(new Listing($Implement))
+                                , 6)
+                        ))
+                    ))
+                );
+//            .new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_WAIT);
         }
     }
 }

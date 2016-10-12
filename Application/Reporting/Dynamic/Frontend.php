@@ -5,6 +5,7 @@ use SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilter;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilterMask;
 use SPHERE\Application\Reporting\Dynamic\Service\Entity\TblDynamicFilterOption;
@@ -28,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -52,13 +54,9 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Table\Structure\TableHead;
-use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
@@ -89,14 +87,16 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            if (!Dynamic::useService()->getDynamicFilterAllByAccount($tblAccount)) {
-                Dynamic::useService()->createStandardFilter($tblAccount);
-            }
-        }
+//        if ($tblAccount) {
+//            if (!Dynamic::useService()->getDynamicFilterAllByAccount($tblAccount)) {
+////                Dynamic::useService()->createStandardFilter($tblAccount);
+////                $StandardButton = new Standard('Standard-Auswertungen', '/Reporting/Dynamic/Standard', new Plus());
+//            }
+//        }
 
         $Stage = new Stage('Flexible Auswertung', 'Filter erstellen');
         $Stage->setMessage('');
+        $Stage->addButton(new Standard('Standard-Auswertungen', '/Reporting/Dynamic/Standard', null, array(), 'Hinzufügen von Standard-Auswertungen'));
 
         $tblDynamicFilterListOwner = Dynamic::useService()->getDynamicFilterAll($tblAccount);
         if (!$tblDynamicFilterListOwner) {
@@ -185,14 +185,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $FilterName, $IsPublic
                                 )
                             )
-                            , 8),
-                            new LayoutColumn(
-                                new Info('Der erste Aufruf (eines Benutzers) dieser Seite erstellt für den Benutzer alle Standard-Auswertungen als private Auswertungen.
-                                      Diese Standard-Auswertungen können umbenannt sowie in ihrer Sichtbarkeit für andere Benutzer bearbeitet werden.
-                                      Diese Auswertungen können ebenso erweitert, eingeschränkt und in ihrer möglichen Filterung bearbeitet werden.
-                                      Löscht ein Benutzer alle die von seinem Account erstellten Auswertungen (Privat/Sichtbar) werden die Standard-Auswertungen 
-                                      erneut für seinen Account erzeugt.')
-                                , 4)
+                            , 12)
                         )
                     ), new Title(new PlusSign().' Neue Auswertung anlegen')
                 ),
@@ -220,6 +213,115 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendSetupStandard($Data = null)
+    {
+
+        $Stage = new Stage('Standard-Auswertungen');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/Dynamic', new ChevronLeft()));
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        // possible Filter
+        $DataAll = array('Adresse-Personen', 'Person-Adressen', 'Person-Personenbeziehung-Person', 'Person-Sorgeberechtigte-Adressen',
+            'Firmen und Beziehungen', 'Schüler-Befreiung', 'Schüler-Einverständnis', 'Schüler-Fehltage', 'Schüler-Förderbedarf-Antrag',
+            'Schüler-Förderbedarf-Schwerpunkte', 'Schüler-Förderbedarf-Teilstörung', 'Schüler-Krankenakte', 'Schüler-Schließfach',
+            'Schüler-Taufe', 'Schüler-Transfer', 'Schüler-Transport');
+
+        $Form = $this->formCreateStandard($tblAccount, $DataAll);
+        if ($Form) {
+            $Form->appendFormButton(new Primary('Speichern', new Save()));
+            $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    new Panel('Vorlagen',
+                                        Dynamic::useService()->createStandardFilter($Form, $tblAccount, $Data), Panel::PANEL_TYPE_INFO)
+                                )
+                            )
+                        ), new Title(new Plus().' Hinzufügen', 'von Standard-Auswertungen')
+                    )
+                )
+            );
+        } else {
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Warning('Es sind alle Standard-Auswertungen für den Benutzer '.$tblAccount->getUsername().' in Gebrauch')
+                            )
+                        ), new Title(new Plus().' Hinzufügen', 'von Standard-Auswertungen')
+                    )
+                )
+            );
+        }
+
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param            $DataAll
+     *
+     * @return bool|Form
+     */
+    private function formCreateStandard(TblAccount $tblAccount, $DataAll)
+    {
+
+        $TableList = array();
+        foreach ($DataAll as $Key => $Name) {
+            if (!Dynamic::useService()->getDynamicFilterAllByName($Name, $tblAccount)) {
+                $Item['CheckBox'] = new CheckBox('Data['.$Key.']', ' ', $Name);
+                $Item['Name'] = $Name;
+                array_push($TableList, $Item);
+                unset( $Item );
+            }
+        }
+//        $Global = $this->getGlobal();
+//        if($Data === null){
+//            foreach($DataAll as $Key =>$Name){
+//                if(Dynamic::useService()->getDynamicFilterAllByName($Name, $tblAccount)){
+//                    $Global->POST['Data'][$Key] = $Name;
+//                }
+//            }
+//            Debugger::screenDump($Global->POST);
+//            $Global->savePost();
+//        }
+        if (!empty( $TableList )) {
+            return new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new TableData($TableList, null,
+                                array('CheckBox' => 'Erstellen',
+                                      'Name'     => 'Name'),
+                                array('order'          => array(array(1, 'asc')),
+                                      "columnDefs"     => array(
+                                          array("width" => "5%", "targets" => array(0)),
+                                      ),
+                                      "paging"         => false, // Deaktiviert Blättern
+                                      "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                      "searching"      => false, // Deaktiviert Suche
+                                      "info"           => false  // Deaktiviert Such-Info)
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -633,7 +735,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new HiddenField(
                                 'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][]'
                             ).
-                            new \SPHERE\Common\Frontend\Message\Repository\Warning( 'Keine Eigenschaften zur Filterung gewählt' )
+                            new Warning('Keine Eigenschaften zur Filterung gewählt')
                     ), Panel::PANEL_TYPE_INFO/*, new Panel( array_shift( $LinkList ), $LinkList, Panel::PANEL_TYPE_WARNING)*/)
                     , 2);
             }
@@ -742,20 +844,20 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        $ExportCounter = count(current($Table));
-        $ExportSwitchRow = array();
-        for( $Run = 0; $Run < $ExportCounter; $Run++ ) {
-            $ExportSwitchRow[] = new TableColumn(
-                (new SelectBox('Export['.$Run.']','',array(1=>'Exportieren',2=>'Ignorieren')))
-            );
-        }
-
-
-        $TableData->prependHead(
-            new TableHead(
-                (new TableRow( $ExportSwitchRow ))
-            )
-        );
+//        // Export Flag im Header
+//        $ExportCounter = count(current($Table));
+//        $ExportSwitchRow = array();
+//        for( $Run = 0; $Run < $ExportCounter; $Run++ ) {
+//            $ExportSwitchRow[] = new TableColumn(
+//                (new SelectBox('Export['.$Run.']','',array(1=>'Exportieren',2=>'Ignorieren')))
+//            );
+//        }
+//
+//        $TableData->prependHead(
+//            new TableHead(
+//                (new TableRow( $ExportSwitchRow ))
+//            )
+//        );
 
         $Stage->setContent(
             new Layout(array(

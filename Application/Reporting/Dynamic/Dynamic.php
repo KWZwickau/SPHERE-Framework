@@ -29,6 +29,9 @@ class Dynamic implements IApplicationInterface, IModuleInterface
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendCreateFilter'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Standard', __NAMESPACE__.'\Frontend::frontendSetupStandard'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Update', __NAMESPACE__.'\Frontend::frontendUpdateFilter'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
