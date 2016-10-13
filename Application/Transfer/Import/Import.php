@@ -13,6 +13,7 @@ use SPHERE\Application\Transfer\Import\LebensweltZwenkau\Zwenkau;
 use SPHERE\Application\Transfer\Import\Muldental\Muldental;
 use SPHERE\Application\Transfer\Import\Radebeul\Radebeul;
 use SPHERE\Application\Transfer\Import\Schneeberg\Schneeberg;
+use SPHERE\Application\Transfer\Import\Seelitz\Seelitz;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -57,6 +58,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'EGE' || $consumerAcronym == 'DEMO'){
             Annaberg::registerModule();
+        }
+        if ($consumerAcronym === 'ESRL' || $consumerAcronym == 'DEMO'){
+            Seelitz::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(
