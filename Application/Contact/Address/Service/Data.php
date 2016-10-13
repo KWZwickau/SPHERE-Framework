@@ -479,6 +479,38 @@ class Data extends AbstractData
 
     /**
      * @param TblToPerson $tblToPerson
+     * @param             $tblAddress
+     * @param             $tblType
+     * @param             $Remark
+     *
+     * @return bool
+     */
+    public function updateAddressToPerson(
+        TblToPerson $tblToPerson,
+        TblAddress $tblAddress,
+        TblType $tblType,
+        $Remark
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblAddress($tblAddress);
+            $Entity->setTblType($tblType);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
      *
      * @return bool
      */

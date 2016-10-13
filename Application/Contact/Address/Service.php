@@ -410,12 +410,10 @@ class Service extends AbstractService
             $tblAddress = (new Data($this->getBinding()))->createAddress(
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
             );
-            // Remove current
-            (new Data($this->getBinding()))->removeAddressToPerson($tblToPerson);
-
             if ($tblToPerson->getServiceTblPerson()) {
-                // Add new
-                if ((new Data($this->getBinding()))->addAddressToPerson($tblToPerson->getServiceTblPerson(),
+                // Update current
+                if (( new Data($this->getBinding()) )->updateAddressToPerson(
+                    $tblToPerson,
                     $tblAddress,
                     $tblType,
                     $Type['Remark'])
