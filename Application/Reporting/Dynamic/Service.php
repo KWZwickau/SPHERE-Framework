@@ -434,19 +434,38 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param TblAccount     $tblAccount
      * @param null           $Data
+     * @param null           $Reset
      *
-     * @return IFormInterface|string
+     * @return IFormInterface|Layout|string
      */
-    public function createStandardFilter(IFormInterface $Form, TblAccount $tblAccount, $Data = null)
+    public function createStandardFilter(IFormInterface $Form, TblAccount $tblAccount, $Data = null, $Reset = null)
     {
 
-        if ($Data === null) {
+        if ($Data === null && $Reset === null) {
             return $Form;
+        }
+
+        if ($Reset) {
+            foreach ($Reset as $ResetName) {
+                if (( $tblDynamicFilterList = $this->getDynamicFilterAllByName($ResetName, $tblAccount) )) {
+                }
+            }
+        }
+
+        if ($Data && $Reset) {
+            $Data = array_merge($Data, $Reset);
+        } elseif ($Reset) {
+            $Data = $Reset;
         }
 
         $MissMatch = array();
         $Implement = array();
+        if ($Data) {
+
+        }
         foreach ($Data as $Name) {
+
+
             $Match = false;
             if ($Name === 'Adresse-Personen' && !$this->getDynamicFilterAllByName('Adresse-Personen', $tblAccount)) {
                 $Filter = $this->addDynamicFilter($tblAccount, 'Adresse-Personen', false);

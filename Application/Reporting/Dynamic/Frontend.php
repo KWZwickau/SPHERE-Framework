@@ -29,7 +29,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -54,6 +53,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -217,13 +217,16 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Data
+     * @param null $Reset
      *
      * @return Stage
      */
-    public function frontendSetupStandard($Data = null)
+    public function frontendSetupStandard($Data = null, $Reset = null)
     {
 
         $Stage = new Stage('Standard-Auswertungen');
+        $Stage->setMessage(new Info('Standard-Auswertungen werden über den Namen Definiert. Änderung des Namens 
+                                     lösen die hierrüber erstellten Auswertung aus dem Standard.'));
         $Stage->addButton(new Standard('Zurück', '/Reporting/Dynamic', new ChevronLeft()));
 
         $tblAccount = Account::useService()->getAccountBySession();
@@ -234,36 +237,20 @@ class Frontend extends Extension implements IFrontendInterface
             'Schüler-Taufe', 'Schüler-Transfer', 'Schüler-Transport');
 
         $Form = $this->formCreateStandard($tblAccount, $DataAll);
-        if ($Form) {
-            $Form->appendFormButton(new Primary('Speichern', new Save()));
-            $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Well(
-                                    new Panel('Vorlagen',
-                                        Dynamic::useService()->createStandardFilter($Form, $tblAccount, $Data), Panel::PANEL_TYPE_INFO)
-                                )
-                            )
-                        ), new Title(new Plus().' Hinzufügen', 'von Standard-Auswertungen')
+
+        $Form->appendFormButton(new Primary('Speichern', new Save()));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Dynamic::useService()->createStandardFilter($Form, $tblAccount, $Data, $Reset), Panel::PANEL_TYPE_INFO
+                        ))
                     )
                 )
-            );
-        } else {
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Warning('Es sind alle Standard-Auswertungen für den Benutzer '.$tblAccount->getUsername().' in Gebrauch')
-                            )
-                        ), new Title(new Plus().' Hinzufügen', 'von Standard-Auswertungen')
-                    )
-                )
-            );
-        }
+            )
+        );
 
 
         return $Stage;
@@ -273,17 +260,23 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblAccount $tblAccount
      * @param            $DataAll
      *
-     * @return bool|Form
+     * @return Form
      */
     private function formCreateStandard(TblAccount $tblAccount, $DataAll)
     {
 
-        $TableList = array();
+        $TableListLeft = array();
+        $TableListRight = array();
         foreach ($DataAll as $Key => $Name) {
             if (!Dynamic::useService()->getDynamicFilterAllByName($Name, $tblAccount)) {
                 $Item['CheckBox'] = new CheckBox('Data['.$Key.']', ' ', $Name);
                 $Item['Name'] = $Name;
-                array_push($TableList, $Item);
+                array_push($TableListLeft, $Item);
+                unset( $Item );
+            } else {
+                $Item['CheckBox'] = new CheckBox('Reset['.$Key.']', ' ', $Name);
+                $Item['Name'] = $Name;
+                array_push($TableListRight, $Item);
                 unset( $Item );
             }
         }
@@ -297,31 +290,46 @@ class Frontend extends Extension implements IFrontendInterface
 //            Debugger::screenDump($Global->POST);
 //            $Global->savePost();
 //        }
-        if (!empty( $TableList )) {
-            return new Form(
-                new FormGroup(
-                    new FormRow(
-                        new FormColumn(
-                            new TableData($TableList, null,
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Neue Standard-Auswertung',
+                            new TableData($TableListLeft, null,
+//                            new \SPHERE\Common\Frontend\Table\Repository\Title(new Plus().' Hinzufügen', 'von Standard-Auswertungen'),
                                 array('CheckBox' => 'Erstellen',
                                       'Name'     => 'Name'),
                                 array('order'          => array(array(1, 'asc')),
                                       "columnDefs"     => array(
-                                          array("width" => "5%", "targets" => array(0)),
+                                          array("width" => "10%", "targets" => array(0)),
+                                      ),
+                                      "paging"         => false, // Deaktiviert Blättern
+                                      "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                      "searching"      => false, // Deaktiviert Suche
+                                      "info"           => false  // Deaktiviert Such-Info)
+                            )
+                            ), Panel::PANEL_TYPE_INFO)
+                        , 6),
+                    new FormColumn(
+                        new Panel('Benutzte Standard-Auswertung',
+                            new TableData($TableListRight, null,
+//                            new \SPHERE\Common\Frontend\Table\Repository\Title(new Plus().' Resetten', 'von Standard-Auswertungen'),
+                                array('CheckBox' => 'Zurücksetzen',
+                                      'Name'     => 'Name'),
+                                array('order'          => array(array(1, 'asc')),
+                                      "columnDefs"     => array(
+                                          array("width" => "10%", "targets" => array(0)),
                                       ),
                                       "paging"         => false, // Deaktiviert Blättern
                                       "iDisplayLength" => -1,    // Alle Einträge zeigen
                                       "searching"      => false, // Deaktiviert Suche
                                       "info"           => false  // Deaktiviert Such-Info)
                                 )
-                            )
-                        )
-                    )
-                )
-            );
-        } else {
-            return false;
-        }
+                            ), Panel::PANEL_TYPE_INFO)
+                        , 6),
+                ))
+            )
+        );
     }
 
     /**
