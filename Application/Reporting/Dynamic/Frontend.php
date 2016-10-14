@@ -208,14 +208,14 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 new LayoutGroup(
                     new LayoutRow(array(
-                        new LayoutColumn(
-                            new Well(
-                                Dynamic::useService()->createDynamicFilter(
-                                    $this->formCreateFilter()->appendFormButton(new Primary('Speichern', new Save())),
-                                    $FilterName, $IsPublic
+                            new LayoutColumn(
+                                new Well(
+                                    Dynamic::useService()->createDynamicFilter(
+                                        $this->formCreateFilter()->appendFormButton(new Primary('Speichern', new Save())),
+                                        $FilterName, $IsPublic
+                                    )
                                 )
-                            )
-                            , 12)
+                                , 12)
                         )
                     ), new Title(new PlusSign().' Neue Auswertung anlegen')
                 ),
@@ -337,7 +337,7 @@ class Frontend extends Extension implements IFrontendInterface
                                       "iDisplayLength" => -1,    // Alle Einträge zeigen
                                       "searching"      => false, // Deaktiviert Suche
                                       "info"           => false  // Deaktiviert Such-Info)
-                            )
+                                )
                             ), Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
@@ -363,9 +363,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $DynamicFilter
+     * @param int         $DynamicFilter
      * @param null|string $DynamicFilterMask
-     * @param null|array $FilterFieldName
+     * @param null|array  $FilterFieldName
      *
      * @return Stage
      */
@@ -390,7 +390,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Add/Remove Filter Mask
         if ($DynamicFilterMask) {
-            if (($DynamicFilterMask = json_decode(base64_decode($DynamicFilterMask)))) {
+            if (( $DynamicFilterMask = json_decode(base64_decode($DynamicFilterMask)) )) {
                 if ($DynamicFilterMask->Action == 'ADD') {
                     Dynamic::useService()->insertDynamicFilterMask(
                         $tblDynamicFilter, $DynamicFilterMask->FilterPileOrder, $DynamicFilterMask->FilterClassName
@@ -432,7 +432,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblDynamicFilterMask $tblDynamicFilterMask */
             foreach ($tblDynamicFilterMaskAll as $Index => $tblDynamicFilterMask) {
 
-                $tblDynamicFilterOptionAll = Dynamic::useService()->getDynamicFilterOptionAllByMask( $tblDynamicFilterMask );
+                $tblDynamicFilterOptionAll = Dynamic::useService()->getDynamicFilterOptionAllByMask($tblDynamicFilterMask);
                 $View = $tblDynamicFilterMask->getFilterClassInstance();
                 $FieldList = array();
                 $Object = new \ReflectionObject($View);
@@ -440,26 +440,24 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var \ReflectionProperty $Property */
                 foreach ($Properties as $Property) {
                     $Name = $Property->getName();
-                    if (
-                        !preg_match(AbstractView::DISABLE_PATTERN, $Name)
-                        && !$View->getDisableDefinition( $Name )
-
+                    if (!preg_match(AbstractView::DISABLE_PATTERN, $Name)
+                        && !$View->getDisableDefinition($Name)
                     ) {
                         $Enabled = false;
-                        if( $tblDynamicFilterOptionAll ) {
+                        if ($tblDynamicFilterOptionAll) {
                             $Enabled = array_filter($tblDynamicFilterOptionAll, function (TblDynamicFilterOption $tblDynamicFilterOption) use ($Name) {
                                 return $tblDynamicFilterOption->getFilterFieldName() == $Name;
                             });
-                            if( !empty( $Enabled ) ) {
+                            if (!empty( $Enabled )) {
                                 $Enabled = true;
                             }
                         }
                         $CheckBox = new CheckBox(
-                            'FilterFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $Name . ']',
+                            'FilterFieldName['.$tblDynamicFilterMask->getFilterPileOrder().']['.$Name.']',
                             $View->getNameDefinition($Name), 1
                         );
-                        if( $Enabled ) {
-                            $CheckBox->setDefaultValue(1,true);
+                        if ($Enabled) {
+                            $CheckBox->setDefaultValue(1, true);
                         }
                         $FieldList[] = $CheckBox;
                     }
@@ -468,19 +466,19 @@ class Frontend extends Extension implements IFrontendInterface
                 $SelectedFilterList[] = new LayoutColumn(
                     (string)new Panel(
                         new PullClear(
-                            (count($SelectedFilterList) < 5 ? new PullLeft(new ChevronRight()) : new PullLeft(new More()))
-                            . new PullRight($View->getViewGuiName())
+                            ( count($SelectedFilterList) < 5 ? new PullLeft(new ChevronRight()) : new PullLeft(new More()) )
+                            .new PullRight($View->getViewGuiName())
                         ), $FieldList
                         , Panel::PANEL_TYPE_INFO, array(
-                        ($tblDynamicFilterMask == $tblDynamicFilterMaskLast
-                            ? new Standard('', new Route(__NAMESPACE__ . '/Setup'), new Remove(), array(
-                                'DynamicFilter' => $DynamicFilter,
+                        ( $tblDynamicFilterMask == $tblDynamicFilterMaskLast
+                            ? new Standard('', new Route(__NAMESPACE__.'/Setup'), new Remove(), array(
+                                'DynamicFilter'     => $DynamicFilter,
                                 'DynamicFilterMask' => base64_encode(json_encode(array(
                                     'FilterPileOrder' => $tblDynamicFilterMaskLast->getFilterPileOrder(),
-                                    'Action' => 'REMOVE'
+                                    'Action'          => 'REMOVE'
                                 )))
                             ))
-                            : '')
+                            : '' )
                     )), 2);
             }
 
@@ -502,7 +500,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $SelectedFilterList[] = new FormColumn(new Panel(new Small(new Muted(
                     new PullClear(
                         new PullLeft('Freier Platz für Filter')
-                        . (count($SelectedFilterList) < 5 ? new PullRight(new More()) : new PullRight(new More()))
+                        .( count($SelectedFilterList) < 5 ? new PullRight(new More()) : new PullRight(new More()) )
                     )
                 )), array(new Paragraph(''))), 2);
             }
@@ -566,13 +564,13 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Well(
                                 Dynamic::useService()->createDynamicFilterOption(
-                                    (new Form(
+                                    ( new Form(
                                         new FormGroup(
                                             new FormRow(
                                                 $SelectedFilterList
                                             )
                                         )
-                                    ))->appendFormButton(
+                                    ) )->appendFormButton(
                                         new Primary('Speichern', new Save())
                                     ), $tblDynamicFilter, $FilterFieldName
                                 )
@@ -683,8 +681,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $DynamicFilter
+     * @param int   $DynamicFilter
      * @param array $SearchFieldName
+     *
      * @return Stage
      */
     public function frontendRunFilter($DynamicFilter = 0, $SearchFieldName = array())
@@ -719,18 +718,18 @@ class Frontend extends Extension implements IFrontendInterface
         /** @var TblDynamicFilterMask $tblDynamicFilterMask */
         foreach ($tblDynamicFilterMaskAll as $Index => $tblDynamicFilterMask) {
 
-            if (($tblDynamicFilterOptionList = Dynamic::useService()->getDynamicFilterOptionAllByMask(
+            if (( $tblDynamicFilterOptionList = Dynamic::useService()->getDynamicFilterOptionAllByMask(
                 $tblDynamicFilterMask
-            ))
+            ) )
             ) {
                 $FieldList = array();
                 $View = $tblDynamicFilterMask->getFilterClassInstance();
                 foreach ($tblDynamicFilterOptionList as $tblDynamicFilterOption) {
-                    if( !$View->getDisableDefinition( $tblDynamicFilterOption->getFilterFieldName() ) ) {
+                    if (!$View->getDisableDefinition($tblDynamicFilterOption->getFilterFieldName())) {
 
-                        if(preg_match('!_Is[A-Z]!s', $tblDynamicFilterOption->getFilterFieldName())) {
+                        if (preg_match('!_Is[A-Z]!s', $tblDynamicFilterOption->getFilterFieldName())) {
                             $FieldList[] = new SelectBox(
-                                'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $tblDynamicFilterOption->getFilterFieldName() . ']',
+                                'SearchFieldName['.$tblDynamicFilterMask->getFilterPileOrder().']['.$tblDynamicFilterOption->getFilterFieldName().']',
                                 $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName()),
                                 array(
                                     0 => '',
@@ -740,7 +739,7 @@ class Frontend extends Extension implements IFrontendInterface
                             );
                         } else {
                             $FieldList[] = new TextField(
-                                'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][' . $tblDynamicFilterOption->getFilterFieldName() . ']',
+                                'SearchFieldName['.$tblDynamicFilterMask->getFilterPileOrder().']['.$tblDynamicFilterOption->getFilterFieldName().']',
                                 $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName()),
                                 $View->getNameDefinition($tblDynamicFilterOption->getFilterFieldName())
                             );
@@ -776,10 +775,10 @@ class Frontend extends Extension implements IFrontendInterface
                         )))
 
                         , array(
-                            new HiddenField(
-                                'SearchFieldName[' . $tblDynamicFilterMask->getFilterPileOrder() . '][]'
-                            ).
-                            new Warning('Keine Eigenschaften zur Filterung gewählt')
+                        new HiddenField(
+                            'SearchFieldName['.$tblDynamicFilterMask->getFilterPileOrder().'][]'
+                        ).
+                        new Warning('Keine Eigenschaften zur Filterung gewählt')
                     ), Panel::PANEL_TYPE_INFO/*, new Panel( array_shift( $LinkList ), $LinkList, Panel::PANEL_TYPE_WARNING)*/)
                     , 2);
             }
@@ -788,7 +787,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Search
         $Filter = $SearchFieldName;
 
-        if (!empty($Filter)) {
+        if (!empty( $Filter )) {
             ksort($Filter);
             array_walk($Filter, function (&$Input) {
 
@@ -800,8 +799,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $String = false;
                     }
                 });
-                $Input = array_filter($Input, function( $Value ){
-                    if( is_array( $Value ) || strlen( $Value ) ) {
+                $Input = array_filter($Input, function ($Value) {
+                    if (is_array($Value) || strlen($Value)) {
                         return true;
                     }
                     return false;
@@ -814,7 +813,7 @@ class Frontend extends Extension implements IFrontendInterface
             /**
              * Prepare Pile-Filter Structure
              */
-            $Pile = new Pile( Pile::JOIN_TYPE_OUTER );
+            $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
 
             /** @var AbstractView $Last */
             $Last = null;
@@ -830,8 +829,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $Pile->addPile($Current->getViewService(), $Current,
-                    ($Last ? $Last->getForeignLinkPropertyChild($Current) : null),
-                    ($Next ? $Current->getForeignLinkPropertyParent($Next) : null)
+                    ( $Last ? $Last->getForeignLinkPropertyChild($Current) : null ),
+                    ( $Next ? $Current->getForeignLinkPropertyParent($Next) : null )
                 );
                 $Last = $Current;
             }
@@ -882,7 +881,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Timeout = false;
         }
 
-        $TableData = new TableData($Table, null,array(),
+        $TableData = new TableData($Table, null, array(),
             array(
                 'responsive' => false
             )
@@ -912,13 +911,13 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new LayoutColumn(
                             new Well(
-                                (new Form(
+                                ( new Form(
                                     new FormGroup(
                                         new FormRow(
                                             $SelectedFilterList
                                         )
                                     )
-                                ))->appendFormButton(
+                                ) )->appendFormButton(
                                     new Primary('Suchen', new Search())
                                 )
                             )
@@ -928,7 +927,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            ($Timeout
+                            ( $Timeout
                                 ? new Danger('Die Suche konnte auf Grund der Datenmenge nicht abgeschlossen werden. Bitte geben Sie weitere Filter an, um die Datenmenge einzuschränken')
                                 :
                                 ( empty( $Filter ) ? ''
