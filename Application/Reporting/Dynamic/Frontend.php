@@ -94,7 +94,7 @@ class Frontend extends Extension implements IFrontendInterface
 //            }
 //        }
 
-        $Stage = new Stage('Flexible Auswertung', 'Filter erstellen');
+        $Stage = new Stage('Flexible Auswertung', 'Übersicht');
         $Stage->setMessage('');
         $Stage->addButton(new Standard('Standard-Auswertungen', '/Reporting/Dynamic/Standard', null, array(), 'Hinzufügen von Standard-Auswertungen'));
 
@@ -118,7 +118,23 @@ class Frontend extends Extension implements IFrontendInterface
             $Owner = '';
             $Option = '';
             if ($tblAccount == $tblDynamicFilter->getServiceTblAccount()) {
-                $Owner = $tblAccount->getUsername();
+
+                $Person = array();
+                if (( $tblPersonAccountList = Account::useService()->getUserAllByAccount($tblAccount) )) {
+                    foreach ($tblPersonAccountList as $tblPersonAccount) {
+                        $tblPersonAcc = $tblPersonAccount->getServiceTblPerson();
+                        $Person[] = $tblPersonAcc->getFirstName().' '.$tblPersonAcc->getLastName();
+                    }
+                    if (!empty( $Person )) {
+                        $Person = implode(', ', $Person);
+                    }
+                }
+                if (!empty( $Person )) {
+                    $Owner = $tblAccount->getUsername().' '.new Small('('.$Person.')');
+                } else {
+                    $Owner = $tblAccount->getUsername();
+                }
+//                $Owner = $tblAccount->getUsername();
                 $Option = ( new LinkGroup() )
                     ->addLink(new Standard('', '/Reporting/Dynamic/Update', new Edit(), array('Id' => $tblDynamicFilter->getId()), 'Bearbeiten'))
                     ->addLink(new Standard('', '/Reporting/Dynamic/Remove', new Remove(), array('Id' => $tblDynamicFilter->getId()), 'Löschen'));
@@ -129,7 +145,21 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $DynamicAccount = $tblDynamicFilter->getServiceTblAccount();
                 if ($DynamicAccount) {
-                    $Owner = new InfoText($DynamicAccount->getUsername());
+                    $Person = array();
+                    if (( $tblPersonAccountList = Account::useService()->getUserAllByAccount($DynamicAccount) )) {
+                        foreach ($tblPersonAccountList as $tblPersonAccount) {
+                            $tblPersonAcc = $tblPersonAccount->getServiceTblPerson();
+                            $Person[] = $tblPersonAcc->getFirstName().' '.$tblPersonAcc->getLastName();
+                        }
+                        if (!empty( $Person )) {
+                            $Person = implode(', ', $Person);
+                        }
+                    }
+                    if (!empty( $Person )) {
+                        $Owner = new InfoText($DynamicAccount->getUsername().' '.new Small('('.$Person.')'));
+                    } else {
+                        $Owner = new InfoText($DynamicAccount->getUsername());
+                    }
                 }
             }
             $Option .= ( new LinkGroup() )->addLink(new Standard('', new Route(__NAMESPACE__.'/Filter'), new View(),
@@ -161,15 +191,15 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($DynamicFilterList, null, array(
                                 'IsPublic'   => 'Sichtbarkeit',
                                 'FilterName' => 'Name der Auswertung',
-                                'Owner'      => 'Besitzer',
+                                'Owner'      => 'Account (Person)',
                                 'Option'     => ''
                             ), array(
                                 'order'      => array(
-                                    array(0, 'desc',
-                                        1, 'asc')),
+                                    array('0', 'desc'),
+                                    array('1', 'asc')),
                                 "columnDefs" => array(
                                     array("width" => "5%", "targets" => array(0)),
-                                    array("width" => "20%", "targets" => array(2)),
+                                    array("width" => "25%", "targets" => array(2)),
                                     array("width" => "15%", "targets" => array(3))
                                 )
                             ))
@@ -478,37 +508,41 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $FilterMaskTableList = array();
-        /** @var AbstractView $AvailableView */
-        foreach ($AvailableViewList as $Index => $AvailableView) {
+        if (count($tblDynamicFilterMaskAll) < 6) {
+            $FilterMaskTableList = array();
+            /** @var AbstractView $AvailableView */
+            foreach ($AvailableViewList as $Index => $AvailableView) {
 
-            $FieldList = $AvailableView->getNameDefinitionList();
-            $ViewList = $AvailableView->getForeignViewList();
+                $FieldList = $AvailableView->getNameDefinitionList();
+                $ViewList = $AvailableView->getForeignViewList();
 
-            foreach ($FieldList as $FieldIndex => $Field) {
-                $FieldList[$FieldIndex] = substr($Field, strpos($Field, ': ') + 1);
+                foreach ($FieldList as $FieldIndex => $Field) {
+                    $FieldList[$FieldIndex] = substr($Field, strpos($Field, ': ') + 1);
+                }
+                foreach ($ViewList as $ViewIndex => $View) {
+                    $ViewList[$ViewIndex] = $View[1]->getViewGuiName();
+                }
+
+                $FilterMaskTableList[] = array(
+                    'Name'      => new Center($AvailableView->getViewGuiName()),
+                    'FieldList' => implode(', ', $FieldList),
+                    'ChildList' => implode(', ', $ViewList),
+                    'Option'    =>
+                        new Standard('Hinzufügen', new Route(__NAMESPACE__.'/Setup'), new ChevronDown(), array(
+                            'DynamicFilter'     => $DynamicFilter,
+                            'DynamicFilterMask' => base64_encode(json_encode(array(
+                                'FilterPileOrder' => ( $tblDynamicFilterMaskLast
+                                    ? $tblDynamicFilterMaskLast->getFilterPileOrder() + 1
+                                    : 1
+                                ),
+                                'FilterClassName' => $AvailableView->getViewClassName(),
+                                'Action'          => 'ADD'
+                            )))
+                        ))
+                );
             }
-            foreach ($ViewList as $ViewIndex => $View) {
-                $ViewList[$ViewIndex] = $View[1]->getViewGuiName();
-            }
-
-            $FilterMaskTableList[] = array(
-                'Name' => new Center($AvailableView->getViewGuiName()),
-                'FieldList' => implode(', ', $FieldList),
-                'ChildList' => implode(', ', $ViewList),
-                'Option' =>
-                    new Standard('Hinzufügen', new Route(__NAMESPACE__ . '/Setup'), new ChevronDown(), array(
-                        'DynamicFilter' => $DynamicFilter,
-                        'DynamicFilterMask' => base64_encode(json_encode(array(
-                            'FilterPileOrder' => ($tblDynamicFilterMaskLast
-                                ? $tblDynamicFilterMaskLast->getFilterPileOrder() + 1
-                                : 1
-                            ),
-                            'FilterClassName' => $AvailableView->getViewClassName(),
-                            'Action' => 'ADD'
-                        )))
-                    ))
-            );
+        } else {
+            $FilterMaskTableList = false;
         }
 
         $Stage->setContent(
@@ -516,12 +550,14 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($FilterMaskTableList, null, array(
-                                'Name' => 'Suchen nach',
-                                'FieldList' => 'Verfügbare Suchfelder',
-                                'ChildList' => 'Möglich weitere Filter',
-                                'Option' => ''
-                            ))
+                            ( $FilterMaskTableList
+                                ? new TableData($FilterMaskTableList, null, array(
+                                    'Name'      => 'Suchen nach',
+                                    'FieldList' => 'Verfügbare Suchfelder',
+                                    'ChildList' => 'Möglich weitere Filter',
+                                    'Option'    => ''
+                                ))
+                                : new Warning('Es können keine weiteren Filter hinzugefügt werden.') )
                         )
                     )
                 ), new Title('Verfügbare Filtermasken')),
@@ -559,7 +595,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUpdateFilter($Id, $FilterName = null, $IsPublic = null)
     {
-        $Stage = new Stage('Auswertung', 'Bearbeiten');
+        $Stage = new Stage('Flexible Auswertung', 'Bearbeiten');
 
         $tblDynamicFilter = $Id === null ? false : Dynamic::useService()->getDynamicFilterById($Id);
         if (!$tblDynamicFilter) {
@@ -605,7 +641,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendRemoveFilter($Id = null, $Confirm = false)
     {
 
-        $Stage = new Stage('Dynamische Auswertung', 'Löschen');
+        $Stage = new Stage('Flexible Auswertung', 'Löschen');
         $tblDynamicFilter = $Id === null ? false : Dynamic::useService()->getDynamicFilterById($Id);
         if (!$tblDynamicFilter) {
             $Stage->setContent(new Warning('Auswertung nicht gefunden'));
@@ -615,8 +651,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Zurück', '/Reporting/Dynamic', new ChevronLeft()));
             $Stage->setContent(
                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                    new Panel(new Question().' Dynamische Auswertung',
-                        'Filter mit dem Namen "<b>'.$tblDynamicFilter->getFilterName().'</b>" und der Sichtbarkeit '.
+                    new Panel(new Question().' Flexible Auswertung',
+                        'Auswertung mit dem Namen "<b>'.$tblDynamicFilter->getFilterName().'</b>" und der Sichtbarkeit '.
                         ( $tblDynamicFilter->isPublic()
                             ? new Label('Sichtbar', Label::LABEL_TYPE_WARNING)
                             : new Label('Privat', Label::LABEL_TYPE_SUCCESS) )

@@ -448,6 +448,9 @@ class Service extends AbstractService
         if ($Reset) {
             foreach ($Reset as $ResetName) {
                 if (( $tblDynamicFilterList = $this->getDynamicFilterAllByName($ResetName, $tblAccount) )) {
+                    foreach ($tblDynamicFilterList as $tblDynamicFilter) {
+                        $this->destroyDynamicFilter($tblDynamicFilter);
+                    }
                 }
             }
         }
