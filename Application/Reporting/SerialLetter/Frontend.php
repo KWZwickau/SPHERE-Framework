@@ -42,7 +42,6 @@ use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -61,6 +60,8 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Exchange;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -231,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null|array $FilterPerson
      * @param null|array $FilterYear
      * @param null|array $FilterType
-     * @param bool       $FilterAdd
+     * @param string     $TabActive
      *
      * @return Stage|string
      */
@@ -242,7 +243,7 @@ class Frontend extends Extension implements IFrontendInterface
         $FilterPerson = null,
         $FilterYear = null,
         $FilterType = null,
-        $FilterAdd = false
+        $TabActive = 'PERSON'
     ) {
 
         $Stage = new Stage('Personen für Serienbriefe', 'Auswählen');
@@ -283,15 +284,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Global->savePost();
         };
-
-        $Button = new Standard('Alle Gefilterten Personen hinzufügen', '/Reporting/SerialLetter/Person/Select', new Plus(),
-            array('Id'            => $tblSerialLetter->getId(),
-                  'FilterGroup'   => $FilterGroup,
-                  'FilterStudent' => $FilterStudent,
-                  'FilterPerson'  => $FilterPerson,
-                  'FilterYear'    => $FilterYear,
-                  'FilterType'    => $FilterType,
-                  'FilterAdd'     => true));
 
         // Database Join with foreign Key
         if ($FilterGroup) {
@@ -501,22 +493,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblPersonSearch = array_filter($tblPersonSearch);
         }
-        if (empty( $tblPersonSearch )) {
-            $Button = false;
-        }
-        if ($FilterAdd) {
-            foreach ($tblPersonSearch as $tblPersonFiltered) {
-                $tblPersonFiltered = Person::useService()->getPersonById($tblPersonFiltered['TblPerson_Id']);
-                if ($tblPersonFiltered) {
-                    SerialLetter::useService()->addSerialPerson($tblSerialLetter, $tblPersonFiltered);
-                }
-                unset( $tblPersonFiltered );
-            }
-            return $Stage.new Success('Personen erfolgreich hinzugefügt')
-            .new Redirect('/Reporting/SerialLetter/Person/Select',
-                Redirect::TIMEOUT_SUCCESS, array('Id' => $tblSerialLetter->getId()));
-        }
-
         if ($tblPersonList) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblPersonList, function (TblPerson &$tblPerson) use ($Id) {
@@ -577,11 +553,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         new AutoCompleter('FilterGroup[TblGroup_Name]', 'Gruppe: Name', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll())),
-                    ), 6),
+                    ), 4),
                     new FormColumn(array(
-                        new TextField('FilterPerson['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname'),
+                        new TextField('FilterPerson['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname')
+                    ), 4),
+                    new FormColumn(array(
                         new TextField('FilterPerson['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Person: Nachname', 'Person: Nachname')
-                    ), 6)
+                    ), 4)
                 ))
             )
             , new Primary('in Gruppen suchen'));
@@ -591,20 +569,25 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         new AutoCompleter('FilterYear[TblYear_Name]', 'Bildung: Schuljahr', 'Bildung: Schuljahr', array('Name' => Term::useService()->getYearAll())),
-                    ), 6),
+                    ), 2),
 //                    new FormColumn(array(
 //                        new AutoCompleter('FilterType[TblType_Name]', 'Bildung: Schulart', 'Bildung: Schulart', array('Name' => Type::useService()->getTypeAll())),
 //                    ), 6),
+                    new FormColumn(array(
+                        new TextField('FilterStudent[TblLevel_Name]', 'Klasse: Stufe', 'Klasse: Stufe')
+                    ), 2),
+                    new FormColumn(array(
+                        new TextField('FilterStudent[TblDivision_Name]', 'Klasse: Gruppe', 'Klasse: Gruppe')
+                    ), 2),
+                    new FormColumn(array(
+                        new TextField('FilterPerson['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname')
+                    ), 3),
+                    new FormColumn(array(
+                        new TextField('FilterPerson['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Person: Nachname', 'Person: Nachname')
+                    ), 3)
                 )),
                 new FormRow(array(
-                    new FormColumn(array(
-                        new TextField('FilterStudent[TblLevel_Name]', 'Klasse: Stufe', 'Klasse: Stufe'),
-                        new TextField('FilterStudent[TblDivision_Name]', 'Klasse: Gruppe', 'Klasse: Gruppe'),
-                    ), 6),
-                    new FormColumn(array(
-                        new TextField('FilterPerson['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname'),
-                        new TextField('FilterPerson['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Person: Nachname', 'Person: Nachname')
-                    ), 6)
+
                 ))
             ))
             , new Primary('in Klassen suchen'));
@@ -662,6 +645,29 @@ class Frontend extends Extension implements IFrontendInterface
                 .' Person(en)', Label::LABEL_TYPE_INFO)
         );
 
+
+        // Create Tabs
+        $LayoutTabs[] = new LayoutTab('Personen in Gruppen suchen', 'PERSON', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Schüler in Klassen suchen', 'DIVISION', array('Id' => $tblSerialLetter->getId()));
+        if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
+            $LayoutTabs[0]->setActive();
+        }
+
+        switch ($TabActive) {
+            case 'PERSON':
+                $MetaTable = new Panel(new Search().' Personen-Suche nach '.new Bold('Personengruppe')
+                    , array($FormGroup), Panel::PANEL_TYPE_INFO);
+                break;
+            case 'DIVISION':
+                $MetaTable = new Panel(new Search().' Schüler-Suche nach '.new Bold('Schuljahr / Klasse / Schüler')
+                    , array($FormStudent), Panel::PANEL_TYPE_INFO);
+                break;
+            default:
+                $MetaTable = new Panel(new Search().' Personen-Suche nach '.new Bold('Personengruppe')
+                    , array($FormGroup), Panel::PANEL_TYPE_INFO);
+        }
+//        $MetaTable = new Well($MetaTable);
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(array(
@@ -693,6 +699,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                         'Handler' => array(
                                                             'From' => 'glyphicon-minus-sign',
                                                             'To'   => 'glyphicon-plus-sign',
+                                                            'All'  => 'TableRemoveAll'
                                                         ),
                                                         'Connect' => array(
                                                             'From' => 'TableCurrent',
@@ -700,29 +707,22 @@ class Frontend extends Extension implements IFrontendInterface
                                                         )
                                                     )
                                                 )
-                                            )
+                                            ),
+                                            new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll')
                                         ), 12),
                                     ))
                                 ))
                             )
                         ), 6),
-
                         new LayoutColumn(array(
                             new Title(new PersonIcon().' Personen', 'Verfügbar'),
-
                             new Layout(
                                 new LayoutGroup(array(
                                     new LayoutRow(array(
-                                        new LayoutColumn(
-                                            new Panel(new Search().' Personen-Suche nach '.new Bold('Personengruppe'), array(
-                                                $FormGroup
-                                            ), Panel::PANEL_TYPE_INFO)
-                                            , 6),
-                                        new LayoutColumn(
-                                            new Panel(new Search().' Schüler-Suche nach '.new Bold('Schuljahr / Klasse / Schüler'), array(
-                                                $FormStudent
-                                            ), Panel::PANEL_TYPE_INFO)
-                                            , 6),
+                                        new LayoutColumn(array(
+                                            new LayoutTabs($LayoutTabs),
+                                            $MetaTable
+                                        ), 12),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(
@@ -734,7 +734,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(array(
-                                            ( $Button ? $Button : '' ),
                                             ( empty( $tblPersonSearch )
                                                 ? new WarningMessage('Keine Ergebnisse bei aktueller Filterung '.new SuccessText(new Filter()))
                                                 : ''
@@ -756,7 +755,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                         'Url'     => '/Api/Reporting/SerialLetter/Exchange',
                                                         'Handler' => array(
                                                             'From' => 'glyphicon-plus-sign',
-                                                            'To'   => 'glyphicon-minus-sign'
+                                                            'To'   => 'glyphicon-minus-sign',
+                                                            'All'  => 'TableAddAll'
                                                         ),
                                                         'Connect' => array(
                                                             'From' => 'TableAvailable',
@@ -764,7 +764,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                         ),
                                                     )
                                                 )
-                                            )
+                                            ),
+                                            new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(), 'Alle hinzufügen', 'TableAddAll')
                                         ), 12)
                                     ))
                                 ))
