@@ -1303,7 +1303,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblStudent) {
                             $StudentNumber = $tblStudent->getIdentifier();
                         } else {
-                            $StudentNumber = '-NA-';
+                            $StudentNumber = new Small(new Muted('-NA-'));
                         }
 
                         $dataList[] = array(

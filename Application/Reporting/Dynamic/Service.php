@@ -250,10 +250,10 @@ class Service extends AbstractService
 
         $result = ( new Data($this->getBinding()) )->destroyDynamicFilter($tblDynamicFilter);
         if ($result) {
-            return new Success('Der Dynamische Filter wurde erfolgreich gelöscht')
+            return new Success('Die Auswertung wurde erfolgreich gelöscht')
             .new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_SUCCESS);
         } else {
-            return new Warning('Der Dynamische Filter konnte nicht gelöscht werden')
+            return new Warning('Die Auswertung konnte nicht gelöscht werden')
             .new Redirect('/Reporting/Dynamic', Redirect::TIMEOUT_ERROR);
         }
     }
