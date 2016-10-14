@@ -3,14 +3,12 @@ namespace SPHERE\Application\Platform\Roadmap\Youtrack;
 
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
-use SPHERE\System\Debugger\Logger\CacheLogger;
 use SPHERE\System\Debugger\Logger\QueryLogger;
 
 class Parser extends Connection
 {
 
-    private $YoutrackFilter = 'Beheben in: 1.* Typ: Feature,Bug,Aufgabe Teilsystem: {10*},{03*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}';
+    private $YouTrackFilter = 'Sichtbar für: {Alle Benutzer} Beheben in: -{Nicht definiert}';
     /** @var bool $Authenticated */
     private $Authenticated = false;
 
@@ -18,7 +16,7 @@ class Parser extends Connection
     {
 
         if ($Filter) {
-            $this->YoutrackFilter = $Filter;
+            $this->YouTrackFilter = $Filter;
         }
         parent::__construct($Credentials);
     }
@@ -66,7 +64,7 @@ class Parser extends Connection
 
         $Url = $this->getCredentials()->getHost()
             .'/rest/issue/byproject/KREDA'
-            .'?filter='.urlencode($this->YoutrackFilter)
+            .'?filter='.urlencode($this->YouTrackFilter)
             .'&max='.urlencode('1000');
 
         $Key = md5($Url);

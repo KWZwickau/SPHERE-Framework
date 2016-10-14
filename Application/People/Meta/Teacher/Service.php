@@ -9,6 +9,7 @@
 namespace SPHERE\Application\People\Meta\Teacher;
 
 use SPHERE\Application\People\Meta\Teacher\Service\Data;
+use SPHERE\Application\People\Meta\Teacher\Service\Entity\ViewPeopleMetaTeacher;
 use SPHERE\Application\People\Meta\Teacher\Service\Setup;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -19,6 +20,14 @@ use SPHERE\System\Database\Binding\AbstractService;
 
 class Service extends AbstractService
 {
+
+    /**
+     * @return false|ViewPeopleMetaTeacher[]
+     */
+    public function viewPeopleMetaTeacher()
+    {
+        return ( new Data($this->getBinding()) )->viewPeopleMetaTeacher();
+    }
 
     /**
      * @param bool $doSimulation
