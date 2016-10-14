@@ -82,6 +82,7 @@ class Data extends AbstractData
 
     /**
      * @param TblSerialLetter $tblSerialLetter
+     *
      * @return false|TblPerson[]
      */
     public function getPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
@@ -96,7 +97,7 @@ class Data extends AbstractData
                 $tblPersonList[] = $Entity->getServiceTblPerson();
             }
         }
-        $tblPersonList = array_filter( $tblPersonList );
+        $tblPersonList = array_filter($tblPersonList);
 
         return ( empty( $tblPersonList ) ? false : $tblPersonList );
 
@@ -104,7 +105,7 @@ class Data extends AbstractData
 
     /**
      * @param TblSerialLetter $tblSerialLetter
-     * @param TblPerson $tblPerson
+     * @param TblPerson       $tblPerson
      *
      * @return bool|TblAddressPerson[]
      */
@@ -114,9 +115,9 @@ class Data extends AbstractData
     ) {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAddressPerson', array(
-            TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId(),
+            TblAddressPerson::ATTR_TBL_SERIAL_LETTER  => $tblSerialLetter->getId(),
             TblAddressPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-        ) );
+        ));
     }
 
     /**
@@ -133,7 +134,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Name
+     * @param        $Name
      * @param string $Description
      *
      * @return TblSerialLetter
@@ -193,8 +194,8 @@ class Data extends AbstractData
 
     /**
      * @param TblSerialLetter $tblSerialLetter
-     * @param $Name
-     * @param $Description
+     * @param                 $Name
+     * @param                 $Description
      *
      * @return bool
      */
@@ -222,10 +223,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblSerialLetter $tblSerialLetter
-     * @param TblPerson $tblPerson
-     * @param TblPerson $tblPersonToAddress
-     * @param TblToPerson $tblToPerson
+     * @param TblSerialLetter    $tblSerialLetter
+     * @param TblPerson          $tblPerson
+     * @param TblPerson          $tblPersonToAddress
+     * @param TblToPerson        $tblToPerson
      * @param TblSalutation|null $tblSalutation
      *
      * @return TblAddressPerson
@@ -242,10 +243,10 @@ class Data extends AbstractData
 
         $Entity = $Manager->getEntity('TblAddressPerson')
             ->findOneBy(array(
-                TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId(),
-                TblAddressPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblAddressPerson::ATTR_TBL_SERIAL_LETTER             => $tblSerialLetter->getId(),
+                TblAddressPerson::ATTR_SERVICE_TBL_PERSON            => $tblPerson->getId(),
                 TblAddressPerson::ATTR_SERVICE_TBL_PERSON_TO_ADDRESS => $tblPersonToAddress->getId(),
-                TblAddressPerson::ATTR_SERVICE_TBL_TO_PERSON => $tblToPerson ? $tblToPerson->getId() : null
+                TblAddressPerson::ATTR_SERVICE_TBL_TO_PERSON         => $tblToPerson ? $tblToPerson->getId() : null
             ));
 
         if (null === $Entity) {
@@ -308,6 +309,26 @@ class Data extends AbstractData
         }
 
         return true;
+    }
+
+    /**
+     * @param TblAddressPerson $tblAddressPerson
+     *
+     * @return bool
+     */
+    public function destroyAddressPerson(TblAddressPerson $tblAddressPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntityById('TblAddressPerson', $tblAddressPerson->getId());
+        /** @var TblAddressPerson $Entity */
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
