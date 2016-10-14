@@ -243,8 +243,7 @@ class Frontend extends Extension implements IFrontendInterface
         $FilterYear = null,
         $FilterType = null,
         $FilterAdd = false
-    )
-    {
+    ) {
 
         $Stage = new Stage('Personen für Serienbriefe', 'Auswählen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
@@ -298,7 +297,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($FilterGroup) {
             $Filter = $FilterGroup;
 
-            $Pile = new Pile( Pile::JOIN_TYPE_INNER );
+            $Pile = new Pile(Pile::JOIN_TYPE_INNER);
             $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(), null, 'TblMember_serviceTblPerson');
             $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID, null);
             // Group->Person
@@ -307,7 +306,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($FilterStudent) {
             $Filter = $FilterStudent;
 
-            $Pile = new Pile( Pile::JOIN_TYPE_INNER );
+            $Pile = new Pile(Pile::JOIN_TYPE_INNER);
             $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
                 null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
             );
@@ -327,7 +326,6 @@ class Frontend extends Extension implements IFrontendInterface
 //            $Pile->addPile(( new ViewSchoolType() )->getViewService(), new ViewSchoolType(),
 //                ViewSchoolType::TBL_TYPE_ID, null
 //            );
-
 
 
 //            $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(), null, ViewYear::TBL_YEAR_ID);
@@ -408,7 +406,7 @@ class Frontend extends Extension implements IFrontendInterface
             // Filter ordered by Database Join with foreign Key
             if ($FilterStudent) {
                 $Result = $Pile->searchPile(array(
-                    0 => array( 'TblGroup_Name' => array('Schüler')),
+                    0 => array('TblGroup_Name' => array('Schüler')),
                     1 => $FilterPerson,
                     2 => $Filter,
                     3 => $FilterYear
@@ -428,21 +426,21 @@ class Frontend extends Extension implements IFrontendInterface
             if ($FilterGroup) {
                 /** @var array $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
-                $DataPerson['Division'] = new Small( new Muted( '-NA-' ) );
+                $DataPerson['Division'] = new Small(new Muted('-NA-'));
 
             } else {
                 /** @var array $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
                 $tblDivisionStudent = $Row[2]->getTblDivisionStudent();
-                if( $tblDivisionStudent ) {
+                if ($tblDivisionStudent) {
                     $tblDivision = $tblDivisionStudent->getTblDivision();
-                    if( $tblDivision ) {
-                        $DataPerson['Division'] = new Small( new Muted( 'Gefilterte Klasse:' ) ) . new Container( $tblDivision->getDisplayName() );
+                    if ($tblDivision) {
+                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($tblDivision->getDisplayName());
                     } else {
-                        $DataPerson['Division'] = new Small( new Muted( 'Gefilterte Klasse:' ) ) . new Container( '-NA-');
+                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
                     }
                 } else {
-                    $DataPerson['Division'] = new Small( new Muted( 'Gefilterte Klasse:' ) ) . new Container( '-NA-');
+                    $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
                 }
             }
 
@@ -547,7 +545,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
 
-                $VisitedDivision = new Small( new Muted( '-NA-' ) );
+                $VisitedDivision = new Small(new Muted('-NA-'));
                 $VisitedDivisionList = array();
                 if ($tblPerson !== null) {
                     $tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
@@ -559,14 +557,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblLevel = $tblDivision->getTblLevel();
                                 $tblYear = $tblDivision->getServiceTblYear();
                                 if ($tblLevel && $tblYear) {
-                                    $VisitedDivisionList[] = new Small( new Muted( 'Aktuelle Klasse:' ) ) . new Container( $tblDivision->getDisplayName() );
+                                    $VisitedDivisionList[] = new Small(new Muted('Aktuelle Klasse:')).new Container($tblDivision->getDisplayName());
                                 }
                             }
                         }
 
                         if (!empty( $VisitedDivisionList )) {
                             rsort($VisitedDivisionList);
-                            $VisitedDivision = current( $VisitedDivisionList );
+                            $VisitedDivision = current($VisitedDivisionList);
                         }
                     }
                 }
@@ -716,19 +714,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutGroup(array(
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            new Panel(new Search() . ' Personen-Suche nach ' . new Bold('Personengruppe'), array(
+                                            new Panel(new Search().' Personen-Suche nach '.new Bold('Personengruppe'), array(
                                                 $FormGroup
                                             ), Panel::PANEL_TYPE_INFO)
                                             , 6),
                                         new LayoutColumn(
-                                            new Panel(new Search() . ' Schüler-Suche nach ' . new Bold('Schuljahr / Klasse / Schüler'), array(
+                                            new Panel(new Search().' Schüler-Suche nach '.new Bold('Schuljahr / Klasse / Schüler'), array(
                                                 $FormStudent
                                             ), Panel::PANEL_TYPE_INFO)
                                             , 6),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            ($Timeout === true
+                                            ( $Timeout === true
                                                 ? new WarningMessage('Die Tabelle enthält nur einen Teil der Suchergebnisse!')
                                                 : ''
                                             )
@@ -741,16 +739,16 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ? new WarningMessage('Keine Ergebnisse bei aktueller Filterung '.new SuccessText(new Filter()))
                                                 : ''
                                             ),
-                                                new TableData($tblPersonSearch, null,
-                                                    array('Exchange'      => ' ',
-                                                          'Name'          => 'Name',
-                                                          'Address'       => 'Adresse',
-                                                          'Division'      => 'Klasse',
-                                                          'StudentNumber' => 'Schüler-Nr.'
-                                                    ),
-                                                    array(
-                                                        'order'            => array(array(1, 'asc')),
-                                                    'columnDefs' => array(
+                                            new TableData($tblPersonSearch, null,
+                                                array('Exchange'      => ' ',
+                                                      'Name'          => 'Name',
+                                                      'Address'       => 'Adresse',
+                                                      'Division'      => 'Klasse',
+                                                      'StudentNumber' => 'Schüler-Nr.'
+                                                ),
+                                                array(
+                                                    'order'                => array(array(1, 'asc')),
+                                                    'columnDefs'           => array(
                                                         array('orderable' => false, 'width' => '1%', 'targets' => 0)
                                                     ),
                                                     'ExtensionRowExchange' => array(
@@ -829,11 +827,11 @@ class Frontend extends Extension implements IFrontendInterface
 
                     if (( $tblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
                         if ($tblAddressPerson->getServiceTblSalutation()) {
-                            if (($tblPersonTo = $tblToPerson->getServiceTblPerson())) {
+                            if (( $tblPersonTo = $tblToPerson->getServiceTblPerson() )) {
                                 $Data[] = $tblAddressPerson->getServiceTblSalutation()->getSalutation().' '.$tblPersonTo->getLastFirstName();
                             }
                         } else {
-                            if (($tblPersonTo = $tblToPerson->getServiceTblPerson())) {
+                            if (( $tblPersonTo = $tblToPerson->getServiceTblPerson() )) {
                                 $Data[] = $tblPersonTo->getLastFirstName();
                             }
                         }
@@ -1372,8 +1370,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param            $Id
      * @param bool|false $Confirm
+     *
      * @return Stage
      */
     public function frontendSerialLetterDestroy($Id = null, $Confirm = false)
@@ -1389,7 +1388,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            new Danger(new Ban() . ' Die Adressliste für Serienbriefe konnte nicht gefunden werden.'),
+                            new Danger(new Ban().' Die Adressliste für Serienbriefe konnte nicht gefunden werden.'),
                             new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR)
                         )))
                     )))
@@ -1398,19 +1397,19 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!$Confirm) {
                     $Stage->setContent(
                         new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                            new Panel('Adressliste für Serienbriefe', new Bold($tblSerialLetter->getName()) .
-                                ($tblSerialLetter->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                    . new Muted(new Small(new Small($tblSerialLetter->getDescription()))) : ''),
+                            new Panel('Adressliste für Serienbriefe', new Bold($tblSerialLetter->getName()).
+                                ( $tblSerialLetter->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    .new Muted(new Small(new Small($tblSerialLetter->getDescription()))) : '' ),
                                 Panel::PANEL_TYPE_INFO),
-                            new Panel(new Question() . ' Diese Adressliste für Serienbriefe wirklich löschen?', array(
-                                $tblSerialLetter->getName() . ' ' . $tblSerialLetter->getDescription()
+                            new Panel(new Question().' Diese Adressliste für Serienbriefe wirklich löschen?', array(
+                                $tblSerialLetter->getName().' '.$tblSerialLetter->getDescription()
                             ),
                                 Panel::PANEL_TYPE_DANGER,
                                 new Standard(
                                     'Ja', '/Reporting/SerialLetter/Destroy', new Ok(),
                                     array('Id' => $Id, 'Confirm' => true)
                                 )
-                                . new Standard(
+                                .new Standard(
                                     'Nein', '/Reporting/SerialLetter', new Disable()
                                 )
                             )
@@ -1420,9 +1419,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $Stage->setContent(
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
-                                (SerialLetter::useService()->destroySerialLetter($tblSerialLetter)
-                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adressliste für Serienbriefe wurde gelöscht')
-                                    : new Danger(new Ban() . ' Die Adressliste für Serienbriefe konnte nicht gelöscht werden')
+                                ( SerialLetter::useService()->destroySerialLetter($tblSerialLetter)
+                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adressliste für Serienbriefe wurde gelöscht')
+                                    : new Danger(new Ban().' Die Adressliste für Serienbriefe konnte nicht gelöscht werden')
                                 ),
                                 new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS)
                             )))
@@ -1434,7 +1433,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger(new Ban() . ' Daten nicht abrufbar.'),
+                        new Danger(new Ban().' Daten nicht abrufbar.'),
                         new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR)
                     )))
                 )))

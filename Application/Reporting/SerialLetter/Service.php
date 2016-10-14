@@ -34,9 +34,9 @@ class Service extends AbstractService
     public function setupService($Simulate, $withData)
     {
 
-        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($Simulate);
+        $Protocol = ( new Setup($this->getStructure()) )->setupDatabaseSchema($Simulate);
         if (!$Simulate && $withData) {
-            (new Data($this->getBinding()))->setupDatabaseContent();
+            ( new Data($this->getBinding()) )->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -49,7 +49,7 @@ class Service extends AbstractService
     public function getSerialLetterById($Id)
     {
 
-        return (new Data($this->getBinding()))->getSerialLetterById($Id);
+        return ( new Data($this->getBinding()) )->getSerialLetterById($Id);
     }
 
     /**
@@ -69,7 +69,7 @@ class Service extends AbstractService
     public function getSerialLetterAll()
     {
 
-        return (new Data($this->getBinding()))->getSerialLetterAll();
+        return ( new Data($this->getBinding()) )->getSerialLetterAll();
     }
 
     /**
@@ -96,6 +96,7 @@ class Service extends AbstractService
 
     /**
      * @param TblSerialLetter $tblSerialLetter
+     *
      * @return false|TblPerson[]
      */
     public function getPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
@@ -105,7 +106,7 @@ class Service extends AbstractService
 
     /**
      * @param TblSerialLetter $tblSerialLetter
-     * @param TblPerson $tblPerson
+     * @param TblPerson       $tblPerson
      *
      * @return bool|TblAddressPerson[]
      */
@@ -114,7 +115,7 @@ class Service extends AbstractService
         TblPerson $tblPerson
     ) {
 
-        return (new Data($this->getBinding()))->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
+        return ( new Data($this->getBinding()) )->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
     }
 
     /**
@@ -125,7 +126,7 @@ class Service extends AbstractService
     public function getAddressPersonAllBySerialLetter(TblSerialLetter $tblSerialLetter)
     {
 
-        return (new Data($this->getBinding()))->getAddressPersonAllBySerialLetter($tblSerialLetter);
+        return ( new Data($this->getBinding()) )->getAddressPersonAllBySerialLetter($tblSerialLetter);
     }
 
     /**
@@ -145,18 +146,18 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (isset($SerialLetter['Name']) && empty($SerialLetter['Name'])) {
+        if (isset( $SerialLetter['Name'] ) && empty( $SerialLetter['Name'] )) {
             $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
 
         if (!$Error) {
-            (new Data($this->getBinding()))->createSerialLetter(
+            ( new Data($this->getBinding()) )->createSerialLetter(
                 $SerialLetter['Name'],
                 $SerialLetter['Description']
             );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adressliste für Serienbriefe ist erfasst worden')
-            . new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adressliste für Serienbriefe ist erfasst worden')
+            .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -185,18 +186,18 @@ class Service extends AbstractService
             return $Form;
         }
 
-        if (!empty($Check)) {
+        if (!empty( $Check )) {
             foreach ($Check as $personId => $list) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 if ($tblPerson) {
                     // alle Einträge zum Serienbrief dieser Person löschen
                     ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
-                    if (is_array($list) && !empty($list)) {
+                    if (is_array($list) && !empty( $list )) {
                         foreach ($list as $key => $item) {
-                            if (isset($item['Address'])) {
+                            if (isset( $item['Address'] )) {
                                 $tblToPerson = Address::useService()->getAddressToPersonById($key);
                                 if ($tblToPerson && $tblToPerson->getServiceTblPerson()) {
-                                    if (isset($item['Salutation'])) {
+                                    if (isset( $item['Salutation'] )) {
                                         if ($item['Salutation'] == TblAddressPerson::SALUTATION_FAMILY) {
                                             $tblSalutation = new TblSalutation('Familie');
                                             $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
@@ -225,10 +226,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblSerialLetter $tblSerialLetter
-     * @param TblPerson $tblPerson
-     * @param TblPerson $tblPersonToAddress
-     * @param TblToPerson $tblToPerson
+     * @param TblSerialLetter    $tblSerialLetter
+     * @param TblPerson          $tblPerson
+     * @param TblPerson          $tblPersonToAddress
+     * @param TblToPerson        $tblToPerson
      * @param TblSalutation|null $tblSalutation
      *
      * @return TblAddressPerson
@@ -241,7 +242,7 @@ class Service extends AbstractService
         TblSalutation $tblSalutation = null
     ) {
 
-        return (new Data($this->getBinding()))->createAddressPerson($tblSerialLetter, $tblPerson, $tblPersonToAddress,
+        return ( new Data($this->getBinding()) )->createAddressPerson($tblSerialLetter, $tblPerson, $tblPersonToAddress,
             $tblToPerson, $tblSalutation);
     }
 
@@ -289,7 +290,7 @@ class Service extends AbstractService
                     $export->setValue($export->getCell($column++, $row),
                         $tblAddress->getTblCity()->getDistrict());
                     $export->setValue($export->getCell($column++, $row),
-                        $tblAddress->getStreetName() . ' ' . $tblAddress->getStreetNumber());
+                        $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber());
                     $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getCode());
                     $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getName());
                     $export->setValue($export->getCell($column++, $row),
@@ -361,8 +362,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblSerialLetter $tblSerialLetter
-     * @param $SerialLetter
+     * @param TblSerialLetter     $tblSerialLetter
+     * @param                     $SerialLetter
      *
      * @return IFormInterface|string
      */
@@ -380,19 +381,19 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (isset($SerialLetter['Name']) && empty($SerialLetter['Name'])) {
+        if (isset( $SerialLetter['Name'] ) && empty( $SerialLetter['Name'] )) {
             $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
 
         if (!$Error) {
-            (new Data($this->getBinding()))->updateSerialLetter(
+            ( new Data($this->getBinding()) )->updateSerialLetter(
                 $tblSerialLetter,
                 $SerialLetter['Name'],
                 $SerialLetter['Description']
             );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adressliste für Serienbriefe ist geändert worden')
-            . new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adressliste für Serienbriefe ist geändert worden')
+            .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
