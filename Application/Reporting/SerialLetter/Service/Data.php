@@ -311,6 +311,26 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblAddressPerson $tblAddressPerson
+     *
+     * @return bool
+     */
+    public function destroyAddressPerson(TblAddressPerson $tblAddressPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntityById('TblAddressPerson', $tblAddressPerson->getId());
+        /** @var TblAddressPerson $Entity */
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblSerialLetter $tblSerialLetter
      *
      * @return bool

@@ -8,6 +8,7 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -165,14 +166,16 @@ class Service extends AbstractService
     /**
      * @param IFormInterface  $Form
      * @param TblSerialLetter $tblSerialLetter
-     * @param                 $Check
+     * @param array           $Check
+     * @param string          $Route
      *
      * @return IFormInterface|string
      */
     public function setPersonAddressSelection(
         IFormInterface $Form,
         TblSerialLetter $tblSerialLetter,
-        $Check
+        $Check,
+        $Route = '/Reporting/SerialLetter/Address'
     ) {
 
         /**
@@ -210,14 +213,14 @@ class Service extends AbstractService
                         }
                     }
                     return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                    .new Redirect('/Reporting/SerialLetter/Address/Edit', Redirect::TIMEOUT_SUCCESS,
+                    .new Redirect($Route, Redirect::TIMEOUT_SUCCESS,
                         array('Id' => $tblSerialLetter->getId(), 'PersonId' => $tblPerson->getId()));
                 }
             }
         }
 
         return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        .new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS,
+        .new Redirect($Route, Redirect::TIMEOUT_SUCCESS,
             array('Id' => $tblSerialLetter->getId()));
     }
 
@@ -266,7 +269,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "PLZ");
             $export->setValue($export->getCell($column++, $row), "Ort");
             $export->setValue($export->getCell($column++, $row), "Person_Vorname");
-            $export->setValue($export->getCell($column, $row), "Person_Nachname");
+            $export->setValue($export->getCell($column++, $row), "Person_Nachname");
+            $export->setValue($export->getCell($column, $row), "Schüler-Nr.");
 
             $row = 1;
             foreach ($tblAddressPersonAllBySerialLetter as $tblAddressPerson) {
@@ -290,8 +294,15 @@ class Service extends AbstractService
                     $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getName());
                     $export->setValue($export->getCell($column++, $row),
                         $tblAddressPerson->getServiceTblPerson()->getFirstName());
-                    $export->setValue($export->getCell($column, $row),
+                    $export->setValue($export->getCell($column++, $row),
                         $tblAddressPerson->getServiceTblPerson()->getLastName());
+                    $tblStudent = Student::useService()->getStudentByPerson($tblAddressPerson->getServiceTblPerson());
+                    if ($tblStudent) {
+                        $export->setValue($export->getCell($column, $row),
+                            $tblStudent->getIdentifier());
+                    } else {
+                        $export->setValue($export->getCell($column, $row), '');
+                    }
                     $row++;
                 }
             }
@@ -336,6 +347,16 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->destroySerialPerson($tblSerialPerson);
+    }
+
+    /**
+     * @param TblAddressPerson $tblAddressPerson
+     *
+     * @return bool
+     */
+    public function destroySerialAddressPerson(TblAddressPerson $tblAddressPerson)
+    {
+        return ( new Data($this->getBinding()) )->destroyAddressPerson($tblAddressPerson);
     }
 
     /**

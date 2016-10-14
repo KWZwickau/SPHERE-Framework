@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -456,6 +457,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblPerson) {
                 $DataPerson['Name'] = $tblPerson->getLastFirstName();
                 $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             }
             if (!$DataPerson['Name']) {
 //                var_dump($DataPerson['TblPerson_Id']);
@@ -465,6 +467,10 @@ class Frontend extends Extension implements IFrontendInterface
             if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
                 /** @noinspection PhpUndefinedFieldInspection */
                 $DataPerson['Address'] = $tblAddress->getGuiString();
+            }
+            $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
+            if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
+                $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
             }
 
             // ignore duplicated Person
@@ -525,11 +531,19 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @noinspection PhpUndefinedFieldInspection */
                 $tblPerson->Name = $tblPerson->getLastFirstName();
                 $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 /** @noinspection PhpUndefinedFieldInspection */
                 $tblPerson->Address = new WarningMessage('Keine Adresse hinterlegt!');
                 if ($tblAddress) {
                     /** @noinspection PhpUndefinedFieldInspection */
                     $tblPerson->Address = $tblAddress->getGuiString();
+                }
+                if ($tblStudent) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblPerson->StudentNumber = $tblStudent->getIdentifier();
+                } else {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblPerson->StudentNumber = new Small(new Muted('-NA-'));
                 }
 
 
@@ -664,10 +678,11 @@ class Frontend extends Extension implements IFrontendInterface
 
                                             new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter),
                                             new TableData($tblPersonList, null,
-                                                array('Exchange' => '',
-                                                      'Name'     => 'Name',
-                                                      'Address'  => 'Adresse',
-                                                      'Division' => 'Klasse'
+                                                array('Exchange'      => '',
+                                                      'Name'          => 'Name',
+                                                      'Address'       => 'Adresse',
+                                                      'Division'      => 'Klasse',
+                                                      'StudentNumber' => 'Schüler-Nr.'
                                                 ),
                                                 array(
                                                     'order'                => array(array(1, 'asc')),
@@ -727,10 +742,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                 : ''
                                             ),
                                                 new TableData($tblPersonSearch, null,
-                                                    array('Exchange' => ' ',
-                                                          'Name'     => 'Name',
-                                                          'Address'  => 'Adresse',
-                                                          'Division' => 'Klasse'
+                                                    array('Exchange'      => ' ',
+                                                          'Name'          => 'Name',
+                                                          'Address'       => 'Adresse',
+                                                          'Division'      => 'Klasse',
+                                                          'StudentNumber' => 'Schüler-Nr.'
                                                     ),
                                                     array(
                                                         'order'            => array(array(1, 'asc')),
@@ -794,10 +810,16 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $Id, $tblSerialLetter) {
             $Item['Name'] = $tblPerson->getLastFirstName();
+            $Item['StudentNumber'] = new Small(new Muted('-NA-'));
             $Item['Address'] = array();
             $Item['Option'] = new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
                 array('Id'       => $Id,
-                      'PersonId' => $tblPerson->getId()));
+                      'PersonId' => $tblPerson->getId(),
+                      'Route'    => '/Reporting/SerialLetter/Address'));
+            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+            if ($tblStudent) {
+                $Item['StudentNumber'] = $tblStudent->getIdentifier();
+            }
 
             $tblAddressPersonList = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
             if ($tblAddressPersonList) {
@@ -883,13 +905,15 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 12),
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
-                                'Name'    => 'Name',
-                                'Address' => 'Serienbrief Adresse',
-                                'Option'  => '',
+                                'Name'          => 'Name',
+                                'StudentNumber' => 'Schüler-Nr.',
+                                'Address'       => 'Serienbrief Adresse',
+                                'Option'        => '',
                             ), array(
                                 'columnDefs' => array(
                                     array('orderable' => false, 'width' => '1%', 'targets' => -1),
-                                    array('width' => '15%', 'targets' => 0)
+                                    array('width' => '15%', 'targets' => 0),
+                                    array('width' => '10%', 'targets' => 1)
                                 )
                             ))
                         )
@@ -902,13 +926,14 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Id
-     * @param null $PersonId
-     * @param null $Check
+     * @param null   $Id
+     * @param null   $PersonId
+     * @param string $Route
+     * @param null   $Check
      *
      * @return Stage|string
      */
-    public function frontendPersonAddressEdit($Id = null, $PersonId = null, $Check = null)
+    public function frontendPersonAddressEdit($Id = null, $PersonId = null, $Route = '/Reporting/SerialLetter/Address', $Check = null)
     {
 
         $Stage = new Stage('Adresse(n)', 'Auswählen');
@@ -918,7 +943,7 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Danger('Serienbrief nicht gefunden', new Exclamation());
         }
 
-        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter/Address', new ChevronLeft(), array('Id' => $Id)));
+        $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft(), array('Id' => $Id)));
         $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
             array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
         $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
@@ -1103,7 +1128,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                 ),
                                 new Well(SerialLetter::useService()->setPersonAddressSelection(
-                                    $Form, $tblSerialLetter, $Check
+                                    $Form, $tblSerialLetter, $Check, $Route
                                 ))
                             ))
                         )
@@ -1162,9 +1187,11 @@ class Frontend extends Extension implements IFrontendInterface
             $columnList = array(
                 'Number'          => 'Nr.',
                 'Person'          => 'Person',
+                'StudentNumber'   => 'Schüler-Nr.',
                 'Salutation'      => 'Anrede',
                 'PersonToAddress' => 'Adressat',
                 'Address'         => 'Adresse',
+                'Option'          => ''
             );
 
             $countAddresses = 0;
@@ -1185,15 +1212,30 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
                         $tblPerson);
                     if ($tblAddressPersonAllByPerson) {
+                        /** @var TblAddressPerson $tblAddressPerson */
                         foreach ($tblAddressPersonAllByPerson as $tblAddressPerson) {
-                            if ($tblAddressPerson->getServiceTblToPerson()
-                                && $tblAddressPerson->getServiceTblToPerson()->getTblAddress()
-                            ) {
-                                $countAddresses++;
+                            // clean data if missing address
+                            if (!$tblAddressPerson->getServiceTblToPerson()) {
+                                SerialLetter::useService()->destroySerialAddressPerson($tblAddressPerson);
                             }
+                        }
+                    }
+                    // get fresh list
+                    $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
+                        $tblPerson);
+                    if ($tblAddressPersonAllByPerson) {
+                        /** @var TblAddressPerson $tblAddressPerson */
+                        foreach ($tblAddressPersonAllByPerson as $tblAddressPerson) {
 
                             $tblAddressPersonFound = $tblAddressPerson->getServiceTblPerson();
                             $tblPersonWithAddress = $tblAddressPerson->getServiceTblPersonToAddress();
+
+                            if ($tblAddressPerson->getServiceTblToPerson()
+                                && $tblAddressPerson->getServiceTblToPerson()->getTblAddress()
+                            ) {
+
+                                $countAddresses++;
+                            }
 
                             $RelationshipListFrom = array();
                             $RelationshipListTo = array();
@@ -1230,11 +1272,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 $RelationshipListTo = '';
                             }
 
+                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                            if ($tblStudent) {
+                                $StudentNumber = $tblStudent->getIdentifier();
+                            } else {
+                                $StudentNumber = new Small(new Muted('-NA-'));
+                            }
+
                             $dataList[] = array(
                                 'Number'          => ++$count,
                                 'Person'          => ( $tblAddressPerson->getServiceTblPerson()
                                     ? $tblAddressPerson->getServiceTblPerson()->getLastFirstName()
                                     : new Warning(new Exclamation().' Person nicht gefunden.') ),
+                                'StudentNumber'   => $StudentNumber,
                                 'PersonToAddress' => ( $tblPersonWithAddress
                                     ? $tblPersonWithAddress->getLastFirstName().' '.$RelationshipListFrom.' '.$RelationshipListTo
                                     : new Warning(new Exclamation().' Person nicht gefunden.') ),
@@ -1243,16 +1293,32 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Warning(new Exclamation().' Adresse nicht gefunden.') ),
                                 'Salutation'      => $tblAddressPerson->getServiceTblSalutation()
                                     ? $tblAddressPerson->getServiceTblSalutation()->getSalutation()
-                                    : new Warning(new Exclamation().' Keine Anrede hinterlegt.')
+                                    : new Warning(new Exclamation().' Keine Anrede hinterlegt.'),
+                                'Option'          => new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
+                                    array('Id'       => $Id,
+                                          'PersonId' => $tblPerson->getId(),
+                                          'Route'    => '/Reporting/SerialLetter/Export'))
                             );
                         }
                     } else {
+                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                        if ($tblStudent) {
+                            $StudentNumber = $tblStudent->getIdentifier();
+                        } else {
+                            $StudentNumber = '-NA-';
+                        }
+
                         $dataList[] = array(
                             'Number'          => ++$count,
                             'Person'          => $tblPerson->getLastFirstName(),
+                            'StudentNumber'   => $StudentNumber,
                             'PersonToAddress' => new Warning(new Exclamation().' Keine Person mit Adresse hinterlegt.'),
                             'Address'         => '',
-                            'Salutation'      => ''
+                            'Salutation'      => '',
+                            'Option'          => new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
+                                array('Id'       => $Id,
+                                      'PersonId' => $tblPerson->getId(),
+                                      'Route'    => '/Reporting/SerialLetter/Export'))
                         );
                     }
                 }
