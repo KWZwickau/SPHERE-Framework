@@ -24,7 +24,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
+     * @param int $Id
      *
      * @return bool|TblSerialLetter
      */
@@ -36,7 +36,21 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return false|TblSerialLetter
+     */
+    public function getSerialLetterByNameAndDescription($Name, $Description = '')
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSerialLetter',
+            array(TblSerialLetter::ATTR_NAME        => $Name,
+                  TblSerialLetter::ATTR_DESCRIPTION => $Description));
+    }
+
+    /**
+     * @param int $Id
      *
      * @return false|TblSerialPerson
      */
@@ -134,7 +148,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param        $Name
+     * @param string $Name
      * @param string $Description
      *
      * @return TblSerialLetter
@@ -148,7 +162,8 @@ class Data extends AbstractData
 
         $Entity = $Manager->getEntity('TblSerialLetter')
             ->findOneBy(array(
-                TblSerialLetter::ATTR_NAME => $Name,
+                TblSerialLetter::ATTR_NAME        => $Name,
+                TblSerialLetter::ATTR_DESCRIPTION => $Description,
             ));
 
         if (null === $Entity) {
@@ -194,8 +209,8 @@ class Data extends AbstractData
 
     /**
      * @param TblSerialLetter $tblSerialLetter
-     * @param                 $Name
-     * @param                 $Description
+     * @param string          $Name
+     * @param string          $Description
      *
      * @return bool
      */

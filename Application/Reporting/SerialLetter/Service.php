@@ -42,7 +42,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
+     * @param int $Id
      *
      * @return bool|TblSerialLetter
      */
@@ -53,7 +53,19 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return false|TblSerialLetter
+     */
+    public function getSerialLetterByNameAndDescription($Name, $Description = '')
+    {
+
+        return ( new Data($this->getBinding()) )->getSerialLetterByNameAndDescription($Name, $Description);
+    }
+
+    /**
+     * @param int $Id
      *
      * @return bool|TblSerialPerson
      */
@@ -131,7 +143,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param                     $SerialLetter
+     * @param array               $SerialLetter
      *
      * @return IFormInterface|string
      */
@@ -149,6 +161,12 @@ class Service extends AbstractService
         if (isset( $SerialLetter['Name'] ) && empty( $SerialLetter['Name'] )) {
             $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
+        } else {
+            if (SerialLetter::useService()->getSerialLetterByNameAndDescription($SerialLetter['Name'], $SerialLetter['Description'])) {
+                $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen noch nicht verwendeten Namen an');
+                $Stage->setError('SerialLetter[Description]', 'oder ändern Sie die Beschreibung');
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -274,6 +292,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column, $row), "Schüler-Nr.");
 
             $row = 1;
+            /** @var TblAddressPerson $tblAddressPerson */
             foreach ($tblAddressPersonAllBySerialLetter as $tblAddressPerson) {
                 if ($tblAddressPerson->getServiceTblPerson()
                     && $tblAddressPerson->getServiceTblPersonToAddress()
@@ -363,7 +382,7 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblSerialLetter     $tblSerialLetter
-     * @param                     $SerialLetter
+     * @param array               $SerialLetter
      *
      * @return IFormInterface|string
      */
@@ -384,6 +403,14 @@ class Service extends AbstractService
         if (isset( $SerialLetter['Name'] ) && empty( $SerialLetter['Name'] )) {
             $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
+        } else {
+            if (( $Entity = SerialLetter::useService()->getSerialLetterByNameAndDescription($SerialLetter['Name'], $SerialLetter['Description']) )) {
+                if ($Entity->getId() !== $tblSerialLetter->getId()) {
+                    $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen noch nicht verwendeten Namen an');
+                    $Stage->setError('SerialLetter[Description]', 'oder ändern Sie die Beschreibung');
+                    $Error = true;
+                }
+            }
         }
 
         if (!$Error) {
