@@ -54,14 +54,13 @@ class Service extends AbstractService
 
     /**
      * @param string $Name
-     * @param string $Description
      *
      * @return false|TblSerialLetter
      */
-    public function getSerialLetterByNameAndDescription($Name, $Description = '')
+    public function getSerialLetterByName($Name)
     {
 
-        return ( new Data($this->getBinding()) )->getSerialLetterByNameAndDescription($Name, $Description);
+        return ( new Data($this->getBinding()) )->getSerialLetterByName($Name);
     }
 
     /**
@@ -162,9 +161,8 @@ class Service extends AbstractService
             $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         } else {
-            if (SerialLetter::useService()->getSerialLetterByNameAndDescription($SerialLetter['Name'], $SerialLetter['Description'])) {
-                $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen noch nicht verwendeten Namen an');
-                $Stage->setError('SerialLetter[Description]', 'oder ändern Sie die Beschreibung');
+            if (SerialLetter::useService()->getSerialLetterByName($SerialLetter['Name'])) {
+                $Stage->setError('SerialLetter[Name]', 'Der Name für den Serienbrief exisitert bereits. Bitte wählen Sie einen anderen.');
                 $Error = true;
             }
         }
@@ -404,10 +402,9 @@ class Service extends AbstractService
             $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         } else {
-            if (( $Entity = SerialLetter::useService()->getSerialLetterByNameAndDescription($SerialLetter['Name'], $SerialLetter['Description']) )) {
-                if ($Entity->getId() !== $tblSerialLetter->getId()) {
-                    $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen noch nicht verwendeten Namen an');
-                    $Stage->setError('SerialLetter[Description]', 'oder ändern Sie die Beschreibung');
+            if (( $tblSerialLetterByName = SerialLetter::useService()->getSerialLetterByName($SerialLetter['Name']) )) {
+                if ($tblSerialLetterByName->getId() !== $tblSerialLetter->getId()) {
+                    $Stage->setError('SerialLetter[Name]', 'Der Name für den Serienbrief exisitert bereits. Bitte wählen Sie einen anderen');
                     $Error = true;
                 }
             }

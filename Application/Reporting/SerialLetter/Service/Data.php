@@ -37,16 +37,14 @@ class Data extends AbstractData
 
     /**
      * @param string $Name
-     * @param string $Description
      *
      * @return false|TblSerialLetter
      */
-    public function getSerialLetterByNameAndDescription($Name, $Description = '')
+    public function getSerialLetterByName($Name)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSerialLetter',
-            array(TblSerialLetter::ATTR_NAME        => $Name,
-                  TblSerialLetter::ATTR_DESCRIPTION => $Description));
+            array(TblSerialLetter::ATTR_NAME => $Name));
     }
 
     /**
@@ -161,10 +159,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblSerialLetter')
-            ->findOneBy(array(
-                TblSerialLetter::ATTR_NAME        => $Name,
-                TblSerialLetter::ATTR_DESCRIPTION => $Description,
-            ));
+            ->findOneBy(array(TblSerialLetter::ATTR_NAME => $Name,));
 
         if (null === $Entity) {
             $Entity = new TblSerialLetter();
