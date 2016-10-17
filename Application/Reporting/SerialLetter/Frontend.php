@@ -69,6 +69,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
@@ -253,7 +254,8 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Danger('Serienbrief nicht gefunden', new Exclamation());
         }
 
-        $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+        $Stage->addButton(new Standard(new Bold(new Info('Personen Auswahl')),
+            '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
             array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
         $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
@@ -311,21 +313,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(),
                 ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
             );
-//
-//            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(),
-//                ViewDivisionStudent::TBL_DIVISION_TBL_YEAR, ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE
-//            );
-//            $Pile->addPile(( new ViewSchoolType() )->getViewService(), new ViewSchoolType(),
-//                ViewSchoolType::TBL_TYPE_ID, null
-//            );
-
-
-//            $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(), null, ViewYear::TBL_YEAR_ID);
-//            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(), 'TblDivision_serviceTblYear', 'TblDivisionStudent_serviceTblPerson');
-//            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID);
-//            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(), 'TblDivisionStudent_serviceTblPerson', 'TblLevel_serviceTblType');
-//            $Pile->addPile(( new ViewSchoolType() )->getViewService(), new ViewSchoolType(), 'TblType_Id', null);
-            // Term->Division->Person->Division->SchoolType
         }
 
 
@@ -679,36 +666,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutGroup(array(
                                     new LayoutRow(array(
                                         new LayoutColumn(array(
-
                                             new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter),
-                                            new TableData($tblPersonList, null,
-                                                array('Exchange'      => '',
-                                                      'Name'          => 'Name',
-                                                      'Address'       => 'Adresse',
-                                                      'Division'      => 'Klasse',
-                                                      'StudentNumber' => 'Schüler-Nr.'
-                                                ),
-                                                array(
-                                                    'order'                => array(array(1, 'asc')),
-                                                    'columnDefs'           => array(
-                                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
-                                                    ),
-                                                    'ExtensionRowExchange' => array(
-                                                        'Enabled' => true,
-                                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
-                                                        'Handler' => array(
-                                                            'From' => 'glyphicon-minus-sign',
-                                                            'To'   => 'glyphicon-plus-sign',
-                                                            'All'  => 'TableRemoveAll'
-                                                        ),
-                                                        'Connect' => array(
-                                                            'From' => 'TableCurrent',
-                                                            'To'   => 'TableAvailable',
-                                                        )
-                                                    )
-                                                )
-                                            ),
-                                            new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll')
                                         ), 12),
                                     ))
                                 ))
@@ -738,41 +696,80 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ? new WarningMessage('Keine Ergebnisse bei aktueller Filterung '.new SuccessText(new Filter()))
                                                 : ''
                                             ),
-                                            new TableData($tblPersonSearch, null,
-                                                array('Exchange'      => ' ',
-                                                      'Name'          => 'Name',
-                                                      'Address'       => 'Adresse',
-                                                      'Division'      => 'Klasse',
-                                                      'StudentNumber' => 'Schüler-Nr.'
-                                                ),
-                                                array(
-                                                    'order'                => array(array(1, 'asc')),
-                                                    'columnDefs'           => array(
-                                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
-                                                    ),
-                                                    'ExtensionRowExchange' => array(
-                                                        'Enabled' => true,
-                                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
-                                                        'Handler' => array(
-                                                            'From' => 'glyphicon-plus-sign',
-                                                            'To'   => 'glyphicon-minus-sign',
-                                                            'All'  => 'TableAddAll'
-                                                        ),
-                                                        'Connect' => array(
-                                                            'From' => 'TableAvailable',
-                                                            'To'   => 'TableCurrent',
-                                                        ),
-                                                    )
-                                                )
-                                            ),
-                                            new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(), 'Alle hinzufügen', 'TableAddAll')
+
                                         ), 12)
                                     ))
                                 ))
                             )
                         ), 6)
-                    )),
+                    ))
                 ))
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new TableData($tblPersonList, null,
+                                array('Exchange'      => '',
+                                      'Name'          => 'Name',
+                                      'Address'       => 'Adresse',
+                                      'Division'      => 'Klasse',
+                                      'StudentNumber' => 'Schüler-Nr.'
+                                ),
+                                array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    ),
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-minus-sign',
+                                            'To'   => 'glyphicon-plus-sign',
+                                            'All'  => 'TableRemoveAll'
+                                        ),
+                                        'Connect' => array(
+                                            'From' => 'TableCurrent',
+                                            'To'   => 'TableAvailable',
+                                        )
+                                    )
+                                )
+                            ),
+                            new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll')
+                        ), 6),
+                        new LayoutColumn(array(
+                            new TableData($tblPersonSearch, null,
+                                array('Exchange'      => ' ',
+                                      'Name'          => 'Name',
+                                      'Address'       => 'Adresse',
+                                      'Division'      => 'Klasse',
+                                      'StudentNumber' => 'Schüler-Nr.'
+                                ),
+                                array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    ),
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-plus-sign',
+                                            'To'   => 'glyphicon-minus-sign',
+                                            'All'  => 'TableAddAll'
+                                        ),
+                                        'Connect' => array(
+                                            'From' => 'TableAvailable',
+                                            'To'   => 'TableCurrent',
+                                        ),
+                                    )
+                                )
+                            ),
+                            new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(), 'Alle hinzufügen', 'TableAddAll')
+                        ), 6)
+                    ))
+                )
             )
         );
 
