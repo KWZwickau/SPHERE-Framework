@@ -1787,7 +1787,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function isDivisionSorted(TblDivision $tblDivision)
+    private function isDivisionSorted(TblDivision $tblDivision)
     {
 
         $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
