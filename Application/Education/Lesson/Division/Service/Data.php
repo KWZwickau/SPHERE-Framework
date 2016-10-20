@@ -1747,15 +1747,12 @@ class Data extends AbstractData
 
             $tempList = array();
             if (($tblStudentAll = $this->getStudentAllByDivision($tblDivision))) {
-                var_dump($tblStudentAll);
                 foreach ($tblStudentAll as $tblPerson){
                     if (($item = $this->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson) )){
                         $tempList[] = $item;
                     }
                 }
             };
-
-            var_dump($tempList);
 
             return empty($tempList) ? false : $tempList;
         }
