@@ -1725,23 +1725,40 @@ class Data extends AbstractData
     public function getDivisionStudentAllByDivision(TblDivision $tblDivision)
     {
 
-        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
-            'TblDivisionStudent',
-            array(
-                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
-            ));
+        if ($this->isDivisionSorted($tblDivision)) {
+            $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+                'TblDivisionStudent',
+                array(
+                    TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
+                ));
 
-        $EntityList = array();
-        if (!empty ($TempList)) {
-            /** @var TblDivisionStudent $tblDivisionStudent */
-            foreach ($TempList as $tblDivisionStudent) {
-                if ($tblDivisionStudent->getServiceTblPerson() && $tblDivisionStudent->getTblDivision()) {
-                    array_push($EntityList, $tblDivisionStudent);
+            $EntityList = array();
+            if (!empty ($TempList)) {
+                /** @var TblDivisionStudent $tblDivisionStudent */
+                foreach ($TempList as $tblDivisionStudent) {
+                    if ($tblDivisionStudent->getServiceTblPerson() && $tblDivisionStudent->getTblDivision()) {
+                        array_push($EntityList, $tblDivisionStudent);
+                    }
                 }
             }
-        }
 
-        return empty($EntityList) ? false : $this->getSorter($EntityList)->sortObjectBy('SortOrder');
+            return empty($EntityList) ? false : $this->getSorter($EntityList)->sortObjectBy('SortOrder');
+        } else {
+
+            $tempList = array();
+            if (($tblStudentAll = $this->getStudentAllByDivision($tblDivision))) {
+                var_dump($tblStudentAll);
+                foreach ($tblStudentAll as $tblPerson){
+                    if (($item = $this->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson) )){
+                        $tempList[] = $item;
+                    }
+                }
+            };
+
+            var_dump($tempList);
+
+            return empty($tempList) ? false : $tempList;
+        }
     }
 
     /**
@@ -1773,13 +1790,21 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    private function isDivisionSorted(TblDivision $tblDivision)
+    public function isDivisionSorted(TblDivision $tblDivision)
     {
 
-        $list = $this->getDivisionStudentAllByDivision($tblDivision);
-        foreach ($list as $tblDivisionStudent) {
-            if ($tblDivisionStudent->getSortOrder() !== null) {
-                return true;
+        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionStudent',
+            array(
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
+            )
+        );
+        if ($TempList) {
+            /** @var TblDivisionStudent $tblDivisionStudent */
+            foreach ($TempList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getSortOrder() !== null) {
+                    return true;
+                }
             }
         }
 
