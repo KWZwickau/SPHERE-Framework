@@ -5,12 +5,12 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\ViewSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
 /**
- * @deprecated Muss noch überdacht werden! (Anzeige von Subjectdaten ohne Subject ist sinnlos!)
  * @Entity
  * @Table(name="viewStudentSubject")
  * @Cache(usage="READ_ONLY")
@@ -107,7 +107,7 @@ class ViewStudentSubject extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Fächer';
+        return 'Kategorie der Fächer';
     }
 
     /**
@@ -118,7 +118,7 @@ class ViewStudentSubject extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_STUDENT_SUBJECT_RANKING_NAME, 'Fach: Nummerierung');
+        $this->setNameDefinition(self::TBL_STUDENT_SUBJECT_RANKING_NAME, 'Fach: Reihenfolge');
         $this->setNameDefinition(self::TBL_STUDENT_SUBJECT_TYPE_NAME, 'Fach: Kategorie');
     }
 
@@ -130,6 +130,7 @@ class ViewStudentSubject extends AbstractView
     public function loadViewGraph()
     {
 
+        $this->addForeignView(self::TBL_STUDENT_SUBJECT_SERVICE_TBL_SUBJECT, new ViewSubject(), ViewSubject::TBL_SUBJECT_ID);
 //        $this->addForeignView(self::TBL_STUDENT_SERVICE_TBL_PERSON, new ViewPerson(), ViewPerson::TBL_PERSON_ID);
     }
 

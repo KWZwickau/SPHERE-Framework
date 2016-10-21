@@ -18,6 +18,9 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCa
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
@@ -130,12 +133,12 @@ class Setup extends AbstractSetup
             ( new View($this->getConnection(), 'viewStudentMedicalRecord') )
                 ->addLink(new TblStudent(), 'tblStudentMedicalRecord', new TblStudentMedicalRecord(), 'Id')
         );
-//        $this->getConnection()->createView(
-//            ( new View($this->getConnection(), 'viewStudentSubject') )
-//                ->addLink(new TblStudentSubject(), 'tblStudent', new TblStudent(), 'Id')
-//                ->addLink(new TblStudentSubject(), 'tblStudentSubjectRanking', new TblStudentSubjectRanking(), 'Id')
-//                ->addLink(new TblStudentSubject(), 'tblStudentSubjectType', new TblStudentSubjectType(), 'Id')
-//        );
+        $this->getConnection()->createView(
+            ( new View($this->getConnection(), 'viewStudentSubject') )
+                ->addLink(new TblStudentSubject(), 'tblStudent', new TblStudent(), 'Id')
+                ->addLink(new TblStudentSubject(), 'tblStudentSubjectRanking', new TblStudentSubjectRanking(), 'Id')
+                ->addLink(new TblStudentSubject(), 'tblStudentSubjectType', new TblStudentSubjectType(), 'Id')
+        );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentTransfer') )
                 ->addLink(new TblStudentTransfer(), 'tblStudent', new TblStudent(), 'Id')

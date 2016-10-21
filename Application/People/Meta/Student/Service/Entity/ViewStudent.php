@@ -111,6 +111,8 @@ class ViewStudent extends AbstractView
         $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_MEDICAL_RECORD, new ViewStudentMedicalRecord(), ViewStudentMedicalRecord::TBL_STUDENT_MEDICAL_RECORD_ID);
         $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentTransfer(), ViewStudentTransfer::TBL_STUDENT_TRANSFER_TBL_STUDENT);
         $this->addForeignView(self::TBL_STUDENT_TBL_STUDENT_TRANSPORT, new ViewStudentTransport(), ViewStudentTransport::TBL_STUDENT_TRANSPORT_ID);
+
+        $this->addForeignView(self::TBL_STUDENT_ID, new ViewStudentSubject(), ViewStudentSubject::TBL_STUDENT_SUBJECT_TBL_STUDENT);
     }
 
     /**

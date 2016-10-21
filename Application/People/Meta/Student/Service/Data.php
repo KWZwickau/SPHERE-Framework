@@ -200,14 +200,73 @@ class Data extends Integration
         $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
         $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
 
-        $this->createStudentSubjectType('ORIENTATION', 'Orientation');
-        $this->createStudentSubjectType('ADVANCED', 'Advanced');
-        $this->createStudentSubjectType('PROFILE', 'Profile');
+        $Entity = $this->getStudentSubjectTypeByIdentifier('ORIENTATION');
+        if ($Entity) {
+            if ($Entity->getName() !== 'Neigungskurs') {
+                $this->updateStudentSubjectType($Entity, 'Neigungskurs');
+            }
+        } else {
+            $this->createStudentSubjectType('ORIENTATION', 'Neigungskurs');
+        }
+        $Entity = $this->getStudentSubjectTypeByIdentifier('ADVANCED');
+        if ($Entity) {
+            if ($Entity->getName() !== 'Vertiefungskurs') {
+                $this->updateStudentSubjectType($Entity, 'Vertiefungskurs');
+            }
+        } else {
+            $this->createStudentSubjectType('ADVANCED', 'Vertiefungskurs');
+        }
+        $Entity = $this->getStudentSubjectTypeByIdentifier('PROFILE');
+        if ($Entity) {
+            if ($Entity->getName() !== 'Profil') {
+                $this->updateStudentSubjectType($Entity, 'Profil');
+            }
+        } else {
+            $this->createStudentSubjectType('PROFILE', 'Profil');
+        }
         $this->createStudentSubjectType('RELIGION', 'Religion');
 
-        $this->createStudentSubjectType('FOREIGN_LANGUAGE', 'Foreign Language');
-        $this->createStudentSubjectType('ELECTIVE', 'Elective');
-        $this->createStudentSubjectType('TEAM', 'Team');
+        $Entity = $this->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+        if ($Entity) {
+            if ($Entity->getName() !== 'Fremdsprache') {
+                $this->updateStudentSubjectType($Entity, 'Fremdsprache');
+            }
+        } else {
+            $this->createStudentSubjectType('FOREIGN_LANGUAGE', 'Fremdsprache');
+        }
+        $Entity = $this->getStudentSubjectTypeByIdentifier('ELECTIVE');
+        if ($Entity) {
+            if ($Entity->getName() !== 'Wahlfach') {
+                $this->updateStudentSubjectType($Entity, 'Wahlfach');
+            }
+        } else {
+            $this->createStudentSubjectType('ELECTIVE', 'Wahlfach');
+        }
+        $Entity = $this->getStudentSubjectTypeByIdentifier('TEAM');
+        if ($Entity) {
+            if ($Entity->getName() !== 'Arbeitsgemeinschaft') {
+                $this->updateStudentSubjectType($Entity, 'Arbeitsgemeinschaft');
+            }
+        } else {
+            $this->createStudentSubjectType('TEAM', 'Arbeitsgemeinschaft');
+        }
+        $Entity = $this->getStudentSubjectTypeByIdentifier('TRACK_INTENSIVE');
+        if ($Entity) {
+            if ($Entity->getName() !== 'Leistungskurs') {
+                $this->updateStudentSubjectType($Entity, 'Leistungskurs');
+            }
+        } else {
+            $this->createStudentSubjectType('TRACK_INTENSIVE', 'Leistungskurs');
+        }
+        $Entity = $this->getStudentSubjectTypeByIdentifier('TRACK_BASIC');
+        if ($Entity) {
+            if ($Entity->getName() !== 'Grundkurs') {
+                $this->updateStudentSubjectType($Entity, 'Grundkurs');
+            }
+        } else {
+            $this->createStudentSubjectType('TRACK_BASIC', 'Grundkurs');
+        }
+
         $this->createStudentSubjectType('TRACK_INTENSIVE', 'Track Intensive');
         $this->createStudentSubjectType('TRACK_BASIC', 'Track Basic');
 
