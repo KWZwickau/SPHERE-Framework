@@ -122,9 +122,8 @@ class ViewAddressToCompany extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Adressdaten (Firma)';
+        return 'Kontakt Adressdaten (Firma)';
     }
-
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -165,6 +164,7 @@ class ViewAddressToCompany extends AbstractView
      */
     public function getViewService()
     {
+
         return Address::useService();
     }
 }
