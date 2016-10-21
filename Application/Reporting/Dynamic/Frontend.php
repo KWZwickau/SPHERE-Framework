@@ -558,7 +558,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new Warning('Es können keine weiteren Filter hinzugefügt werden.') )
                         )
                     )
-                ), new Title('Verfügbare Filtermasken')),
+                ), new Title('Verfügbare Filtermasken für '.new Bold(new InfoText($tblDynamicFilter->getFilterName())))),
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
@@ -577,7 +577,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                ), new Title('Filtermasken')),
+                ), new Title('Filtermasken für '.new Bold(new InfoText($tblDynamicFilter->getFilterName())))),
             ))
         );
 
