@@ -201,8 +201,24 @@ abstract class AbstractDocument
             if (($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))) {
 
                 $Data['Student']['Identifier'] = $tblStudent->getIdentifier();
-                if (( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate() )) {
-                    $Data['Student']['School']['Attendance']['Date'] = ( new \DateTime($AttendanceDate) )->format('d.m.Y');
+
+                if (( $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT') )) {
+                    if (( $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblTransferType) )
+                    ) {
+                        if ($tblTransfer->getServiceTblType()) {
+                            $Data['Student']['School']['Attendance']['Date'] = $tblTransfer->getTransferDate();
+                            $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
+                            $YearShort = ( new \DateTime($tblTransfer->getTransferDate()) )->format('y');
+                            $YearString = $Year.'/'.( $YearShort + 1 );
+                            $Data['Student']['School']['Attendance']['Year'] = $YearString;
+                        }
+                    }
+                }
+                if (!isset( $Data['Student']['School']['Attendance']['Date'] )
+                    && ( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate() )
+                ) {
+                    $Data['Student']['School']['Attendance']['Date'] = $AttendanceDate;
                     $Year = ( new \DateTime($AttendanceDate) )->format('Y');
                     $YearShort = ( new \DateTime($AttendanceDate) )->format('y');
                     $YearString = $Year.'/'.( $YearShort + 1 );
