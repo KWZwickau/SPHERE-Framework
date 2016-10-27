@@ -77,7 +77,7 @@ class ViewStudent extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Schüler-Akte';
+        return 'Schüler-Grunddaten';
     }
 
     /**

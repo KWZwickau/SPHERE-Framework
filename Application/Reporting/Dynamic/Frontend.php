@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Database;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\More;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
+use SPHERE\Common\Frontend\Icon\Repository\Task;
 use SPHERE\Common\Frontend\Icon\Repository\View;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -77,6 +79,11 @@ use SPHERE\System\Extension\Extension;
 class Frontend extends Extension implements IFrontendInterface
 {
 
+    private $FilterPackAll = array('Adresse-Personen', 'Person-Adressen', 'Person-Personenbeziehung-Person', 'Person-Sorgeberechtigte-Adressen',
+        'Firmen und Beziehungen', 'Schüler-Befreiung', 'Schüler-Einverständnis', 'Schüler-Fehltage', 'Schüler-Förderbedarf-Antrag',
+        'Schüler-Förderbedarf-Schwerpunkte', 'Schüler-Förderbedarf-Teilstörung', 'Schüler-Krankenakte', 'Schüler-Schließfach',
+        'Schüler-Taufe', 'Schüler-Transfer', 'Schüler-Transport');
+
     /**
      * @param string $FilterName
      * @param int    $IsPublic
@@ -96,7 +103,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Flexible Auswertung', 'Übersicht');
         $Stage->setMessage('');
-        $Stage->addButton(new Standard('Standard-Auswertungen', '/Reporting/Dynamic/Standard', null, array(), 'Hinzufügen von Standard-Auswertungen'));
+        $Stage->addButton(new Standard('Auswertung Vorlagen', '/Reporting/Dynamic/Standard', new Task(), array(), 'Hinzufügen von vorbereiteten Auswertungen'));
 
         $tblDynamicFilterListOwner = Dynamic::useService()->getDynamicFilterAll($tblAccount);
         if (!$tblDynamicFilterListOwner) {
@@ -117,7 +124,12 @@ class Frontend extends Extension implements IFrontendInterface
         use (&$DynamicFilterList, $tblAccount) {
             $Owner = '';
             $Option = '';
+            $MatchFilterName = '';
             if ($tblAccount == $tblDynamicFilter->getServiceTblAccount()) {
+                // markieren der eigenen Vorlagen
+                if (in_array($tblDynamicFilter->getFilterName(), $this->FilterPackAll)) {
+                    $MatchFilterName = new Center(new InfoText(new Enable()));
+                }
 
                 $Person = array();
                 if (( $tblPersonAccountList = Account::useService()->getUserAllByAccount($tblAccount) )) {
@@ -168,6 +180,7 @@ class Frontend extends Extension implements IFrontendInterface
             ));
 
             array_push($DynamicFilterList, array(
+                'Standard'                             => $MatchFilterName,
                 'Option'                               => $Option,
                 TblDynamicFilter::PROPERTY_FILTER_NAME => $tblDynamicFilter->getFilterName(),
                 'Owner'                                => $Owner,
@@ -190,6 +203,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($DynamicFilterList, null, array(
                                 'IsPublic'   => 'Sichtbarkeit',
+                                'Standard'   => 'Vorlage',
                                 'FilterName' => 'Name der Auswertung',
                                 'Owner'      => 'Account (Person)',
                                 'Option'     => ''
@@ -199,8 +213,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('1', 'asc')),
                                 "columnDefs" => array(
                                     array("width" => "5%", "targets" => array(0)),
-                                    array("width" => "25%", "targets" => array(2)),
-                                    array("width" => "15%", "targets" => array(3))
+                                    array("width" => "3%", "targets" => array(1)),
+                                    array("width" => "25%", "targets" => array(3)),
+                                    array("width" => "15%", "targets" => array(4))
                                 )
                             ))
                         )
@@ -260,13 +275,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Reporting/Dynamic', new ChevronLeft()));
 
         $tblAccount = Account::useService()->getAccountBySession();
-        // possible Filter
-        $DataAll = array('Adresse-Personen', 'Person-Adressen', 'Person-Personenbeziehung-Person', 'Person-Sorgeberechtigte-Adressen',
-            'Firmen und Beziehungen', 'Schüler-Befreiung', 'Schüler-Einverständnis', 'Schüler-Fehltage', 'Schüler-Förderbedarf-Antrag',
-            'Schüler-Förderbedarf-Schwerpunkte', 'Schüler-Förderbedarf-Teilstörung', 'Schüler-Krankenakte', 'Schüler-Schließfach',
-            'Schüler-Taufe', 'Schüler-Transfer', 'Schüler-Transport');
 
-        $Form = $this->formCreateStandard($tblAccount, $DataAll);
+        $Form = $this->formCreateStandard($tblAccount);
 
         $Form->appendFormButton(new Primary('Speichern', new Save()));
         $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -288,13 +298,14 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblAccount $tblAccount
-     * @param            $DataAll
      *
      * @return Form
      */
-    private function formCreateStandard(TblAccount $tblAccount, $DataAll)
+    private function formCreateStandard(TblAccount $tblAccount)
     {
 
+        // possible Filter
+        $DataAll = $this->FilterPackAll;
         $TableListLeft = array();
         $TableListRight = array();
         foreach ($DataAll as $Key => $Name) {
