@@ -135,7 +135,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        $Address = filter_var($Address, FILTER_VALIDATE_EMAIL);
+        $Address = $this->validateMailAddress($Address);
 
         if (isset( $Address ) && empty( $Address )) {
             $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
@@ -238,7 +238,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        $Address = filter_var($Address, FILTER_VALIDATE_EMAIL);
+        $Address = $this->validateMailAddress($Address);
 
         if (isset( $Address ) && empty( $Address )) {
             $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
@@ -292,7 +292,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        $Address = filter_var($Address, FILTER_VALIDATE_EMAIL);
+        $Address = $this->validateMailAddress($Address);
 
         if (isset( $Address ) && empty( $Address )) {
             $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
@@ -356,7 +356,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        $Address = filter_var($Address, FILTER_VALIDATE_EMAIL);
+        $Address = $this->validateMailAddress($Address);
 
         if (isset( $Address ) && empty( $Address )) {
             $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
