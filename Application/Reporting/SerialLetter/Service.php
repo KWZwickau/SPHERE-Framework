@@ -42,7 +42,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
+     * @param int $Id
      *
      * @return bool|TblSerialLetter
      */
@@ -53,7 +53,18 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
+     * @param string $Name
+     *
+     * @return false|TblSerialLetter
+     */
+    public function getSerialLetterByName($Name)
+    {
+
+        return ( new Data($this->getBinding()) )->getSerialLetterByName($Name);
+    }
+
+    /**
+     * @param int $Id
      *
      * @return bool|TblSerialPerson
      */
@@ -131,7 +142,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param                     $SerialLetter
+     * @param array               $SerialLetter
      *
      * @return IFormInterface|string
      */
@@ -149,6 +160,11 @@ class Service extends AbstractService
         if (isset( $SerialLetter['Name'] ) && empty( $SerialLetter['Name'] )) {
             $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
+        } else {
+            if (SerialLetter::useService()->getSerialLetterByName($SerialLetter['Name'])) {
+                $Stage->setError('SerialLetter[Name]', 'Der Name für den Serienbrief exisitert bereits. Bitte wählen Sie einen anderen.');
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -274,6 +290,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column, $row), "Schüler-Nr.");
 
             $row = 1;
+            /** @var TblAddressPerson $tblAddressPerson */
             foreach ($tblAddressPersonAllBySerialLetter as $tblAddressPerson) {
                 if ($tblAddressPerson->getServiceTblPerson()
                     && $tblAddressPerson->getServiceTblPersonToAddress()
@@ -363,7 +380,7 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblSerialLetter     $tblSerialLetter
-     * @param                     $SerialLetter
+     * @param array               $SerialLetter
      *
      * @return IFormInterface|string
      */
@@ -384,6 +401,13 @@ class Service extends AbstractService
         if (isset( $SerialLetter['Name'] ) && empty( $SerialLetter['Name'] )) {
             $Stage->setError('SerialLetter[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
+        } else {
+            if (( $tblSerialLetterByName = SerialLetter::useService()->getSerialLetterByName($SerialLetter['Name']) )) {
+                if ($tblSerialLetterByName->getId() !== $tblSerialLetter->getId()) {
+                    $Stage->setError('SerialLetter[Name]', 'Der Name für den Serienbrief exisitert bereits. Bitte wählen Sie einen anderen');
+                    $Error = true;
+                }
+            }
         }
 
         if (!$Error) {
