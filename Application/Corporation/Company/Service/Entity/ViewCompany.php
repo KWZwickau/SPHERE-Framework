@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToCompany;
+use SPHERE\Application\Contact\Mail\Service\Entity\ViewMailToCompany;
+use SPHERE\Application\Contact\Phone\Service\Entity\ViewPhoneToCompany;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -75,6 +77,8 @@ class ViewCompany extends AbstractView
 
         $this->addForeignView(self::TBL_COMPANY_ID, new ViewRelationshipToCompany(), ViewRelationshipToCompany::TBL_TO_COMPANY_SERVICE_TBL_COMPANY);
         $this->addForeignView(self::TBL_COMPANY_ID, new ViewAddressToCompany(), ViewAddressToCompany::TBL_TO_COMPANY_SERVICE_TBL_COMPANY);
+        $this->addForeignView(self::TBL_COMPANY_ID, new ViewMailToCompany(), ViewMailToCompany::TBL_TO_COMPANY_SERVICE_TBL_COMPANY);
+        $this->addForeignView(self::TBL_COMPANY_ID, new ViewPhoneToCompany(), ViewPhoneToCompany::TBL_TO_COMPANY_SERVICE_TBL_COMPANY);
 //        $this->addForeignView(self::TBL_PERSON_ID, new ViewRelationshipToPerson(), ViewRelationshipToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON_FROM);
     }
 

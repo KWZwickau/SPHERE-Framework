@@ -124,9 +124,8 @@ class ViewAddressToPerson extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Adressdaten (Person)';
+        return 'Kontakt Adressdaten (Person)';
     }
-
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -152,6 +151,7 @@ class ViewAddressToPerson extends AbstractView
 
     public function loadDisableDefinition()
     {
+
         $this->setDisableDefinition(self::TBL_TYPE_DESCRIPTION);
     }
 
@@ -178,6 +178,7 @@ class ViewAddressToPerson extends AbstractView
      */
     public function getViewService()
     {
+
         return Address::useService();
     }
 }
