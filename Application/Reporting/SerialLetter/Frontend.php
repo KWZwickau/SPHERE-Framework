@@ -777,12 +777,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Id
+     * @param null|int $Id
+     * @param null     $TabActive
+     * @param null     $Data
      *
      * @return Stage|string
      */
     public function frontendPersonAddress(
-        $Id = null
+        $Id = null,
+        $TabActive = null,
+        $Data = null
     ) {
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen auswählen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
@@ -792,7 +796,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
             array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
-        $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
+        $Stage->addButton(new Standard(new Bold(new Info('Adressen Auswahl')), '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
         $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
             array('Id' => $tblSerialLetter->getId()),
@@ -883,19 +887,101 @@ class Frontend extends Extension implements IFrontendInterface
                 .' Person(en)', Label::LABEL_TYPE_INFO)
         );
 
+        // Selectbox Field's
+        $tblSalutationAll = Person::useService()->getSalutationAll();
+        if ($tblSalutationAll) {
+            $tblSalutation = new TblSalutation('Familie');
+            $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
+            $tblSalutationAll['Family'] = $tblSalutation;
+        }
+
+        if ($TabActive === 'GUARDIAN') {
+            if ($tblSalutationAll) {
+                foreach ($tblSalutationAll as &$tblSalutation) {
+                    if ($tblSalutation->getSalutation() == 'Schüler') {
+                        $tblSalutation = false;
+                    }
+                }
+                $tblSalutationAll = array_filter($tblSalutationAll);
+            }
+        }
+
+        $FormAddress = new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Data[Salutation]',
+                            '', array('Salutation' => $tblSalutationAll))
+                        , 6)
+                ))
+            )
+            , new Primary('Adressen zuordnen'));
+
+        // Create Tabs
+        $LayoutTabs[] = new LayoutTab('Zuweisung entfernen', '', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Personen direkt anschreiben', 'SELF', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Sorgeberechtigte anschreiben', 'GUARDIAN', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Info/Hilfe', 'INFO', array('Id' => $tblSerialLetter->getId()));
+        if (!empty( $LayoutTabs ) && $TabActive === null) {
+            $LayoutTabs[0]->setActive();
+        }
+
+        switch ($TabActive) {
+            case 'SELF':
+                $MetaTable = new Panel(new Edit().' Adressen automatisch ziehen '.new Bold('von Ausgewählter Person')
+                    , array(SerialLetter::useService()->createAddressPersonSelf($FormAddress, $tblSerialLetter, $Data)), Panel::PANEL_TYPE_INFO);
+                break;
+            case 'GUARDIAN':
+                $MetaTable = new Panel(new Edit().' Adressen automatisch ziehen '.new Bold('von Sorgeberechtigten mit eindeutiger Adresse')
+                    , array(SerialLetter::useService()->createAddressPersonGuardian($FormAddress, $tblSerialLetter, $Data)), Panel::PANEL_TYPE_INFO);
+                break;
+            case 'INFO':
+                $MetaTable = new Panel(new Bold('Information zur Bedienung')
+                    , array(
+                        new Bold('Zuweisung entfernen:').new Container('Das löschen der Zuweisungen entfernt unwiederruflich alle zuvor 
+                                festgelegten Einstellungen der Adresszuweisung ('.new Bold('dieses Serienbriefes').').<br/><br/>').
+                        new Bold('Personen direkt anschreiben:').new Container('Es wird nach der Hauptadresse jeder Person im Serienbreif 
+                                gesucht. Diese Person wird auch für Anschreiben/Anrede benutzt.<br/>
+                                Herr/Frau/Schüler wird zur Auswahl herrangezogen wenn die Anrede in Personendaten gepflegt ist.<br/>
+                                Personen die bereits eine oder mehrere Adressen ausgewählt haben werden ignoriert.<br/><br/>').
+                        new Bold('Sorgeberechtigte anschreiben:').new Container(
+                            'Dabei werden Personenbeziehungen geprüft, weitere Adressenzuordnung geschieht nur über Sorgeberechtigte.<br/>'.
+                            'Sorgeberechtigte müssen ein eingetragene Anrede haben (Personendaten) um gezogen werden zu können.<br/>'.
+                            new Bold('Die Anrede Familie/Nicht Ausgewählt(Leer)').' lässt eine Frau(wenn nicht 
+                                vorhanden einen Herr) aus den Sorgeberechtigten auswählen.<br/>
+                                Dabei wird geprüft ob die Hauptadresse nur einmal vergeben ist (gleich bei allen Sorgeberechtigen oder 
+                                nur bei einem Sorgeberechtigten angelegt).<br/> Nur wenn dies zutrifft kann eine automatische Ziehung erfolgen.<br/>'.
+                            new Bold('Die Anrede Frau/Herr').' trägt nur die Hauptadresse der jeweiligen Anrede 
+                                ein wenn es zur verfügung steht. Bei mehrfachen Treffern (gleichgeschlechtliche Sorgeberechtigte)
+                                wird wieder auf die übereinstimmung der Adressen geachtet. Sonnst erfolgt keine Eintragung.<br/>
+                                Personen die bereits eine oder mehrere Adressen ausgewählt haben werden ignoriert.<br/><br/>
+                                Bitte denken Sie daran: Diese Automatik soll die Eingabe erleichtern (vorbefüllen vieler Daten) aber nicht voll ersetzen.')
+                    ), Panel::PANEL_TYPE_SUCCESS);
+                break;
+            default:
+                $MetaTable = new Panel(new Edit().' entfernen aller Zuweisungen von '.new Bold('Adressen')
+                    , new Standard('Löschen', '/Reporting/SerialLetter/Address/Remove', new Remove(), array('Id' => $tblSerialLetter->getId())), Panel::PANEL_TYPE_INFO);
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new Title(new Setup().' Adressen', 'Zuweisung'),
                             new Layout(
                                 new LayoutGroup(
-                                    new LayoutRow(
-                                        new LayoutColumn(
-                                            new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter)
-                                            , 6)
-                                    )
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                                new Title(new Setup().' Adressen', 'Zuweisung'),
+                                                new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter)
+                                            )
+                                            , 6),
+                                        new LayoutColumn(array(
+                                            new Title(new Setup().' Adressen', 'Automatik'),
+                                            new LayoutTabs($LayoutTabs),
+                                            $MetaTable
+                                        ), 6)
+                                    ))
                                 )
                             )
                         ), 12),
@@ -918,6 +1004,101 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        return $Stage;
+    }
+
+    /**
+     * @param            $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendAddressRemove($Id = null, $Confirm = false)
+    {
+
+        $Stage = new Stage('Adresslisten für Serienbriefe', 'Löschen');
+        if ($Id) {
+            $Stage->addButton(
+                new Standard('Zurück', '/Reporting/SerialLetter/Address', new ChevronLeft(), array('Id' => $Id))
+            );
+            $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id);
+            if (!$tblSerialLetter) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            new Danger(new Ban().' Die Adressliste für Serienbriefe konnte nicht gefunden werden.'),
+                            new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR)
+                        )))
+                    )))
+                );
+            } else {
+                if (!$Confirm) {
+                    $tblPersonList = SerialLetter::useService()->getPersonBySerialLetter($tblSerialLetter);
+                    if ($tblPersonList) {
+                        $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
+                        $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
+                            'Adresse(n): '.$SerialLetterCount,);
+                        $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
+                                .' Person(en)', Label::LABEL_TYPE_INFO)
+                        );
+                    } else {
+                        $PanelContent = 'Keine Personen im Warenkorb';
+                        $PanelFooter = '';
+                    }
+
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter),
+//                                new Panel('Adressen zuordnung für Serienbriefe', new Bold($tblSerialLetter->getName()).
+//                                    ( $tblSerialLetter->getDescription() !== '' ? '&nbsp;&nbsp;'
+//                                        .new Muted(new Small(new Small($tblSerialLetter->getDescription()))) : '' ),
+//                                    Panel::PANEL_TYPE_INFO),
+                                ), 6),
+                                new LayoutColumn(
+                                    new Panel(new Question().' Alle Zuweisungen für Adressen des Serienbriefs wirklich löschen?', array(
+                                        $tblSerialLetter->getName().' '.$tblSerialLetter->getDescription()
+                                    ),
+                                        Panel::PANEL_TYPE_DANGER,
+                                        new Standard(
+                                            'Ja', '/Reporting/SerialLetter/Address/Remove', new Ok(),
+                                            array('Id' => $Id, 'Confirm' => true)
+                                        )
+                                        .new Standard(
+                                            'Nein', '/Reporting/SerialLetter/Address', new Disable(),
+                                            array('Id' => $Id)
+                                        )
+                                    )
+                                )
+                            ))
+
+                        ))
+                    );
+                } else {
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(array(
+                                ( SerialLetter::useService()->removeSerialLetterAddress($tblSerialLetter)
+                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Zuweisungen für Adressen des Serienbriefs wurde gelöscht')
+                                    : new Danger(new Ban().' Die Adressliste für Serienbriefe konnte nicht gelöscht werden')
+                                ),
+                                new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblSerialLetter->getId()))
+                            )))
+                        )))
+                    );
+                }
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger(new Ban().' Daten nicht abrufbar.'),
+                        new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
         return $Stage;
     }
 

@@ -36,6 +36,9 @@ class SerialLetter implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address/Edit', __NAMESPACE__.'\Frontend::frontendPersonAddressEdit')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address/Remove', __NAMESPACE__.'\Frontend::frontendAddressRemove')
+        );
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person/Select', __NAMESPACE__.'\Frontend::frontendSerialLetterPersonSelected')
