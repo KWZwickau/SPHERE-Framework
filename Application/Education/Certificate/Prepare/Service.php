@@ -991,6 +991,7 @@ class Service extends AbstractService
             }
             $Content['Input']['Missing'] = $excusedDays;
             $Content['Input']['Bad']['Missing'] = $unexcusedDays;
+            $Content['Input']['Total']['Missing'] =  $excusedDays + $unexcusedDays;
 
             // Zeugnisdatum
             $Content['Input']['Date'] = $tblPrepare->getDate();
