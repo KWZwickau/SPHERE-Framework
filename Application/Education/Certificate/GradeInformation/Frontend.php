@@ -1477,7 +1477,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new External(
                                     'Alle Noteninformationen herunterladen',
-                                    '/Api/Education/Certificate/Generator/Preview',
+                                    '/Api/Education/Certificate/Generator/PreviewZip',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
@@ -1714,7 +1714,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new External(
                                     'Alle Noteninformationen herunterladen',
-                                    '/Api/Education/Certificate/Generator/Preview',
+                                    '/Api/Education/Certificate/Generator/PreviewZip',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),

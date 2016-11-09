@@ -8,15 +8,17 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Creator
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator
  */
-class Creator
+class Creator extends Extension
 {
 
     /**
@@ -170,5 +172,69 @@ class Creator
 
             return new Stage('Zeugnis', 'Nicht gefunden');
         }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param string $Name
+     *
+     * @return Stage|string
+     */
+    public function previewZip($PrepareId = null, $Name = 'Zeugnis Muster')
+    {
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            $FileList = array();
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
+                        $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                        if (class_exists($CertificateClass)) {
+
+                            /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                            $Certificate = new $CertificateClass();
+
+                            // get Content
+                            $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+
+                            $File = $this->buildDummyFile($Certificate, $Content);
+
+//                            $File = Storage::createFilePointer('pdf', $Name . " " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s"));
+//                            /** @var DomPdf $Document */
+//                            $Document = Document::getPdfDocument($File->getFileLocation());
+//                            $Document->setContent($Certificate->createCertificate($Content));
+//                            $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+                            $FileList[] = $File;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($FileList)){
+                $ZipFile = new FilePointer('zip');
+                $ZipFile->saveFile();
+
+                $ZipArchive = $this->getPacker( $ZipFile->getRealPath() );
+                /** @var FilePointer $File */
+                foreach( $FileList as $File ) {
+                    $ZipArchive->compactFile(
+                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
+                            $File->getRealPath()
+                        )
+                    , false);
+                }
+
+                return FileSystem::getDownload(
+                    $ZipFile->getRealPath(),
+                    $Name.'-'.date("Y-m-d H:i:s").".zip"
+                )->__toString();
+            }
+        }
+
+        return new Stage($Name, 'Nicht gefunden');
     }
 }
