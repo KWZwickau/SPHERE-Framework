@@ -319,57 +319,31 @@ class GradeInformation extends Certificate
                 ->styleBorderLeft()
                 ->styleBorderTop()
                 ->styleBorderBottom()
+                ->styleBorderRight()
                 ->styleBackgroundColor('#BBB')
                 ->styleHeight($height)
                 ->styleAlignCenter()
                 ->styleTextSize($fontSize)
-                , '40%')
+                , '30%')
             ->addElementColumn((new Element())
-                ->setContent('Bemerkungen, vergessene' . '<br>' . 'Arbeitsmittel')
-                ->styleMarginTop($top)
-                ->stylePaddingLeft($paddingLeft)
-                ->styleBorderAll()
-                ->styleBackgroundColor('#BBB')
-                ->styleHeight($height)
-                ->styleAlignCenter()
-                ->styleTextSize($fontSize)
                 , '40%');
+//            ->addElementColumn((new Element())
+//                ->setContent('Bemerkungen, vergessene' . '<br>' . 'Arbeitsmittel')
+//                ->styleMarginTop($top)
+//                ->stylePaddingLeft($paddingLeft)
+//                ->styleBorderAll()
+//                ->styleBackgroundColor('#BBB')
+//                ->styleHeight($height)
+//                ->styleAlignCenter()
+//                ->styleTextSize($fontSize)
+//                , '40%');
         $slice->addSection($section);
 
         $heightRow = '25px';
-        $index = 0;
         /** @var TblSubject $subject */
         foreach ($subjectList as $subject) {
             $section = new Section();
-            $index++;
-            if ($index == 4) {
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->stylePaddingLeft($paddingLeft)
-                        ->styleBorderLeft()
-                        ->styleBorderBottom()
-                        ->styleHeight($heightRow)
-                        , '30%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->stylePaddingLeft('10px')
-                        ->styleBorderLeft()
-                        ->styleBorderBottom()
-                        ->styleHeight($heightRow)
-                        , '40%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->stylePaddingLeft($paddingLeft)
-                        ->styleBorderLeft()
-                        ->styleBorderBottom()
-                        ->styleBorderRight()
-                        ->styleHeight($heightRow)
-                        , '40%');
 
-                $slice->addSection($section);
-                $section = new Section();
-            }
             $section
                 ->addElementColumn((new Element())
                     ->setContent($subject->getName())
@@ -389,16 +363,19 @@ class GradeInformation extends Certificate
                     ->stylePaddingLeft('10px')
                     ->styleBorderLeft()
                     ->styleBorderBottom()
-                    ->styleHeight($heightRow)
-                    , '40%')
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->stylePaddingLeft($paddingLeft)
-                    ->styleBorderLeft()
-                    ->styleBorderBottom()
                     ->styleBorderRight()
                     ->styleHeight($heightRow)
+                    , '30%')
+                ->addElementColumn((new Element())
                     , '40%');
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->stylePaddingLeft($paddingLeft)
+//                    ->styleBorderLeft()
+//                    ->styleBorderBottom()
+//                    ->styleBorderRight()
+//                    ->styleHeight($heightRow)
+//                    , '40%');
             $slice->addSection($section);
         }
 

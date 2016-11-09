@@ -51,12 +51,6 @@ class GradeInformation implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting\AppointedDateTask\Select', __NAMESPACE__ . '\Frontend::frontendSelectAppointedDateTask')
         );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\AppointedDateTask\Update', __NAMESPACE__ . '\Frontend::frontendUpdateAppointedDateTask')
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\SubjectGrades', __NAMESPACE__ . '\Frontend::frontendSubjectGrades')
-        );
 
         /*
          *  BehaviorTask
@@ -67,24 +61,29 @@ class GradeInformation implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting\BehaviorTask\Select', __NAMESPACE__ . '\Frontend::frontendSelectBehaviorTask')
         );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\BehaviorGrades', __NAMESPACE__ . '\Frontend::frontendBehaviorGrades')
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\BehaviorGrades\Edit', __NAMESPACE__ . '\Frontend::frontendEditBehaviorGrades')
-        );
 
         /*
          * Template
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\Template', __NAMESPACE__ . '\Frontend::frontendTemplate')
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting\Template\Show', __NAMESPACE__ . '\Frontend::frontendShowTemplate')
         );
+
+        /*
+         * Test
+         */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\Template\Select', __NAMESPACE__ . '\Frontend::frontendSelectTemplate')
+            __NAMESPACE__ . '\Setting\Wizard\Behavior', __NAMESPACE__ . '\Frontend::frontendWizardBehavior')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Setting\Wizard\Remark', __NAMESPACE__ . '\Frontend::frontendWizardRemark')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Setting\Wizard\Preview', __NAMESPACE__ . '\Frontend::frontendWizardPreview')
+        );
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Setting\Preview', __NAMESPACE__ . '\Frontend::frontendPreview')
         );
     }
 

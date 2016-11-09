@@ -12,10 +12,11 @@ use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -134,7 +135,14 @@ class Service
         TblTask $tblTask
     ) {
 
-        Prepare::useService()->updatePrepareSubjectGrades($tblPrepare, $tblTask);
+        Prepare::useService()->updatePrepareData(
+            $tblPrepare,
+            $tblPrepare->getDate(),
+            $tblPrepare->getName(),
+            $tblTask,
+            $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
+            $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null
+        );
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Stichtagsnotenauftrag wurde ausgewählt.')
         . new Redirect('/Education/Certificate/GradeInformation/Setting', Redirect::TIMEOUT_SUCCESS, array(
@@ -158,13 +166,13 @@ class Service
 
             return $Stage
             . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Stichtagsnotenauftrag wurde ausgewählt.')
-            . new Redirect('/Education/Certificate/GradeInformation/Setting', Redirect::TIMEOUT_SUCCESS, array(
+            . new Redirect('/Education/Certificate/GradeInformation/Setting/Preview', Redirect::TIMEOUT_SUCCESS, array(
                 'PrepareId' => $tblPrepare->getId()
             ));
         } else {
             return $Stage
             . new Danger('Kein Stichtagsnotenauftrag ausgewählt.', new Exclamation())
-            . new Redirect('/Education/Certificate/GradeInformation/Setting', Redirect::TIMEOUT_SUCCESS,
+            . new Redirect('/Education/Certificate/GradeInformation/Setting/Preview', Redirect::TIMEOUT_SUCCESS,
                 array(
                     'PrepareId' => $tblPrepare->getId()
                 ));
@@ -183,11 +191,11 @@ class Service
     ) {
 
         // Löschen der vorhandenen Zensuren
-        if ($tblPrepare->getServiceTblBehaviorTask()
-            && $tblPrepare->getServiceTblBehaviorTask()->getId() !== $tblTask->getId()
-        ) {
-            Prepare::useService()->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
-        }
+//        if ($tblPrepare->getServiceTblBehaviorTask()
+//            && $tblPrepare->getServiceTblBehaviorTask()->getId() !== $tblTask->getId()
+//        ) {
+//            Prepare::useService()->destroyPrepareGrades($tblPrepare, $tblTask->getTblTestType());
+//        }
 
         Prepare::useService()->updatePrepareData(
             $tblPrepare,
@@ -199,7 +207,7 @@ class Service
         );
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnotenauftrag wurde ausgewählt.')
-        . new Redirect('/Education/Certificate/GradeInformation/Setting', Redirect::TIMEOUT_SUCCESS, array(
+        . new Redirect('/Education/Certificate/GradeInformation/Setting/Preview', Redirect::TIMEOUT_SUCCESS, array(
             'PrepareId' => $tblPrepare->getId()
         ));
 
@@ -208,72 +216,83 @@ class Service
     /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblScoreType|null $tblScoreType
-     * @param $Data
+     * @param $Grades
+     * @param $Remarks
      *
      * @return IFormInterface|string
      */
-    public function updatePrepareGradeForBehaviorTask(
+    public function updatePrepareBehaviorGradesAndRemark(
         IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        TblScoreType $tblScoreType = null,
-        $Data
+        $Grades,
+        $Remarks
     ) {
 
         /**
          * Skip to Frontend
          */
-        if (null === $Data) {
+        if (null === $Grades && null === $Remarks) {
             return $Stage;
         }
 
-        if ($tblScoreType === null) {
-            $tblScoreType = Gradebook::useService()->getScoreTypeByIdentifier('GRADES');
-        }
         $error = false;
-        if (is_array($Data)) {
-            foreach ($Data as $gradeTypeId => $value) {
-                if (trim($value) !== '' && $tblScoreType) {
-                    if (!preg_match('!' . $tblScoreType->getPattern() . '!is', trim($value))) {
-                        $error = true;
-                        break;
-                    }
-                }
-            }
+//            if ($tblScoreType) {
+//                foreach ($Data as $gradeTypeId => $value) {
+//                    if (trim($value) !== '' && $tblScoreType) {
+//                        if (!preg_match('!' . $tblScoreType->getPattern() . '!is', trim($value))) {
+//                            $error = true;
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
 
-            if ($error) {
-                $Stage->prependGridGroup(
-                    new FormGroup(new FormRow(new FormColumn(new Danger(
-                            'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
+        if ($error) {
+            $Stage->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
                         Die Daten wurden nicht gespeichert.', new Exclamation())
-                    ))));
+                ))));
 
-                return $Stage;
-            } else {
-                if (($tblTask = $tblPrepare->getServiceTblBehaviorTask())
-                    && ($tblTestType = $tblTask->getTblTestType())
-                    && ($tblDivision = $tblPrepare->getServiceTblDivision())
-                ) {
-                    foreach ($Data as $gradeTypeId => $value) {
-                        if (trim($value) && trim($value) !== ''
-                            && ($tblGradeType = Gradebook::useService()->getGradeTypeById($gradeTypeId))
+            return $Stage;
+        } else {
+            if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            ) {
+                if ($Grades) {
+                    foreach ($Grades as $personId => $personGrades) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))
+                            && is_array($personGrades)
                         ) {
-                            Prepare::useService()->updatePrepareGradeForBehavior(
-                                $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType, trim($value)
-                            );
+                            foreach ($personGrades as $gradeTypeId => $value) {
+                                if (trim($value) && trim($value) !== ''
+                                    && ($tblGradeType = Gradebook::useService()->getGradeTypeById($gradeTypeId))
+                                ) {
+                                    Prepare::useService()->updatePrepareGradeForBehavior(
+                                        $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
+                                        trim($value)
+                                    );
+                                }
+                            }
                         }
                     }
-
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
-                    . new Redirect('/Education/Certificate/GradeInformation/Setting/BehaviorGrades',
-                        Redirect::TIMEOUT_SUCCESS, array(
-                            'PrepareId' => $tblPrepare->getId(),
-                            'PersonId' => $tblPerson->getId(),
-                        ));
-
                 }
+
+                if ($Remarks) {
+                    foreach ($Remarks as $personId => $remark) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            $Content['Input']['Remark'] = $remark;
+                            Prepare::useService()->updatePrepareInformationDataList($tblPrepare, $tblPerson,
+                                $Content, null);
+                        }
+                    }
+                }
+
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
+                . new Redirect('/Education/Certificate/GradeInformation/Setting/Preview',
+                    Redirect::TIMEOUT_SUCCESS, array(
+                        'PrepareId' => $tblPrepare->getId(),
+                    ));
             }
         }
 
@@ -302,6 +321,15 @@ class Service
         ));
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Content
+     * @param Certificate|null $Certificate
+     *
+     * @return IFormInterface|string
+     */
     public function updatePrepareInformationList(
         IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
@@ -324,5 +352,119 @@ class Service
             'PrepareId' => $tblPrepare->getId(),
             'PersonId' => $tblPerson->getId()
         ));
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPrepareCertificate $tblPrepare
+     * @param $Grades
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePrepareBehaviorGrades(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        $Grades
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Grades) {
+            return $Stage;
+        }
+
+        $error = false;
+        if (is_array($Grades)) {
+//            if ($tblScoreType) {
+//                foreach ($Data as $gradeTypeId => $value) {
+//                    if (trim($value) !== '' && $tblScoreType) {
+//                        if (!preg_match('!' . $tblScoreType->getPattern() . '!is', trim($value))) {
+//                            $error = true;
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+
+            if ($error) {
+                $Stage->prependGridGroup(
+                    new FormGroup(new FormRow(new FormColumn(new Danger(
+                            'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
+                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                    ))));
+
+                return $Stage;
+            } else {
+                if (($tblTask = $tblPrepare->getServiceTblBehaviorTask())
+                    && ($tblTestType = $tblTask->getTblTestType())
+                    && ($tblDivision = $tblPrepare->getServiceTblDivision())
+                ) {
+                    if ($Grades) {
+                        foreach ($Grades as $personId => $personGrades) {
+                            if (($tblPerson = Person::useService()->getPersonById($personId))
+                                && is_array($personGrades)
+                            ) {
+                                foreach ($personGrades as $gradeTypeId => $value) {
+                                    if (trim($value) && trim($value) !== ''
+                                        && ($tblGradeType = Gradebook::useService()->getGradeTypeById($gradeTypeId))
+                                    ) {
+                                        Prepare::useService()->updatePrepareGradeForBehavior(
+                                            $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
+                                            trim($value)
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
+                    . new Redirect('/Education/Certificate/GradeInformation/Setting/Wizard/Remark',
+                        Redirect::TIMEOUT_SUCCESS, array(
+                            'PrepareId' => $tblPrepare->getId(),
+                        ));
+                }
+            }
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPrepareCertificate $tblPrepare
+     * @param $Remarks
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePrepareRemark(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        $Remarks
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Remarks) {
+            return $Stage;
+        }
+
+        if ($Remarks) {
+            foreach ($Remarks as $personId => $remark) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    $Content['Input']['Remark'] = $remark;
+                    Prepare::useService()->updatePrepareInformationDataList($tblPrepare, $tblPerson,
+                        $Content, null);
+                }
+            }
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Bemerkungen wurden gespeichert.')
+        . new Redirect('/Education/Certificate/GradeInformation/Setting/Wizard/Preview',
+            Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId(),
+            ));
     }
 }
