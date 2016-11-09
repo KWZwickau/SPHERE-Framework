@@ -64,12 +64,32 @@ class Service
         }
 
         if (!$Error) {
-            Prepare::useService()->createPrepareData(
+            $tblPrepare = Prepare::useService()->createPrepareData(
                 $tblDivision,
                 $Data['Date'],
                 $Data['Name'],
                 true
             );
+
+            // letzten Notenaufträge vorselektieren
+            if ($tblPrepare){
+                $tblAppointedDateTaskList = Evaluation::useService()->getTaskAllByDivision(
+                        $tblDivision, Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+                );
+                $tblBehaviorTaskList = Evaluation::useService()->getTaskAllByDivision(
+                    $tblDivision, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK')
+                );
+                if ($tblAppointedDateTaskList || $tblBehaviorTaskList){
+                    Prepare::useService()->updatePrepareData(
+                        $tblPrepare,
+                        $tblPrepare->getDate(),
+                        $tblPrepare->getName(),
+                        $tblAppointedDateTaskList ? current($tblAppointedDateTaskList) : null,
+                        $tblBehaviorTaskList ? current($tblBehaviorTaskList) : null
+                    );
+                }
+            }
+
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Noteninformation ist erfasst worden.')
             . new Redirect('/Education/Certificate/GradeInformation/Create', Redirect::TIMEOUT_SUCCESS, array(
                 'DivisionId' => $tblDivision->getId()

@@ -324,9 +324,7 @@ class GradeInformation extends Certificate
                 ->styleHeight($height)
                 ->styleAlignCenter()
                 ->styleTextSize($fontSize)
-                , '30%')
-            ->addElementColumn((new Element())
-                , '40%');
+                , '70%');
 //            ->addElementColumn((new Element())
 //                ->setContent('Bemerkungen, vergessene' . '<br>' . 'Arbeitsmittel')
 //                ->styleMarginTop($top)
@@ -365,9 +363,7 @@ class GradeInformation extends Certificate
                     ->styleBorderBottom()
                     ->styleBorderRight()
                     ->styleHeight($heightRow)
-                    , '30%')
-                ->addElementColumn((new Element())
-                    , '40%');
+                    , '70%');
 //                ->addElementColumn((new Element())
 //                    ->setContent('&nbsp;')
 //                    ->stylePaddingLeft($paddingLeft)

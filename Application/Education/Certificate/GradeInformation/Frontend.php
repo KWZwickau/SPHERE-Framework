@@ -75,6 +75,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Noteninformation', 'Klasse auswählen');
 
+//        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Teacher');
+//        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Gradebook/Headmaster');
+//        if ($hasHeadmasterRight && $hasTeacherRight) {
+            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')),
+                '/Education/Certificate/GradeInformation', new Edit()));
+            $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Certificate/GradeInformation'));
+//        }
+
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
