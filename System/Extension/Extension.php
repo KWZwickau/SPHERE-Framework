@@ -2,14 +2,12 @@
 namespace SPHERE\System\Extension;
 
 use Markdownify\Converter;
+use MOC\V\Component\Packer\Packer;
 use MOC\V\Component\Template\Template;
 use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\HandlerInterface;
 use SPHERE\System\Cache\Handler\MemoryHandler;
-use SPHERE\System\Config\ConfigFactory;
-use SPHERE\System\Config\Reader\IniReader;
-use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Database\Fitting\Repository;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\LoggerInterface;
@@ -47,6 +45,16 @@ class Extension
         return (new CacheFactory())->createHandler($Handler);
     }
 
+    /**
+     * @param string $Location Zip File
+     *
+     * @return \MOC\V\Component\Packer\Component\IBridgeInterface
+     */
+    public function getPacker($Location)
+    {
+        return Packer::getPacker($Location);
+    }
+    
     /**
      * @param LoggerInterface $Logger
      * @return LoggerInterface
@@ -90,7 +98,7 @@ class Extension
     }
 
     /**
-     * @param $Location
+     * @param string $Location
      *
      * @return \MOC\V\Component\Template\Component\IBridgeInterface
      */
