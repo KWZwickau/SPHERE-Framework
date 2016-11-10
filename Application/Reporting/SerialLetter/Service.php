@@ -20,6 +20,7 @@ use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -214,17 +215,16 @@ class Service extends AbstractService
                             if (isset( $item['Address'] )) {
                                 $tblToPerson = Address::useService()->getAddressToPersonById($key);
                                 if ($tblToPerson && $tblToPerson->getServiceTblPerson()) {
-                                    if (isset( $item['Salutation'] )) {
-                                        if ($item['Salutation'] == TblAddressPerson::SALUTATION_FAMILY) {
-                                            $tblSalutation = new TblSalutation('Familie');
-                                            $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
-                                        } else {
-                                            $tblSalutation = Person::useService()->getSalutationById($item['Salutation']);
-                                        }
+                                    if ($tblPersonToPerson = $tblToPerson->getServiceTblPerson()) {
+                                        $tblSalutation = $tblPersonToPerson->getTblSalutation();
 
                                         $this->createAddressPerson($tblSerialLetter, $tblPerson,
                                             $tblToPerson->getServiceTblPerson(), $tblToPerson,
-                                            $tblSalutation ? $tblSalutation : null);
+                                            ( $tblSalutation ? $tblSalutation : null ));
+                                    } else {
+                                        $this->createAddressPerson($tblSerialLetter, $tblPerson,
+                                            $tblToPerson->getServiceTblPerson(), $tblToPerson,
+                                            null);
                                     }
                                 }
                             }
@@ -240,6 +240,52 @@ class Service extends AbstractService
         return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
         .new Redirect($Route, Redirect::TIMEOUT_SUCCESS,
             array('Id' => $tblSerialLetter->getId()));
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return Warning|string
+     */
+    public function createAddressPersonSelfButton(TblSerialLetter $tblSerialLetter)
+    {
+        $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
+        if ($tblSerialPersonList) {
+            foreach ($tblSerialPersonList as $tblSerialPerson) {
+                $tblPerson = $tblSerialPerson->getServiceTblPerson();
+                if ($tblPerson) {
+                    // Nur Personen die noch keine Adressen haben
+                    if (!SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson)) {
+                        $tblToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
+                        if ($tblToPersonList) {
+                            $tblType = Address::useService()->getTypeById(1);
+                            $tblToPersonChoose = null;
+                            // Ziehen der ersten Hauptadresse (die aktuellste)
+                            foreach ($tblToPersonList as $tblToPerson) {
+                                if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
+                                    $tblToPersonChoose = $tblToPerson;
+                                }
+                            }
+                            // Ziehen irgendeiner Adresse
+                            if ($tblToPersonChoose === null) {
+                                foreach ($tblToPersonList as $tblToPerson) {
+                                    $tblToPersonChoose = $tblToPerson;
+                                }
+                            }
+                            $tblSalutation = $tblPerson->getTblSalutation();
+                            if (!$tblSalutation) {
+                                $tblSalutation = null;
+                            }
+                            SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $tblPerson, $tblToPersonChoose, $tblSalutation);
+                        }
+                    }
+                }
+            }
+        } else {
+            return new Warning('Es sind keine Personen im Serienbrief hinterlegt');
+        }
+        return new Success('Mögliche Adressenzuweisungen wurde vorgenommen')
+        .new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblSerialLetter->getId()));
     }
 
     /**
