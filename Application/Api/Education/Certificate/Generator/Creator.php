@@ -70,19 +70,19 @@ class Creator extends Extension
 
     /**
      * @param Certificate $Certificate
-     * @param array       $Data
+     * @param array $Data
      *
      * @return FilePointer
      */
     private function buildDummyFile(Certificate $Certificate, $Data = array())
     {
 
-        $tblYear = isset( $Data['Division']['Data']['Year'] ) ? $Data['Division']['Data']['Year'] : '';
+        $tblYear = isset($Data['Division']['Data']['Year']) ? $Data['Division']['Data']['Year'] : '';
         $personName = '';
-        if (isset( $Data['Person']['Data']['Name']['First'] ) && isset( $Data['Person']['Data']['Name']['Last'] )) {
-            $personName = $Data['Person']['Data']['Name']['Last'].', '.$Data['Person']['Data']['Name']['First'];
+        if (isset($Data['Person']['Data']['Name']['First']) && isset($Data['Person']['Data']['Name']['Last'])) {
+            $personName = $Data['Person']['Data']['Name']['Last'] . ', ' . $Data['Person']['Data']['Name']['First'];
         }
-        $Prefix = md5($tblYear.$personName.( isset( $Data['Person']['Student']['Id'] ) ? $Data['Person']['Student']['Id'] : '' ));
+        $Prefix = md5($tblYear . $personName . (isset($Data['Person']['Student']['Id']) ? $Data['Person']['Student']['Id'] : ''));
 
         // Create Tmp
         $File = Storage::createFilePointer('pdf', $Prefix);
@@ -96,7 +96,7 @@ class Creator extends Extension
 
     /**
      * @param FilePointer $File
-     * @param string      $FileName
+     * @param string $FileName
      *
      * @return string
      */
@@ -105,7 +105,7 @@ class Creator extends Extension
 
         return FileSystem::getDownload(
             $File->getRealPath(),
-            $FileName ? $FileName : "Zeugnis-Test-".date("Y-m-d H:i:s").".pdf"
+            $FileName ? $FileName : "Zeugnis-Test-" . date("Y-m-d H:i:s") . ".pdf"
         )->__toString();
     }
 
@@ -199,14 +199,16 @@ class Creator extends Extension
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-
-                            $File = $this->buildDummyFile($Certificate, $Content);
-
-//                            $File = Storage::createFilePointer('pdf', $Name . " " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s"));
-//                            /** @var DomPdf $Document */
-//                            $Document = Document::getPdfDocument($File->getFileLocation());
-//                            $Document->setContent($Certificate->createCertificate($Content));
-//                            $Document->saveFile(new FileParameter($File->getFileLocation()));
+                            $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
+                            $personLastName = str_replace('ü', 'ue', $personLastName);
+                            $personLastName = str_replace('ö', 'oe', $personLastName);
+                            $personLastName = str_replace('ß', 'ss', $personLastName);
+                            $File = Storage::createFilePointer('pdf', $Name . '-' . $personLastName
+                                . '-' . date('Y-m-d') . '--');
+                            /** @var DomPdf $Document */
+                            $Document = Document::getPdfDocument($File->getFileLocation());
+                            $Document->setContent($Certificate->createCertificate($Content));
+                            $Document->saveFile(new FileParameter($File->getFileLocation()));
 
                             $FileList[] = $File;
                         }
@@ -214,23 +216,23 @@ class Creator extends Extension
                 }
             }
 
-            if (!empty($FileList)){
+            if (!empty($FileList)) {
                 $ZipFile = new FilePointer('zip');
                 $ZipFile->saveFile();
 
-                $ZipArchive = $this->getPacker( $ZipFile->getRealPath() );
+                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
                 /** @var FilePointer $File */
-                foreach( $FileList as $File ) {
+                foreach ($FileList as $File) {
                     $ZipArchive->compactFile(
                         new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
                             $File->getRealPath()
                         )
-                    , false);
+                        , false);
                 }
 
                 return FileSystem::getDownload(
                     $ZipFile->getRealPath(),
-                    $Name.'-'.date("Y-m-d H:i:s").".zip"
+                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
                 )->__toString();
             }
         }

@@ -9,12 +9,14 @@
 namespace SPHERE\Application\Education\Certificate\GradeInformation;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -72,14 +74,14 @@ class Service
             );
 
             // letzten Notenaufträge vorselektieren
-            if ($tblPrepare){
+            if ($tblPrepare) {
                 $tblAppointedDateTaskList = Evaluation::useService()->getTaskAllByDivision(
-                        $tblDivision, Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+                    $tblDivision, Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
                 );
                 $tblBehaviorTaskList = Evaluation::useService()->getTaskAllByDivision(
                     $tblDivision, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK')
                 );
-                if ($tblAppointedDateTaskList || $tblBehaviorTaskList){
+                if ($tblAppointedDateTaskList || $tblBehaviorTaskList) {
                     Prepare::useService()->updatePrepareData(
                         $tblPrepare,
                         $tblPrepare->getDate(),
@@ -87,6 +89,16 @@ class Service
                         $tblAppointedDateTaskList ? current($tblAppointedDateTaskList) : null,
                         $tblBehaviorTaskList ? current($tblBehaviorTaskList) : null
                     );
+                }
+            }
+
+            // Vorlage (Template) vorselektieren
+            if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
+                && ($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation') )
+            ) {
+                foreach ($tblStudentList as $tblPerson) {
+                    Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $tblCertificate);
                 }
             }
 
