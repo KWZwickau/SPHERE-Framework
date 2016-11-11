@@ -949,8 +949,8 @@ class Service extends AbstractService
                 }
             }
             // Kopfnoten von Fachlehrern für Noteninformation
-            if ($tblPrepare->isGradeInformation() && ($tblTask = $tblPrepare->getServiceTblBehaviorTask())) {
-                if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask))) {
+            if ($tblPrepare->isGradeInformation() && ($tblBehaviorTask = $tblPrepare->getServiceTblBehaviorTask())) {
+                if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblBehaviorTask))) {
                     /** @var TblTest $testItem */
                     foreach ($tblTestAllByTask as $testItem) {
                         if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($testItem, $tblPerson))
@@ -965,15 +965,29 @@ class Service extends AbstractService
             }
 
             // Fachnoten
-            $tblPrepareGradeSubjectList = Prepare::useService()->getPrepareGradeAllByPerson(
-                $tblPrepare,
-                $tblPerson,
-                Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
-            );
-            if ($tblPrepareGradeSubjectList) {
-                foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
-                    if ($tblPrepareGrade->getServiceTblSubject()) {
-                        $Content['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = $tblPrepareGrade->getGrade();
+            if ($tblPrepare->isGradeInformation()) {
+                if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+                    && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))
+                ){
+                    foreach ($tblTestList as $tblTest){
+                        if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
+                            && $tblTest->getServiceTblSubject()
+                        ){
+                            $Content['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()] = $tblGradeItem->getDisplayGrade();
+                        }
+                    }
+                }
+            } else {
+                $tblPrepareGradeSubjectList = Prepare::useService()->getPrepareGradeAllByPerson(
+                    $tblPrepare,
+                    $tblPerson,
+                    Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+                );
+                if ($tblPrepareGradeSubjectList) {
+                    foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
+                        if ($tblPrepareGrade->getServiceTblSubject()) {
+                            $Content['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = $tblPrepareGrade->getGrade();
+                        }
                     }
                 }
             }
@@ -1249,6 +1263,8 @@ class Service extends AbstractService
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblCertificate $tblCertificate
+     *
+     * @return bool|TblPrepareStudent
      */
     public function updatePrepareStudentSetTemplate(
         TblPrepareCertificate $tblPrepare,
@@ -1265,8 +1281,10 @@ class Service extends AbstractService
                 $tblPrepareStudent->getExcusedDays(),
                 $tblPrepareStudent->getUnexcusedDays()
             );
+
+            return $tblPrepareStudent;
         } else {
-            (new Data($this->getBinding()))->createPrepareStudent(
+            return (new Data($this->getBinding()))->createPrepareStudent(
                 $tblPrepare,
                 $tblPerson,
                 $tblCertificate
