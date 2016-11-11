@@ -88,12 +88,50 @@ class Service extends AbstractService
     /**
      * @param TblSerialLetter $tblSerialLetter
      *
-     * @return false|int
+     * @return int
      */
     public function getSerialLetterCount(TblSerialLetter $tblSerialLetter)
     {
 
-        return ( new Data($this->getBinding()) )->getSerialLetterCount($tblSerialLetter);
+        $result = 0;
+        $Data = array();
+        $tblSerialLetterAddressPersonList = SerialLetter::useService()->getAddressPersonAllBySerialLetter($tblSerialLetter);
+        $tblPersonList = array();
+        if ($tblSerialLetterAddressPersonList) {
+            foreach ($tblSerialLetterAddressPersonList as $tblAddressToPerson) {
+                $result++;
+                $tblPerson = $tblAddressToPerson->getServiceTblPerson();
+                if ($tblPerson) {
+                    $tblPersonList[$tblPerson->getId()] = $tblAddressToPerson->getServiceTblPerson();
+                }
+            }
+        }
+        if (!empty( $tblPersonList )) {
+            /**@var TblPerson $tblPerson */
+            foreach ($tblPersonList as $tblPerson) {
+                if ($tblPerson) {
+                    $tblAddressPersonList =
+                        SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
+                    if ($tblAddressPersonList) {
+                        foreach ($tblAddressPersonList as $tblAddressPerson) {
+                            if (( $tblServiceTblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
+                                if (( $tblAddress = $tblServiceTblToPerson->getTblAddress() )) {
+
+//                                    Debugger::screenDump($tblAddress);
+                                    if (isset( $Data[$tblPerson->getId().$tblAddress->getId()] )) {
+                                        $result--;
+                                    }
+                                    $Data[$tblPerson->getId().$tblAddress->getId()] = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
+//        return ( new Data($this->getBinding()) )->getSerialLetterCount($tblSerialLetter);
     }
 
     /**
@@ -112,7 +150,7 @@ class Service extends AbstractService
      *
      * @return false|TblPerson[]
      */
-    public function getPersonBySerialLetter(TblSerialLetter $tblSerialLetter)
+    public function getPersonAllBySerialLetter(TblSerialLetter $tblSerialLetter)
     {
         return ( new Data($this->getBinding()) )->getPersonBySerialLetter($tblSerialLetter);
     }
@@ -247,7 +285,7 @@ class Service extends AbstractService
      *
      * @return Warning|string
      */
-    public function createAddressPersonSelfButton(TblSerialLetter $tblSerialLetter)
+    public function createAddressPersonSelf(TblSerialLetter $tblSerialLetter)
     {
         $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
         if ($tblSerialPersonList) {
@@ -289,165 +327,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface  $Form
      * @param TblSerialLetter $tblSerialLetter
-     * @param null            $Data
      *
-     * @return IFormInterface|string
+     * @return Warning|string
      */
-    public function createAddressPersonSelf(IFormInterface $Form, TblSerialLetter $tblSerialLetter, $Data = null)
+    public function createAddressPersonGuardian(TblSerialLetter $tblSerialLetter)
     {
-
-        $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Button'] )) {
-            return $Form;
-        }
-
-        if (!isset( $Data['Salutation'] ) || $Data['Salutation'] == 0) {
-            $Salutation = null;
-        } elseif ($Data['Salutation'] === '1000') {
-            $tblSalutation = new TblSalutation('Familie');
-            $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
-            $Salutation = $tblSalutation;
-        } else {
-            $Salutation = Person::useService()->getSalutationById($Data['Salutation']);
-        }
-
-        $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
-        if ($tblSerialPersonList) {
-            foreach ($tblSerialPersonList as $tblSerialPerson) {
-                $tblPerson = $tblSerialPerson->getServiceTblPerson();
-                if ($tblPerson) {
-                    // Nur Personen die noch keine Adressen haben
-                    if (!SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson)) {
-                        if ($Salutation && $Salutation->getSalutation() == 'Schüler') {
-                            if ($tblPerson->getTblSalutation() && $tblPerson->getTblSalutation()->getSalutation() == 'Schüler') {
-                                $tblToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
-                                if ($tblToPersonList) {
-                                    $tblType = Address::useService()->getTypeById(1);
-                                    $tblToPersonChoose = null;
-                                    // Ziehen der ersten Hauptadresse (die aktuellste)
-                                    foreach ($tblToPersonList as $tblToPerson) {
-                                        if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-                                            $tblToPersonChoose = $tblToPerson;
-                                        }
-                                    }
-                                    // Ziehen irgendeiner Adresse
-                                    if ($tblToPersonChoose === null) {
-                                        foreach ($tblToPersonList as $tblToPerson) {
-                                            $tblToPersonChoose = $tblToPerson;
-                                        }
-                                    }
-                                    SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $tblPerson, $tblToPersonChoose, $Salutation);
-                                }
-                            }
-                        } elseif ($Salutation && $Salutation->getSalutation() == 'Frau') {
-                            if ($tblPerson->getTblSalutation() && $tblPerson->getTblSalutation()->getSalutation() == 'Frau') {
-                                $tblToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
-                                if ($tblToPersonList) {
-                                    $tblType = Address::useService()->getTypeById(1);
-                                    $tblToPersonChoose = null;
-                                    // Ziehen der ersten Hauptadresse (die aktuellste)
-                                    foreach ($tblToPersonList as $tblToPerson) {
-                                        if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-                                            $tblToPersonChoose = $tblToPerson;
-                                        }
-                                    }
-                                    // Ziehen irgendeiner Adresse
-                                    if ($tblToPersonChoose === null) {
-                                        foreach ($tblToPersonList as $tblToPerson) {
-                                            $tblToPersonChoose = $tblToPerson;
-                                        }
-                                    }
-                                    SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $tblPerson, $tblToPersonChoose, $Salutation);
-                                }
-                            }
-                        } elseif ($Salutation && $Salutation->getSalutation() == 'Herr') {
-                            if ($tblPerson->getTblSalutation() && $tblPerson->getTblSalutation()->getSalutation() == 'Herr') {
-
-                                $tblToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
-                                if ($tblToPersonList) {
-                                    $tblType = Address::useService()->getTypeById(1);
-                                    $tblToPersonChoose = null;
-                                    // Ziehen der ersten Hauptadresse (die aktuellste)
-                                    foreach ($tblToPersonList as $tblToPerson) {
-                                        if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-                                            $tblToPersonChoose = $tblToPerson;
-                                        }
-                                    }
-                                    // Ziehen irgendeiner Adresse
-                                    if ($tblToPersonChoose === null) {
-                                        foreach ($tblToPersonList as $tblToPerson) {
-                                            $tblToPersonChoose = $tblToPerson;
-                                        }
-                                    }
-                                    SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $tblPerson, $tblToPersonChoose, $Salutation);
-                                }
-                            }
-                        } else {
-                            $tblToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
-                            if ($tblToPersonList) {
-                                $tblType = Address::useService()->getTypeById(1);
-                                $tblToPersonChoose = null;
-                                // Ziehen der ersten Hauptadresse (die aktuellste)
-                                foreach ($tblToPersonList as $tblToPerson) {
-                                    if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-                                        $tblToPersonChoose = $tblToPerson;
-                                    }
-                                }
-                                // Ziehen irgendeiner Adresse
-                                if ($tblToPersonChoose === null) {
-                                    foreach ($tblToPersonList as $tblToPerson) {
-                                        $tblToPersonChoose = $tblToPerson;
-                                    }
-                                }
-                                SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $tblPerson, $tblToPersonChoose, $Salutation);
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            return $Form->setError('Salutation', 'Es sind keine Personen im Serienbrief hinterlegt');
-        }
-        return $Form.new Success('Mögliche Adressenzuweisungen wurde vorgenommen')
-        .new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS, array('TabActive' => 'SELF',
-                                                                                          'Id'        => $tblSerialLetter->getId()));
-    }
-
-    /**
-     * @param IFormInterface  $Form
-     * @param TblSerialLetter $tblSerialLetter
-     * @param null            $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function createAddressPersonGuardian(IFormInterface $Form, TblSerialLetter $tblSerialLetter, $Data = null)
-    {
-
-        $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Button'] )) {
-            return $Form;
-        }
-
-//        if(!isset($Data['Check'])){
-//            return $Form;
-//        }
-
-        if (!isset( $Data['Salutation'] ) || $Data['Salutation'] == 0) {
-            $Salutation = null;
-        } elseif ($Data['Salutation'] === '1000') {
-            $tblSalutation = new TblSalutation('Familie');
-            $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
-            $Salutation = $tblSalutation;
-        } else {
-            $Salutation = Person::useService()->getSalutationById($Data['Salutation']);
-        }
-//        if($Salutation && $Salutation->getSalutation() == 'Schüler'){
-//            $Form->setError('Data[Salutation]', 'Sorgeberechtiget sollten nicht mit "Schüler" angeschrieben werden');
-//            return $Form;
-//        }
-
         $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
         if ($tblSerialPersonList) {
             foreach ($tblSerialPersonList as $tblSerialPerson) {
@@ -470,190 +355,22 @@ class Service extends AbstractService
                             }
                             $Person = null;
                             $ToPersonChooseList = array();
+                            $SalutationList = array();
                             /** @var TblPerson[] $GuardianList */
                             if (!empty( $GuardianList )) {
-                                // Bezogen auf Geschlecht
-//                                foreach($GuardianList as $Parent){
-//                                    if(($tblCommon = $Parent->getCommon())){
-//                                        if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
-//                                            if(($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())){
-//
-//                                                if($Salutation == null
-//                                                    || $Salutation && $Salutation->getSalutation() == 'Familie'){
-//
-//                                                    if($tblCommonGender->getName() === 'Weiblich'){
-//                                                        $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
-//                                                        if($tblToPersonList) {
-//                                                            $tblType = Address::useService()->getTypeById(1);
-//                                                            $tblToPersonChoose = null;
-//                                                            // Ziehen der ersten Hauptadresse (die aktuellste)
-//                                                            foreach ($tblToPersonList as $tblToPerson) {
-//                                                                if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-//                                                                    $tblToPersonChoose = $tblToPerson;
-//                                                                }
-//                                                            }
-//                                                            if($tblToPersonChoose){
-//                                                                $ToPersonChooseList[] = $tblToPersonChoose;
-//                                                                $Person = $Parent;
-//                                                            }
-//                                                        }
-//                                                    } elseif($tblCommonGender->getName() === 'Männlich') {
-//                                                        if ($tblAddress = Address::useService()->getAddressByPerson($Parent)) {
-//                                                            if ($Person === null) {
-//                                                                $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
-//                                                                if ($tblToPersonList) {
-//                                                                    $tblType = Address::useService()->getTypeById(1);
-//                                                                    $tblToPersonChoose = null;
-//                                                                    // Ziehen der ersten Hauptadresse (die aktuellste)
-//                                                                    foreach ($tblToPersonList as $tblToPerson) {
-//                                                                        if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-//                                                                            $tblToPersonChoose = $tblToPerson;
-//                                                                        }
-//                                                                    }
-//                                                                    if ($tblToPersonChoose) {
-//                                                                        $ToPersonChooseList[] = $tblToPersonChoose;
-//                                                                        if($Person === null){
-//                                                                            $Person = $Parent;
-//                                                                        }
-//                                                                    }
-//                                                                }
-//                                                            }
-//                                                        }
-//                                                    }
-//                                                } elseif($Salutation && $Salutation->getSalutation() == 'Frau') {
-//
-//                                                    if($tblCommonGender->getName() === 'Weiblich') {
-//                                                        $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
-//                                                        if ($tblToPersonList) {
-//                                                            $tblType = Address::useService()->getTypeById(1);
-//                                                            $tblToPersonChoose = null;
-//                                                            // Ziehen der ersten Hauptadresse (die aktuellste)
-//                                                            foreach ($tblToPersonList as $tblToPerson) {
-//                                                                if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-//                                                                    $tblToPersonChoose = $tblToPerson;
-//                                                                }
-//                                                            }
-//                                                            if ($tblToPersonChoose) {
-//                                                                $ToPersonChooseList[] = $tblToPersonChoose;
-//                                                            }
-//                                                            $Person = $Parent;
-//                                                        }
-//                                                    }
-//                                                } elseif($Salutation && $Salutation->getSalutation() == 'Herr'){
-//
-//                                                    if($tblCommonGender->getName() === 'Männlich'){
-//                                                        if($tblAddress = Address::useService()->getAddressByPerson($Parent)) {
-//                                                            if ($Person === null) {
-//                                                                $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
-//                                                                if($tblToPersonList) {
-//                                                                    $tblType = Address::useService()->getTypeById(1);
-//                                                                    $tblToPersonChoose = null;
-//                                                                    // Ziehen der ersten Hauptadresse (die aktuellste)
-//                                                                    foreach ($tblToPersonList as $tblToPerson) {
-//                                                                        if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-//                                                                            $tblToPersonChoose = $tblToPerson;
-//                                                                        }
-//                                                                    }
-//                                                                    if($tblToPersonChoose){
-//                                                                        $ToPersonChooseList[] = $tblToPersonChoose;
-//                                                                    }
-//                                                                }
-//                                                                $Person = $Parent;
-//                                                            }
-//                                                        }
-//                                                    }
-//                                                }
-//                                            }
-//                                        }
-//                                    }
-//                                }
-                                // Bezogen auf Anrede
+                                // Alle Sorgeberechtigten
                                 foreach ($GuardianList as $Parent) {
-                                    if ($Parent->getTblSalutation()) {
-
-                                        if ($Salutation == null
-                                            || $Salutation && $Salutation->getSalutation() == 'Familie'
-                                        ) {
-                                            if ($Parent->getTblSalutation()->getSalutation() === 'Frau') {
-                                                $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
-                                                if ($tblToPersonList) {
-                                                    $tblType = Address::useService()->getTypeById(1);
-                                                    $tblToPersonChoose = null;
-                                                    // Ziehen der ersten Hauptadresse (die aktuellste)
-                                                    foreach ($tblToPersonList as $tblToPerson) {
-                                                        if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-                                                            $tblToPersonChoose = $tblToPerson;
-                                                        }
-                                                    }
-                                                    if ($tblToPersonChoose) {
-                                                        $ToPersonChooseList[] = $tblToPersonChoose;
-                                                        $Person = $Parent;
-                                                    }
-                                                }
-                                            } elseif ($Parent->getTblSalutation()->getSalutation() === 'Herr') {
-                                                if ($tblAddress = Address::useService()->getAddressByPerson($Parent)) {
-                                                    if ($Person === null) {
-                                                        $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
-                                                        if ($tblToPersonList) {
-                                                            $tblType = Address::useService()->getTypeById(1);
-                                                            $tblToPersonChoose = null;
-                                                            // Ziehen der ersten Hauptadresse (die aktuellste)
-                                                            foreach ($tblToPersonList as $tblToPerson) {
-                                                                if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-                                                                    $tblToPersonChoose = $tblToPerson;
-                                                                }
-                                                            }
-                                                            if ($tblToPersonChoose) {
-                                                                $ToPersonChooseList[] = $tblToPersonChoose;
-                                                                if ($Person === null) {
-                                                                    $Person = $Parent;
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        } elseif ($Salutation && $Salutation->getSalutation() == 'Frau') {
-
-                                            if ($Parent->getTblSalutation()->getSalutation() === 'Frau') {
-                                                $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
-                                                if ($tblToPersonList) {
-                                                    $tblType = Address::useService()->getTypeById(1);
-                                                    $tblToPersonChoose = null;
-                                                    // Ziehen der ersten Hauptadresse (die aktuellste)
-                                                    foreach ($tblToPersonList as $tblToPerson) {
-                                                        if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-                                                            $tblToPersonChoose = $tblToPerson;
-                                                        }
-                                                    }
-                                                    if ($tblToPersonChoose) {
-                                                        $ToPersonChooseList[] = $tblToPersonChoose;
-                                                    }
-                                                    $Person = $Parent;
-                                                }
-                                            }
-                                        } elseif ($Salutation && $Salutation->getSalutation() == 'Herr') {
-
-                                            if ($Parent->getTblSalutation()->getSalutation() === 'Herr') {
-                                                if ($tblAddress = Address::useService()->getAddressByPerson($Parent)) {
-                                                    if ($Person === null) {
-                                                        $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
-                                                        if ($tblToPersonList) {
-                                                            $tblType = Address::useService()->getTypeById(1);
-                                                            $tblToPersonChoose = null;
-                                                            // Ziehen der ersten Hauptadresse (die aktuellste)
-                                                            foreach ($tblToPersonList as $tblToPerson) {
-                                                                if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
-                                                                    $tblToPersonChoose = $tblToPerson;
-                                                                }
-                                                            }
-                                                            if ($tblToPersonChoose) {
-                                                                $ToPersonChooseList[] = $tblToPersonChoose;
-                                                            }
-                                                        }
-                                                        $Person = $Parent;
-                                                    }
-                                                }
+                                    $tblToPersonList = Address::useService()->getAddressAllByPerson($Parent);
+                                    if ($tblToPersonList) {
+                                        $tblType = Address::useService()->getTypeById(1);
+                                        $tblToPersonChoose = null;
+                                        // Ziehen der ersten Hauptadresse
+                                        foreach ($tblToPersonList as $tblToPerson) {
+                                            if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
+                                                $ToPersonChooseList[] = $tblToPerson;
+                                                $tblSalutation = $Parent->getTblSalutation();
+                                                $SalutationList[] = $tblSalutation;
+                                                $Person[] = $Parent;
                                             }
                                         }
                                     }
@@ -661,21 +378,24 @@ class Service extends AbstractService
 
                                 /** @var TblToPerson[] $ToPersonChooseList */
                                 if (!empty( $ToPersonChooseList )) {
-                                    if (count($ToPersonChooseList) === 1) {
-                                        $tblToPersonChoose = $ToPersonChooseList[0];
-                                        SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $Person, $tblToPersonChoose, $Salutation);
-                                    } elseif (count($ToPersonChooseList) === 2) {
-                                        if ($ToPersonChooseList[0]->getTblAddress()->getId() === $ToPersonChooseList[1]->getTblAddress()->getId()) {
-                                            $tblToPersonChoose = $ToPersonChooseList[0];
-                                            SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $Person, $tblToPersonChoose, $Salutation);
+
+                                    $count = 0;
+                                    foreach ($ToPersonChooseList as $ToPersonChoose) {
+
+                                        $tblToPersonChoose = $ToPersonChoose;
+                                        if (isset( $SalutationList[$count] )) {
+                                            $tblSalutation = $SalutationList[$count];
+                                        } else {
+                                            $tblSalutation = false;
                                         }
-                                    } elseif (count($ToPersonChooseList) === 3) {
-                                        if ($ToPersonChooseList[0]->getTblAddress()->getId() === $ToPersonChooseList[1]->getTblAddress()->getId()
-                                            && $ToPersonChooseList[1]->getTblAddress()->getId() === $ToPersonChooseList[2]->getTblAddress()->getId()
-                                        ) {
-                                            $tblToPersonChoose = $ToPersonChooseList[0];
-                                            SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $Person, $tblToPersonChoose, $Salutation);
+                                        if (isset( $SalutationList[$count] )) {
+                                            $PersonTo = $Person[$count];
+                                        } else {
+                                            $PersonTo = false;
                                         }
+                                        SerialLetter::useService()->createAddressPerson(
+                                            $tblSerialLetter, $tblPerson, $PersonTo, $tblToPersonChoose, ( $tblSalutation ? $tblSalutation : null ));
+                                        $count++;
                                     }
                                 }
                             }
@@ -684,11 +404,10 @@ class Service extends AbstractService
                 }
             }
         } else {
-            return $Form->setError('Salutation', 'Es sind keine Personen im Serienbrief hinterlegt');
+            return new Warning('Es sind keine Personen im Serienbrief hinterlegt');
         }
-        return $Form.new Success('Mögliche Adressenzuweisungen wurde vorgenommen')
-        .new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS, array('TabActive' => 'GUARDIAN',
-                                                                                          'Id'        => $tblSerialLetter->getId()));
+        return new Success('Mögliche Adressenzuweisungen wurde vorgenommen')
+        .new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblSerialLetter->getId()));
     }
 
     /**

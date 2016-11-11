@@ -10,7 +10,6 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStud
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -260,11 +259,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
                 }
 
-//            /** @noinspection PhpUndefinedFieldInspection */
-//            $DataPerson['Exchange'] = (string)new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(
-//                'Id'       => $Id,
-//                'PersonId' => $DataPerson['TblPerson_Id']
-//            ));
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
                 /** @noinspection PhpUndefinedFieldInspection */
                 $DataPerson['Name'] = false;
@@ -278,9 +272,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 }
-//            if (!$DataPerson['Name']) {
-////                var_dump($DataPerson['TblPerson_Id']);
-//            }
                 /** @noinspection PhpUndefinedFieldInspection */
                 $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
                 if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
@@ -300,8 +291,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-
-        $tblPersonSearch = $SearchResult;
 
         $FormGroup = new Form(
             new FormGroup(
@@ -378,7 +367,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     ( $IsFilter
-                                        ? new TableData($tblPersonSearch, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -441,6 +430,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
                                 'Option'      => '',
+                            ), array(
+                                'columnDefs' => array(
+                                    array('orderable' => false, 'width' => '130px', 'targets' => 2)
+                                )
                             ))
                         ))
                     ))
@@ -465,16 +458,6 @@ class Frontend extends Extension implements IFrontendInterface
     private function formSerialLetter()
     {
 
-        $tblGroupAll = Group::useService()->getGroupAll();
-        // Gruppe "Alle" aus der Auswahl entfernen
-        if ($tblGroupAll) {
-            /** @var TblGroup $tblGroup */
-            $tblGroup = current($tblGroupAll);
-            if ($tblGroup->getMetaTable() == 'COMMON') {
-                array_shift($tblGroupAll);
-            }
-        }
-
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
@@ -484,9 +467,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new TextField('SerialLetter[Description]', 'Beschreibung', 'Beschreibung'), 8
                 )
             )),
-            ))
-//        )), null, new Route(__NAMESPACE__.'/Address/Guardian'), array( '' ) //ToDO Testen ob die Route mitgegeben werden muss
-        );
+        )));
     }
 
     /**
@@ -771,7 +752,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblPersonSearch = $SearchResult;
-        $tblPersonList = SerialLetter::useService()->getPersonBySerialLetter($tblSerialLetter);
+        $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
 
         if (!empty( $tblPersonList ) && !empty( $tblPersonSearch )) {
 
@@ -1053,9 +1034,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll')
                         ), 6),
                         new LayoutColumn(array(
-                            ( !$FilterStudent && !$FilterGroup
-                                ? ''
-                                : new TableData($tblPersonSearch, null,
+//                            ( !$FilterStudent && !$FilterGroup
+//                                ? ''
+//                                :
+                            new TableData($tblPersonSearch, null,
                                     array('Exchange'      => ' ',
                                           'Name'          => 'Name',
                                           'Address'       => 'Adresse',
@@ -1081,7 +1063,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             ),
                                         )
                                     )
-                                )
+//                                )
                             ),
                             ( !$FilterStudent && !$FilterGroup
                                 ? ''
@@ -1118,7 +1100,7 @@ class Frontend extends Extension implements IFrontendInterface
             array('Id' => $tblSerialLetter->getId()),
             'Addressliste für Serienbriefe anzeigen und herunterladen'));
 
-        $tblPersonList = SerialLetter::useService()->getPersonBySerialLetter($tblSerialLetter);
+        $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
         if (!$tblPersonList) {
             return $Stage.new Danger('Es sind keine Personen dem Serienbrief zugeordnet', new Exclamation());
         }
@@ -1156,7 +1138,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                     if (!isset( $Data[$tblAddress->getId()]['District'] )) {
                                         if (( $tblCity = $tblAddress->getTblCity() )) {
-                                            $Data[$tblAddress->getId()]['District'] = $tblAddress->getTblCity()->getName();
+                                            $Data[$tblAddress->getId()]['District'] = $tblAddress->getTblCity()->getDistrict();
                                         }
                                     }
                                     if (!isset( $Data[$tblAddress->getId()]['Street'] )) {
@@ -1357,7 +1339,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter/Address', new ChevronLeft(), array('Id' => $Id)));
 
         $Stage->setContent(
-            SerialLetter::useService()->createAddressPersonSelfButton($tblSerialLetter)
+            SerialLetter::useService()->createAddressPersonSelf($tblSerialLetter)
         );
 
         return $Stage;
@@ -1378,7 +1360,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter/Address', new ChevronLeft(), array('Id' => $Id)));
 
-        $Stage->setContent(new WarningMessage('Keine Funktion hinterlegt'));
+        $Stage->setContent(
+            SerialLetter::useService()->createAddressPersonGuardian($tblSerialLetter)
+        );
 
         return $Stage;
     }
@@ -1409,7 +1393,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             } else {
                 if (!$Confirm) {
-                    $tblPersonList = SerialLetter::useService()->getPersonBySerialLetter($tblSerialLetter);
+                    $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
                     if ($tblPersonList) {
                         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
                         $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
@@ -1427,10 +1411,6 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(array(
                                 new LayoutColumn(array(
                                     new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter),
-//                                new Panel('Adressen zuordnung für Serienbriefe', new Bold($tblSerialLetter->getName()).
-//                                    ( $tblSerialLetter->getDescription() !== '' ? '&nbsp;&nbsp;'
-//                                        .new Muted(new Small(new Small($tblSerialLetter->getDescription()))) : '' ),
-//                                    Panel::PANEL_TYPE_INFO),
                                 ), 6),
                                 new LayoutColumn(
                                     new Panel(new Question().' Alle Zuweisungen für Adressen des Serienbriefs wirklich löschen?', array(
@@ -1535,14 +1515,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Global->savePost();
 
-        // Selectbox Field's
-//        $tblSalutationAll = Person::useService()->getSalutationAll();
-//        if ($tblSalutationAll) {
-//            $tblSalutation = new TblSalutation('Familie');
-//            $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
-//            $tblSalutationAll['Family'] = $tblSalutation;
-//        }
-
         $dataList = array();
         $columnList = array(
             'Salutation'   => 'Anrede',
@@ -1644,7 +1616,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
 
-        $tblPersonList = SerialLetter::useService()->getPersonBySerialLetter($tblSerialLetter);
+        $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
         $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
             'Adresse(n): '.$SerialLetterCount,);
@@ -1777,100 +1749,107 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblPerson);
                     if ($tblAddressPersonAllByPerson) {
                         /** @var TblAddressPerson $tblAddressPerson */
-                        $AddressList = array();     //ToDO Doppelte Adressen zusammenfassen
-                        array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson) use (&$AddressList, $tblPerson) {
+                        $AddressList = array();
+                        array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson) use (&$AddressList, $tblPerson, $Id) {
                             if (( $serviceTblPersonToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
                                 if (( $tblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
                                     if (( $PersonToAddress = $tblToPerson->getServiceTblPerson() )) {
                                         if (( $tblAddress = $serviceTblPersonToAddress->getTblAddress() )) {
-                                            if (!isset( $AddressList[$tblPerson->getId()][$tblAddress->getId()]['Person'] )) {
-                                                $AddressList[$tblPerson->getId()][$tblAddress->getId()]['Person'] =
+                                            if (!isset( $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'] )) {
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'] =
                                                     $PersonToAddress->getLastName().' '.$PersonToAddress->getFirstName();
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] =
+                                                    $PersonToAddress->getSalutation();
                                             } else {
-                                                $AddressList[$tblPerson->getId()][$tblAddress->getId()]['Person'] =
-                                                    $AddressList[$tblPerson->getId()][$tblAddress->getId()]['Person'].', '.
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'] =
+                                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'].', '.
                                                     $PersonToAddress->getLastName().' '.$PersonToAddress->getFirstName();
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] =
+                                                    ( $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] !== ''
+                                                        ? $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'].', '.
+                                                        $PersonToAddress->getSalutation()
+                                                        : $PersonToAddress->getSalutation() );
                                             }
                                         }
+//                                        $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($PersonToAddress);
+//                                        if ($tblRelationshipList) {
+//                                            /** @var TblToPerson $tblRelationship */
+//                                            foreach ($tblRelationshipList as $tblRelationship) {
+//                                                if ($tblRelationship->getServiceTblPersonFrom() == $tblPerson
+//                                                    && $tblRelationship->getServiceTblPersonTo() == $PersonToAddress
+//                                                ) {
+//                                                    $RelationshipListFrom [] = $tblRelationship->getTblType()->getName();
+//                                                }
+//                                                if ($tblRelationship->getServiceTblPersonTo() == $PersonToAddress
+//                                                    && $tblRelationship->getServiceTblPersonFrom() == $tblPerson
+//                                                ) {
+//                                                    $RelationshipListTo [] = $tblRelationship->getTblType()->getName();
+//                                                }
+//                                            }
+//                                        }
+//                                        if (!empty( $RelationshipListFrom )) {
+//                                            $RelationshipListFrom = implode(', ', $RelationshipListFrom);
+//                                            $RelationshipListFrom =
+//                                                new Small(new Muted('('.$tblPerson->getLastFirstName().' ist '.$RelationshipListFrom.')'));
+//                                        } else {
+//                                            $RelationshipListFrom = '';
+//                                        }
+//                                        if (!empty( $RelationshipListTo )) {
+//                                            $RelationshipListTo = implode(', ', $RelationshipListTo);
+//                                            $RelationshipListTo =
+//                                                new Small(new Muted('('.$RelationshipListTo.' für '.$tblPerson->getLastFirstName().')'));
+//                                        } else {
+//                                            $RelationshipListTo = '';
+//                                        }
+
+                                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                                        if ($tblStudent) {
+                                            $StudentNumber = $tblStudent->getIdentifier();
+                                        } else {
+                                            $StudentNumber = new Small(new Muted('-NA-'));
+                                        }
+
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Person'] =
+                                            ( $tblAddressPerson->getServiceTblPerson()
+                                                ? $tblAddressPerson->getServiceTblPerson()->getLastFirstName()
+                                                : new Warning(new Exclamation().' Person nicht gefunden.') );
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $StudentNumber;
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToAddress'] =
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'];
+//                                            ( $PersonToAddress
+//                                                ? $PersonToAddress->getLastFirstName().' '.$RelationshipListFrom.' '.$RelationshipListTo
+//                                                : new Warning(new Exclamation().' Person nicht gefunden.') );
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Address'] =
+                                            ( $tblAddressPerson->getServiceTblToPerson()
+                                                ? $tblAddressPerson->getServiceTblToPerson()->getTblAddress()->getGuiString()
+                                                : new Warning(new Exclamation().' Adresse nicht gefunden.') );
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Salutation'] =
+                                            isset( $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] )
+                                            && $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] !== ''
+                                                ? $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList']
+                                                : new Warning(new Exclamation().' Keine Anrede hinterlegt.');
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Option'] =
+                                            new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
+                                                array('Id'       => $Id,
+                                                      'PersonId' => $tblPerson->getId(),
+                                                      'Route'    => '/Reporting/SerialLetter/Export'));
                                     }
                                 }
                             }
                         });
-
-                        /** @var TblAddressPerson $tblAddressPerson */
-                        foreach ($tblAddressPersonAllByPerson as $tblAddressPerson) {
-                            $tblAddressPersonFound = $tblAddressPerson->getServiceTblPerson();
-                            $tblPersonWithAddress = $tblAddressPerson->getServiceTblPersonToAddress();
-
-                            if ($tblAddressPerson->getServiceTblToPerson()
-                                && $tblAddressPerson->getServiceTblToPerson()->getTblAddress()
-                            ) {
-
+                        if ($AddressList) {
+                            foreach ($AddressList as $Address) {
                                 $countAddresses++;
+                                $dataList[] = array(
+                                    'Number'          => ++$count,
+                                    'Person'          => ( isset( $Address['Person'] ) ? $Address['Person'] : '' ),
+                                    'StudentNumber'   => ( isset( $Address['StudentNumber'] ) ? $Address['StudentNumber'] : '' ),
+                                    'PersonToAddress' => ( isset( $Address['PersonToAddress'] ) ? $Address['PersonToAddress'] : '' ),
+                                    'Address'         => ( isset( $Address['Address'] ) ? $Address['Address'] : '' ),
+                                    'Salutation'      => ( isset( $Address['Salutation'] ) ? $Address['Salutation'] : '' ),
+                                    'Option'          => ( isset( $Address['Option'] ) ? $Address['Option'] : '' )
+                                );
                             }
-
-                            $RelationshipListFrom = array();
-                            $RelationshipListTo = array();
-                            if ($tblAddressPersonFound) {
-                                $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblAddressPersonFound);
-                                if ($tblRelationshipList) {
-                                    /** @var TblToPerson $tblRelationship */
-                                    foreach ($tblRelationshipList as $tblRelationship) {
-                                        if ($tblRelationship->getServiceTblPersonFrom() == $tblAddressPersonFound
-                                            && $tblRelationship->getServiceTblPersonTo() == $tblPersonWithAddress
-                                        ) {
-                                            $RelationshipListFrom [] = $tblRelationship->getTblType()->getName();
-                                        }
-                                        if ($tblRelationship->getServiceTblPersonTo() == $tblAddressPersonFound
-                                            && $tblRelationship->getServiceTblPersonFrom() == $tblPersonWithAddress
-                                        ) {
-                                            $RelationshipListTo [] = $tblRelationship->getTblType()->getName();
-                                        }
-                                    }
-                                }
-                            }
-                            if (!empty( $RelationshipListFrom )) {
-                                $RelationshipListFrom = implode(', ', $RelationshipListFrom);
-                                $RelationshipListFrom =
-                                    new Small(new Muted('('.$tblPerson->getLastFirstName().' ist '.$RelationshipListFrom.')'));
-                            } else {
-                                $RelationshipListFrom = '';
-                            }
-                            if (!empty( $RelationshipListTo )) {
-                                $RelationshipListTo = implode(', ', $RelationshipListTo);
-                                $RelationshipListTo =
-                                    new Small(new Muted('('.$RelationshipListTo.' für '.$tblPerson->getLastFirstName().')'));
-                            } else {
-                                $RelationshipListTo = '';
-                            }
-
-                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                            if ($tblStudent) {
-                                $StudentNumber = $tblStudent->getIdentifier();
-                            } else {
-                                $StudentNumber = new Small(new Muted('-NA-'));
-                            }
-
-                            $dataList[] = array(
-                                'Number'          => ++$count,
-                                'Person'          => ( $tblAddressPerson->getServiceTblPerson()
-                                    ? $tblAddressPerson->getServiceTblPerson()->getLastFirstName()
-                                    : new Warning(new Exclamation().' Person nicht gefunden.') ),
-                                'StudentNumber'   => $StudentNumber,
-                                'PersonToAddress' => ( $tblPersonWithAddress
-                                    ? $tblPersonWithAddress->getLastFirstName().' '.$RelationshipListFrom.' '.$RelationshipListTo
-                                    : new Warning(new Exclamation().' Person nicht gefunden.') ),
-                                'Address'         => ( $tblAddressPerson->getServiceTblToPerson()
-                                    ? $tblAddressPerson->getServiceTblToPerson()->getTblAddress()->getGuiString()
-                                    : new Warning(new Exclamation().' Adresse nicht gefunden.') ),
-                                'Salutation'      => $tblAddressPerson->getServiceTblSalutation()
-                                    ? $tblAddressPerson->getServiceTblSalutation()->getSalutation()
-                                    : new Warning(new Exclamation().' Keine Anrede hinterlegt.'),
-                                'Option'          => new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
-                                    array('Id'       => $Id,
-                                          'PersonId' => $tblPerson->getId(),
-                                          'Route'    => '/Reporting/SerialLetter/Export'))
-                            );
                         }
                     } else {
                         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
