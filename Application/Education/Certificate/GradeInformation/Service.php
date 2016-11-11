@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Education\Certificate\GradeInformation;
 
-use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
@@ -41,12 +40,17 @@ class Service
     /**
      * @param IFormInterface|null $Stage
      * @param TblDivision $tblDivision
+     * @param string $Route
      * @param $Data
      *
      * @return IFormInterface|string
      */
-    public function createGradeInformation(IFormInterface $Stage = null, TblDivision $tblDivision, $Data)
-    {
+    public function createGradeInformation(
+        IFormInterface $Stage = null,
+        TblDivision $tblDivision,
+        $Route = 'Teacher',
+        $Data
+    ) {
 
         /**
          * Skip to Frontend
@@ -95,7 +99,7 @@ class Service
             // Vorlage (Template) vorselektieren
             if (($tblDivision = $tblPrepare->getServiceTblDivision())
                 && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
-                && ($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation') )
+                && ($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation'))
             ) {
                 foreach ($tblStudentList as $tblPerson) {
                     Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $tblCertificate);
@@ -104,7 +108,8 @@ class Service
 
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Noteninformation ist erfasst worden.')
             . new Redirect('/Education/Certificate/GradeInformation/Create', Redirect::TIMEOUT_SUCCESS, array(
-                'DivisionId' => $tblDivision->getId()
+                'DivisionId' => $tblDivision->getId(),
+                'Route' => $Route
             ));
         }
 
@@ -114,12 +119,17 @@ class Service
     /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
+     * @param string $Route
      * @param $Data
      *
      * @return IFormInterface|string
      */
-    public function updateGradeInformation(IFormInterface $Stage = null, TblPrepareCertificate $tblPrepare, $Data)
-    {
+    public function updateGradeInformation(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        $Route = 'Teacher',
+        $Data
+    ) {
 
         /**
          * Skip to Frontend
@@ -149,7 +159,8 @@ class Service
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Noteninformation ist geändert worden.')
             . new Redirect('/Education/Certificate/GradeInformation/Create', Redirect::TIMEOUT_SUCCESS, array(
-                'DivisionId' => $tblPrepare->getServiceTblDivision() ? $tblPrepare->getServiceTblDivision()->getId() : null
+                'DivisionId' => $tblPrepare->getServiceTblDivision() ? $tblPrepare->getServiceTblDivision()->getId() : null,
+                'Route' => $Route
             ));
         }
 
@@ -248,6 +259,7 @@ class Service
     /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
+     * @param string $Route
      * @param $Grades
      * @param $Remarks
      *
@@ -256,6 +268,7 @@ class Service
     public function updatePrepareBehaviorGradesAndRemark(
         IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
+        $Route = 'Teacher',
         $Grades,
         $Remarks
     ) {
@@ -324,6 +337,7 @@ class Service
                 . new Redirect('/Education/Certificate/GradeInformation/Setting/Preview',
                     Redirect::TIMEOUT_SUCCESS, array(
                         'PrepareId' => $tblPrepare->getId(),
+                        'Route' => $Route
                     ));
             }
         }
@@ -351,152 +365,5 @@ class Service
             'PrepareId' => $tblPrepare->getId(),
             'PersonId' => $tblPerson->getId()
         ));
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param $Content
-     * @param Certificate|null $Certificate
-     *
-     * @return IFormInterface|string
-     */
-    public function updatePrepareInformationList(
-        IFormInterface $Stage = null,
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        $Content,
-        Certificate $Certificate = null
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Content) {
-            return $Stage;
-        }
-
-        Prepare::useService()->updatePrepareInformationDataList($tblPrepare, $tblPerson, $Content, $Certificate);
-
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
-        . new Redirect('/Education/Certificate/GradeInformation/Setting/Template', Redirect::TIMEOUT_SUCCESS, array(
-            'PrepareId' => $tblPrepare->getId(),
-            'PersonId' => $tblPerson->getId()
-        ));
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblPrepareCertificate $tblPrepare
-     * @param $Grades
-     *
-     * @return IFormInterface|string
-     */
-    public function updatePrepareBehaviorGrades(
-        IFormInterface $Stage = null,
-        TblPrepareCertificate $tblPrepare,
-        $Grades
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Grades) {
-            return $Stage;
-        }
-
-        $error = false;
-        if (is_array($Grades)) {
-//            if ($tblScoreType) {
-//                foreach ($Data as $gradeTypeId => $value) {
-//                    if (trim($value) !== '' && $tblScoreType) {
-//                        if (!preg_match('!' . $tblScoreType->getPattern() . '!is', trim($value))) {
-//                            $error = true;
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-
-            if ($error) {
-                $Stage->prependGridGroup(
-                    new FormGroup(new FormRow(new FormColumn(new Danger(
-                            'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
-                        Die Daten wurden nicht gespeichert.', new Exclamation())
-                    ))));
-
-                return $Stage;
-            } else {
-                if (($tblTask = $tblPrepare->getServiceTblBehaviorTask())
-                    && ($tblTestType = $tblTask->getTblTestType())
-                    && ($tblDivision = $tblPrepare->getServiceTblDivision())
-                ) {
-                    if ($Grades) {
-                        foreach ($Grades as $personId => $personGrades) {
-                            if (($tblPerson = Person::useService()->getPersonById($personId))
-                                && is_array($personGrades)
-                            ) {
-                                foreach ($personGrades as $gradeTypeId => $value) {
-                                    if (trim($value) && trim($value) !== ''
-                                        && ($tblGradeType = Gradebook::useService()->getGradeTypeById($gradeTypeId))
-                                    ) {
-                                        Prepare::useService()->updatePrepareGradeForBehavior(
-                                            $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
-                                            trim($value)
-                                        );
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
-                    . new Redirect('/Education/Certificate/GradeInformation/Setting/Wizard/Remark',
-                        Redirect::TIMEOUT_SUCCESS, array(
-                            'PrepareId' => $tblPrepare->getId(),
-                        ));
-                }
-            }
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblPrepareCertificate $tblPrepare
-     * @param $Remarks
-     *
-     * @return IFormInterface|string
-     */
-    public function updatePrepareRemark(
-        IFormInterface $Stage = null,
-        TblPrepareCertificate $tblPrepare,
-        $Remarks
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Remarks) {
-            return $Stage;
-        }
-
-        if ($Remarks) {
-            foreach ($Remarks as $personId => $remark) {
-                if (($tblPerson = Person::useService()->getPersonById($personId))) {
-                    $Content['Input']['Remark'] = $remark;
-                    Prepare::useService()->updatePrepareInformationDataList($tblPrepare, $tblPerson,
-                        $Content, null);
-                }
-            }
-        }
-
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Bemerkungen wurden gespeichert.')
-        . new Redirect('/Education/Certificate/GradeInformation/Setting/Wizard/Preview',
-            Redirect::TIMEOUT_SUCCESS, array(
-                'PrepareId' => $tblPrepare->getId(),
-            ));
     }
 }

@@ -38,6 +38,9 @@ class GradeInformation extends Certificate
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
                 ->addSlice((new Slice())
+                    ->styleHeight('70px')
+                )
+                ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Noteninformation für ')
@@ -91,15 +94,28 @@ class GradeInformation extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Unterschrift der Eltern:')
-                            , '25%')
+                            ->setContent('Unterschrift des Klassenlehrers:')
+                            , '30%')
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
                             ->styleBorderBottom()
-                            , '55%')
+                            , '50%')
                         ->addElementColumn((new Element())
                             , '20%')
-                    )->styleMarginTop('75px')
+                    )->styleMarginTop('40px')
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Unterschrift der Eltern:')
+                            , '30%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleBorderBottom()
+                            , '50%')
+                        ->addElementColumn((new Element())
+                            , '20%')
+                    )->styleMarginTop('40px')
                 )
             )
         );
@@ -298,7 +314,8 @@ class GradeInformation extends Certificate
 
         $section = new Section();
         $top = '30px';
-        $height = '50px';
+//        $height = '50px';
+        $height = '35px';
         $fontSize = '17px';
         $section
             ->addElementColumn((new Element())
@@ -313,7 +330,7 @@ class GradeInformation extends Certificate
                 ->styleTextSize($fontSize)
                 , '30%')
             ->addElementColumn((new Element())
-                ->setContent('derzeitige Note' . '<br>' . '(mit Signum)')
+                ->setContent('derzeitige Note')
                 ->styleMarginTop($top)
                 ->stylePaddingLeft($paddingLeft)
                 ->styleBorderLeft()

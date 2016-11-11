@@ -33,6 +33,12 @@ class GradeInformation implements IModuleInterface
             __NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendSelectDivision')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Teacher', __NAMESPACE__ . '\Frontend::frontendTeacherSelectDivision')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Headmaster', __NAMESPACE__ . '\Frontend::frontendHeadmasterSelectDivision')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Create', __NAMESPACE__ . '\Frontend::frontendGradeInformation')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -41,50 +47,32 @@ class GradeInformation implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting', __NAMESPACE__ . '\Frontend::frontendSetting')
         );
-
-        /*
-         * AppointedDateTask
-         */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\AppointedDateTask', __NAMESPACE__ . '\Frontend::frontendAppointedDateTask')
+            __NAMESPACE__ . '\Setting\Preview', __NAMESPACE__ . '\Frontend::frontendPreview')
         );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\AppointedDateTask\Select', __NAMESPACE__ . '\Frontend::frontendSelectAppointedDateTask')
-        );
-
-        /*
-         *  BehaviorTask
-         */
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\BehaviorTask', __NAMESPACE__ . '\Frontend::frontendBehaviorTask')
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\BehaviorTask\Select', __NAMESPACE__ . '\Frontend::frontendSelectBehaviorTask')
-        );
-
-        /*
-         * Template
-         */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting\Template\Show', __NAMESPACE__ . '\Frontend::frontendShowTemplate')
         );
 
-        /*
-         * Test
-         */
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\Wizard\Behavior', __NAMESPACE__ . '\Frontend::frontendWizardBehavior')
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\Wizard\Remark', __NAMESPACE__ . '\Frontend::frontendWizardRemark')
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\Wizard\Preview', __NAMESPACE__ . '\Frontend::frontendWizardPreview')
-        );
-
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Setting\Preview', __NAMESPACE__ . '\Frontend::frontendPreview')
-        );
+//        /*
+//         * AppointedDateTask
+//         */
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__ . '\Setting\AppointedDateTask', __NAMESPACE__ . '\Frontend::frontendAppointedDateTask')
+//        );
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__ . '\Setting\AppointedDateTask\Select', __NAMESPACE__ . '\Frontend::frontendSelectAppointedDateTask')
+//        );
+//
+//        /*
+//         *  BehaviorTask
+//         */
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__ . '\Setting\BehaviorTask', __NAMESPACE__ . '\Frontend::frontendBehaviorTask')
+//        );
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__ . '\Setting\BehaviorTask\Select', __NAMESPACE__ . '\Frontend::frontendSelectBehaviorTask')
+//        );
     }
 
     /**
