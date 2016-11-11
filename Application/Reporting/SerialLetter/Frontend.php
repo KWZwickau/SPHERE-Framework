@@ -918,7 +918,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
         $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-            'Adresse(n): '.$SerialLetterCount,);
+            'Anzahl Anschreiben: '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
         );
@@ -1185,7 +1185,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
         $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-            'Adresse(n): '.$SerialLetterCount,);
+            'Anzahl Anschreiben: '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
         );
@@ -1397,7 +1397,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblPersonList) {
                         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
                         $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-                            'Adresse(n): '.$SerialLetterCount,);
+                            'Anzahl Anschreiben: '.$SerialLetterCount,);
                         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                                 .' Person(en)', Label::LABEL_TYPE_INFO)
                         );
@@ -1619,7 +1619,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
         $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-            'Adresse(n): '.$SerialLetterCount,);
+            'Anzahl Anschreiben: '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                 .' Person(en)', Label::LABEL_TYPE_INFO)
         );
@@ -1651,7 +1651,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                 ),
                                 new Well(SerialLetter::useService()->setPersonAddressSelection(
-                                    $Form, $tblSerialLetter, $Check, $Route
+                                    $Form, $tblSerialLetter, $tblPerson, $Check, $Route
                                 ))
                             ))
                         )
@@ -1885,7 +1885,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
             $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
-                'Adresse(n): '.$SerialLetterCount,);
+                'Anzahl Anschreiben: '.$SerialLetterCount,);
             $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
                     .' Person(en)', Label::LABEL_TYPE_INFO)
             );

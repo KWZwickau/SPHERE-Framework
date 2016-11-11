@@ -9,7 +9,6 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -223,6 +222,7 @@ class Service extends AbstractService
     /**
      * @param IFormInterface  $Form
      * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
      * @param array           $Check
      * @param string          $Route
      *
@@ -231,48 +231,51 @@ class Service extends AbstractService
     public function setPersonAddressSelection(
         IFormInterface $Form,
         TblSerialLetter $tblSerialLetter,
+        TblPerson $tblPerson,
         $Check,
         $Route = '/Reporting/SerialLetter/Address'
     ) {
 
+        // Get Submit Info
+        $Global = $this->getGlobal();
+
         /**
          * Skip to Frontend
          */
-        if (null === $Check) {
+        if (null === $Check && !isset( $Global->POST['Button'] )) {
             return $Form;
         }
 
         if (!empty( $Check )) {
             foreach ($Check as $personId => $list) {
-                $tblPerson = Person::useService()->getPersonById($personId);
-                if ($tblPerson) {
-                    // alle Einträge zum Serienbrief dieser Person löschen
-                    ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
-                    if (is_array($list) && !empty( $list )) {
-                        foreach ($list as $key => $item) {
-                            if (isset( $item['Address'] )) {
-                                $tblToPerson = Address::useService()->getAddressToPersonById($key);
-                                if ($tblToPerson && $tblToPerson->getServiceTblPerson()) {
-                                    if ($tblPersonToPerson = $tblToPerson->getServiceTblPerson()) {
-                                        $tblSalutation = $tblPersonToPerson->getTblSalutation();
+                // alle Einträge zum Serienbrief dieser Person löschen
+                ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
+                if (is_array($list) && !empty( $list )) {
+                    foreach ($list as $key => $item) {
+                        if (isset( $item['Address'] )) {
+                            $tblToPerson = Address::useService()->getAddressToPersonById($key);
+                            if ($tblToPerson && $tblToPerson->getServiceTblPerson()) {
+                                if ($tblPersonToPerson = $tblToPerson->getServiceTblPerson()) {
+                                    $tblSalutation = $tblPersonToPerson->getTblSalutation();
 
-                                        $this->createAddressPerson($tblSerialLetter, $tblPerson,
-                                            $tblToPerson->getServiceTblPerson(), $tblToPerson,
-                                            ( $tblSalutation ? $tblSalutation : null ));
-                                    } else {
-                                        $this->createAddressPerson($tblSerialLetter, $tblPerson,
-                                            $tblToPerson->getServiceTblPerson(), $tblToPerson,
-                                            null);
-                                    }
+                                    $this->createAddressPerson($tblSerialLetter, $tblPerson,
+                                        $tblToPerson->getServiceTblPerson(), $tblToPerson,
+                                        ( $tblSalutation ? $tblSalutation : null ));
+                                } else {
+                                    $this->createAddressPerson($tblSerialLetter, $tblPerson,
+                                        $tblToPerson->getServiceTblPerson(), $tblToPerson,
+                                        null);
                                 }
                             }
                         }
                     }
-                    return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                    .new Redirect($Route, Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblSerialLetter->getId(), 'PersonId' => $tblPerson->getId()));
                 }
+                return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                .new Redirect($Route, Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblSerialLetter->getId(), 'PersonId' => $tblPerson->getId()));
             }
+        } else {
+            ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
         }
 
         return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
