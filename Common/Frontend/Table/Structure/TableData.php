@@ -89,7 +89,7 @@ class TableData extends Table
             $ColumnDefinition = array_combine(array_values($GridHead), array_values($GridHead));
         }
 
-        if (count($DataList) > 15 && $Interactive) {
+        if (count($DataList) > 1 && $Interactive) {
             // JS Table Data
             $ObjectList = array();
             array_walk($DataList, function (&$Row) use (&$ObjectList, $ColumnDefinition) {
