@@ -143,7 +143,6 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutTabs[0]->setActive();
         }
 
-        $Result = array();
         $Timeout = null;
         $SearchResult = array();
         $IsFilter = false;
@@ -170,14 +169,16 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             if ($FilterGroup) {
-                // Preparation Filter
+                // Preparation FilterGroup
                 array_walk($FilterGroup, function (&$Input) {
 
-                    if (!empty( $Input )) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
                     }
                 });
             } else {
@@ -188,11 +189,13 @@ class Frontend extends Extension implements IFrontendInterface
             if ($FilterPerson) {
                 array_walk($FilterPerson, function (&$Input) {
 
-                    if (!empty( $Input )) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
                     }
                 });
                 $FilterPerson = array_filter($FilterPerson);
@@ -202,12 +205,13 @@ class Frontend extends Extension implements IFrontendInterface
             // Preparation $FilterStudent
             if ($FilterStudent) {
                 array_walk($FilterStudent, function (&$Input) {
-
-                    if (!empty( $Input )) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
                     }
                 });
                 $FilterStudent = array_filter($FilterStudent);
@@ -217,12 +221,13 @@ class Frontend extends Extension implements IFrontendInterface
             // Preparation $FilterYear
             if ($FilterYear) {
                 array_walk($FilterYear, function (&$Input) {
-
-                    if (!empty( $Input )) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
                     }
                 });
                 $FilterYear = array_filter($FilterYear);
@@ -317,10 +322,19 @@ class Frontend extends Extension implements IFrontendInterface
             )
             , new Primary('Filter starten', new Search()));
 
-//        $FilterGroup['TblGroup_Name'] = (isset($FilterGroup['TblGroup_Name']) ? $FilterGroup['TblGroup_Name'] : null);
-//        $FilterYear['TblYear_Name'] = (isset($FilterGroup['TblYear_Name']) ? $FilterGroup['TblYear_Name'] : null);
-//        $FilterStudent['TblLevel_Name'] = (isset($FilterGroup['TblLevel_Name']) ? $FilterGroup['TblLevel_Name'] : null);
-//        $FilterStudent['TblDivision_Name'] = (isset($FilterGroup['TblDivision_Name']) ? $FilterGroup['TblDivision_Name'] : null);
+        if (isset( $FilterGroup['TblGroup_Name'] ) && !empty( $FilterGroup['TblGroup_Name'] )) {
+            $FilterGroup['TblGroup_Name'] = implode(' ', $FilterGroup['TblGroup_Name']);
+        }
+        if (isset( $FilterYear['TblYear_Name'] ) && !empty( $FilterYear['TblYear_Name'] )) {
+            $FilterYear['TblYear_Name'] = implode(' ', $FilterYear['TblYear_Name']);
+        }
+        if (isset( $FilterStudent['TblLevel_Name'] ) && !empty( $FilterStudent['TblLevel_Name'] )) {
+            $FilterStudent['TblLevel_Name'] = implode(' ', $FilterStudent['TblLevel_Name']);
+        }
+        if (isset( $FilterStudent['TblDivision_Name'] ) && !empty( $FilterStudent['TblDivision_Name'] )) {
+            $FilterStudent['TblDivision_Name'] = implode(' ', $FilterStudent['TblDivision_Name']);
+        }
+
         $FormSerialLetterDynamic =
             new Form(new FormGroup(array(
                 new FormRow(array(
@@ -332,11 +346,10 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )),
             )), null, new Route(__NAMESPACE__.''),
-                array('TabActive' => 'DYNAMIC',
-//                      'FilterGroup[TblGroup_Name]' => $FilterGroup['TblGroup_Name'],
-//                      'YearName' => $FilterGroup['TblYear_Name'],
-//                      'LevelName' => $FilterGroup['TblLevel_Name'],
-//                      'DivisionName' => $FilterGroup['TblDivision_Name']
+                array('TabActive'     => 'DYNAMIC',
+                      'FilterGroup'   => $FilterGroup,
+                      'FilterStudent' => $FilterStudent,
+                      'FilterYear'    => $FilterYear
                 )
             );
         $FormSerialLetterDynamic
@@ -353,11 +366,19 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Personen-Filterung'
                         , array(new Well($FormGroup)), Panel::PANEL_TYPE_INFO)
                     .new Layout(
-                        new LayoutGroup(
+                        new LayoutGroup(array(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $Timeout === true
+                                        ? new WarningMessage('Die Tabelle enthält nur einen Teil der Suchergebnisse!')
+                                        : ''
+                                    )
+                                )
+                            ),
                             new LayoutRow(
                                 new LayoutColumn(
                                     ( $IsFilter
-                                        ? new TableData($tblPersonSearch, null,
+                                        ? new TableData($tblPersonSearch, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -387,7 +408,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         : new WarningMessage('Bitte tragen Sie etwas in den Filter ein') )
                                 )
                             )
-                        )
+                        ))
                     )
                     .new Layout(
                         new LayoutGroup(
