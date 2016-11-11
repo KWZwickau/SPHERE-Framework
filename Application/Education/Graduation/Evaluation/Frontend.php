@@ -975,6 +975,8 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($testList as $item) {
                         if ($item->getServiceTblSubject() && $item->getServiceTblGradeType()) {
                             $content = $item->getServiceTblSubject()->getAcronym() . ' '
+                                . ($item->getServiceTblSubjectGroup()
+                                    ? '(' . $item->getServiceTblSubjectGroup()->getName() . ') ' : '')
                                 . $item->getServiceTblGradeType()->getCode() . ' '
                                 . $item->getDescription() . ' ('
                                 . strtr(date('D', strtotime($item->getDate())), $trans) . ' ' . date('d.m.y',
