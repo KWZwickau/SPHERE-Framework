@@ -1771,36 +1771,6 @@ class Frontend extends Extension implements IFrontendInterface
                                                         : $PersonToAddress->getSalutation() );
                                             }
                                         }
-//                                        $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($PersonToAddress);
-//                                        if ($tblRelationshipList) {
-//                                            /** @var TblToPerson $tblRelationship */
-//                                            foreach ($tblRelationshipList as $tblRelationship) {
-//                                                if ($tblRelationship->getServiceTblPersonFrom() == $tblPerson
-//                                                    && $tblRelationship->getServiceTblPersonTo() == $PersonToAddress
-//                                                ) {
-//                                                    $RelationshipListFrom [] = $tblRelationship->getTblType()->getName();
-//                                                }
-//                                                if ($tblRelationship->getServiceTblPersonTo() == $PersonToAddress
-//                                                    && $tblRelationship->getServiceTblPersonFrom() == $tblPerson
-//                                                ) {
-//                                                    $RelationshipListTo [] = $tblRelationship->getTblType()->getName();
-//                                                }
-//                                            }
-//                                        }
-//                                        if (!empty( $RelationshipListFrom )) {
-//                                            $RelationshipListFrom = implode(', ', $RelationshipListFrom);
-//                                            $RelationshipListFrom =
-//                                                new Small(new Muted('('.$tblPerson->getLastFirstName().' ist '.$RelationshipListFrom.')'));
-//                                        } else {
-//                                            $RelationshipListFrom = '';
-//                                        }
-//                                        if (!empty( $RelationshipListTo )) {
-//                                            $RelationshipListTo = implode(', ', $RelationshipListTo);
-//                                            $RelationshipListTo =
-//                                                new Small(new Muted('('.$RelationshipListTo.' für '.$tblPerson->getLastFirstName().')'));
-//                                        } else {
-//                                            $RelationshipListTo = '';
-//                                        }
 
                                         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                         if ($tblStudent) {
@@ -1816,9 +1786,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $StudentNumber;
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToAddress'] =
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'];
-//                                            ( $PersonToAddress
-//                                                ? $PersonToAddress->getLastFirstName().' '.$RelationshipListFrom.' '.$RelationshipListTo
-//                                                : new Warning(new Exclamation().' Person nicht gefunden.') );
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['Address'] =
                                             ( $tblAddressPerson->getServiceTblToPerson()
                                                 ? $tblAddressPerson->getServiceTblToPerson()->getTblAddress()->getGuiString()
