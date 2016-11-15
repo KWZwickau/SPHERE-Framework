@@ -128,6 +128,9 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
 
+        $this->createIndex( $Table, array( 'serviceTblPerson', 'serviceTblTest' ), false );
+        $this->createIndex( $Table, array( 'serviceTblDivision', 'serviceTblSubject' ), false );
+
         return $Table;
     }
 
