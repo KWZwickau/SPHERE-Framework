@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 class Service extends AbstractService
@@ -159,15 +158,57 @@ class Service extends AbstractService
     /**
      * @param TblSerialLetter $tblSerialLetter
      * @param TblPerson       $tblPerson
+     * @param string          $FirstGender 'M'(ale) or 'F'(emale)
      *
-     * @return bool|TblAddressPerson[]
+     * @return bool|Service\Entity\TblAddressPerson[]
      */
     public function getAddressPersonAllByPerson(
         TblSerialLetter $tblSerialLetter,
-        TblPerson $tblPerson
+        TblPerson $tblPerson,
+        $FirstGender = 'M'
     ) {
 
-        return ( new Data($this->getBinding()) )->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
+        $EntityList = ( new Data($this->getBinding()) )->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
+
+        if ($EntityList && $FirstGender != null) {
+            $AddressPersonList = array();
+            foreach ($EntityList as $AddressPerson) {
+                $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
+                if ($tblPerson) {
+                    if ($FirstGender === 'M' && $tblPerson->getSalutation() === 'Herr') {
+                        $AddressPersonList[] = $AddressPerson;
+                    }
+                    if ($FirstGender === 'F' && $tblPerson->getSalutation() === 'Frau') {
+                        $AddressPersonList[] = $AddressPerson;
+                    }
+                }
+            }
+
+            foreach ($EntityList as $AddressPerson) {
+                $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
+                if ($tblPerson) {
+                    if ($FirstGender === 'M' && $tblPerson->getSalutation() === 'Frau') {
+                        $AddressPersonList[] = $AddressPerson;
+                    }
+                    if ($FirstGender === 'F' && $tblPerson->getSalutation() === 'Herr') {
+                        $AddressPersonList[] = $AddressPerson;
+                    }
+                }
+            }
+            foreach ($EntityList as $AddressPerson) {
+                $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
+                if ($tblPerson) {
+                    if ($tblPerson->getSalutation() !== 'Herr'
+                        && $tblPerson->getSalutation() !== 'Frau'
+                    ) {
+                        $AddressPersonList[] = $AddressPerson;
+                    }
+                }
+            }
+        } else {
+            $AddressPersonList = $EntityList;
+        }
+        return ( !empty( $AddressPersonList ) ? $AddressPersonList : false );
     }
 
     /**
@@ -452,11 +493,11 @@ class Service extends AbstractService
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson) {
                 $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
-                    $tblPerson);
+                    $tblPerson);    // ToDO choose FirstGender
                 if ($tblAddressPersonAllByPerson) {
                     /** @var TblAddressPerson $tblAddressPerson */
                     $AddressList = array();
-                    array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson) use (&$AddressList, $tblPerson) {
+                    array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson) use (&$AddressList, $tblPerson, &$AddressPersonCount) {
                         if (( $serviceTblPersonToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
                             if (( $tblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
                                 if (( $PersonToAddress = $tblToPerson->getServiceTblPerson() )) {
@@ -477,10 +518,16 @@ class Service extends AbstractService
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonLastName'][] =
                                             $PersonToAddress->getLastName();
 
+                                        if (isset( $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'] )) {
+                                            if ($AddressPersonCount < count($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'])) {
+                                                $AddressPersonCount = count($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName']);
+                                            }
+                                        }
+
                                         if (( $tblAddress = $tblAddressPerson->getServiceTblToPerson()->getTblAddress() )) {
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['Street'] =
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetName'] =
                                                 $tblAddress->getStreetName();
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['Number'] =
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetNumber'] =
                                                 $tblAddress->getStreetNumber();;
                                             if (( $tblCity = $tblAddress->getTblCity() )) {
                                                 $AddressList[$tblPerson->getId().$tblAddress->getId()]['District'] =
@@ -491,142 +538,98 @@ class Service extends AbstractService
                                                     $tblCity->getName();
                                             }
                                         }
-                                        // ToDO Füllen
+                                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                                        if ($tblStudent) {
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $tblStudent->getIdentifier();
+                                        } else {
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = '';
+                                        }
 
                                     }
-
-                                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                                    if ($tblStudent) {
-                                        $StudentNumber = $tblStudent->getIdentifier();
-                                    } else {
-                                        $StudentNumber = new Small(new Muted('-NA-'));
-                                    }
-
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['Person'] =
-                                        ( $tblAddressPerson->getServiceTblPerson()
-                                            ? $tblAddressPerson->getServiceTblPerson()->getLastFirstName()
-                                            : new Warning(new Exclamation().' Person nicht gefunden.') );
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $StudentNumber;
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToAddress'] =
-                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'];
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['Address'] =
-                                        ( $tblAddressPerson->getServiceTblToPerson()
-                                            ? $tblAddressPerson->getServiceTblToPerson()->getTblAddress()->getGuiString()
-                                            : new Warning(new Exclamation().' Adresse nicht gefunden.') );
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['Salutation'] =
-                                        isset( $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] )
-                                        && $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] !== ''
-                                            ? $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList']
-                                            : new Warning(new Exclamation().' Keine Anrede hinterlegt.');
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['Option'] =
-                                        new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
-                                            array('Id'       => $Id,
-                                                  'PersonId' => $tblPerson->getId(),
-                                                  'Route'    => '/Reporting/SerialLetter/Export'));
                                 }
                             }
                         }
                     });
+
                     if ($AddressList) {
                         foreach ($AddressList as $Address) {
-                            $countAddresses++;
-                            $dataList[] = array(
-                                'Number'          => ++$count,
-                                'Person'          => ( isset( $Address['Person'] ) ? $Address['Person'] : '' ),
-                                'StudentNumber'   => ( isset( $Address['StudentNumber'] ) ? $Address['StudentNumber'] : '' ),
-                                'PersonToAddress' => ( isset( $Address['PersonToAddress'] ) ? $Address['PersonToAddress'] : '' ),
-                                'Address'         => ( isset( $Address['Address'] ) ? $Address['Address'] : '' ),
-                                'Salutation'      => ( isset( $Address['Salutation'] ) ? $Address['Salutation'] : '' ),
-                                'Option'          => ( isset( $Address['Option'] ) ? $Address['Option'] : '' )
+                            $ExportData[] = array(
+                                'SalutationList' => ( isset( $Address['PersonSalutation'] ) ? $Address['PersonSalutation'] : array() ),
+                                'FirstNameList'  => ( isset( $Address['PersonFirstName'] ) ? $Address['PersonFirstName'] : array() ),
+                                'LastNameList'   => ( isset( $Address['PersonLastName'] ) ? $Address['PersonLastName'] : array() ),
+                                'District'       => ( isset( $Address['District'] ) ? $Address['District'] : '' ),
+                                'StreetName'     => ( isset( $Address['StreetName'] ) ? $Address['StreetName'] : '' ),
+                                'StreetNumber'   => ( isset( $Address['StreetNumber'] ) ? $Address['StreetNumber'] : '' ),
+                                'Code'           => ( isset( $Address['Code'] ) ? $Address['Code'] : '' ),
+                                'City'           => ( isset( $Address['City'] ) ? $Address['City'] : '' ),
+                                'Salutation'     => ( isset( $Address['Salutation'] ) ? $Address['Salutation'] : '' ),
+                                'FirstName'      => ( isset( $Address['FirstName'] ) ? $Address['FirstName'] : '' ),
+                                'LastName'       => ( isset( $Address['LastName'] ) ? $Address['LastName'] : '' ),
+                                'StudentNumber'  => ( isset( $Address['StudentNumber'] ) ? $Address['StudentNumber'] : '' ),
                             );
                         }
                     }
-                } else {
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-                        $StudentNumber = $tblStudent->getIdentifier();
-                    } else {
-                        $StudentNumber = new Small(new Muted('-NA-'));
-                    }
-
-                    $dataList[] = array(
-                        'Number'          => ++$count,
-                        'Person'          => $tblPerson->getLastFirstName(),
-                        'StudentNumber'   => $StudentNumber,
-                        'PersonToAddress' => new Warning(new Exclamation().' Keine Person mit Adresse hinterlegt.'),
-                        'Address'         => '',
-                        'Salutation'      => '',
-                        'Option'          => new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
-                            array('Id'       => $Id,
-                                  'PersonId' => $tblPerson->getId(),
-                                  'Route'    => '/Reporting/SerialLetter/Export'))
-                    );
                 }
             }
         }
 
-        Debugger::screenDump($ExportData);
-        exit;
+        if (!empty( $ExportData )) {
 
-//        if (!empty($tblPersonList)) {
-//
-//            $row = 0;
-//            $column = 0;
-//            $fileLocation = Storage::createFilePointer('xlsx');
-//            /** @var PhpExcel $export */
-//            $export = Document::getDocument($fileLocation->getFileLocation());
-//            $export->setValue($export->getCell($column++, $row), "Anrede");
-//            $export->setValue($export->getCell($column++, $row), "Vorname");
-//            $export->setValue($export->getCell($column++, $row), "Nachname");
-//            $export->setValue($export->getCell($column++, $row), "Ortsteil");
-//            $export->setValue($export->getCell($column++, $row), "Adresse 1");
-//            $export->setValue($export->getCell($column++, $row), "PLZ");
-//            $export->setValue($export->getCell($column++, $row), "Ort");
-//            $export->setValue($export->getCell($column++, $row), "Person_Vorname");
-//            $export->setValue($export->getCell($column++, $row), "Person_Nachname");
-//            $export->setValue($export->getCell($column, $row), "Schüler-Nr.");
-//
-//            $row = 1;
-//            /** @var TblAddressPerson $tblAddressPerson */
-//            foreach ($tblPersonList as $tblAddressPerson) {
-//                if ($tblAddressPerson->getServiceTblPerson()
-//                    && $tblAddressPerson->getServiceTblPersonToAddress()
-//                    && $tblAddressPerson->getServiceTblToPerson()
-//                ) {
-//                    $column = 0;
-//                    $export->setValue($export->getCell($column++, $row),
-//                        $tblAddressPerson->getServiceTblSalutation() ? $tblAddressPerson->getServiceTblSalutation()->getSalutation() : '');
-//                    $export->setValue($export->getCell($column++, $row),
-//                        $tblAddressPerson->getServiceTblPersonToAddress()->getFirstName());
-//                    $export->setValue($export->getCell($column++, $row),
-//                        $tblAddressPerson->getServiceTblPersonToAddress()->getLastName());
-//                    $tblAddress = $tblAddressPerson->getServiceTblToPerson()->getTblAddress();
-//                    $export->setValue($export->getCell($column++, $row),
-//                        $tblAddress->getTblCity()->getDistrict());
-//                    $export->setValue($export->getCell($column++, $row),
-//                        $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber());
-//                    $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getCode());
-//                    $export->setValue($export->getCell($column++, $row), $tblAddress->getTblCity()->getName());
-//                    $export->setValue($export->getCell($column++, $row),
-//                        $tblAddressPerson->getServiceTblPerson()->getFirstName());
-//                    $export->setValue($export->getCell($column++, $row),
-//                        $tblAddressPerson->getServiceTblPerson()->getLastName());
-//                    $tblStudent = Student::useService()->getStudentByPerson($tblAddressPerson->getServiceTblPerson());
-//                    if ($tblStudent) {
-//                        $export->setValue($export->getCell($column, $row),
-//                            $tblStudent->getIdentifier());
-//                    } else {
-//                        $export->setValue($export->getCell($column, $row), '');
-//                    }
-//                    $row++;
-//                }
-//            }
-//
-//            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-//
-//            return $fileLocation;
-//        }
-//        return false;
+            $row = 0;
+            $column = 0;
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            for ($i = 0; $i < $AddressPersonCount; $i++) {
+                $export->setValue($export->getCell($column++, $row), "Anrede ".( $i + 1 ));
+                $export->setValue($export->getCell($column++, $row), "Vorname ".( $i + 1 ));
+                $export->setValue($export->getCell($column++, $row), "Nachname ".( $i + 1 ));
+            }
+            $export->setValue($export->getCell($column++, $row), "Ortsteil");
+            $export->setValue($export->getCell($column++, $row), "Straße");
+            $export->setValue($export->getCell($column++, $row), "PLZ");
+            $export->setValue($export->getCell($column++, $row), "Ort");
+            $export->setValue($export->getCell($column++, $row), "Person_Vorname");
+            $export->setValue($export->getCell($column++, $row), "Person_Nachname");
+            $export->setValue($export->getCell($column, $row), "Schüler-Nr.");
+
+            $row = 1;
+            /** @var TblAddressPerson $tblAddressPerson */
+            foreach ($ExportData as $Export) {
+
+                $column = 0;
+                $PersonLoop = 0;
+                for ($j = 0; $j < $AddressPersonCount; $j++) {
+                    $export->setValue($export->getCell($column++, $row),
+                        ( isset( $Export['SalutationList'][$PersonLoop] ) ? $Export['SalutationList'][$PersonLoop] : '' ));
+                    $export->setValue($export->getCell($column++, $row),
+                        ( isset( $Export['FirstNameList'][$PersonLoop] ) ? $Export['FirstNameList'][$PersonLoop] : '' ));
+                    $export->setValue($export->getCell($column++, $row),
+                        ( isset( $Export['LastNameList'][$PersonLoop] ) ? $Export['LastNameList'][$PersonLoop] : '' ));
+                    $PersonLoop++;
+                }
+
+                $export->setValue($export->getCell($column++, $row),
+                    $Export['District']);
+                $export->setValue($export->getCell($column++, $row),
+                    $Export['StreetName'].' '.$Export['StreetNumber']);
+                $export->setValue($export->getCell($column++, $row), $Export['Code']);
+                $export->setValue($export->getCell($column++, $row), $Export['City']);
+                $export->setValue($export->getCell($column++, $row),
+                    $Export['FirstName']);
+                $export->setValue($export->getCell($column++, $row),
+                    $Export['LastName']);
+                $export->setValue($export->getCell($column, $row), $Export['StudentNumber']);
+
+                $row++;
+            }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+        return false;
     }
 
     /**
