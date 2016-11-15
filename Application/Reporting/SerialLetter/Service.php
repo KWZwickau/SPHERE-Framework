@@ -14,6 +14,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Reporting\SerialLetter\Service\Data;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Setup;
@@ -63,6 +64,37 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getSerialLetterByName($Name);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblFilterCategory
+     */
+    public function getFilterCategoryById($Id)
+    {
+
+        return ( new Data($this->getBinding()) )->getFilterCategoryById($Id);
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return false|TblFilterCategory
+     */
+    public function getFilterCategoryByName($Name)
+    {
+
+        return ( new Data($this->getBinding()) )->getFilterCategoryByName($Name);
+    }
+
+    /**
+     * @return false|TblFilterCategory[]
+     */
+    public function getFilterCategoryAll()
+    {
+
+        return ( new Data($this->getBinding()) )->getFilterCategoryAll();
     }
 
     /**

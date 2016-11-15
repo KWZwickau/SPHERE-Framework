@@ -7,6 +7,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -21,6 +22,35 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createFilterCategory('Personengruppe');
+        $this->createFilterCategory('Schüler');
+        $this->createFilterCategory('Interessenten');
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return null|TblFilterCategory
+     */
+    public function createFilterCategory($Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblFilterCategory')
+            ->findOneBy(array(
+                TblFilterCategory::ATTR_NAME => $Name,
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblFilterCategory();
+            $Entity->setName($Name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 
     /**
@@ -60,12 +90,45 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblFilterCategory
+     */
+    public function getFilterCategoryById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterCategory',
+            $Id);
+    }
+
+    /**
      * @return bool|TblSerialLetter[]
      */
     public function getSerialLetterAll()
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSerialLetter');
+    }
+
+    /**
+     * @return false|TblFilterCategory[]
+     */
+    public function getFilterCategoryAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterCategory');
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblFilterCategory
+     */
+    public function getFilterCategoryByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterCategory',
+            array(TblFilterCategory::ATTR_NAME => $Name));
     }
 
     /**

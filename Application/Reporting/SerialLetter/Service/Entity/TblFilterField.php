@@ -10,25 +10,22 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblSerialLetter")
+ * @Table(name="tblFilterField")
  * @Cache(usage="READ_ONLY")
  */
-class TblSerialLetter extends Element
+class TblFilterField extends Element
 {
 
-    const ATTR_NAME = 'Name';
-    const ATTR_DESCRIPTION = 'Description';
+    const ATTR_FIELD = 'Field';
 
     /**
      * @Column(type="string")
      */
-    protected $Name;
-
+    protected $Field;
     /**
      * @Column(type="string")
      */
-    protected $Description;
-
+    protected $Value;
     /**
      * @Column(type="bigint")
      */
@@ -37,37 +34,37 @@ class TblSerialLetter extends Element
     /**
      * @return string
      */
-    public function getName()
+    public function getField()
     {
 
-        return $this->Name;
+        return $this->Field;
     }
 
     /**
-     * @param string $Name
+     * @param string $Field
      */
-    public function setName($Name)
+    public function setField($Field)
     {
 
-        $this->Name = $Name;
+        $this->Field = $Field;
     }
 
     /**
      * @return string
      */
-    public function getDescription()
+    public function getValue()
     {
 
-        return $this->Description;
+        return $this->Value;
     }
 
     /**
-     * @param string $Description
+     * @param string $Value
      */
-    public function setDescription($Description)
+    public function setValue($Value)
     {
 
-        $this->Description = $Description;
+        $this->Value = $Value;
     }
 
     /**

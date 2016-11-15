@@ -109,6 +109,20 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Übersicht');
 
         $tblSerialLetterAll = SerialLetter::useService()->getSerialLetterAll();
+        $tblFilterCategoryAll = SerialLetter::useService()->getFilterCategoryAll();
+
+        //create Tabs
+        $LayoutTabs[] = new LayoutTab('Serienbrief Statisch', 'STATIC');
+        if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
+            $LayoutTabs[0]->setActive();
+        }
+
+        if ($tblFilterCategoryAll) {
+            foreach ($tblFilterCategoryAll as $tblFilterCategory) {
+                // Create Tabs
+                $LayoutTabs[] = new LayoutTab('Serienbrief '.$tblFilterCategory->getName(), 'DYNAMIC'.$tblFilterCategory->getId());
+            }
+        }
 
         $TableContent = array();
         if ($tblSerialLetterAll) {
@@ -135,12 +149,12 @@ class Frontend extends Extension implements IFrontendInterface
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-        // Create Tabs
-        $LayoutTabs[] = new LayoutTab('Serienbrief Statisch', 'STATIC');
-        $LayoutTabs[] = new LayoutTab('Serienbrief Dynamisch', 'DYNAMIC');
-        if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
-            $LayoutTabs[0]->setActive();
-        }
+//        // Create Tabs
+//        $LayoutTabs[] = new LayoutTab('Serienbrief Statisch', 'STATIC');
+//        $LayoutTabs[] = new LayoutTab('Serienbrief Dynamisch', 'DYNAMIC');
+//        if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
+//            $LayoutTabs[0]->setActive();
+//        }
 
         $Timeout = null;
         $SearchResult = array();
@@ -180,10 +194,10 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 });
+                $FilterGroup = array_filter($FilterGroup);
             } else {
                 $FilterGroup = array();
             }
-            $FilterGroup = array_filter($FilterGroup);
             // Preparation FilterPerson
             if ($FilterPerson) {
                 array_walk($FilterPerson, function (&$Input) {
@@ -298,25 +312,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $FormGroup = new Form(
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        new AutoCompleter('FilterGroup[TblGroup_Name]', 'Gruppe: Name', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterYear[TblYear_Name]', 'Bildung: Schuljahr', 'Bildung: Schuljahr', array('Name' => Term::useService()->getYearAll()))
-                        , 3),
-                    new FormColumn(
-                        new TextField('FilterStudent[TblLevel_Name]', 'Klasse: Stufe', 'Klasse: Stufe')
-                        , 3),
-                    new FormColumn(
-                        new TextField('FilterStudent[TblDivision_Name]', 'Klasse: Gruppe', 'Klasse: Gruppe')
-                        , 3),
-                ))
-            )
-            , new Primary('Filter starten', new Search()));
-
         if (isset( $FilterGroup['TblGroup_Name'] ) && !empty( $FilterGroup['TblGroup_Name'] )) {
             $FilterGroup['TblGroup_Name'] = implode(' ', $FilterGroup['TblGroup_Name']);
         }
@@ -356,10 +351,136 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new PlusSign().' Serienbreif anlegen '
                     , array(new Well($FormSerialLetter)), Panel::PANEL_TYPE_INFO);
                 break;
-            case 'DYNAMIC':
+            case 'DYNAMIC1':
 
                 $MetaTable = new Panel(new Search().' Personen-Filterung'
-                        , array(new Well($FormGroup)), Panel::PANEL_TYPE_INFO)
+                        , array(new Well($this->formFilterPersonGroup())), Panel::PANEL_TYPE_INFO)
+                    .new Layout(
+                        new LayoutGroup(array(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $Timeout === true
+                                        ? new WarningMessage('Die Tabelle enthält nur einen Teil der Suchergebnisse!')
+                                        : ''
+                                    )
+                                )
+                            ),
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                            array('Salutation'    => 'Anrede',
+                                                  'Name'          => 'Name',
+                                                  'Address'       => 'Adresse',
+                                                  'Division'      => 'Klasse',
+                                                  'StudentNumber' => 'Schüler-Nr.'
+                                            ),
+                                            array(
+                                                'order'                => array(array(1, 'asc')),
+                                                'columnDefs'           => array(
+                                                    array('orderable' => false, 'width' => '3%', 'targets' => 0)
+                                                ),
+                                                'ExtensionRowExchange' => array(
+                                                    'Enabled' => true,
+                                                    'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                                    'Handler' => array(
+                                                        'From' => 'glyphicon-plus-sign',
+                                                        'To'   => 'glyphicon-minus-sign',
+                                                        'All'  => 'TableAddAll'
+                                                    ),
+                                                    'Connect' => array(
+                                                        'From' => 'TableAvailable',
+                                                        'To'   => 'TableCurrent',
+                                                    ),
+                                                )
+                                            )
+                                        )
+                                        : new WarningMessage('Bitte tragen Sie etwas in den Filter ein') )
+                                )
+                            )
+                        ))
+                    )
+                    .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic, $SerialLetter)))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    );
+                break;
+            case 'DYNAMIC2':
+
+                $MetaTable = new Panel(new Search().' Personen-Filterung'
+                        , array(new Well($this->formFilterStudent())), Panel::PANEL_TYPE_INFO)
+                    .new Layout(
+                        new LayoutGroup(array(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $Timeout === true
+                                        ? new WarningMessage('Die Tabelle enthält nur einen Teil der Suchergebnisse!')
+                                        : ''
+                                    )
+                                )
+                            ),
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                            array('Salutation'    => 'Anrede',
+                                                  'Name'          => 'Name',
+                                                  'Address'       => 'Adresse',
+                                                  'Division'      => 'Klasse',
+                                                  'StudentNumber' => 'Schüler-Nr.'
+                                            ),
+                                            array(
+                                                'order'                => array(array(1, 'asc')),
+                                                'columnDefs'           => array(
+                                                    array('orderable' => false, 'width' => '3%', 'targets' => 0)
+                                                ),
+                                                'ExtensionRowExchange' => array(
+                                                    'Enabled' => true,
+                                                    'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                                    'Handler' => array(
+                                                        'From' => 'glyphicon-plus-sign',
+                                                        'To'   => 'glyphicon-minus-sign',
+                                                        'All'  => 'TableAddAll'
+                                                    ),
+                                                    'Connect' => array(
+                                                        'From' => 'TableAvailable',
+                                                        'To'   => 'TableCurrent',
+                                                    ),
+                                                )
+                                            )
+                                        )
+                                        : new WarningMessage('Bitte tragen Sie etwas in den Filter ein') )
+                                )
+                            )
+                        ))
+                    )
+                    .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic, $SerialLetter)))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    );
+                break;
+            case 'DYNAMIC3':
+
+                $MetaTable = new Panel(new Search().' Personen-Filterung'
+                        , array(new Well($this->formFilterProspect())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
@@ -474,6 +595,71 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )),
         )));
+    }
+
+    /**
+     * @return Form
+     */
+    private function formFilterPersonGroup()
+    {
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new AutoCompleter('FilterGroup[TblGroup_Name]', 'Gruppe: Name', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
+                        , 3),
+                ))
+            )
+            , new Primary('Filter starten', new Search()));
+    }
+
+    /**
+     * @return Form
+     */
+    private function formFilterStudent()
+    {
+
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new AutoCompleter('FilterGroup[TblGroup_Name]', 'Gruppe: Name', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
+                        , 3),
+                    new FormColumn(
+                        new AutoCompleter('FilterYear[TblYear_Name]', 'Bildung: Schuljahr', 'Bildung: Schuljahr', array('Name' => Term::useService()->getYearAll()))
+                        , 3),
+                    new FormColumn(
+                        new TextField('FilterStudent[TblLevel_Name]', 'Klasse: Stufe', 'Klasse: Stufe')
+                        , 3),
+                    new FormColumn(
+                        new TextField('FilterStudent[TblDivision_Name]', 'Klasse: Gruppe', 'Klasse: Gruppe')
+                        , 3),
+                ))
+            )
+            , new Primary('Filter starten', new Search()));
+    }
+
+    /**
+     * @return Form
+     */
+    private function formFilterProspect()
+    {
+
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new AutoCompleter('FilterGroup[TblGroup_Name]', 'Gruppe: Name', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
+                        , 3),
+                    new FormColumn(
+                        new TextField('FilterYear[TblProspectReservation_ReservationYear]', 'Interessent: Schuljahr', 'Interessent: Schuljahr')
+                        , 3),
+                    new FormColumn(
+                        new TextField('FilterStudent[TblProspectReservation_ReservationDivision]', 'Interessent: Stufe', 'Interessent: Stufe')
+                        , 3),
+                ))
+            )
+            , new Primary('Filter starten', new Search()));
     }
 
     /**
