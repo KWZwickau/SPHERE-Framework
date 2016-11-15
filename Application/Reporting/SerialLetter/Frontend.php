@@ -251,7 +251,13 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblDivisionStudent) {
                     $tblDivision = $tblDivisionStudent->getTblDivision();
                     if ($tblDivision) {
-                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($tblDivision->getDisplayName());
+                        if (strlen($tblDivision->getTblLevel()->getName()) == 1) {
+                            $DivisionName = '0'.$tblDivision->getDisplayName();
+                        } else {
+                            $DivisionName = $tblDivision->getDisplayName();
+                        }
+
+                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($DivisionName);
                     } else {
                         $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
                     }
@@ -706,7 +712,12 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblDivisionStudent) {
                     $tblDivision = $tblDivisionStudent->getTblDivision();
                     if ($tblDivision) {
-                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($tblDivision->getDisplayName());
+                        if (strlen($tblDivision->getTblLevel()->getName()) == 1) {
+                            $DivisionName = '0'.$tblDivision->getDisplayName();
+                        } else {
+                            $DivisionName = $tblDivision->getDisplayName();
+                        }
+                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($DivisionName);
                     } else {
                         $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
                     }
@@ -1197,74 +1208,6 @@ class Frontend extends Extension implements IFrontendInterface
 //            $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
 //            $tblSalutationAll['Family'] = $tblSalutation;
 //        }
-//
-//        if ($TabActive === 'GUARDIAN') {
-//            if ($tblSalutationAll) {
-//                foreach ($tblSalutationAll as &$tblSalutation) {
-//                    if ($tblSalutation->getSalutation() == 'Schüler') {
-//                        $tblSalutation = false;
-//                    }
-//                }
-//                $tblSalutationAll = array_filter($tblSalutationAll);
-//            }
-//        }
-
-//        $FormAddress = new Form(
-//            new FormGroup(
-//                new FormRow(array(
-//                    new FormColumn(
-//                        new SelectBox('Data[Salutation]',
-//                            '', array('Salutation' => $tblSalutationAll))
-//                        , 6)
-//                ))
-//            )
-//            , new Primary('Adressen zuordnen'));
-//
-//        // Create Tabs
-//        $LayoutTabs[] = new LayoutTab('Zuweisung entfernen', '', array('Id' => $tblSerialLetter->getId()));
-//        $LayoutTabs[] = new LayoutTab('Personen direkt anschreiben', 'SELF', array('Id' => $tblSerialLetter->getId()));
-//        $LayoutTabs[] = new LayoutTab('Sorgeberechtigte anschreiben', 'GUARDIAN', array('Id' => $tblSerialLetter->getId()));
-//        $LayoutTabs[] = new LayoutTab('Info/Hilfe', 'INFO', array('Id' => $tblSerialLetter->getId()));
-//        if (!empty( $LayoutTabs ) && $TabActive === null) {
-//            $LayoutTabs[0]->setActive();
-//        }
-//
-//        switch ($TabActive) {
-//            case 'SELF':
-//                $MetaTable = new Panel(new Edit().' Adressen automatisch ziehen '.new Bold('von Ausgewählter Person')
-//                    , array(SerialLetter::useService()->createAddressPersonSelf($FormAddress, $tblSerialLetter, $Data)), Panel::PANEL_TYPE_INFO);
-//                break;
-//            case 'GUARDIAN':
-//                $MetaTable = new Panel(new Edit().' Adressen automatisch ziehen '.new Bold('von Sorgeberechtigten mit eindeutiger Adresse')
-//                    , array(SerialLetter::useService()->createAddressPersonGuardian($FormAddress, $tblSerialLetter, $Data)), Panel::PANEL_TYPE_INFO);
-//                break;
-//            case 'INFO':
-//                $MetaTable = new Panel(new Bold('Information zur Bedienung')
-//                    , array(
-//                        new Bold('Zuweisung entfernen:').new Container('Das löschen der Zuweisungen entfernt unwiederruflich alle zuvor
-//                                festgelegten Einstellungen der Adresszuweisung ('.new Bold('dieses Serienbriefes').').<br/><br/>').
-//                        new Bold('Personen direkt anschreiben:').new Container('Es wird nach der Hauptadresse jeder Person im Serienbreif
-//                                gesucht. Diese Person wird auch für Anschreiben/Anrede benutzt.<br/>
-//                                Herr/Frau/Schüler wird zur Auswahl herrangezogen wenn die Anrede in Personendaten gepflegt ist.<br/>
-//                                Personen die bereits eine oder mehrere Adressen ausgewählt haben werden ignoriert.<br/><br/>').
-//                        new Bold('Sorgeberechtigte anschreiben:').new Container(
-//                            'Dabei werden Personenbeziehungen geprüft, weitere Adressenzuordnung geschieht nur über Sorgeberechtigte.<br/>'.
-//                            'Sorgeberechtigte müssen ein eingetragene Anrede haben (Personendaten) um gezogen werden zu können.<br/>'.
-//                            new Bold('Die Anrede Familie/Nicht Ausgewählt(Leer)').' lässt eine Frau(wenn nicht
-//                                vorhanden einen Herr) aus den Sorgeberechtigten auswählen.<br/>
-//                                Dabei wird geprüft ob die Hauptadresse nur einmal vergeben ist (gleich bei allen Sorgeberechtigen oder
-//                                nur bei einem Sorgeberechtigten angelegt).<br/> Nur wenn dies zutrifft kann eine automatische Ziehung erfolgen.<br/>'.
-//                            new Bold('Die Anrede Frau/Herr').' trägt nur die Hauptadresse der jeweiligen Anrede
-//                                ein wenn es zur verfügung steht. Bei mehrfachen Treffern (gleichgeschlechtliche Sorgeberechtigte)
-//                                wird wieder auf die übereinstimmung der Adressen geachtet. Sonnst erfolgt keine Eintragung.<br/>
-//                                Personen die bereits eine oder mehrere Adressen ausgewählt haben werden ignoriert.<br/><br/>
-//                                Bitte denken Sie daran: Diese Automatik soll die Eingabe erleichtern (vorbefüllen vieler Daten) aber nicht voll ersetzen.')
-//                    ), Panel::PANEL_TYPE_SUCCESS);
-//                break;
-//            default:
-//                $MetaTable = new Panel(new Edit().' entfernen aller Zuweisungen von '.new Bold('Adressen')
-//                    , new Standard('Löschen', '/Reporting/SerialLetter/Address/Remove', new Remove(), array('Id' => $tblSerialLetter->getId())), Panel::PANEL_TYPE_INFO);
-//        }
 
         $Buttons = array();
         $Buttons[] = new Standard('Löschen', '/Reporting/SerialLetter/Address/Remove', new Remove(), array('Id' => $tblSerialLetter->getId()));   //
@@ -1308,6 +1251,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Address'       => 'Serienbrief Adresse',
                                 'Option'        => '',
                             ), array(
+                                'order'      => array(array(2, 'desc')),
                                 'columnDefs' => array(
                                     array('orderable' => false, 'width' => '1%', 'targets' => -1),
                                     array('width' => '15%', 'targets' => 0),
@@ -1702,7 +1646,7 @@ class Frontend extends Extension implements IFrontendInterface
                 array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
             $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
                 array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
-            $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
+            $Stage->addButton(new Standard(new Bold(new Info('Addressliste')), '/Reporting/SerialLetter/Export', new View(),
                 array('Id' => $tblSerialLetter->getId()),
                 'Addressliste für Serienbriefe anzeigen und herunterladen'));
 

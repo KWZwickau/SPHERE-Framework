@@ -350,12 +350,12 @@ class Service extends AbstractService
                                     $tblToPersonChoose = $tblToPerson;
                                 }
                             }
-                            // Ziehen irgendeiner Adresse
-                            if ($tblToPersonChoose === null) {
-                                foreach ($tblToPersonList as $tblToPerson) {
-                                    $tblToPersonChoose = $tblToPerson;
-                                }
-                            }
+//                            // Ziehen irgendeiner Adresse
+//                            if ($tblToPersonChoose === null) {
+//                                foreach ($tblToPersonList as $tblToPerson) {
+//                                    $tblToPersonChoose = $tblToPerson;
+//                                }
+//                            }
                             $tblSalutation = $tblPerson->getTblSalutation();
                             if (!$tblSalutation) {
                                 $tblSalutation = null;
