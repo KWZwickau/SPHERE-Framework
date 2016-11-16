@@ -15,6 +15,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Reporting\SerialLetter\Service\Data;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterField;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Setup;
@@ -95,6 +96,21 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getFilterCategoryAll();
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool|TblFilterField[]
+     */
+    public function getFilterFiledAllBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+        if ($tblFilterCategory) {
+            return ( new Data($this->getBinding()) )->getFilterFiledAllBySerialLetter($tblSerialLetter, $tblFilterCategory);
+        }
+        return false;
     }
 
     /**
@@ -257,10 +273,25 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param array               $SerialLetter
+     * @param null                $FilterGroup
+     * @param null                $FilterPerson
+     * @param null                $FilterStudent
+     * @param null                $FilterYear
+     * @param null                $FilterProspect
+     * @param null                $FilterCategory
      *
      * @return IFormInterface|string
      */
-    public function createSerialLetter(IFormInterface $Stage = null, $SerialLetter)
+    public function createSerialLetter(
+        IFormInterface $Stage = null,
+        $SerialLetter,
+        $FilterGroup = null,
+        $FilterPerson = null,
+        $FilterStudent = null,
+        $FilterYear = null,
+        $FilterProspect = null,
+        $FilterCategory = null
+    )
     {
 
         /**
@@ -282,12 +313,61 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            ( new Data($this->getBinding()) )->createSerialLetter(
-                $SerialLetter['Name'],
-                $SerialLetter['Description']
-            );
+            if ($FilterCategory === null) {
+                ( new Data($this->getBinding()) )->createSerialLetter(
+                    $SerialLetter['Name'],
+                    $SerialLetter['Description']
+                );
+                $TabActive = 'STATIC';
+            } else {
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryById($FilterCategory);
+                $tblSerialLetter = ( new Data($this->getBinding()) )->createSerialLetter(
+                    $SerialLetter['Name'],
+                    $SerialLetter['Description'],
+                    $tblFilterCategory
+                );
+
+                if ($tblFilterCategory) {
+                    // save Group Field
+                    if (isset( $FilterGroup ) && !empty( $FilterGroup )) {
+                        foreach ($FilterGroup as $FieldName => $Value) {
+                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $Value);
+                        }
+                        $TabActive = 'DYNAMIC1';
+                    }
+                    // save Person Field
+                    if (isset( $FilterPerson ) && !empty( $FilterPerson )) {
+                        foreach ($FilterPerson as $FieldName => $Value) {
+                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $Value);
+                        }
+                        $TabActive = 'DYNAMIC2';
+                    }
+                    // save Student Field
+                    if (isset( $FilterStudent ) && !empty( $FilterStudent )) {
+                        foreach ($FilterStudent as $FieldName => $Value) {
+                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $Value);
+                        }
+                        $TabActive = 'DYNAMIC2';
+                    }
+                    // save Year Field
+                    if (isset( $FilterYear ) && !empty( $FilterYear )) {
+                        foreach ($FilterYear as $FieldName => $Value) {
+                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $Value);
+                        }
+                        $TabActive = 'DYNAMIC2';
+                    }
+                    // save Prospect Field
+                    if (isset( $FilterProspect ) && !empty( $FilterProspect )) {
+                        foreach ($FilterProspect as $FieldName => $Value) {
+                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $Value);
+                        }
+                        $TabActive = 'DYNAMIC3';
+                    }
+                }
+            }
+
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adressliste für Serienbriefe ist erfasst worden')
-            .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS);
+            .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS, array('TabActive' => $TabActive));
         }
 
         return $Stage;

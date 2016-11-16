@@ -8,6 +8,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterField;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -120,6 +121,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblSerialLetter   $tblSerialLetter
+     * @param TblFilterCategory $tblFilterCategory
+     *
+     * @return false|TblFilterField[]
+     */
+    public function getFilterFiledAllBySerialLetter(TblSerialLetter $tblSerialLetter, TblFilterCategory $tblFilterCategory)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterField',
+            array(
+                TblFilterField::ATTR_TBL_SERIAL_LETTER   => $tblSerialLetter->getId(),
+                TblFilterField::ATTR_TBL_FILTER_CATEGORY => $tblFilterCategory->getId()
+            ));
+    }
+
+    /**
      * @param $Name
      *
      * @return false|TblFilterCategory
@@ -209,14 +226,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $Name
-     * @param string $Description
+     * @param string                 $Name
+     * @param string                 $Description
+     * @param null|TblFilterCategory $tblFilterCategory
      *
      * @return TblSerialLetter
      */
     public function createSerialLetter(
         $Name,
-        $Description = ''
+        $Description = '',
+        TblFilterCategory $tblFilterCategory = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -228,10 +247,39 @@ class Data extends AbstractData
             $Entity = new TblSerialLetter();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            if ($tblFilterCategory !== null) {
+                $Entity->setFilterCategory($tblFilterCategory);
+            }
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblSerialLetter   $tblSerialLetter
+     * @param TblFilterCategory $tblFilterCategory
+     * @param                   $FilterField
+     * @param                   $FilterValue
+     *
+     * @return TblFilterField
+     */
+    public function createFilterField(TblSerialLetter $tblSerialLetter, TblFilterCategory $tblFilterCategory, $FilterField, $FilterValue)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblFilterField();
+
+        $Entity->setTblSerialLetter($tblSerialLetter);
+        $Entity->setFilterCategory($tblFilterCategory);
+        $Entity->setField($FilterField);
+        $Entity->setValue($FilterValue);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -347,10 +395,33 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $EntityItems = $Manager->getEntity('TblAddressPerson')
+        $EntityList = $Manager->getEntity('TblAddressPerson')
             ->findBy(array(TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()));
-        if (null !== $EntityItems) {
-            foreach ($EntityItems as $Entity) {
+        if (null !== $EntityList) {
+            foreach ($EntityList as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool
+     */
+    public function destroyFilterFiledAllBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $EntityList = $Manager->getEntity('TblFilterField')
+            ->findBy(array(TblFilterField::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()));
+        if (null !== $EntityList) {
+            foreach ($EntityList as $Entity) {
                 Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->killEntity($Entity);
@@ -415,6 +486,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
 
         $this->destroyAddressPersonAllBySerialLetter($tblSerialLetter);
+        $this->destroyFilterFiledAllBySerialLetter($tblSerialLetter);
 
         /** @var TblSerialLetter $Entity */
         $Entity = $Manager->getEntityById('TblSerialLetter', $tblSerialLetter->getId());

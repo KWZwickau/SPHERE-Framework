@@ -17,6 +17,8 @@ class TblFilterField extends Element
 {
 
     const ATTR_FIELD = 'Field';
+    const ATTR_TBL_FILTER_CATEGORY = 'tblFilterCategory';
+    const ATTR_TBL_SERIAL_LETTER = 'tblSerialLetter';
 
     /**
      * @Column(type="string")
@@ -30,6 +32,10 @@ class TblFilterField extends Element
      * @Column(type="bigint")
      */
     protected $tblFilterCategory;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblSerialLetter;
 
     /**
      * @return string
@@ -87,5 +93,27 @@ class TblFilterField extends Element
     {
 
         $this->tblFilterCategory = ( null === $tblFilterCategory ? null : $tblFilterCategory->getId() );
+    }
+
+    /**
+     * @return bool|TblSerialLetter
+     */
+    public function getTblSerialLetter()
+    {
+
+        if (null === $this->tblSerialLetter) {
+            return false;
+        } else {
+            return SerialLetter::useService()->getSerialLetterById($this->tblSerialLetter);
+        }
+    }
+
+    /**
+     * @param null|TblSerialLetter $tblSerialLetter
+     */
+    public function setTblSerialLetter(TblSerialLetter $tblSerialLetter = null)
+    {
+
+        $this->tblSerialLetter = ( null === $tblSerialLetter ? null : $tblSerialLetter->getId() );
     }
 }

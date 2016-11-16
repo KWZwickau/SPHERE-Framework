@@ -116,7 +116,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblFilterCategoryAll = SerialLetter::useService()->getFilterCategoryAll();
 
         //create Tabs
-        $LayoutTabs[] = new LayoutTab('Serienbrief Statisch', 'STATIC');
+        $LayoutTabs[] = new LayoutTab('Statisch', 'STATIC');
         if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
             $LayoutTabs[0]->setActive();
         }
@@ -124,13 +124,14 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblFilterCategoryAll) {
             foreach ($tblFilterCategoryAll as $tblFilterCategory) {
                 // Create Tabs
-                $LayoutTabs[] = new LayoutTab('Serienbrief '.$tblFilterCategory->getName(), 'DYNAMIC'.$tblFilterCategory->getId());
+                $LayoutTabs[] = new LayoutTab('dynamisch '.$tblFilterCategory->getName(), 'DYNAMIC'.$tblFilterCategory->getId());
             }
         }
 
         $TableContent = array();
         if ($tblSerialLetterAll) {
             array_walk($tblSerialLetterAll, function (TblSerialLetter $tblSerialLetter) use (&$TableContent) {
+                $tblFilterCategory = $tblSerialLetter->getFilterCategory();
                 $Item['Name'] = $tblSerialLetter->getName();
                 $Item['Description'] = $tblSerialLetter->getDescription();
                 $Item['Option'] =
@@ -138,8 +139,10 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id' => $tblSerialLetter->getId()), 'Bearbeiten') )
                     .( new Standard('', '/Reporting/SerialLetter/Destroy', new Remove(),
                         array('Id' => $tblSerialLetter->getId()), 'Löschen') )
-                    .( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
-                        array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') )
+                    .
+                    ( $tblFilterCategory ? ''
+                        : ( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+                            array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') ) )
                     .( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
                         array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen') )
                     .( new Standard('', '/Reporting/SerialLetter/Export', new View(),
@@ -171,6 +174,7 @@ class Frontend extends Extension implements IFrontendInterface
                     , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetter, $SerialLetter))), Panel::PANEL_TYPE_INFO);
                 break;
             case 'DYNAMIC1':
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Personengruppe');
 
                 //Filter Group
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
@@ -293,7 +297,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-                $MetaTable = new Panel(new Search().' Personen-Filterung'
+                $MetaTable = new Panel(new Search().' Filterung nach Gruppen'
                         , array(new Well($this->formFilterPersonGroup())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
                         new LayoutGroup(array(
@@ -346,7 +350,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     ( $IsFilter
                                         ? new Panel(new PlusSign().' Serienbreif anlegen '
-                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic, $SerialLetter)))
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
+                                                $SerialLetter, $FilterGroup, null, null, null, null, $tblFilterCategory->getId())))
                                             , Panel::PANEL_TYPE_INFO)
                                         : '' )
                                 )
@@ -355,6 +360,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 break;
             case 'DYNAMIC2':
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Schüler');
 
                 // Filter Student
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
@@ -549,7 +555,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-                $MetaTable = new Panel(new Search().' Personen-Filterung'
+                $MetaTable = new Panel(new Search().' Filterung nach Schüler Kriterien'
                         , array(new Well($this->formFilterStudent())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
                         new LayoutGroup(array(
@@ -602,7 +608,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     ( $IsFilter
                                         ? new Panel(new PlusSign().' Serienbreif anlegen '
-                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic, $SerialLetter)))
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic
+                                                , $SerialLetter, $FilterGroup, $FilterPerson, $FilterStudent, $FilterYear, null, $tblFilterCategory->getId())))
                                             , Panel::PANEL_TYPE_INFO)
                                         : '' )
                                 )
@@ -611,6 +618,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 break;
             case 'DYNAMIC3':
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Interessenten');
 
                 //FilterProspect
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
@@ -763,7 +771,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-                $MetaTable = new Panel(new Search().' Personen-Filterung'
+                $MetaTable = new Panel(new Search().' Filterung nach Interessenten Kriterien'
                         , array(new Well($this->formFilterProspect())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
                         new LayoutGroup(array(
@@ -816,7 +824,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     ( $IsFilter
                                         ? new Panel(new PlusSign().' Serienbreif anlegen '
-                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic, $SerialLetter)))
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
+                                                $SerialLetter, $FilterGroup, null, null, null, $FilterProspect, $tblFilterCategory->getId())))
                                             , Panel::PANEL_TYPE_INFO)
                                         : '' )
                                 )
@@ -1039,9 +1048,13 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Danger('Serienbrief nicht gefunden', new Exclamation());
         }
 
-        $Stage->addButton(new Standard(new Bold(new Info('Personen Auswahl')),
-            '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
-            array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+
+        if (!$tblFilterCategory) {
+            $Stage->addButton(new Standard(new Bold(new Info('Personen Auswahl')),
+                '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+                array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+        }
         $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
         $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
@@ -1590,8 +1603,12 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$tblSerialLetter) {
             return $Stage.new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation());
         }
-        $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
-            array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+
+        if (!$tblFilterCategory) {
+            $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+                array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+        }
         $Stage->addButton(new Standard(new Bold(new Info('Adressen Auswahl')), '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
         $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
@@ -1908,8 +1925,12 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft(), array('Id' => $Id)));
-        $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
-            array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+
+        if (!$tblFilterCategory) {
+            $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+                array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+        }
         $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
             array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
         $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
@@ -2128,9 +2149,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen herunterladen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
         if (( $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id) )) {
+            $tblFilterCategory = $tblSerialLetter->getFilterCategory();
 
-            $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
-                array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+            if (!$tblFilterCategory) {
+                $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+                    array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+            }
             $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
                 array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
             $Stage->addButton(new Standard(new Bold(new Info('Addressliste')), '/Reporting/SerialLetter/Export', new View(),
