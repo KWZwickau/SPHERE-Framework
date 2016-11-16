@@ -255,6 +255,9 @@ class Manager extends Extension
     final public function bulkKillEntity($Entity)
     {
 
+        if( !$this->EntityManager->contains( $Entity ) ) {
+            $Entity = $this->EntityManager->merge($Entity);
+        }
         $this->EntityManager->remove($Entity);
         return $this;
     }

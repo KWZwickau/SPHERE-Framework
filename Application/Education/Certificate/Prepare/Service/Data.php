@@ -399,11 +399,8 @@ class Data extends AbstractData
 
                 // Freigegebene nicht löschen
                 if (!$isApprovedArray[$tblPerson->getId()]) {
-                    /** @var TblPrepareGrade $Entity */
-                    $Entity = $Manager->getEntity('TblPrepareGrade')->findOneBy(array('Id' => $tblPrepareGrade->getId()));
-                    // ToDo GCK Protokoll bulkSave sonst witzlos
-                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
-                    $Manager->bulkKillEntity($Entity);
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblPrepareGrade);
+                    $Manager->bulkKillEntity($tblPrepareGrade);
                 }
             }
 
