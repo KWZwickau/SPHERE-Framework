@@ -8,9 +8,15 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
+use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
+use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Reporting\SerialLetter\Service\Data;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
@@ -24,6 +30,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 class Service extends AbstractService
@@ -165,7 +172,6 @@ class Service extends AbstractService
                             if (( $tblServiceTblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
                                 if (( $tblAddress = $tblServiceTblToPerson->getTblAddress() )) {
 
-//                                    Debugger::screenDump($tblAddress);
                                     if (isset( $Data[$tblPerson->getId().$tblAddress->getId()] )) {
                                         $result--;
                                     }
@@ -191,6 +197,18 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getSerialPersonBySerialLetter($tblSerialLetter);
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
+     *
+     * @return false|TblSerialPerson
+     */
+    public function getSerialPersonBySerialLetterAndPerson(TblSerialLetter $tblSerialLetter, TblPerson $tblPerson)
+    {
+
+        return ( new Data($this->getBinding()) )->getSerialPersonBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
     }
 
     /**
@@ -313,12 +331,12 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
+            $TabActive = 'STATIC';
             if ($FilterCategory === null) {
                 ( new Data($this->getBinding()) )->createSerialLetter(
                     $SerialLetter['Name'],
                     $SerialLetter['Description']
                 );
-                $TabActive = 'STATIC';
             } else {
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryById($FilterCategory);
                 $tblSerialLetter = ( new Data($this->getBinding()) )->createSerialLetter(
@@ -891,5 +909,352 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param array           $tblPersonSearchList
+     */
+    public function updateDynamicSerialPerson(TblSerialLetter $tblSerialLetter, $tblPersonSearchList)
+    {
+
+        if (!empty( $tblPersonSearchList )) {
+
+            $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
+            $tblPersonList = array();
+            if ($tblSerialPersonList) {
+                foreach ($tblSerialPersonList as $tblSerialPerson) {
+                    $tblPersonList[] = $tblSerialPerson->getServiceTblPerson();
+                }
+            }
+            $PersonRemoveList = array_diff($tblPersonList, $tblPersonSearchList);
+            if ($PersonRemoveList) {
+                foreach ($PersonRemoveList as $PersonRemove) {
+                    $this->removeSerialPerson($tblSerialLetter, $PersonRemove);
+                }
+            }
+            $PersonAddList = array_diff($tblPersonSearchList, $tblPersonList);
+            if ($PersonAddList) {
+                foreach ($PersonAddList as $PersonRemove) {
+                    $this->addSerialPerson($tblSerialLetter, $PersonRemove);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getGroupFilterPersonListBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+        $tblFilterFieldList = SerialLetter::useService()->getFilterFiledAllBySerialLetter($tblSerialLetter);
+        $FilterGroup = array();
+        if ($tblFilterFieldList) {
+            foreach ($tblFilterFieldList as $tblFilterField) {
+                if (stristr($tblFilterField->getField(), 'TblGroup_')) {
+                    $FilterGroup[$tblFilterField->getField()] = $tblFilterField->getValue();
+                }
+            }
+        }
+        $PersonList = array();
+
+        //Filter Group
+        if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
+        ) {
+            // Database Join with foreign Key
+            $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
+            $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
+                null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
+            );
+            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
+                ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
+            );
+
+            if ($FilterGroup) {
+                // Preparation FilterGroup
+                array_walk($FilterGroup, function (&$Input) {
+
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
+                    }
+                });
+                $FilterGroup = array_filter($FilterGroup);
+            } else {
+                $FilterGroup = array();
+            }
+            // Preparation FilterPerson
+            $FilterPerson = array();
+
+            $Result = $Pile->searchPile(array(
+                0 => $FilterGroup,
+                1 => $FilterPerson
+            ));
+//            // get Timeout status
+//            $Timeout = $Pile->isTimeout();
+
+            $PersonList = array();
+            $PersonIdList = array();
+
+            foreach ($Result as $Index => $Row) {
+                /** @var array $DataPerson */
+                $DataPerson = $Row[1]->__toArray();
+                if (!array_key_exists($DataPerson['TblPerson_Id'], $PersonIdList)) {
+                    $PersonIdList[$DataPerson['TblPerson_Id']] = $DataPerson['TblPerson_Id'];
+                }
+            }
+            if (!empty( $PersonIdList )) {
+                foreach ($PersonIdList as $PersonId) {
+                    $PersonList[] = Person::useService()->getPersonById($PersonId);
+                }
+            }
+        }
+
+        return ( !empty( $PersonList ) ? $PersonList : false );
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getStudentFilterPersonListBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+        $tblFilterFieldList = SerialLetter::useService()->getFilterFiledAllBySerialLetter($tblSerialLetter);
+        $FilterGroup = array();
+        if ($tblFilterFieldList) {
+            foreach ($tblFilterFieldList as $tblFilterField) {
+                if (stristr($tblFilterField->getField(), 'TblGroup_')) {
+                    $FilterGroup[$tblFilterField->getField()] = $tblFilterField->getValue();
+                }
+                if (stristr($tblFilterField->getField(), 'TblLevel_')) {
+                    $FilterStudent[$tblFilterField->getField()] = $tblFilterField->getValue();
+                }
+                if (stristr($tblFilterField->getField(), 'TblDivision_')) {
+                    $FilterStudent[$tblFilterField->getField()] = $tblFilterField->getValue();
+                }
+                if (stristr($tblFilterField->getField(), 'TblYear_')) {
+                    $FilterYear[$tblFilterField->getField()] = $tblFilterField->getValue();
+                }
+            }
+        }
+        $PersonList = array();
+
+        //Filter Group
+        if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
+        ) {
+            if (!isset( $FilterStudent )) {
+                $FilterStudent = array();
+            }
+            if (!isset( $FilterYear )) {
+                $FilterYear = array();
+            }
+
+            // Database Join with foreign Key
+            $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
+            $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
+                null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
+            );
+            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
+                ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
+            );
+            $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(),
+                ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
+            );
+            $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(),
+                ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
+            );
+
+            if ($FilterGroup) {
+                // Preparation FilterGroup
+                array_walk($FilterGroup, function (&$Input) {
+
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
+                    }
+                });
+                $FilterGroup = array_filter($FilterGroup);
+            } else {
+                $FilterGroup = array();
+            }
+            // Preparation FilterPerson
+            $FilterPerson = array();
+
+            // Preparation $FilterStudent
+            if ($FilterStudent) {
+                array_walk($FilterStudent, function (&$Input) {
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
+                    }
+                });
+                $FilterStudent = array_filter($FilterStudent);
+            } else {
+                $FilterStudent = array();
+            }
+            // Preparation $FilterYear
+            if ($FilterYear) {
+                array_walk($FilterYear, function (&$Input) {
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
+                    }
+                });
+                $FilterYear = array_filter($FilterYear);
+            } else {
+                $FilterYear = array();
+            }
+
+            $Result = $Pile->searchPile(array(
+                0 => $FilterGroup,
+                1 => $FilterPerson,
+                2 => $FilterStudent,
+                3 => $FilterYear
+            ));
+//            // get Timeout status
+//            $Timeout = $Pile->isTimeout();
+
+            $PersonList = array();
+            $PersonIdList = array();
+
+            foreach ($Result as $Index => $Row) {
+                /** @var array $DataPerson */
+                $DataPerson = $Row[1]->__toArray();
+                if (!array_key_exists($DataPerson['TblPerson_Id'], $PersonIdList)) {
+                    $PersonIdList[$DataPerson['TblPerson_Id']] = $DataPerson['TblPerson_Id'];
+                }
+            }
+            if (!empty( $PersonIdList )) {
+                foreach ($PersonIdList as $PersonId) {
+                    $PersonList[] = Person::useService()->getPersonById($PersonId);
+                }
+            }
+        }
+
+        return ( !empty( $PersonList ) ? $PersonList : false );
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getProspectFilterPersonListBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+        $tblFilterFieldList = SerialLetter::useService()->getFilterFiledAllBySerialLetter($tblSerialLetter);
+        $FilterGroup = array();
+        if ($tblFilterFieldList) {
+            foreach ($tblFilterFieldList as $tblFilterField) {
+                if (stristr($tblFilterField->getField(), 'TblGroup_')) {
+                    $FilterGroup[$tblFilterField->getField()] = $tblFilterField->getValue();
+                }
+                if (stristr($tblFilterField->getField(), 'TblProspectReservation_')) {
+                    $FilterProspect[$tblFilterField->getField()] = $tblFilterField->getValue();
+                }
+            }
+        }
+        $PersonList = array();
+
+        //Filter Group
+        if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
+        ) {
+            if (!isset( $FilterProspect )) {
+                $FilterProspect = array();
+            }
+
+            // Database Join with foreign Key
+            $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
+            $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
+                null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
+            );
+            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
+                ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
+            );
+            $Pile->addPile(( new ViewPeopleMetaProspect() )->getViewService(), new ViewPeopleMetaProspect(),
+                ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON, ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON
+            );
+
+            if ($FilterGroup) {
+                // Preparation FilterGroup
+                array_walk($FilterGroup, function (&$Input) {
+
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
+                    }
+                });
+                $FilterGroup = array_filter($FilterGroup);
+            } else {
+                $FilterGroup = array();
+            }
+            // Preparation FilterPerson
+            $FilterPerson = array();
+
+            // Preparation FilterProspect
+            if ($FilterProspect) {
+                array_walk($FilterProspect, function (&$Input) {
+                    if (!is_array($Input)) {
+                        if (!empty( $Input )) {
+                            $Input = explode(' ', $Input);
+                            $Input = array_filter($Input);
+                        } else {
+                            $Input = false;
+                        }
+                    }
+                });
+                $FilterProspect = array_filter($FilterProspect);
+            } else {
+                $FilterProspect = array();
+            }
+
+            $Result = $Pile->searchPile(array(
+                0 => $FilterGroup,
+                1 => $FilterPerson,
+                2 => $FilterProspect
+            ));
+//            // get Timeout status
+//            $Timeout = $Pile->isTimeout();
+
+            $PersonList = array();
+            $PersonIdList = array();
+
+            foreach ($Result as $Index => $Row) {
+                /** @var array $DataPerson */
+                $DataPerson = $Row[1]->__toArray();
+                if (!array_key_exists($DataPerson['TblPerson_Id'], $PersonIdList)) {
+                    $PersonIdList[$DataPerson['TblPerson_Id']] = $DataPerson['TblPerson_Id'];
+                }
+            }
+            if (!empty( $PersonIdList )) {
+                foreach ($PersonIdList as $PersonId) {
+                    $PersonList[] = Person::useService()->getPersonById($PersonId);
+                }
+            }
+        }
+
+        return ( !empty( $PersonList ) ? $PersonList : false );
     }
 }

@@ -140,14 +140,26 @@ class Frontend extends Extension implements IFrontendInterface
                     .( new Standard('', '/Reporting/SerialLetter/Destroy', new Remove(),
                         array('Id' => $tblSerialLetter->getId()), 'Löschen') )
                     .
-                    ( $tblFilterCategory ? ''
+                    ( $tblFilterCategory
+                        ? ''
                         : ( new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
-                            array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') ) )
-                    .( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
-                        array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen') )
-                    .( new Standard('', '/Reporting/SerialLetter/Export', new View(),
-                        array('Id' => $tblSerialLetter->getId()),
-                        'Addressliste für Serienbriefe anzeigen und herunterladen') );
+                            array('Id' => $tblSerialLetter->getId()), 'Personen auswählen') )
+                    )
+                    .
+                    ( $tblFilterCategory
+                        ? ( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
+                            array('Id' => $tblSerialLetter->getId(), 'Control' => true), 'Addressen auswählen') )
+                        : ( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
+                            array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen') )
+                    )
+                    .( $tblFilterCategory
+                        ? ( new Standard('', '/Reporting/SerialLetter/Export', new View(),
+                            array('Id' => $tblSerialLetter->getId(), 'Control' => true),
+                            'Addressliste für Serienbriefe anzeigen und herunterladen') )
+                        : ( new Standard('', '/Reporting/SerialLetter/Export', new View(),
+                            array('Id' => $tblSerialLetter->getId()),
+                            'Addressliste für Serienbriefe anzeigen und herunterladen') )
+                    );
                 array_push($TableContent, $Item);
             });
         }
@@ -1591,11 +1603,13 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null|int $Id
+     * @param bool     $Control
      *
      * @return Stage|string
      */
     public function frontendPersonAddress(
-        $Id = null
+        $Id = null,
+        $Control = false
     ) {
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen auswählen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
@@ -1603,7 +1617,24 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$tblSerialLetter) {
             return $Stage.new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation());
         }
+
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+        if ($Control) {
+            if ($tblFilterCategory) {
+                if ($tblFilterCategory->getName() === 'Personengruppe') {
+                    $tblPersonSearchList = SerialLetter::useService()->getGroupFilterPersonListBySerialLetter($tblSerialLetter);
+                    SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                }
+                if ($tblFilterCategory->getName() === 'Schüler') {
+                    $tblPersonSearchList = SerialLetter::useService()->getStudentFilterPersonListBySerialLetter($tblSerialLetter);
+                    SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                }
+                if ($tblFilterCategory->getName() === 'Interessenten') {
+                    $tblPersonSearchList = SerialLetter::useService()->getProspectFilterPersonListBySerialLetter($tblSerialLetter);
+                    SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                }
+            }
+        }
 
         if (!$tblFilterCategory) {
             $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
@@ -2140,16 +2171,35 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param bool $Control
      *
      * @return Stage|string
      */
     public function frontendSerialLetterExport(
-        $Id = null
+        $Id = null,
+        $Control = false
     ) {
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen herunterladen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
         if (( $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id) )) {
             $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+
+            if ($Control) {
+                if ($tblFilterCategory) {
+                    if ($tblFilterCategory->getName() === 'Personengruppe') {
+                        $tblPersonSearchList = SerialLetter::useService()->getGroupFilterPersonListBySerialLetter($tblSerialLetter);
+                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                    }
+                    if ($tblFilterCategory->getName() === 'Schüler') {
+                        $tblPersonSearchList = SerialLetter::useService()->getStudentFilterPersonListBySerialLetter($tblSerialLetter);
+                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                    }
+                    if ($tblFilterCategory->getName() === 'Interessenten') {
+                        $tblPersonSearchList = SerialLetter::useService()->getProspectFilterPersonListBySerialLetter($tblSerialLetter);
+                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                    }
+                }
+            }
 
             if (!$tblFilterCategory) {
                 $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),

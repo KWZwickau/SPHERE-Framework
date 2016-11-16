@@ -174,6 +174,22 @@ class Data extends AbstractData
 
     /**
      * @param TblSerialLetter $tblSerialLetter
+     * @param TblPerson       $tblPerson
+     *
+     * @return false|TblSerialPerson
+     */
+    public function getSerialPersonBySerialLetterAndPerson(TblSerialLetter $tblSerialLetter, TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSerialPerson',
+            array(
+                TblSerialPerson::ATTR_TBL_SERIAL_LETTER  => $tblSerialLetter->getId(),
+                TblSerialPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
      *
      * @return false|TblPerson[]
      */
