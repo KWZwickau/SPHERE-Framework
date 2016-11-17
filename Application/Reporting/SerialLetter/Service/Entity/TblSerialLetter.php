@@ -84,9 +84,9 @@ class TblSerialLetter extends Element
     }
 
     /**
-     * @param TblFilterCategory $tblFilterCategory
+     * @param TblFilterCategory|null $tblFilterCategory
      */
-    public function setFilterCategory(TblFilterCategory $tblFilterCategory)
+    public function setFilterCategory(TblFilterCategory $tblFilterCategory = null)
     {
 
         $this->tblFilterCategory = ( null === $tblFilterCategory ? null : $tblFilterCategory->getId() );
