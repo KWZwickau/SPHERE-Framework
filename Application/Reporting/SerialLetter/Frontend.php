@@ -11,7 +11,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
-use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -115,7 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSerialLetterAll = SerialLetter::useService()->getSerialLetterAll();
         $tblFilterCategoryAll = SerialLetter::useService()->getFilterCategoryAll();
 
-        //create Tabs
+        // create Tabs
         $LayoutTabs[] = new LayoutTab('Statisch', 'STATIC');
         if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
             $LayoutTabs[0]->setActive();
@@ -123,8 +122,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblFilterCategoryAll) {
             foreach ($tblFilterCategoryAll as $tblFilterCategory) {
-                // Create Tabs
-                $LayoutTabs[] = new LayoutTab('dynamische '.$tblFilterCategory->getName(), 'DYNAMIC'.$tblFilterCategory->getId());
+                // create Tabs
+                $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'DYNAMIC'.$tblFilterCategory->getId());
             }
         }
 
@@ -173,15 +172,8 @@ class Frontend extends Extension implements IFrontendInterface
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-//        // Create Tabs
-//        $LayoutTabs[] = new LayoutTab('Serienbrief Statisch', 'STATIC');
-//        $LayoutTabs[] = new LayoutTab('Serienbrief Dynamisch', 'DYNAMIC');
-//        if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
-//            $LayoutTabs[0]->setActive();
-//        }
-
         $Timeout = null;
-        $SearchResult = array();
+        $TableSearch = array();
         $IsFilter = false;
 
 
@@ -193,99 +185,15 @@ class Frontend extends Extension implements IFrontendInterface
             case 'DYNAMIC1':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Personengruppe');
 
-                //Filter Group
+                // Filter Group
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
                 ) {
                     $IsFilter = true;
 
-                    // Database Join with foreign Key
-                    $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
-                    $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
-                        null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-                    );
-                    $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
-                        ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-                    );
+                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter(null, $FilterGroup);
 
-                    if ($FilterGroup) {
-                        // Preparation FilterGroup
-                        array_walk($FilterGroup, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterGroup = array_filter($FilterGroup);
-                    } else {
-                        $FilterGroup = array();
-                    }
-                    // Preparation FilterPerson
-                    if ($FilterPerson) {
-                        array_walk($FilterPerson, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterPerson = array_filter($FilterPerson);
-                    } else {
-                        $FilterPerson = array();
-                    }
-
-                    $Result = $Pile->searchPile(array(
-                        0 => $FilterGroup,
-                        1 => $FilterPerson
-                    ));
-                    // get Timeout status
-                    $Timeout = $Pile->isTimeout();
-
-                    foreach ($Result as $Index => $Row) {
-                        /** @var array $DataPerson */
-                        $DataPerson = $Row[1]->__toArray();
-//                $tblDivisionStudent = false;
-                        /** @var TblDivisionStudent $tblDivisionStudent */
-                        $DataPerson['Division'] = '-NA-';
-
-                        $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Name'] = false;
-                        $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                        if ($tblPerson) {
-                            $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                            $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                                ? $tblPerson->getSalutation()
-                                : new Small(new Muted('-NA-')) );
-                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        }
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                        if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
-                            /** @noinspection PhpUndefinedFieldInspection */
-                            $DataPerson['Address'] = $tblAddress->getGuiString();
-                        }
-                        $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                        if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
-                            $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-                        }
-
-                        // ignore duplicated Person
-                        if ($DataPerson['Name']) {
-                            if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                                $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
-                            }
-                        }
+                    if ($Result) {
+                        $TableSearch = $this->getGroupTableByResult($Result);
                     }
                 }
 
@@ -329,7 +237,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     ( $IsFilter
-                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        ? new TableData($TableSearch, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -383,150 +291,10 @@ class Frontend extends Extension implements IFrontendInterface
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
                 ) {
                     $IsFilter = true;
+                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter(null, $FilterGroup, $FilterStudent, $FilterYear);
 
-                    // Database Join with foreign Key
-                    $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
-                    $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
-                        null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-                    );
-                    $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
-                        ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-                    );
-                    $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(),
-                        ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
-                    );
-                    $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(),
-                        ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
-                    );
-
-                    if ($FilterGroup) {
-                        // Preparation FilterGroup
-                        array_walk($FilterGroup, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterGroup = array_filter($FilterGroup);
-                    } else {
-                        $FilterGroup = array();
-                    }
-                    // Preparation FilterPerson
-                    if ($FilterPerson) {
-                        array_walk($FilterPerson, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterPerson = array_filter($FilterPerson);
-                    } else {
-                        $FilterPerson = array();
-                    }
-                    // Preparation $FilterStudent
-                    if ($FilterStudent) {
-                        array_walk($FilterStudent, function (&$Input) {
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterStudent = array_filter($FilterStudent);
-                    } else {
-                        $FilterStudent = array();
-                    }
-                    // Preparation $FilterYear
-                    if ($FilterYear) {
-                        array_walk($FilterYear, function (&$Input) {
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterYear = array_filter($FilterYear);
-                    } else {
-                        $FilterYear = array();
-                    }
-
-                    $Result = $Pile->searchPile(array(
-                        0 => $FilterGroup,
-                        1 => $FilterPerson,
-                        2 => $FilterStudent,
-                        3 => $FilterYear
-                    ));
-                    // get Timeout status
-                    $Timeout = $Pile->isTimeout();
-
-                    foreach ($Result as $Index => $Row) {
-                        /** @var array $DataPerson */
-                        $DataPerson = $Row[1]->__toArray();
-                        $tblDivisionStudent = $Row[2]->getTblDivisionStudent();
-                        /** @var TblDivisionStudent $tblDivisionStudent */
-                        if ($tblDivisionStudent) {
-                            $tblDivision = $tblDivisionStudent->getTblDivision();
-                            if ($tblDivision) {
-                                if (strlen($tblDivision->getTblLevel()->getName()) == 1) {
-                                    $DivisionName = '0'.$tblDivision->getDisplayName();
-                                } else {
-                                    $DivisionName = $tblDivision->getDisplayName();
-                                }
-
-                                $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($DivisionName);
-                            } else {
-                                $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-                            }
-                        } else {
-                            $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-                        }
-
-                        $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Name'] = false;
-                        $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                        if ($tblPerson) {
-                            $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                            $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                                ? $tblPerson->getSalutation()
-                                : new Small(new Muted('-NA-')) );
-                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        }
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                        if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
-                            /** @noinspection PhpUndefinedFieldInspection */
-                            $DataPerson['Address'] = $tblAddress->getGuiString();
-                        }
-                        $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                        if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
-                            $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-                        }
-
-                        // ignore duplicated Person
-                        if ($DataPerson['Name']) {
-                            if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                                $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
-                            }
-                        }
+                    if ($Result) {
+                        $TableSearch = $this->getStudentTableByResult($Result);
                     }
                 }
 
@@ -587,7 +355,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     ( $IsFilter
-                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        ? new TableData($TableSearch, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -637,118 +405,14 @@ class Frontend extends Extension implements IFrontendInterface
             case 'DYNAMIC3':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Interessenten');
 
-                //FilterProspect
+                // FilterProspect
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
                     $IsFilter = true;
 
-                    // Database Join with foreign Key
-                    $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
-                    $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
-                        null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-                    );
-                    $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
-                        ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-                    );
-                    $Pile->addPile(( new ViewPeopleMetaProspect() )->getViewService(), new ViewPeopleMetaProspect(),
-                        ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON, ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON
-                    );
+                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter(null, $FilterGroup, $FilterProspect);
 
-                    if ($FilterGroup) {
-                        // Preparation FilterGroup
-                        array_walk($FilterGroup, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterGroup = array_filter($FilterGroup);
-                    } else {
-                        $FilterGroup = array();
-                    }
-                    // Preparation FilterPerson
-                    if ($FilterPerson) {
-                        array_walk($FilterPerson, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterPerson = array_filter($FilterPerson);
-                    } else {
-                        $FilterPerson = array();
-                    }
-                    // Preparation $FilterProspect
-                    if ($FilterProspect) {
-                        array_walk($FilterProspect, function (&$Input) {
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterProspect = array_filter($FilterProspect);
-                    } else {
-                        $FilterProspect = array();
-                    }
-
-                    $Result = $Pile->searchPile(array(
-                        0 => $FilterGroup,
-                        1 => $FilterPerson,
-                        2 => $FilterProspect,
-                    ));
-                    // get Timeout status
-                    $Timeout = $Pile->isTimeout();
-
-                    foreach ($Result as $Index => $Row) {
-                        /** @var array $DataPerson */
-                        $DataPerson = $Row[1]->__toArray();
-//                $tblDivisionStudent = false;
-                        /** @var TblDivisionStudent $tblDivisionStudent */
-                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-
-                        $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Name'] = false;
-                        $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                        if ($tblPerson) {
-                            $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                            $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                                ? $tblPerson->getSalutation()
-                                : new Small(new Muted('-NA-')) );
-                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        }
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                        if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
-                            /** @noinspection PhpUndefinedFieldInspection */
-                            $DataPerson['Address'] = $tblAddress->getGuiString();
-                        }
-                        $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                        if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
-                            $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-                        }
-
-                        // ignore duplicated Person
-                        if ($DataPerson['Name']) {
-                            if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                                $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
-                            }
-                        }
+                    if ($Result) {
+                        $TableSearch = $this->getProspectTableByResult($Result);
                     }
                 }
 
@@ -803,7 +467,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     ( $IsFilter
-                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        ? new TableData($TableSearch, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -891,6 +555,175 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $Result
+     *
+     * @return array
+     */
+    private function getGroupTableByResult($Result)
+    {
+        $TableSearch = array();
+        if (!empty( $Result )) {
+            foreach ($Result as $Index => $Row) {
+                /** @var array $DataPerson */
+                $DataPerson = $Row[1]->__toArray();
+//                $tblDivisionStudent = false;
+                /** @var TblDivisionStudent $tblDivisionStudent */
+                $DataPerson['Division'] = '-NA-';
+
+                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Name'] = false;
+                $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
+
+                if ($tblPerson) {
+                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
+                    $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
+                        ? $tblPerson->getSalutation()
+                        : new Small(new Muted('-NA-')) );
+                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                }
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
+                if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $DataPerson['Address'] = $tblAddress->getGuiString();
+                }
+                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
+                if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                }
+
+                // ignore duplicated Person
+                if ($DataPerson['Name']) {
+                    if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
+                        $TableSearch[$DataPerson['TblPerson_Id']] = $DataPerson;
+                    }
+                }
+            }
+        }
+        return $TableSearch;
+    }
+
+    /**
+     * @param $Result
+     *
+     * @return array
+     */
+    private function getStudentTableByResult($Result)
+    {
+        $TableSearch = array();
+        if (!empty( $Result )) {
+            foreach ($Result as $Index => $Row) {
+                /** @var array $DataPerson */
+                $DataPerson = $Row[1]->__toArray();
+                $tblDivisionStudent = $Row[2]->getTblDivisionStudent();
+                /** @var TblDivisionStudent $tblDivisionStudent */
+                if ($tblDivisionStudent) {
+                    $tblDivision = $tblDivisionStudent->getTblDivision();
+                    if ($tblDivision) {
+                        if (strlen($tblDivision->getTblLevel()->getName()) == 1) {
+                            $DivisionName = '0'.$tblDivision->getDisplayName();
+                        } else {
+                            $DivisionName = $tblDivision->getDisplayName();
+                        }
+
+                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($DivisionName);
+                    } else {
+                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
+                    }
+                } else {
+                    $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
+                }
+
+                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Name'] = false;
+                $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
+
+                if ($tblPerson) {
+                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
+                    $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
+                        ? $tblPerson->getSalutation()
+                        : new Small(new Muted('-NA-')) );
+                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                }
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
+                if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $DataPerson['Address'] = $tblAddress->getGuiString();
+                }
+                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
+                if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                }
+
+                // ignore duplicated Person
+                if ($DataPerson['Name']) {
+                    if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
+                        $TableSearch[$DataPerson['TblPerson_Id']] = $DataPerson;
+                    }
+                }
+            }
+        }
+        return $TableSearch;
+    }
+
+    /**
+     * @param $Result
+     *
+     * @return array
+     */
+    private function getProspectTableByResult($Result)
+    {
+
+        $TableSearch = array();
+        if (!empty( $Result )) {
+            foreach ($Result as $Index => $Row) {
+                /** @var array $DataPerson */
+                $DataPerson = $Row[1]->__toArray();
+//                $tblDivisionStudent = false;
+                /** @var TblDivisionStudent $tblDivisionStudent */
+                $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
+
+                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Name'] = false;
+                $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
+
+                if ($tblPerson) {
+                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
+                    $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
+                        ? $tblPerson->getSalutation()
+                        : new Small(new Muted('-NA-')) );
+                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                }
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
+                if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $DataPerson['Address'] = $tblAddress->getGuiString();
+                }
+                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
+                if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                }
+
+                // ignore duplicated Person
+                if ($DataPerson['Name']) {
+                    if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
+                        $TableSearch[$DataPerson['TblPerson_Id']] = $DataPerson;
+                    }
+                }
+            }
+        }
+        return $TableSearch;
+    }
+
+    /**
      * @return Form
      */
     private function formSerialLetter()
@@ -966,12 +799,11 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+        $GroupList[] = $tblGroup;
 
         $Global = $this->getGlobal();
         $Global->POST['FilterGroup']['TblGroup_Id'] = $tblGroup->getId();
         $Global->savePost();
-
-        $GroupList[] = $tblGroup;
 
         return new Form(
             new FormGroup(
@@ -995,7 +827,6 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null   $SerialLetter
      * @param string $TabActive
      * @param null   $FilterGroup
-     * @param null   $FilterPerson
      * @param null   $FilterStudent
      * @param null   $FilterYear
      * @param null   $FilterProspect
@@ -1006,7 +837,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Id = null, $SerialLetter = null,
         $TabActive = null,
         $FilterGroup = null,
-        $FilterPerson = null,
+//        $FilterPerson = null,
         $FilterStudent = null,
         $FilterYear = null,
         $FilterProspect = null
@@ -1024,7 +855,7 @@ class Frontend extends Extension implements IFrontendInterface
             .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
         }
 
-        //create Tabs
+        // create Tabs
         $LayoutTabs[] = new LayoutTab('Statisch', 'STATIC', array('Id' => $tblSerialLetter->getId()));
 
         $FormSerialLetter = $this->formSerialLetter()
@@ -1034,8 +865,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblFilterCategoryAll = SerialLetter::useService()->getFilterCategoryAll();
         if ($tblFilterCategoryAll) {
             foreach ($tblFilterCategoryAll as $tblFilterCategory) {
-                // Create Tabs
-                $LayoutTabs[] = new LayoutTab('dynamisch '.$tblFilterCategory->getName(), 'DYNAMIC'.$tblFilterCategory->getId()
+                // create Tabs
+                $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'DYNAMIC'.$tblFilterCategory->getId()
                     , array('Id' => $tblSerialLetter->getId()));
             }
         }
@@ -1093,9 +924,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Global->savePost();
         }
-
         $Timeout = null;
-        $SearchResult = array();
+        $SearchTable = array();
         $IsFilter = false;
 
 
@@ -1107,99 +937,15 @@ class Frontend extends Extension implements IFrontendInterface
             case 'DYNAMIC1':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Personengruppe');
 
-                //Filter Group
+                // Filter Group
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
                 ) {
                     $IsFilter = true;
 
-                    // Database Join with foreign Key
-                    $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
-                    $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
-                        null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-                    );
-                    $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
-                        ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-                    );
+                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter($tblSerialLetter, $FilterGroup);
 
-                    if ($FilterGroup) {
-                        // Preparation FilterGroup
-                        array_walk($FilterGroup, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterGroup = array_filter($FilterGroup);
-                    } else {
-                        $FilterGroup = array();
-                    }
-                    // Preparation FilterPerson
-                    if ($FilterPerson) {
-                        array_walk($FilterPerson, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterPerson = array_filter($FilterPerson);
-                    } else {
-                        $FilterPerson = array();
-                    }
-
-                    $Result = $Pile->searchPile(array(
-                        0 => $FilterGroup,
-                        1 => $FilterPerson
-                    ));
-                    // get Timeout status
-                    $Timeout = $Pile->isTimeout();
-
-                    foreach ($Result as $Index => $Row) {
-                        /** @var array $DataPerson */
-                        $DataPerson = $Row[1]->__toArray();
-//                $tblDivisionStudent = false;
-                        /** @var TblDivisionStudent $tblDivisionStudent */
-                        $DataPerson['Division'] = '-NA-';
-
-                        $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Name'] = false;
-                        $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                        if ($tblPerson) {
-                            $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                            $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                                ? $tblPerson->getSalutation()
-                                : new Small(new Muted('-NA-')) );
-                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        }
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                        if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
-                            /** @noinspection PhpUndefinedFieldInspection */
-                            $DataPerson['Address'] = $tblAddress->getGuiString();
-                        }
-                        $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                        if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
-                            $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-                        }
-
-                        // ignore duplicated Person
-                        if ($DataPerson['Name']) {
-                            if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                                $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
-                            }
-                        }
+                    if ($Result) {
+                        $SearchTable = $this->getGroupTableByResult($Result);
                     }
                 }
 
@@ -1244,7 +990,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     ( $IsFilter
-                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        ? new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -1282,7 +1028,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new PlusSign().' Serienbreif anlegen '
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, null, null, $tblFilterCategory->getId(), ( !$IsFilter ))))
+                                            , $SerialLetter, $FilterGroup, null, null, null, $tblFilterCategory->getId(), ( !$IsFilter ))))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -1297,149 +1043,9 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $IsFilter = true;
 
-                    // Database Join with foreign Key
-                    $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
-                    $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
-                        null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-                    );
-                    $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
-                        ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-                    );
-                    $Pile->addPile(( new ViewDivisionStudent() )->getViewService(), new ViewDivisionStudent(),
-                        ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
-                    );
-                    $Pile->addPile(( new ViewYear() )->getViewService(), new ViewYear(),
-                        ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
-                    );
-
-                    if ($FilterGroup) {
-                        // Preparation FilterGroup
-                        array_walk($FilterGroup, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterGroup = array_filter($FilterGroup);
-                    } else {
-                        $FilterGroup = array();
-                    }
-                    // Preparation FilterPerson
-                    if ($FilterPerson) {
-                        array_walk($FilterPerson, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterPerson = array_filter($FilterPerson);
-                    } else {
-                        $FilterPerson = array();
-                    }
-                    // Preparation $FilterStudent
-                    if ($FilterStudent) {
-                        array_walk($FilterStudent, function (&$Input) {
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterStudent = array_filter($FilterStudent);
-                    } else {
-                        $FilterStudent = array();
-                    }
-                    // Preparation $FilterYear
-                    if ($FilterYear) {
-                        array_walk($FilterYear, function (&$Input) {
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterYear = array_filter($FilterYear);
-                    } else {
-                        $FilterYear = array();
-                    }
-
-                    $Result = $Pile->searchPile(array(
-                        0 => $FilterGroup,
-                        1 => $FilterPerson,
-                        2 => $FilterStudent,
-                        3 => $FilterYear
-                    ));
-                    // get Timeout status
-                    $Timeout = $Pile->isTimeout();
-
-                    foreach ($Result as $Index => $Row) {
-                        /** @var array $DataPerson */
-                        $DataPerson = $Row[1]->__toArray();
-                        $tblDivisionStudent = $Row[2]->getTblDivisionStudent();
-                        /** @var TblDivisionStudent $tblDivisionStudent */
-                        if ($tblDivisionStudent) {
-                            $tblDivision = $tblDivisionStudent->getTblDivision();
-                            if ($tblDivision) {
-                                if (strlen($tblDivision->getTblLevel()->getName()) == 1) {
-                                    $DivisionName = '0'.$tblDivision->getDisplayName();
-                                } else {
-                                    $DivisionName = $tblDivision->getDisplayName();
-                                }
-
-                                $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($DivisionName);
-                            } else {
-                                $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-                            }
-                        } else {
-                            $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-                        }
-
-                        $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Name'] = false;
-                        $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                        if ($tblPerson) {
-                            $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                            $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                                ? $tblPerson->getSalutation()
-                                : new Small(new Muted('-NA-')) );
-                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        }
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                        if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
-                            /** @noinspection PhpUndefinedFieldInspection */
-                            $DataPerson['Address'] = $tblAddress->getGuiString();
-                        }
-                        $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                        if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
-                            $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-                        }
-
-                        // ignore duplicated Person
-                        if ($DataPerson['Name']) {
-                            if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                                $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
-                            }
-                        }
+                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter($tblSerialLetter, $FilterGroup, $FilterStudent, $FilterYear);
+                    if ($Result) {
+                        $SearchTable = $this->getStudentTableByResult($Result);
                     }
                 }
 
@@ -1501,7 +1107,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     ( $IsFilter
-                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        ? new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -1539,7 +1145,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new PlusSign().' Serienbreif bearbeiten '
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, $FilterPerson, $FilterStudent, $FilterYear, null, $tblFilterCategory->getId(), ( !$IsFilter ))))
+                                            , $SerialLetter, $FilterGroup, $FilterStudent, $FilterYear, null, $tblFilterCategory->getId(), ( !$IsFilter ))))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -1549,118 +1155,14 @@ class Frontend extends Extension implements IFrontendInterface
             case 'DYNAMIC3':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Interessenten');
 
-                //FilterProspect
+                // FilterProspect
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
                     $IsFilter = true;
 
-                    // Database Join with foreign Key
-                    $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
-                    $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
-                        null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-                    );
-                    $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
-                        ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-                    );
-                    $Pile->addPile(( new ViewPeopleMetaProspect() )->getViewService(), new ViewPeopleMetaProspect(),
-                        ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON, ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON
-                    );
+                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter($tblSerialLetter, $FilterGroup, $FilterProspect);
 
-                    if ($FilterGroup) {
-                        // Preparation FilterGroup
-                        array_walk($FilterGroup, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterGroup = array_filter($FilterGroup);
-                    } else {
-                        $FilterGroup = array();
-                    }
-                    // Preparation FilterPerson
-                    if ($FilterPerson) {
-                        array_walk($FilterPerson, function (&$Input) {
-
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterPerson = array_filter($FilterPerson);
-                    } else {
-                        $FilterPerson = array();
-                    }
-                    // Preparation $FilterProspect
-                    if ($FilterProspect) {
-                        array_walk($FilterProspect, function (&$Input) {
-                            if (!is_array($Input)) {
-                                if (!empty( $Input )) {
-                                    $Input = explode(' ', $Input);
-                                    $Input = array_filter($Input);
-                                } else {
-                                    $Input = false;
-                                }
-                            }
-                        });
-                        $FilterProspect = array_filter($FilterProspect);
-                    } else {
-                        $FilterProspect = array();
-                    }
-
-                    $Result = $Pile->searchPile(array(
-                        0 => $FilterGroup,
-                        1 => $FilterPerson,
-                        2 => $FilterProspect,
-                    ));
-                    // get Timeout status
-                    $Timeout = $Pile->isTimeout();
-
-                    foreach ($Result as $Index => $Row) {
-                        /** @var array $DataPerson */
-                        $DataPerson = $Row[1]->__toArray();
-//                $tblDivisionStudent = false;
-                        /** @var TblDivisionStudent $tblDivisionStudent */
-                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-
-                        $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Name'] = false;
-                        $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                        if ($tblPerson) {
-                            $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                            $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                                ? $tblPerson->getSalutation()
-                                : new Small(new Muted('-NA-')) );
-                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        }
-                        /** @noinspection PhpUndefinedFieldInspection */
-                        $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                        if (isset( $tblAddress ) && $tblAddress && $DataPerson['Name']) {
-                            /** @noinspection PhpUndefinedFieldInspection */
-                            $DataPerson['Address'] = $tblAddress->getGuiString();
-                        }
-                        $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                        if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
-                            $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-                        }
-
-                        // ignore duplicated Person
-                        if ($DataPerson['Name']) {
-                            if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                                $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
-                            }
-                        }
+                    if ($Result) {
+                        $SearchTable = $this->getProspectTableByResult($Result);
                     }
                 }
 
@@ -1716,7 +1218,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     ( $IsFilter
-                                        ? new TableData($SearchResult, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        ? new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -1754,7 +1256,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new PlusSign().' Serienbreif anlegen '
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, null, $FilterProspect, $tblFilterCategory->getId(), ( !$IsFilter ))))
+                                            , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), ( !$IsFilter ))))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -2134,9 +1636,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         new AutoCompleter('FilterYear[TblYear_Name]', 'Bildung: Schuljahr', 'Bildung: Schuljahr', array('Name' => Term::useService()->getYearAll())),
                     ), 2),
-//                    new FormColumn(array(
-//                        new AutoCompleter('FilterType[TblType_Name]', 'Bildung: Schulart', 'Bildung: Schulart', array('Name' => Type::useService()->getTypeAll())),
-//                    ), 6),
                     new FormColumn(array(
                         new TextField('FilterStudent[TblLevel_Name]', 'Klasse: Stufe', 'Klasse: Stufe')
                     ), 2),
@@ -2210,7 +1709,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
 
-        // Create Tabs
+        // create Tabs
         $LayoutTabs[] = new LayoutTab('Personen in Gruppen suchen', 'PERSON', array('Id' => $tblSerialLetter->getId()));
         $LayoutTabs[] = new LayoutTab('Schüler in Klassen suchen', 'DIVISION', array('Id' => $tblSerialLetter->getId()));
         if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
@@ -2382,18 +1881,22 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+        // update SerialPerson
         if ($Control) {
             if ($tblFilterCategory) {
                 if ($tblFilterCategory->getName() === 'Personengruppe') {
-                    $tblPersonSearchList = SerialLetter::useService()->getGroupFilterPersonListBySerialLetter($tblSerialLetter);
+                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter($tblSerialLetter);
+                    $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
                     SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                 }
                 if ($tblFilterCategory->getName() === 'Schüler') {
-                    $tblPersonSearchList = SerialLetter::useService()->getStudentFilterPersonListBySerialLetter($tblSerialLetter);
+                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter($tblSerialLetter);
+                    $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
                     SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                 }
                 if ($tblFilterCategory->getName() === 'Interessenten') {
-                    $tblPersonSearchList = SerialLetter::useService()->getProspectFilterPersonListBySerialLetter($tblSerialLetter);
+                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter($tblSerialLetter);
+                    $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
                     SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                 }
             }
@@ -2499,14 +2002,6 @@ class Frontend extends Extension implements IFrontendInterface
                 .' Person(en)', Label::LABEL_TYPE_INFO)
         );
 
-//        // Selectbox Field's
-//        $tblSalutationAll = Person::useService()->getSalutationAll();
-//        if ($tblSalutationAll) {
-//            $tblSalutation = new TblSalutation('Familie');
-//            $tblSalutation->setId(TblAddressPerson::SALUTATION_FAMILY);
-//            $tblSalutationAll['Family'] = $tblSalutation;
-//        }
-
         $Buttons = array();
 //        $Buttons[] = new Standard('Löschen', '/Reporting/SerialLetter/Address/Remove', new Remove(), array('Id' => $tblSerialLetter->getId()));
         $Buttons[] = new Standard('Personen direkt anschreiben', '/Reporting/SerialLetter/Address/Person', new Edit()
@@ -2533,11 +2028,6 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $Buttons
                                                 , Panel::PANEL_TYPE_INFO)
                                         ), 6)
-//                                        new LayoutColumn(array(
-//                                            new Title(new Setup().' Adressen', 'Automatik'),
-//                                            new LayoutTabs($LayoutTabs),
-//                                            $MetaTable
-//                                        ), 6)
                                     ))
                                 )
                             )
@@ -2947,19 +2437,22 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
         if (( $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id) )) {
             $tblFilterCategory = $tblSerialLetter->getFilterCategory();
-
+            // update SerialPerson
             if ($Control) {
                 if ($tblFilterCategory) {
                     if ($tblFilterCategory->getName() === 'Personengruppe') {
-                        $tblPersonSearchList = SerialLetter::useService()->getGroupFilterPersonListBySerialLetter($tblSerialLetter);
+                        $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter($tblSerialLetter);
+                        $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
                         SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                     }
                     if ($tblFilterCategory->getName() === 'Schüler') {
-                        $tblPersonSearchList = SerialLetter::useService()->getStudentFilterPersonListBySerialLetter($tblSerialLetter);
+                        $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter($tblSerialLetter);
+                        $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
                         SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                     }
                     if ($tblFilterCategory->getName() === 'Interessenten') {
-                        $tblPersonSearchList = SerialLetter::useService()->getProspectFilterPersonListBySerialLetter($tblSerialLetter);
+                        $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter($tblSerialLetter);
+                        $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
                         SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                     }
                 }

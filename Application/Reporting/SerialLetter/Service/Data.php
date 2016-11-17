@@ -26,6 +26,7 @@ class Data extends AbstractData
         $this->createFilterCategory('Personengruppe');
         $this->createFilterCategory('Schüler');
         $this->createFilterCategory('Interessenten');
+//        $this->createFilterCategory('Firmengruppe');
     }
 
     /**
