@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\SerialLetter;
 
 use SPHERE\Application\Contact\Address\Address;
@@ -112,8 +111,7 @@ class Frontend extends Extension implements IFrontendInterface
         $FilterProspect = null,
         $FilterCompany = null,
         $FilterRelationship = null
-    )
-    {
+    ) {
 
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Übersicht');
 
@@ -207,7 +205,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $IsFilter = true;
 
-                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter(null, $FilterGroup);
+                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter(null, $FilterGroup, $Timeout);
 
                     if ($Result) {
                         $TableSearch = $this->getGroupTableByResult($Result);
@@ -260,8 +258,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                   'Address'    => 'Adresse'
                                             ),
                                             array(
-                                                'order'                => array(array(1, 'asc')),
-                                                'columnDefs'           => array(
+                                                'order'      => array(array(1, 'asc')),
+                                                'columnDefs' => array(
                                                     array('orderable' => false, 'width' => '3%', 'targets' => 0)
                                                 )
                                             )
@@ -293,7 +291,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
                 ) {
                     $IsFilter = true;
-                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter(null, $FilterGroup, $FilterStudent, $FilterYear);
+                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter(null, $FilterGroup, $FilterStudent, $FilterYear, $Timeout);
 
                     if ($Result) {
                         $TableSearch = $this->getStudentTableByResult($Result);
@@ -366,8 +364,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                   'StudentNumber' => 'Schüler-Nr.'
                                             ),
                                             array(
-                                                'order'                => array(array(1, 'asc')),
-                                                'columnDefs'           => array(
+                                                'order'      => array(array(1, 'asc')),
+                                                'columnDefs' => array(
                                                     array('orderable' => false, 'width' => '3%', 'targets' => 0)
                                                 )
                                             )
@@ -399,7 +397,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
                     $IsFilter = true;
 
-                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter(null, $FilterGroup, $FilterProspect);
+                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter(null, $FilterGroup, $FilterProspect, $Timeout);
 
                     if ($Result) {
                         $TableSearch = $this->getProspectTableByResult($Result);
@@ -465,11 +463,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                   'InterviewDate'       => 'Aufnahmegespräch',
                                                   'TrialDate'           => 'Schnuppertag',
                                                   'ReservationYear'     => 'Anmeldung für Jahr',
-                                                  'ReservationDivision' => 'Anmeldung für Klasse',
+                                                  'ReservationDivision' => 'Anmeldung für Stufe',
                                             ),
                                             array(
-                                                'order'                => array(array(1, 'asc')),
-                                                'columnDefs'           => array(
+                                                'order'      => array(array(1, 'asc')),
+                                                'columnDefs' => array(
                                                     array('orderable' => false, 'width' => '3%', 'targets' => 0)
                                                 )
                                             )
@@ -501,7 +499,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
                     $IsFilter = true;
 
-                    $Result = SerialLetter::useService()->getCompanyFilterResultListBySerialLetter(null, $FilterGroup, $FilterCompany, $FilterRelationship);
+                    $Result = SerialLetter::useService()->getCompanyFilterResultListBySerialLetter(null, $FilterGroup, $FilterCompany, $FilterRelationship, $Timeout);
 
                     if ($Result) {
                         $TableSearch = $this->getCompanyTableByResult($Result);
@@ -870,7 +868,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
 
-
                 // ignore duplicated Person
                 if ($DataPerson['Name']) {
                     if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
@@ -1035,8 +1032,7 @@ class Frontend extends Extension implements IFrontendInterface
         $FilterProspect = null,
         $FilterCompany = null,
         $FilterRelationship = null
-    )
-    {
+    ) {
 
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Bearbeiten');
 
@@ -1165,7 +1161,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $IsFilter = true;
 
-                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter(null, $FilterGroup);
+                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter(null, $FilterGroup, $Timeout);
 
                     if ($Result) {
                         $SearchTable = $this->getGroupTableByResult($Result);
@@ -1219,8 +1215,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                   'Address'    => 'Adresse'
                                             ),
                                             array(
-                                                'order'                => array(array(1, 'asc')),
-                                                'columnDefs'           => array(
+                                                'order'      => array(array(1, 'asc')),
+                                                'columnDefs' => array(
                                                     array('orderable' => false, 'width' => '3%', 'targets' => 0)
                                                 )
                                             )
@@ -1251,7 +1247,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $IsFilter = true;
 
-                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter(null, $FilterGroup, $FilterStudent, $FilterYear);
+                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter(null, $FilterGroup, $FilterStudent, $FilterYear, $Timeout);
                     if ($Result) {
                         $SearchTable = $this->getStudentTableByResult($Result);
                     }
@@ -1324,8 +1320,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                   'StudentNumber' => 'Schüler-Nr.'
                                             ),
                                             array(
-                                                'order'                => array(array(1, 'asc')),
-                                                'columnDefs'           => array(
+                                                'order'      => array(array(1, 'asc')),
+                                                'columnDefs' => array(
                                                     array('orderable' => false, 'width' => '3%', 'targets' => 0)
                                                 )
                                             )
@@ -1355,7 +1351,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
                     $IsFilter = true;
 
-                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter(null, $FilterGroup, $FilterProspect);
+                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter(null, $FilterGroup, $FilterProspect, $Timeout);
 
                     if ($Result) {
                         $SearchTable = $this->getProspectTableByResult($Result);
@@ -1422,11 +1418,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                   'InterviewDate'       => 'Aufnahmegespräch',
                                                   'TrialDate'           => 'Schnuppertag',
                                                   'ReservationYear'     => 'Anmeldung für Jahr',
-                                                  'ReservationDivision' => 'Anmeldung für Klasse',
+                                                  'ReservationDivision' => 'Anmeldung für Stufe',
                                             ),
                                             array(
-                                                'order'                => array(array(1, 'asc')),
-                                                'columnDefs'           => array(
+                                                'order'      => array(array(1, 'asc')),
+                                                'columnDefs' => array(
                                                     array('orderable' => false, 'width' => '3%', 'targets' => 0)
                                                 )
                                             )
@@ -1456,7 +1452,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
                     $IsFilter = true;
 
-                    $Result = SerialLetter::useService()->getCompanyFilterResultListBySerialLetter(null, $FilterGroup, $FilterCompany, $FilterRelationship);
+                    $Result = SerialLetter::useService()->getCompanyFilterResultListBySerialLetter(null, $FilterGroup, $FilterCompany, $FilterRelationship, $Timeout);
 
                     if ($Result) {
                         $SearchTable = $this->getCompanyTableByResult($Result);
@@ -1943,9 +1939,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextField('FilterPerson['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Person: Nachname', 'Person: Nachname')
                     ), 3)
                 )),
-                new FormRow(array(
-
-                ))
+                new FormRow(array())
             ))
             , new Primary('in Klassen suchen'));
 
@@ -2117,31 +2111,31 @@ class Frontend extends Extension implements IFrontendInterface
 //                                ? ''
 //                                :
                             new TableData($tblPersonSearch, null,
-                                    array('Exchange'      => ' ',
-                                          'Name'          => 'Name',
-                                          'Address'       => 'Adresse',
-                                          'Division'      => 'Klasse',
-                                          'StudentNumber' => 'Schüler-Nr.'
+                                array('Exchange'      => ' ',
+                                      'Name'          => 'Name',
+                                      'Address'       => 'Adresse',
+                                      'Division'      => 'Klasse',
+                                      'StudentNumber' => 'Schüler-Nr.'
+                                ),
+                                array(
+                                    'order'                => array(array(1, 'asc')),
+                                    'columnDefs'           => array(
+                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
                                     ),
-                                    array(
-                                        'order'                => array(array(1, 'asc')),
-                                        'columnDefs'           => array(
-                                            array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                    'ExtensionRowExchange' => array(
+                                        'Enabled' => true,
+                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                        'Handler' => array(
+                                            'From' => 'glyphicon-plus-sign',
+                                            'To'   => 'glyphicon-minus-sign',
+                                            'All'  => 'TableAddAll'
                                         ),
-                                        'ExtensionRowExchange' => array(
-                                            'Enabled' => true,
-                                            'Url'     => '/Api/Reporting/SerialLetter/Exchange',
-                                            'Handler' => array(
-                                                'From' => 'glyphicon-plus-sign',
-                                                'To'   => 'glyphicon-minus-sign',
-                                                'All'  => 'TableAddAll'
-                                            ),
-                                            'Connect' => array(
-                                                'From' => 'TableAvailable',
-                                                'To'   => 'TableCurrent',
-                                            ),
-                                        )
+                                        'Connect' => array(
+                                            'From' => 'TableAvailable',
+                                            'To'   => 'TableCurrent',
+                                        ),
                                     )
+                                )
 //                                )
                             ),
                             ( !$FilterStudent && !$FilterGroup
@@ -2751,6 +2745,11 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     if ($tblFilterCategory->getName() === 'Interessenten') {
                         $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter($tblSerialLetter);
+                        $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
+                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                    }
+                    if ($tblFilterCategory->getName() === 'Firmengruppe') {
+                        $Result = SerialLetter::useService()->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
                         $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
                         SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                     }

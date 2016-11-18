@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\SerialLetter\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
@@ -122,7 +121,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblSerialLetter   $tblSerialLetter
+     * @param TblSerialLetter $tblSerialLetter
      *
      * @return false|TblFilterField[]
      */

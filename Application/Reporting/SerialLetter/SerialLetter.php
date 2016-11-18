@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 19.04.2016
- * Time: 08:10
- */
-
 namespace SPHERE\Application\Reporting\SerialLetter;
 
 
@@ -27,7 +20,7 @@ class SerialLetter implements IApplicationInterface, IModuleInterface
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendSerialLetter')
+            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendSerialLetter')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address', __NAMESPACE__.'\Frontend::frontendPersonAddress')
@@ -48,13 +41,13 @@ class SerialLetter implements IApplicationInterface, IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person/Select', __NAMESPACE__.'\Frontend::frontendSerialLetterPersonSelected')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Edit', __NAMESPACE__ . '\Frontend::frontendSerialLetterEdit')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Edit', __NAMESPACE__.'\Frontend::frontendSerialLetterEdit')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Destroy', __NAMESPACE__ . '\Frontend::frontendSerialLetterDestroy')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendSerialLetterDestroy')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Export', __NAMESPACE__ . '\Frontend::frontendSerialLetterExport')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Export', __NAMESPACE__.'\Frontend::frontendSerialLetterExport')
         );
     }
 

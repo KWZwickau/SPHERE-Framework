@@ -329,8 +329,7 @@ class Service extends AbstractService
         $FilterCompany = null,
         $FilterRelationship = null,
         $FilterCategory = null
-    )
-    {
+    ) {
 
         /**
          * Skip to Frontend
@@ -1150,12 +1149,14 @@ class Service extends AbstractService
     /**
      * @param TblSerialLetter|null $tblSerialLetter
      * @param array                $FilterGroup
+     * @param bool                 $IsTimeout (if search reach timeout)
      *
      * @return array|bool
      */
     public function getGroupFilterResultListBySerialLetter(
         TblSerialLetter $tblSerialLetter = null,
-        $FilterGroup = array()
+        $FilterGroup = array(),
+        &$IsTimeout = false
     ) {
         $tblFilterFieldList = ( $tblSerialLetter != null
             ? SerialLetter::useService()->getFilterFieldActiveAllBySerialLetter($tblSerialLetter)
@@ -1205,6 +1206,8 @@ class Service extends AbstractService
                 0 => $FilterGroup,
                 1 => $FilterPerson
             ));
+            // get Timeout status
+            $IsTimeout = $Pile->isTimeout();
         }
 
         return ( !empty( $Result ) ? $Result : false );
@@ -1215,6 +1218,7 @@ class Service extends AbstractService
      * @param array                $FilterGroup
      * @param array                $FilterStudent
      * @param array                $FilterYear
+     * @param bool                 $IsTimeout (if search reach timeout)
      *
      * @return array|bool
      */
@@ -1222,7 +1226,8 @@ class Service extends AbstractService
         TblSerialLetter $tblSerialLetter = null,
         $FilterGroup = array(),
         $FilterStudent = array(),
-        $FilterYear = array()
+        $FilterYear = array(),
+        &$IsTimeout = false
     ) {
         $tblFilterFieldList = ( $tblSerialLetter != null
             ? SerialLetter::useService()->getFilterFieldActiveAllBySerialLetter($tblSerialLetter)
@@ -1324,8 +1329,8 @@ class Service extends AbstractService
                 2 => $FilterStudent,
                 3 => $FilterYear
             ));
-//            // get Timeout status
-//            $Timeout = $Pile->isTimeout();
+            // get Timeout status
+            $IsTimeout = $Pile->isTimeout();
 
         }
 
@@ -1336,13 +1341,15 @@ class Service extends AbstractService
      * @param TblSerialLetter|null $tblSerialLetter
      * @param array                $FilterGroup
      * @param array                $FilterProspect
+     * @param bool                 $IsTimeout (if search reach timeout)
      *
      * @return array|bool
      */
     public function getProspectFilterResultListBySerialLetter(
         TblSerialLetter $tblSerialLetter = null,
         $FilterGroup = array(),
-        $FilterProspect = array()
+        $FilterProspect = array(),
+        &$IsTimeout = false
     ) {
         $tblFilterFieldList = ( $tblSerialLetter != null
             ? SerialLetter::useService()->getFilterFieldActiveAllBySerialLetter($tblSerialLetter)
@@ -1416,6 +1423,8 @@ class Service extends AbstractService
                 1 => $FilterPerson,
                 2 => $FilterProspect
             ));
+            // get Timeout status
+            $IsTimeout = $Pile->isTimeout();
         }
 
         return ( !empty( $Result ) ? $Result : false );
@@ -1426,6 +1435,7 @@ class Service extends AbstractService
      * @param array                $FilterGroup
      * @param array                $FilterCompany
      * @param array                $FilterRelationship
+     * @param bool                 $IsTimeout (if search reach timeout)
      *
      * @return array|bool
      */
@@ -1433,7 +1443,8 @@ class Service extends AbstractService
         TblSerialLetter $tblSerialLetter = null,
         $FilterGroup = array(),
         $FilterCompany = array(),
-        $FilterRelationship = array()
+        $FilterRelationship = array(),
+        &$IsTimeout = false
     ) {
         $tblFilterFieldList = ( $tblSerialLetter != null
             ? SerialLetter::useService()->getFilterFieldActiveAllBySerialLetter($tblSerialLetter)
@@ -1530,6 +1541,8 @@ class Service extends AbstractService
                 2 => $FilterRelationship,
                 3 => $FilterPerson
             ));
+            // get Timeout status
+            $IsTimeout = $Pile->isTimeout();
         }
 
         return ( !empty( $Result ) ? $Result : false );
