@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\SerialLetter;
 
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
@@ -77,6 +78,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
@@ -647,8 +649,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $TableSearch = array();
         if (!empty( $Result )) {
+            /** @var AbstractView[]|ViewPerson[] $Row */
             foreach ($Result as $Index => $Row) {
-                /** @var array $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
 
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
@@ -690,8 +692,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $TableSearch = array();
         if (!empty( $Result )) {
+            /** @var AbstractView[]|ViewDivisionStudent[] $Row */
             foreach ($Result as $Index => $Row) {
-                /** @var array $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
                 $tblDivisionStudent = $Row[2]->getTblDivisionStudent();
 
@@ -759,8 +761,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $TableSearch = array();
         if (!empty( $Result )) {
+            /** @var AbstractView[]|ViewPerson[] $Row */
             foreach ($Result as $Index => $Row) {
-                /** @var array $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
 
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
@@ -824,8 +826,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $TableSearch = array();
         if (!empty( $Result )) {
+            /** @var AbstractView[]|ViewCompany[] $Row */
             foreach ($Result as $Index => $Row) {
-                /** @var array $DataPerson */
                 $DataCompany = $Row[1]->__toArray();
                 $DataPerson = $Row[3]->__toArray();
 

@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
@@ -1120,16 +1121,16 @@ class Service extends AbstractService
                 || $tblCategory->getName() == 'Schüler'
                 || $tblCategory->getName() == 'Interessenten'
             ) {
+                /** @var AbstractView[]|ViewPerson[] $Row */
                 foreach ($Result as $Index => $Row) {
-                    /** @var array $DataPerson */
                     $DataPerson = $Row[1]->__toArray();
                     if (!array_key_exists($DataPerson['TblPerson_Id'], $PersonIdList)) {
                         $PersonIdList[$DataPerson['TblPerson_Id']] = $DataPerson['TblPerson_Id'];
                     }
                 }
             } elseif ($tblCategory->getName() == 'Firmengruppe') {
+                /** @var AbstractView[]|ViewPerson[] $Row */
                 foreach ($Result as $Index => $Row) {
-                    /** @var array $DataPerson */
                     $DataPerson = $Row[3]->__toArray();
                     if (!array_key_exists($DataPerson['TblPerson_Id'], $PersonIdList)) {
                         $PersonIdList[$DataPerson['TblPerson_Id']] = $DataPerson['TblPerson_Id'];
@@ -1162,6 +1163,7 @@ class Service extends AbstractService
             ? SerialLetter::useService()->getFilterFieldActiveAllBySerialLetter($tblSerialLetter)
             : false );
         if ($tblFilterFieldList) {
+            /** @var TblFilterField $tblFilterField */
             foreach ($tblFilterFieldList as $tblFilterField) {
                 if (stristr($tblFilterField->getField(), 'TblGroup_')) {
                     $FilterGroup[$tblFilterField->getField()] = $tblFilterField->getValue();
