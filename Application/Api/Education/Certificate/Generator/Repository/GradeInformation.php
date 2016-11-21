@@ -86,7 +86,7 @@ class GradeInformation extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->styleHeight('250px')
+                            ->styleHeight('100px')
                         )
                     )
                     ->styleMarginTop('5px')
@@ -148,7 +148,7 @@ class GradeInformation extends Certificate
             $count = 1;
         }
 
-        $paddingLeft = '5px';
+        $paddingLeft = '0px';
         $columnWidth = floor(90 / ($count + 1));
         $leftWidth = 100 - (($count + 1) * $columnWidth);
 
@@ -166,6 +166,7 @@ class GradeInformation extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('KL')
                 ->styleMarginTop($top)
+                ->styleAlignCenter()
                 ->stylePaddingLeft($paddingLeft)
                 ->styleBorderLeft()
                 ->styleBorderTop()
@@ -174,7 +175,7 @@ class GradeInformation extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('Fachlehrer')
                 ->styleMarginTop($top)
-                ->stylePaddingLeft($paddingLeft)
+                ->stylePaddingLeft('5px')
                 ->styleBorderAll()
                 , ($count * $columnWidth) . '%');
         $slice->addSection($section);
@@ -328,7 +329,7 @@ class GradeInformation extends Certificate
                 ->styleBackgroundColor('#BBB')
                 ->styleHeight($height)
                 ->styleTextSize($fontSize)
-                , '30%')
+                , '50%')
             ->addElementColumn((new Element())
                 ->setContent('derzeitige Note')
                 ->styleMarginTop($top)
@@ -341,7 +342,7 @@ class GradeInformation extends Certificate
                 ->styleHeight($height)
                 ->styleAlignCenter()
                 ->styleTextSize($fontSize)
-                , '70%');
+                , '50%');
 //            ->addElementColumn((new Element())
 //                ->setContent('Bemerkungen, vergessene' . '<br>' . 'Arbeitsmittel')
 //                ->styleMarginTop($top)
@@ -366,7 +367,7 @@ class GradeInformation extends Certificate
                     ->styleBorderLeft()
                     ->styleBorderBottom()
                     ->styleHeight($heightRow)
-                    , '30%')
+                    , '50%')
                 ->addElementColumn((new Element())
                     ->setContent('
                         {% if(Content.Grade.Data.' . $subject->getAcronym() . ' is not empty) %}
@@ -380,7 +381,7 @@ class GradeInformation extends Certificate
                     ->styleBorderBottom()
                     ->styleBorderRight()
                     ->styleHeight($heightRow)
-                    , '70%');
+                    , '50%');
 //                ->addElementColumn((new Element())
 //                    ->setContent('&nbsp;')
 //                    ->stylePaddingLeft($paddingLeft)

@@ -68,7 +68,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                $LaneLength = 2;
 //            }
             // bei Noteninformationen stehen alle Fächer auf der linken Seite
-            $LaneLength = 15;
+            $LaneLength = 20;
 
             $SubjectLaneLeft = array();
             $SubjectLaneRight = array();
