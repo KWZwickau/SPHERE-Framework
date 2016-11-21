@@ -166,34 +166,22 @@ class Service extends AbstractService
     {
 
         $result = 0;
-        $Data = array();
-        $tblSerialLetterAddressPersonList = SerialLetter::useService()->getAddressPersonAllBySerialLetter($tblSerialLetter);
-        $tblPersonList = array();
-        if ($tblSerialLetterAddressPersonList) {
-            foreach ($tblSerialLetterAddressPersonList as $tblAddressToPerson) {
-                $result++;
-                $tblPerson = $tblAddressToPerson->getServiceTblPerson();
-                if ($tblPerson) {
-                    $tblPersonList[$tblPerson->getId()] = $tblAddressToPerson->getServiceTblPerson();
-                }
-            }
-        }
-        if (!empty( $tblPersonList )) {
-            /**@var TblPerson $tblPerson */
-            foreach ($tblPersonList as $tblPerson) {
-                if ($tblPerson) {
-                    $tblAddressPersonList =
-                        SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
-                    if ($tblAddressPersonList) {
-                        foreach ($tblAddressPersonList as $tblAddressPerson) {
-                            if (( $tblServiceTblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
-                                if (( $tblAddress = $tblServiceTblToPerson->getTblAddress() )) {
+        $tblSerialLetterPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
 
-                                    if (isset( $Data[$tblPerson->getId().$tblAddress->getId()] )) {
-                                        $result--;
-                                    }
-                                    $Data[$tblPerson->getId().$tblAddress->getId()] = true;
+        if ($tblSerialLetterPersonList) {
+            foreach ($tblSerialLetterPersonList as $tblPerson) {
+                $tblAddressPersonList = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
+                if ($tblAddressPersonList) {
+                    $Address = array();
+                    foreach ($tblAddressPersonList as $tblAddressPerson) {
+                        $tblToPerson = $tblAddressPerson->getServiceTblToPerson();
+                        if ($tblToPerson) {
+                            $tblAddress = $tblToPerson->getTblAddress();
+                            if ($tblAddress) {
+                                if (!in_array($tblAddress->getId(), $Address)) {
+                                    $result++;
                                 }
+                                $Address[] = $tblAddress->getId();
                             }
                         }
                     }
@@ -248,7 +236,7 @@ class Service extends AbstractService
     public function getAddressPersonAllByPerson(
         TblSerialLetter $tblSerialLetter,
         TblPerson $tblPerson,
-        $FirstGender = 'M'
+        $FirstGender = null
     ) {
 
         $EntityList = ( new Data($this->getBinding()) )->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
@@ -519,6 +507,7 @@ class Service extends AbstractService
     {
         $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
         if ($tblSerialPersonList) {
+            /** @var TblSerialPerson $tblSerialPerson */
             foreach ($tblSerialPersonList as $tblSerialPerson) {
                 $tblPerson = $tblSerialPerson->getServiceTblPerson();
                 if ($tblPerson) {
@@ -576,7 +565,7 @@ class Service extends AbstractService
                             $GuardianList = array();
                             /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToPerson $tblGuardian */
                             foreach ($tblGuardianList as $tblGuardian) {
-                                // Alle Sorgeberechtiget
+                                // Alle Sorgeberechtigte
                                 if ($tblTypeRelationship->getId() === $tblGuardian->getTblType()->getId()) {
                                     if ($tblPerson->getId() !== $tblGuardian->getServiceTblPersonFrom()->getId()) {
                                         $GuardianList[] = $tblGuardian->getServiceTblPersonFrom();
@@ -595,6 +584,7 @@ class Service extends AbstractService
                                         $tblType = Address::useService()->getTypeById(1);
                                         $tblToPersonChoose = null;
                                         // Ziehen der ersten Hauptadresse
+                                        /** @var TblToPerson $tblToPerson */
                                         foreach ($tblToPersonList as $tblToPerson) {
                                             if ($tblToPerson->getTblType()->getId() === $tblType->getId() && $tblToPersonChoose === null) {
                                                 $ToPersonChooseList[] = $tblToPerson;
@@ -677,7 +667,7 @@ class Service extends AbstractService
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson) {
                 $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
-                    $tblPerson);    // ToDO choose FirstGender
+                    $tblPerson, 'M');    // ToDO choose FirstGender
                 if ($tblAddressPersonAllByPerson) {
                     /** @var TblAddressPerson $tblAddressPerson */
                     $AddressList = array();
@@ -919,83 +909,86 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            ( new Data($this->getBinding()) )->updateSerialLetter(
+            $tblSerialLetter = ( new Data($this->getBinding()) )->updateSerialLetter(
                 $tblSerialLetter,
                 $SerialLetter['Name'],
                 $SerialLetter['Description'],
                 ( $tblFilterCategory ? $tblFilterCategory : null )
             );
 
-            if ($tblFilterCategory) {
-                if ($tblFilterCategory->getName() === 'Personengruppe') {
-                    if (!empty( $FilterGroup )) {
-                        foreach ($FilterGroup as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
-                        }
-                    }
-                    // update PersonList
-                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter($tblSerialLetter);
-                    $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
-                    SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
-                }
-                if ($tblFilterCategory->getName() === 'Schüler') {
-                    if (!empty( $FilterGroup )) {
-                        foreach ($FilterGroup as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
-                        }
-                    }
-                    if (!empty( $FilterStudent )) {
-                        foreach ($FilterStudent as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
-                        }
-                    }
-                    if (!empty( $FilterYear )) {
-                        foreach ($FilterYear as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
-                        }
-                    }
-                    // update PersonList
-                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter($tblSerialLetter);
-                    $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
-                    SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
-                }
-                if ($tblFilterCategory->getName() === 'Interessenten') {
-                    if (!empty( $FilterGroup )) {
-                        foreach ($FilterGroup as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
-                        }
-                    }
-                    if (!empty( $FilterProspect )) {
-                        foreach ($FilterProspect as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
-                        }
-                    }
-                    // update PersonList
-                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter($tblSerialLetter);
-                    $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
-                    SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
-                }
+            if ($tblSerialLetter) {
 
-                if ($tblFilterCategory->getName() === 'Firmengruppe') {
-                    if (!empty( $FilterGroup )) {
-                        foreach ($FilterGroup as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                if ($tblFilterCategory) {
+                    if ($tblFilterCategory->getName() === 'Personengruppe') {
+                        if (!empty( $FilterGroup )) {
+                            foreach ($FilterGroup as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
                         }
+                        // update PersonList
+                        $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter($tblSerialLetter);
+                        $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
+                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                     }
-                    if (!empty( $FilterCompany )) {
-                        foreach ($FilterCompany as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                    if ($tblFilterCategory->getName() === 'Schüler') {
+                        if (!empty( $FilterGroup )) {
+                            foreach ($FilterGroup as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
                         }
-                    }
-                    if (!empty( $FilterRelationship )) {
-                        foreach ($FilterRelationship as $FieldName => $FieldValue) {
-                            ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                        if (!empty( $FilterStudent )) {
+                            foreach ($FilterStudent as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
                         }
+                        if (!empty( $FilterYear )) {
+                            foreach ($FilterYear as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
+                        }
+                        // update PersonList
+                        $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter($tblSerialLetter);
+                        $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
+                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                     }
-                    // update PersonList
-                    $Result = SerialLetter::useService()->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
-                    $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
-                    SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                    if ($tblFilterCategory->getName() === 'Interessenten') {
+                        if (!empty( $FilterGroup )) {
+                            foreach ($FilterGroup as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
+                        }
+                        if (!empty( $FilterProspect )) {
+                            foreach ($FilterProspect as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
+                        }
+                        // update PersonList
+                        $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter($tblSerialLetter);
+                        $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
+                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                    }
+
+                    if ($tblFilterCategory->getName() === 'Firmengruppe') {
+                        if (!empty( $FilterGroup )) {
+                            foreach ($FilterGroup as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
+                        }
+                        if (!empty( $FilterCompany )) {
+                            foreach ($FilterCompany as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
+                        }
+                        if (!empty( $FilterRelationship )) {
+                            foreach ($FilterRelationship as $FieldName => $FieldValue) {
+                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory, $FieldName, $FieldValue);
+                            }
+                        }
+                        // update PersonList
+                        $Result = SerialLetter::useService()->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
+                        $tblPersonSearchList = SerialLetter::useService()->getPersonListByResult($tblSerialLetter, $Result);
+                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                    }
                 }
             }
 

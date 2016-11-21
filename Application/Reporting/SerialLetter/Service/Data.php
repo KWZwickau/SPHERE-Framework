@@ -364,9 +364,7 @@ class Data extends AbstractData
      * @param string                 $Description
      * @param TblFilterCategory|null $tblFilterCategory
      *
-     * @return bool
-     * @internal param null $FilterCategory
-     *
+     * @return TblSerialLetter|bool
      */
     public function updateSerialLetter(
         TblSerialLetter $tblSerialLetter,
@@ -391,7 +389,7 @@ class Data extends AbstractData
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
-            return true;
+            return $Entity;
         }
 
         return false;

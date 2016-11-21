@@ -21,6 +21,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -116,33 +117,17 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Übersicht');
-
         $tblSerialLetterAll = SerialLetter::useService()->getSerialLetterAll();
-        $tblFilterCategoryAll = SerialLetter::useService()->getFilterCategoryAll();
 
         // create Tabs
         $LayoutTabs[] = new LayoutTab('Statisch', 'STATIC');
         if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
             $LayoutTabs[0]->setActive();
         }
-
-        if ($tblFilterCategoryAll) {
-            foreach ($tblFilterCategoryAll as $tblFilterCategory) {
-                // create Tabs
-                if ($tblFilterCategory->getName() === 'Personengruppe') {
-                    $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'PERSONGROUP');
-                }
-                if ($tblFilterCategory->getName() === 'Schüler') {
-                    $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'STUDENT');
-                }
-                if ($tblFilterCategory->getName() === 'Interessenten') {
-                    $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'PROSPECT');
-                }
-                if ($tblFilterCategory->getName() === 'Firmengruppe') {
-                    $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'COMPANY');
-                }
-            }
-        }
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Personengruppe)', 'PERSONGROUP');
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Schüler)', 'STUDENT');
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Interessenten)', 'PROSPECT');
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Firmengruppe)', 'COMPANY');
 
         $TableContent = array();
         if ($tblSerialLetterAll) {
@@ -288,6 +273,10 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
             case 'STUDENT':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Schüler');
+//                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+//                if($tblGroup){
+//                    $FilterGroup['TblGroup_Id'] = $tblGroup->getId();
+//                }
 
                 // Filter Student
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
@@ -394,7 +383,10 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
             case 'PROSPECT':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Interessenten');
-
+//                $tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+//                if($tblGroup){
+//                    $FilterGroup['TblGroup_Id'] = $tblGroup->getId();
+//                }
                 // FilterProspect
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
                     $IsFilter = true;
@@ -923,12 +915,11 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+        $GroupList[] = $tblGroup;
 
         $Global = $this->getGlobal();
         $Global->POST['FilterGroup']['TblGroup_Id'] = $tblGroup->getId();
         $Global->savePost();
-
-        $GroupList[] = $tblGroup;
 
         return new Form(
             new FormGroup(
@@ -1037,7 +1028,6 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Bearbeiten');
-
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
 
         if (!( $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id) )) {
@@ -1049,33 +1039,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         // create Tabs
         $LayoutTabs[] = new LayoutTab('Statisch', 'STATIC', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Personengruppe)', 'PERSONGROUP', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Schüler)', 'STUDENT', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Interessenten)', 'PROSPECT', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Firmengruppe)', 'COMPANY', array('Id' => $tblSerialLetter->getId()));
 
         $FormSerialLetter = $this->formSerialLetter()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-        $tblFilterCategoryAll = SerialLetter::useService()->getFilterCategoryAll();
-        if ($tblFilterCategoryAll) {
-            foreach ($tblFilterCategoryAll as $tblFilterCategory) {
-                // create Tabs
-                if ($tblFilterCategory->getName() === 'Personengruppe') {
-                    $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'PERSONGROUP'
-                        , array('Id' => $tblSerialLetter->getId()));
-                }
-                if ($tblFilterCategory->getName() === 'Schüler') {
-                    $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'STUDENT'
-                        , array('Id' => $tblSerialLetter->getId()));
-                }
-                if ($tblFilterCategory->getName() === 'Interessenten') {
-                    $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'PROSPECT'
-                        , array('Id' => $tblSerialLetter->getId()));
-                }
-                if ($tblFilterCategory->getName() === 'Firmengruppe') {
-                    $LayoutTabs[] = new LayoutTab('Dynamisch ('.$tblFilterCategory->getName().')', 'COMPANY'
-                        , array('Id' => $tblSerialLetter->getId()));
-                }
-            }
-        }
 
         $tblFilterFieldList = SerialLetter::useService()->getFilterFieldAllBySerialLetter($tblSerialLetter);
         if ($SerialLetter == null) {
@@ -1243,6 +1214,10 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
             case 'STUDENT':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Schüler');
+//                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+//                if($tblGroup){
+//                    $FilterGroup['TblGroup_Id'] = $tblGroup->getId();
+//                }
 
                 // Filter Student
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
@@ -1348,6 +1323,10 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
             case 'PROSPECT':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Interessenten');
+//                $tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+//                if ($tblGroup) {
+//                    $FilterGroup['TblGroup_Id'] = $tblGroup->getId();
+//                }
 
                 // FilterProspect
                 if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
@@ -2335,7 +2314,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Option'        => '',
                             ), array(
                                 'order'      => array(array(2, 'asc')
-                                , array(0, 'asc')),
+                                , array(0, 'asc')
+                                ),
                                 'columnDefs' => array(
                                     array('orderable' => false, 'width' => '1%', 'targets' => -1),
                                     array('width' => '15%', 'targets' => 0),
@@ -2784,6 +2764,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonList = false;
             $tbSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
             if ($tbSerialPersonList) {
+                /** @var TblSerialPerson $tbSerialPerson */
                 foreach ($tbSerialPersonList as $tbSerialPerson) {
                     if ($tbSerialPerson->getServiceTblPerson()) {
                         $tblPersonList[] = $tbSerialPerson->getServiceTblPerson();
@@ -2808,7 +2789,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // get fresh list
                     $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
-                        $tblPerson);
+                        $tblPerson, 'M');   // ToDO choose FirstGender
                     if ($tblAddressPersonAllByPerson) {
                         /** @var TblAddressPerson $tblAddressPerson */
                         $AddressList = array();
