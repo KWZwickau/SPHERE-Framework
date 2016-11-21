@@ -265,6 +265,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Route' => $Route
                                 )
                                 , 'Einstellungen'
+                            )
+                            )
+                            . (new Standard(
+                                '', '/Education/Certificate/GradeInformation/Setting/Preview', new EyeOpen(),
+                                array(
+                                    'PrepareId' => $tblPrepareCertificate->getId(),
+                                    'Route' => $Route
+                                )
+                                , 'Vorschau und Herunterladen der Noteninformation'
                             ))
                     );
                 }
