@@ -739,23 +739,21 @@ class Service extends AbstractService
 
         // Zensuren zum Stichtagsnotenauftrag ermitteln
         $tblDivision = $tblPrepare->getServiceTblDivision();
-        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
         $gradeList = array();
         if ($tblDivision) {
+            $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivision);
             $tblStudentListByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
             $tblYear = $tblDivision->getServiceTblYear();
             $isApprovedArray = array();
             if ($tblStudentListByDivision && $tblYear && $tblTestAllByTask) {
-                foreach ($tblTestAllByTask as $tblTest) {
-                    foreach ($tblStudentListByDivision as $tblPerson) {
-                        if (!isset($isApprovedArray[$tblPerson->getId()])) {
-                            if (($tblPersonStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                                $isApprovedArray[$tblPerson->getId()] = $tblPersonStudent->isApproved();
-                            } else {
-                                $isApprovedArray[$tblPerson->getId()] = false;
-                            }
-                        }
+                foreach ($tblStudentListByDivision as $tblPerson) {
+                    if (($tblPersonStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                        $isApprovedArray[$tblPerson->getId()] = $tblPersonStudent->isApproved();
+                    } else {
+                        $isApprovedArray[$tblPerson->getId()] = false;
+                    }
 
+                    foreach ($tblTestAllByTask as $tblTest) {
                         if (!$isApprovedArray[$tblPerson->getId()]) {
                             $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
                             if ($tblGrade) {
@@ -799,7 +797,7 @@ class Service extends AbstractService
         if ($tblDivision && $tblTask) {
             $tblStudentListByDivision = Division::useService()->getStudentAllByDivision($tblDivision);
             $tblYear = $tblDivision->getServiceTblYear();
-            $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
+            $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivision);
             if ($tblStudentListByDivision && $tblYear && $tblTestAllByTask) {
                 foreach ($tblTestAllByTask as $tblTest) {
                     foreach ($tblStudentListByDivision as $tblPerson) {
@@ -908,6 +906,7 @@ class Service extends AbstractService
 
             // Division
             if (($tblLevel = $tblDivision->getTblLevel())) {
+                $Content['Division']['Id'] = $tblDivision->getId();
                 $Content['Division']['Data']['Level']['Name'] = $tblLevel->getName();
                 $Content['Division']['Data']['Name'] = $tblDivision->getName();
             }
@@ -968,11 +967,11 @@ class Service extends AbstractService
             if ($tblPrepare->isGradeInformation()) {
                 if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
                     && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))
-                ){
-                    foreach ($tblTestList as $tblTest){
+                ) {
+                    foreach ($tblTestList as $tblTest) {
                         if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
                             && $tblTest->getServiceTblSubject()
-                        ){
+                        ) {
                             $Content['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()] = $tblGradeItem->getDisplayGrade();
                         }
                     }
@@ -1005,7 +1004,7 @@ class Service extends AbstractService
             }
             $Content['Input']['Missing'] = $excusedDays;
             $Content['Input']['Bad']['Missing'] = $unexcusedDays;
-            $Content['Input']['Total']['Missing'] =  $excusedDays + $unexcusedDays;
+            $Content['Input']['Total']['Missing'] = $excusedDays + $unexcusedDays;
 
             // Zeugnisdatum
             $Content['Input']['Date'] = $tblPrepare->getDate();

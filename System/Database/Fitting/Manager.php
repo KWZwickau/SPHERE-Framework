@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
+use SPHERE\Application\Platform\System\Archive\Service\Entity\TblArchive;
+use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
 use SPHERE\System\Cache\Handler\DataCacheHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
@@ -219,8 +221,13 @@ class Manager extends Extension
     {
 
         $this->EntityManager->persist($Entity);
-        $this->flushCache(get_class($Entity));
-        (new DataCacheHandler(__METHOD__))->addDependency($Entity)->clearData();
+        if(
+            !$Entity instanceof TblProtocol
+            && !$Entity instanceof TblArchive
+        ) {
+            $this->flushCache(get_class($Entity));
+            (new DataCacheHandler(__METHOD__))->addDependency($Entity)->clearData();
+        }
         return $this;
     }
 
@@ -248,6 +255,9 @@ class Manager extends Extension
     final public function bulkKillEntity($Entity)
     {
 
+        if( !$this->EntityManager->contains( $Entity ) ) {
+            $Entity = $this->EntityManager->merge($Entity);
+        }
         $this->EntityManager->remove($Entity);
         return $this;
     }
