@@ -906,6 +906,7 @@ class Service extends AbstractService
 
             // Division
             if (($tblLevel = $tblDivision->getTblLevel())) {
+                $Content['Division']['Id'] = $tblDivision->getId();
                 $Content['Division']['Data']['Level']['Name'] = $tblLevel->getName();
                 $Content['Division']['Data']['Name'] = $tblDivision->getName();
             }

@@ -16,7 +16,9 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 
 /**
@@ -131,15 +133,7 @@ class GradeInformation extends Certificate
 
         $slice = (new Slice());
 
-        $subjectList = array();
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
-        if ($tblCertificateSubjectAll) {
-            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
-                if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())) {
-                    $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject->getAcronym();
-                }
-            }
-        }
+        $subjectList = $this->getSubjectList();
 
         if (!empty($subjectList)) {
             ksort($subjectList);
@@ -195,12 +189,13 @@ class GradeInformation extends Certificate
                 ->styleBorderBottom()
                 , $columnWidth . '%');
         $index = 0;
-        foreach ($subjectList as $subjectAcronym) {
+        /** @var TblSubject $tblSubject */
+        foreach ($subjectList as $tblSubject) {
             $index++;
             if ($index == $count) {
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent($subjectAcronym)
+                        ->setContent($tblSubject->getAcronym())
                         ->stylePaddingLeft($paddingLeft)
                         ->styleBorderLeft()
                         ->styleBorderBottom()
@@ -210,7 +205,7 @@ class GradeInformation extends Certificate
             } else {
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent($subjectAcronym)
+                        ->setContent($tblSubject->getAcronym())
                         ->stylePaddingLeft($paddingLeft)
                         ->styleBorderLeft()
                         ->styleBorderBottom()
@@ -254,10 +249,10 @@ class GradeInformation extends Certificate
                         ->styleAlignCenter()
                         , $columnWidth . '%');
                 $index = 0;
-                foreach ($subjectList as $subjectAcronym) {
+                foreach ($subjectList as $tblSubject) {
                     $index++;
-                    $content = '{% if(Content.Input.BehaviorTeacher.' . $subjectAcronym . '.' . $gradeType->getCode() . ' is not empty) %}
-                                    {{ Content.Input.BehaviorTeacher.' . $subjectAcronym . '.' . $gradeType->getCode() . ' }}
+                    $content = '{% if(Content.Input.BehaviorTeacher.' . $tblSubject->getAcronym() . '.' . $gradeType->getCode() . ' is not empty) %}
+                                    {{ Content.Input.BehaviorTeacher.' . $tblSubject->getAcronym() . '.' . $gradeType->getCode() . ' }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}';
@@ -298,20 +293,13 @@ class GradeInformation extends Certificate
 
         $slice = (new Slice());
 
-        $subjectList = array();
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
-        if ($tblCertificateSubjectAll) {
-            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
-                if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())) {
-                    $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
-                }
-            }
-        }
+        $subjectList = $this->getSubjectList();
         if (!empty($subjectList)) {
             ksort($subjectList);
         }
 
         $paddingLeft = '5px';
+        $paddingTop = '2px';
 
         $section = new Section();
         $top = '30px';
@@ -364,6 +352,7 @@ class GradeInformation extends Certificate
                 ->addElementColumn((new Element())
                     ->setContent($subject->getName())
                     ->stylePaddingLeft($paddingLeft)
+                    ->stylePaddingTop($paddingTop)
                     ->styleBorderLeft()
                     ->styleBorderBottom()
                     ->styleHeight($heightRow)
@@ -377,6 +366,7 @@ class GradeInformation extends Certificate
                         {% endif %}
                     ')
                     ->stylePaddingLeft('10px')
+                    ->stylePaddingTop($paddingTop)
                     ->styleBorderLeft()
                     ->styleBorderBottom()
                     ->styleBorderRight()
@@ -394,5 +384,50 @@ class GradeInformation extends Certificate
         }
 
         return $slice;
+    }
+
+    /**
+     * @return array
+     */
+    private function getSubjectList()
+    {
+        $subjectList = array();
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        if ($tblCertificateSubjectAll) {
+            /** @var TblCertificateSubject $tblCertificateSubject */
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())) {
+                    if ($tblCertificateSubject->isEssential()) {
+                        $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
+
+                        // Überprüfen ob der Schüler dieses Fach im Unterricht hat --> dann anzeigen
+                    } elseif (($tblPerson = $this->getTblPerson()) && ($tblDivision = $this->getTblDivision())) {
+                        // in Gruppe
+                        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                            $tblDivision, $tblSubject
+                        ))
+                        ) {
+                            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
+                                if (Division::useService()->getSubjectStudentByDivisionSubjectAndPerson(
+                                    $tblDivisionSubjectItem, $tblPerson
+                                )
+                                ) {
+                                    $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
+                                    break;
+                                }
+                            }
+                        // keine Gruppe und in der Klasse
+                        } elseif ($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                            $tblDivision, $tblSubject
+                        )
+                        ) {
+                            $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
+                        }
+                    }
+                }
+            }
+            return $subjectList;
+        }
+        return $subjectList;
     }
 }
