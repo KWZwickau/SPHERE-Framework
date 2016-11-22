@@ -101,6 +101,16 @@ class Script extends Extension
             '/Library/DataTables/RowReorder-1.1.2/js/dataTables.rowReorder.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.RowReorder"
         );
+        $this->setSource(
+            'jQuery.DataTable.Buttons',
+            '/Library/DataTables/Buttons-1.2.2/js/dataTables.buttons.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable.Buttons"
+        );
+        $this->setSource(
+            'jQuery.DataTable.Buttons.ColVis',
+            '/Library/DataTables/Buttons-1.2.2/js/buttons.colVis.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable.Buttons.columnVisibility"
+        );
 
 //        <script type="text/javascript" src="Bootstrap-3.3.6/js/bootstrap.js"></script>
 //        <script type="text/javascript" src="JSZip-2.5.0/jszip.js"></script>
@@ -219,6 +229,8 @@ class Script extends Extension
 //                'jQuery.DataTable.Plugin.Sorting.Weekday',
                 'jQuery.DataTable.Plugin.Sorting.DateTime',
                 'jQuery.DataTable.Plugin.Sorting.GermanString',
+//                'jQuery.DataTable.Buttons.ColVis',
+                'jQuery.DataTable.Buttons',
                 'jQuery.DataTable.RowReorder',
                 'jQuery.DataTable.Responsive',
                 'jQuery.DataTable.Bootstrap',
