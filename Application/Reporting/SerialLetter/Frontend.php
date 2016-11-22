@@ -2294,8 +2294,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn(array(
                                                 new Title(new Setup().' Adressen', 'Zuweisung'),
                                                 new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter)
-                                            )
-                                            , 6),
+                                        ), 6),
                                         new LayoutColumn(array(
                                             new Title('Adressauswahl', 'Automatik'),
                                             new Panel('Adressen von untenstehenden Personen',
