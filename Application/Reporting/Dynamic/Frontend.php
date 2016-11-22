@@ -903,21 +903,6 @@ class Frontend extends Extension implements IFrontendInterface
                 'ExtensionDownloadExcel' => array(
                     'Enabled' => true
                 )
-//                'buttons' => array(
-//                    array(
-//                        'extend' => 'colvis',
-//                        'text' => new EyeOpen().' Spalten',
-////                        'prefixButtons' => array( 'colvisRestore' )
-//                    ),
-//                    array(
-//                        'extend' => 'excel',
-//                        'text' => new Download().' Download',
-//                        'exportOptions' => array(
-//                            'columns' => ':visible',
-//                            'rows' => "function ( idx, data, node ) { if( $(node).find('td:not(:empty)').length > 0) return true; }"
-//                        )
-//                    )
-//                )
             )
         );
 
