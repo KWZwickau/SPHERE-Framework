@@ -240,11 +240,11 @@ class Service extends AbstractService
         $FirstGender = null
     ) {
 
-        $EntityList = ( new Data($this->getBinding()) )->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
+        $tblAddressPersonList = ( new Data($this->getBinding()) )->getAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
 
-        if ($EntityList && $FirstGender != null) {
+        if ($tblAddressPersonList && $FirstGender != null) {
             $AddressPersonList = array();
-            foreach ($EntityList as $AddressPerson) {
+            foreach ($tblAddressPersonList as $AddressPerson) {
                 $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
                 if ($tblPerson) {
                     if ($FirstGender === 'M' && $tblPerson->getSalutation() === 'Herr') {
@@ -256,7 +256,7 @@ class Service extends AbstractService
                 }
             }
 
-            foreach ($EntityList as $AddressPerson) {
+            foreach ($tblAddressPersonList as $AddressPerson) {
                 $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
                 if ($tblPerson) {
                     if ($FirstGender === 'M' && $tblPerson->getSalutation() === 'Frau') {
@@ -267,7 +267,7 @@ class Service extends AbstractService
                     }
                 }
             }
-            foreach ($EntityList as $AddressPerson) {
+            foreach ($tblAddressPersonList as $AddressPerson) {
                 $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
                 if ($tblPerson) {
                     if ($tblPerson->getSalutation() !== 'Herr'
@@ -278,7 +278,7 @@ class Service extends AbstractService
                 }
             }
         } else {
-            $AddressPersonList = $EntityList;
+            $AddressPersonList = $tblAddressPersonList;
         }
         return ( !empty( $AddressPersonList ) ? $AddressPersonList : false );
     }

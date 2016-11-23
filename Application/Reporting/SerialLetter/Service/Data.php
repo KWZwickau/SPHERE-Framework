@@ -231,7 +231,7 @@ class Data extends AbstractData
      *
      * @return bool|TblAddressPerson[]
      */
-    public function getAddressPersonAllByPerson(
+    public function getAddressPersonAllBySerialLetterAndPerson(
         TblSerialLetter $tblSerialLetter,
         TblPerson $tblPerson
     ) {
