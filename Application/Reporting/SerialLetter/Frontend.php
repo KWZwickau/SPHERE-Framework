@@ -1088,7 +1088,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['FilterProspect'] = $FilterCompany;
             $Global->POST['FilterProspect'] = $FilterRelationship;
 
-            $SerialLetter = null;
             $FilterGroup = null;
             $FilterStudent = null;
             $FilterYear = null;
@@ -1210,7 +1209,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new PlusSign().' Serienbreif anlegen '
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, null, $tblFilterCategory->getId(), ( !$IsFilter ))))
+                                            , $SerialLetter, $FilterGroup, null, null, null, $tblFilterCategory->getId(), $IsFilter)))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -1319,7 +1318,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new PlusSign().' Serienbreif bearbeiten '
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, $FilterStudent, $FilterYear, null, $tblFilterCategory->getId(), ( !$IsFilter ))))
+                                            , $SerialLetter, $FilterGroup, $FilterStudent, $FilterYear, null, $tblFilterCategory->getId(), $IsFilter)))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -1424,7 +1423,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new PlusSign().' Serienbreif anlegen '
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), ( !$IsFilter ))))
+                                            , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), $IsFilter)))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -1529,7 +1528,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new PlusSign().' Serienbreif anlegen '
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), ( !$IsFilter ))))
+                                            , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), $IsFilter)))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -2297,8 +2296,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutGroup(
                                     new LayoutRow(array(
                                         new LayoutColumn(array(
-                                                new Title(new Setup().' Adressen', 'Zuweisung'),
-                                                new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter)
+                                            new Title(new Setup().' Adressen', 'Zuweisung'),
+                                            new Panel('Serienbief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter)
                                         ), 6),
                                         new LayoutColumn(array(
                                             new Title('Adressauswahl', 'Automatik'),

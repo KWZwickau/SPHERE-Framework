@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
@@ -860,7 +861,7 @@ class Service extends AbstractService
      * @param null                $FilterYear
      * @param null                $FilterProspect
      * @param null                $FilterCategory
-     * @param bool                $IsFilterFalse
+     * @param bool                $IsFilter
      *
      * @return IFormInterface|string
      */
@@ -873,7 +874,7 @@ class Service extends AbstractService
         $FilterYear = null,
         $FilterProspect = null,
         $FilterCategory = null,
-        $IsFilterFalse = false
+        $IsFilter = true
     ) {
 
         /**
@@ -895,9 +896,9 @@ class Service extends AbstractService
                 }
             }
         }
-        if ($IsFilterFalse) {
+        if (!$IsFilter) {
             $Stage->appendGridGroup(new FormGroup(new FormRow(new FormColumn(
-                new Warning('Änderungen konnten nicht gespeichert werden. Bitte führen Sie den Filter aus.')
+                new Danger('Änderungen konnten nicht gespeichert werden. Bitte führen Sie den Filter aus.')
             ))));
             $Error = true;
         }
@@ -1058,13 +1059,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblSerialLetter $tblSerialLetter
-     * @param array           $tblPersonSearchList
+     * @param TblSerialLetter  $tblSerialLetter
+     * @param bool|TblPerson[] $tblPersonSearchList
      */
     public function updateDynamicSerialPerson(TblSerialLetter $tblSerialLetter, $tblPersonSearchList)
     {
 
-        if (!empty( $tblPersonSearchList )) {
+        if ($tblPersonSearchList) {
 
             $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
             $tblPersonList = array();
@@ -1093,7 +1094,7 @@ class Service extends AbstractService
         } else {
             // delete all exist SerialPerson if result is false
             $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
-            if (!empty( $tblSerialPersonList )) {
+            if ($tblSerialPersonList) {
                 foreach ($tblSerialPersonList as $tblSerialPerson) {
                     if ($tblSerialPerson && $tblSerialPerson->getServiceTblPerson()) {
                         $this->removeSerialPerson($tblSerialLetter, $tblSerialPerson->getServiceTblPerson());
@@ -1107,7 +1108,7 @@ class Service extends AbstractService
      * @param TblSerialLetter|null $tblSerialLetter
      * @param                      $Result
      *
-     * @return array|bool
+     * @return array|bool TblPerson[]
      */
     public function getPersonListByResult(TblSerialLetter $tblSerialLetter = null, $Result)
     {
