@@ -713,6 +713,8 @@ class Service extends AbstractService
                                                     $tblCity->getName();
                                             }
                                         }
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Division'] =
+                                            Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
                                         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                         if ($tblStudent) {
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $tblStudent->getIdentifier();
@@ -736,11 +738,12 @@ class Service extends AbstractService
                                 'StreetName'     => ( isset( $Address['StreetName'] ) ? $Address['StreetName'] : '' ),
                                 'StreetNumber'   => ( isset( $Address['StreetNumber'] ) ? $Address['StreetNumber'] : '' ),
                                 'Code'           => ( isset( $Address['Code'] ) ? $Address['Code'] : '' ),
-                                'City'           => ( isset( $Address['City'] ) ? $Address['City'] : '' ),
-                                'Salutation'     => ( isset( $Address['Salutation'] ) ? $Address['Salutation'] : '' ),
-                                'FirstName'      => ( isset( $Address['FirstName'] ) ? $Address['FirstName'] : '' ),
-                                'LastName'       => ( isset( $Address['LastName'] ) ? $Address['LastName'] : '' ),
-                                'StudentNumber'  => ( isset( $Address['StudentNumber'] ) ? $Address['StudentNumber'] : '' ),
+                                'City'          => ( isset( $Address['City'] ) ? $Address['City'] : '' ),
+                                'Salutation'    => ( isset( $Address['Salutation'] ) ? $Address['Salutation'] : '' ),
+                                'FirstName'     => ( isset( $Address['FirstName'] ) ? $Address['FirstName'] : '' ),
+                                'LastName'      => ( isset( $Address['LastName'] ) ? $Address['LastName'] : '' ),
+                                'StudentNumber' => ( isset( $Address['StudentNumber'] ) ? $Address['StudentNumber'] : '' ),
+                                'Division'      => ( isset( $Address['Division'] ) ? $Address['Division'] : '' ),
                             );
                         }
                     }
@@ -767,7 +770,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Ort");
             $export->setValue($export->getCell($column++, $row), "Person_Vorname");
             $export->setValue($export->getCell($column++, $row), "Person_Nachname");
-            $export->setValue($export->getCell($column, $row), "Schüler-Nr.");
+            $export->setValue($export->getCell($column++, $row), "Schüler-Nr.");
+            $export->setValue($export->getCell($column, $row), "Klasse(n)");
 
             $row = 1;
             /** @var TblAddressPerson $tblAddressPerson */
@@ -795,7 +799,8 @@ class Service extends AbstractService
                     $Export['FirstName']);
                 $export->setValue($export->getCell($column++, $row),
                     $Export['LastName']);
-                $export->setValue($export->getCell($column, $row), $Export['StudentNumber']);
+                $export->setValue($export->getCell($column++, $row), $Export['StudentNumber']);
+                $export->setValue($export->getCell($column, $row), $Export['Division']);
 
                 $row++;
             }

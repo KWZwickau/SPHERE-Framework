@@ -2757,6 +2757,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Person'          => 'Person',
                 'StudentNumber'   => 'Schüler-Nr.',
                 'Salutation'      => 'Anrede',
+                'Division'        => 'Klasse',
                 'PersonToAddress' => 'Adressat',
                 'Address'         => 'Adresse',
                 'Option'          => ''
@@ -2817,12 +2818,15 @@ class Frontend extends Extension implements IFrontendInterface
                                                         : $PersonToAddress->getSalutation() );
                                             }
                                         }
+                                        $StudentNumber = new Small(new Muted('-NA-'));
 
+                                        $Division = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
+                                        if ($Division === '') {
+                                            $Division = new Small(new Muted('-NA-'));
+                                        }
                                         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                         if ($tblStudent) {
                                             $StudentNumber = $tblStudent->getIdentifier();
-                                        } else {
-                                            $StudentNumber = new Small(new Muted('-NA-'));
                                         }
 
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['Person'] =
@@ -2830,6 +2834,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ? $tblAddressPerson->getServiceTblPerson()->getLastFirstName()
                                                 : new Warning(new Exclamation().' Person nicht gefunden.') );
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $StudentNumber;
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Division'] = $Division;
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToAddress'] =
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'];
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['Address'] =
@@ -2857,6 +2862,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Number'          => ++$count,
                                     'Person'          => ( isset( $Address['Person'] ) ? $Address['Person'] : '' ),
                                     'StudentNumber'   => ( isset( $Address['StudentNumber'] ) ? $Address['StudentNumber'] : '' ),
+                                    'Division'        => ( isset( $Address['Division'] ) ? $Address['Division'] : '' ),
                                     'PersonToAddress' => ( isset( $Address['PersonToAddress'] ) ? $Address['PersonToAddress'] : '' ),
                                     'Address'         => ( isset( $Address['Address'] ) ? $Address['Address'] : '' ),
                                     'Salutation'      => ( isset( $Address['Salutation'] ) ? $Address['Salutation'] : '' ),
@@ -2865,17 +2871,21 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                     } else {
+                        $Division = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
+                        if ($Division === '') {
+                            $Division = new Small(new Muted('-NA-'));
+                        }
+                        $StudentNumber = new Small(new Muted('-NA-'));
                         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                         if ($tblStudent) {
                             $StudentNumber = $tblStudent->getIdentifier();
-                        } else {
-                            $StudentNumber = new Small(new Muted('-NA-'));
                         }
 
                         $dataList[] = array(
                             'Number'          => ++$count,
                             'Person'          => $tblPerson->getLastFirstName(),
                             'StudentNumber'   => $StudentNumber,
+                            'Division'        => $Division,
                             'PersonToAddress' => new Warning(new Exclamation().' Keine Person mit Adresse hinterlegt.'),
                             'Address'         => '',
                             'Salutation'      => '',
