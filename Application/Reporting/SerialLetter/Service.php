@@ -1090,6 +1090,16 @@ class Service extends AbstractService
                     }
                 }
             }
+        } else {
+            // delete all exist SerialPerson if result is false
+            $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
+            if (!empty( $tblSerialPersonList )) {
+                foreach ($tblSerialPersonList as $tblSerialPerson) {
+                    if ($tblSerialPerson && $tblSerialPerson->getServiceTblPerson()) {
+                        $this->removeSerialPerson($tblSerialLetter, $tblSerialPerson->getServiceTblPerson());
+                    }
+                }
+            }
         }
     }
 

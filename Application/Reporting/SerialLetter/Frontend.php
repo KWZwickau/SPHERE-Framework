@@ -1016,7 +1016,8 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage|string
      */
     public function frontendSerialLetterEdit(
-        $Id = null, $SerialLetter = null,
+        $Id = null,
+        $SerialLetter = null,
         $TabActive = null,
         $FilterGroup = null,
 //        $FilterPerson = null,
@@ -1049,11 +1050,58 @@ class Frontend extends Extension implements IFrontendInterface
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $tblFilterFieldList = SerialLetter::useService()->getFilterFieldAllBySerialLetter($tblSerialLetter);
+
+        $Global = $this->getGlobal();
+        // Post FilterField
+        if ($FilterGroup === null && $FilterStudent === null && $FilterYear === null && $FilterProspect === null
+            && $FilterCompany === null && $FilterRelationship === null
+        ) {
+            if ($tblFilterFieldList) {
+                foreach ($tblFilterFieldList as $tblFilterField) {
+                    if (stristr($tblFilterField->getField(), 'TblGroup_')) {
+                        $FilterGroup[$tblFilterField->getField()] = $tblFilterField->getValue();
+                    }
+                    if (stristr($tblFilterField->getField(), 'TblLevel_')) {
+                        $FilterStudent[$tblFilterField->getField()] = $tblFilterField->getValue();
+                    }
+                    if (stristr($tblFilterField->getField(), 'TblDivision_')) {
+                        $FilterStudent[$tblFilterField->getField()] = $tblFilterField->getValue();
+                    }
+                    if (stristr($tblFilterField->getField(), 'TblYear_')) {
+                        $FilterYear[$tblFilterField->getField()] = $tblFilterField->getValue();
+                    }
+                    if (stristr($tblFilterField->getField(), 'TblProspectReservation_')) {
+                        $FilterProspect[$tblFilterField->getField()] = $tblFilterField->getValue();
+                    }
+                    if (stristr($tblFilterField->getField(), 'TblCompany_')) {
+                        $FilterCompany[$tblFilterField->getField()] = $tblFilterField->getValue();
+                    }
+                    if (stristr($tblFilterField->getField(), 'TblType_')) {
+                        $FilterRelationship[$tblFilterField->getField()] = $tblFilterField->getValue();
+                    }
+                }
+            }
+            $Global->POST['FilterGroup'] = $FilterGroup;
+            $Global->POST['FilterStudent'] = $FilterStudent;
+            $Global->POST['FilterYear'] = $FilterYear;
+            $Global->POST['FilterProspect'] = $FilterProspect;
+            $Global->POST['FilterProspect'] = $FilterCompany;
+            $Global->POST['FilterProspect'] = $FilterRelationship;
+
+            $SerialLetter = null;
+            $FilterGroup = null;
+            $FilterStudent = null;
+            $FilterYear = null;
+            $FilterProspect = null;
+            $FilterCompany = null;
+            $FilterRelationship = null;
+            $Global->savePost();
+        }
+
+        // Post SerialLetterName
         if ($SerialLetter == null) {
-            $Global = $this->getGlobal();
             $Global->POST['SerialLetter']['Name'] = $tblSerialLetter->getName();
             $Global->POST['SerialLetter']['Description'] = $tblSerialLetter->getDescription();
-
             if ($TabActive === null) {
                 if (( $tblFilterCategory = $tblSerialLetter->getFilterCategory() )) {
                     if ($tblFilterCategory->getName() === 'Personengruppe') {
@@ -1069,49 +1117,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $TabActive = 'COMPANY';
                     }
                 }
-            }
-
-            if ($FilterGroup === null && $FilterStudent === null && $FilterYear === null && $FilterProspect === null
-                && $FilterCompany === null && $FilterRelationship === null
-            ) {
-                if ($tblFilterFieldList) {
-                    foreach ($tblFilterFieldList as $tblFilterField) {
-                        if (stristr($tblFilterField->getField(), 'TblGroup_')) {
-                            $FilterGroup[$tblFilterField->getField()] = $tblFilterField->getValue();
-                        }
-                        if (stristr($tblFilterField->getField(), 'TblLevel_')) {
-                            $FilterStudent[$tblFilterField->getField()] = $tblFilterField->getValue();
-                        }
-                        if (stristr($tblFilterField->getField(), 'TblDivision_')) {
-                            $FilterStudent[$tblFilterField->getField()] = $tblFilterField->getValue();
-                        }
-                        if (stristr($tblFilterField->getField(), 'TblYear_')) {
-                            $FilterYear[$tblFilterField->getField()] = $tblFilterField->getValue();
-                        }
-                        if (stristr($tblFilterField->getField(), 'TblProspectReservation_')) {
-                            $FilterProspect[$tblFilterField->getField()] = $tblFilterField->getValue();
-                        }
-                        if (stristr($tblFilterField->getField(), 'TblCompany_')) {
-                            $FilterCompany[$tblFilterField->getField()] = $tblFilterField->getValue();
-                        }
-                        if (stristr($tblFilterField->getField(), 'TblType_')) {
-                            $FilterRelationship[$tblFilterField->getField()] = $tblFilterField->getValue();
-                        }
-                    }
-                }
-                $Global->POST['FilterGroup'] = $FilterGroup;
-                $Global->POST['FilterStudent'] = $FilterStudent;
-                $Global->POST['FilterYear'] = $FilterYear;
-                $Global->POST['FilterProspect'] = $FilterProspect;
-                $Global->POST['FilterProspect'] = $FilterCompany;
-                $Global->POST['FilterProspect'] = $FilterRelationship;
-
-                $FilterGroup = null;
-                $FilterStudent = null;
-                $FilterYear = null;
-                $FilterProspect = null;
-                $FilterCompany = null;
-                $FilterRelationship = null;
             }
 
             $Global->savePost();
