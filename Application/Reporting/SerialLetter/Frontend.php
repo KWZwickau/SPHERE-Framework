@@ -1638,7 +1638,10 @@ class Frontend extends Extension implements IFrontendInterface
         };
 
         // Database Join with foreign Key
-        if ($FilterGroup) {
+        if ($FilterGroup && isset( $FilterGroup['TblGroup_Id'] ) && $FilterGroup['TblGroup_Id'] !== '0'
+            || $FilterPerson && ( isset( $FilterPerson['TblPerson_FirstName'] ) && !empty( $FilterPerson['TblPerson_FirstName'] )
+                || $FilterPerson['TblPerson_LastName'] && !empty( $FilterPerson['TblPerson_LastName'] ) )
+        ) {
             $Filter = $FilterGroup;
 
             $Pile = new Pile(Pile::JOIN_TYPE_INNER);
@@ -1734,8 +1737,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
             // Filter ordered by Database Join with foreign Key
             if ($FilterStudent) {
+                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+
                 $Result = $Pile->searchPile(array(
-                    0 => array('TblGroup_Name' => array('Schüler')),
+                    0 => array('TblGroup_Id' => array($tblGroup->getId())),
                     1 => $FilterPerson,
                     2 => $Filter,
                     3 => $FilterYear
@@ -1893,7 +1898,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(array(
-                        new AutoCompleter('FilterGroup[TblGroup_Name]', 'Gruppe: Name', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll())),
+                        new SelectBox('FilterGroup[TblGroup_Id]', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll())),
                     ), 4),
                     new FormColumn(array(
                         new TextField('FilterPerson['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname')
@@ -2757,7 +2762,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Person'          => 'Person',
                 'StudentNumber'   => 'Schüler-Nr.',
                 'Salutation'      => 'Anrede',
-                'Division'        => 'Klasse',
+                'Division'        => 'Aktuelle Klasse(n)',
                 'PersonToAddress' => 'Adressat',
                 'Address'         => 'Adresse',
                 'Option'          => ''
@@ -2820,7 +2825,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                         $StudentNumber = new Small(new Muted('-NA-'));
 
-                                        $Division = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
+                                        $Division = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
                                         if ($Division === '') {
                                             $Division = new Small(new Muted('-NA-'));
                                         }

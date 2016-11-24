@@ -714,7 +714,7 @@ class Service extends AbstractService
                                             }
                                         }
                                         $AddressList[$tblPerson->getId().$tblAddress->getId()]['Division'] =
-                                            Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
+                                            Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
                                         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                         if ($tblStudent) {
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $tblStudent->getIdentifier();
@@ -768,10 +768,11 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Straße");
             $export->setValue($export->getCell($column++, $row), "PLZ");
             $export->setValue($export->getCell($column++, $row), "Ort");
+            $export->setValue($export->getCell($column++, $row), "");
             $export->setValue($export->getCell($column++, $row), "Person_Vorname");
             $export->setValue($export->getCell($column++, $row), "Person_Nachname");
-            $export->setValue($export->getCell($column++, $row), "Schüler-Nr.");
-            $export->setValue($export->getCell($column, $row), "Klasse(n)");
+            $export->setValue($export->getCell($column++, $row), "Person_Schüler-Nr.");
+            $export->setValue($export->getCell($column, $row), "Person_Aktuelle Klasse(n)");
 
             $row = 1;
             /** @var TblAddressPerson $tblAddressPerson */
@@ -795,6 +796,7 @@ class Service extends AbstractService
                     $Export['StreetName'].' '.$Export['StreetNumber']);
                 $export->setValue($export->getCell($column++, $row), $Export['Code']);
                 $export->setValue($export->getCell($column++, $row), $Export['City']);
+                $export->setValue($export->getCell($column++, $row), '');
                 $export->setValue($export->getCell($column++, $row),
                     $Export['FirstName']);
                 $export->setValue($export->getCell($column++, $row),
