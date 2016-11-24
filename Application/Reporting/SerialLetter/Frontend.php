@@ -2217,6 +2217,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblAddressPersonList = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
             if ($tblAddressPersonList) {
                 $Data = array();
+                $WarningList = array();
                 /** @var TblAddressPerson $tblAddressPerson */
                 foreach ($tblAddressPersonList as $tblAddressPerson) {
                     if (( $serviceTblPersonToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
@@ -2226,10 +2227,18 @@ class Frontend extends Extension implements IFrontendInterface
                                     if (!isset( $Data[$tblAddress->getId()]['Person'] )) {
                                         $Data[$tblAddress->getId()]['Person'] =
                                             $PersonToAddress->getLastName().' '.$PersonToAddress->getFirstName();
+                                        if ($PersonToAddress->getSalutation() === '') {
+                                            $WarningList[] = $PersonToAddress->getLastName().' '.
+                                                $PersonToAddress->getFirstName();
+                                        }
                                     } else {
                                         $Data[$tblAddress->getId()]['Person'] =
                                             $Data[$tblAddress->getId()]['Person'].', '.
                                             $PersonToAddress->getLastName().' '.$PersonToAddress->getFirstName();
+                                        if ($PersonToAddress->getSalutation() === '') {
+                                            $WarningList[] = $PersonToAddress->getLastName().' '.
+                                                $PersonToAddress->getFirstName();
+                                        }
                                     }
                                     if (!isset( $Data[$tblAddress->getId()]['District'] )) {
                                         if (( $tblCity = $tblAddress->getTblCity() )) {
@@ -2250,13 +2259,32 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
-
-                if (!empty( $Data )) {
-                    foreach ($Data as $AddressPanel) {
+                if (!empty( $WarningList )) {
+                    $WarningList = array_unique($WarningList);
+                    foreach ($WarningList as $Warning) {
                         $Item['Address'][] = new LayoutColumn(
-                            new Panel('', $AddressPanel)
+                            new WarningMessage(new Exclamation().' Fehlende Anrede ('.$Warning.')')
                             , 4);
                     }
+                }
+
+                $AddressList = array();
+                if (!empty( $Data )) {
+                    foreach ($Data as $AddressPanel) {
+                        $AddressList[] = new LayoutColumn(
+                            new Panel('', $AddressPanel)
+                            , 4
+                        );
+                    }
+                    $Item['Address'][] = new LayoutColumn(
+                        new Layout(
+                            new LayoutGroup(
+                                new LayoutRow(
+                                    $AddressList
+                                )
+                            )
+                        )
+                    );
                 }
 
 
@@ -2600,7 +2628,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Person'       => ( $tblRelationship->getServiceTblPersonFrom() ? $tblRelationship->getServiceTblPersonFrom()->getFullName() : '' ),
                                     'Relationship' => $direction,
                                     'Address'      => new Warning(
-                                        new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Adresse hinterlegt')
+                                        new Exclamation().' Keine Adresse hinterlegt')
                                 );
                             } else {
                                 $subDataList[] = array(
@@ -2608,7 +2636,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Person'       => ( $tblRelationship->getServiceTblPersonTo() ? $tblRelationship->getServiceTblPersonTo()->getFullName() : '' ),
                                     'Relationship' => $direction,
                                     'Address'      => new Warning(
-                                        new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Adresse hinterlegt')
+                                        new Exclamation().' Keine Adresse hinterlegt')
                                 );
                             }
                         }
@@ -2812,15 +2840,28 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $PersonToAddress->getLastName().' '.$PersonToAddress->getFirstName();
                                                 $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] =
                                                     $PersonToAddress->getSalutation();
+                                                if ($PersonToAddress->getSalutation() === '') {
+                                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] =
+                                                        new Warning(new Exclamation().' Fehlt!');
+                                                }
                                             } else {
                                                 $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'] =
                                                     $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'].', '.
                                                     $PersonToAddress->getLastName().' '.$PersonToAddress->getFirstName();
-                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] =
-                                                    ( $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] !== ''
-                                                        ? $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'].', '.
-                                                        $PersonToAddress->getSalutation()
-                                                        : $PersonToAddress->getSalutation() );
+                                                if ($AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] !==
+                                                    new Exclamation().'Fehlt!'
+                                                ) {
+                                                    if ($PersonToAddress->getSalutation() === '') {
+                                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] =
+                                                            new Warning(new Exclamation().' Fehlt!');
+                                                    } else {
+                                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] =
+                                                            ( $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'] !== ''
+                                                                ? $AddressList[$tblPerson->getId().$tblAddress->getId()]['SalutationList'].', '.
+                                                                $PersonToAddress->getSalutation()
+                                                                : $PersonToAddress->getSalutation() );
+                                                    }
+                                                }
                                             }
                                         }
                                         $StudentNumber = new Small(new Muted('-NA-'));
