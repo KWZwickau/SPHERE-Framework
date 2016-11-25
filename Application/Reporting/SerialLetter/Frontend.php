@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -914,8 +915,11 @@ class Frontend extends Extension implements IFrontendInterface
     private function formFilterStudent()
     {
 
+        $GroupList = array();
         $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-        $GroupList[] = $tblGroup;
+        if ($tblGroup) {
+            $GroupList[] = $tblGroup;
+        }
 
         $Global = $this->getGlobal();
         $Global->POST['FilterGroup']['TblGroup_Id'] = $tblGroup->getId();
@@ -947,8 +951,11 @@ class Frontend extends Extension implements IFrontendInterface
     private function formFilterProspect()
     {
 
+        $GroupList = array();
         $tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-        $GroupList[] = $tblGroup;
+        if ($tblGroup) {
+            $GroupList[] = $tblGroup;
+        }
 
         $Global = $this->getGlobal();
         $Global->POST['FilterGroup']['TblGroup_Id'] = $tblGroup->getId();
@@ -1579,6 +1586,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null|array $FilterPerson
      * @param null|array $FilterYear
      * @param null|array $FilterType
+     * @param null|array $FilterProspect
      * @param string     $TabActive
      *
      * @return Stage|string
@@ -1590,6 +1598,7 @@ class Frontend extends Extension implements IFrontendInterface
         $FilterPerson = null,
         $FilterYear = null,
         $FilterType = null,
+        $FilterProspect = null,
         $TabActive = 'PERSON'
     ) {
 
@@ -1621,10 +1630,20 @@ class Frontend extends Extension implements IFrontendInterface
             && $FilterPerson === null
             && $FilterYear === null
             && $FilterType === null
+            && $FilterProspect === null
         ) {
             // set Group Student and Execute Search
 //            $FilterGroup['TblGroup_Name'] = 'Schüler';
             $Global = $this->getGlobal();
+            if ($TabActive == 'PROSPECT') {
+                $ProspectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+                if ($ProspectGroup && $FilterProspect === null && !isset( $FilterGroup['TblGroup_Id'] )) {
+                    $Global->POST['FilterGroup']['TblGroup_Id'] = $ProspectGroup->getId();
+                    $Global->savePost();
+                    $FilterGroup = null;
+                }
+            }
+
 //            $Global->POST['FilterGroup']['TblGroup_Name'] = 'Schüler';
 
             // set Year
@@ -1635,12 +1654,14 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
             $Global->savePost();
+
         };
 
         // Database Join with foreign Key
         if ($FilterGroup && isset( $FilterGroup['TblGroup_Id'] ) && $FilterGroup['TblGroup_Id'] !== '0'
             || $FilterPerson && ( isset( $FilterPerson['TblPerson_FirstName'] ) && !empty( $FilterPerson['TblPerson_FirstName'] )
                 || $FilterPerson['TblPerson_LastName'] && !empty( $FilterPerson['TblPerson_LastName'] ) )
+            && $TabActive === 'PERSON'
         ) {
             $Filter = $FilterGroup;
 
@@ -1650,7 +1671,7 @@ class Frontend extends Extension implements IFrontendInterface
             // Group->Person
         }
         // Database Join with foreign Key
-        if ($FilterStudent) {
+        if ($FilterStudent && $TabActive === 'DIVISION') {
             $Filter = $FilterStudent;
 
             $Pile = new Pile(Pile::JOIN_TYPE_INNER);
@@ -1668,6 +1689,21 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
 
+        if ($FilterProspect && $TabActive === 'PROSPECT') {
+            $Filter = $FilterProspect;
+
+            // Database Join with foreign Key
+            $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
+            $Pile->addPile(( new ViewPeopleGroupMember() )->getViewService(), new ViewPeopleGroupMember(),
+                null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
+            );
+            $Pile->addPile(( new ViewPerson() )->getViewService(), new ViewPerson(),
+                ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
+            );
+            $Pile->addPile(( new ViewPeopleMetaProspect() )->getViewService(), new ViewPeopleMetaProspect(),
+                ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON, ViewPeopleMetaProspect::TBL_PROSPECT_SERVICE_TBL_PERSON
+            );
+        }
 
         $Result = array();
         $Timeout = null;
@@ -1728,15 +1764,30 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $FilterType = array();
             }
+            // Preparation $FilterProspect
+            if ($FilterProspect) {
+                array_walk($FilterProspect, function (&$Input) {
+
+                    if (!empty( $Input )) {
+                        $Input = explode(' ', $Input);
+                        $Input = array_filter($Input);
+                    } else {
+                        $Input = false;
+                    }
+                });
+                $FilterProspect = array_filter($FilterProspect);
+            } else {
+                $FilterProspect = array();
+            }
             // Filter ordered by Database Join with foreign Key
-            if ($FilterGroup) {
+            if ($FilterGroup && $TabActive === 'PERSON') {
                 $Result = $Pile->searchPile(array(
                     0 => $Filter,
                     1 => $FilterPerson
                 ));
             }
             // Filter ordered by Database Join with foreign Key
-            if ($FilterStudent) {
+            if ($FilterStudent && $TabActive === 'DIVISION') {
                 $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
 
                 $Result = $Pile->searchPile(array(
@@ -1746,6 +1797,18 @@ class Frontend extends Extension implements IFrontendInterface
                     3 => $FilterYear
 //                    4 => $FilterType
                 ));
+            }
+
+            // Filter ordered by Database Join with foreign Key
+            if (( $FilterGroup || $FilterProspect ) && $TabActive === 'PROSPECT') {
+                $ProspectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+                if ($ProspectGroup) {
+                    $Result = $Pile->searchPile(array(
+                        0 => array('TblGroup_Id' => array($ProspectGroup->getId())),
+                        1 => $FilterPerson,
+                        2 => $FilterProspect,
+                    ));
+                }
             }
             // get Timeout status
             $Timeout = $Pile->isTimeout();
@@ -1816,7 +1879,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
                 }
             }
-
         }
 
         $tblPersonSearch = $SearchResult;
@@ -1928,10 +1990,31 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         new TextField('FilterPerson['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Person: Nachname', 'Person: Nachname')
                     ), 3)
-                )),
-                new FormRow(array())
+                ))
             ))
             , new Primary('in Klassen suchen'));
+
+        $ProspectGroupList = array();
+        $ProspectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+        if ($ProspectGroup) {
+            $ProspectGroupList[] = '';
+            $ProspectGroupList[] = $ProspectGroup;
+        }
+        $FormProspect = new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(array(
+                            new SelectBox('FilterGroup[TblGroup_Id]', 'Gruppe: Name', array('Name' => $ProspectGroupList)),)
+                        , 4),
+                    new FormColumn(
+                        new TextField('FilterProspect[TblProspectReservation_ReservationYear]', 'Interessent: Schuljahr', 'Interessent: Schuljahr')
+                        , 4),
+                    new FormColumn(
+                        new TextField('FilterProspect[TblProspectReservation_ReservationDivision]', 'Interessent: Stufe', 'Interessent: Stufe')
+                        , 4),
+                ))
+            ))
+            , new Primary('Interessenten suchen'));
 
         // set Success by filtered Input field in FormGroup
         if ($FilterGroup) {
@@ -1979,6 +2062,22 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        // set Success by filtered Input field in FormProspect
+        if ($FilterGroup) {
+            foreach ($FilterGroup as $Field => $Value) {
+                if ($Value) {
+                    $FormProspect->setSuccess('FilterGroup['.$Field.']', '', new Filter());
+                }
+            }
+            if ($FilterProspect) {
+                foreach ($FilterProspect as $Field => $Value) {
+                    if ($Value) {
+                        $FormProspect->setSuccess('FilterProspect['.$Field.']', '', new Filter());
+                    }
+                }
+            }
+        }
+
         $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
         $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
             'Anzahl Anschreiben: '.$SerialLetterCount,);
@@ -1990,6 +2089,7 @@ class Frontend extends Extension implements IFrontendInterface
         // create Tabs
         $LayoutTabs[] = new LayoutTab('Personen in Gruppen suchen', 'PERSON', array('Id' => $tblSerialLetter->getId()));
         $LayoutTabs[] = new LayoutTab('Schüler in Klassen suchen', 'DIVISION', array('Id' => $tblSerialLetter->getId()));
+        $LayoutTabs[] = new LayoutTab('Interessenten suchen', 'PROSPECT', array('Id' => $tblSerialLetter->getId()));
         if (!empty( $LayoutTabs ) && $TabActive === 'PERSON') {
             $LayoutTabs[0]->setActive();
         }
@@ -2002,6 +2102,10 @@ class Frontend extends Extension implements IFrontendInterface
             case 'DIVISION':
                 $MetaTable = new Panel(new Search().' Schüler-Suche nach '.new Bold('Schuljahr / Klasse / Schüler')
                     , array($FormStudent), Panel::PANEL_TYPE_INFO);
+                break;
+            case 'PROSPECT':
+                $MetaTable = new Panel(new Search().' Interresenten-Suche nach '.new Bold('Jahr / Stufe')
+                    , array($FormProspect), Panel::PANEL_TYPE_INFO);
                 break;
             default:
                 $MetaTable = new Panel(new Search().' Personen-Suche nach '.new Bold('Personengruppe')
@@ -2046,7 +2150,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(array(
-                                            ( !$FilterStudent && !$FilterGroup
+                                            ( !$FilterStudent && !$FilterGroup && !$FilterProspect
                                                 ? new WarningMessage('Benutzen Sie bitte den Filter')
                                                 : ( empty( $tblPersonSearch )
                                                     ? new WarningMessage('Keine Ergebnisse bei aktueller Filterung '.new SuccessText(new Filter()))
