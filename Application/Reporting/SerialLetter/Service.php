@@ -731,86 +731,103 @@ class Service extends AbstractService
                     if ($AddressList) {
                         foreach ($AddressList as $Address) {
 
-                            // fill AddressLines
+                            // fill AddressLine
                             $firstAddressLine = '';
                             $secondAddressLine = '';
                             $thirdAddressLine = '';
                             $LetterHead = '';
-
-                            if (isset( $Address['PersonLastName'] ) && !empty( $Address['PersonLastName'] )) {
-                                if (isset( $Address['PersonSalutation'] )
-                                    && count($Address['PersonLastName']) > 1
-                                ) {
-                                    if (count(array_unique($Address['PersonLastName'])) === 1) {
-                                        foreach ($Address['PersonLastName'] as $Key => $LastName) {
-                                            if ($Key > 1) {
-                                                break;
-                                            }
-                                            if ($secondAddressLine === '') {
-                                                $secondAddressLine = 'Familie '.$Address['PersonFirstName'][$Key];
-                                            } else {
-                                                $secondAddressLine .= ' und '.$Address['PersonFirstName'][$Key].' ';
-                                            }
-                                            if ($LetterHead === '') {
-                                                $LetterHead = 'Sehr geehrte(r) '.$Address['PersonSalutation'][$Key].' ';
-                                            } else {
-                                                $LetterHead .= 'und '.$Address['PersonSalutation'][$Key].' ';
-                                            }
-                                        }
-                                        $firstAddressLine = 'Familie '.$Address['PersonLastName'][0];
-                                        $secondAddressLine .= $Address['PersonLastName'][0];
-                                        $thirdAddressLine = $secondAddressLine;
-                                        $LetterHead .= $Address['PersonLastName'][0];
-                                    } else {
-
-                                        $LetterHead = 'Sehr geehrte(r) ';
-                                        foreach ($Address['PersonLastName'] as $Key => $LastName) {
-                                            if ($Key > 1) {
-                                                break;
-                                            }
-                                            if ($firstAddressLine === '') {
-                                                $firstAddressLine = $Address['PersonSalutation'][$Key].' '.$LastName;
-                                            } else {
-                                                $firstAddressLine .= ', '.$Address['PersonSalutation'][$Key].' '.$LastName;
-                                            }
-                                            if ($thirdAddressLine === '') {
-                                                if ($Address['PersonSalutation'] === 'Herr') {
-                                                    $thirdAddressLine = $Address['PersonSalutation'][$Key].'n '.$LastName;
-                                                } else {
-                                                    $thirdAddressLine = $Address['PersonSalutation'][$Key].' '.$LastName;
-                                                }
-                                            } else {
-                                                if ($Address['PersonSalutation'] === 'Herr') {
-                                                    $thirdAddressLine .= ', '.$Address['PersonSalutation'][$Key].'n '.$LastName;
-                                                } else {
-                                                    $thirdAddressLine .= ', '.$Address['PersonSalutation'][$Key].' '.$LastName;
-                                                }
-                                            }
-                                        }
-                                        $secondAddressLine = $firstAddressLine;
-                                        $LetterHead .= $firstAddressLine;
+                            $isReady = true;
+                            // only 2 Person with Salutation "Herr" or "Frau"
+                            if (isset( $Address['PersonSalutation'] ) && !empty( $Address['PersonSalutation'] )) {
+                                foreach ($Address['PersonSalutation'] as $Key => $Salutation) {
+                                    if ($Key > 2) {
+                                        break;
                                     }
-                                }
-                                if (count($Address['PersonLastName']) === 1) {
-                                    foreach ($Address['PersonLastName'] as $Key => $LastName) {
-                                        $firstAddressLine = $Address['PersonSalutation'][$Key].' '.$LastName;
-                                        $secondAddressLine = $Address['PersonSalutation'][$Key].' '.$LastName;
-                                        $thirdAddressLine = $secondAddressLine;
-                                        $LetterHead = 'Sehr geehrte(r) '.$Address['PersonSalutation'][$Key].' '.$LastName;
-                                        if ($Address['PersonSalutation'][$Key] === 'Herr') {
-
-                                        } else {
-
+                                    if ($Key > 1) {
+                                        if ($Salutation === 'Herr' || $Salutation === 'Frau') {
+                                            $isReady = false;
+                                        }
+                                    } else {
+                                        if ($Salutation !== 'Herr' && $Salutation !== 'Frau') {
+                                            $isReady = false;
                                         }
                                     }
                                 }
                             }
 
-//                            Debugger::screenDump($firstAddressLine);
-//                            Debugger::screenDump($secondAddressLine);
-//                            Debugger::screenDump($thirdAddressLine);
-//                            Debugger::screenDump($LetterHead);
-//                            exit;
+                            if ($isReady) {
+                                if (isset( $Address['PersonLastName'] ) && !empty( $Address['PersonLastName'] )) {
+                                    if (isset( $Address['PersonSalutation'] )
+                                        && count($Address['PersonLastName']) > 1
+                                    ) {
+                                        if (count(array_unique($Address['PersonLastName'])) === 1) {
+                                            foreach ($Address['PersonLastName'] as $Key => $LastName) {
+                                                if ($Key > 1) {
+                                                    break;
+                                                }
+                                                if ($secondAddressLine === '') {
+                                                    $secondAddressLine = 'Familie '.$Address['PersonFirstName'][$Key];
+                                                } else {
+                                                    $secondAddressLine .= ' und '.$Address['PersonFirstName'][$Key].' ';
+                                                }
+                                                if ($LetterHead === '') {
+                                                    $LetterHead = 'Sehr geehrte(r) '.$Address['PersonSalutation'][$Key].' ';
+                                                } else {
+                                                    $LetterHead .= 'und '.$Address['PersonSalutation'][$Key].' ';
+                                                }
+                                            }
+                                            $firstAddressLine = 'Familie '.$Address['PersonLastName'][0];
+                                            $secondAddressLine .= $Address['PersonLastName'][0];
+                                            $thirdAddressLine = $secondAddressLine;
+                                            $LetterHead .= $Address['PersonLastName'][0];
+                                        } else {
+
+                                            $LetterHead = 'Sehr geehrte(r) ';
+                                            foreach ($Address['PersonLastName'] as $Key => $LastName) {
+                                                if ($Key > 1) {
+                                                    break;
+                                                }
+                                                if ($firstAddressLine === '') {
+                                                    $firstAddressLine = $Address['PersonSalutation'][$Key].' '.$LastName;
+                                                } else {
+                                                    $firstAddressLine .= ', '.$Address['PersonSalutation'][$Key].' '.$LastName;
+                                                }
+                                                if ($thirdAddressLine === '') {
+                                                    if ($Address['PersonSalutation'] === 'Herr') {
+                                                        $thirdAddressLine = $Address['PersonSalutation'][$Key].'n '.$LastName;
+                                                    } else {
+                                                        $thirdAddressLine = $Address['PersonSalutation'][$Key].' '.$LastName;
+                                                    }
+                                                } else {
+                                                    if ($Address['PersonSalutation'] === 'Herr') {
+                                                        $thirdAddressLine .= ', '.$Address['PersonSalutation'][$Key].'n '.$LastName;
+                                                    } else {
+                                                        $thirdAddressLine .= ', '.$Address['PersonSalutation'][$Key].' '.$LastName;
+                                                    }
+                                                }
+                                            }
+                                            $secondAddressLine = $firstAddressLine;
+                                            $LetterHead .= $firstAddressLine;
+                                        }
+                                    }
+                                    if (count($Address['PersonLastName']) === 1) {
+                                        foreach ($Address['PersonLastName'] as $Key => $LastName) {
+                                            if ($Key > 1) {
+                                                break;
+                                            }
+                                            $firstAddressLine = $Address['PersonSalutation'][$Key].' '.$LastName;
+                                            $secondAddressLine = $Address['PersonSalutation'][$Key].' '.$LastName;
+                                            $thirdAddressLine = $secondAddressLine;
+                                            $LetterHead = 'Sehr geehrte(r) '.$Address['PersonSalutation'][$Key].' '.$LastName;
+                                            if ($Address['PersonSalutation'][$Key] === 'Herr') {
+
+                                            } else {
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
                             $ExportData[] = array(
                                 'firstAddressLine'  => $firstAddressLine,
@@ -845,6 +862,10 @@ class Service extends AbstractService
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
 
+            $export->setValue($export->getCell($column++, $row), "Adressanrede 1");
+            $export->setValue($export->getCell($column++, $row), "Adressanrede 2");
+            $export->setValue($export->getCell($column++, $row), "Adressanrede 3");
+            $export->setValue($export->getCell($column++, $row), "Briefanrede 1");
             for ($i = 0; $i < $AddressPersonCount; $i++) {
                 $export->setValue($export->getCell($column++, $row), "Anrede ".( $i + 1 ));
                 $export->setValue($export->getCell($column++, $row), "Vorname ".( $i + 1 ));
@@ -866,6 +887,12 @@ class Service extends AbstractService
 
                 $column = 0;
                 $PersonLoop = 0;
+
+                $export->setValue($export->getCell($column++, $row), $Export['firstAddressLine']);
+                $export->setValue($export->getCell($column++, $row), $Export['secondAddressLine']);
+                $export->setValue($export->getCell($column++, $row), $Export['thirdAddressLine']);
+                $export->setValue($export->getCell($column++, $row), $Export['LetterHead']);
+
                 for ($j = 0; $j < $AddressPersonCount; $j++) {
                     $export->setValue($export->getCell($column++, $row),
                         ( isset( $Export['SalutationList'][$PersonLoop] ) ? $Export['SalutationList'][$PersonLoop] : '' ));
