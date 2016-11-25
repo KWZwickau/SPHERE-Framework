@@ -107,9 +107,24 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.DataTable.Buttons"
         );
         $this->setSource(
+            'jQuery.DataTable.Buttons.Bootstrap',
+            '/Library/DataTables/Buttons-1.2.2/js/buttons.bootstrap.min.js',
+            "'dt-buttons btn-group' == jQuery.fn.dataTable.Buttons.defaults.dom.container.className"
+        );
+        $this->setSource(
             'jQuery.DataTable.Buttons.ColVis',
             '/Library/DataTables/Buttons-1.2.2/js/buttons.colVis.min.js',
-            "'undefined' !== typeof jQuery.fn.DataTable.Buttons.columnVisibility"
+            "'undefined' !== typeof jQuery.fn.dataTableExt.buttons.colvis"
+        );
+        $this->setSource(
+            'jQuery.DataTable.Buttons.HtmlExport',
+            '/Library/DataTables/Buttons-1.2.2/js/buttons.html5.min.js',
+            "'undefined' !== typeof jQuery.fn.dataTable.ext.buttons.excelHtml5"
+        );
+        $this->setSource(
+            'jQuery.DataTable.Buttons.FlashExport',
+            '/Library/DataTables/Buttons-1.2.2/js/buttons.flash.min.js',
+            "'undefined' !== typeof jQuery.fn.dataTable.ext.buttons.excelFlash"
         );
 
 //        <script type="text/javascript" src="Bootstrap-3.3.6/js/bootstrap.js"></script>
@@ -229,7 +244,10 @@ class Script extends Extension
 //                'jQuery.DataTable.Plugin.Sorting.Weekday',
                 'jQuery.DataTable.Plugin.Sorting.DateTime',
                 'jQuery.DataTable.Plugin.Sorting.GermanString',
-//                'jQuery.DataTable.Buttons.ColVis',
+                'jQuery.DataTable.Buttons.FlashExport',
+                'jQuery.DataTable.Buttons.HtmlExport',
+                'jQuery.DataTable.Buttons.ColVis',
+                'jQuery.DataTable.Buttons.Bootstrap',
                 'jQuery.DataTable.Buttons',
                 'jQuery.DataTable.RowReorder',
                 'jQuery.DataTable.Responsive',
