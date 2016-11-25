@@ -304,13 +304,14 @@ class GradeInformation extends Certificate
         $section = new Section();
         $top = '30px';
 //        $height = '50px';
-        $height = '35px';
+        $height = '30px';
         $fontSize = '17px';
         $section
             ->addElementColumn((new Element())
                 ->setContent('Fächer')
                 ->styleMarginTop($top)
                 ->stylePaddingLeft($paddingLeft)
+                ->stylePaddingTop('5px')
                 ->styleBorderLeft()
                 ->styleBorderTop()
                 ->styleBorderBottom()
@@ -322,6 +323,7 @@ class GradeInformation extends Certificate
                 ->setContent('derzeitige Note')
                 ->styleMarginTop($top)
                 ->stylePaddingLeft($paddingLeft)
+                ->stylePaddingTop('5px')
                 ->styleBorderLeft()
                 ->styleBorderTop()
                 ->styleBorderBottom()
@@ -343,7 +345,7 @@ class GradeInformation extends Certificate
 //                , '40%');
         $slice->addSection($section);
 
-        $heightRow = '25px';
+        $heightRow = '20px';
         /** @var TblSubject $subject */
         foreach ($subjectList as $subject) {
             $section = new Section();
