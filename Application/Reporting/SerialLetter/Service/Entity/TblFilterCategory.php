@@ -15,6 +15,11 @@ use SPHERE\System\Database\Fitting\Element;
 class TblFilterCategory extends Element
 {
 
+    const IDENTIFIER_PERSON_GROUP = 'Personengruppe';
+    const IDENTIFIER_PERSON_GROUP_STUDENT = 'Schüler';
+    const IDENTIFIER_PERSON_GROUP_PROSPECT = 'Interessenten';
+    const IDENTIFIER_COMPANY_GROUP = 'Firmengruppe';
+
     const ATTR_NAME = 'Name';
 
     /**

@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Reporting\SerialLetter;
 
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -21,11 +22,13 @@ use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -128,7 +131,7 @@ class Frontend extends Extension implements IFrontendInterface
         $LayoutTabs[] = new LayoutTab('Dynamisch (Personengruppe)', 'PERSONGROUP');
         $LayoutTabs[] = new LayoutTab('Dynamisch (Schüler)', 'STUDENT');
         $LayoutTabs[] = new LayoutTab('Dynamisch (Interessenten)', 'PROSPECT');
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Firmengruppe)', 'COMPANY');
+//        $LayoutTabs[] = new LayoutTab('Dynamisch (Firmengruppe)', 'COMPANY');
 
         $TableContent = array();
         if ($tblSerialLetterAll) {
@@ -835,7 +838,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
                         ? $tblPerson->getSalutation()
                         : new Small(new Muted('-NA-')) );
-                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
                 }
                 /** @noinspection PhpUndefinedFieldInspection */
                 $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
@@ -1045,12 +1048,33 @@ class Frontend extends Extension implements IFrontendInterface
             .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
         }
 
+        $FilterCategory = $tblSerialLetter->getFilterCategory();
+        if ($FilterCategory) {
+            if ($FilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP) {
+                $TabActive = 'PERSONGROUP';
+            }
+            if ($FilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT) {
+                $TabActive = 'STUDENT';
+            }
+            if ($FilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
+                $TabActive = 'PROSPECT';
+            }
+        }
+
         // create Tabs
-        $LayoutTabs[] = new LayoutTab('Statisch', 'STATIC', array('Id' => $tblSerialLetter->getId()));
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Personengruppe)', 'PERSONGROUP', array('Id' => $tblSerialLetter->getId()));
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Schüler)', 'STUDENT', array('Id' => $tblSerialLetter->getId()));
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Interessenten)', 'PROSPECT', array('Id' => $tblSerialLetter->getId()));
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Firmengruppe)', 'COMPANY', array('Id' => $tblSerialLetter->getId()));
+        if ($TabActive == 'STATIC' || $TabActive == null) {
+            $LayoutTabs[] = new LayoutTab('Statisch', 'STATIC', array('Id' => $tblSerialLetter->getId()));
+        }
+        if ($TabActive == 'PERSONGROUP') {
+            $LayoutTabs[] = new LayoutTab('Dynamisch (Personengruppe)', 'PERSONGROUP', array('Id' => $tblSerialLetter->getId()));
+        }
+        if ($TabActive == 'STUDENT') {
+            $LayoutTabs[] = new LayoutTab('Dynamisch (Schüler)', 'STUDENT', array('Id' => $tblSerialLetter->getId()));
+        }
+        if ($TabActive == 'PROSPECT') {
+            $LayoutTabs[] = new LayoutTab('Dynamisch (Interessenten)', 'PROSPECT', array('Id' => $tblSerialLetter->getId()));
+        }
+//        $LayoutTabs[] = new LayoutTab('Dynamisch (Firmengruppe)', 'COMPANY', array('Id' => $tblSerialLetter->getId()));
 
         $FormSerialLetter = $this->formSerialLetter()
             ->appendFormButton(new Primary('Speichern', new Save()))
@@ -1546,24 +1570,24 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new PlusSign().' Serienbreif anlegen '
                     , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetter, $tblSerialLetter, $SerialLetter))), Panel::PANEL_TYPE_INFO);
         }
-        if ($TabActive !== null) {
-            if (!empty( $LayoutTabs ) && $TabActive === 'PERSONGROUP') {
-                $LayoutTabs[1]->setActive();
-            }
-            if (!empty( $LayoutTabs ) && $TabActive === 'STUDENT') {
-                $LayoutTabs[2]->setActive();
-            }
-            if (!empty( $LayoutTabs ) && $TabActive === 'PROSPECT') {
-                $LayoutTabs[3]->setActive();
-            }
-            if (!empty( $LayoutTabs ) && $TabActive === 'COMPANY') {
-                $LayoutTabs[4]->setActive();
-            }
-        } else {
+//        if ($TabActive !== null) {
+//            if (!empty( $LayoutTabs ) && $TabActive === 'PERSONGROUP') {
+//                $LayoutTabs[1]->setActive();
+//            }
+//            if (!empty( $LayoutTabs ) && $TabActive === 'STUDENT') {
+//                $LayoutTabs[2]->setActive();
+//            }
+//            if (!empty( $LayoutTabs ) && $TabActive === 'PROSPECT') {
+//                $LayoutTabs[3]->setActive();
+//            }
+//            if (!empty( $LayoutTabs ) && $TabActive === 'COMPANY') {
+//                $LayoutTabs[4]->setActive();
+//            }
+//        } else {
             if (!empty( $LayoutTabs )) {
                 $LayoutTabs[0]->setActive();
             }
-        }
+//        }
 
         $Stage->setContent(
             new Layout(new LayoutGroup(array(
@@ -1824,6 +1848,23 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var array $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
                 $DataPerson['Division'] = new Small(new Muted('-NA-'));
+                if ($TabActive === 'PROSPECT') {
+                    /** @var TblPerson $tblPerson */
+                    $Person = $Row[1]->__toArray();
+                    if (isset( $Person['Id'] )) {
+                        $tblPerson = Person::useService()->getPersonById($Person['Id']);
+                        if ($tblPerson) {
+                            $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                            if ($tblProspect) {
+                                $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                                if ($tblProspectReservation) {
+                                    $DataPerson['ProspectYear'] = $tblProspectReservation->getReservationYear();
+                                    $DataPerson['ProspectDivision'] = $tblProspectReservation->getReservationDivision();
+                                }
+                            }
+                        }
+                    }
+                }
 
             } else {
                 /** @var array $DataPerson */
@@ -1871,6 +1912,13 @@ class Frontend extends Extension implements IFrontendInterface
             $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
             if (isset( $tblStudent ) && $tblStudent && $DataPerson['Name']) {
                 $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+            }
+
+            if (!isset( $DataPerson['ProspectYear'] )) {
+                $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
+            }
+            if (!isset( $DataPerson['ProspectDivision'] )) {
+                $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
             }
 
             // ignore duplicated Person
@@ -1927,7 +1975,23 @@ class Frontend extends Extension implements IFrontendInterface
                     /** @noinspection PhpUndefinedFieldInspection */
                     $tblPerson->StudentNumber = new Small(new Muted('-NA-'));
                 }
+                $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
 
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->ProspectYear = new Small(new Muted('-NA-'));
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->ProspectDivision = new Small(new Muted('-NA-'));
+
+                // only Prospect where no Student exist
+                if ($tblProspect && !$tblStudent) {
+                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                    if ($tblProspectReservation) {
+                        /** @noinspection PhpUndefinedFieldInspection */
+                        $tblPerson->ProspectYear = $tblProspectReservation->getReservationYear();
+                        /** @noinspection PhpUndefinedFieldInspection */
+                        $tblPerson->ProspectDivision = $tblProspectReservation->getReservationDivision();
+                    }
+                }
 
                 $VisitedDivision = new Small(new Muted('-NA-'));
                 $VisitedDivisionList = array();
@@ -1952,6 +2016,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
+                /** @noinspection PhpUndefinedFieldInspection */
                 $tblPerson->Division = $VisitedDivision;
             });
         }
@@ -1994,17 +2059,14 @@ class Frontend extends Extension implements IFrontendInterface
             ))
             , new Primary('in Klassen suchen'));
 
-        $ProspectGroupList = array();
         $ProspectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-        if ($ProspectGroup) {
-            $ProspectGroupList[] = '';
-            $ProspectGroupList[] = $ProspectGroup;
-        }
+
         $FormProspect = new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(array(
-                            new SelectBox('FilterGroup[TblGroup_Id]', 'Gruppe: Name', array('Name' => $ProspectGroupList)),)
+                    new FormColumn(
+                        ( new RadioBox('FilterGroup[TblGroup_Id]', 'Gruppe: '.$ProspectGroup->getName(),
+                            $ProspectGroup->getId()) )->setDefaultValue($ProspectGroup->getId(), true)
                         , 4),
                     new FormColumn(
                         new TextField('FilterProspect[TblProspectReservation_ReservationYear]', 'Interessent: Schuljahr', 'Interessent: Schuljahr')
@@ -2167,77 +2229,157 @@ class Frontend extends Extension implements IFrontendInterface
                     ))
                 ))
             )
-            .new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new TableData($tblPersonList, null,
-                                array('Exchange'      => '',
-                                      'Name'          => 'Name',
-                                      'Address'       => 'Adresse',
-                                      'Division'      => 'Klasse',
-                                      'StudentNumber' => 'Schüler-Nr.'
-                                ),
-                                array(
-                                    'order'                => array(array(1, 'asc')),
-                                    'columnDefs'           => array(
-                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+            .( $TabActive === 'PROSPECT'
+                ?
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new TableData($tblPersonList, null,
+                                    array('Exchange'         => '',
+                                          'Name'             => 'Name',
+                                          'Address'          => 'Adresse',
+                                          'Division'         => 'Klasse',
+                                          'StudentNumber'    => 'Schüler-Nr.',
+                                          'ProspectYear'     => 'Intr.-Jahr',
+                                          'ProspectDivision' => 'Intr.-Stufe'
                                     ),
-                                    'ExtensionRowExchange' => array(
-                                        'Enabled' => true,
-                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
-                                        'Handler' => array(
-                                            'From' => 'glyphicon-minus-sign',
-                                            'To'   => 'glyphicon-plus-sign',
-                                            'All'  => 'TableRemoveAll'
+                                    array(
+                                        'order'                => array(array(1, 'asc')),
+                                        'columnDefs'           => array(
+                                            array('orderable' => false, 'width' => '1%', 'targets' => 0)
                                         ),
-                                        'Connect' => array(
-                                            'From' => 'TableCurrent',
-                                            'To'   => 'TableAvailable',
+                                        'ExtensionRowExchange' => array(
+                                            'Enabled' => true,
+                                            'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                            'Handler' => array(
+                                                'From' => 'glyphicon-minus-sign',
+                                                'To'   => 'glyphicon-plus-sign',
+                                                'All'  => 'TableRemoveAll'
+                                            ),
+                                            'Connect' => array(
+                                                'From' => 'TableCurrent',
+                                                'To'   => 'TableAvailable',
+                                            )
                                         )
                                     )
+                                ),
+                                new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll')
+                            ), 6),
+                            new LayoutColumn(array(
+                                //                            ( !$FilterStudent && !$FilterGroup
+                                //                                ? ''
+                                //                                :)
+                                new TableData($tblPersonSearch, null,
+                                    array('Exchange'         => ' ',
+                                          'Name'             => 'Name',
+                                          'Address'          => 'Adresse',
+                                          'Division'         => 'Klasse',
+                                          'StudentNumber'    => 'Schüler-Nr.',
+                                          'ProspectYear'     => 'Intr.-Jahr',
+                                          'ProspectDivision' => 'Intr.-Stufe'
+                                    ),
+                                    array(
+                                        'order'                => array(array(1, 'asc')),
+                                        'columnDefs'           => array(
+                                            array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                        ),
+                                        'ExtensionRowExchange' => array(
+                                            'Enabled' => true,
+                                            'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                            'Handler' => array(
+                                                'From' => 'glyphicon-plus-sign',
+                                                'To'   => 'glyphicon-minus-sign',
+                                                'All'  => 'TableAddAll'
+                                            ),
+                                            'Connect' => array(
+                                                'From' => 'TableAvailable',
+                                                'To'   => 'TableCurrent',
+                                            ),
+                                        )
+                                    )
+                                //                                )
+                                ),
+                                ( !$FilterStudent && !$FilterGroup
+                                    ? ''
+                                    : new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(), 'Alle hinzufügen', 'TableAddAll')
                                 )
-                            ),
-                            new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll')
-                        ), 6),
-                        new LayoutColumn(array(
+                            ), 6)
+                        ))
+                    )
+                )
+                : new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new TableData($tblPersonList, null,
+                                    array('Exchange'      => '',
+                                          'Name'          => 'Name',
+                                          'Address'       => 'Adresse',
+                                          'Division'      => 'Klasse',
+                                          'StudentNumber' => 'Schüler-Nr.'
+                                    ),
+                                    array(
+                                        'order'                => array(array(1, 'asc')),
+                                        'columnDefs'           => array(
+                                            array('orderable' => false, 'width' => '1%', 'targets' => 0)
+                                        ),
+                                        'ExtensionRowExchange' => array(
+                                            'Enabled' => true,
+                                            'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                            'Handler' => array(
+                                                'From' => 'glyphicon-minus-sign',
+                                                'To'   => 'glyphicon-plus-sign',
+                                                'All'  => 'TableRemoveAll'
+                                            ),
+                                            'Connect' => array(
+                                                'From' => 'TableCurrent',
+                                                'To'   => 'TableAvailable',
+                                            )
+                                        )
+                                    )
+                                ),
+                                new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(), 'Alle entfernen', 'TableRemoveAll')
+                            ), 6),
+                            new LayoutColumn(array(
 //                            ( !$FilterStudent && !$FilterGroup
 //                                ? ''
-//                                :
-                            new TableData($tblPersonSearch, null,
-                                array('Exchange'      => ' ',
-                                      'Name'          => 'Name',
-                                      'Address'       => 'Adresse',
-                                      'Division'      => 'Klasse',
-                                      'StudentNumber' => 'Schüler-Nr.'
-                                ),
-                                array(
-                                    'order'                => array(array(1, 'asc')),
-                                    'columnDefs'           => array(
-                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
+//                                :)
+                                new TableData($tblPersonSearch, null,
+                                    array('Exchange'      => ' ',
+                                          'Name'          => 'Name',
+                                          'Address'       => 'Adresse',
+                                          'Division'      => 'Klasse',
+                                          'StudentNumber' => 'Schüler-Nr.'
                                     ),
-                                    'ExtensionRowExchange' => array(
-                                        'Enabled' => true,
-                                        'Url'     => '/Api/Reporting/SerialLetter/Exchange',
-                                        'Handler' => array(
-                                            'From' => 'glyphicon-plus-sign',
-                                            'To'   => 'glyphicon-minus-sign',
-                                            'All'  => 'TableAddAll'
+                                    array(
+                                        'order'                => array(array(1, 'asc')),
+                                        'columnDefs'           => array(
+                                            array('orderable' => false, 'width' => '1%', 'targets' => 0)
                                         ),
-                                        'Connect' => array(
-                                            'From' => 'TableAvailable',
-                                            'To'   => 'TableCurrent',
-                                        ),
+                                        'ExtensionRowExchange' => array(
+                                            'Enabled' => true,
+                                            'Url'     => '/Api/Reporting/SerialLetter/Exchange',
+                                            'Handler' => array(
+                                                'From' => 'glyphicon-plus-sign',
+                                                'To'   => 'glyphicon-minus-sign',
+                                                'All'  => 'TableAddAll'
+                                            ),
+                                            'Connect' => array(
+                                                'From' => 'TableAvailable',
+                                                'To'   => 'TableCurrent',
+                                            ),
+                                        )
                                     )
-                                )
 //                                )
-                            ),
-                            ( !$FilterStudent && !$FilterGroup
-                                ? ''
-                                : new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(), 'Alle hinzufügen', 'TableAddAll')
-                            )
-                        ), 6)
-                    ))
+                                ),
+                                ( !$FilterStudent && !$FilterGroup
+                                    ? ''
+                                    : new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(), 'Alle hinzufügen', 'TableAddAll')
+                                )
+                            ), 6)
+                        ))
+                    )
                 )
             )
         );
@@ -2676,26 +2818,85 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $personCount = 0;
+
+//        if( TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblSerialLetter->getFilterCategory()->getName() ) {
+//            $tblAddressToPersonList = array();
+//            $tblCompanyList = array();
+//            $tblCompanyRelationshipList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson);
+//            if($tblCompanyRelationshipList){
+//                foreach($tblCompanyRelationshipList as $tblCompanyRelationship){
+//                    if($tblCompanyRelationship->getServiceTblCompany()){
+//                        $tblCompanyList[] = $tblCompanyRelationship->getServiceTblCompany();
+//                    }
+//                }
+//            }
+//            if(!empty($tblCompanyList)){
+//                /** @var TblCompany $tblCompany */
+//                foreach($tblCompanyList as $tblCompany){
+//                    if($tblCompany->fetchMainAddress()){
+//                        $tblAddressToPersonList = array_merge( $tblAddressToPersonList, Address::useService()->getAddressAllByCompany($tblCompany) );
+//                    }
+//                }
+//            }
+//
+//        } else {
         $tblAddressToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
+//        }
         if ($tblAddressToPersonList) {
             foreach ($tblAddressToPersonList as $tblToPerson) {
 
-                $dataList[$tblPerson->getId()]['Number'] = ++$personCount;
-                $dataList[$tblPerson->getId()]['Person'] = $tblPerson->getLastFirstName();
-                $subDataList[] = array(
-                    'Salutation'   => $tblPerson->getSalutation(),
-                    'Person'       => $tblToPerson->getServiceTblPerson() ? new Bold($tblToPerson->getServiceTblPerson()->getFullName()) : '',
-                    'Relationship' => '',
-                    'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Address]',
-                        '&nbsp; '.$tblToPerson->getTblAddress()->getGuiString(), 1),
-                );
+                if (!$tblToPerson instanceof TblToCompany) {
+
+                    $dataList[$tblPerson->getId()]['Number'] = ++$personCount;
+                    $dataList[$tblPerson->getId()]['Person'] = $tblPerson->getLastFirstName();
+                    $subDataList[] = array(
+                        'Salutation'   => $tblPerson->getSalutation(),
+                        'Person'       => $tblToPerson->getServiceTblPerson() ? new Bold($tblToPerson->getServiceTblPerson()->getFullName()) : '',
+                        'Relationship' => '',
+                        'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToPerson->getId().'][Address]',
+                            '&nbsp; '.$tblToPerson->getTblAddress()->getGuiString(), 1),
+                    );
+                }
             }
         }
 
+//        if( TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblSerialLetter->getFilterCategory()->getName() ) {
+//            $tblRelationshipAll = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson);
+//        } else {
         $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+//        }
         $PersonToPersonId = array();
         if ($tblRelationshipAll) {
             foreach ($tblRelationshipAll as $tblRelationship) {
+//                    $tblGroup = Relationship::useService()->getGroupByIdentifier('COMPANY');
+//                    if($tblGroup->getId() == $tblRelationship->getTblType()->getTblGroup()->getId()){
+//                        $tblType = $tblRelationship->getTblType();
+//                        if ($tblType) {
+//                            if ($tblAddressToPersonList) {
+//                                /** @var TblToCompany $tblToCompany */
+//                                foreach ($tblAddressToPersonList as $tblToCompany) {
+//                                    if($tblToCompany->getTblAddress()) {
+//                                        $subDataList[] = array(
+//                                            'Salutation'   => $tblPerson->getSalutation(),
+//                                            'Person'       => $tblPerson->getFullName(),
+//                                            'Relationship' => $tblType->getName(),
+//                                            'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToCompany->getId().'][Address]',
+//                                                '&nbsp; '.$tblToCompany->getTblAddress()->getGuiString(), 1)
+//                                        );
+//                                    } else {
+//                                        /** @var TblToPerson $tblRelationship */
+//                                        $subDataList[] = array(
+//                                            'Salutation'   => $tblPerson->getSalutation(),
+//                                            'Person'       => $tblPerson->getFullName(),
+//                                            'Relationship' => $tblType->getName(),
+//                                            'Address'      => new Warning(
+//                                                new Exclamation().' Keine Adresse hinterlegt')
+//                                        );
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    } else {
                 $tblType = $tblRelationship->getTblType();
                 if ($tblType && $tblType->getName() !== 'Arzt') {
                     if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
@@ -2707,7 +2908,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblAddressToPersonList = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonTo());
                             $direction = new Bold($tblPerson->getLastFirstName()).' ist '.$tblType->getName()
                                 .' für '.$tblRelationship->getServiceTblPersonTo()->getLastFirstName();
-                        }
+                                }
                         if ($tblAddressToPersonList) {
                             foreach ($tblAddressToPersonList as $tblToPerson) {
                                 $PersonIdAddressIdNow = ( $tblToPerson->getServiceTblPerson() ? $tblToPerson->getServiceTblPerson()->getId() : '' ).'.'.
@@ -2744,10 +2945,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 );
                             }
                         }
-                    }
+                            }
+                        }
+//                    }
                 }
             }
-        }
+
 
         if (isset( $subDataList )) {
             $Form = new Form(

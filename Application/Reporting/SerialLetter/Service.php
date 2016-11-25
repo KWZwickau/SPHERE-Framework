@@ -461,9 +461,33 @@ class Service extends AbstractService
         if (null === $Check && !isset( $Global->POST['Button'] )) {
             return $Form;
         }
+//        $Company = false;
+//        $FilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
+//        if(($tblFilterCategory = $tblSerialLetter->getFilterCategory())){
+//            if($FilterCategory->getId() == $tblFilterCategory->getId()){
+//                $Company = true;
+//            }
+//        }
 
         if (!empty( $Check )) {
             foreach ($Check as $personId => $list) {
+//                if($Company){
+//                    // alle Einträge zum Serienbrief dieser Person löschen
+//                    ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
+//                    if (is_array($list) && !empty( $list )) {
+//                        foreach ($list as $key => $item) {
+//                            if (isset( $item['Address'] )) {
+//                                $tblToCompany = Address::useService()->getAddressToCompanyById($key);
+//                                if ($tblToCompany) {
+//                                        $tblSalutation = $tblPerson->getTblSalutation();
+//                                        $this->createAddressPerson($tblSerialLetter, $tblPerson,
+//                                            $tblPerson, $tblToCompany,
+//                                            ( $tblSalutation ? $tblSalutation : null ));
+//                                }
+//                            }
+//                        }
+//                    }
+//                } else {
                 // alle Einträge zum Serienbrief dieser Person löschen
                 ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
                 if (is_array($list) && !empty( $list )) {
@@ -482,10 +506,11 @@ class Service extends AbstractService
                                         $tblToPerson->getServiceTblPerson(), $tblToPerson,
                                         null);
                                 }
+                                }
                             }
                         }
                     }
-                }
+//                }
                 return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 .new Redirect($Route, Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblSerialLetter->getId(), 'PersonId' => $tblPerson->getId()));

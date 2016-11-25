@@ -22,10 +22,10 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createFilterCategory('Personengruppe');
-        $this->createFilterCategory('Schüler');
-        $this->createFilterCategory('Interessenten');
-        $this->createFilterCategory('Firmengruppe');
+        $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP);
+        $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT);
+        $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT);
+        $this->createFilterCategory(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
     }
 
     /**
