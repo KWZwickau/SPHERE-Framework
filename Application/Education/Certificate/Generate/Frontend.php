@@ -8,8 +8,11 @@
 
 namespace SPHERE\Application\Education\Certificate\Generate;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -37,6 +40,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
@@ -49,36 +54,56 @@ use SPHERE\System\Extension\Extension;
 class Frontend extends Extension
 {
 
-    public function frontendGenerate($Data = null)
+    /**
+     * @param null $YearId
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendGenerate($YearId = null, $Data = null)
     {
 
-        // Todo year
-
         $Stage = new Stage('Zeugnisse', 'Übersicht');
+        $tblYear = false;
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
+        }
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId);
+        } elseif ($tblYearList) {
+            $tblYear = current($tblYearList);
+        }
+
+        if ($tblYearList && count($tblYearList) > 1) {
+            $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
+            /** @var TblYear $tblYearItem */
+            foreach ($tblYearList as $tblYearItem) {
+                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
+                    $Stage->addButton(new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
+                        '/Education/Certificate/Generate', new Edit(), array('YearId' => $tblYearItem->getId())));
+                } else {
+                    $Stage->addButton(new Standard($tblYearItem->getDisplayName(), '/Education/Certificate/Generate',
+                        null, array('YearId' => $tblYearItem->getId())));
+                }
+            }
+        }
+
+        if (!$tblYear) {
+            return $Stage . new Danger('Kein Schuljahr verfügbar bzw. kein Schuljahr ausgewählt.', new Exclamation());
+        }
 
         $tableData = array();
-
-        $tableData[] = array(
-            'Date' => '31.01.2017',
-            'Type' => 'Halbjahreszeugnis/Halbjahresinformation',
-            'Name' => 'SN Noteninfo, KN Noteninfo',
-            'Status' => new Warning(new Ban() . ' nicht alle Zeugnisvorlagen ausgewählt'),
-            'Option' => new Standard(
-                'Zeugnisvorlagen auswählen', '/Education/Certificate/Generate/Division'
-            )
-        );
-
-//        $tblPrepareAllByDivision = Prepare::useService()->getPrepareAllByDivision($tblDivision);
-//        if ($tblPrepareAllByDivision) {
-//            foreach ($tblPrepareAllByDivision as $tblPrepare) {
-//
-//                $tableData[] = array(
-//                    'Date' => $tblPrepare->getDate(),
-//                    'Name' => $tblPrepare->getName(),
-//                    'Status' => $tblPrepare->isAppointedDateTaskUpdated()
-//                        ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' Stichtagsnotenauftrag wurde aktualisiert')
-//                        : new Success(new Enable() . ' Keine Fachnoten-Änderungen'),
-//                    'Option' =>
+        if ($tblYear
+            && ($tblGenerateCertificateAllByYear = Generate::useService()->getGenerateCertificateAllByYear($tblYear))
+        ) {
+            foreach ($tblGenerateCertificateAllByYear as $tblGenerateCertificate) {
+                $tableData[] = array(
+                    'Date' => $tblGenerateCertificate->getDate(),
+                    'Type' => $tblGenerateCertificate->getServiceTblCertificateType()
+                        ? $tblGenerateCertificate->getServiceTblCertificateType()->getName() : '',
+                    'Name' => $tblGenerateCertificate->getName(),
+                    'Status' => '',
+                    'Option' => ''
 //                        (new Standard(
 //                            '', '/Education/Certificate/Prepare/Prepare/Edit', new Edit(),
 //                            array(
@@ -93,11 +118,12 @@ class Frontend extends Extension
 //                            )
 //                            , 'Einstellungen'
 //                        ))
-//                );
-//            }
-//        }
 
-        $Form = $this->formGenerate()
+                );
+            }
+        }
+
+        $Form = $this->formGenerate($tblYear ? $tblYear : null)
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
@@ -108,7 +134,9 @@ class Frontend extends Extension
                             new LayoutColumn(array(
                                 new Panel(
                                     'Schuljahr',
-                                    '',
+                                    $tblYear
+                                        ? $tblYear->getDisplayName()
+                                        : new Exclamation() . new Warning('Kein Schuljahr gewählt/vorhanden'),
                                     Panel::PANEL_TYPE_INFO
                                 )
                             ))
@@ -139,7 +167,7 @@ class Frontend extends Extension
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Well($Form)
+                                new Well(Generate::useService()->createGenerateCertificate($Form, $Data, $tblYear))
                             )
                         ))
                     ), new Title(new PlusSign() . ' Hinzufügen'))
@@ -151,23 +179,22 @@ class Frontend extends Extension
     }
 
     /**
+     * @param TblYear $tblYear
+     *
      * @return Form
      */
-    private function formGenerate()
+    private function formGenerate(TblYear $tblYear = null)
     {
 
-        $CertificateTypeList[1] = 'Halbjahreszeugnis/Halbjahresinformation';
-        $CertificateTypeList[2] = 'Jahreszeugnis';
-        $CertificateTypeList[3] = 'Abschlusszeugnis';
-        $CertificateTypeList[4] = 'Noteninformation';
-        $CertificateTypeList[5] = 'Bildungsempfehlung';
+        $tblCertificateTypeAll = Generator::useService()->getCertificateTypeAll();
 
-        // Todo Year
         $tblAppointedDateTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
-            Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+            Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
+            $tblYear ? $tblYear : null
         );
         $tblBehaviorTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
-            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK')
+            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'),
+            $tblYear ? $tblYear : null
         );
 
         $Global = $this->getGlobal();
@@ -178,12 +205,50 @@ class Frontend extends Extension
                 $tblAppointedDateTask = false;
             }
             $Global->POST['Data']['AppointedDateTask'] = $tblAppointedDateTask ? $tblAppointedDateTask->getId() : 0;
+
             if ($tblBehaviorTaskListByYear) {
                 $tblBehaviorTask = reset($tblBehaviorTaskListByYear);
             } else {
                 $tblBehaviorTask = false;
             }
             $Global->POST['Data']['BehaviorTask'] = $tblBehaviorTask ? $tblBehaviorTask->getId() : 0;
+
+            // Halbjahr oder Jahreszeugnis vorauswählen an Hand des aktuellen Datums
+            if (($tblPeriodList = $tblYear->getTblPeriodAll())
+                && count($tblPeriodList) == 2
+            ) {
+                $tblCurrentPeriod = false;
+                foreach ($tblPeriodList as $tblPeriod) {
+                    if ($tblPeriod->getFromDate() && $tblPeriod->getToDate()) {
+                        $fromDate = (new \DateTime($tblPeriod->getFromDate()))->format("Y-m-d");
+                        $toDate = (new \DateTime($tblPeriod->getToDate()))->format("Y-m-d");
+                        $now = (new \DateTime('now'))->format("Y-m-d");
+                        if ($fromDate <= $now && $now <= $toDate) {
+                            $tblCurrentPeriod = $tblPeriod;
+                            break;
+                        }
+                    }
+                }
+
+                if ($tblCurrentPeriod) {
+                    if ($tblPeriodList[0]->getFromDate() && $tblPeriodList[1]->getFromDate()
+                        && (new \DateTime($tblPeriodList[0]->getFromDate()))->format("Y-m-d")
+                        < (new \DateTime($tblPeriodList[1]->getFromDate()))->format("Y-m-d")
+                    ) {
+                        $tblFirstPeriod = $tblPeriodList[0];
+                        $tblSecondPeriod = $tblPeriodList[1];
+                    } else {
+                        $tblFirstPeriod = $tblPeriodList[1];
+                        $tblSecondPeriod = $tblPeriodList[0];
+                    }
+
+                    if ($tblFirstPeriod->getId() == $tblCurrentPeriod->getId()) {
+                        $Global->POST['Data']['Type'] = Generator::useService()->getCertificateTypeByIdentifier('HALF_YEAR');
+                    } elseif ($tblSecondPeriod->getId() == $tblCurrentPeriod->getId()) {
+                        $Global->POST['Data']['Type'] = Generator::useService()->getCertificateTypeByIdentifier('YEAR');
+                    }
+                }
+            }
 
             $Global->savePost();
         }
@@ -194,7 +259,7 @@ class Frontend extends Extension
                     new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 6
                 ),
                 new FormColumn(
-                    new SelectBox('Data[Type]', 'Typ', $CertificateTypeList), 6
+                    new SelectBox('Data[Type]', 'Typ', array('Name' => $tblCertificateTypeAll)), 6
                 ),
             )),
             new FormRow(array(
@@ -209,7 +274,7 @@ class Frontend extends Extension
             )),
             new FormRow(array(
                 new FormColumn(
-                    new TextField('Data[Headmaster]', '', 'Name des/der Schulleiter/in'), 12
+                    new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiter/in'), 12
                 ),
                 new FormColumn(
                     new CheckBox('Data[IsTeacherAvailable]', 'Name des Klassenlehrers auf dem Zeugnis anzeigen', 1), 12

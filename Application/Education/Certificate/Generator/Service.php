@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Data;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -289,5 +290,36 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCertificateSubjectBySubject($tblCertificate, $tblSubject);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblCertificateType
+     */
+    public function getCertificateTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getCertificateTypeByIdentifier($Identifier);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblCertificateType
+     */
+    public function getCertificateTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getCertificateTypeById($Id);
+    }
+
+    /**
+     * @return false|TblCertificateType[]
+     */
+    public function  getCertificateTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getCertificateTypeAll();
     }
 }

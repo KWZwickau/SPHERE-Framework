@@ -125,13 +125,14 @@ class Service extends AbstractService
 
     /**
      * @param TblTestType $tblTestType
+     * @param TblYear $tblYear
      *
      * @return bool|TblTask[]
      */
-    public function getTaskAllByTestType(TblTestType $tblTestType)
+    public function getTaskAllByTestType(TblTestType $tblTestType, TblYear $tblYear = null)
     {
 
-        return (new Data($this->getBinding()))->getTaskAllByTestType($tblTestType);
+        return (new Data($this->getBinding()))->getTaskAllByTestType($tblTestType, $tblYear);
     }
 
     /**

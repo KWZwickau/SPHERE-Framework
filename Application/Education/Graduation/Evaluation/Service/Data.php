@@ -427,17 +427,26 @@ class Data extends AbstractData
 
     /**
      * @param TblTestType $tblTestType
+     * @param TblYear $tblYear
      *
      * @return bool|TblTask[]
      */
-    public function getTaskAllByTestType(TblTestType $tblTestType)
+    public function getTaskAllByTestType(TblTestType $tblTestType, TblYear $tblYear = null)
     {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTask',
-            array(
-                TblTask::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
-            )
-        );
+        if ($tblYear) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTask',
+                array(
+                    TblTask::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                    TblTask::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
+                )
+            );
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTask',
+                array(
+                    TblTask::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+                )
+            );
+        }
     }
 
     /**

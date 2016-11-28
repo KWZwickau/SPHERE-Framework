@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Certificate\Generator\Service;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -25,6 +26,11 @@ class Data extends AbstractData
 
     public function setupDatabaseContent()
     {
+
+        $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
+        $this->createCertificateType('Jahreszeugnis/Abschlusszeugnis', 'YEAR');
+        $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
+        $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Grundschule Klasse 4', 'BeGs');
         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
@@ -685,7 +691,8 @@ class Data extends AbstractData
                     }
 
                     $tblCertificate = $this->createCertificate(
-                        'Bildungsempfehlung', 'Klassenstufe 4', 'EVSR\RadebeulBildungsempfehlung', $tblConsumerCertificate
+                        'Bildungsempfehlung', 'Klassenstufe 4', 'EVSR\RadebeulBildungsempfehlung',
+                        $tblConsumerCertificate
                     );
                     if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
 
@@ -1156,5 +1163,69 @@ class Data extends AbstractData
 
         $this->setCertificateGrade($tblCertificate, 'KMI', 2, 1);
         $this->setCertificateGrade($tblCertificate, 'KOR', 2, 2);
+    }
+
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblCertificateType
+     */
+    public function getCertificateTypeByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateType',
+            array(
+                TblCertificateType::ATTR_IDENTIFIER => strtoupper($Identifier)
+            )
+        );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblCertificateType
+     */
+    public function getCertificateTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateType',
+            $Id
+        );
+    }
+
+    /**
+     * @return false|TblCertificateType[]
+     */
+    public function  getCertificateTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateType');
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return null|TblCertificateType
+     */
+    public function createCertificateType($Name, $Identifier)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblCertificateType')
+            ->findOneBy(array(TblCertificateType::ATTR_IDENTIFIER => $Identifier));
+
+        if (null === $Entity) {
+            $Entity = new TblCertificateType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier(strtoupper($Identifier));
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

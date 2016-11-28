@@ -28,6 +28,7 @@ class Setup extends AbstractSetup
         $tblCertificate = $this->setTableCertificate($Schema);
         $this->setTableCertificateSubject($Schema, $tblCertificate);
         $this->setTableCertificateGrade($Schema, $tblCertificate);
+        $this->setTableCertificateType($Schema);
 
         /**
          * Migration & Protocol
@@ -121,6 +122,22 @@ class Setup extends AbstractSetup
             $Table->addColumn('serviceTblGradeType', 'bigint', array('notnull' => false));
         }
         $this->getConnection()->addForeignKey($Table, $tblCertificate);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableCertificateType(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblCertificateType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
+        $this->createIndex($Table, array('Identifier'));
 
         return $Table;
     }
