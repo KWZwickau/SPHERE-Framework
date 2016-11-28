@@ -77,6 +77,10 @@ class Setup extends AbstractSetup
             $Table->addColumn('IsGradeInformation', 'boolean');
         }
 
+        $this->createColumn($Table, 'serviceTblGenerateCertificate', self::FIELD_TYPE_BIGINT, true);
+
+        $this->createIndex($Table, array('serviceTblGenerateCertificate', 'serviceTblDivision'));
+
         return $Table;
     }
 

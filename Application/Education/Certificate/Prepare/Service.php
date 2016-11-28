@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
@@ -1187,6 +1188,9 @@ class Service extends AbstractService
      * @param $Date
      * @param $Name
      * @param bool $IsGradeInformation
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param TblTask $tblAppointedDateTask
+     * @param TblTask $tblBehaviorTask
      *
      * @return TblPrepareCertificate
      */
@@ -1194,10 +1198,15 @@ class Service extends AbstractService
         TblDivision $tblDivision,
         $Date,
         $Name,
-        $IsGradeInformation = false
+        $IsGradeInformation = false,
+        TblGenerateCertificate $tblGenerateCertificate = null,
+        TblTask $tblAppointedDateTask = null,
+        TblTask $tblBehaviorTask = null
     ) {
 
-        return (new Data($this->getBinding()))->createPrepare($tblDivision, $Date, $Name, $IsGradeInformation);
+        return (new Data($this->getBinding()))->createPrepare(
+            $tblDivision, $Date, $Name, $IsGradeInformation, $tblGenerateCertificate, $tblAppointedDateTask,
+            $tblBehaviorTask);
     }
 
     /**
@@ -1386,5 +1395,16 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return false|TblPrepareCertificate[]
+     */
+    public function getPrepareAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
     }
 }

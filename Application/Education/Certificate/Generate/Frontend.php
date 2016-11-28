@@ -9,10 +9,12 @@
 namespace SPHERE\Application\Education\Certificate\Generate;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -27,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -63,7 +66,7 @@ class Frontend extends Extension
     public function frontendGenerate($YearId = null, $Data = null)
     {
 
-        $Stage = new Stage('Zeugnisse', 'Übersicht');
+        $Stage = new Stage('Zeugnis generieren', 'Übersicht');
         $tblYear = false;
         if (($tblYearList = Term::useService()->getYearByNow())) {
             $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
@@ -103,14 +106,14 @@ class Frontend extends Extension
                         ? $tblGenerateCertificate->getServiceTblCertificateType()->getName() : '',
                     'Name' => $tblGenerateCertificate->getName(),
                     'Status' => '',
-                    'Option' => ''
-//                        (new Standard(
-//                            '', '/Education/Certificate/Prepare/Prepare/Edit', new Edit(),
-//                            array(
-//                                'PrepareId' => $tblPrepare->getId(),
-//                            )
-//                            , 'Bearbeiten'
-//                        ))
+                    'Option' =>
+                        (new Standard(
+                            '', '/Education/Certificate/Generate/Division/Select', new Listing(),
+                            array(
+                                'GenerateCertificateId' => $tblGenerateCertificate->getId(),
+                            )
+                            , 'Klassen zuordnen'
+                        ))
 //                        . (new Standard(
 //                            '', '/Education/Certificate/Prepare/Division', new Setup(),
 //                            array(
@@ -282,6 +285,156 @@ class Frontend extends Extension
             )),
         )));
     }
+
+    /**
+     * @param null $GenerateCertificateId
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendSelectDivision($GenerateCertificateId = null, $Data = null)
+    {
+
+        $Stage = new Stage('Zeugnis generieren', 'Klassen zuordnen');
+        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Generate', new ChevronLeft()));
+
+        if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($GenerateCertificateId))) {
+
+            $divisionExistsList = array();
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                    foreach ($tblPrepareList as $tblPrepareCertificate) {
+                        if (($tblDivision = $tblPrepareCertificate->getServiceTblDivision())) {
+                            $Global->POST['Data']['Division'][$tblDivision->getId()] = 1;
+                            $divisionExistsList[$tblDivision->getId()] = $tblDivision;
+                        }
+                    }
+                } else {
+                    // vorselektieren anhand der Notenaufträge
+                    if (($tblGenerateCertificate->getServiceTblAppointedDateTask())) {
+                        $tblTestAllByTest = Evaluation::useService()->getTestAllByTask(
+                            $tblGenerateCertificate->getServiceTblAppointedDateTask()
+                        );
+                        if ($tblTestAllByTest) {
+                            foreach ($tblTestAllByTest as $tblTest) {
+                                if (($tblDivision = $tblTest->getServiceTblDivision())) {
+                                    $Global->POST['Data']['Division'][$tblDivision->getId()] = 1;
+                                }
+                            }
+                        }
+                    }
+                    if (($tblGenerateCertificate->getServiceTblBehaviorTask())) {
+                        $tblTestAllByTest = Evaluation::useService()->getTestAllByTask(
+                            $tblGenerateCertificate->getServiceTblBehaviorTask()
+                        );
+                        if ($tblTestAllByTest) {
+                            foreach ($tblTestAllByTest as $tblTest) {
+                                if (($tblDivision = $tblTest->getServiceTblDivision())) {
+                                    $Global->POST['Data']['Division'][$tblDivision->getId()] = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            $Global->savePost();
+
+            $schoolTypeList = array();
+            if ($tblGenerateCertificate->getServiceTblYear()) {
+                $tblDivisionAllByYear = Division::useService()->getDivisionByYear($tblGenerateCertificate->getServiceTblYear());
+                if ($tblDivisionAllByYear) {
+                    foreach ($tblDivisionAllByYear as $tblDivision) {
+                        $type = $tblDivision->getTblLevel()->getServiceTblType();
+                        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+                        if ($type && $tblDivisionSubjectList) {
+                            $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                        }
+                    }
+                }
+            }
+
+            $columnList = array();
+            if (!empty($schoolTypeList)) {
+                foreach ($schoolTypeList as $typeId => $divisionList) {
+                    $type = Type::useService()->getTypeById($typeId);
+                    if ($type && is_array($divisionList)) {
+
+                        asort($divisionList, SORT_NATURAL);
+
+                        $checkBoxList = array();
+                        foreach ($divisionList as $key => $value) {
+                            if (isset($divisionExistsList[$key])) {
+                                $checkBoxList[] = (new CheckBox('Data[Division][' . $key . ']', $value,
+                                    1))->setDisabled();
+                            } else {
+                                $checkBoxList[] = new CheckBox('Data[Division][' . $key . ']', $value, 1);
+                            }
+                        }
+
+                        $panel = new Panel($type->getName(), $checkBoxList, Panel::PANEL_TYPE_DEFAULT);
+                        $columnList[] = new FormColumn($panel, 3);
+                    }
+                }
+            }
+
+            $form = new Form(array(
+                new FormGroup(
+                    new FormRow(
+                        $columnList
+                    )
+                    , new \SPHERE\Common\Frontend\Form\Repository\Title('Klassen'))
+            ));
+            $form
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel('Zeugnisdatum', $tblGenerateCertificate->getDate(), Panel::PANEL_TYPE_INFO)
+                            ), 3),
+                            new LayoutColumn(array(
+                                new Panel('Typ',
+                                    $tblGenerateCertificate->getServiceTblCertificateType()
+                                        ? $tblGenerateCertificate->getServiceTblCertificateType()->getName()
+                                        : ''
+                                    , Panel::PANEL_TYPE_INFO)
+                            ), 3),
+                            new LayoutColumn(array(
+                                new Panel('Stichtagsnotenauftrag',
+                                    $tblGenerateCertificate->getServiceTblAppointedDateTask()
+                                        ? $tblGenerateCertificate->getServiceTblAppointedDateTask()->getName()
+                                        : ''
+                                    , Panel::PANEL_TYPE_INFO)
+                            ), 3),
+                            new LayoutColumn(array(
+                                new Panel('Kopfnotenauftrag',
+                                    $tblGenerateCertificate->getServiceTblBehaviorTask()
+                                        ? $tblGenerateCertificate->getServiceTblBehaviorTask()->getName()
+                                        : ''
+                                    , Panel::PANEL_TYPE_INFO)
+                            ), 3),
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Well(Generate::useService()->createPrepareCertificates($form, $tblGenerateCertificate, $Data))
+                            )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return $Stage . new Danger('Zeugniserstellung nicht gefunden', new Exclamation());
+        }
+    }
+
 
     /**
      * @return Stage

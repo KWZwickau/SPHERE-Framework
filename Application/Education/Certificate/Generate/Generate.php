@@ -39,6 +39,9 @@ class Generate implements IModuleInterface
             __NAMESPACE__ , __NAMESPACE__ . '\Frontend::frontendGenerate')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Division\Select' , __NAMESPACE__ . '\Frontend::frontendSelectDivision')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Division' , __NAMESPACE__ . '\Frontend::frontendDivision')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

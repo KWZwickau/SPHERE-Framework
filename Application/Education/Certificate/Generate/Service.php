@@ -12,9 +12,13 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Data;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Setup;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -94,17 +98,17 @@ class Service extends AbstractService
         $tblAppointedDateTask = Evaluation::useService()->getTaskById($Data['AppointedDateTask']);
         $tblBehaviorTask = Evaluation::useService()->getTaskById($Data['BehaviorTask']);
 
-        if ($tblAppointedDateTask && $tblBehaviorTask){
+        if ($tblAppointedDateTask && $tblBehaviorTask) {
             $Name = $tblAppointedDateTask->getName() . ', ' . $tblBehaviorTask->getName();
-        } elseif ($tblAppointedDateTask){
+        } elseif ($tblAppointedDateTask) {
             $Name = $tblAppointedDateTask->getName();
-        } elseif ($tblBehaviorTask){
+        } elseif ($tblBehaviorTask) {
             $Name = $tblBehaviorTask->getName();
         } else {
             $Name = $tblCertificateType->getName();
         }
 
-        (new Data($this->getBinding()))->createGenerateCertificate(
+        if ($tblGenerateCertificate = (new Data($this->getBinding()))->createGenerateCertificate(
             $tblYear,
             $Data['Date'],
             $Name,
@@ -112,10 +116,63 @@ class Service extends AbstractService
             $tblAppointedDateTask ? $tblAppointedDateTask : null,
             $tblBehaviorTask ? $tblBehaviorTask : null,
             $Data['HeadmasterName'],
-            $Data['IsTeacherAvailable']
-        );
+            isset($Data['IsTeacherAvailable'])
+        )
+        ) {
+            return new Success('Die Zeugniserstellung ist angelegt worden',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Certificate/Generate/Division/Select', Redirect::TIMEOUT_SUCCESS, array(
+                'GenerateCertificateId' => $tblGenerateCertificate->getId()
+            ));
+        } else {
+            return new Danger('Die Zeugniserstellung konnte nicht angelegt werden', new Exclamation())
+            . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS);
+        }
+    }
 
-        return new Success('Die Zeugniserstellung ist angelegt worden',
+    /**
+     * @param IFormInterface|null $Form
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param null $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function createPrepareCertificates(
+        IFormInterface $Form = null,
+        TblGenerateCertificate $tblGenerateCertificate,
+        $Data = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
+            return $Form;
+        }
+
+        if ($Data !== null && !empty($Data)) {
+            foreach ($Data['Division'] as $divisionId => $value) {
+                if (($tblDivision = Division::useService()->getDivisionById($divisionId))) {
+                    Prepare::useService()->createPrepareData(
+                        $tblDivision,
+                        $tblGenerateCertificate->getDate(),
+                        $tblGenerateCertificate->getName(),
+                        $tblGenerateCertificate->getServiceTblCertificateType()
+                            ? ($tblGenerateCertificate->getServiceTblCertificateType()->getIdentifier() == 'GRADE_INFORMATION'
+                            ? true : false)
+                            : false,
+                        $tblGenerateCertificate,
+                        $tblGenerateCertificate->getServiceTblAppointedDateTask()
+                            ? $tblGenerateCertificate->getServiceTblAppointedDateTask() : null,
+                        $tblGenerateCertificate->getServiceTblBehaviorTask()
+                            ? $tblGenerateCertificate->getServiceTblBehaviorTask() : null
+                    );
+                }
+            }
+        }
+
+        return new Success('Die Klassen wurden erfolgreich zugeordnet.',
             new \SPHERE\Common\Frontend\Icon\Repository\Success())
         . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS);
     }

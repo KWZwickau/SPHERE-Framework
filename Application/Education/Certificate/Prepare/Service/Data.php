@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 
+use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
@@ -269,6 +270,9 @@ class Data extends AbstractData
      * @param $Date
      * @param $Name
      * @param bool $IsGradeInformation
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param TblTask $tblAppointedDateTask
+     * @param TblTask $tblBehaviorTask
      *
      * @return TblPrepareCertificate
      */
@@ -276,19 +280,33 @@ class Data extends AbstractData
         TblDivision $tblDivision,
         $Date,
         $Name,
-        $IsGradeInformation = false
+        $IsGradeInformation = false,
+        TblGenerateCertificate $tblGenerateCertificate = null,
+        TblTask $tblAppointedDateTask = null,
+        TblTask $tblBehaviorTask = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = new TblPrepareCertificate();
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setDate($Date ? new \DateTime($Date) : null);
-        $Entity->setName($Name);
-        $Entity->setIsGradeInformation($IsGradeInformation);
+        /** @var TblPrepareCertificate $Entity */
+        $Entity = $Manager->getEntity('TblPrepareCertificate')->findOneBy(array(
+            TblPrepareCertificate::ATTR_SERVICE_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId(),
+            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+        ));
 
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        if ($Entity === null) {
+            $Entity = new TblPrepareCertificate();
+            $Entity->setServiceTblGenerateCertificate($tblGenerateCertificate ? $tblGenerateCertificate : null);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setName($Name);
+            $Entity->setIsGradeInformation($IsGradeInformation);
+            $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask ? $tblAppointedDateTask : null);
+            $Entity->setServiceTblBehaviorTask($tblBehaviorTask ? $tblBehaviorTask : null);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
 
         return $Entity;
     }
@@ -608,5 +626,20 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return false|TblPrepareCertificate[]
+     */
+    public function getPrepareAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblPrepareCertificate', array(
+                TblPrepareCertificate::ATTR_SERVICE_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId()
+            )
+        );
     }
 }
