@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -114,14 +115,13 @@ class Frontend extends Extension
                             )
                             , 'Klassen zuordnen'
                         ))
-//                        . (new Standard(
-//                            '', '/Education/Certificate/Prepare/Division', new Setup(),
+                        . (new Standard(
+                            '', '/Education/Certificate/Generate/Division', new Equalizer()
 //                            array(
-//                                'PrepareId' => $tblPrepare->getId(),
+//                                'GenerateCertificateId' => $tblGenerateCertificate->getId(),
 //                            )
 //                            , 'Einstellungen'
-//                        ))
-
+                        ))
                 );
             }
         }

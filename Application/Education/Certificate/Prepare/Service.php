@@ -269,94 +269,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param TblDivision $tblDivision
-     * @param $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function createPrepare(IFormInterface $Stage = null, TblDivision $tblDivision, $Data)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset($Data['Date']) && empty($Data['Date'])) {
-            $Stage->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
-            $Error = true;
-        }
-        if (isset($Data['Name']) && empty($Data['Name'])) {
-            $Stage->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->createPrepare(
-                $tblDivision,
-                $Data['Date'],
-                $Data['Name']
-            );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zeugnisvorbereitung ist erfasst worden.')
-            . new Redirect('/Education/Certificate/Prepare/Prepare', Redirect::TIMEOUT_SUCCESS, array(
-                'DivisionId' => $tblDivision->getId()
-            ));
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblPrepareCertificate $tblPrepare
-     * @param $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function updatePrepare(IFormInterface $Stage = null, TblPrepareCertificate $tblPrepare, $Data)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset($Data['Date']) && empty($Data['Date'])) {
-            $Stage->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
-            $Error = true;
-        }
-        if (isset($Data['Name']) && empty($Data['Name'])) {
-            $Stage->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->updatePrepare(
-                $tblPrepare,
-                $Data['Date'],
-                $Data['Name'],
-                $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
-                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
-                $tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null
-            );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zeugnisvorbereitung ist geändert worden.')
-            . new Redirect('/Education/Certificate/Prepare/Prepare', Redirect::TIMEOUT_SUCCESS, array(
-                'DivisionId' => $tblPrepare->getServiceTblDivision() ? $tblPrepare->getServiceTblDivision()->getId() : null
-            ));
-        }
-
-        return $Stage;
-    }
-
-
-    /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblTask $tblTask
      *
@@ -1406,5 +1318,89 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblGradeType $tblGradeType
+     * @param TblGradeType $tblNextGradeType
+     * @param string $Route
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePrepareBehaviorGrades(
+        IFormInterface $Stage = null,
+        TblPrepareCertificate $tblPrepare,
+        TblGradeType $tblGradeType,
+        TblGradeType $tblNextGradeType = null,
+        $Route = 'Teacher',
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        // ToDo ScoreType
+        $error = false;
+//            if ($tblScoreType) {
+//                foreach ($Data as $gradeTypeId => $value) {
+//                    if (trim($value) !== '' && $tblScoreType) {
+//                        if (!preg_match('!' . $tblScoreType->getPattern() . '!is', trim($value))) {
+//                            $error = true;
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+
+        if ($error) {
+            $Stage->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
+                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $Stage;
+        } else {
+            if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            ) {
+
+                foreach ($Data as $personId => $value) {
+                    if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                        if (trim($value) && trim($value) !== ''
+                        ) {
+                            Prepare::useService()->updatePrepareGradeForBehavior(
+                                $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
+                                trim($value)
+                            );
+                        }
+                    }
+                }
+
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Setting',
+                    Redirect::TIMEOUT_SUCCESS,
+                    $tblNextGradeType ? array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'Route' => $Route,
+                        'GradeTypeId' => $tblNextGradeType->getId()
+                    )
+                        : array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'Route' => $Route,
+                        'IsNotGradeType' => true
+                    )
+                );
+            }
+        }
+
+        return $Stage;
     }
 }
