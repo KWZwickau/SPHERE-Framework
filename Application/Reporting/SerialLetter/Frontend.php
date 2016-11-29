@@ -232,6 +232,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Filterung nach Gruppen'
                         , array(new Well($this->formFilterPersonGroup())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
+                                                $SerialLetter, $FilterGroup, null, null, null, null, null, null, $tblFilterCategory->getId())))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 new LayoutColumn(
@@ -260,20 +274,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ))
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    ( $IsFilter
-                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
-                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
-                                                $SerialLetter, $FilterGroup, null, null, null, null, null, null, $tblFilterCategory->getId())))
-                                            , Panel::PANEL_TYPE_INFO)
-                                        : '' )
-                                )
-                            )
-                        )
                     );
                 break;
             case 'STUDENT':
@@ -339,6 +339,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Filterung nach Schüler Kriterien'
                         , array(new Well($this->formFilterStudent())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic
+                                                , $SerialLetter, $FilterGroup, $FilterPerson, $FilterStudent, $FilterYear, null, null, null, $tblFilterCategory->getId())))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 new LayoutColumn(
@@ -370,20 +384,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ))
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    ( $IsFilter
-                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
-                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic
-                                                , $SerialLetter, $FilterGroup, $FilterPerson, $FilterStudent, $FilterYear, null, null, null, $tblFilterCategory->getId())))
-                                            , Panel::PANEL_TYPE_INFO)
-                                        : '' )
-                                )
-                            )
-                        )
                     );
                 break;
             case 'PROSPECT':
@@ -418,6 +418,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $FilterProspect['TblProspectReservation_ReservationDivision'] = implode(' ', $FilterProspect['TblProspectReservation_ReservationDivision']);
                     }
                 }
+                if (isset( $FilterProspect['TblProspectReservation_serviceTblTypeOptionA'] ) && !empty( $FilterProspect['TblProspectReservation_serviceTblTypeOptionA'] )) {
+                    if (is_array($FilterProspect['TblProspectReservation_serviceTblTypeOptionA'])) {
+                        $FilterProspect['TblProspectReservation_serviceTblTypeOptionA'] = implode(' ', $FilterProspect['TblProspectReservation_serviceTblTypeOptionA']);
+                    }
+                }
 
                 $FormSerialLetterDynamic =
                     new Form(new FormGroup(array(
@@ -442,6 +447,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Filterung nach Interessenten Kriterien'
                         , array(new Well($this->formFilterProspect())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
+                                                $SerialLetter, $FilterGroup, null, null, null, $FilterProspect, null, null, $tblFilterCategory->getId())))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 new LayoutColumn(
@@ -463,6 +482,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                   'TrialDate'           => 'Schnuppertag',
                                                   'ReservationYear'     => 'Anmeldung für Jahr',
                                                   'ReservationDivision' => 'Anmeldung für Stufe',
+                                                  'ReservationOptionA'  => 'Schulart: Option A',
+                                                  'ReservationOptionB'  => 'Schulart: Option B',
                                             ),
                                             array(
                                                 'order'      => array(array(1, 'asc')),
@@ -475,20 +496,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ))
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    ( $IsFilter
-                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
-                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
-                                                $SerialLetter, $FilterGroup, null, null, null, $FilterProspect, null, null, $tblFilterCategory->getId())))
-                                            , Panel::PANEL_TYPE_INFO)
-                                        : '' )
-                                )
-                            )
-                        )
                     );
                 break;
             case 'COMPANY':
@@ -550,6 +557,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Filterung nach Firmen Kriterien'
                         , array(new Well($this->formFilterCompany())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
+                                                $SerialLetter, $FilterGroup, null, null, null, null, $FilterCompany, $FilterRelationship, $tblFilterCategory->getId())))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 new LayoutColumn(
@@ -581,20 +602,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ))
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    ( $IsFilter
-                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
-                                            , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
-                                                $SerialLetter, $FilterGroup, null, null, null, null, $FilterCompany, $FilterRelationship, $tblFilterCategory->getId())))
-                                            , Panel::PANEL_TYPE_INFO)
-                                        : '' )
-                                )
-                            )
-                        )
                     );
                 break;
             default:
@@ -771,6 +778,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $DataPerson['TrialDate'] = '';
                 $DataPerson['ReservationYear'] = '';
                 $DataPerson['ReservationDivision'] = '';
+                $DataPerson['ReservationOptionA'] = '';
+                $DataPerson['ReservationOptionB'] = '';
 
                 if ($tblPerson) {
                     $DataPerson['Name'] = $tblPerson->getLastFirstName();
@@ -791,6 +800,12 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblProspectReservation) {
                             $DataPerson['ReservationYear'] = $tblProspectReservation->getReservationYear();
                             $DataPerson['ReservationDivision'] = $tblProspectReservation->getReservationDivision();
+                            if ($tblProspectReservation->getServiceTblTypeOptionA()) {
+                                $DataPerson['ReservationOptionA'] = $tblProspectReservation->getServiceTblTypeOptionA()->getName();
+                            }
+                            if ($tblProspectReservation->getServiceTblTypeOptionB()) {
+                                $DataPerson['ReservationOptionB'] = $tblProspectReservation->getServiceTblTypeOptionB()->getName();
+                            }
                         }
                     }
                 }
@@ -979,6 +994,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new TextField('FilterProspect[TblProspectReservation_ReservationDivision]', 'Interessent: Stufe', 'Interessent: Stufe')
                         , 3),
+//                    new FormColumn(
+//                        new SelectBox('FilterProspect[TblProspectReservation_serviceTblTypeOptionA]', 'Schulart:'
+//                            , array('Name' => Type::useService()->getTypeAll()))
+//                        , 3),
                 ))
             )
             , new Primary('Filter starten', new Search()));
@@ -1062,6 +1081,9 @@ class Frontend extends Extension implements IFrontendInterface
             if ($FilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
                 $TabActive = 'PROSPECT';
             }
+            if ($FilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+                $TabActive = 'COMPANY';
+            }
         }
 
         $LayoutTabs = array();
@@ -1122,8 +1144,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['FilterStudent'] = $FilterStudent;
             $Global->POST['FilterYear'] = $FilterYear;
             $Global->POST['FilterProspect'] = $FilterProspect;
-            $Global->POST['FilterProspect'] = $FilterCompany;
-            $Global->POST['FilterProspect'] = $FilterRelationship;
+            $Global->POST['FilterCompany'] = $FilterCompany;
+            $Global->POST['FilterRelationship'] = $FilterRelationship;
 
             $FilterGroup = null;
             $FilterStudent = null;
@@ -1211,6 +1233,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Filterung nach Gruppen'
                         , array(new Well($this->formFilterPersonGroup())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
+                                                , $SerialLetter, $FilterGroup, null, null, null, $tblFilterCategory->getId(), $IsFilter)))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 new LayoutColumn(
@@ -1239,18 +1275,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ))
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Panel(new PlusSign().' Serienbreif anlegen '
-                                        , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, null, $tblFilterCategory->getId(), $IsFilter)))
-                                        , Panel::PANEL_TYPE_INFO)
-                                )
-                            )
-                        )
                     );
                 break;
             case 'STUDENT':
@@ -1317,6 +1341,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Filterung nach Schüler Kriterien'
                         , array(new Well($this->formFilterStudent())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif bearbeiten '
+                                            , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
+                                                , $SerialLetter, $FilterGroup, $FilterStudent, $FilterYear, null, $tblFilterCategory->getId(), $IsFilter)))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 new LayoutColumn(
@@ -1348,18 +1386,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ))
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Panel(new PlusSign().' Serienbreif bearbeiten '
-                                        , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, $FilterStudent, $FilterYear, null, $tblFilterCategory->getId(), $IsFilter)))
-                                        , Panel::PANEL_TYPE_INFO)
-                                )
-                            )
-                        )
                     );
                 break;
             case 'PROSPECT':
@@ -1420,6 +1446,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Filterung nach Interessenten Kriterien'
                         , array(new Well($this->formFilterProspect())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
+                                                , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), $IsFilter)))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 new LayoutColumn(
@@ -1441,6 +1481,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                   'TrialDate'           => 'Schnuppertag',
                                                   'ReservationYear'     => 'Anmeldung für Jahr',
                                                   'ReservationDivision' => 'Anmeldung für Stufe',
+                                                  'ReservationOptionA'  => 'Schulart: Option A',
+                                                  'ReservationOptionB'  => 'Schulart: Option B',
                                             ),
                                             array(
                                                 'order'      => array(array(1, 'asc')),
@@ -1453,18 +1495,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ))
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Panel(new PlusSign().' Serienbreif anlegen '
-                                        , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), $IsFilter)))
-                                        , Panel::PANEL_TYPE_INFO)
-                                )
-                            )
-                        )
                     );
                 break;
             case 'COMPANY':
@@ -1527,6 +1557,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $MetaTable = new Panel(new Search().' Filterung nach Firmen Kriterien'
                         , array(new Well($this->formFilterCompany())), Panel::PANEL_TYPE_INFO)
                     .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    ( $IsFilter
+                                        ? new Panel(new PlusSign().' Serienbreif anlegen '
+                                            , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
+                                                , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), $IsFilter)))
+                                            , Panel::PANEL_TYPE_INFO)
+                                        : '' )
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 new LayoutColumn(
@@ -1558,18 +1602,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ))
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Panel(new PlusSign().' Serienbreif anlegen '
-                                        , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, $FilterProspect, $tblFilterCategory->getId(), $IsFilter)))
-                                        , Panel::PANEL_TYPE_INFO)
-                                )
-                            )
-                        )
                     );
                 break;
             default:
