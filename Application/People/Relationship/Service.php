@@ -90,7 +90,7 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      *
-     * @return bool|TblToPerson[]
+     * @return bool|TblToCompany[]
      */
     public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson)
     {

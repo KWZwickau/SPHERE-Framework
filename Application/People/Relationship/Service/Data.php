@@ -375,7 +375,7 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPerson
      *
-     * @return bool|TblToPerson[]
+     * @return bool|TblToCompany[]
      */
     public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson)
     {
