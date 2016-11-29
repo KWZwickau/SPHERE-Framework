@@ -590,54 +590,104 @@ class Service extends AbstractService
         }
     }
 
+
     /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param $Content
-     * @param Certificate $Certificate
-     *
+     * @param string $Route
+     * @param array $Data
+     * @param array $CertificateList
      * @return IFormInterface|string
      */
     public function updatePrepareInformationList(
         IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        $Content,
-        Certificate $Certificate = null
+        $Route,
+        $Data,
+        $CertificateList
     ) {
 
         /**
          * Skip to Frontend
          */
-        if (null === $Content) {
+        if (null === $Data) {
             return $Stage;
         }
 
-        if (isset($Content['Input']) && is_array($Content['Input'])) {
-            foreach ($Content['Input'] as $field => $value) {
-                if ($field == 'SchoolType'
-                    && method_exists($Certificate, 'selectValuesSchoolType')
-                ) {
-                    $value = $Certificate->selectValuesSchoolType()[$value];
-                } elseif ($field == 'Type'
-                    && method_exists($Certificate, 'selectValuesType')
-                ) {
-                    $value = $Certificate->selectValuesType()[$value];
-                }
+        foreach ($Data as $personId => $array) {
+            if (($tblPerson = Person::useService()->getPersonById($personId)) && is_array($array)) {
+                if (isset($CertificateList[$personId])) {
 
-                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
-                    (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
-                } else {
-                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, $field, $value);
+                    /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                    $Certificate = $CertificateList[$personId];
+                    $tblCertificate = $Certificate->getCertificateEntity();
+
+                    /*
+                     * Fehlzeiten
+                     */
+                    if ($tblCertificate && isset($array['ExcusedDays']) && isset($array['UnexcusedDays'])){
+                        if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                            (new Data($this->getBinding()))->updatePrepareStudent(
+                                $tblPrepareStudent,
+                                $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : $tblCertificate,
+                                $tblPrepareStudent->isApproved(),
+                                $tblPrepareStudent->isPrinted(),
+                                $array['ExcusedDays'],
+                                $array['UnexcusedDays']
+                            );
+                        } else {
+                            (new Data($this->getBinding()))->createPrepareStudent(
+                                $tblPrepare,
+                                $tblPerson,
+                                $tblCertificate,
+                                false,
+                                false,
+                                $array['ExcusedDays'],
+                                $array['UnexcusedDays']
+                            );
+                        }
+                    }
+
+                    /*
+                     * Sonstige Informationen
+                     */
+                    foreach ($array as $field => $value) {
+                        if ($field == 'ExcusedDays' || $field == 'UnexcusedDays'){
+                            continue;
+                        } else {
+                            if ($field == 'SchoolType'
+                                && method_exists($Certificate, 'selectValuesSchoolType')
+                            ) {
+                                $value = $Certificate->selectValuesSchoolType()[$value];
+                            } elseif ($field == 'Type'
+                                && method_exists($Certificate, 'selectValuesType')
+                            ) {
+                                $value = $Certificate->selectValuesType()[$value];
+                            }
+
+                            if (!empty(trim($value))) {
+                                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson,
+                                    $field))
+                                ) {
+                                    (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
+                                        $field,
+                                        $value);
+                                } else {
+                                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson,
+                                        $field,
+                                        $value);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
-        . new Redirect('/Education/Certificate/Prepare/Certificate', Redirect::TIMEOUT_SUCCESS, array(
+        . new Redirect('/Education/Certificate/Prepare/Prepare/Setting/Preview', Redirect::TIMEOUT_SUCCESS, array(
             'PrepareId' => $tblPrepare->getId(),
-            'PersonId' => $tblPerson->getId()
+            'Route' => $Route
         ));
     }
 
@@ -1335,7 +1385,7 @@ class Service extends AbstractService
         TblPrepareCertificate $tblPrepare,
         TblGradeType $tblGradeType,
         TblGradeType $tblNextGradeType = null,
-        $Route = 'Teacher',
+        $Route,
         $Data
     ) {
 
@@ -1403,4 +1453,5 @@ class Service extends AbstractService
 
         return $Stage;
     }
+
 }
