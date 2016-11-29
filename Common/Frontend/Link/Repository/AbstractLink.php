@@ -5,6 +5,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\Icon\Repository\View;
@@ -47,11 +48,17 @@ abstract class AbstractLink extends Extension implements ILinkInterface
      * @param IIconInterface|null $Icon
      * @param array               $Data
      * @param bool|string         $ToolTip
+     * @param null|string         $Anchor
      */
-    public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false)
+    public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false, $Anchor = null)
     {
 
-        $this->setName($Name);
+        if( !empty( $Anchor ) ) {
+            $this->setName($Name.' '.new Link() );
+        } else {
+            $this->setName($Name);
+        }
+
         if (false !== strpos($Path, '\\')) {
             $this->Path = new Route($Path);
         } else {
@@ -83,6 +90,10 @@ abstract class AbstractLink extends Extension implements ILinkInterface
         } else {
             $Data = '';
         }
+        if( !empty( $Anchor ) ) {
+            $Data .= '#'.(string)$Anchor;
+        }
+
         $this->Link = $this->getRequest()->getUrlBase().$this->Path.$Data;
         $this->Template->setVariable('ElementPath', $this->Path.$Data);
         $this->Template->setVariable('UrlBase', $this->getRequest()->getUrlBase());
