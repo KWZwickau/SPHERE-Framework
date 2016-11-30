@@ -5,8 +5,13 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Common\Frontend\Ajax\Emitter\StandardEmitter;
+use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\FieldValueReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -29,10 +34,14 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\CacheFactory;
+use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -49,12 +58,125 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendWelcome()
     {
 
-        $Stage = new Stage('Willkommen','');
+        $Stage = new Stage('Willkommen', '');
         $Stage->addButton(new Backward(true));
         $Stage->setMessage(date('d.m.Y - H:i:s'));
 
-        $Stage->setContent($this->getCleanLocalStorage());
+//        $P = new Pipeline();
+//
+//        $RA = new FieldValueReceiver( new TextField('A') );
+//        $RB = new FieldValueReceiver( new TextArea('B') );
+//        $RC = new FieldValueReceiver( new PasswordField('C') );
+//        $RD = new FieldValueReceiver( new TextField('D') );
+//        $RDI = new InlineReceiver();
+//
+//        $EA = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RA );
+//        $EA->setPostPayload(array( 'ABC' => 0 ));
+//        $EB = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RB );
+//        $EB->setPostPayload(array( 'ABC' => 1 ));
+//        $EC = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RC );
+//        $EC->setPostPayload(array( 'ABC' => 2 ));
+//        $ED = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RD );
+//        $ED->setPostPayload(array( 'ABC' => 3 ));
+//        $EDI = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RDI );
+//        $EDI->setPostPayload(array( 'ABC' => 3 ));
+//
+//        $P->addEmitter( $EA );
+//        $P->addEmitter( $EB );
+//        $P->addEmitter( $EC );
+//        $P->addEmitter( $ED );
+//        $P->addEmitter( $EDI );
+//
+//        $PF = new Pipeline();
+//        $EF = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RDI );
+//        $PF->addEmitter( $EF );
+//        $PF->addEmitter( $EB );
+//
+//        $Stage->setContent(
+//            (new Form(
+//                new FormGroup(
+//                    new FormRow(
+//                        new FormColumn(
+//                            new Panel('Form', array(
+//                                $RC, $RD
+//                            ))
+//                        )
+//                    )
+//                )
+//            ,new Primary('Send')))->ajaxPipelineOnSubmit( $PF ).
+//
+//
+//            new TableData(array(
+//                array(
+//                    'A' => $RA,
+//                    'B' => $RB,
+//                    'C' => $RC,
+//                    'D' => $RD
+//                )
+//            )).(new Standard('Rinne',''))->ajaxPipelineOnClick( $P ).new Info($RDI)
+//        );
 
+        /*
+
+        $R1 = new InlineReceiver();
+        $R2 = new FieldValueReceiver((new TextField('EinTextFeld[1]', 'TextFeld', 'TextFeld'))->setRequired());
+        $R3 = new FieldValueReceiver((new TextArea('EineTextArea[asd][frt]', 'TextArea', 'TextArea'))->setRequired());
+
+        $E1 = new StandardEmitter(new Route('/Api/Test/AjaxTest'), $R1);
+        $E2 = new StandardEmitter(new Route('/Api/Test/AjaxTest'), $R2);
+        $E3 = new StandardEmitter(new Route('/Api/Test/AjaxTest'), $R3);
+
+        $E1->setGetPayload(array(':P' => 'XD'));
+        $E2->setPostPayload(array('TextArea' => 'XD :)'));
+        $E3->setPostPayload(array('TextArea' => '<b>????</b>'));
+
+        $P1 = new Pipeline();
+        $P1->addEmitter($E1);
+
+        $P2 = new Pipeline();
+        $P2->addEmitter($E2);
+        $P2->addEmitter($E3);
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Receiver', array(
+                                $R1, $R2, $R3
+                            ))
+                            , 6),
+                        new LayoutColumn(array(
+                            new Panel('Receiver 1', $R1),
+                            new Panel('Receiver 2', $R2),
+                            new Panel('Receiver 3', $R3)
+                        ), 6)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Form(
+                                new FormGroup(
+                                    new FormRow(
+                                        new FormColumn(
+                                            new Panel( 'Form', array(
+                                            $R2, $R3
+                                            ))
+                                        )
+                                    )
+                                )
+                            , new Primary('Send'))
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            $this->getCleanLocalStorage(), $P1,
+                                (new Standard('Ajax?',''))->ajaxPipelineOnClick( $P2 )
+                        ))
+                    )
+                ))
+            )
+        );
+*/
         return $Stage;
     }
 
@@ -83,7 +205,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendIdentification($CredentialName = null, $CredentialLock = null, $CredentialKey = null)
     {
 
-        if( $CredentialName !== null ) {
+        if ($CredentialName !== null) {
             Protocol::useService()->createLoginAttemptEntry($CredentialName, $CredentialLock, $CredentialKey);
         }
 
@@ -117,7 +239,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Get Identification-Type (Credential,Token,System)
         $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
-        if( $Identifier ) {
+        if ($Identifier) {
             $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
             if ($tblToken) {
                 if ($tblToken->getServiceTblConsumer()) {
@@ -136,7 +258,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$Identification) {
             $Protocol = (new Database())->frontendSetup(false, true);
 
-            $Stage = new Stage(new Danger(new Hospital()).' Installation', 'Erster Aufruf der Anwendung');
+            $Stage = new Stage(new Danger(new Hospital()) . ' Installation', 'Erster Aufruf der Anwendung');
             $Stage->setMessage('Dieser Schritt wird automatisch ausgeführt wenn die Datenbank nicht die notwendigen Einträge aufweist. Üblicherweise beim ersten Aufruf.');
             $Stage->setContent(
                 new Layout(
@@ -144,7 +266,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(array(
                                 new Panel('Was ist das?', array(
-                                    (new Info(new Shield().' Es wird eine automatische Installation der Datenbank und eine Überprüfung der Daten durchgeführt')),
+                                    (new Info(new Shield() . ' Es wird eine automatische Installation der Datenbank und eine Überprüfung der Daten durchgeführt')),
                                 ), Panel::PANEL_TYPE_PRIMARY,
                                     new PullRight(strip_tags((new Redirect(self::getRequest()->getPathInfo(), 110)),
                                         '<div><a><script><span>'))
@@ -168,8 +290,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('Benutzername & Passwort', array(
                                 (new TextField('CredentialName', 'Benutzername', 'Benutzername', new Person()))
                                     ->setRequired(),
-                                    (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
-                                        ->setRequired()->setDefaultValue($CredentialLock,true)
+                                (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
+                                    ->setRequired()->setDefaultValue($CredentialLock, true)
                             ), Panel::PANEL_TYPE_INFO)
                         )
                     ),
@@ -196,19 +318,19 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $View->setContent(
-                new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            ''
-                            , 3),
-                        new LayoutColumn(
-                            new Well($FormService)
-                            , 6),
-                        new LayoutColumn(
-                            ''
-                            , 3),
-                    )),
-                )))
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        ''
+                        , 3),
+                    new LayoutColumn(
+                        new Well($FormService)
+                        , 6),
+                    new LayoutColumn(
+                        ''
+                        , 3),
+                )),
+            )))
         );
         return $View;
     }
@@ -222,7 +344,7 @@ class Frontend extends Extension implements IFrontendInterface
         $View = new Stage('Abmelden', 'Bitte warten...');
         $View->setContent(Account::useService()->destroySession(
                 new Redirect('/Platform/Gatekeeper/Authentication', Redirect::TIMEOUT_SUCCESS)
-            ).$this->getCleanLocalStorage());
+            ) . $this->getCleanLocalStorage());
         return $View;
     }
 }

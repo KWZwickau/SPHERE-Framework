@@ -1,0 +1,59 @@
+jQuery.ajax({
+    method:"{{ METHOD }}",
+    url:"{{ URL }}",
+    data:{{ POST }},
+    dataType:"json",
+    error: function (request, status, error) {
+
+        var ErrorMessage = '';
+        if (request.status === 0) {
+            ErrorMessage = ('Not connected.\nPlease verify your network connection.');
+        } else if (request.status == 404) {
+            ErrorMessage = ('The requested page not found. [404]');
+        } else if (request.status == 500) {
+            ErrorMessage = ('Internal Server Error [500].');
+        } else if (status === 'parsererror') {
+            ErrorMessage = ('Requested JSON parse failed.');
+        } else if (status === 'timeout') {
+            ErrorMessage = ('Time out error.');
+        } else if (status === 'abort') {
+            ErrorMessage = ('Ajax request aborted.');
+        } else {
+            ErrorMessage = ('Uncaught Error.\n' + request.responseText);
+        }
+
+        var {{ RESPONSE }} = ''
+            + ErrorMessage
+            + '<br/><span class="text-muted"><small>'
+            + 'Url: {{ URL_BASE }}'
+            + '<br/>'
+            + 'Selector: {{ SELECTOR }}'
+            + '<br/>'
+            + 'Data: {{ POST }}'
+            + '</small></span>'
+
+        jQuery.notify({
+            // options
+                message: {{ RESPONSE }}
+            }, {
+            // settings
+                newest_on_top: true,
+                type: 'danger',
+                placement: {
+                    from: "top",
+                    align: "right"
+                },
+                delay: 0,
+//                element: jQuery('{{ SELECTOR }}'),
+                offset: 5,
+                animate: {
+                    enter: 'animated fadeInLeft',
+                    exit: 'animated fadeOutLeft'
+                }
+            });
+    },
+    success: function({{ RESPONSE }}){
+        {{ DONE }}
+        {{ NOTIFY }}
+    }
+}){{ CALLBACK }};
