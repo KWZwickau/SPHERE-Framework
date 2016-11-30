@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -368,6 +369,102 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getSchoolName($MarginTop = '20px')
+    {
+        $SchoolSlice = ( new Slice() );
+        $SchoolSlice->addSection(( new Section() )
+            ->addElementColumn(( new Element() )
+                ->setContent('Name der Schule:')
+                , '18%')
+            ->addElementColumn(( new Element() )
+                ->setContent('{% if(Content.Company.Data.Name) %}
+                                        {{ Content.Company.Data.Name }}
+                                    {% else %}
+                                          &nbsp;
+                                    {% endif %}')
+                ->styleBorderBottom()
+                , '82%')
+        )->styleMarginTop($MarginTop);
+        return $SchoolSlice;
+    }
+
+    /**
+     * @param string $HeadLine
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getCertificateHead($HeadLine = '', $MarginTop = '15px')
+    {
+        $CertificateSlice = ( new Slice() );
+        $CertificateSlice->addElement(( new Element() )
+            ->setContent($HeadLine)
+            ->styleTextSize('18px')
+            ->styleTextBold()
+            ->styleAlignCenter()
+            ->styleMarginTop($MarginTop)
+        );
+        return $CertificateSlice;
+    }
+
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getDivisionAndYear($MarginTop = '20px')
+    {
+        $YearDivisionSlice = ( new Slice() );
+        $YearDivisionSlice->addSection(( new Section() )
+            ->addElementColumn(( new Element() )
+                ->setContent('Klasse:')
+                , '7%')
+            ->addElementColumn(( new Element() )
+                ->setContent('{{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}')
+                ->styleBorderBottom()
+                ->styleAlignCenter()
+                , '7%')
+            ->addElementColumn(( new Element() )
+                , '55%')
+            ->addElementColumn(( new Element() )
+                ->setContent('Schulhalbjahr:')
+                ->styleAlignRight()
+                , '18%')
+            ->addElementColumn(( new Element() )
+                ->setContent('{{ Content.Division.Data.Year }}')
+                ->styleBorderBottom()
+                ->styleAlignCenter()
+                , '13%')
+        )->styleMarginTop($MarginTop);
+        return $YearDivisionSlice;
+    }
+
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getStudentName($MarginTop = '5px')
+    {
+        $StudentSlice = ( new Slice() );
+        $StudentSlice->addSection(( new Section() )
+            ->addElementColumn(( new Element() )
+                ->setContent('Vorname und Name:')
+                , '21%')
+            ->addElementColumn(( new Element() )
+                ->setContent('{{ Content.Person.Data.Name.First }}
+                              {{ Content.Person.Data.Name.Last }}')
+                ->styleBorderBottom()
+                , '79%')
+        )->styleMarginTop($MarginTop);
+        return $StudentSlice;
+    }
+
+    /**
      * @param bool|true $isSlice
      * @param array $languagesWithStartLevel
      * @param string $TextSize
@@ -557,6 +654,460 @@ abstract class Certificate extends Extension
         } else {
             return $SectionList;
         }
+    }
+
+    /**
+     * @param string $TextSize
+     * @param bool   $IsGradeUnderlined
+     *
+     * @return Slice
+     */
+    protected function getObligationToVotePart($TextSize = '14px', $IsGradeUnderlined = true)
+    {
+
+        $slice = new Slice();
+        $sectionList = array();
+        $tblSubject = false;
+
+        // Profil
+        if ($this->getTblPerson()
+            && ( $tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()) )
+            && ( $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE') )
+            && ( $tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType) )
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+            if (( $tblSubjectProfile = $tblStudentSubject->getServiceTblSubject() )) {
+                $tblSubject = $tblSubjectProfile;
+            }
+        }
+
+        if ($tblSubject) {
+            $elementName = ( new Element() )
+                ->setContent('
+                   {% if(Content.Student.Profile'.$tblSubject->getAcronym().' is not empty) %}
+                       {{ Content.Student.Profile.'.$tblSubject->getAcronym().'.Name'.' }}
+                   {% else %}
+                        &nbsp;
+                   {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->styleMarginTop('10px')
+                ->styleTextSize($TextSize);
+
+            $elementGrade = ( new Element() )
+                ->setContent('
+                    {% if(Content.Grade.Data.'.$tblSubject->getAcronym().' is not empty) %}
+                        {{ Content.Grade.Data.'.$tblSubject->getAcronym().' }}
+                    {% else %}
+                        ---
+                    {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->stylePaddingTop('0px')
+                ->stylePaddingBottom('0px')
+                ->styleMarginTop('10px')
+                ->styleTextSize($TextSize);
+        } else {
+            $elementName = ( new Element() )
+                ->setContent('&nbsp;')
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->styleMarginTop('10px')
+                ->styleTextSize($TextSize);
+
+            $elementGrade = ( new Element() )
+                ->setContent('---')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->stylePaddingTop('0px')
+                ->stylePaddingBottom('0px')
+                ->styleMarginTop('10px')
+                ->styleTextSize($TextSize);
+        }
+
+        // Alte Wahlpflichtbereich Vorlage
+//        $section = new Section();
+//        $section
+//            ->addElementColumn(( new Element() )
+//                ->setContent('Wahlpflichtbereich:')
+//                ->styleTextBold()
+//                ->styleMarginTop('10px')
+//                ->styleTextSize($TextSize)
+//                , '20%')
+//            ->addElementColumn($elementName
+//                , '50%')
+//            ->addElementColumn(( new Element() ), '30%');
+//        $sectionList[] = $section;
+
+//        $section = new Section();
+//        $section
+//            ->addElementColumn(( new Element() )
+//                ->setContent('Profil')
+//                ->styleTextSize($TextSize)
+//                ->styleMarginTop('10px')
+//                , '39%')
+//            ->addElementColumn($elementGrade
+//                , '9%')
+//            ->addElementColumn(( new Element() ), '52%');
+//        $sectionList[] = $section;
+
+        $section = new Section();
+        $section
+            ->addElementColumn(( new Element() )
+                ->setContent('Wahlpflichtbereich:')
+                ->styleTextBold()
+                ->styleMarginTop('10px')
+                ->styleTextSize($TextSize)
+                , '20%')
+            ->addElementColumn(( new Element() ), '80%');
+        $sectionList[] = $section;
+
+        $section = new Section();
+        $section
+            ->addElementColumn($elementName
+                , '90%')
+            ->addElementColumn(( new Element() )
+                , '1%')
+            ->addElementColumn($elementGrade
+                , '9%');
+        $sectionList[] = $section;
+
+        $section = new Section();
+        $section
+            ->addElementColumn(( new Element() )
+//                ->setContent('Neigungskurs / 2.Fremdsprache')
+                ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)1')
+                ->styleTextSize('11px')
+                , '50%');
+        $sectionList[] = $section;
+
+        return $slice->addSectionList($sectionList);
+    }
+
+    /**
+     * @param bool $isMissing
+     *
+     * @return Slice
+     */
+    protected function getDescriptionHead($isMissing = false)
+    {
+        $DescriptionSlice = ( new Slice() );
+        if ($isMissing) {
+            $DescriptionSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    ->setContent('Bemerkungen:')
+                    , '16%')
+                ->addElementColumn(( new Element() )
+                    ->setContent('Fehltage entschuldigt:')
+                    ->styleBorderBottom('1px')
+                    ->styleAlignRight()
+                    , '25%')
+                ->addElementColumn(( new Element() )
+                    ->setContent('{% if(Content.Input.Missing is not empty) %}
+                                    {{ Content.Input.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                    ->styleBorderBottom('1px')
+                    ->styleAlignCenter()
+                    , '10%')
+                ->addElementColumn(( new Element() )
+                    ->setContent('unentschuldigt:')
+                    ->styleBorderBottom('1px')
+                    ->styleAlignRight()
+                    , '25%')
+                ->addElementColumn(( new Element() )
+                    ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
+                                    {{ Content.Input.Bad.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                    ->styleBorderBottom('1px')
+                    ->styleAlignCenter()
+                    , '10%')
+                ->addElementColumn(( new Element() )
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom('1px')
+                    ->styleAlignCenter()
+                    , '4%')
+            )
+                ->styleMarginTop('15px');
+        } else {
+            $DescriptionSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    ->setContent('Bemerkungen:'))
+            )->styleMarginTop('15px');
+        }
+        return $DescriptionSlice;
+    }
+
+    /**
+     * @param string $Height
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    public function getDescriptionContent($Height = '150px', $MarginTop = '0px')
+    {
+        $DescriptionSlice = ( new Slice() );
+        $DescriptionSlice->addSection(( new Section() )
+            ->addElementColumn(( new Element() )
+                ->setContent('{% if(Content.Input.Remark is not empty) %}
+                            {{ Content.Input.Remark|nl2br }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                ->styleHeight($Height)
+                ->styleMarginTop($MarginTop)
+            )
+        );
+        return $DescriptionSlice;
+    }
+
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    public function getTransfer($MarginTop = '5px')
+    {
+        $TransferSlice = ( new Slice() );
+        $TransferSlice->addSection(( new Section() )
+            ->addElementColumn(( new Element() )
+                ->setContent('Versetzungsvermerk:')
+                , '22%')
+            ->addElementColumn(( new Element() )
+                ->setContent('{% if(Content.Input.Transfer) %}
+                                        {{ Content.Input.Transfer }}
+                                    {% else %}
+                                          &nbsp;
+                                    {% endif %}')
+                ->styleBorderBottom('1px')
+                , '58%')
+            ->addElementColumn(( new Element() )
+                , '20%')
+        )
+            ->styleMarginTop($MarginTop);
+        return $TransferSlice;
+    }
+
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getDateLine($MarginTop = '25px')
+    {
+        $DateSlice = ( new Slice() );
+        $DateSlice->addSection(( new Section() )
+            ->addElementColumn(( new Element() )
+                ->setContent('Datum:')
+                , '7%')
+            ->addElementColumn(( new Element() )
+                ->setContent('{% if(Content.Input.Date is not empty) %}
+                                    {{ Content.Input.Date }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                ->styleBorderBottom('1px', '#000')
+                ->styleAlignCenter()
+                , '23%')
+            ->addElementColumn(( new Element() )
+                , '70%')
+        )
+            ->styleMarginTop($MarginTop);
+        return $DateSlice;
+    }
+
+    /**
+     * @param bool   $Extended with directory and stamp
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getSignPart($Extended = true, $MarginTop = '25px')
+    {
+        $SignSlice = ( new Slice() );
+        if ($Extended) {
+            $SignSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
+                ->addElementColumn(( new Element() )
+                    , '40%')
+                ->addElementColumn(( new Element() )
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
+            )
+                ->styleMarginTop($MarginTop)
+                ->addSection(( new Section() )
+                    ->addElementColumn(( new Element() )
+                        ->setContent('Schulleiter(in)')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                    ->addElementColumn(( new Element() )
+                        , '5%')
+                    ->addElementColumn(( new Element() )
+                        ->setContent('Dienstsiegel der Schule')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                    ->addElementColumn(( new Element() )
+                        , '5%')
+                    ->addElementColumn(( new Element() )
+                        ->setContent('Klassenlehrer(in)')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                )
+                ->addSection(( new Section() )
+                    ->addElementColumn(( new Element() )
+                        , '30%')
+                    ->addElementColumn(( new Element() )
+                        , '40%')
+                    ->addElementColumn(( new Element() )
+                        ->setContent(
+                            '{% if(Content.DivisionTeacher.Name is not empty) %}
+                                        {{ Content.DivisionTeacher.Name }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , '30%')
+                );
+        } else {
+            $SignSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    , '70%')
+                ->addElementColumn(( new Element() )
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
+            )
+                ->styleMarginTop($MarginTop)
+                ->addSection(( new Section() )
+                    ->addElementColumn(( new Element() )
+                        , '70%')
+                    ->addElementColumn(( new Element() )
+                        ->setContent('Klassenlehrer(in)')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                )
+                ->addSection(( new Section() )
+                    ->addElementColumn(( new Element() )
+                        , '70%')
+                    ->addElementColumn(( new Element() )
+                        ->setContent(
+                            '{% if(Content.DivisionTeacher.Name is not empty) %}
+                                        {{ Content.DivisionTeacher.Name }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , '30%')
+                );
+        }
+        return $SignSlice;
+    }
+
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getParentSign($MarginTop = '25px')
+    {
+        $ParentSlice = ( new Slice() );
+        $ParentSlice->addSection(( new Section() )
+            ->addElementColumn(( new Element() )
+                ->setContent('Zur Kenntnis genommen:')
+                , '30%')
+            ->addElementColumn(( new Element() )
+                ->setContent('&nbsp;')
+                ->styleBorderBottom()
+                , '40%')
+            ->addElementColumn(( new Element() )
+                , '30%')
+        )
+            ->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    , '30%')
+                ->addElementColumn(( new Element() )
+                    ->setContent('Eltern')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '40%')
+                ->addElementColumn(( new Element() )
+                    , '30%')
+            )
+            ->styleMarginTop($MarginTop);
+        return $ParentSlice;
+    }
+
+    /**
+     * @param string $MarginTop
+     * @param string $LineOne
+     * @param string $LineTwo
+     * @param string $LineThree
+     *
+     * @return Slice
+     */
+    protected function getInfo($MarginTop = '10px', $LineOne = '', $LineTwo = '', $LineThree = '')
+    {
+        $InfoSlice = ( new Slice() );
+        $InfoSlice->addSection(( new Section() )
+            ->addElementColumn(( new Element() )
+                ->styleBorderBottom()
+                , '30%')
+            ->addElementColumn(( new Element() )
+                , '70%')
+        )
+            ->styleMarginTop($MarginTop);
+        if ($LineOne !== '') {
+            $InfoSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    ->setContent($LineOne)
+                    ->styleTextSize('9.5px')
+                    , '30%')
+            );
+        }
+        if ($LineTwo !== '') {
+            $InfoSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    ->setContent($LineTwo)
+                    ->styleTextSize('9.5px')
+                    , '30%')
+            );
+        }
+        if ($LineThree !== '') {
+            $InfoSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    ->setContent($LineThree)
+                    ->styleTextSize('9.5px')
+                    , '30%')
+            );
+        }
+
+        return $InfoSlice;
     }
 
     /**
