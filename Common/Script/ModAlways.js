@@ -51,7 +51,7 @@
                 var maxLength = $(this).attr('maxlength');
                 var disableLineFeed = $(this).hasClass('DisableLineFeed');
                 if( disableLineFeed ) {
-                    $(this).val($(this).val().replace(/\r?\n/gi, ''));
+                    $(this).val($(this).val().replace(/\r?\n/gi, ' '));
                 }
                 if ($(this).val().length > maxLength) {
                     $(this).val($(this).val().substring(0, maxLength));
