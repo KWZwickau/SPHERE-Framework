@@ -2,11 +2,11 @@
 namespace SPHERE\Common\Frontend\Ajax\Emitter;
 
 /**
- * Class StandardEmitter
+ * Class ApiEmitter
  *
  * @package SPHERE\Common\Frontend\Ajax\Emitter
  */
-class StandardEmitter extends AbstractEmitter
+class ApiEmitter extends AbstractEmitter
 {
 
 }

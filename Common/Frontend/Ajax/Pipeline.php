@@ -3,6 +3,7 @@ namespace SPHERE\Common\Frontend\Ajax;
 
 use MOC\V\Component\Template\Template;
 use SPHERE\Common\Frontend\Ajax\Emitter\AbstractEmitter;
+use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\TwigHandler;
@@ -17,6 +18,18 @@ class Pipeline
 
     /** @var AbstractEmitter[] $Emitter */
     private $Emitter = array();
+    /** @var string $SuccessMessage */
+    private $SuccessMessage = '';
+
+    /**
+     * @param $Message
+     * @return $this
+     */
+    public function setSuccessMessage($Message)
+    {
+        $this->SuccessMessage = $Message;
+        return $this;
+    }
 
     /**
      * @param AbstractEmitter $AbstractEmitter
@@ -40,9 +53,6 @@ class Pipeline
 
         foreach ($this->Emitter as $Index => $Emitter) {
 
-            $Receiver = $Emitter->getAjaxReceiver();
-
-
             $Url = $Emitter->getAjaxUri() . $Emitter->getAjaxGetPayload();
 
             if ($Index !== 0) {
@@ -65,16 +75,19 @@ class Pipeline
 
             $Template->setVariable('URL', $Url);
             $Template->setVariable('URL_BASE', $Emitter->getAjaxUri());
-            $Template->setVariable('DONE', $Receiver->getHandler());
-            $Template->setVariable('SELECTOR', $Receiver->getSelector());
-            $Template->setVariable('RESPONSE', $Receiver::RESPONSE_CONTAINER);
+
+            $Receiver = $Emitter->getAjaxReceiver();
+            $Template->setVariable('ReceiverList', $Receiver);
+
+            $Template->setVariable('RESPONSE', AbstractReceiver::RESPONSE_CONTAINER);
         }
 
-        $Template->setVariable('NOTIFY', "
+        if( !empty( $this->SuccessMessage ) ) {
+            $Template->setVariable('NOTIFY', "
             $.notifyClose();
             $.notify({
             // options
-            message: 'Erfolgreich'
+            message: '" . $this->SuccessMessage . "'
             }, {
             // settings
             newest_on_top: true,
@@ -85,6 +98,7 @@ class Pipeline
             align: 'center'
             }
             });");
+        }
 
         return $Template->getContent();
     }

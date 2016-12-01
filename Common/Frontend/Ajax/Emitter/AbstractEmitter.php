@@ -20,16 +20,22 @@ abstract class AbstractEmitter extends Extension
     private $AjaxGetPayload = array();
     /** @var array $AjaxPostPayload */
     private $AjaxPostPayload = array();
-    /** @var AbstractReceiver $AjaxReceiver */
-    private $AjaxReceiver = null;
+    /** @var AbstractReceiver[] $AjaxReceiver */
+    private $AjaxReceiver = array();
 
     /**
      * Emitter constructor.
+     * @param Route $Route
+     * @param AbstractReceiver|AbstractReceiver[] $Receiver
      */
-    public function __construct( Route $Route, AbstractReceiver $Receiver )
+    public function __construct( Route $Route, $Receiver )
     {
         $this->AjaxUri = $Route;
-        $this->AjaxReceiver = $Receiver;
+        if( is_array( $Receiver ) ) {
+            $this->AjaxReceiver = $Receiver;
+        } else {
+            $this->AjaxReceiver = array( $Receiver );
+        }
     }
 
     /**
@@ -92,7 +98,7 @@ abstract class AbstractEmitter extends Extension
     }
 
     /**
-     * @return AbstractReceiver
+     * @return AbstractReceiver[]
      */
     final public function getAjaxReceiver()
     {

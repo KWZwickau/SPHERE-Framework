@@ -5,11 +5,12 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\Common\Frontend\Ajax\Emitter\StandardEmitter;
+use SPHERE\Common\Frontend\Ajax\Emitter\ApiEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\FieldValueReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Shield;
+use SPHERE\Common\Frontend\Icon\Repository\Success;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -40,7 +42,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
@@ -62,121 +63,58 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Backward(true));
         $Stage->setMessage(date('d.m.Y - H:i:s'));
 
-//        $P = new Pipeline();
-//
-//        $RA = new FieldValueReceiver( new TextField('A') );
-//        $RB = new FieldValueReceiver( new TextArea('B') );
-//        $RC = new FieldValueReceiver( new PasswordField('C') );
-//        $RD = new FieldValueReceiver( new TextField('D') );
-//        $RDI = new InlineReceiver();
-//
-//        $EA = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RA );
-//        $EA->setPostPayload(array( 'ABC' => 0 ));
-//        $EB = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RB );
-//        $EB->setPostPayload(array( 'ABC' => 1 ));
-//        $EC = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RC );
-//        $EC->setPostPayload(array( 'ABC' => 2 ));
-//        $ED = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RD );
-//        $ED->setPostPayload(array( 'ABC' => 3 ));
-//        $EDI = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RDI );
-//        $EDI->setPostPayload(array( 'ABC' => 3 ));
-//
-//        $P->addEmitter( $EA );
-//        $P->addEmitter( $EB );
-//        $P->addEmitter( $EC );
-//        $P->addEmitter( $ED );
-//        $P->addEmitter( $EDI );
-//
-//        $PF = new Pipeline();
-//        $EF = new StandardEmitter( new Route('/Api/Test/AjaxTest'), $RDI );
-//        $PF->addEmitter( $EF );
-//        $PF->addEmitter( $EB );
-//
-//        $Stage->setContent(
-//            (new Form(
-//                new FormGroup(
-//                    new FormRow(
-//                        new FormColumn(
-//                            new Panel('Form', array(
-//                                $RC, $RD
-//                            ))
-//                        )
-//                    )
-//                )
-//            ,new Primary('Send')))->ajaxPipelineOnSubmit( $PF ).
-//
-//
-//            new TableData(array(
-//                array(
-//                    'A' => $RA,
-//                    'B' => $RB,
-//                    'C' => $RC,
-//                    'D' => $RD
-//                )
-//            )).(new Standard('Rinne',''))->ajaxPipelineOnClick( $P ).new Info($RDI)
-//        );
+        $this->getCache(new TwigHandler())->clearCache();
 
-        /*
+        $P = new Pipeline();
 
-        $R1 = new InlineReceiver();
-        $R2 = new FieldValueReceiver((new TextField('EinTextFeld[1]', 'TextFeld', 'TextFeld'))->setRequired());
-        $R3 = new FieldValueReceiver((new TextArea('EineTextArea[asd][frt]', 'TextArea', 'TextArea'))->setRequired());
+        $RA = new FieldValueReceiver( new TextField('A') );
+        $RB = new FieldValueReceiver( new TextArea('B') );
+        $RC = new FieldValueReceiver( new PasswordField('C') );
+        $RD = new FieldValueReceiver( new TextField('D') );
+        $RDI = new InlineReceiver();
 
-        $E1 = new StandardEmitter(new Route('/Api/Test/AjaxTest'), $R1);
-        $E2 = new StandardEmitter(new Route('/Api/Test/AjaxTest'), $R2);
-        $E3 = new StandardEmitter(new Route('/Api/Test/AjaxTest'), $R3);
+        $EA = new ApiEmitter( new Route('/Api/Test/AjaxTest'), $RA );
+        $EA->setPostPayload(array( 'ABC' => 0 ));
+        $EB = new ApiEmitter( new Route('/Api/Test/AjaxTest'), $RB );
+        $EB->setPostPayload(array( 'ABC' => 1 ));
+        $EC = new ApiEmitter( new Route('/Api/Test/AjaxTest'), $RC );
+        $EC->setPostPayload(array( 'ABC' => 2 ));
+        $ED = new ApiEmitter( new Route('/Api/Test/AjaxTest'), array( $RD,$RDI) );
+        $ED->setPostPayload(array( 'ABC' => 3 ));
 
-        $E1->setGetPayload(array(':P' => 'XD'));
-        $E2->setPostPayload(array('TextArea' => 'XD :)'));
-        $E3->setPostPayload(array('TextArea' => '<b>????</b>'));
+        $P->addEmitter( $EA );
+        $P->addEmitter( $EB );
+        $P->addEmitter( $EC );
+        $P->addEmitter( $ED );
 
-        $P1 = new Pipeline();
-        $P1->addEmitter($E1);
-
-        $P2 = new Pipeline();
-        $P2->addEmitter($E2);
-        $P2->addEmitter($E3);
+        $PF = (new Pipeline())->setSuccessMessage( new Success().' Erfolgreich gespeichert' );
+        $EF = new ApiEmitter( new Route('/Api/Test/AjaxTest'), array( $RB, $RDI ) );
+        $PF->addEmitter( $EF );
 
         $Stage->setContent(
-            new Layout(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Receiver', array(
-                                $R1, $R2, $R3
+            (new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new Panel('Form', array(
+                                $RC, $RD
                             ))
-                            , 6),
-                        new LayoutColumn(array(
-                            new Panel('Receiver 1', $R1),
-                            new Panel('Receiver 2', $R2),
-                            new Panel('Receiver 3', $R3)
-                        ), 6)
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Form(
-                                new FormGroup(
-                                    new FormRow(
-                                        new FormColumn(
-                                            new Panel( 'Form', array(
-                                            $R2, $R3
-                                            ))
-                                        )
-                                    )
-                                )
-                            , new Primary('Send'))
                         )
-                    ),
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            $this->getCleanLocalStorage(), $P1,
-                                (new Standard('Ajax?',''))->ajaxPipelineOnClick( $P2 )
-                        ))
                     )
-                ))
-            )
+                )
+            ,array(new Primary('Send'),new Reset('--'))))->ajaxPipelineOnSubmit( $PF ).
+
+
+            new TableData(array(
+                array(
+                    'A' => $RA,
+                    'B' => $RB,
+                    'C' => $RC,
+                    'D' => $RD
+                )
+            )).(new Standard('Rinne',''))->ajaxPipelineOnClick( $P ).new Info($RDI)
         );
-*/
+
         return $Stage;
     }
 
