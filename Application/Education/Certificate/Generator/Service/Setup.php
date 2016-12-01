@@ -25,10 +25,11 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblCertificate = $this->setTableCertificate($Schema);
+        $tblCertificateType =  $this->setTableCertificateType($Schema);
+        $tblCertificate = $this->setTableCertificate($Schema, $tblCertificateType);
         $this->setTableCertificateSubject($Schema, $tblCertificate);
         $this->setTableCertificateGrade($Schema, $tblCertificate);
-        $this->setTableCertificateType($Schema);
+        $this->setTableCertificateLevel($Schema, $tblCertificate);
 
         /**
          * Migration & Protocol
@@ -40,10 +41,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     * @param Table $tblCertificateType
      *
      * @return Table
      */
-    private function setTableCertificate(Schema &$Schema)
+    private function setTableCertificate(Schema &$Schema, Table $tblCertificateType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblCertificate');
@@ -62,6 +64,10 @@ class Setup extends AbstractSetup
         if (!$Table->hasColumn('IsGradeInformation')){
             $Table->addColumn('IsGradeInformation', 'boolean');
         }
+
+        $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT, true);
+
+        $this->getConnection()->addForeignKey($Table, $tblCertificateType, true);
 
         return $Table;
     }
@@ -138,6 +144,23 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
         $this->createIndex($Table, array('Identifier'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblCertificate
+     *
+     * @return Table
+     */
+    private function setTableCertificateLevel(Schema &$Schema, Table $tblCertificate)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblCertificateLevel');
+        $this->createColumn($Table, 'serviceTblLevel', self::FIELD_TYPE_BIGINT, true);
+
+        $this->getConnection()->addForeignKey($Table, $tblCertificate, true);
 
         return $Table;
     }

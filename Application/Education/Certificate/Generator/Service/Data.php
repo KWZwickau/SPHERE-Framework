@@ -3,12 +3,18 @@ namespace SPHERE\Application\Education\Certificate\Generator\Service;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -27,36 +33,71 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
-        $this->createCertificateType('Jahreszeugnis/Abschlusszeugnis', 'YEAR');
-        $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
-        $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
+        $tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
+        $tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis/Abschlusszeugnis', 'YEAR');
+        $tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
+        $tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
+        $tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
+
+        $tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
+        $tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+        $tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+
+        $tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
+        $tblCourseReal = Course::useService()->getCourseByName('Realschule');
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Grundschule Klasse 4', 'BeGs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation);
+            if ($tblSchoolTypePrimary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-
             $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
             $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
         }
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Mittelschule Klasse 5-6', 'BeMi');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-
             $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
             $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
         }
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', '§ 34 Abs. 3 SOFS', 'BeSOFS');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblCourseMain);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-
             $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
             $this->setCertificateSubject($tblCertificate, 'GE', 1, 2);
             $this->setCertificateSubject($tblCertificate, 'GEO', 1, 3);
-
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
             $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
             $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
@@ -64,6 +105,20 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', '', 'GsHjInformation');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
+            if ($tblSchoolTypePrimary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
         if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
             $this->setCertificateGradeAllStandard($tblCertificate);
         }
@@ -82,9 +137,31 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
         }
 
-        $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse', 'GsHjOneInfo');
+        $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse', 'GsHjOneInfo');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
+            if ($tblSchoolTypePrimary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
 
         $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', '', 'GsJa');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear);
+            if ($tblSchoolTypePrimary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
         if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
             $this->setCertificateGradeAllStandard($tblCertificate);
         }
@@ -103,32 +180,257 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
         }
 
-        $this->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse', 'GsJOne');
-        $this->createCertificate('Gymnasium Abgangszeugnis', 'Hauptschulabschluss Klasse 9', 'GymAbgHs');
-        $this->createCertificate('Gymnasium Abgangszeugnis', 'Realschulabschluss Klasse 10', 'GymAbgRs');
-        $this->createCertificate('Gymnasium Halbjahresinformation', '', 'GymHjInfo');
-        $this->createCertificate('Gymnasium Halbjahreszeugnis', '', 'GymHj');
-        $this->createCertificate('Gymnasium Jahreszeugnis', '', 'GymJ');
-        $this->createCertificate('Mittelschule Abgangszeugnis', 'Hauptschule', 'MsAbgHs');
-        $this->createCertificate('Mittelschule Abgangszeugnis', 'Realschule', 'MsAbgRs');
-        $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs');
-        $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule qualifiziert', 'MsAbsHsQ');
-        $this->createCertificate('Mittelschule Abschlusszeugnis', 'Realschule', 'MsAbsRs');
-        $this->createCertificate('Mittelschule Halbjahresinformation', 'Hauptschule', 'MsHjInfoHs');
-        $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-6', 'MsHjInfo');
-        $this->createCertificate('Mittelschule Halbjahresinformation', 'Realschule', 'MsHjInfoRs');
-        $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Hauptschule', 'MsHjHs');
-        $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Klasse 5-6', 'MsHj');
-        $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Realschule', 'MsHjRs');
-        $this->createCertificate('Mittelschule Jahreszeugnis', 'Hauptschule', 'MsJHs');
-        $this->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-6', 'MsJ');
-        $this->createCertificate('Mittelschule Jahreszeugnis', 'Realschule', 'MsJRs');
+        $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse', 'GsJOne');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear);
+            if ($tblSchoolTypePrimary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Hauptschulabschluss Klasse 9', 'GymAbgHs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave);
+            if ($tblSchoolTypeGym) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Realschulabschluss Klasse 10', 'GymAbgRs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave);
+            if ($tblSchoolTypeGym) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Gymnasium Halbjahresinformation', '', 'GymHjInfo');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
+            if ($tblSchoolTypeGym) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Gymnasium Halbjahreszeugnis', '', 'GymHj');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
+            if ($tblSchoolTypeGym) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '11'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '12'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Gymnasium Jahreszeugnis', '', 'GymJ');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear);
+            if ($tblSchoolTypeGym) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Hauptschule', 'MsAbgHs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblCourseMain);
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Realschule', 'MsAbgRs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblCourseReal);
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseMain);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule qualifiziert', 'MsAbsHsQ');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseMain);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Realschule', 'MsAbsRs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseReal);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Hauptschule', 'MsHjInfoHs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblCourseMain);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-6', 'MsHjInfo');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Realschule', 'MsHjInfoRs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblCourseReal);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Hauptschule', 'MsHjHs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblCourseMain);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        // wird aktuell nicht benötigt
+        // $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Klasse 5-6', 'MsHj');
+        if (($tblCertificate  = $this->getCertificateByCertificateClassName('MsHj'))){
+            $this->destroyCertificate($tblCertificate);
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Realschule', 'MsHjRs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblCourseReal);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Hauptschule', 'MsJHs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseMain);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-6', 'MsJ');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Realschule', 'MsJRs');
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseReal);
+            if ($tblSchoolTypeSecondary) {
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+        }
 
         /*
          * Noteninformation
          */
         $tblCertificate = $this->createCertificate('Noteninformation', '',
             'GradeInformation', null, true);
+        if ($tblCertificate){
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeGradeInformation);
+        }
         if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
             $this->setCertificateGradeAllStandard($tblCertificate);
         }
@@ -1227,5 +1529,83 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblCertificateType|null $tblCertificateType
+     * @param TblCourse|null $tblCourse
+     *
+     * @return bool
+     */
+    public function updateCertificate(
+        TblCertificate $tblCertificate,
+        TblCertificateType $tblCertificateType = null,
+        TblCourse $tblCourse = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+
+            $Entity->setTblCertificateType($tblCertificateType);
+            $Entity->setServiceTblCourse($tblCourse);
+
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblLevel $tblLevel
+     *
+     * @return TblCertificateLevel
+     */
+    public function createCertificateLevel(TblCertificate $tblCertificate, TblLevel $tblLevel)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblCertificateLevel')
+            ->findOneBy(array(
+                TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
+            )
+        );
+
+        if (null === $Entity) {
+            $Entity = new TblCertificateLevel();
+            $Entity->setTblCertificate($tblCertificate);
+            $Entity->setServiceTblLevel($tblLevel);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return bool
+     */
+    public function destroyCertificate(TblCertificate $tblCertificate)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificate')->findOneBy(array('Id' => $tblCertificate->getId()));
+        if (null !== $Entity) {
+            /** @var \SPHERE\System\Database\Fitting\Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }
