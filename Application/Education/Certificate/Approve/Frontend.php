@@ -165,6 +165,14 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                         )),
                         new LayoutColumn(array(
+                            new Standard(
+                                'Alle Zeugnisse aller Klassen freigeben',
+                                '',
+                                new Check(),
+                                array(
+
+                                )
+                            ),
                             $content ? $content : null
                         )),
                     ))
@@ -178,7 +186,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $PrepareId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendDivision($PrepareId = null)
     {
@@ -298,12 +306,21 @@ class Frontend extends Extension implements IFrontendInterface
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 6),
+                            new LayoutColumn(array(
+                                new Standard(
+                                    'Alle Zeugnisse dieser Klasse freigeben',
+                                    '',
+                                    new Check(),
+                                    array(
+
+                                    )
+                                ),
+                            )),
                         )),
                     )),
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                '<br>',
                                 new TableData($studentTable, null, array(
                                     'Number' => '#',
                                     'Name' => 'Name',

@@ -277,10 +277,12 @@ class Frontend extends Extension
             )),
             new FormRow(array(
                 new FormColumn(
-                    new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiter/in'), 12
+                    new CheckBox('Data[IsTeacherAvailable]',
+                        'Name des Klassenlehrers und Name des Schulleiters (falls vorhanden) auf dem Zeugnis anzeigen', 1
+                    ), 12
                 ),
                 new FormColumn(
-                    new CheckBox('Data[IsTeacherAvailable]', 'Name des Klassenlehrers auf dem Zeugnis anzeigen', 1), 12
+                    new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiter/in'), 12
                 ),
             )),
         )));
