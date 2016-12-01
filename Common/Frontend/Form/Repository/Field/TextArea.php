@@ -48,4 +48,14 @@ class TextArea extends AbstractField implements IFieldInterface
         $this->Template->setVariable('MaxLength', (int)$Value);
         return $this;
     }
+
+    /**
+     * @return TextArea
+     */
+    public function disableLineFeed()
+    {
+
+        $this->Template->setVariable('DisableLineFeed', 'DisableLineFeed');
+        return $this;
+    }
 }

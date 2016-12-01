@@ -8,7 +8,7 @@
             {{ ElementIcon }}
         </span>
         {% endif %}
-        <textarea name="{{ ElementName }}" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}" placeholder="{{ ElementPlaceholder }}"
+        <textarea name="{{ ElementName }}" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}{% if( DisableLineFeed is not empty ) %} DisableLineFeed{% endif %}" placeholder="{{ ElementPlaceholder }}"
                   rows="5"
                   {% if( Disabled is not empty ) %}disabled{% endif %} {% if( Required is not empty ) %}required{% endif %}
                   {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}
