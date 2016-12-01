@@ -413,10 +413,11 @@ abstract class Certificate extends Extension
 
     /**
      * @param string $MarginTop
+     * @param string $YearString
      *
      * @return Slice
      */
-    protected function getDivisionAndYear($MarginTop = '20px')
+    protected function getDivisionAndYear($MarginTop = '20px', $YearString = 'Schuljahr')
     {
         $YearDivisionSlice = ( new Slice() );
         $YearDivisionSlice->addSection(( new Section() )
@@ -431,7 +432,7 @@ abstract class Certificate extends Extension
             ->addElementColumn(( new Element() )
                 , '55%')
             ->addElementColumn(( new Element() )
-                ->setContent('Schulhalbjahr:')
+                ->setContent($YearString.':')
                 ->styleAlignRight()
                 , '18%')
             ->addElementColumn(( new Element() )
@@ -926,15 +927,15 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param bool   $Extended with directory and stamp
+     * @param bool   $isExtended with directory and stamp
      * @param string $MarginTop
      *
      * @return Slice
      */
-    protected function getSignPart($Extended = true, $MarginTop = '25px')
+    protected function getSignPart($isExtended = true, $MarginTop = '25px')
     {
         $SignSlice = ( new Slice() );
-        if ($Extended) {
+        if ($isExtended) {
             $SignSlice->addSection(( new Section() )
                 ->addElementColumn(( new Element() )
                     ->setContent('&nbsp;')
@@ -1111,12 +1112,13 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param $TextSize
-     * @param bool $IsGradeUnderlined
+     * @param string $TextSize
+     * @param bool   $IsGradeUnderlined
+     * @param string $MarginTop
      *
      * @return Slice
      */
-    protected function getGradeLanes($TextSize = '14px', $IsGradeUnderlined = true)
+    protected function getGradeLanes($TextSize = '14px', $IsGradeUnderlined = true, $MarginTop = '15px')
     {
 
         $GradeSlice = (new Slice());
@@ -1189,7 +1191,7 @@ abstract class Certificate extends Extension
                     $GradeSection->addElementColumn((new Element()), '52%');
                 }
 
-                $GradeSlice->addSection($GradeSection)->styleMarginTop('15px');
+                $GradeSlice->addSection($GradeSection)->styleMarginTop($MarginTop);
             }
         }
 
