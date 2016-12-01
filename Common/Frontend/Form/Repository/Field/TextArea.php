@@ -37,4 +37,15 @@ class TextArea extends AbstractField implements IFieldInterface
         $this->setPostValue($this->Template, $Name, 'ElementValue');
     }
 
+    /**
+     * @param int $Value
+     *
+     * @return TextArea
+     */
+    public function setMaxLengthValue($Value)
+    {
+
+        $this->Template->setVariable('MaxLength', (int)$Value);
+        return $this;
+    }
 }

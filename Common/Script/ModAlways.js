@@ -40,6 +40,21 @@
             });
 
             /**
+             * Activate MaxLength
+             */
+            var worlTextAreaMaxLength = $("textarea[maxlength]");
+            worlTextAreaMaxLength.each(function(){
+                var maxLength = $(this).attr('maxlength');
+                $(this).parent('div').find('.TextAreaMaxLengthCounter').html( maxLength - $(this).val().length );
+            });
+            worlTextAreaMaxLength.on('input propertychange', function() {
+                var maxLength = $(this).attr('maxlength');
+                if ($(this).val().length > maxLength) {
+                    $(this).val($(this).val().substring(0, maxLength));
+                }
+                $(this).parent('div').find('.TextAreaMaxLengthCounter').html( maxLength - $(this).val().length );
+            })
+            /**
              * Activate: Tooltip
              */
 //            $('[data-toggle="tooltip"]').tooltip({
