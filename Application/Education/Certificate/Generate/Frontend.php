@@ -10,16 +10,13 @@ namespace SPHERE\Application\Education\Certificate\Generate;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -34,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
@@ -50,6 +48,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -109,7 +108,7 @@ class Frontend extends Extension
                     'Type' => $tblGenerateCertificate->getServiceTblCertificateType()
                         ? $tblGenerateCertificate->getServiceTblCertificateType()->getName() : '',
                     'Name' => $tblGenerateCertificate->getName(),
-                    'Status' => '',
+//                    'Status' => '',
                     'Option' =>
                         (new Standard(
                             '', '/Education/Certificate/Generate/Division/Select', new Listing(),
@@ -155,7 +154,7 @@ class Frontend extends Extension
                                     'Date' => 'Zeugnisdatum',
                                     'Type' => 'Typ',
                                     'Name' => 'Name',
-                                    'Status' => 'Status',
+//                                    'Status' => 'Status',
                                     'Option' => ''
                                 ),
                                     array(
@@ -462,13 +461,46 @@ class Frontend extends Extension
                         && ($tblLevel = $tblDivision->getTblLevel())
                         && ($tblType = $tblLevel->getServiceTblType())
                     ) {
-
-                        $countTemplates = Generate::useService()->setCertificateTemplates($tblPrepare, $countStudents);
+                        $countTemplates = $countStudents = 0;
+                        if ($tblGenerateCertificate->getServiceTblCertificateType()
+                            && $tblGenerateCertificate->getServiceTblCertificateType()->getIdentifier() == 'GRADE_INFORMATION'
+                        ) {
+                            if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+                            ) {
+                                $countTemplates = $countStudents = count($tblPersonList);
+                            }
+                        } else {
+                            $countTemplates = Generate::useService()->setCertificateTemplates($tblPrepare,
+                                $countStudents);
+                        }
                         $tableData[] = array(
                             'SchoolType' => $tblType->getName(),
                             'Division' => $tblDivision->getDisplayName(),
-                            'Status' => $countTemplates . ' von ' . $countStudents . ' Zeugnisvorlagen zugeordnet.',
-                            'Option' => ''
+                            'Status' => $countTemplates < $countStudents
+                                ? new Warning(new Exclamation() . ' ' . $countTemplates . ' von ' . $countStudents . ' Zeugnisvorlagen zugeordnet.')
+                                : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' ' . $countTemplates . ' von ' . $countStudents . ' Zeugnisvorlagen zugeordnet.')
+                        ,
+                            'Option' => $countTemplates < $countStudents ?
+                                new Standard('', '/Education/Certificate/Generate/Division/SelectTemplate',
+                                    new Edit(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'DivisionId' => $tblDivision->getId(),
+                                        'IsEdit' => true,
+                                    ),
+                                    'Bearbeiten'
+                                )
+                                : new Standard('', '/Education/Certificate/Generate/Division/SelectTemplate',
+                                    new EyeOpen(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'DivisionId' => $tblDivision->getId(),
+                                        'IsEdit' => false,
+                                    ),
+                                    'Anzeigen'
+                                )
                         );
                     }
                 }
@@ -504,6 +536,7 @@ class Frontend extends Extension
                                             array('0', 'asc'),
                                             array('1', 'asc'),
                                         ),
+                                        "paging" => false,
                                         "iDisplayLength" => -1
                                     )
                                 )
@@ -521,36 +554,78 @@ class Frontend extends Extension
     }
 
     /**
+     * @param null $PrepareId
+     * @param null $DivisionId
+     * @param bool $IsEdit
+     * @param null $Data
+     *
      * @return Stage|string
      */
-    public function frontendSelectTemplate()
+    public function frontendSelectTemplate($PrepareId = null, $DivisionId = null, $IsEdit = false, $Data = null)
     {
 
-        $Stage = new Stage('Zeugnis', 'Vorlagen auswählen');
-        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Generate/Division', new ChevronLeft()));
+        $Stage = new Stage('Zeugnis generieren', 'Zeugnisvorlagen auswählen');
 
-        $tblDivision = Division::useService()->getDivisionById(6);
-        if ($tblDivision) {
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = Division::useService()->getDivisionById($DivisionId))
+        ) {
+            $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Generate/Division', new ChevronLeft(),
+                    array('GenerateCertificateId' => $tblPrepare->getServiceTblGenerateCertificate()->getId()))
+            );
+
             $tableData = array();
             if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                 $count = 1;
                 foreach ($tblStudentList as $tblPerson) {
-                    if ($count > 3) {
-                        $tableData[] = array(
-                            'Number' => $count++,
-                            'Student' => $tblPerson->getLastFirstName(),
-                            'Template' => 'Halbjahresinformation Mittelschule Realschule'
-                        );
+
+                    $tblCourse = false;
+                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                        && ($tblStudent = $tblPerson->getStudent())
+                    ) {
+                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType);
+                        if ($tblStudentTransfer) {
+                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                        }
+                    }
+
+                    $tableData[$tblPerson->getId()] = array(
+                        'Number' => $count++,
+                        'Student' => $tblPerson->getLastFirstName(),
+                        'Course' => $tblCourse ? $tblCourse->getName() : '',
+                    );
+
+                    if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                        && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                    ) {
+                        $tableData[$tblPerson->getId()]['Template'] = $tblCertificate->getName() . ' ' . $tblCertificate->getDescription();
                     } else {
-                        $tableData[] = array(
-                            'Number' => $count++,
-                            'Student' => $tblPerson->getLastFirstName(),
-                            'Template' => new SelectBox('Data[' . $tblPerson->getId() . ']', '', array(
-                                    1 => 'Halbjahresinformation Mittelschule Hauptschule',
-                                    2 => 'Halbjahresinformation Mittelschule Realschule',
+                        $tblCertificateListByConsumer = Generate::useService()->getPossibleCertificates($tblPrepare,
+                            $tblPerson, Consumer::useService()->getConsumerBySession());
+                        $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
+                            $tblPerson);
+                        if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
+                            $certificateList = array_merge($tblCertificateListByConsumer,
+                                $tblCertificateListByStandard);
+                        } elseif ($tblCertificateListByConsumer) {
+                            $certificateList = $tblCertificateListByConsumer;
+                        } elseif ($tblCertificateListByStandard) {
+                            $certificateList = $tblCertificateListByStandard;
+                        } else {
+                            $certificateList = array();
+                        }
+
+                        if (count($certificateList) == 1) {
+                            $tblCertificate = current($certificateList);
+                            $tableData[$tblPerson->getId()]['Template'] = $tblCertificate->getName() . ' ' . $tblCertificate->getDescription();
+                        } else {
+                            $tableData[$tblPerson->getId()]['Template'] = new SelectBox('Data[' . $tblPerson->getId() . ']',
+                                '',
+                                array(
+                                    '{{ Name }} {{Description}}' => $certificateList
                                 )
-                            )
-                        );
+                            );
+                        }
                     }
                 }
             }
@@ -561,16 +636,19 @@ class Frontend extends Extension
                         new FormColumn(
                             new TableData(
                                 $tableData, null, array(
-                                    'Number' => 'Nr.',
-                                    'Student' => 'Schüler',
-                                    'Template' => 'Zeugnisvorlage'
-                                )
+                                'Number' => 'Nr.',
+                                'Student' => 'Schüler',
+                                'Course' => 'Bildungsgang',
+                                'Template' => 'Zeugnisvorlage'
+                            ), null
                             )
                         )
                     )
                 )
             );
-            $form->appendFormButton(new Primary('Speichern', new Save()));
+            if ($IsEdit) {
+                $form->appendFormButton(new Primary('Speichern', new Save()));
+            }
 
             $Stage->setContent(
                 new Layout(array(
@@ -593,7 +671,7 @@ class Frontend extends Extension
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                $form
+                                Generate::useService()->editCertificateTemplates($form, $tblPrepare, $Data)
                             )),
                         ))
                     ))

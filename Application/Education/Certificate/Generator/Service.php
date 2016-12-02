@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -327,15 +328,17 @@ class Service extends AbstractService
     /**
      * @param null|TblConsumer $tblConsumer
      * @param TblCertificateType $tblCertificateType
+     * @param TblType $tblSchoolType
      *
-     * @return bool|TblCertificate[]
+     * @return bool|Service\Entity\TblCertificate[]
      */
-    public function getCertificateAllByConsumerAndType(
+    public function getCertificateAllBy(
         TblConsumer $tblConsumer = null,
-        TblCertificateType $tblCertificateType = null
+        TblCertificateType $tblCertificateType = null,
+        TblType $tblSchoolType = null
     ) {
 
-        return (new Data($this->getBinding()))->getCertificateAllByConsumerAndType($tblConsumer, $tblCertificateType);
+        return (new Data($this->getBinding()))->getCertificateAllBy($tblConsumer, $tblCertificateType, $tblSchoolType);
     }
 
 

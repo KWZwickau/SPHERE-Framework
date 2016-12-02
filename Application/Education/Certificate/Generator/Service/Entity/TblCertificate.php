@@ -255,5 +255,4 @@ class TblCertificate extends Element
 
         $this->serviceTblSchoolType = (null === $tblSchoolType ? null : $tblSchoolType->getId());
     }
-
 }

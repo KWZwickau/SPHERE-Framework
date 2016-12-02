@@ -148,6 +148,8 @@ class Setup extends AbstractSetup
         }
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
+        $this->createIndex($Table, array('serviceTblPerson'), false);
+        $this->createIndex($Table, array('tblPrepareCertificate', 'serviceTblPerson'));
 
         return $Table;
     }
