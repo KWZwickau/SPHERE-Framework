@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Certificate\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
@@ -321,5 +322,31 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCertificateTypeAll();
+    }
+
+    /**
+     * @param null|TblConsumer $tblConsumer
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return bool|TblCertificate[]
+     */
+    public function getCertificateAllByConsumerAndType(
+        TblConsumer $tblConsumer = null,
+        TblCertificateType $tblCertificateType = null
+    ) {
+
+        return (new Data($this->getBinding()))->getCertificateAllByConsumerAndType($tblConsumer, $tblCertificateType);
+    }
+
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return false|TblCertificateLevel[]
+     */
+    public function getCertificateLevelAllByCertificate(TblCertificate $tblCertificate)
+    {
+
+        return (new Data($this->getBinding()))->getCertificateLevelAllByCertificate($tblCertificate);
     }
 }

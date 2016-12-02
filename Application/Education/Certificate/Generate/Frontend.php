@@ -10,11 +10,16 @@ namespace SPHERE\Application\Education\Certificate\Generate;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -24,7 +29,6 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -46,7 +50,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
-use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -116,11 +119,11 @@ class Frontend extends Extension
                             , 'Klassen zuordnen'
                         ))
                         . (new Standard(
-                            '', '/Education/Certificate/Generate/Division', new Equalizer()
-//                            array(
-//                                'GenerateCertificateId' => $tblGenerateCertificate->getId(),
-//                            )
-//                            , 'Einstellungen'
+                            '', '/Education/Certificate/Generate/Division', new Equalizer(),
+                            array(
+                                'GenerateCertificateId' => $tblGenerateCertificate->getId(),
+                            )
+                            , 'Zeugnisvorlagen zuordnen'
                         ))
                 );
             }
@@ -278,7 +281,8 @@ class Frontend extends Extension
             new FormRow(array(
                 new FormColumn(
                     new CheckBox('Data[IsTeacherAvailable]',
-                        'Name des Klassenlehrers und Name des Schulleiters (falls vorhanden) auf dem Zeugnis anzeigen', 1
+                        'Name des Klassenlehrers und Name des Schulleiters (falls vorhanden) auf dem Zeugnis anzeigen',
+                        1
                     ), 12
                 ),
                 new FormColumn(
@@ -424,7 +428,8 @@ class Frontend extends Extension
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                new Well(Generate::useService()->createPrepareCertificates($form, $tblGenerateCertificate, $Data))
+                                new Well(Generate::useService()->createPrepareCertificates($form,
+                                    $tblGenerateCertificate, $Data))
                             )),
                         ))
                     ))
@@ -437,61 +442,82 @@ class Frontend extends Extension
         }
     }
 
-
     /**
-     * @return Stage
+     * @param null $GenerateCertificateId
+     *
+     * @return Stage|string
      */
-    public function frontendDivision()
+    public function frontendDivision($GenerateCertificateId = null)
     {
 
-        $Stage = new Stage('Zeugnis', 'Klassenübersicht');
+        $Stage = new Stage('Zeugnis generieren', 'Klassenübersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Generate', new ChevronLeft()));
 
-        $tableData = array();
+        if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($GenerateCertificateId))) {
+            $tableData = array();
 
-        $tableData[] = array(
-            'Division' => '5a',
-            'Status' => new Warning(new Ban() . ' 14 von 17 Zeugnisvorlagen ausgewählt'),
-            'Option' => new Standard('', '/Education/Certificate/Generate/Division/SelectTemplate', new Edit())
-        );
-        $tableData[] = array(
-            'Division' => '5b',
-            'Status' => new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' 18 von 18 Zeugnisvorlagen ausgewählt'),
-            'Option' => new Standard('', '/Education/Certificate/Generate/Division/SelectTemplate', new Edit())
-        );
+            if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                foreach ($tblPrepareList as $tblPrepare) {
+                    if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                        && ($tblLevel = $tblDivision->getTblLevel())
+                        && ($tblType = $tblLevel->getServiceTblType())
+                    ) {
 
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Panel('Zeugnisdatum', '31.01.2017', Panel::PANEL_TYPE_INFO)
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Panel('Typ', 'Halbjahreszeugnis/Halbjahresinformation', Panel::PANEL_TYPE_INFO)
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Panel('Name', 'SN Noteninfo, KN Noteninfo', Panel::PANEL_TYPE_INFO)
-                        ), 6)
-                    ))
-                )),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new TableData(
-                                $tableData, null, array(
+                        $countTemplates = Generate::useService()->setCertificateTemplates($tblPrepare, $countStudents);
+                        $tableData[] = array(
+                            'SchoolType' => $tblType->getName(),
+                            'Division' => $tblDivision->getDisplayName(),
+                            'Status' => $countTemplates . ' von ' . $countStudents . ' Zeugnisvorlagen zugeordnet.',
+                            'Option' => ''
+                        );
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel('Zeugnisdatum', '31.01.2017', Panel::PANEL_TYPE_INFO)
+                            ), 3),
+                            new LayoutColumn(array(
+                                new Panel('Typ', 'Halbjahreszeugnis/Halbjahresinformation', Panel::PANEL_TYPE_INFO)
+                            ), 3),
+                            new LayoutColumn(array(
+                                new Panel('Name', 'SN Noteninfo, KN Noteninfo', Panel::PANEL_TYPE_INFO)
+                            ), 6)
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new TableData(
+                                    $tableData, null, array(
+                                    'SchoolType' => 'Schulart',
                                     'Division' => 'Klasse',
                                     'Status' => 'Zeugnisvorlagen',
                                     'Option' => ''
+                                ),
+                                    array(
+                                        'order' => array(
+                                            array('0', 'asc'),
+                                            array('1', 'asc'),
+                                        ),
+                                        "iDisplayLength" => -1
+                                    )
                                 )
-                            )
-                        )),
+                            )),
+                        ))
                     ))
                 ))
-            ))
-        );
+            );
 
-        return $Stage;
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Zeugnisgenerierung nicht gefunden', new Exclamation());
+        }
     }
 
     /**

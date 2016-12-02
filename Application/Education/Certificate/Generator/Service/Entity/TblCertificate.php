@@ -10,6 +10,8 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -26,8 +28,9 @@ class TblCertificate extends Element
     const ATTR_NAME = 'Name';
     const ATTR_CERTIFICATE = 'Certificate';
     const SERVICE_TBL_CONSUMER = 'serviceTblConsumer';
+    const SERVICE_TBL_COURSE = 'serviceTblCourse';
+    const SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
     const ATTR_IS_GRADE_INFORMATION = 'IsGradeInformation';
-    const ATTR_IS_TBL_INFORMATION = 'IsGradeInformation';
     const ATTR_TBL_CERTIFICATE_TYPE = 'tblCertificateType';
 
     /**
@@ -62,6 +65,11 @@ class TblCertificate extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblCourse;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblSchoolType;
 
     /**
      * @return bool|TblConsumer
@@ -224,6 +232,28 @@ class TblCertificate extends Element
     {
 
         $this->serviceTblCourse = (null === $tblCourse ? null : $tblCourse->getId());
+    }
+
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceTblSchoolType()
+    {
+
+        if (null === $this->serviceTblSchoolType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceTblSchoolType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblSchoolType
+     */
+    public function setServiceTblSchoolType(TblType $tblSchoolType = null)
+    {
+
+        $this->serviceTblSchoolType = (null === $tblSchoolType ? null : $tblSchoolType->getId());
     }
 
 }

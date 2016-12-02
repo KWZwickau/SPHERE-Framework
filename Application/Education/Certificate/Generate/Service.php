@@ -12,10 +12,17 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Data;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Setup;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -175,5 +182,152 @@ class Service extends AbstractService
         return new Success('Die Klassen wurden erfolgreich zugeordnet.',
             new \SPHERE\Common\Frontend\Icon\Repository\Success())
         . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param int $countStudents
+     *
+     * @return int
+     */
+    public function setCertificateTemplates(TblPrepareCertificate $tblPrepare, &$countStudents = 0)
+    {
+
+        $countTemplates = 0;
+        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+
+            $countStudents = count($tblPersonList);
+
+            foreach ($tblPersonList as $tblPerson) {
+                // Template bereits gesetzt
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                        $countTemplates++;
+                        continue;
+                    }
+                }
+
+                if (($tblConsumer = Consumer::useService()->getConsumerBySession())) {
+                    // Eigene Vorlage
+                    if (($certificateList = $this->findPossibleCertificates($tblPrepare, $tblPerson, $tblConsumer))) {
+                        if (count($certificateList) == 1) {
+                            // Todo save certificate
+                            $countTemplates++;
+                        } else {
+                            continue;
+                        }
+                        // Standard Vorlagen
+                    } elseif (($certificateList = $this->findPossibleCertificates($tblPrepare, $tblPerson))) {
+                        if (count($certificateList) == 1) {
+                            // Todo save certificate
+                            $countTemplates++;
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $countTemplates;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblConsumer|null $tblConsumer
+     *
+     * @return array|bool
+     */
+    public function findPossibleCertificates(
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        TblConsumer $tblConsumer = null
+    ) {
+
+        $certificateList = array();
+
+        $tblCourse = false;
+        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+            && ($tblStudent = $tblPerson->getStudent())
+        ) {
+            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblTransferType);
+            if ($tblStudentTransfer) {
+                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+            }
+        }
+
+        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+            && $tblPrepare->getServiceTblGenerateCertificate()
+            && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
+            && ($tblCertificateList = Generator::useService()->getCertificateAllByConsumerAndType(
+                $tblConsumer ? $tblConsumer : null,
+                $tblCertificateType ? $tblCertificateType : null
+            ))
+        ) {
+
+            foreach ($tblCertificateList as $tblCertificate) {
+                // Schüler hat keinen Bildungsgang
+                if (!$tblCourse) {
+
+//                    if (!$tblConsumer && $tblDivision->getDisplayName() == '5g' && $tblPerson->getLastName() == 'Jäger') {
+//                        $this->getDebugger()->screenDump(($tblCertificateLevelList = Generator::useService()->getCertificateLevelAllByCertificate($tblCertificate)),
+//                            $this->findLevel($tblCertificateLevelList, $tblDivision->getTblLevel())
+//                            );
+//                    }
+
+                    $tblCertificateLevelList = Generator::useService()->getCertificateLevelAllByCertificate($tblCertificate);
+                    if ($tblCertificateLevelList) {
+                        if ($this->findLevel($tblCertificateLevelList, $tblDivision->getTblLevel())) {
+                            $certificateList[] = $tblCertificate;
+                        }
+                    }
+                    else {
+                        $certificateList[] = $tblCertificate;
+                    }
+                    //  Schüler hat Bildungsgang der Vorlage
+                } elseif ($tblCourse
+                    && $tblCertificate->getServiceTblCourse()
+                    && $tblCourse->getId() == $tblCertificate->getServiceTblCourse()->getId()
+                ) {
+                    if (($tblCertificateLevelList = Generator::useService()->getCertificateLevelAllByCertificate($tblCertificate))) {
+                        if ($this->findLevel($tblCertificateLevelList, $tblDivision->getTblLevel())) {
+                            $certificateList[] = $tblCertificate;
+                        }
+                    } else {
+                        $certificateList[] = $tblCertificate;
+                    }
+                }
+            }
+        }
+
+        if (!$tblConsumer && $tblDivision->getDisplayName() == '5g' && $tblPerson->getFullName() == ' Ines Jäger') {
+            $this->getDebugger()->screenDump($certificateList);
+        }
+
+        return empty($certificateList) ? false : $certificateList;
+    }
+
+    /**
+     * @param $tblCertificateLevelList
+     * @param TblLevel $tblLevel
+     *
+     * @return bool|TblLevel
+     */
+    private function findLevel($tblCertificateLevelList, TblLevel $tblLevel)
+    {
+        /** @var TblCertificateLevel $tblCertificateLevel */
+        foreach ($tblCertificateLevelList as $tblCertificateLevel) {
+            if ($tblCertificateLevel->getServiceTblLevel()
+                && $tblCertificateLevel->getServiceTblLevel()->getId() == $tblLevel->getId()
+            ) {
+                return $tblLevel;
+            }
+        }
+
+        return false;
     }
 }

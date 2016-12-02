@@ -33,7 +33,8 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
+        $tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis',
+            'HALF_YEAR');
         $tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis/Abschlusszeugnis', 'YEAR');
         $tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
         $tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
@@ -47,7 +48,7 @@ class Data extends AbstractData
         $tblCourseReal = Course::useService()->getCourseByName('Realschule');
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Grundschule Klasse 4', 'BeGs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation);
             if ($tblSchoolTypePrimary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
@@ -62,7 +63,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Mittelschule Klasse 5-6', 'BeMi');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
@@ -80,7 +81,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', '§ 34 Abs. 3 SOFS', 'BeSOFS');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblCourseMain);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
@@ -105,7 +106,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', '', 'GsHjInformation');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
             if ($tblSchoolTypePrimary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
@@ -137,8 +138,9 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
         }
 
-        $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse', 'GsHjOneInfo');
-        if ($tblCertificate){
+        $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse',
+            'GsHjOneInfo');
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
             if ($tblSchoolTypePrimary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
@@ -148,7 +150,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', '', 'GsJa');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear);
             if ($tblSchoolTypePrimary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
@@ -181,7 +183,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse', 'GsJOne');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear);
             if ($tblSchoolTypePrimary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
@@ -190,8 +192,9 @@ class Data extends AbstractData
             }
         }
 
-        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Hauptschulabschluss Klasse 9', 'GymAbgHs');
-        if ($tblCertificate){
+        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Hauptschulabschluss Klasse 9',
+            'GymAbgHs');
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave);
             if ($tblSchoolTypeGym) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
@@ -200,8 +203,9 @@ class Data extends AbstractData
             }
         }
 
-        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Realschulabschluss Klasse 10', 'GymAbgRs');
-        if ($tblCertificate){
+        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Realschulabschluss Klasse 10',
+            'GymAbgRs');
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave);
             if ($tblSchoolTypeGym) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
@@ -211,7 +215,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Gymnasium Halbjahresinformation', '', 'GymHjInfo');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
             if ($tblSchoolTypeGym) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
@@ -236,7 +240,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Gymnasium Halbjahreszeugnis', '', 'GymHj');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
             if ($tblSchoolTypeGym) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '11'))) {
@@ -249,7 +253,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Gymnasium Jahreszeugnis', '', 'GymJ');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear);
             if ($tblSchoolTypeGym) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
@@ -274,17 +278,17 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Hauptschule', 'MsAbgHs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblCourseMain);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Realschule', 'MsAbgRs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblCourseReal);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseMain);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
@@ -293,8 +297,9 @@ class Data extends AbstractData
             }
         }
 
-        $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule qualifiziert', 'MsAbsHsQ');
-        if ($tblCertificate){
+        $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule qualifiziert',
+            'MsAbsHsQ');
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseMain);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
@@ -304,7 +309,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Realschule', 'MsAbsRs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseReal);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
@@ -314,7 +319,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Hauptschule', 'MsHjInfoHs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblCourseMain);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
@@ -327,7 +332,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-6', 'MsHjInfo');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
@@ -340,7 +345,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Realschule', 'MsHjInfoRs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblCourseReal);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
@@ -356,7 +361,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Hauptschule', 'MsHjHs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblCourseMain);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
@@ -367,12 +372,12 @@ class Data extends AbstractData
 
         // wird aktuell nicht benötigt
         // $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Klasse 5-6', 'MsHj');
-        if (($tblCertificate  = $this->getCertificateByCertificateClassName('MsHj'))){
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('MsHj'))) {
             $this->destroyCertificate($tblCertificate);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Realschule', 'MsHjRs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblCourseReal);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
@@ -382,7 +387,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Hauptschule', 'MsJHs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseMain);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
@@ -395,7 +400,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-6', 'MsJ');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
@@ -408,7 +413,7 @@ class Data extends AbstractData
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Realschule', 'MsJRs');
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblCourseReal);
             if ($tblSchoolTypeSecondary) {
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
@@ -428,7 +433,7 @@ class Data extends AbstractData
          */
         $tblCertificate = $this->createCertificate('Noteninformation', '',
             'GradeInformation', null, true);
-        if ($tblCertificate){
+        if ($tblCertificate) {
             $this->updateCertificate($tblCertificate, $tblCertificateTypeGradeInformation);
         }
         if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
@@ -464,349 +469,410 @@ class Data extends AbstractData
             }
         }
 
+        // Alt-Last löschen
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('GsJ'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         if ($tblConsumer) {
-            if ($tblConsumer->getAcronym() == 'ESZC' || $tblConsumer->getAcronym() == 'DEMO') {
-                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESZC');
-                if ($tblConsumerCertificate) {
+//            if ($tblConsumer->getAcronym() == 'ESZC' || $tblConsumer->getAcronym() == 'DEMO') {
+//                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESZC');
+//                if ($tblConsumerCertificate) {
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Bildungsempfehlung', 'Klassenstufe 4', 'ESZC\CheBeGs', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Bildungsempfehlung', 'Gymnasium', 'ESZC\CheBeGym', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Bildungsempfehlung', 'Mittelschule', 'ESZC\CheBeMi', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Halbjahresinformation', 'Hauptschule', 'ESZC\CheHjInfoHs', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Halbjahresinformation', 'Klasse 5-6', 'ESZC\CheHjInfo', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Halbjahresinformation', 'Realschule', 'ESZC\CheHjInfoRs', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Halbjahresinformation', 'Gymnasium', 'ESZC\CheHjGymInfo', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'FRZ', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GRW', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Halbjahreszeugnis', 'Gymnasium', 'ESZC\CheHjGym', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'FRZ', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GRW', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Halbjahreszeugnis', 'Hauptschule', 'ESZC\CheHjHs', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Halbjahreszeugnis', 'Klasse 5-6', 'ESZC\CheHj', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Halbjahreszeugnis', 'Realschule', 'ESZC\CheHjRs', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Jahreszeugnis', 'Mittelschule', 'ESZC\CheJ', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Jahreszeugnis', 'Gymnasium', 'ESZC\CheJGym', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'FRZ', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 6);
+//                        $this->setCertificateSubject($tblCertificate, 'GRW', 1, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 8);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+//                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                    }
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Jahreszeugnis', 'Grundschule Klasse 2-4', 'ESZC\CheJGs', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
+//                    }
+//
+//                    $this->createCertificate(
+//                        'Jahreszeugnis', 'Grundschule Klasse 1', 'ESZC\CheJGsOne', $tblConsumerCertificate
+//                    );
+//
+//                    $tblCertificate = $this->createCertificate(
+//                        'Habljahresinformation', 'Grundschule Klasse 2-4', 'ESZC\CheHjInfoGs', $tblConsumerCertificate
+//                    );
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
+//                    }
+//
+//                    $this->createCertificate(
+//                        'Habljahresinformation', 'Grundschule Klasse 1', 'ESZC\CheHjInfoGsOne', $tblConsumerCertificate
+//                    );
+//                }
+//            }
 
-                    $tblCertificate = $this->createCertificate(
-                        'Bildungsempfehlung', 'Klassenstufe 4', 'ESZC\CheBeGs', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Bildungsempfehlung', 'Gymnasium', 'ESZC\CheBeGym', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Bildungsempfehlung', 'Mittelschule', 'ESZC\CheBeMi', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Halbjahresinformation', 'Hauptschule', 'ESZC\CheHjInfoHs', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Halbjahresinformation', 'Klasse 5-6', 'ESZC\CheHjInfo', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Halbjahresinformation', 'Realschule', 'ESZC\CheHjInfoRs', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Halbjahresinformation', 'Gymnasium', 'ESZC\CheHjGymInfo', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'FRZ', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GRW', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Halbjahreszeugnis', 'Gymnasium', 'ESZC\CheHjGym', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'FRZ', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GRW', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Halbjahreszeugnis', 'Hauptschule', 'ESZC\CheHjHs', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Halbjahreszeugnis', 'Klasse 5-6', 'ESZC\CheHj', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Halbjahreszeugnis', 'Realschule', 'ESZC\CheHjRs', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Jahreszeugnis', 'Mittelschule', 'ESZC\CheJ', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Jahreszeugnis', 'Gymnasium', 'ESZC\CheJGym', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'FRZ', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
-                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 6);
-                        $this->setCertificateSubject($tblCertificate, 'GRW', 1, 7);
-                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 8);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
-                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
-                    }
-
-                    $tblCertificate = $this->createCertificate(
-                        'Jahreszeugnis', 'Grundschule Klasse 2-4', 'ESZC\CheJGs', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
-                    }
-
-                    $this->createCertificate(
-                        'Jahreszeugnis', 'Grundschule Klasse 1', 'ESZC\CheJGsOne', $tblConsumerCertificate
-                    );
-
-                    $tblCertificate = $this->createCertificate(
-                        'Habljahresinformation', 'Grundschule Klasse 2-4', 'ESZC\CheHjInfoGs', $tblConsumerCertificate
-                    );
-                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-                        $this->setCertificateGradeAllStandard($tblCertificate);
-                    }
-                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
-                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
-                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
-
-                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2);
-                        $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
-                    }
-
-                    $this->createCertificate(
-                        'Habljahresinformation', 'Grundschule Klasse 1', 'ESZC\CheHjInfoGsOne', $tblConsumerCertificate
-                    );
-                }
+            // Alt-Last löschen
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheBeGs'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheBeGym'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheBeMi'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHj'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjGym'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjGymInfo'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjHs'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjInfo'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheBeGym'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjInfoGs'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjInfoGsOne'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjInfoHs'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjInfoRs'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheHjRs'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheJ'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheJGs'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheJGsOne'))) {
+                $this->destroyCertificate($tblCertificate);
+            }
+            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESZC\CheJGym'))) {
+                $this->destroyCertificate($tblCertificate);
             }
 
             if ($tblConsumer->getAcronym() == 'EVSC' || $tblConsumer->getAcronym() == 'DEMO') {
@@ -1499,7 +1565,7 @@ class Data extends AbstractData
     /**
      * @return false|TblCertificateType[]
      */
-    public function  getCertificateTypeAll()
+    public function getCertificateTypeAll()
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateType');
@@ -1572,10 +1638,10 @@ class Data extends AbstractData
 
         $Entity = $Manager->getEntity('TblCertificateLevel')
             ->findOneBy(array(
-                TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-                TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
-            )
-        );
+                    TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                    TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
+                )
+            );
 
         if (null === $Entity) {
             $Entity = new TblCertificateLevel();
@@ -1598,7 +1664,39 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
         $Entity = $Manager->getEntity('TblCertificate')->findOneBy(array('Id' => $tblCertificate->getId()));
+        if (null !== $Entity) {
+            // Foreign-Key Verknüpfungen löschen
+            if (($tblCertificateGradeList = $this->getCertificateGradeAll($Entity))) {
+                foreach ($tblCertificateGradeList as $tblCertificateGrade) {
+                    $this->destroyCertificateGrade($tblCertificateGrade);
+                }
+            }
+            if (($tblCertificateSubjectList = $this->getCertificateSubjectAll($Entity))) {
+                foreach ($tblCertificateSubjectList as $tblCertificateSubject) {
+                    $this->destroyCertificateSubject($tblCertificateSubject);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificateGrade $tblCertificateGrade
+     *
+     * @return bool
+     */
+    public function destroyCertificateGrade(TblCertificateGrade $tblCertificateGrade)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificateGrade')->findOneBy(array('Id' => $tblCertificateGrade->getId()));
         if (null !== $Entity) {
             /** @var \SPHERE\System\Database\Fitting\Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
@@ -1607,5 +1705,59 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblCertificateSubject $tblCertificateSubject
+     *
+     * @return bool
+     */
+    public function destroyCertificateSubject(TblCertificateSubject $tblCertificateSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificateSubject')->findOneBy(array('Id' => $tblCertificateSubject->getId()));
+        if (null !== $Entity) {
+            /** @var \SPHERE\System\Database\Fitting\Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param null|TblConsumer $tblConsumer
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return bool|Entity\TblCertificate[]
+     */
+    public function getCertificateAllByConsumerAndType(
+        TblConsumer $tblConsumer = null,
+        TblCertificateType $tblCertificateType = null
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificate', array(
+                TblCertificate::SERVICE_TBL_CONSUMER => ($tblConsumer ? $tblConsumer->getId() : null),
+                TblCertificate::ATTR_TBL_CERTIFICATE_TYPE => ($tblCertificateType ? $tblCertificateType->getId() : null),
+            )
+        );
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return false|TblCertificateLevel[]
+     */
+    public function getCertificateLevelAllByCertificate(TblCertificate $tblCertificate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificateLevel', array(
+                TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
+            )
+        );
     }
 }
