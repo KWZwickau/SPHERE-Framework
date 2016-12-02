@@ -3,6 +3,7 @@ jQuery.ajax({
     url:"{{ URL }}",
     data:{{ POST }},
     dataType:"json",
+    cache: false,
     error: function (request, status, error) {
         // Parse Error
         var ErrorMessage = '';

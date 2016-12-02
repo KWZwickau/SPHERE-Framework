@@ -6,10 +6,16 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Common\Frontend\Ajax\Emitter\ApiEmitter;
+use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -21,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
+use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -42,6 +49,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -164,6 +172,13 @@ class Frontend extends Extension implements IFrontendInterface
 //                    }
 //            }
 
+                $ContactPerson = new Pipeline();
+                $ContactPerson->addEmitter( $E = new ApiEmitter( new Route( '/Api/Corporation/Similar' ), $R = new InlineReceiver() ) );
+                $E->setGetPayload(array('MethodName' => 'ajaxLayoutSimilarPerson'));
+                $ContactPerson->setSuccessMessage('Suche abgeschlossen');
+
+                $tblSalutationAll = Person::useService()->getSalutationAll();
+
                 $Stage->setContent(
                     new Layout(array(
                         new LayoutGroup(
@@ -211,6 +226,32 @@ class Frontend extends Extension implements IFrontendInterface
                                 Relationship::useFrontend()->frontendLayoutCompany($tblCompany)
                             ))),
                         ), (new Title(new TagList() . ' Beziehungen', 'zu Personen'))
+                        ),
+                        new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(array(
+
+                                (new Form(
+                                    new FormGroup(array(
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new Panel('Anrede', array(
+                                                    new SelectBox( ViewPerson::TBL_SALUTATION_ID, 'Anrede', array('Salutation' => $tblSalutationAll),
+                                                        new Conversation()),
+                                                ), Panel::PANEL_TYPE_INFO), 4),
+                                            new FormColumn(
+                                                new Panel('Vorname', array(
+                                                    (new TextField( ViewPerson::TBL_PERSON_FIRST_NAME, 'Rufname', 'Vorname'))->setRequired(),
+                                                ), Panel::PANEL_TYPE_INFO), 4),
+                                            new FormColumn(
+                                                new Panel('Nachname', array(
+                                                    (new TextField(ViewPerson::TBL_PERSON_LAST_NAME, 'Nachname', 'Nachname'))->setRequired(),
+                                                ), Panel::PANEL_TYPE_INFO), 4),
+                                        ))
+                                    ))
+                                ,new Primary('Ansprechpartner hinzufügen')))->ajaxPipelineOnSubmit( $ContactPerson ),
+                                $R
+                            ))),
+                        ), (new Title(new TagList() . ' Ansprechpartner anlegen'))
                         ),
                     ))
                 );
