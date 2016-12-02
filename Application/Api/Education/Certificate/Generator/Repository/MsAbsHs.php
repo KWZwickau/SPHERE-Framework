@@ -258,7 +258,7 @@ class MsAbsHs extends Certificate
                     )
                 )
                 ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
-                ->addSlice($this->getObligationToVotePart())
+                ->addSlice($this->getObligationToVotePartStandard())
                 ->addSlice($this->getDescriptionHead())
                 ->addSlice($this->getDescriptionContent('240px'))
                 ->addSlice($this->getDateLine())

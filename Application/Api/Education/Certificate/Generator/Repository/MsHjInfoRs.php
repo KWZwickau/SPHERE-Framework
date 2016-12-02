@@ -77,7 +77,7 @@ class MsHjInfoRs extends Certificate
                 )
                 ->addSlice($this->getSubjectLanes()
                     ->styleHeight('270px'))
-                ->addSlice($this->getObligationToVotePart())
+                ->addSlice($this->getObligationToVotePartStandard())
                 ->addSlice($this->getDescriptionHead(true))
                 ->addSlice($this->getDescriptionContent('110px', '5px'))
                 ->addSlice($this->getDateLine())

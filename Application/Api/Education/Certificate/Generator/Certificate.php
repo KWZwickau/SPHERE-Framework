@@ -663,7 +663,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    protected function getObligationToVotePart($TextSize = '14px', $IsGradeUnderlined = true)
+    protected function getObligationToVotePartStandard($TextSize = '14px', $IsGradeUnderlined = true)
     {
 
         $slice = new Slice();
