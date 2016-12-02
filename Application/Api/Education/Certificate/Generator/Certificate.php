@@ -1069,10 +1069,12 @@ abstract class Certificate extends Extension
      * @param string $LineOne
      * @param string $LineTwo
      * @param string $LineThree
+     * @param string $LineFour
+     * @param string $LineFive
      *
      * @return Slice
      */
-    protected function getInfo($MarginTop = '10px', $LineOne = '', $LineTwo = '', $LineThree = '')
+    protected function getInfo($MarginTop = '10px', $LineOne = '', $LineTwo = '', $LineThree = '', $LineFour = '', $LineFive = '')
     {
         $InfoSlice = ( new Slice() );
         $InfoSlice->addSection(( new Section() )
@@ -1103,6 +1105,22 @@ abstract class Certificate extends Extension
             $InfoSlice->addSection(( new Section() )
                 ->addElementColumn(( new Element() )
                     ->setContent($LineThree)
+                    ->styleTextSize('9.5px')
+                    , '30%')
+            );
+        }
+        if ($LineFour !== '') {
+            $InfoSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    ->setContent($LineFour)
+                    ->styleTextSize('9.5px')
+                    , '30%')
+            );
+        }
+        if ($LineFive !== '') {
+            $InfoSlice->addSection(( new Section() )
+                ->addElementColumn(( new Element() )
+                    ->setContent($LineFive)
                     ->styleTextSize('9.5px')
                     , '30%')
             );
