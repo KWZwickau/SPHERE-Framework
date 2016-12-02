@@ -2906,9 +2906,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if ($tblAddressToPersonList) {
             foreach ($tblAddressToPersonList as $tblToPerson) {
-
                 if (!$tblToPerson instanceof TblToCompany) {
-
                     $dataList[$tblPerson->getId()]['Number'] = ++$personCount;
                     $dataList[$tblPerson->getId()]['Person'] = $tblPerson->getLastFirstName();
                     $subDataList[] = array(
@@ -2941,22 +2939,29 @@ class Frontend extends Extension implements IFrontendInterface
                             /** @var TblToCompany $tblToCompany */
                             foreach ($tblAddressToPersonList as $tblToCompany) {
                                 if ($tblToCompany->getTblAddress()) {
-                                    $subDataList[$tblToCompany->getTblAddress()->getId()] = array(
-                                        'Salutation'   => $tblPerson->getSalutation(),
-                                        'Person'       => $tblPerson->getFullName(),
-                                        'Relationship' => '',
-                                        'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToCompany->getId().'][Address]',
-                                            '&nbsp; '.$tblToCompany->getTblAddress()->getGuiString(), 1)
-                                    );
+
+                                    if ($tblToCompany->getServiceTblCompany()->getId() === $tblRelationship->getServiceTblCompany()->getId()) {
+                                        $RelationShip = $tblType->getName();
+                                        $subDataList[] = array(
+                                            'Salutation'   => $tblPerson->getSalutation(),
+                                            'Person'       => $tblPerson->getFullName(),
+                                            'Relationship' => $RelationShip,
+                                            'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToCompany->getId().'][Address]',
+                                                '&nbsp; '.$tblToCompany->getTblAddress()->getGuiString(), 1)
+                                        );
+                                    }
                                 } else {
-                                    /** @var TblToPerson $tblRelationship */
-                                    $subDataList[$tblToCompany->getTblAddress()->getId()] = array(
-                                        'Salutation'   => $tblPerson->getSalutation(),
-                                        'Person'       => $tblPerson->getFullName(),
-                                        'Relationship' => '',
-                                        'Address'      => new Warning(
-                                            new Exclamation().' Keine Adresse hinterlegt')
-                                    );
+                                    if ($tblToCompany->getServiceTblCompany()->getId() === $tblRelationship->getServiceTblCompany()->getId()) {
+                                        $RelationShip = $tblType->getName();
+                                        /** @var TblToPerson $tblRelationship */
+                                        $subDataList[] = array(
+                                            'Salutation'   => $tblPerson->getSalutation(),
+                                            'Person'       => $tblPerson->getFullName(),
+                                            'Relationship' => $RelationShip,
+                                            'Address'      => new Warning(
+                                                new Exclamation().' Keine Adresse hinterlegt')
+                                        );
+                                    }
                                 }
                             }
                         }

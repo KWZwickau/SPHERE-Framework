@@ -353,6 +353,22 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
+        if ($FilterCategory != null) {
+            $tblFilterCategory = SerialLetter::useService()->getFilterCategoryById($FilterCategory);
+            if ($tblFilterCategory->getName() === 'Personengruppe') {
+                if (isset($FilterGroup['TblGroup_Id']) && $FilterGroup['TblGroup_Id'] == 0) {
+                    $Stage->setError('FilterGroup[TblGroup_Id]', 'Bitte geben Sie eine Gruppe an.');
+                    $Error = true;
+                }
+            }
+            if ($tblFilterCategory->getName() === 'Firmengruppe') {
+                if (isset($FilterGroup['TblGroup_Id']) && $FilterGroup['TblGroup_Id'] == 0) {
+                    $Stage->setError('FilterGroup[TblGroup_Id]', 'Bitte geben Sie eine Gruppe an.');
+                    $Error = true;
+                }
+            }
+        }
+
 
         if (!$Error) {
             $TabActive = 'STATIC';
