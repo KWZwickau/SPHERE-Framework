@@ -5,14 +5,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\Common\Frontend\Ajax\Emitter\ApiEmitter;
-use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\FieldValueReceiver;
-use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -22,7 +16,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Shield;
-use SPHERE\Common\Frontend\Icon\Repository\Success;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -36,13 +29,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -63,57 +53,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Backward(true));
         $Stage->setMessage(date('d.m.Y - H:i:s'));
 
-        $this->getCache(new TwigHandler())->clearCache();
-
-        $P = new Pipeline();
-
-        $RA = new FieldValueReceiver( new TextField('A') );
-        $RB = new FieldValueReceiver( new TextArea('B') );
-        $RC = new FieldValueReceiver( new PasswordField('C') );
-        $RD = new FieldValueReceiver( new TextField('D') );
-        $RDI = new InlineReceiver();
-
-        $EA = new ApiEmitter( new Route('/Api/Test/AjaxTest'), $RA );
-        $EA->setPostPayload(array( 'ABC' => 0 ));
-        $EB = new ApiEmitter( new Route('/Api/Test/AjaxTest'), $RB );
-        $EB->setPostPayload(array( 'ABC' => 1 ));
-        $EC = new ApiEmitter( new Route('/Api/Test/AjaxTest'), $RC );
-        $EC->setPostPayload(array( 'ABC' => 2 ));
-        $ED = new ApiEmitter( new Route('/Api/Test/AjaxTest'), array( $RD,$RDI) );
-        $ED->setPostPayload(array( 'ABC' => 3 ));
-
-        $P->addEmitter( $EA );
-        $P->addEmitter( $EB );
-        $P->addEmitter( $EC );
-        $P->addEmitter( $ED );
-
-        $PF = (new Pipeline())->setSuccessMessage( new Success().' Erfolgreich gespeichert' );
-        $EF = new ApiEmitter( new Route('/Api/Test/AjaxTest'), array( $RB, $RDI ) );
-        $PF->addEmitter( $EF );
-
-        $Stage->setContent(
-            (new Form(
-                new FormGroup(
-                    new FormRow(
-                        new FormColumn(
-                            new Panel('Form', array(
-                                $RC, $RD
-                            ))
-                        )
-                    )
-                )
-            ,array(new Primary('Send'),new Reset('--'))))->ajaxPipelineOnSubmit( $PF ).
-
-
-            new TableData(array(
-                array(
-                    'A' => $RA,
-                    'B' => $RB,
-                    'C' => $RC,
-                    'D' => $RD
-                )
-            )).(new Standard('Rinne',''))->ajaxPipelineOnClick( $P ).new Info($RDI)
-        );
+        $Stage->setContent($this->getCleanLocalStorage());
 
         return $Stage;
     }
