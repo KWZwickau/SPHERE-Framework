@@ -1,3 +1,8 @@
+executeScript = function (Callback) {
+    console.log( '2nd', Callback );
+    Callback();
+};
+
 jQuery.ajax({
     method:"{{ METHOD }}",
     url:"{{ URL }}",

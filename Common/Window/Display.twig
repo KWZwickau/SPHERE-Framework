@@ -41,26 +41,19 @@
           content="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
     <script type="text/javascript">
-        var executeScript = function executeScript(Callback)
+        var executeScript = function (Callback)
         {
-            console.log( 'Execute ' + Callback );
-            if( document.readyState == 'complete' ) {
-                Callback();
-                executeScript = function executeScript(Callback) {
-                    Callback();
-                };
-            } else {
+            console.log( '1st', Callback );
 
-                var Event = window.onload;
-                if (typeof window.onload != 'function') {
-                    window.onload = Callback;
-                } else {
-                    window.onload = function () {
-                        if (Event) {
-                            Event();
-                        }
-                        Callback();
+            var Event = window.onload;
+            if (typeof window.onload != 'function') {
+                window.onload = Callback;
+            } else {
+                window.onload = function () {
+                    if (Event) {
+                        Event();
                     }
+                    Callback();
                 }
             }
         }

@@ -63,6 +63,8 @@ class ContactPerson implements IApiInterface
             )
         ));
 
+        $Result = array_slice( $Result, 0, 10 );
+
         $Table = array();
         foreach( $Result as $Row ) {
             $Table[] = $Row[0];
@@ -85,7 +87,7 @@ class ContactPerson implements IApiInterface
             ViewPerson::TBL_SALUTATION_SALUTATION => 'Anrede',
             ViewPerson::TBL_PERSON_FIRST_NAME => 'Vorname',
             ViewPerson::TBL_PERSON_LAST_NAME => 'Nachname'
-        ))
+        ), false)
 
 
             .(new Standard('Ansprechpartner anlegen','#'))->ajaxPipelineOnClick( $P ).$R;
