@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Certificate\Generator\Service;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateField;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
@@ -148,6 +149,11 @@ class Data extends AbstractData
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
+            }
+            // Begrenzung Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $this->createCertificateField($tblCertificate, $FieldName, 4000);
             }
         }
 
@@ -1780,4 +1786,72 @@ class Data extends AbstractData
             )
         );
     }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param string $FieldName
+     *
+     * @return false|integer
+     */
+    public function getCharCountByCertificateAndField(TblCertificate $tblCertificate, $FieldName)
+    {
+
+        $tblCertificateField = $this->getCertificateFieldByCertificateAndField(
+            $tblCertificate, $FieldName
+        );
+
+        if ($tblCertificateField) {
+            return $tblCertificateField->getCharCount();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param $FieldName
+     * @return false|TblCertificateField
+     */
+    public function getCertificateFieldByCertificateAndField(TblCertificate $tblCertificate, $FieldName)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificateField', array(
+                TblCertificateField::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateField::ATTR_FIELD_NAME => $FieldName
+            )
+        );
+    }
+
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param string $FieldName
+     * @param integer $CharCount
+     *
+     * @return TblCertificateField
+     */
+    public function createCertificateField(TblCertificate $tblCertificate, $FieldName, $CharCount)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificateField')
+            ->findOneBy(array(
+                TblCertificateField::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+                TblCertificateField::ATTR_FIELD_NAME => $FieldName
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblCertificateField();
+            $Entity->setTblCertificate($tblCertificate);
+            $Entity->setFieldName($FieldName);
+            $Entity->setCharCount($CharCount);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
 }

@@ -632,11 +632,12 @@ class Frontend extends Extension implements IFrontendInterface
                 return $Stage;
 
                 // Sonstige Informationen
-            } elseif ($IsNotGradeType
-                && $tblPrepare->getServiceTblBehaviorTask()
-                && ($tblDivision = $tblPrepare->getServiceTblDivision())
-                && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
-                    $tblDivision))
+            } elseif (($tblDivision = $tblPrepare->getServiceTblDivision())
+                && (($IsNotGradeType
+                        || (!$IsNotGradeType && !$tblPrepare->getServiceTblBehaviorTask()))
+                    || (!$IsNotGradeType && $tblPrepare->getServiceTblBehaviorTask()
+                        && !Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
+                            $tblDivision)))
             ) {
                 $Stage = new Stage('Zeugnisvorbereitung', 'Sonstige Informationen festlegen');
                 $Stage->addButton(new Standard(
@@ -647,33 +648,38 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ));
 
-                $tblCurrentGradeType = false;
-                $tblNextGradeType = false;
-                $tblGradeTypeList = array();
-                foreach ($tblTestList as $tblTest) {
-                    if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
-                        if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
-                            $tblGradeTypeList[$tblGradeTypeItem->getId()] = $tblGradeTypeItem;
-                            if ($tblCurrentGradeType && !$tblNextGradeType) {
-                                $tblNextGradeType = $tblGradeTypeItem;
-                            }
-                            if ($GradeTypeId && $GradeTypeId == $tblGradeTypeItem->getId()) {
-                                $tblCurrentGradeType = $tblGradeTypeItem;
+                if ($tblPrepare->getServiceTblBehaviorTask()
+                    && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
+                        $tblDivision))
+                ) {
+                    $tblCurrentGradeType = false;
+                    $tblNextGradeType = false;
+                    $tblGradeTypeList = array();
+                    foreach ($tblTestList as $tblTest) {
+                        if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
+                            if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
+                                $tblGradeTypeList[$tblGradeTypeItem->getId()] = $tblGradeTypeItem;
+                                if ($tblCurrentGradeType && !$tblNextGradeType) {
+                                    $tblNextGradeType = $tblGradeTypeItem;
+                                }
+                                if ($GradeTypeId && $GradeTypeId == $tblGradeTypeItem->getId()) {
+                                    $tblCurrentGradeType = $tblGradeTypeItem;
+                                }
                             }
                         }
                     }
-                }
 
-                $buttonList = array();
-                /** @var TblGradeType $tblGradeType */
-                foreach ($tblGradeTypeList as $tblGradeType) {
-                    $buttonList[] = new Standard($tblGradeType->getName(),
-                        '/Education/Certificate/Prepare/Prepare/Setting', null, array(
-                            'PrepareId' => $tblPrepare->getId(),
-                            'Route' => $Route,
-                            'GradeTypeId' => $tblGradeType->getId()
-                        )
-                    );
+                    $buttonList = array();
+                    /** @var TblGradeType $tblGradeType */
+                    foreach ($tblGradeTypeList as $tblGradeType) {
+                        $buttonList[] = new Standard($tblGradeType->getName(),
+                            '/Education/Certificate/Prepare/Prepare/Setting', null, array(
+                                'PrepareId' => $tblPrepare->getId(),
+                                'Route' => $Route,
+                                'GradeTypeId' => $tblGradeType->getId()
+                            )
+                        );
+                    }
                 }
 
                 $buttonList[] = new Standard(new Info(new Bold('Sonstige Informationen')),
@@ -882,8 +888,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
             $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
         } else {
-            // Todo richtige Template Vorlage
-            $tblCertificate = Generator::useService()->getCertificateById(130);
+            $tblCertificate = false;
         }
 
         if ($tblCertificate && ($tblDivision = $tblPrepareCertificate->getServiceTblDivision())) {
@@ -961,7 +966,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 &$columnTable,
                                 &$studentTable,
                                 $tblPerson,
-                                $tblPrepareStudent
+                                $tblPrepareStudent,
+                                $tblCertificate
                             ) {
 
                                 $PlaceholderList = explode('.', $Placeholder);
@@ -1013,8 +1019,21 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $studentTable[$tblPerson->getId()][$key]
                                                         = (new $Field($dataFieldName, '', ''))->setDisabled();
                                                 } else {
-                                                    $studentTable[$tblPerson->getId()][$key]
-                                                        = (new $Field($dataFieldName, '', ''));
+                                                    // TextArea Zeichen begrenzen
+                                                    if ($FormField[$Placeholder] == 'TextArea'
+                                                        && (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
+                                                            $tblCertificate, $key
+                                                        )))
+                                                    ) {
+                                                        /** @var TextArea $Field */
+                                                        $studentTable[$tblPerson->getId()][$key]
+                                                            = (new TextArea($dataFieldName, '', ''))->setMaxLengthValue(
+                                                                $CharCount
+                                                        );
+                                                    } else {
+                                                        $studentTable[$tblPerson->getId()][$key]
+                                                            = (new $Field($dataFieldName, '', ''));
+                                                    }
                                                 }
                                             }
                                         } else {

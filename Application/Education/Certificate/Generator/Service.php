@@ -352,4 +352,16 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCertificateLevelAllByCertificate($tblCertificate);
     }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param string $FieldName
+     *
+     * @return false|integer
+     */
+    public function getCharCountByCertificateAndField(TblCertificate $tblCertificate, $FieldName)
+    {
+
+        return (new Data($this->getBinding()))->getCharCountByCertificateAndField($tblCertificate, $FieldName);
+    }
 }
