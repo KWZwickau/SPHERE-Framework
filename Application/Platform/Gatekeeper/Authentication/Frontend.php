@@ -58,6 +58,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return string
+     */
     private function getCleanLocalStorage()
     {
 

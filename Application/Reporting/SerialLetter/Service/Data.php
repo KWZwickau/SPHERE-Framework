@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Reporting\SerialLetter\Service;
 
+use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -400,6 +401,7 @@ class Data extends AbstractData
      * @param TblPerson          $tblPerson
      * @param TblPerson          $tblPersonToAddress
      * @param TblToPerson        $tblToPerson
+     * @param TblToCompany       $tblToCompany
      * @param TblSalutation|null $tblSalutation
      *
      * @return TblAddressPerson
@@ -408,7 +410,8 @@ class Data extends AbstractData
         TblSerialLetter $tblSerialLetter,
         TblPerson $tblPerson,
         TblPerson $tblPersonToAddress,
-        TblToPerson $tblToPerson,
+        TblToPerson $tblToPerson = null,
+        TblToCompany $tblToCompany = null,
         TblSalutation $tblSalutation = null
     ) {
 
@@ -427,7 +430,7 @@ class Data extends AbstractData
             $Entity->setTblSerialLetter($tblSerialLetter);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblPersonToAddress($tblPersonToAddress);
-            $Entity->setServiceTblToPerson($tblToPerson);
+            $Entity->setServiceTblToPerson($tblToPerson, $tblToCompany);
             $Entity->setServiceTblSalutation($tblSalutation);
 
             $Manager->saveEntity($Entity);
