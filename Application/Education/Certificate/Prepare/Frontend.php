@@ -451,7 +451,6 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblCurrentGradeType) {
                             $subjectGradeList = array();
                             $gradeList = array();
-                            // ToDo fehlen Fach-Kopfnoten anzeigen
                             foreach ($tblTestList as $tblTest) {
                                 if (($tblGradeType = $tblTest->getServiceTblGradeType())
                                     && $tblGradeType->getId() == $tblCurrentGradeType->getId()
@@ -1450,49 +1449,70 @@ class Frontend extends Extension implements IFrontendInterface
 
             $studentList = array();
             $tableHeaderList = array();
+            // Alle Klassen ermitteln in denen der Schüler im aktuellen Schuljahr Unterricht hat
+            $divisionList = array();
             $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
-            if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask))) {
-                foreach ($tblTestAllByTask as $tblTest) {
-                    $tblSubject = $tblTest->getServiceTblSubject();
-                    if ($tblSubject && $tblTest->getServiceTblDivision()) {
-                        $tableHeaderList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+            $divisionPersonList = array();
+            if ($tblDivisionStudentAll) {
+                foreach ($tblDivisionStudentAll as $tblPerson) {
+                    if (($tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
+                        foreach ($tblPersonDivisionList as $tblDivisionItem) {
+                            if (!isset($divisionList[$tblDivisionItem->getId()])) {
+                                $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
+                            }
+                        }
+                    }
+                    $divisionPersonList[$tblPerson->getId()] = 1;
+                }
+            }
 
-                        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                            $tblTest->getServiceTblDivision(),
-                            $tblSubject,
-                            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-                        );
+            foreach ($divisionList as $tblDivisionItem) {
+                if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))) {
+                    foreach ($tblTestAllByTask as $tblTest) {
+                        $tblSubject = $tblTest->getServiceTblSubject();
+                        if ($tblSubject && $tblTest->getServiceTblDivision()) {
+                            $tableHeaderList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
 
-                        if ($tblDivisionSubject && $tblDivisionSubject->getTblSubjectGroup()) {
-                            $tblSubjectStudentAllByDivisionSubject =
-                                Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-                            if ($tblSubjectStudentAllByDivisionSubject) {
-                                foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
+                            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                $tblTest->getServiceTblDivision(),
+                                $tblSubject,
+                                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+                            );
 
-                                    $tblPerson = $tblSubjectStudent->getServiceTblPerson();
-                                    if ($tblPerson) {
-                                        $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                            $tblTest, $tblSubject, $tblPerson, $studentList,
-                                            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null);
+                            if ($tblDivisionSubject && $tblDivisionSubject->getTblSubjectGroup()) {
+                                $tblSubjectStudentAllByDivisionSubject =
+                                    Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                if ($tblSubjectStudentAllByDivisionSubject) {
+                                    foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
+
+                                        $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+                                        if ($tblPerson) {
+                                            $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                $tblTest, $tblSubject, $tblPerson, $studentList,
+                                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null);
+                                        }
                                     }
-                                }
 
-                                // nicht vorhandene Schüler in der Gruppe auf leer setzten
-                                if ($tblDivisionStudentAll) {
-                                    foreach ($tblDivisionStudentAll as $tblPersonItem) {
-                                        if (!isset($studentList[$tblPersonItem->getId()][$tblSubject->getAcronym()])) {
-                                            $studentList[$tblPersonItem->getId()][$tblSubject->getAcronym()] = '';
+                                    // nicht vorhandene Schüler in der Gruppe auf leer setzten
+                                    if ($tblDivisionStudentAll) {
+                                        foreach ($tblDivisionStudentAll as $tblPersonItem) {
+                                            if (!isset($studentList[$tblPersonItem->getId()][$tblSubject->getAcronym()])) {
+                                                $studentList[$tblPersonItem->getId()][$tblSubject->getAcronym()] = '';
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        } else {
-                            if ($tblDivisionStudentAll) {
-                                $count = 1;
-                                foreach ($tblDivisionStudentAll as $tblPerson) {
-                                    $studentList[$tblPerson->getId()]['Number'] = $count++;
-                                    $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                        $tblTest, $tblSubject, $tblPerson, $studentList);
+                            } else {
+                                if ($tblDivisionStudentAll) {
+                                    $count = 1;
+                                    foreach ($tblDivisionStudentAll as $tblPerson) {
+                                        // nur Schüler der ausgewählten Klasse
+                                        if (isset($divisionPersonList[$tblPerson->getId()])) {
+                                            $studentList[$tblPerson->getId()]['Number'] = $count++;
+                                            $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                $tblTest, $tblSubject, $tblPerson, $studentList);
+                                        }
+                                    }
                                 }
                             }
                         }

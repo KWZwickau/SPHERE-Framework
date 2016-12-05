@@ -201,7 +201,7 @@ class Service extends AbstractService
         ) {
 
             $countStudents = count($tblPersonList);
-
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
             foreach ($tblPersonList as $tblPerson) {
                 // Template bereits gesetzt
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
@@ -211,11 +211,11 @@ class Service extends AbstractService
                     }
                 }
 
-                if (($tblConsumer = Consumer::useService()->getConsumerBySession())) {
+                if ($tblConsumer) {
                     // Eigene Vorlage
                     if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumer))) {
                         if (count($certificateList) == 1) {
-                            // Todo Save
+                            // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
 //                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
                             $countTemplates++;
                         } else {
@@ -224,7 +224,7 @@ class Service extends AbstractService
                         // Standard Vorlagen
                     } elseif (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson))) {
                         if (count($certificateList) == 1) {
-                            // Todo Save
+                            // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
 //                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
                             $countTemplates++;
                         } else {
@@ -267,14 +267,8 @@ class Service extends AbstractService
 
             $tblCourse = false;
             // Bildungsgang nur hier relevant sonst klappt es bei den anderen nicht korrekt
-            if ($tblSchoolType->getName() == 'Mittelschule / Oberschule'
-                && ($tblLevel->getName() == '7'
-                    || $tblLevel->getName() == '07'
-                    || $tblLevel->getName() == '8'
-                    || $tblLevel->getName() == '08'
-                    || $tblLevel->getName() == '9'
-                    || $tblLevel->getName() == '09'
-                    || $tblLevel->getName() == '10')
+            if (preg_match( '!(Mittelschule|Oberschule)!is', $tblSchoolType->getName() )
+                && preg_match( '!(0?(7|8|9)|10)!is',$tblLevel->getName() )
             ) {
                 if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
                     && ($tblStudent = $tblPerson->getStudent())
