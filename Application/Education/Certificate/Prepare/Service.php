@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
@@ -35,6 +36,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -628,7 +630,7 @@ class Service extends AbstractService
                     /*
                      * Fehlzeiten
                      */
-                    if ($tblCertificate && isset($array['ExcusedDays']) && isset($array['UnexcusedDays'])){
+                    if ($tblCertificate && isset($array['ExcusedDays']) && isset($array['UnexcusedDays'])) {
                         if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
                             (new Data($this->getBinding()))->updatePrepareStudent(
                                 $tblPrepareStudent,
@@ -655,7 +657,7 @@ class Service extends AbstractService
                      * Sonstige Informationen
                      */
                     foreach ($array as $field => $value) {
-                        if ($field == 'ExcusedDays' || $field == 'UnexcusedDays'){
+                        if ($field == 'ExcusedDays' || $field == 'UnexcusedDays') {
                             continue;
                         } else {
                             if ($field == 'SchoolType'
@@ -1337,7 +1339,6 @@ class Service extends AbstractService
         }
 
 
-
         // ToDo ScoreType
         $error = false;
 //            if ($tblScoreType) {
@@ -1410,7 +1411,7 @@ class Service extends AbstractService
         if (!$tblPrepare->getServiceTblPersonSigner()
             && $tblPrepare->getServiceTblGenerateCertificate()
             && $tblPrepare->getServiceTblGenerateCertificate()->isDivisionTeacherAvailable()
-        ){
+        ) {
             $tblPerson = false;
             $tblAccount = Account::useService()->getAccountBySession();
             if ($tblAccount) {
@@ -1419,7 +1420,7 @@ class Service extends AbstractService
                     $tblPerson = $tblPersonAllByAccount[0];
                 }
             }
-            if ($tblPerson){
+            if ($tblPerson) {
                 (new Data($this->getBinding()))->updatePrepare(
                     $tblPrepare,
                     $tblPrepare->getDate(),
@@ -1428,6 +1429,49 @@ class Service extends AbstractService
                     $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
                     $tblPerson
                 );
+            }
+        }
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     */
+    public function setTemplatesAllByPrepareCertificate(TblPrepareCertificate $tblPrepare)
+    {
+
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                // Template bereits gesetzt
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                        continue;
+                    }
+                }
+
+                if ($tblConsumer) {
+                    // Eigene Vorlage
+                    if (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare, $tblPerson,
+                        $tblConsumer))
+                    ) {
+                        if (count($certificateList) == 1) {
+                            $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
+                        } else {
+                            continue;
+                        }
+                        // Standard Vorlagen
+                    } elseif (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
+                        $tblPerson))
+                    ) {
+                        if (count($certificateList) == 1) {
+                            $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
+                        } else {
+                            continue;
+                        }
+                    }
+                }
             }
         }
     }

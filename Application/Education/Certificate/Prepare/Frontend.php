@@ -256,6 +256,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPrepareAllByDivision = Prepare::useService()->getPrepareAllByDivision($tblDivision);
             if ($tblPrepareAllByDivision) {
                 foreach ($tblPrepareAllByDivision as $tblPrepareCertificate) {
+
+                    // Setzen der Zeugnisvorlagen
+                    Prepare::useService()->setTemplatesAllByPrepareCertificate($tblPrepareCertificate);
+
                     $tableData[] = array(
                         'Date' => $tblPrepareCertificate->getDate(),
                         'Name' => $tblPrepareCertificate->getName(),
