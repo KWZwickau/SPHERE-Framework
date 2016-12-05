@@ -191,7 +191,15 @@ class Frontend extends Extension
     private function formGenerate(TblYear $tblYear = null)
     {
 
+        $certificateTypeList = array();
         $tblCertificateTypeAll = Generator::useService()->getCertificateTypeAll();
+        if ($tblCertificateTypeAll){
+            foreach ($tblCertificateTypeAll as $tblCertificateType){
+                if ($tblCertificateType->getIdentifier() !== 'LEAVE') {
+                    $certificateTypeList[] = $tblCertificateType;
+                }
+            }
+        }
 
         $tblAppointedDateTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
             Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
@@ -264,7 +272,7 @@ class Frontend extends Extension
                     new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 6
                 ),
                 new FormColumn(
-                    new SelectBox('Data[Type]', 'Typ', array('Name' => $tblCertificateTypeAll)), 6
+                    new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList)), 6
                 ),
             )),
             new FormRow(array(
