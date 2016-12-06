@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -238,7 +239,11 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
             array(
                 TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
-            ));
+            ),
+            array(
+                TblGradeType::ATTR_NAME => self::ORDER_ASC
+            )
+        );
     }
 
     /**

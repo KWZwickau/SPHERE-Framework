@@ -688,7 +688,12 @@ class Service extends AbstractService
     public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
     {
 
-        return (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
+        $tblTestList = (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
+        if ($tblTestList){
+            $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('GradeTypeName');
+        }
+
+        return $tblTestList;
     }
 
     /**
