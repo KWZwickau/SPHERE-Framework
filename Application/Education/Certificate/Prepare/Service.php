@@ -671,6 +671,15 @@ class Service extends AbstractService
                             }
 
                             if (!empty(trim($value))) {
+                                $value = trim($value);
+                                // Zeichenbegrenzen
+                                if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
+                                        $tblCertificate, $field
+                                    )) && strlen($value) > $CharCount
+                                ) {
+                                    $value = substr($value, 0, $CharCount);
+                                }
+
                                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson,
                                     $field))
                                 ) {

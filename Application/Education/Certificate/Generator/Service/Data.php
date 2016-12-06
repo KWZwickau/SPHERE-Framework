@@ -122,6 +122,11 @@ class Data extends AbstractData
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
             }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $this->createCertificateField($tblCertificate, $FieldName, 1200);
+            }
         }
         if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
             $this->setCertificateGradeAllStandard($tblCertificate);
@@ -150,7 +155,7 @@ class Data extends AbstractData
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
             }
-            // Begrenzung Bemerkungsfeld
+            // Begrenzung des Bemerkungsfeld
             $FieldName = 'Remark';
             if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
                 $this->createCertificateField($tblCertificate, $FieldName, 4000);
@@ -197,6 +202,11 @@ class Data extends AbstractData
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $this->createCertificateField($tblCertificate, $FieldName, 4000);
             }
         }
 

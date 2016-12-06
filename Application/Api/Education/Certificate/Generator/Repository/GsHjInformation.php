@@ -58,7 +58,7 @@ class GsHjInformation extends Certificate
                 )
                 ->addSlice($this->getSchoolName())
                 ->addSlice($this->getCertificateHead('Halbjahresinformation der Grundschule'))
-                ->addSlice($this->getDivisionAndYear())
+                ->addSlice($this->getDivisionAndYear('20px', '1. Schulhalbjahr'))
                 ->addSlice($this->getStudentName())
                 ->addSlice($this->getGradeLanes())
                 ->addSlice((new Slice())

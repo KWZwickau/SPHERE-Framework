@@ -794,7 +794,9 @@ class Frontend extends Extension implements IFrontendInterface
                         "info" => false,  // Deaktivieren Such-Info
                         "sort" => false,
                         "responsive" => false
-                    ));
+                    ),
+                    true
+                );
 
 //                $form = new Form(
 //                    new FormGroup(
