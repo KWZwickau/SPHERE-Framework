@@ -156,10 +156,11 @@ class Data extends AbstractData
                 }
             }
             // Begrenzung des Bemerkungsfeld
-            $FieldName = 'Remark';
-            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                $this->createCertificateField($tblCertificate, $FieldName, 4000);
-            }
+            // erste Klasse nicht, wegen Enter
+//            $FieldName = 'Remark';
+//            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $this->createCertificateField($tblCertificate, $FieldName, 4000);
+//            }
         }
 
         $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', '', 'GsJa');
@@ -175,6 +176,11 @@ class Data extends AbstractData
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $this->createCertificateField($tblCertificate, $FieldName, 1200);
             }
         }
         if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
@@ -204,10 +210,11 @@ class Data extends AbstractData
                 }
             }
             // Begrenzung des Bemerkungsfeld
-            $FieldName = 'Remark';
-            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                $this->createCertificateField($tblCertificate, $FieldName, 4000);
-            }
+            // erste Klasse nicht, wegen Enter
+//            $FieldName = 'Remark';
+//            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $this->createCertificateField($tblCertificate, $FieldName, 4000);
+//            }
         }
 
         $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Hauptschulabschluss Klasse 9',

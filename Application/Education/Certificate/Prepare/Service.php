@@ -494,10 +494,14 @@ class Service extends AbstractService
                                 $value = trim($value);
                                 // Zeichenbegrenzen
                                 if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
-                                        $tblCertificate, $field
-                                    )) && strlen($value) > $CharCount
+                                        $tblCertificate, $field))
                                 ) {
-                                    $value = substr($value, 0, $CharCount);
+                                    // ToDo GCK Enter entfernen funktioniert nicht
+                                    $value = str_replace('\n', ' ', $value);
+
+                                    if (strlen($value) > $CharCount) {
+                                        $value = substr($value, 0, $CharCount);
+                                    }
                                 }
 
                                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson,
