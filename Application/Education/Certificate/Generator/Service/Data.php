@@ -256,6 +256,28 @@ class Data extends AbstractData
                 }
             }
         }
+        if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+            $this->setCertificateGradeAllStandard($tblCertificate);
+        }
+        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+            $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $this->setCertificateSubject($tblCertificate, 'FRZ', 1, 3);
+            $this->setCertificateSubject($tblCertificate, 'KU', 1, 4);
+            $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
+            $this->setCertificateSubject($tblCertificate, 'GE', 1, 6);
+            $this->setCertificateSubject($tblCertificate, 'GRW', 1, 7);
+            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 8);
+
+            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
+            $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+        }
 
         $tblCertificate = $this->createCertificate('Gymnasium Halbjahreszeugnis', '', 'GymHj');
         if ($tblCertificate) {

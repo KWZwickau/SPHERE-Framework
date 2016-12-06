@@ -207,15 +207,6 @@ class TblPrepareCertificate extends Element
     }
 
     /**
-     * @return bool
-     */
-    public function isAppointedDateTaskUpdated()
-    {
-
-        return Prepare::useService()->isAppointedDateTaskUpdated($this);
-    }
-
-    /**
      * @return boolean
      */
     public function isGradeInformation()
