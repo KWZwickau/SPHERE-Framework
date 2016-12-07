@@ -5,9 +5,9 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
-use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Group\Group as PeopleGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -54,7 +54,6 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
-use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractView;
@@ -68,8 +67,10 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
-
-    private function formContact( $Id = null, $Person = null, $Force = false )
+    /**
+     * @return Form
+     */
+    private function formContact()
     {
         $tblSalutationAll = Person::useService()->getSalutationAll();
         $tblRelationshipAll = Relationship::useService()->getTypeAllByGroup(
@@ -81,13 +82,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Beziehung', array(
-                            new SelectBox('Person[' . ViewRelationshipToCompany::TBL_TYPE_ID . ']', 'Art des Ansprechpartners', array('Name' => $tblRelationshipAll),
-                                new Conversation()),
+                            (new SelectBox('Person[' . ViewRelationshipToCompany::TBL_TYPE_ID . ']', 'Art des Ansprechpartners', array('Name' => $tblRelationshipAll),
+                                new Conversation()))->setRequired(),
                         ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Anrede', array(
-                            new SelectBox('Person[' . ViewPerson::TBL_SALUTATION_ID . ']', 'Anrede', array('Salutation' => $tblSalutationAll),
-                                new Conversation()),
+                            (new SelectBox('Person[' . ViewPerson::TBL_SALUTATION_ID . ']', 'Anrede', array('Salutation' => $tblSalutationAll),
+                                new Conversation()))->setRequired(),
                         ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Vorname', array(
@@ -99,16 +100,21 @@ class Frontend extends Extension implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO), 3),
                 ))
             ))
-            , ($Force ? new Primary('Ansprechpartner anlegen') : new Primary('Ansprechpartner prüfen')), new Route(__NAMESPACE__.'/Contact/Create'),array(
-                'Id' => $Id,
-                'Person' => $Person,
-                'Force' => $Force
-        ));
+            , new Primary('Ansprechpartner prüfen')
+        );
     }
 
 
-
-    public function frontendContact($Id = null, $Person = null, $Group = null)
+    /**
+     * @param null|int $Id Company-Id
+     * @param null|array $Person Form-Person-Data
+     * @param null|int $Group Company-Group-Id
+     * @param null|int $tblPerson Link-Person-Id
+     * @param null|int $tblType Link-Relationship-Id
+     * @param bool $doCreate New-Person-Toggle
+     * @return Stage
+     */
+    public function frontendContact($Id = null, $Person = null, $Group = null, $tblPerson = null, $tblType = null, $doCreate = false)
     {
         $Stage = new Stage('Firmen', 'Ansprechpartner');
         $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array(
@@ -117,6 +123,64 @@ class Frontend extends Extension implements IFrontendInterface
         )));
 
         $tblCompany = Company::useService()->getCompanyById($Id);
+        $tblGroup = PeopleGroup::useService()->getGroupByMetaTable(
+            \SPHERE\Application\People\Group\Service\Entity\TblGroup::META_TABLE_COMPANY_CONTACT
+        );
+
+        // Link Person to Company
+        if( $tblCompany && $tblPerson && $tblType ) {
+            $tblPerson = Person::useService()->getPersonById( $tblPerson );
+            $tblType = Relationship::useService()->getTypeById( $tblType );
+            if( $tblPerson && $tblType && $tblGroup ) {
+                Relationship::useService()->addCompanyRelationshipToPerson(
+                    $tblCompany, $tblPerson, $tblType
+                );
+                PeopleGroup::useService()->addGroupPerson( $tblGroup, $tblPerson );
+                $Stage->setContent(
+                    new Success(new Ok() . ' Der Ansprechpartner wurde hinzugefügt').
+                    new Redirect( $this->getRequest()->getPathInfo(), Redirect::TIMEOUT_SUCCESS, array(
+                    'Id' => $Id,
+                    'Group' => $Group
+                ) ) );
+                return $Stage;
+            } else {
+                $Stage->setContent(
+                    new Danger(new Ban() . ' Ansprechpartner konnte nicht hinzugefügt werden').
+                    new Redirect( $this->getRequest()->getPathInfo(), Redirect::TIMEOUT_ERROR, array(
+                    'Id' => $Id,
+                    'Group' => $Group
+                ) ) );
+                return $Stage;
+            }
+        }
+
+        // Create Person to Company
+        if( $doCreate && $tblCompany ) {
+            $tblType = Relationship::useService()->getTypeById( $Person[ViewRelationshipToCompany::TBL_TYPE_ID] );
+            if( $tblType ) {
+                $tblPerson = Person::useService()->insertPerson(
+                    $Person[ViewPerson::TBL_SALUTATION_ID], '',
+                    $Person[ViewPerson::TBL_PERSON_FIRST_NAME], '',
+                    $Person[ViewPerson::TBL_PERSON_LAST_NAME],
+                    array(
+                        0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                        1 => $tblGroup
+                    )
+                );
+                if ($tblPerson) {
+                    Relationship::useService()->addCompanyRelationshipToPerson(
+                        $tblCompany, $tblPerson, $tblType
+                    );
+                    $Stage->setContent(
+                        new Success(new Ok() . ' Der Ansprechpartner wurde hinzugefügt') .
+                        new Redirect($this->getRequest()->getPathInfo(), Redirect::TIMEOUT_SUCCESS, array(
+                            'Id' => $Id,
+                            'Group' => $Group
+                        )));
+                    return $Stage;
+                }
+            }
+        }
 
         $Search = new Pile(Pile::JOIN_TYPE_INNER);
         $Search->addPile(Company::useService(), new ViewCompany(), null, ViewCompany::TBL_COMPANY_ID);
@@ -145,7 +209,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Table[] = array_merge( $ViewArray1, $ViewArray2 );
         }
 
-        $Form = $this->formContact( $Id, $Person );
+        $Form = $this->formContact();
 
         $Error = true;
         if( $Person ) {
@@ -206,7 +270,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Search->addPile( Person::useService(), new ViewPerson() );
 
             $Filter = array();
-            $Filter[ViewPerson::TBL_SALUTATION_ID] = $Person[ViewPerson::TBL_SALUTATION_ID] ? array($Person[ViewPerson::TBL_SALUTATION_ID]) : array('');
+            $Filter[ViewPerson::TBL_SALUTATION_ID] = array($Person[ViewPerson::TBL_SALUTATION_ID]);
             $Filter[ViewPerson::TBL_PERSON_FIRST_NAME] = explode( ' ', $Person[ViewPerson::TBL_PERSON_FIRST_NAME] );
             $Filter[ViewPerson::TBL_PERSON_LAST_NAME] = explode( ' ', $Person[ViewPerson::TBL_PERSON_LAST_NAME] );
 
@@ -220,8 +284,14 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var AbstractView[] $Row */
             foreach( $Result as $Row ) {
                 $ViewArray = $Row[0]->__toArray();
-                $ViewArray['DTOption'] = new Standard('Als Ansprechpartner hinzufügen','', null, array(
-                    'TblSalutation_Id'
+                $Address = Person::useService()->getPersonById( $ViewArray[ViewPerson::TBL_PERSON_ID] )->fetchMainAddress();
+                $ViewArray['DTAddress'] = ( $Address ? $Address->getGuiTwoRowString() : '');
+                $ViewArray['DTOption'] = new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                    'Ansprechpartner hinzufügen',$this->getRequest()->getPathInfo(), new PlusSign(), array(
+                        'Id' => $Id,
+                        'Group' => $Group,
+                        'tblPerson' => $ViewArray[ViewPerson::TBL_PERSON_ID],
+                        'tblType' => $Person[ViewRelationshipToCompany::TBL_TYPE_ID]
                 ));
                 $PossibleTable[] = $ViewArray;
             }
@@ -232,11 +302,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             (
                             empty($PossibleTable)
-                                ? new Success( 'Keine Ähnlichen Personen gefunden' )
+                                ? new Success( 'Keine ähnlichen Personen gefunden' )
                                 :new TableData($PossibleTable, null, array(
                                 ViewPerson::TBL_SALUTATION_SALUTATION => 'Anrede',
                                 ViewPerson::TBL_PERSON_FIRST_NAME => 'Vorname',
                                 ViewPerson::TBL_PERSON_LAST_NAME => 'Nachname',
+                                'DTAddress' => 'Adresse',
                                 'DTOption' => ''
                             ))
                             )
@@ -246,15 +317,37 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             $Layout->addGroup(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Standard('Als Ansprechpartner hinzufügen','', null, array(
-                                'TblSalutation_Id'
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Panel('Neue Person anlegen',array(
+                                'Anrede: '.Person::useService()
+                                    ->getSalutationById($Person[ViewPerson::TBL_SALUTATION_ID])
+                                    ->getSalutation(),
+                                'Vorname: '.$Person[ViewPerson::TBL_PERSON_FIRST_NAME],
+                                'Nachname: '.$Person[ViewPerson::TBL_PERSON_LAST_NAME],
                             ))
-                        )
-                    ),
-                    new Title( new PlusSign().' Neue Person anlegen', 'Es wird eine neue Person angelegt und mit der Firma verknüpft' ))
+                        ),4),
+                        new LayoutColumn(array(
+                            new Panel('Beziehung erstellen',array(
+                                'Gruppe: '.$tblGroup->getName(),
+                                'Beziehung: '.Relationship::useService()
+                                    ->getTypeById( $Person[ViewRelationshipToCompany::TBL_TYPE_ID] )
+                                    ->getName()
+                            ))
+                        ),4),
+                        new LayoutColumn(array(
+                            new \SPHERE\Common\Frontend\Link\Repository\Primary('Ansprechpartner anlegen',$this->getRequest()->getPathInfo(), new Save(), array(
+                                'Id' => $Id,
+                                'Group' => $Group,
+                                'Person' => $Person,
+                                'doCreate' => 1
+                            ))
+                        ))
+                    ))
+                ), new Title( new PlusSign().' Neue Person anlegen',
+                    'Es wird eine neue Person angelegt und mit der Firma verknüpft'
+                ))
             );
         }
 
@@ -273,11 +366,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null|array $Company
      * @param null|array $Meta
      * @param null|int $Group
-     * @param null|array $Person
      *
      * @return Stage
      */
-    public function frontendCompany($TabActive = false, $Id = null, $Company = null, $Meta = null, $Group = null, $Person = null)
+    public function frontendCompany($TabActive = false, $Id = null, $Company = null, $Meta = null, $Group = null)
     {
 
         $Stage = new Stage('Firmen', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
