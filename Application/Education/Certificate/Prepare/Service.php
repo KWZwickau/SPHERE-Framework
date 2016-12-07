@@ -637,6 +637,13 @@ class Service extends AbstractService
                 $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
             }
 
+            // Schulleitung
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                && $tblGenerateCertificate->getHeadmasterName()
+            ){
+                $Content['Headmaster']['Name'] = $tblGenerateCertificate->getHeadmasterName();
+            }
+
             // Kopfnoten
             $tblPrepareGradeBehaviorList = Prepare::useService()->getPrepareGradeAllByPerson(
                 $tblPrepare,
@@ -783,7 +790,8 @@ class Service extends AbstractService
                     /** @var TblStudentSubject $tblStudentSubject */
                     $tblStudentSubject = current($tblStudentSubjectList);
                     if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name'] = $tblSubjectProfile->getName();
+                        $Content['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
+                            = str_replace('Profil', '',$tblSubjectProfile->getName());
                     }
                 }
             }

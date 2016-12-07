@@ -68,15 +68,14 @@ class MsHjInfo extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes()
-                    ->styleHeight('270px'))
+                ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
                 ->addSlice($this->getObligationToVotePartStandard())
                 ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('125px', '5px'))
+                ->addSlice($this->getDescriptionContent('110px', '5px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice($this->getSignPart(false))
                 ->addSlice($this->getParentSign())
-                ->addSlice($this->getInfo('15px',
+                ->addSlice($this->getInfo('25px',
                     'Notenerläuterung:',
                     '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                     (6 = ungenügend nur bei der Bewertung der Leistungen)'))
