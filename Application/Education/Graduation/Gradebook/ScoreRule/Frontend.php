@@ -1129,8 +1129,8 @@ class Frontend extends FrontendMinimumGradeCount
                                     new Title('Verfügbare', 'Zensuren-Typen'),
                                     new TableData($tblGradeTypeAll, null,
                                         array(
-                                            'Name' => 'Name ',
-                                            'Option' => 'Faktor'
+                                            'Name'   => 'Name ',
+                                            'Option' => ' '
                                         )
                                     )
                                 ), 6
