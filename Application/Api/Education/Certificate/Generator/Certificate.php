@@ -714,140 +714,6 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param string $TextSize
-     * @param bool $IsGradeUnderlined
-     *
-     * @return Slice
-     */
-    protected function getObligationToVotePartStandard($TextSize = '14px', $IsGradeUnderlined = true)
-    {
-
-        $slice = new Slice();
-        $sectionList = array();
-        $tblSubject = false;
-
-        // Profil
-        if ($this->getTblPerson()
-            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
-            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                $tblStudentSubjectType))
-        ) {
-            /** @var TblStudentSubject $tblStudentSubject */
-            $tblStudentSubject = current($tblStudentSubjectList);
-            if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                $tblSubject = $tblSubjectProfile;
-            }
-        }
-
-        if ($tblSubject) {
-            $elementName = (new Element())
-                ->setContent('
-                   {% if(Content.Student.Profile' . $tblSubject->getAcronym() . ' is not empty) %}
-                       {{ Content.Student.Profile.' . $tblSubject->getAcronym() . '.Name' . ' }}
-                   {% else %}
-                        &nbsp;
-                   {% endif %}
-                ')
-                ->styleAlignCenter()
-                ->styleBorderBottom()
-                ->styleMarginTop('10px')
-                ->styleTextSize($TextSize);
-
-            $elementGrade = (new Element())
-                ->setContent('
-                    {% if(Content.Grade.Data.' . $tblSubject->getAcronym() . ' is not empty) %}
-                        {{ Content.Grade.Data.' . $tblSubject->getAcronym() . ' }}
-                    {% else %}
-                        &ndash;
-                    {% endif %}
-                ')
-                ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
-                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                ->stylePaddingTop('0px')
-                ->stylePaddingBottom('0px')
-                ->styleMarginTop('10px')
-                ->styleTextSize($TextSize);
-        } else {
-            $elementName = (new Element())
-                ->setContent('&nbsp;')
-                ->styleAlignCenter()
-                ->styleBorderBottom()
-                ->styleMarginTop('10px')
-                ->styleTextSize($TextSize);
-
-            $elementGrade = (new Element())
-                ->setContent('&ndash;')
-                ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
-                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                ->stylePaddingTop('0px')
-                ->stylePaddingBottom('0px')
-                ->styleMarginTop('10px')
-                ->styleTextSize($TextSize);
-        }
-
-        // Alte Wahlpflichtbereich Vorlage
-//        $section = new Section();
-//        $section
-//            ->addElementColumn(( new Element() )
-//                ->setContent('Wahlpflichtbereich:')
-//                ->styleTextBold()
-//                ->styleMarginTop('10px')
-//                ->styleTextSize($TextSize)
-//                , '20%')
-//            ->addElementColumn($elementName
-//                , '50%')
-//            ->addElementColumn(( new Element() ), '30%');
-//        $sectionList[] = $section;
-
-//        $section = new Section();
-//        $section
-//            ->addElementColumn(( new Element() )
-//                ->setContent('Profil')
-//                ->styleTextSize($TextSize)
-//                ->styleMarginTop('10px')
-//                , '39%')
-//            ->addElementColumn($elementGrade
-//                , '9%')
-//            ->addElementColumn(( new Element() ), '52%');
-//        $sectionList[] = $section;
-
-        $section = new Section();
-        $section
-            ->addElementColumn((new Element())
-                ->setContent('Wahlpflichtbereich:')
-                ->styleTextBold()
-                ->styleMarginTop('10px')
-                ->styleTextSize($TextSize)
-                , '20%')
-            ->addElementColumn((new Element()), '80%');
-        $sectionList[] = $section;
-
-        $section = new Section();
-        $section
-            ->addElementColumn($elementName
-                , '90%')
-            ->addElementColumn((new Element())
-                , '1%')
-            ->addElementColumn($elementGrade
-                , '9%');
-        $sectionList[] = $section;
-
-        $section = new Section();
-        $section
-            ->addElementColumn((new Element())
-//                ->setContent('Neigungskurs / 2.Fremdsprache')
-                ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)1')
-                ->styleTextSize('11px')
-                , '50%');
-        $sectionList[] = $section;
-
-        return $slice->addSectionList($sectionList);
-    }
-
-    /**
      * @param bool $isMissing
      *
      * @return Slice
@@ -1445,5 +1311,204 @@ abstract class Certificate extends Extension
 
 
         return $slice->addSectionList($sectionList);
+    }
+
+    /**
+     * @param string $TextSize
+     * @param bool $IsGradeUnderlined
+     *
+     * @return Slice
+     */
+    public function getOrientationStandard($TextSize = '14px', $IsGradeUnderlined = true)
+    {
+
+        $marginTop = '5px';
+
+        $slice = new Slice();
+        $sectionList = array();
+
+        $elementOrientationName = false;
+        $elementOrientationGrade = false;
+        $elementForeignLanguageName = false;
+        $elementForeignLanguageGrade = false;
+        if ($this->getTblPerson()
+            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+        ) {
+
+            // Neigungskurs
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                $tblStudentSubject = current($tblSubjectList);
+                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+
+                    // Todo noch richtig Klären erstmal fest für Chemnitz
+                    // $SubjectAcronym = $tblSubject-getAcronym();
+                    $SubjectAcronym = 'NK';
+
+                    $elementOrientationName = new Element();
+                    $elementOrientationName
+                        ->setContent('
+                            {% if(Content.Student.Orientation.' . $tblSubject->getAcronym() . ' is not empty) %}
+                                 {{ Content.Student.Orientation.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                        ->stylePaddingTop('0px')
+                        ->stylePaddingBottom('0px')
+                        ->styleMarginTop($marginTop)
+                        ->styleTextSize($TextSize);
+
+                    $elementOrientationGrade = new Element();
+                    $elementOrientationGrade
+                        ->setContent('
+                            {% if(Content.Grade.Data.' . $SubjectAcronym . ' is not empty) %}
+                                {{ Content.Grade.Data.' . $SubjectAcronym . ' }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor('#BBB')
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                        ->stylePaddingTop('0px')
+                        ->stylePaddingBottom('0px')
+                        ->styleMarginTop($marginTop)
+                        ->styleTextSize($TextSize);
+                }
+            }
+
+            // 2. Fremdsprache
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if ($tblStudentSubject->getTblStudentSubjectRanking()
+                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                        && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                    ) {
+                        $elementForeignLanguageName = new Element();
+                        $elementForeignLanguageName
+                            ->setContent('
+                            {% if(Content.Student.ForeignLanguage.' . $tblSubject->getAcronym() . ' is not empty) %}
+                                 {{ Content.Student.ForeignLanguage.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleMarginTop($marginTop)
+                            ->styleTextSize($TextSize);
+
+                        $elementForeignLanguageGrade = new Element();
+                        $elementForeignLanguageGrade
+                            ->setContent('
+                            {% if(Content.Grade.Data.' . $tblSubject->getAcronym() . ' is not empty) %}
+                                {{ Content.Grade.Data.' . $tblSubject->getAcronym() . ' }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleMarginTop($marginTop)
+                            ->styleTextSize($TextSize);
+                    }
+                }
+            }
+
+            // aktuell immer anzeigen
+//            if ($elementOrientationName || $elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Wahlpflichtbereich:')
+                        ->styleTextBold()
+                        ->styleMarginTop('10px')
+                        ->styleTextSize($TextSize)
+                    );
+                $sectionList[] = $section;
+//            }
+
+            if ($elementOrientationName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementOrientationName, '91%')
+                    ->addElementColumn($elementOrientationGrade, '9%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Neigungskurs (Neigungskursbereich)')
+                        ->styleBorderTop()
+                        ->styleMarginTop('0px')
+                        ->stylePaddingTop()
+                        ->styleTextSize('13px')
+                        , '89%')
+                    ->addElementColumn((new Element()), '11%');
+                $sectionList[] = $section;
+            } elseif ($elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementForeignLanguageName, '91%')
+                    ->addElementColumn($elementForeignLanguageGrade, '9%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('2. Fremdsprache (abschlussorientiert)')
+                        ->styleBorderTop()
+                        ->styleMarginTop('0px')
+                        ->stylePaddingTop()
+                        ->styleTextSize('13px')
+                        , '89%')
+                    ->addElementColumn((new Element()), '11%');
+                $sectionList[] = $section;
+            } else {
+                $elementName = (new Element())
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom()
+                    ->styleMarginTop($marginTop)
+                    ->styleTextSize($TextSize);
+
+                $elementGrade = (new Element())
+                    ->setContent('&ndash;')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('#BBB')
+                    ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                    ->stylePaddingTop('0px')
+                    ->stylePaddingBottom('0px')
+                    ->styleMarginTop($marginTop)
+                    ->styleTextSize($TextSize);
+
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementName
+                        , '90%')
+                    ->addElementColumn((new Element())
+                        , '1%')
+                    ->addElementColumn($elementGrade
+                        , '9%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)')
+                        ->styleTextSize('11px')
+                        , '50%');
+                $sectionList[] = $section;
+            }
+        }
+
+        return empty($sectionList) ? (new Slice())->styleHeight('60px') : $slice->addSectionList($sectionList);
     }
 }

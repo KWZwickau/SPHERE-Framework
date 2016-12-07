@@ -63,9 +63,9 @@ class MsHjInfoRs extends Certificate
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.')
-                        ->styleTextSize('11px')
+                        ->styleTextSize('12px')
                     )
-                    ->styleMarginTop('5px')
+                    ->styleMarginTop('8px')
                 )
                 ->addSlice($this->getGradeLanes())
                 ->addSlice((new Slice())
@@ -75,15 +75,14 @@ class MsHjInfoRs extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes()
-                    ->styleHeight('270px'))
-                ->addSlice($this->getObligationToVotePartStandard())
+                ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
+                ->addSlice($this->getOrientationStandard())
                 ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('110px', '5px'))
+                ->addSlice($this->getDescriptionContent('95px', '5px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice($this->getSignPart(false))
                 ->addSlice($this->getParentSign())
-                ->addSlice($this->getInfo('15px',
+                ->addSlice($this->getInfo('25px',
                     'Notenerläuterung:',
                     '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                     (6 = ungenügend nur bei der Bewertung der Leistungen)'))
