@@ -983,7 +983,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ),
                                 new LayoutRow(
                                     new LayoutColumn(
-                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Ansicht der gespeicherte Filterung'),
                                             array('Salutation' => 'Anrede',
                                                   'Name'       => 'Name',
                                                   'Address'    => 'Adresse'
@@ -1046,7 +1046,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ),
                                 new LayoutRow(
                                     new LayoutColumn(
-                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Ansicht der gespeicherte Filterung'),
                                             array('Salutation'    => 'Anrede',
                                                   'Name'          => 'Name',
                                                   'Address'       => 'Adresse',
@@ -1114,7 +1114,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ),
                                 new LayoutRow(
                                     new LayoutColumn(
-                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Ansicht der gespeicherte Filterung'),
                                             array('Salutation'          => 'Anrede',
                                                   'Name'                => 'Name',
                                                   'Address'             => 'Adresse',
@@ -1188,7 +1188,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ),
                                 new LayoutRow(
                                     new LayoutColumn(
-                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschau'),
+                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Ansicht der gespeicherte Filterung'),
                                             array('Salutation'          => 'Anrede',
                                                   'Name'                => 'Name',
                                                   'Address'             => 'Adresse',
