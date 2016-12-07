@@ -1130,7 +1130,6 @@ class Service extends AbstractService
      * @param null                $FilterProspect
      * @param null                $FilterCompany
      * @param null                $FilterRelationship
-     * @param null                $FilterCategory
      *
      * @return IFormInterface|string
      */
@@ -1143,8 +1142,7 @@ class Service extends AbstractService
         $FilterYear = null,
         $FilterProspect = null,
         $FilterCompany = null,
-        $FilterRelationship = null,
-        $FilterCategory = null
+        $FilterRelationship = null
     ) {
 
         /**
@@ -1166,39 +1164,35 @@ class Service extends AbstractService
                 }
             }
         }
-        if ($FilterCategory != null) {
-            $tblFilterCategory = SerialLetter::useService()->getFilterCategoryById($FilterCategory);
-            if ($tblFilterCategory->getName() === 'Personengruppe') {
+        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+        if ($tblFilterCategory) {
+            if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP) {
                 if (isset($FilterGroup['TblGroup_Id']) && $FilterGroup['TblGroup_Id'] == 0) {
                     $Stage->setError('FilterGroup[TblGroup_Id]', 'Bitte geben Sie eine Gruppe an.');
                     $Error = true;
                 }
             }
-            if ($tblFilterCategory->getName() === 'Firmengruppe') {
+            if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
                 if (isset($FilterGroup['TblGroup_Id']) && $FilterGroup['TblGroup_Id'] == 0) {
                     $Stage->setError('FilterGroup[TblGroup_Id]', 'Bitte geben Sie eine Gruppe an.');
                     $Error = true;
                 }
             }
-        }
-
-        if ($FilterCategory != null) {
-            $tblFilterCategory = SerialLetter::useService()->getFilterCategoryById($FilterCategory);
-        } else {
-            $tblFilterCategory = false;
         }
 
         if (!$Error) {
             $tblSerialLetter = ( new Data($this->getBinding()) )->updateSerialLetter(
                 $tblSerialLetter,
                 $SerialLetter['Name'],
-                $SerialLetter['Description'],
-                ( $tblFilterCategory ? $tblFilterCategory : null )
+                $SerialLetter['Description']
             );
 
             if ($tblSerialLetter) {
 
                 if ($tblFilterCategory) {
+//                    // remove all exist FilterField
+//                    ( new Data($this->getBinding()) )->destroyFilterFiledAllBySerialLetter($tblSerialLetter);
+
                     if ($tblFilterCategory->getName() === 'Personengruppe') {
                         if (!empty($FilterGroup)) {
                             foreach ($FilterGroup as $FieldName => $FieldValue) {
@@ -1272,7 +1266,7 @@ class Service extends AbstractService
                 }
             }
 
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adressliste für Serienbriefe ist geändert worden')
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adressliste für Serienbriefe wurde gespeichert')
                 .new Redirect('/Reporting/SerialLetter/Edit', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblSerialLetter->getId()));
         }
 
