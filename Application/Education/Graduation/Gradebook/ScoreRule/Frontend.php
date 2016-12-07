@@ -1245,7 +1245,7 @@ class Frontend extends FrontendMinimumGradeCount
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Berechnungsvariante', $tblScoreRule->getName(), Panel::PANEL_TYPE_INFO),
+                                    new Panel('Berechnungsvorschrift', $tblScoreRule->getName(), Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
                             ))
