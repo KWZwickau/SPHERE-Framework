@@ -1649,7 +1649,6 @@ class Service extends AbstractService
      * @param array                $FilterGroup
      * @param array                $FilterProspect
      * @param bool                 $IsTimeout (if search reach timeout)
-     * //     * @param bool $isSecond (change OptionA to Option B)
      *
      * @return array|bool
      */
@@ -1658,7 +1657,6 @@ class Service extends AbstractService
         $FilterGroup = array(),
         $FilterProspect = array(),
         &$IsTimeout = false
-//        $isSecond = false
     )
     {
         $tblFilterFieldList = ( $tblSerialLetter != null
@@ -1674,14 +1672,6 @@ class Service extends AbstractService
                 }
             }
         }
-
-//        // change OptionA to Option B
-//        if ($isSecond) {
-//            if (isset( $FilterProspect['TblProspectReservation_serviceTblTypeOptionA'] )) {
-//                $FilterProspect['TblProspectReservation_serviceTblTypeOptionB'] = $FilterProspect['TblProspectReservation_serviceTblTypeOptionA'];
-//                unset( $FilterProspect['TblProspectReservation_serviceTblTypeOptionA'] );
-//            }
-//        }
 
         $Result = array();
 
@@ -1736,7 +1726,7 @@ class Service extends AbstractService
             } else {
                 $FilterProspect = array();
             }
-
+            // Filter first time
             $Result = $Pile->searchPile(array(
                 0 => $FilterGroup,
                 1 => $FilterPerson,
@@ -1744,6 +1734,50 @@ class Service extends AbstractService
             ));
             // get Timeout status
             $IsTimeout = $Pile->isTimeout();
+
+            // change OptionA to Option B
+            if (isset($FilterProspect['TblProspectReservation_serviceTblTypeOptionA'])) {
+                $FilterProspect['TblProspectReservation_serviceTblTypeOptionB'] = $FilterProspect['TblProspectReservation_serviceTblTypeOptionA'];
+                unset($FilterProspect['TblProspectReservation_serviceTblTypeOptionA']);
+                $Result2 = array();
+                //Filter Group first Time
+                if (isset($FilterGroup['TblGroup_Id']) && !empty($FilterGroup['TblGroup_Id'])
+                ) {
+                    // Preparation FilterProspect
+                    if ($FilterProspect) {
+                        array_walk($FilterProspect, function (&$Input) {
+                            if (!is_array($Input)) {
+                                if (!empty($Input)) {
+                                    $Input = explode(' ', $Input);
+                                    $Input = array_filter($Input);
+                                } else {
+                                    $Input = false;
+                                }
+                            }
+                        });
+                        $FilterProspect = array_filter($FilterProspect);
+                    } else {
+                        $FilterProspect = array();
+                    }
+                    // Filter second time
+                    $Result2 = $Pile->searchPile(array(
+                        0 => $FilterGroup,
+                        1 => $FilterPerson,
+                        2 => $FilterProspect
+                    ));
+                    if ($IsTimeout == false) {
+                        // get Timeout status
+                        $IsTimeout = $Pile->isTimeout();
+                    }
+                }
+            }
+        }
+        if (!empty($Result) && isset($Result2) && !empty($Result2)) {
+            foreach ($Result2 as $Row) {
+                $Result[] = $Row;
+            }
+        } elseif (empty($Result) && isset($Result2) && !empty($Result2)) {
+            $Result = $Result2;
         }
 
         return ( !empty($Result) ? $Result : false );

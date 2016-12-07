@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStude
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -712,16 +713,15 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear]', 'Interessent: Schuljahr',
                             '', array('ReservationYear' => Prospect::useService()->getProspectReservationAll()))
-
                         , 3),
                     new FormColumn(
                         new AutoCompleter('FilterProspect[TblProspectReservation_ReservationDivision]', 'Interessent: Stufe',
                             '', array('ReservationDivision' => Prospect::useService()->getProspectReservationAll()))
                         , 3),
-//                    ,new FormColumn(
-//                        new SelectBox('FilterProspect[TblProspectReservation_serviceTblTypeOptionA]', 'Schulart:'
-//                            , array('Name' => Type::useService()->getTypeAll()))
-//                        , 3),
+                    new FormColumn(
+                        new SelectBox('FilterProspect[TblProspectReservation_serviceTblTypeOptionA]', 'Schulart:'
+                            , array('Name' => Type::useService()->getTypeAll()))
+                        , 3),
                 ))
             )));
     }
