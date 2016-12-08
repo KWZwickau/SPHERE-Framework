@@ -683,6 +683,53 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return Warning|string
+     */
+    public function createAddressPersonCompany(TblSerialLetter $tblSerialLetter)
+    {
+
+        $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
+        $tblType = Address::useService()->getTypeById(1);
+        if ($tblSerialPersonList) {
+            foreach ($tblSerialPersonList as $tblSerialPerson) {
+                $tblPerson = $tblSerialPerson->getServiceTblPerson();
+                if ($tblPerson) {
+                    // Nur Personen die noch keine Adressen haben
+                    if (!SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson)) {
+                        $tblRelationshipCompanyList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson);
+                        // nur bei einer Firma
+                        if ($tblRelationshipCompanyList && count($tblRelationshipCompanyList) === 1) {
+                            /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToCompany $tblToCompany */
+                            foreach ($tblRelationshipCompanyList as $tblRelationshipCompany) {
+                                $tblCompany = $tblRelationshipCompany->getServiceTblCompany();
+                                if ($tblCompany) {
+                                    $tblToCompanyList = Address::useService()->getAddressAllByCompany($tblCompany);
+                                    if ($tblToCompanyList) {
+                                        foreach ($tblToCompanyList as $tblToCompany) {
+                                            if ($tblToCompany->getTblType()->getId() === $tblType->getId()) {
+                                                $tblSalutation = $tblPerson->getTblSalutation();
+                                                $PersonTo = $tblPerson;
+                                                SerialLetter::useService()->createAddressPerson(
+                                                    $tblSerialLetter, $tblPerson, $PersonTo, null, $tblToCompany, ( $tblSalutation ? $tblSalutation : null ));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            return new Warning('Es sind keine Personen im Serienbrief hinterlegt');
+        }
+        return new Success('Mögliche und eindeutige Adressenzuweisungen wurde vorgenommen')
+            .new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblSerialLetter->getId()));
+    }
+
+    /**
      * @param TblSerialLetter    $tblSerialLetter
      * @param TblPerson          $tblPerson
      * @param TblPerson          $tblPersonToAddress

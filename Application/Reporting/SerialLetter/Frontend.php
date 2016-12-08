@@ -2207,10 +2207,17 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Buttons = array();
 //        $Buttons[] = new Standard('Löschen', '/Reporting/SerialLetter/Address/Remove', new Remove(), array('Id' => $tblSerialLetter->getId()));
-        $Buttons[] = new Standard('Personen direkt anschreiben', '/Reporting/SerialLetter/Address/Person', new Edit()
-            , array('Id' => $tblSerialLetter->getId()));
-        $Buttons[] = new Standard('Sorgeberechtigte anschreiben', '/Reporting/SerialLetter/Address/Guardian', new Edit()
-            , array('Id' => $tblSerialLetter->getId()));
+        if ($tblFilterCategory) {
+            if ($tblFilterCategory->getName() !== TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+                $Buttons[] = new Standard('Personen direkt anschreiben', '/Reporting/SerialLetter/Address/Person', new Edit()
+                    , array('Id' => $tblSerialLetter->getId()));
+                $Buttons[] = new Standard('Sorgeberechtigte anschreiben', '/Reporting/SerialLetter/Address/Guardian', new Edit()
+                    , array('Id' => $tblSerialLetter->getId()));
+            } elseif ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+                $Buttons[] = new Standard('Personen anschreiben', '/Reporting/SerialLetter/Address/Company', new Edit()
+                    , array('Id' => $tblSerialLetter->getId()));
+            }
+        }
 
         $Stage->setContent(
             new Layout(
@@ -2225,7 +2232,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             new Panel('Serienbrief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter)
                                         ), 6),
                                         new LayoutColumn(
-                                            ( !$tblFilterCategory || $tblFilterCategory->getName() !== 'Firmengruppe'
+                                            ( $tblFilterCategory
                                                 ? array(new Title('Adressauswahl', 'Automatik'),
                                                     new Panel('Adressen von untenstehenden Personen', $Buttons
                                                         , Panel::PANEL_TYPE_INFO))
@@ -2261,9 +2268,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendSetAddressByPerson($Id = null)
     {
@@ -2271,7 +2278,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Befüllen der Adressen', '');
         $tblSerialLetter = ( !$Id ? false : SerialLetter::useService()->getSerialLetterById($Id) );
         if (!$tblSerialLetter) {
-            $Stage->setContent(new WarningMessage('Es konnte kein Serienbrief gefunden werden'));
+            return $Stage->setContent(new WarningMessage('Kein Serienbrief ausgewählt'))
+                .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
         }
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter/Address', new ChevronLeft(), array('Id' => $Id)));
 
@@ -2283,9 +2291,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendSetAddressByPersonGuardian($Id = null)
     {
@@ -2293,12 +2301,36 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Befüllen der Adressen', 'aus Sorgeberechtigten');
         $tblSerialLetter = ( !$Id ? false : SerialLetter::useService()->getSerialLetterById($Id) );
         if (!$tblSerialLetter) {
-            $Stage->setContent(new WarningMessage('Es konnte kein Serienbrief gefunden werden'));
+            return $Stage->setContent(new WarningMessage('Kein Serienbrief ausgewählt'))
+                .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
         }
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter/Address', new ChevronLeft(), array('Id' => $Id)));
 
         $Stage->setContent(
             SerialLetter::useService()->createAddressPersonGuardian($tblSerialLetter)
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendSetAddressByCompany($Id = null)
+    {
+
+        $Stage = new Stage('Befüllen der Adressen', 'aus Firmen');
+        $tblSerialLetter = ( !$Id ? false : SerialLetter::useService()->getSerialLetterById($Id) );
+        if (!$tblSerialLetter) {
+            return $Stage->setContent(new WarningMessage('Kein Serienbrief ausgewählt'))
+                .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
+        }
+        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter/Address', new ChevronLeft(), array('Id' => $Id)));
+
+        $Stage->setContent(
+            SerialLetter::useService()->createAddressPersonCompany($tblSerialLetter)
         );
 
         return $Stage;

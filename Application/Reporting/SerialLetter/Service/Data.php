@@ -409,13 +409,23 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = $Manager->getEntity('TblAddressPerson')
-            ->findOneBy(array(
-                TblAddressPerson::ATTR_TBL_SERIAL_LETTER             => $tblSerialLetter->getId(),
-                TblAddressPerson::ATTR_SERVICE_TBL_PERSON            => $tblPerson->getId(),
-                TblAddressPerson::ATTR_SERVICE_TBL_PERSON_TO_ADDRESS => $tblPersonToAddress->getId(),
-                TblAddressPerson::ATTR_SERVICE_TBL_TO_PERSON         => $tblToPerson ? $tblToPerson->getId() : null
-            ));
+        if ($tblToCompany !== null) {
+            $Entity = $Manager->getEntity('TblAddressPerson')
+                ->findOneBy(array(
+                    TblAddressPerson::ATTR_TBL_SERIAL_LETTER             => $tblSerialLetter->getId(),
+                    TblAddressPerson::ATTR_SERVICE_TBL_PERSON            => $tblPerson->getId(),
+                    TblAddressPerson::ATTR_SERVICE_TBL_PERSON_TO_ADDRESS => $tblPersonToAddress->getId(),
+                    TblAddressPerson::ATTR_SERVICE_TBL_TO_PERSON         => $tblToCompany->getId()
+                ));
+        } else {
+            $Entity = $Manager->getEntity('TblAddressPerson')
+                ->findOneBy(array(
+                    TblAddressPerson::ATTR_TBL_SERIAL_LETTER             => $tblSerialLetter->getId(),
+                    TblAddressPerson::ATTR_SERVICE_TBL_PERSON            => $tblPerson->getId(),
+                    TblAddressPerson::ATTR_SERVICE_TBL_PERSON_TO_ADDRESS => $tblPersonToAddress->getId(),
+                    TblAddressPerson::ATTR_SERVICE_TBL_TO_PERSON         => $tblToPerson ? $tblToPerson->getId() : null
+                ));
+        }
 
         if (null === $Entity) {
             $Entity = new TblAddressPerson();
