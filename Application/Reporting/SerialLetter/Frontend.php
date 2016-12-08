@@ -2051,9 +2051,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $TableContent = array();
-        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $Id, $tblSerialLetter, $isCompany) {
+        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $Id, $tblSerialLetter, $tblFilterCategory) {
             $Item['Name'] = $tblPerson->getLastFirstName();
             $Item['StudentNumber'] = new Small(new Muted('-NA-'));
+            $Item['CompanyRelationship'] = '';
             $Item['Address'] = array();
             $Item['Option'] = new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
                 array('Id'       => $Id,
@@ -2063,12 +2064,24 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblStudent) {
                 $Item['StudentNumber'] = $tblStudent->getIdentifier();
             }
+            if ($tblFilterCategory && $tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+                $tblRelationshipCompanyList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson);
+                if ($tblRelationshipCompanyList) {
+                    foreach ($tblRelationshipCompanyList as $tblRelationshipCompany) {
+                        if ($Item['CompanyRelationship'] === '') {
+                            $Item['CompanyRelationship'] = $tblRelationshipCompany->getTblType()->getName();
+                        } else {
+                            $Item['CompanyRelationship'] .= ', '.$tblRelationshipCompany->getTblType()->getName();
+                        }
+                    }
+                }
+            }
 
             $tblAddressPersonList = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
             if ($tblAddressPersonList) {
                 $Data = array();
                 $WarningList = array();
-                if ($isCompany) {
+                if ($tblFilterCategory && $tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
                     /** @var TblAddressPerson $tblAddressPerson */
                     foreach ($tblAddressPersonList as $tblAddressPerson) {
                         $tblToCompany = $tblAddressPerson->getServiceTblToPerson($tblSerialLetter->getFilterCategory());
@@ -2219,6 +2232,56 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $TableShow =
+            new TableData($TableContent, null, array(
+                    'Name'          => 'Name',
+                    'StudentNumber' => 'Schüler-Nr.',
+                    'Address'       => 'Serienbrief Adresse',
+                    'Option'        => '')
+                , array(
+                    'order'      => array(array(2, 'asc')
+                    , array(0, 'asc')
+                    ),
+                    'columnDefs' => array(
+                        array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                        array('width' => '15%', 'targets' => 0),
+                        array('width' => '10%', 'targets' => 1)
+                    )
+                ));
+        if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+            $TableShow =
+                new TableData($TableContent, null, array(
+                        'Name'                => 'Name',
+                        'CompanyRelationship' => 'Beziehungstyp',
+                        'Address'             => 'Serienbrief Adresse',
+                        'Option'              => '')
+                    , array(
+                        'order'      => array(array(2, 'asc')
+                        , array(0, 'asc')
+                        ),
+                        'columnDefs' => array(
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                            array('width' => '15%', 'targets' => 0),
+                            array('width' => '10%', 'targets' => 1)
+                        )
+                    ));
+        } elseif ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
+            $TableShow =
+                new TableData($TableContent, null, array(
+                        'Name'    => 'Name',
+                        'Address' => 'Serienbrief Adresse',
+                        'Option'  => '')
+                    , array(
+                        'order'      => array(array(1, 'asc')
+                        , array(0, 'asc')
+                        ),
+                        'columnDefs' => array(
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                            array('width' => '15%', 'targets' => 0),
+                        )
+                    ));
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -2243,21 +2306,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ), 12),
                         new LayoutColumn(
-                            new TableData($TableContent, null, array(
-                                'Name'          => 'Name',
-                                'StudentNumber' => 'Schüler-Nr.',
-                                'Address'       => 'Serienbrief Adresse',
-                                'Option'        => '',
-                            ), array(
-                                'order'      => array(array(2, 'asc')
-                                , array(0, 'asc')
-                                ),
-                                'columnDefs' => array(
-                                    array('orderable' => false, 'width' => '1%', 'targets' => -1),
-                                    array('width' => '15%', 'targets' => 0),
-                                    array('width' => '10%', 'targets' => 1)
-                                )
-                            ))
+                            $TableShow
                         )
                     ))
                 )
@@ -2777,6 +2826,16 @@ class Frontend extends Extension implements IFrontendInterface
                 'Address'         => 'Adresse',
                 'Option'          => ''
             );
+            $Interactive = array(
+                'order'      => array(array(0, 'asc')),
+                'columnDefs' => array(
+                    array(
+//                        'orderable' => false,
+                        'width' => '3%', 'targets' => 0),
+                    array('type' => 'natural', 'targets' => 2),
+                    array('type' => 'natural', 'targets' => 4)
+                )
+            );
             if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
                 $columnList = array(
                     'Number'     => 'Nr.',
@@ -2785,6 +2844,14 @@ class Frontend extends Extension implements IFrontendInterface
 //                    'PersonToAddress' => 'Adressat',
                     'Address'    => 'Adresse',
                     'Option'     => ''
+                );
+                $Interactive = array(
+                    'order'      => array(array(0, 'asc')),
+                    'columnDefs' => array(
+                        array(
+//                            'orderable' => false,
+                            'width' => '3%', 'targets' => 0),
+                    )
                 );
             }
 
@@ -3004,7 +3071,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 6),
                             new LayoutColumn(
                                 new TableData(
-                                    $dataList, null, $columnList
+                                    $dataList, null, $columnList, $Interactive
                                 )
                             )
                         ))
