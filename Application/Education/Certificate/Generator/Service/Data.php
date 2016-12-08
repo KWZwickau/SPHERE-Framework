@@ -142,8 +142,8 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true,
                 Student::useService()->getStudentLiberationCategoryById(1));
-            $this->setCertificateSubject($tblCertificate, 'REV', 2, 3, false);
-            $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
+            $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
+            $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
         }
 
         $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse',
@@ -177,10 +177,15 @@ class Data extends AbstractData
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
             }
-            // Begrenzung des Bemerkungsfeld
+            // Begrenzung des Bemerkungsfelds
             $FieldName = 'Remark';
             if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                $this->createCertificateField($tblCertificate, $FieldName, 1200);
+                $this->createCertificateField($tblCertificate, $FieldName, 700);
+            }
+            // Begrenzung des Einschätzungfelds
+            $FieldName = 'Rating';
+            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $this->createCertificateField($tblCertificate, $FieldName, 600);
             }
         }
         if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
@@ -197,8 +202,8 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true,
                 Student::useService()->getStudentLiberationCategoryById(1));
-            $this->setCertificateSubject($tblCertificate, 'REV', 2, 3, false);
-            $this->setCertificateSubject($tblCertificate, 'ETH', 2, 4, false);
+            $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
+            $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
         }
 
         $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse', 'GsJOne');
