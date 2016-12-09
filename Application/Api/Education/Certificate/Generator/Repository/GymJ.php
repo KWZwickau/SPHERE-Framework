@@ -18,6 +18,17 @@ class GymJ extends Certificate
 {
 
     /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
+
+    /**
      * @param bool $IsSample
      *
      * @return Frame
@@ -26,27 +37,27 @@ class GymJ extends Certificate
     {
 
         if ($IsSample) {
-            $Header = ( new Slice() )
-                ->addSection(( new Section() )
-                    ->addElementColumn(( new Element() )
+            $Header = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleTextSize('12px')
                         ->styleTextColor('#CCC')
                         ->styleAlignCenter()
                         , '25%')
-                    ->addElementColumn(( new Element\Sample() )
+                    ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                     )
-                    ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '165px', '50px') )
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                        '165px', '50px'))
                         , '25%')
                 );
         } else {
-            $Header = ( new Slice() )
-                ->addSection(( new Section() )
-                    ->addElementColumn(( new Element() ), '75%')
-                    ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '165px', '50px') )
+            $Header = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element()), '75%')
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                        '165px', '50px'))
                         , '25%')
                 );
         }
@@ -65,7 +76,9 @@ class GymJ extends Certificate
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Einschätzung:')
-                            , '16%')
+                        )
+                    )
+                    ->addSection(( new Section() )
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Rating is not empty) %}
                                     {{ Content.Input.Rating|nl2br }}
@@ -73,9 +86,9 @@ class GymJ extends Certificate
                                     &nbsp;
                                 {% endif %}')
                             ->styleHeight('30px')
-                            , '84%')
+                        )
                     )
-                    ->styleMarginTop('5px')
+                    ->styleMarginTop('10px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -84,83 +97,10 @@ class GymJ extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes()->styleHeight('290px'))
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Wahlpflichtbereich¹:')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            ->styleTextBold()
-                            , '20%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Choose is not empty) %}
-                                    {{ Content.Input.Choose }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                            ->styleAlignLeft()
-                            ->styleBorderBottom('1px', '#000')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            , '32%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Profil mit Informatischer Bildung²')
-                            ->stylePaddingTop()
-                            ->stylePaddingLeft('6px')
-                            , '48%'
-                        )
-                    )
-                    ->styleMarginTop('5px')
+                ->addSlice($this->getSubjectLanes(true, array('Lane' => 1, 'Rank' => 3))
+                    ->styleHeight('270px')
                 )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            , '30%')
-                        ->addElementColumn((new Element())
-                            ->setContent('besuchtes Profil¹')
-                            ->styleAlignCenter()
-                            ->styleTextSize('9.5px')
-                            , '22%')
-                        ->addElementColumn((new Element())
-                            , '48%')
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Profil')
-                            ->stylePaddingTop()
-                            , '39%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
-                            ->styleBorderBottom('1px', '#000')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            , '9%')
-                        ->addElementColumn((new Element())
-                            , '4%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom()
-                            ->styleBorderBottom()
-                            , '48%')
-                    )->styleMarginTop('15px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            , '52%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Fremdsprache (ab Klassenstufe {{ Content.Input.LevelThree }} ) Im sprachlichen Profil')
-                            ->styleTextSize('9.5px')
-                            ->styleAlignCenter()
-                            , '48%')
-                    )
-                )
+                ->addSlice($this->getProfileStandard())
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -173,21 +113,26 @@ class GymJ extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->styleHeight('30px')
+                            ->styleHeight('25px')
                             , '77%')
                     )
                     ->styleMarginTop('5px')
                 )
-                ->addSlice($this->getDescriptionHead('true'))
+                ->addSlice($this->getDescriptionHead(true))
                 ->addSlice($this->getDescriptionContent('50px'))
                 ->addSlice($this->getTransfer())
                 ->addSlice($this->getDateLine('15px'))
-                ->addSlice($this->getSignPart())
+                ->addSlice($this->getSignPart(true))
                 ->addSlice($this->getParentSign('15px'))
-                ->addSlice($this->getInfo('0px',
+                ->addSlice($this->getInfo('5px',
                     'Notenerläuterung:',
                     '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                      6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'))
+                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'
+//                    ,
+//                    '¹ Zutreffendes ist zu unterstreichen.',
+//                    '² In Klassenstufe 8 ist der Zusatz „mit informatischer Bildung“ zu streichen. Beim sprachlichen
+//                    Profil ist der Zusatz „mit informatischer Bildung“ zu streichen und die Fremdsprache anzugeben.'
+                ))
             )
         );
     }

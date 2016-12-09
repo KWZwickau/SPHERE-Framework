@@ -24,6 +24,17 @@ class RadebeulHalbjahresinformation extends Certificate
 {
 
     /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
+
+    /**
      * @param bool $IsSample
      *
      * @return Frame
