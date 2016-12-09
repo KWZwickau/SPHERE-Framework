@@ -643,7 +643,19 @@ class Service extends AbstractService
 
             // Klassenlehrer
             if ($tblPrepare->getServiceTblPersonSigner()) {
-                $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
+                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                    && $tblConsumer->getAcronym() == 'EVSR'
+                ) {
+                    $firstName = $tblPrepare->getServiceTblPersonSigner()->getFirstName();
+                    if (strlen($firstName) > 1) {
+                        $firstName = substr($firstName, 0, 1) . '.';
+                    }
+                    $Content['DivisionTeacher']['Name'] = $firstName . ' '
+                        . $tblPrepare->getServiceTblPersonSigner()->getLastName();
+                } else {
+                    $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
+                }
+
             }
 
             // Schulleitung

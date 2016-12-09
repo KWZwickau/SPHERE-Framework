@@ -1388,11 +1388,16 @@ class Data extends AbstractData
                                 $this->createCertificateLevel($tblCertificate, $tblLevel);
                             }
                         }
-                        // Begrenzung des Bemerkungsfeld
-//                        $FieldName = 'Remark';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-//                            $this->createCertificateField($tblCertificate, $FieldName, 1200);
-//                        }
+                        // Begrenzung des Einschätzungfelds
+                        $FieldName = 'Rating';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                            $this->createCertificateField($tblCertificate, $FieldName, 170);
+                        }
+                        // Begrenzung des Bemerkungsfelds
+                        $FieldName = 'Remark';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                            $this->createCertificateField($tblCertificate, $FieldName, 800);
+                        }
                     }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
@@ -1423,11 +1428,16 @@ class Data extends AbstractData
                                 $this->createCertificateLevel($tblCertificate, $tblLevel);
                             }
                         }
-                        // Begrenzung des Bemerkungsfeld
-//                        $FieldName = 'Remark';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-//                            $this->createCertificateField($tblCertificate, $FieldName, 1200);
-//                        }
+                        // Begrenzung des Einschätzungfelds
+                        $FieldName = 'Rating';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                            $this->createCertificateField($tblCertificate, $FieldName, 170);
+                        }
+                        // Begrenzung des Bemerkungsfelds
+                        $FieldName = 'Remark';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                            $this->createCertificateField($tblCertificate, $FieldName, 800);
+                        }
                     }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
