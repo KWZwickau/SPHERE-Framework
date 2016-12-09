@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
-use SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC\CheBeGs;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
@@ -162,7 +161,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('0', 'desc'),
                                     array('1', 'asc'),
                                     array('2', 'asc'),
-                                )
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
+                                ),
                             ))
                         ))
                     ))
@@ -224,7 +226,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('0', 'desc'),
                                     array('1', 'asc'),
                                     array('2', 'asc'),
-                                )
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
+                                ),
                             ))
                         ))
                     ))
@@ -262,8 +267,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tableData[] = array(
                         'Date' => $tblPrepareCertificate->getDate(),
+                        'Type' => $tblPrepareCertificate->getServiceTblGenerateCertificate()
+                            ? $tblPrepareCertificate->getServiceTblGenerateCertificate()->getServiceTblCertificateType()->getName()
+                            : '',
                         'Name' => $tblPrepareCertificate->getName(),
-                        'Status' => '',
                         'Option' =>
                             (new Standard(
                                 '', '/Education/Certificate/Prepare/Prepare/Setting', new Setup(),
@@ -303,8 +310,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new TableData($tableData, null, array(
                                         'Date' => 'Zeugnisdatum',
+                                        'Type' => 'Typ',
                                         'Name' => 'Name',
-                                        'Status' => 'Status',
                                         'Option' => ''
                                     ),
                                         array(
@@ -913,7 +920,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Content.Input.Type' => 'SelectBox',
                         'Content.Input.DateCertifcate' => 'DatePicker',
                         'Content.Input.DateConference' => 'DatePicker',
-                        'Content.Input.Transfer' => 'TextField',
+                        'Content.Input.Transfer' => 'SelectBox',
                     );
                     $FormLabel = array(
                         'Content.Input.Remark' => 'Bemerkungen',
@@ -931,6 +938,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global = $this->getGlobal();
                         $tblPrepareInformationAll = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepareCertificate,
                             $tblPerson);
+                        $hasTransfer = false;
                         if ($tblPrepareInformationAll) {
                             foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
                                 if ($tblPrepareInformation->getField() == 'SchoolType'
@@ -943,15 +951,27 @@ class Frontend extends Extension implements IFrontendInterface
                                     && method_exists($Certificate, 'selectValuesType')
                                 ) {
                                     $Global->POST['Data'][$tblPerson->getId()][$tblPrepareInformation->getField()] =
-                                        /** @var CheBeGs $Certificate */
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesType());
+                                } elseif ($tblPrepareInformation->getField() == 'Transfer'
+                                    && method_exists($Certificate, 'selectValuesTransfer')
+                                ) {
+                                    $Global->POST['Data'][$tblPerson->getId()][$tblPrepareInformation->getField()] =
+                                        array_search($tblPrepareInformation->getValue(),
+                                            $Certificate->selectValuesTransfer());
+                                    $hasTransfer = true;
                                 } else {
                                     $Global->POST['Data'][$tblPerson->getId()][$tblPrepareInformation->getField()]
                                         = $tblPrepareInformation->getValue();
                                 }
                             }
                         }
+
+                        // Vorsetzen auf Versetzungsvermerk: wird versetzt
+                        if (!$hasTransfer) {
+                            $Global->POST['Data'][$tblPerson->getId()]['Transfer'] = 1;
+                        }
+
                         $Global->savePost();
                     }
 
@@ -1004,6 +1024,10 @@ class Frontend extends Extension implements IFrontendInterface
                                                     && method_exists($Certificate, 'selectValuesType')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesType();
+                                                } elseif ($Placeholder == 'Content.Input.Transfer'
+                                                    && method_exists($Certificate, 'selectValuesTransfer')
+                                                ) {
+                                                    $selectBoxData = $Certificate->selectValuesTransfer();
                                                 }
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
                                                     $studentTable[$tblPerson->getId()][$key]
@@ -1028,7 +1052,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                         /** @var TextArea $Field */
                                                         $studentTable[$tblPerson->getId()][$key]
                                                             = (new TextArea($dataFieldName, '', ''))->setMaxLengthValue(
-                                                                $CharCount
+                                                            $CharCount
                                                         );
                                                     } else {
                                                         $studentTable[$tblPerson->getId()][$key]
@@ -1374,7 +1398,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Content.Input.Type' => 'SelectBox',
                         'Content.Input.DateCertifcate' => 'DatePicker',
                         'Content.Input.DateConference' => 'DatePicker',
-                        'Content.Input.Transfer' => 'TextField',
+                        'Content.Input.Transfer' => 'SelectBox',
                     );
                     $FormLabel = array(
                         'Content.Input.Remark' => 'Bemerkungen',

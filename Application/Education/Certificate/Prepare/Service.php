@@ -488,13 +488,17 @@ class Service extends AbstractService
                                 && method_exists($Certificate, 'selectValuesType')
                             ) {
                                 $value = $Certificate->selectValuesType()[$value];
+                            } elseif ($field == 'Transfer'
+                                && method_exists($Certificate, 'selectValuesTransfer')
+                            ) {
+                                $value = $Certificate->selectValuesTransfer()[$value];
                             }
 
                             if (!empty(trim($value))) {
                                 $value = trim($value);
                                 // Zeichenbegrenzen
                                 if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
-                                        $tblCertificate, $field))
+                                    $tblCertificate, $field))
                                 ) {
                                     // ToDo GCK Enter entfernen funktioniert nicht
                                     $value = str_replace('\n', ' ', $value);
@@ -628,7 +632,12 @@ class Service extends AbstractService
                 $tblPerson);
             if ($tblPrepareInformationList) {
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
-                    $Content['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
+                    if ($tblPrepareInformation->getField() == 'Transfer') {
+                        $Content['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
+                            . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
+                    } else {
+                        $Content['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
+                    }
                 }
             }
 
@@ -640,7 +649,7 @@ class Service extends AbstractService
             // Schulleitung
             if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
                 && $tblGenerateCertificate->getHeadmasterName()
-            ){
+            ) {
                 $Content['Headmaster']['Name'] = $tblGenerateCertificate->getHeadmasterName();
             }
 
@@ -791,7 +800,7 @@ class Service extends AbstractService
                     $tblStudentSubject = current($tblStudentSubjectList);
                     if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
                         $Content['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
-                            = str_replace('Profil', '',$tblSubjectProfile->getName());
+                            = str_replace('Profil', '', $tblSubjectProfile->getName());
                     }
                 }
             }
@@ -1021,6 +1030,10 @@ class Service extends AbstractService
                     && method_exists($Certificate, 'selectValuesType')
                 ) {
                     $value = $Certificate->selectValuesType()[$value];
+                } elseif ($field == 'Transfer'
+                    && method_exists($Certificate, 'selectValuesTransfer')
+                ) {
+                    $value = $Certificate->selectValuesTransfer()[$value];
                 }
 
                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {

@@ -18,6 +18,17 @@ class MsJRs extends Certificate
 {
 
     /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
+
+    /**
      * @param bool $IsSample
      *
      * @return Frame
@@ -63,11 +74,11 @@ class MsJRs extends Certificate
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.')
-                        ->styleTextSize('11px')
-                        ->styleMarginTop('5px')
+                        ->styleTextSize('12px')
+                        ->styleMarginTop('8px')
                     )
                 )
-                ->addSlice($this->getGradeLanes('14px', true, '0px'))
+                ->addSlice($this->getGradeLanes())
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -97,9 +108,9 @@ class MsJRs extends Certificate
                     ->styleHeight('270px'))
                 ->addSlice($this->getOrientationStandard())
                 ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('80px', '5px'))
+                ->addSlice($this->getDescriptionContent('55px', '5px'))
                 ->addSlice($this->getTransfer())
-                ->addSlice($this->getDateLine('5px'))
+                ->addSlice($this->getDateLine('10px'))
                 ->addSlice($this->getSignPart(true, '15px'))
                 ->addSlice($this->getParentSign('15px'))
                 ->addSlice($this->getInfo('5px',

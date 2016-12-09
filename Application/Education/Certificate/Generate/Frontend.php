@@ -548,6 +548,9 @@ class Frontend extends Extension
                                             array('0', 'asc'),
                                             array('1', 'asc'),
                                         ),
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => 1)
+                                        ),
                                         "paging" => false,
                                         "iDisplayLength" => -1
                                     )
