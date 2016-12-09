@@ -10,10 +10,8 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -382,12 +380,6 @@ class Service extends AbstractService
         //Filter Group
         if (isset($FilterGroup['TblGroup_Id']) && !empty($FilterGroup['TblGroup_Id'])
         ) {
-            // make Id more meaningful (String Compare)
-            $tblGroup = Group::useService()->getGroupById($FilterGroup['TblGroup_Id']);
-            if ($tblGroup) {
-                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_NAME] = $tblGroup->getName();
-                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_META_TABLE] = $tblGroup->getMetaTable();
-            }
 
             // Database Join with foreign Key
             $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
@@ -470,21 +462,6 @@ class Service extends AbstractService
         //Filter Group
         if (isset($FilterGroup['TblGroup_Id']) && !empty($FilterGroup['TblGroup_Id'])
         ) {
-            // make Id more meaningful (String Compare)
-            $tblGroup = Group::useService()->getGroupById($FilterGroup['TblGroup_Id']);
-            if ($tblGroup) {
-                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_NAME] = $tblGroup->getName();
-                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_META_TABLE] = $tblGroup->getMetaTable();
-            }
-
-            // make Id more meaningful (String Compare)
-            if (isset($FilterStudent['TblLevel_Id']) && !empty($FilterStudent['TblLevel_Id'])) {
-                $tblLevel = Division::useService()->getLevelById($FilterStudent['TblLevel_Id']);
-                if ($tblLevel) {
-                    $FilterStudent[ViewDivisionStudent::TBL_LEVEL_NAME] = $tblLevel->getName();
-                    $FilterStudent[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblLevel->getServiceTblType()->getId();
-                }
-            }
 
             // Database Join with foreign Key
             $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
@@ -601,12 +578,6 @@ class Service extends AbstractService
         //Filter Group
         if (isset($FilterGroup['TblGroup_Id']) && !empty($FilterGroup['TblGroup_Id'])
         ) {
-            // make Id more meaningful (String Compare)
-            $tblGroup = Group::useService()->getGroupById($FilterGroup['TblGroup_Id']);
-            if ($tblGroup) {
-                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_NAME] = $tblGroup->getName();
-                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_META_TABLE] = $tblGroup->getMetaTable();
-            }
 
             // Database Join with foreign Key
             $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
@@ -670,8 +641,9 @@ class Service extends AbstractService
                 $FilterProspect['TblProspectReservation_serviceTblTypeOptionB'] = $FilterProspect['TblProspectReservation_serviceTblTypeOptionA'];
                 unset($FilterProspect['TblProspectReservation_serviceTblTypeOptionA']);
                 $Result2 = array();
+
                 //Filter Group first Time
-                if (isset($FilterGroup['TblGroup_Id']) && !empty($FilterGroup['TblGroup_Id'])
+                if (isset($FilterGroup[ViewPeopleGroupMember::TBL_GROUP_ID]) && !empty($FilterGroup[ViewPeopleGroupMember::TBL_GROUP_ID])
                 ) {
                     // Preparation FilterProspect
                     if ($FilterProspect) {

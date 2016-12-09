@@ -30,7 +30,6 @@ use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -1311,12 +1310,6 @@ class Frontend extends Extension implements IFrontendInterface
                 || $FilterPerson['TblPerson_LastName'] && !empty($FilterPerson['TblPerson_LastName']) )
             && $TabActive === 'PERSON'
         ) {
-            // make Group_Id more meaningful (String Compare)
-            $tblGroup = Group::useService()->getGroupById($FilterGroup['TblGroup_Id']);
-            if ($tblGroup) {
-                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_NAME] = $tblGroup->getName();
-                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_META_TABLE] = $tblGroup->getMetaTable();
-            }
 
             $Filter = $FilterGroup;
 
@@ -1327,22 +1320,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         // Database Join with foreign Key
         if ($FilterStudent && $TabActive === 'DIVISION') {
-            // make Level_Id more meaningful (String Compare)
-            if (isset($FilterStudent[ViewDivisionStudent::TBL_LEVEL_ID])) {
-                $tblLevel = Division::useService()->getLevelById($FilterStudent[ViewDivisionStudent::TBL_LEVEL_ID]);
-                if ($tblLevel) {
-                    $FilterStudent[ViewDivisionStudent::TBL_LEVEL_NAME] = $tblLevel->getName();
-                    $FilterStudent[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblLevel->getServiceTblType()->getId();
-                }
-            }
-            // make Year_Id more meaningful (String Compare)
-            if (isset($FilterStudent[ViewYear::TBL_YEAR_ID])) {
-                $tblYear = Term::useService()->getYearById($FilterStudent[ViewYear::TBL_YEAR_ID]);
-                if ($tblYear) {
-                    $FilterStudent[ViewYear::TBL_YEAR_NAME] = $tblYear->getName();
-                    $FilterStudent[ViewYear::TBL_YEAR_DESCRIPTION] = $tblYear->getDescription();
-                }
-            }
 
             $Filter = $FilterStudent;
 
@@ -1462,11 +1439,8 @@ class Frontend extends Extension implements IFrontendInterface
             if ($FilterStudent && $TabActive === 'DIVISION') {
                 $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
 
-                // make Group_Id more meaningful (String Compare)
                 $Result = $Pile->searchPile(array(
-                    0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())
-                    , ViewPeopleGroupMember::TBL_GROUP_NAME        => array($StudentGroup->getName())
-                    , ViewPeopleGroupMember::TBL_GROUP_META_TABLE  => array($StudentGroup->getMetaTable())),
+                    0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())),
                     1 => $FilterPerson,
                     2 => $Filter,
                     3 => $FilterYear
@@ -1478,11 +1452,8 @@ class Frontend extends Extension implements IFrontendInterface
             if (( $FilterGroup || $FilterProspect ) && $TabActive === 'PROSPECT') {
                 $ProspectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
                 if ($ProspectGroup) {
-                    // make Group_Id more meaningful (String Compare)
                     $Result = $Pile->searchPile(array(
-                        0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($ProspectGroup->getId())
-                        , ViewPeopleGroupMember::TBL_GROUP_NAME        => array($ProspectGroup->getName())
-                        , ViewPeopleGroupMember::TBL_GROUP_META_TABLE  => array($ProspectGroup->getMetaTable())),
+                        0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($ProspectGroup->getId())),
                         1 => $FilterPerson,
                         2 => $FilterProspect,
                     ));
@@ -1716,10 +1687,10 @@ class Frontend extends Extension implements IFrontendInterface
         $FormProspect = new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(
-                        ( new RadioBox('FilterGroup[TblGroup_Id]', 'Gruppe: '.$ProspectGroup->getName(),
-                            $ProspectGroup->getId()) )->setDefaultValue($ProspectGroup->getId(), true)
-                        , 4),
+//                    new FormColumn(
+//                        ( new RadioBox('FilterGroup[TblGroup_Id]', 'Gruppe: '.$ProspectGroup->getName(),
+//                            $ProspectGroup->getId()) )->setDefaultValue($ProspectGroup->getId(), true)
+//                        , 4),
                     new FormColumn(
                         new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear]', 'Interessent: Schuljahr', 'Interessent: Schuljahr',
                             array('ReservationYear' => $ProspectReservationList))
@@ -1730,7 +1701,11 @@ class Frontend extends Extension implements IFrontendInterface
                         , 4),
                 ))
             ))
-            , new Primary('Interessenten suchen'));
+            , new Primary('Interessenten suchen'), $this->getRequest()->getPathInfo(), array(
+            'TabActive'   => 'PROSPECT',
+            'Id'          => $tblSerialLetter->getId(),
+            'FilterGroup' => array('TblGroup_Id' => $ProspectGroup->getId())
+        ));
 
         // set Success by filtered Input field in FormGroup
         if ($FilterGroup) {
@@ -2266,7 +2241,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Buttons[] = new Standard('Sorgeberechtigte anschreiben', '/Reporting/SerialLetter/Address/Guardian', new Edit()
                     , array('Id' => $tblSerialLetter->getId()));
             } elseif ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-                $Buttons[] = new Standard('Personen anschreiben', '/Reporting/SerialLetter/Address/Company', new Edit()
+                $Buttons[] = new Standard('Firmen mit Personen anschreiben', '/Reporting/SerialLetter/Address/Company', new Edit()
                     , array('Id' => $tblSerialLetter->getId()));
             }
         }
