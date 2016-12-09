@@ -1424,15 +1424,15 @@ abstract class Certificate extends Extension
 
             // aktuell immer anzeigen
 //            if ($elementOrientationName || $elementForeignLanguageName) {
-                $section = new Section();
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('Wahlpflichtbereich:')
-                        ->styleTextBold()
-                        ->styleMarginTop('10px')
-                        ->styleTextSize($TextSize)
-                    );
-                $sectionList[] = $section;
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('Wahlpflichtbereich:')
+                    ->styleTextBold()
+                    ->styleMarginTop('10px')
+                    ->styleTextSize($TextSize)
+                );
+            $sectionList[] = $section;
 //            }
 
             if ($elementOrientationName) {
@@ -1510,5 +1510,247 @@ abstract class Certificate extends Extension
         }
 
         return empty($sectionList) ? (new Slice())->styleHeight('60px') : $slice->addSectionList($sectionList);
+    }
+
+    /**
+     * @param string $TextSize
+     * @param bool $IsGradeUnderlined
+     * @param string $MarginTop
+     * @param string $TextColor
+     * @param int $GradeFieldWidth
+     * @param string $GradeFieldBackgroundColor
+     *
+     * @return Slice
+     */
+    protected function getGradeLanesForRadebeul(
+        $TextColor = 'black',
+        $TextSize = '13px',
+        $GradeFieldBackgroundColor = 'rgb(224,226,231)',
+        $IsGradeUnderlined = false,
+        $MarginTop = '15px',
+        $GradeFieldWidth = 28
+    ) {
+
+        $widthText = (50 - $GradeFieldWidth - 4) . '%';
+        $widthGrade = $GradeFieldWidth . '%';
+
+        $GradeSlice = (new Slice());
+
+        $tblCertificateGradeAll = Generator::useService()->getCertificateGradeAll($this->getCertificateEntity());
+        $GradeStructure = array();
+        if (!empty($tblCertificateGradeAll)) {
+            foreach ($tblCertificateGradeAll as $tblCertificateGrade) {
+                $tblGradeType = $tblCertificateGrade->getServiceTblGradeType();
+
+                $GradeStructure[$tblCertificateGrade->getRanking()][$tblCertificateGrade->getLane()]['GradeAcronym']
+                    = $tblGradeType->getCode();
+                $GradeStructure[$tblCertificateGrade->getRanking()][$tblCertificateGrade->getLane()]['GradeName']
+                    = $tblGradeType->getName();
+
+            }
+        }
+
+        // Shrink Lanes
+        $LaneCounter = array(1 => 0, 2 => 0);
+        $GradeLayout = array();
+        if ($GradeStructure) {
+            ksort($GradeStructure);
+            foreach ($GradeStructure as $GradeList) {
+                ksort($GradeList);
+                foreach ($GradeList as $Lane => $Grade) {
+                    $GradeLayout[$LaneCounter[$Lane]][$Lane] = $Grade;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $GradeStructure = $GradeLayout;
+
+            foreach ($GradeStructure as $GradeList) {
+                // Sort Lane-Ranking (1,2...)
+                ksort($GradeList);
+
+                $GradeSection = (new Section());
+
+                if (count($GradeList) == 1 && isset($GradeList[2])) {
+                    $GradeSection->addElementColumn((new Element()), 'auto');
+                }
+
+                foreach ($GradeList as $Lane => $Grade) {
+
+                    if ($Lane > 1) {
+                        $GradeSection->addElementColumn((new Element())
+                            , '8%');
+                    }
+                    $GradeSection->addElementColumn((new Element())
+                        ->setContent($Grade['GradeName'] . ':')
+                        ->styleTextColor($TextColor)
+                        ->stylePaddingTop()
+                        ->styleMarginTop('7px')
+                        ->styleTextSize($TextSize)
+                        , $widthText);
+                    $GradeSection->addElementColumn((new Element())
+                        ->setContent('{% if(Content.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                                         {{ Content.Input["' . $Grade['GradeAcronym'] . '"] }}
+                                     {% else %}
+                                         &ndash;
+                                     {% endif %}')
+                        ->styleTextColor($TextColor)
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor($GradeFieldBackgroundColor)
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
+                        ->stylePaddingTop('3px')
+                        ->stylePaddingBottom('3px')
+                        ->styleMarginTop('7px')
+                        ->styleTextSize($TextSize)
+                        , $widthGrade);
+                }
+
+                if (count($GradeList) == 1 && isset($GradeList[1])) {
+                    $GradeSection->addElementColumn((new Element()), '54%');
+                }
+
+                $GradeSlice->addSection($GradeSection)->styleMarginTop($MarginTop);
+            }
+        }
+
+        return $GradeSlice;
+    }
+
+    /**
+     * @param string $TextColor
+     * @param string $TextSize
+     * @param string $GradeFieldBackgroundColor
+     * @param bool $IsGradeUnderlined
+     * @param string $MarginTop
+     * @param int $GradeFieldWidth
+     *
+     * @return Slice
+     */
+    protected function getSubjectLanesForRadebeul(
+        $TextColor = 'black',
+        $TextSize = '13px',
+        $GradeFieldBackgroundColor = 'rgb(224,226,231)',
+        $IsGradeUnderlined = false,
+        $MarginTop = '15px',
+        $GradeFieldWidth = 28
+    ) {
+
+        $widthText = (50 - $GradeFieldWidth - 4) . '%';
+        $widthGrade = $GradeFieldWidth . '%';
+
+        $SubjectSlice = (new Slice());
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+
+        $SectionList = array();
+
+        if (!empty($tblCertificateSubjectAll)) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+
+                // Grade Exists? => Add Subject to Certificate
+                if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
+                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                        = $tblSubject->getAcronym();
+                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                        = $tblSubject->getName();
+                } else {
+                    // Grade Missing, But Subject Essential => Add Subject to Certificate
+                    if ($tblCertificateSubject->isEssential()) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+
+                        // Liberation?
+                        if (
+                            $this->getTblPerson()
+                            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
+                        ) {
+                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
+                            if ($tblStudentLiberationAll) {
+                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
+                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
+                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
+                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
+                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array(1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                $SubjectSection = (new Section());
+
+                if (count($SubjectList) == 1 && isset($SubjectList[2])) {
+                    $SubjectSection->addElementColumn((new Element()), 'auto');
+                }
+
+                $count++;
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    if ($Lane > 1) {
+                        $SubjectSection->addElementColumn((new Element())
+                            , '8%');
+                    }
+
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent($Subject['SubjectName'] . ':')
+                        ->styleTextColor($TextColor)
+                        ->stylePaddingTop()
+                        ->styleMarginTop($count == 1 ? $MarginTop :'7px')
+                        ->styleTextSize($TextSize)
+                        , $widthText);
+
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent('{% if(Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                             {{ Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                                         {% else %}
+                                             &ndash;
+                                         {% endif %}')
+                        ->styleTextColor($TextColor)
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor($GradeFieldBackgroundColor)
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
+                        ->stylePaddingTop('3px')
+                        ->stylePaddingBottom('3px')
+                        ->styleMarginTop($count == 1 ? $MarginTop :'7px')
+                        ->styleTextSize($TextSize)
+                        , $widthGrade);
+                }
+
+                if (count($SubjectList) == 1 && isset($SubjectList[1])) {
+                    $SubjectSection->addElementColumn((new Element()), '54%');
+                }
+
+                $SubjectSlice->addSection($SubjectSection);
+                $SectionList[] = $SubjectSection;
+            }
+        }
+
+        return $SubjectSlice;
     }
 }
