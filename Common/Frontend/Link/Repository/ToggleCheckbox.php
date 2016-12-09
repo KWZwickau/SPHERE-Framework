@@ -10,6 +10,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class ToggleCheckbox
  *
+ * @internal EXPERIMENTAL
  * @package SPHERE\Common\Frontend\Link\Repository
  */
 class ToggleCheckbox extends Extension implements ILinkInterface

@@ -520,6 +520,21 @@ class Frontend extends Extension implements IFrontendInterface
                 ), new Title('Personensuche')),
                 ($Filter == null ?
                     new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                ( isset($TableCurrent) && $TableCurrent instanceof TableData
+                                    ? new ToggleCheckbox( 'Alle wählen/abwählen', $TableCurrent )
+                                    : ''
+                                )
+                                ,6),
+                            new LayoutColumn(
+                                ( $displayAvailablePersons instanceof TableData
+                                    ? new ToggleCheckbox( 'Alle wählen/abwählen', $displayAvailablePersons )
+                                    : ''
+                                )
+                                ,6),
+                        )),
+
                         // TODO: Describe possible Action
 //                        new LayoutRow(array(
 //                            new LayoutColumn(
@@ -540,20 +555,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             ))
                         )),
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                ( isset($TableCurrent) && $TableCurrent instanceof TableData
-                                    ? new ToggleCheckbox( 'Alle wählen/abwählen', $TableCurrent )
-                                    : ''
-                                )
-                            ,6),
-                            new LayoutColumn(
-                                ( $displayAvailablePersons instanceof TableData
-                                    ? new ToggleCheckbox( 'Alle wählen/abwählen', $displayAvailablePersons )
-                                    : ''
-                                )
-                            ,6),
-                        ))
                     ), new Title('Zusammensetzung', 'der Gruppe')) : null )
             )));
 
