@@ -212,6 +212,8 @@ class Service extends AbstractService
                 }
 
                 if ($tblConsumer) {
+//                    $this->getDebugger()->screenDump($this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumer));
+
                     // Eigene Vorlage
                     if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumer))) {
                         if (count($certificateList) == 1) {

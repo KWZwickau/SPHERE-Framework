@@ -358,10 +358,14 @@ class Frontend extends Extension
                 $tblDivisionAllByYear = Division::useService()->getDivisionByYear($tblGenerateCertificate->getServiceTblYear());
                 if ($tblDivisionAllByYear) {
                     foreach ($tblDivisionAllByYear as $tblDivision) {
-                        $type = $tblDivision->getTblLevel()->getServiceTblType();
-                        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
-                        if ($type && $tblDivisionSubjectList) {
-                            $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                        // keine Klassenstufen Übergreifende anzeigen
+                        if (!$tblDivision->getTblLevel()->getIsChecked()) {
+                            $type = $tblDivision->getTblLevel()->getServiceTblType();
+                            // auch Klassen ohne Fächer anzeigen, z.B. für 1. Klasse
+//                        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+                            if ($type) { // && $tblDivisionSubjectList) {
+                                $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                            }
                         }
                     }
                 }
@@ -613,8 +617,12 @@ class Frontend extends Extension
                         $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
                             $tblPerson);
                         if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
-                            $certificateList = array_merge($tblCertificateListByConsumer,
-                                $tblCertificateListByStandard);
+                            if (count($tblCertificateListByConsumer) != 1) {
+                                $certificateList = array_merge($tblCertificateListByConsumer,
+                                    $tblCertificateListByStandard);
+                            } else {
+                                $certificateList = $tblCertificateListByConsumer;
+                            }
                         } elseif ($tblCertificateListByConsumer) {
                             $certificateList = $tblCertificateListByConsumer;
                         } elseif ($tblCertificateListByStandard) {

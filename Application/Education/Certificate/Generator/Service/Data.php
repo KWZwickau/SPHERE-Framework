@@ -1245,6 +1245,22 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Jahreszeugnis', '', 'EVSR\RadebeulJahreszeugnis', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                        // Begrenzung des Bemerkungsfeld
+//                        $FieldName = 'Remark';
+//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                            $this->createCertificateField($tblCertificate, $FieldName, 1200);
+//                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1264,6 +1280,22 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Halbjahresinformation', '', 'EVSR\RadebeulHalbjahresinformation', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                        // Begrenzung des Bemerkungsfeld
+//                        $FieldName = 'Remark';
+//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                            $this->createCertificateField($tblCertificate, $FieldName, 1200);
+//                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1284,6 +1316,9 @@ class Data extends AbstractData
                         'Bildungsempfehlung', 'Klassenstufe 4', 'EVSR\RadebeulBildungsempfehlung',
                         $tblConsumerCertificate
                     );
+                    if ($tblCertificate){
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblSchoolTypePrimary);
+                    }
                     if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
 
                         $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -1292,12 +1327,35 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
                     }
 
-                    $this->createCertificate(
+                    $tblCertificate = $this->createCertificate(
                         'Kinderbrief', '', 'EVSR\RadebeulKinderbrief', $tblConsumerCertificate
                     );
-                    $this->createCertificate(
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
+
+                    $tblCertificate = $this->createCertificate(
                         'Lernentwicklungsbericht', '', 'EVSR\RadebeulLernentwicklungsbericht', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1924,6 +1982,16 @@ class Data extends AbstractData
                     $this->destroyCertificateSubject($tblCertificateSubject);
                 }
             }
+            if (($tblCertificateLevelList = $this->getCertificateLevelAllByCertificate($Entity))){
+                foreach ($tblCertificateLevelList as $tblCertificateLevel) {
+                    $this->destroyCertificateLevel($tblCertificateLevel);
+                }
+            }
+            if (($tblCertificateFieldList = $this->getCertificateFieldAllByCertificate($Entity))){
+                foreach ($tblCertificateFieldList as $tblCertificateField) {
+                    $this->destroyCertificateField($tblCertificateField);
+                }
+            }
 
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -2077,4 +2145,56 @@ class Data extends AbstractData
         return $Entity;
     }
 
+    /**
+     * @param TblCertificateLevel $tblCertificateLevel
+     *
+     * @return bool
+     */
+    public function destroyCertificateLevel(TblCertificateLevel $tblCertificateLevel)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificateLevel')->findOneBy(array('Id' => $tblCertificateLevel->getId()));
+        if (null !== $Entity) {
+            /** @var \SPHERE\System\Database\Fitting\Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificateField $tblCertificateField
+     *
+     * @return bool
+     */
+    public function destroyCertificateField(TblCertificateField $tblCertificateField)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblCertificateField')->findOneBy(array('Id' => $tblCertificateField->getId()));
+        if (null !== $Entity) {
+            /** @var \SPHERE\System\Database\Fitting\Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     *
+     * @return false|\SPHERE\System\Database\Fitting\Element[]
+     */
+    public function getCertificateFieldAllByCertificate(TblCertificate $tblCertificate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateField',
+            array(TblCertificateField::ATTR_TBL_CERTIFICATE => $tblCertificate->getId())
+        );
+    }
 }
