@@ -552,6 +552,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $DataPerson['CompanyExtendedName'] = $tblCompany->getExtendedName();
                     $tblRelationshipList = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany);
                     if ($tblRelationshipList) {
+                        /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToCompany $tblRelationship */
                         foreach ($tblRelationshipList as $tblRelationship) {
                             if ($tblRelationship->getServiceTblPerson()->getId() === $tblPerson->getId()) {
                                 if ($tblRelationship->getTblType()) {
@@ -1297,7 +1298,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblYearList = Term::useService()->getYearByNow();
             if ($tblYearList) {
                 foreach ($tblYearList as $tblYear) {
-                    $Global->POST['FilterYear']['TblYear_Name'] = $tblYear->getName();
+                    $Global->POST['FilterYear']['TblYear_Id'] = $tblYear->getId();
                 }
             }
             $Global->savePost();
@@ -1310,6 +1311,13 @@ class Frontend extends Extension implements IFrontendInterface
                 || $FilterPerson['TblPerson_LastName'] && !empty($FilterPerson['TblPerson_LastName']) )
             && $TabActive === 'PERSON'
         ) {
+            // make Group_Id more meaningful (String Compare)
+            $tblGroup = Group::useService()->getGroupById($FilterGroup['TblGroup_Id']);
+            if ($tblGroup) {
+                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_NAME] = $tblGroup->getName();
+                $FilterGroup[ViewPeopleGroupMember::TBL_GROUP_META_TABLE] = $tblGroup->getMetaTable();
+            }
+
             $Filter = $FilterGroup;
 
             $Pile = new Pile(Pile::JOIN_TYPE_INNER);
@@ -1319,6 +1327,23 @@ class Frontend extends Extension implements IFrontendInterface
         }
         // Database Join with foreign Key
         if ($FilterStudent && $TabActive === 'DIVISION') {
+            // make Level_Id more meaningful (String Compare)
+            if (isset($FilterStudent[ViewDivisionStudent::TBL_LEVEL_ID])) {
+                $tblLevel = Division::useService()->getLevelById($FilterStudent[ViewDivisionStudent::TBL_LEVEL_ID]);
+                if ($tblLevel) {
+                    $FilterStudent[ViewDivisionStudent::TBL_LEVEL_NAME] = $tblLevel->getName();
+                    $FilterStudent[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblLevel->getServiceTblType()->getId();
+                }
+            }
+            // make Year_Id more meaningful (String Compare)
+            if (isset($FilterStudent[ViewYear::TBL_YEAR_ID])) {
+                $tblYear = Term::useService()->getYearById($FilterStudent[ViewYear::TBL_YEAR_ID]);
+                if ($tblYear) {
+                    $FilterStudent[ViewYear::TBL_YEAR_NAME] = $tblYear->getName();
+                    $FilterStudent[ViewYear::TBL_YEAR_DESCRIPTION] = $tblYear->getDescription();
+                }
+            }
+
             $Filter = $FilterStudent;
 
             $Pile = new Pile(Pile::JOIN_TYPE_INNER);
@@ -1435,10 +1460,13 @@ class Frontend extends Extension implements IFrontendInterface
             }
             // Filter ordered by Database Join with foreign Key
             if ($FilterStudent && $TabActive === 'DIVISION') {
-                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
 
+                // make Group_Id more meaningful (String Compare)
                 $Result = $Pile->searchPile(array(
-                    0 => array('TblGroup_Id' => array($tblGroup->getId())),
+                    0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())
+                    , ViewPeopleGroupMember::TBL_GROUP_NAME        => array($StudentGroup->getName())
+                    , ViewPeopleGroupMember::TBL_GROUP_META_TABLE  => array($StudentGroup->getMetaTable())),
                     1 => $FilterPerson,
                     2 => $Filter,
                     3 => $FilterYear
@@ -1450,8 +1478,11 @@ class Frontend extends Extension implements IFrontendInterface
             if (( $FilterGroup || $FilterProspect ) && $TabActive === 'PROSPECT') {
                 $ProspectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
                 if ($ProspectGroup) {
+                    // make Group_Id more meaningful (String Compare)
                     $Result = $Pile->searchPile(array(
-                        0 => array('TblGroup_Id' => array($ProspectGroup->getId())),
+                        0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($ProspectGroup->getId())
+                        , ViewPeopleGroupMember::TBL_GROUP_NAME        => array($ProspectGroup->getName())
+                        , ViewPeopleGroupMember::TBL_GROUP_META_TABLE  => array($ProspectGroup->getMetaTable())),
                         1 => $FilterPerson,
                         2 => $FilterProspect,
                     ));
@@ -1640,7 +1671,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(array(
-                        new SelectBox('FilterGroup[TblGroup_Id]', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll())),
+                        new SelectBox('FilterGroup['.ViewPeopleGroupMember::TBL_GROUP_ID.']', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll())),
                     ), 4),
                     new FormColumn(array(
                         new TextField('FilterPerson['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname')
@@ -1656,25 +1687,31 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new AutoCompleter('FilterYear[TblYear_Name]', 'Bildung: Schuljahr', 'Bildung: Schuljahr', array('Name' => Term::useService()->getYearAll())),
-                    ), 2),
+                        new SelectBox('FilterYear[TblYear_Id]', 'Bildung: Schuljahr',
+                            array('{{ Name }} {{ Description }}' => Term::useService()->getYearAll())),
+                    ), 4),
                     new FormColumn(array(
-                        new TextField('FilterStudent[TblLevel_Name]', 'Klasse: Stufe', 'Klasse: Stufe')
-                    ), 2),
+                        new SelectBox('FilterStudent['.ViewDivisionStudent::TBL_LEVEL_ID.']', 'Klasse: Stufe',
+                            array('{{ Name }} {{ serviceTblType.Name }}' => Division::useService()->getLevelAll()))
+                    ), 4),
                     new FormColumn(array(
-                        new TextField('FilterStudent[TblDivision_Name]', 'Klasse: Gruppe', 'Klasse: Gruppe')
-                    ), 2),
+                        new AutoCompleter('FilterStudent['.ViewDivisionStudent::TBL_DIVISION_NAME.']', 'Klasse: Gruppe', 'Klasse: Gruppe',
+                            array('Name' => Division::useService()->getDivisionAll()))
+                    ), 4),
+                )),
+                new FormRow(array(
                     new FormColumn(array(
                         new TextField('FilterPerson['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname')
-                    ), 3),
+                    ), 4),
                     new FormColumn(array(
                         new TextField('FilterPerson['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Person: Nachname', 'Person: Nachname')
-                    ), 3)
+                    ), 4)
                 ))
             ))
             , new Primary('in Klassen suchen'));
 
         $ProspectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+        $ProspectReservationList = Prospect::useService()->getProspectReservationAll();
 
         $FormProspect = new Form(
             new FormGroup(array(
@@ -1684,10 +1721,12 @@ class Frontend extends Extension implements IFrontendInterface
                             $ProspectGroup->getId()) )->setDefaultValue($ProspectGroup->getId(), true)
                         , 4),
                     new FormColumn(
-                        new TextField('FilterProspect[TblProspectReservation_ReservationYear]', 'Interessent: Schuljahr', 'Interessent: Schuljahr')
+                        new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear]', 'Interessent: Schuljahr', 'Interessent: Schuljahr',
+                            array('ReservationYear' => $ProspectReservationList))
                         , 4),
                     new FormColumn(
-                        new TextField('FilterProspect[TblProspectReservation_ReservationDivision]', 'Interessent: Stufe', 'Interessent: Stufe')
+                        new AutoCompleter('FilterProspect[TblProspectReservation_ReservationDivision]', 'Interessent: Stufe', 'Interessent: Stufe',
+                            array('ReservationDivision' => $ProspectReservationList))
                         , 4),
                 ))
             ))
