@@ -1291,6 +1291,10 @@ class Service extends AbstractService
         $ExportData = array();
         $AddressPersonCount = 1;
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+        $isCompany = false;
+        if ($tblFilterCategory && $tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+            $isCompany = true;
+        }
         if ($tblPersonList) {
             $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
             /** @var TblPerson $tblPerson */
@@ -1307,8 +1311,17 @@ class Service extends AbstractService
                             && TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblFilterCategory->getName()
                         ) {
                             $tblToCompany = $tblAddressPerson->getServiceTblToPerson($tblFilterCategory);
+                            $tblCompany = $tblToCompany->getServiceTblCompany();
                             $tblAddress = $tblToCompany->getTblAddress();
                             if ($tblAddress) {
+                                if ($tblCompany) {
+                                    // getCompanyName
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['CompanyName'] =
+                                        $tblCompany->getName();
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['CompanyExtendedName'] =
+                                        $tblCompany->getExtendedName();
+                                }
+
                                 $AddressList[$tblPerson->getId().$tblAddress->getId()]['Salutation'] =
                                     $tblPerson->getSalutation();
                                 $AddressList[$tblPerson->getId().$tblAddress->getId()]['FirstName'] =
@@ -1558,11 +1571,13 @@ class Service extends AbstractService
                                 'StreetNumber'      => ( isset($Address['StreetNumber']) ? $Address['StreetNumber'] : '' ),
                                 'Code'              => ( isset($Address['Code']) ? $Address['Code'] : '' ),
                                 'City'              => ( isset($Address['City']) ? $Address['City'] : '' ),
-                                'Salutation'        => ( isset($Address['Salutation']) ? $Address['Salutation'] : '' ),
-                                'FirstName'         => ( isset($Address['FirstName']) ? $Address['FirstName'] : '' ),
-                                'LastName'          => ( isset($Address['LastName']) ? $Address['LastName'] : '' ),
-                                'StudentNumber'     => ( isset($Address['StudentNumber']) ? $Address['StudentNumber'] : '' ),
-                                'Division'          => ( isset($Address['Division']) ? $Address['Division'] : '' ),
+                                'Salutation'          => ( isset($Address['Salutation']) ? $Address['Salutation'] : '' ),
+                                'FirstName'           => ( isset($Address['FirstName']) ? $Address['FirstName'] : '' ),
+                                'LastName'            => ( isset($Address['LastName']) ? $Address['LastName'] : '' ),
+                                'StudentNumber'       => ( isset($Address['StudentNumber']) ? $Address['StudentNumber'] : '' ),
+                                'Division'            => ( isset($Address['Division']) ? $Address['Division'] : '' ),
+                                'CompanyName'         => ( isset($Address['CompanyName']) ? $Address['CompanyName'] : '' ),
+                                'CompanyExtendedName' => ( isset($Address['CompanyExtendedName']) ? $Address['CompanyExtendedName'] : '' ),
                             );
                         }
                     }
@@ -1599,7 +1614,13 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Person_Vorname");
             $export->setValue($export->getCell($column++, $row), "Person_Nachname");
             $export->setValue($export->getCell($column++, $row), "Person_Schüler-Nr.");
-            $export->setValue($export->getCell($column, $row), "Person_Aktuelle Klasse(n)");
+            if ($isCompany) {
+                $export->setValue($export->getCell($column++, $row), "Person_Aktuelle Klasse(n)");
+                $export->setValue($export->getCell($column++, $row), "Firma");
+                $export->setValue($export->getCell($column, $row), "Firma Zusatz");
+            } else {
+                $export->setValue($export->getCell($column, $row), "Person_Aktuelle Klasse(n)");
+            }
 
             $row = 1;
             /** @var TblAddressPerson $tblAddressPerson */
@@ -1637,7 +1658,14 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $Export['FirstName']);
                 $export->setValue($export->getCell($column++, $row), $Export['LastName']);
                 $export->setValue($export->getCell($column++, $row), $Export['StudentNumber']);
-                $export->setValue($export->getCell($column, $row), $Export['Division']);
+                if ($isCompany) {
+                    $export->setValue($export->getCell($column++, $row), $Export['Division']);
+                    $export->setValue($export->getCell($column++, $row), $Export['CompanyName']);
+                    $export->setValue($export->getCell($column, $row), $Export['CompanyExtendedName']);
+                } else {
+                    $export->setValue($export->getCell($column, $row), $Export['Division']);
+                }
+
 
                 $row++;
             }
@@ -1872,6 +1900,7 @@ class Service extends AbstractService
             }
 
             $PersonRemoveList = array_diff($tblPersonList, $tblPersonSearchList);
+            $PersonRemoveList = array_filter($PersonRemoveList);
             if (!empty($PersonRemoveList)) {
                 $this->removeSerialPersonBulk($tblSerialLetter, $PersonRemoveList);
 //                foreach ($PersonRemoveList as $PersonRemove) {
@@ -1881,6 +1910,7 @@ class Service extends AbstractService
 //                }
             }
             $PersonAddList = array_diff($tblPersonSearchList, $tblPersonList);
+            $PersonAddList = array_filter($PersonAddList);
             if (!empty($PersonAddList)) {
                 $this->addSerialPersonBulk($tblSerialLetter, $PersonAddList);
 //                foreach ($PersonAddList as $PersonAdd) {
