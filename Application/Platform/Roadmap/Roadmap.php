@@ -512,7 +512,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
 
         $Parser = new Parser(
             new Credentials(),
-            'Sichtbar für: {Alle Benutzer} Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst, Offen,{In Bearbeitung} ,{Zu besprechen}, {Wird nicht behoben} Beheben in: {Nicht definiert}'
+            'Sichtbar für: {Alle Benutzer} Typ: Feature,Bug,Optimierung Teilsystem: {1*},{2*} Status: Erfasst, Offen,{In Bearbeitung} ,{Zu besprechen} Beheben in: {Nicht definiert}'
         );
         return $Parser->getPool();
     }
