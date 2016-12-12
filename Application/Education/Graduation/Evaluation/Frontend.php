@@ -2728,8 +2728,6 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($testList as $tblTest) {
                             $tblSubject = $tblTest->getServiceTblSubject();
                             if ($tblSubject && $tblTest->getServiceTblDivision()) {
-                                $tableHeaderList[$tblDivision->getId()]['Number'] = '#';
-                                $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
                                 $tableHeaderList[$tblDivision->getId()]['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
 
                                 $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
@@ -2767,13 +2765,22 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
-                    if (!empty($studentList)) {
-                        foreach ($studentList as $divisionListId => $students) {
-                            if (is_array($students)) {
-                                foreach ($students as $studentId => $student) {
-                                    foreach ($tableHeaderList[$divisionListId] as $key => $value) {
-                                        if (!isset($student[$key])) {
+                    // Sortierung nach Fächer-Acroynm
+                    if (!empty($tableHeaderList[$tblDivision->getId()])){
+                                            asort($tableHeaderList[$tblDivision->getId()]);
+                                        }
+                                        $prependTableHeaderList[$tblDivision->getId()]['Number'] = '#';
+                                        $prependTableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
+                                        $tableHeaderList[$tblDivision->getId()] = $prependTableHeaderList[$tblDivision->getId()]
+                                            + $tableHeaderList[$tblDivision->getId()];
+
+                                        // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
+                                        if (!empty($studentList)) {
+                                            foreach ($studentList as $divisionListId => $students) {
+                                                if (is_array($students)) {
+                                                    foreach ($students as $studentId => $student) {
+                                                        foreach ($tableHeaderList[$divisionListId] as $key => $value) {
+                                                            if (!isset($student[$key])) {
                                             $studentList[$divisionId][$studentId][$key] = "";
                                         }
                                     }
