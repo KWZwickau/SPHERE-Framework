@@ -2,16 +2,16 @@
 namespace SPHERE\Common\Frontend\Ajax\Receiver;
 
 use SPHERE\Common\Frontend\Ajax\IReceiverInterface;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class AbstractReceiver
  *
  * @package SPHERE\Common\Frontend\Ajax\Receiver
  */
-abstract class AbstractReceiver implements IReceiverInterface
+abstract class AbstractReceiver extends Extension implements IReceiverInterface
 {
-    /** @var int $IdentifierCounter */
-    private static $IdentifierCounter = 0;
+
     /** @var string $ReceiverIdentifier */
     private $Identifier = '';
 
@@ -22,8 +22,7 @@ abstract class AbstractReceiver implements IReceiverInterface
      */
     public function __construct()
     {
-        self::$IdentifierCounter++;
-        $this->Identifier = 'Sphere-Ajax-Node-' . self::$IdentifierCounter;
+        $this->Identifier = 'Sphere-Ajax-Node-' . sha1(uniqid('',true));
     }
 
     /**

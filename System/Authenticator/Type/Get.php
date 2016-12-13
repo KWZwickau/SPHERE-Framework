@@ -51,6 +51,10 @@ class Get extends Extension implements ITypeInterface
         } else {
             if (isset( $Global->GET['_Sign'] )) {
                 $Data = $Global->GET;
+                // Respect jQuery no Cache Parameter
+                if( isset( $Global->GET['_'] ) ) {
+                    unset( $Data['_'] );
+                }
                 $Signature = $Global->GET['_Sign'];
                 unset( $Data['_Sign'] );
                 $Check = $this->createSignature($Data);

@@ -20,6 +20,8 @@ class Pipeline
     private $Emitter = array();
     /** @var string $SuccessMessage */
     private $SuccessMessage = '';
+    /** @var string $LoadingMessage */
+    private $LoadingMessage = 'Bitte warten...';
 
     /**
      * @param $Message
@@ -28,6 +30,16 @@ class Pipeline
     public function setSuccessMessage($Message)
     {
         $this->SuccessMessage = $Message;
+        return $this;
+    }
+
+    /**
+     * @param $Message
+     * @return $this
+     */
+    public function setLoadingMessage($Message)
+    {
+        $this->LoadingMessage = $Message;
         return $this;
     }
 
@@ -42,14 +54,29 @@ class Pipeline
     }
 
     /**
+     * @internal
+     * @deprecated
+     * @param Pipeline $Pipeline
+     * @return $this
+     */
+    public function addPipeline(Pipeline $Pipeline)
+    {
+        $this->Emitter = array_merge( $this->Emitter, $Pipeline->getEmitter() );
+        return $this;
+    }
+
+    /**
      * @param Form $Form
      * @return string
      */
     public function parseScript( Form $Form = null )
     {
 
-        (new CacheFactory())->createHandler(new TwigHandler())->clearCache();
+//        (new CacheFactory())->createHandler(new TwigHandler())->clearCache();
         $Template = Template::getTemplate(__DIR__ . '/Pipeline.twig');
+
+        $Template->setVariable('NOTIFYHASH', $NotifyHash = sha1(uniqid('',true)) );
+        $Template->setVariable('NOTIFYLOADING', $this->LoadingMessage );
 
         foreach ($this->Emitter as $Index => $Emitter) {
 
@@ -84,20 +111,21 @@ class Pipeline
 
         if( !empty( $this->SuccessMessage ) ) {
             $Template->setVariable('NOTIFY', "
-            $.notifyClose();
-            $.notify({
-            // options
-            message: '" . $this->SuccessMessage . "'
-            }, {
-            // settings
-            newest_on_top: true,
-            type: 'success',
-            delay: 1000,
-            placement: {
-            from: 'top',
-            align: 'center'
-            }
-            });");
+            AjaxNotify".$NotifyHash.".update({progress: 95});
+            AjaxNotify".$NotifyHash.".update({
+                message: '" . $this->SuccessMessage . "',
+                type: 'success',
+            }); 
+            setTimeout(function() {
+                AjaxNotify".$NotifyHash.".update({progress: 100});
+                AjaxNotify".$NotifyHash.".close();
+            }, 2000);
+            ");
+        } else {
+            $Template->setVariable('NOTIFY', "
+                AjaxNotify".$NotifyHash.".update({progress: 100});
+                AjaxNotify".$NotifyHash.".close();
+            ");
         }
 
         return $Template->getContent();
