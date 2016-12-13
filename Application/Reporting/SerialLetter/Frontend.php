@@ -2850,12 +2850,35 @@ class Frontend extends Extension implements IFrontendInterface
                     array('type' => 'natural', 'targets' => 4)
                 )
             );
+            if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
+                $columnList = array(
+                    'Number'              => 'Nr.',
+                    'Person'              => 'Person',
+                    'ReservationDivision' => 'Stufe',
+                    'ReservationYear'     => 'Jahr',
+                    'ReservationOptionA'  => 'Schulart 1',
+                    'ReservationOptionB'  => 'Schulart 2',
+                    'Salutation'          => 'Anrede',
+                    'PersonToAddress'     => 'Adressat',
+                    'Address'             => 'Adresse',
+                    'Option'              => ''
+                );
+                $Interactive = array(
+                    'order'      => array(array(0, 'asc')),
+                    'columnDefs' => array(
+                        array(
+//                            'orderable' => false,
+                            'width' => '3%', 'targets' => 0),
+                    )
+                );
+            }
             if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
                 $columnList = array(
                     'Number'     => 'Nr.',
                     'Person'     => 'Person',
                     'Salutation' => 'Anrede',
 //                    'PersonToAddress' => 'Adressat',
+                    'Company'    => 'Firma',
                     'Address'    => 'Adresse',
                     'Option'     => ''
                 );
@@ -2910,31 +2933,33 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblAddressPersonAllByPerson) {
                         /** @var TblAddressPerson $tblAddressPerson */
                         $AddressList = array();
-                        array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson) use (&$AddressList, $tblPerson, $Id, $tblSerialLetter, $isCompany) {
-                            if (( $tblFilterCategory = $tblSerialLetter->getFilterCategory() )
-                                && TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblSerialLetter->getFilterCategory()->getName()
-                            ) {
-                                if ($isCompany) {
-                                    if (( $serviceTblCompanyToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
+                        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+                        array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson) use (&$AddressList, $tblPerson, $Id, $tblSerialLetter, $tblFilterCategory) {
+                            if ($tblFilterCategory && TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblFilterCategory->getName()) {
+                                if (( $serviceTblCompanyToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
 //                                        $tblAddress = $serviceTblCompanyToAddress->getTblAddress();
-                                        $AddressList[$tblAddressPerson->getId()]['Person'] =
-                                            $tblPerson->getLastFirstName();
-                                        $AddressList[$tblAddressPerson->getId()]['PersonToAddress'] =
-                                            $tblPerson->getLastFirstName();
-                                        $AddressList[$tblAddressPerson->getId()]['Address'] =
-                                            ( $tblAddressPerson->getServiceTblToPerson($tblFilterCategory)
-                                                ? $tblAddressPerson->getServiceTblToPerson($tblFilterCategory)->getTblAddress()->getGuiString()
-                                                : new Warning(new Exclamation().' Adresse nicht gefunden.') );
-                                        $AddressList[$tblAddressPerson->getId()]['Salutation'] =
-                                            $tblPerson->getSalutation() !== ''
-                                                ? $tblPerson->getSalutation()
-                                                : new Warning(new Exclamation().' Keine Anrede hinterlegt.');
-                                        $AddressList[$tblAddressPerson->getId()]['Option'] =
-                                            new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
-                                                array('Id'       => $Id,
-                                                      'PersonId' => $tblPerson->getId(),
-                                                      'Route'    => '/Reporting/SerialLetter/Export'));
+                                    $AddressList[$tblAddressPerson->getId()]['Person'] =
+                                        $tblPerson->getLastFirstName();
+                                    $AddressList[$tblAddressPerson->getId()]['PersonToAddress'] =
+                                        $tblPerson->getLastFirstName();
+                                    if (( $tblToCompany = $tblAddressPerson->getServiceTblToPerson($tblFilterCategory) )) {
+                                        $AddressList[$tblAddressPerson->getId()]['Address'] = $tblToCompany->getTblAddress()->getGuiString();
+                                        $AddressList[$tblAddressPerson->getId()]['Company'] =
+                                            ( $tblToCompany->getServiceTblCompany()->getExtendedName() !== ''
+                                                ? $tblToCompany->getServiceTblCompany()->getName().'<br/>'.
+                                                $tblToCompany->getServiceTblCompany()->getExtendedName()
+                                                : $tblToCompany->getServiceTblCompany()->getName() );
                                     }
+
+                                    $AddressList[$tblAddressPerson->getId()]['Salutation'] =
+                                        $tblPerson->getSalutation() !== ''
+                                            ? $tblPerson->getSalutation()
+                                            : new Warning(new Exclamation().' Keine Anrede hinterlegt.');
+                                    $AddressList[$tblAddressPerson->getId()]['Option'] =
+                                        new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
+                                            array('Id'       => $Id,
+                                                  'PersonId' => $tblPerson->getId(),
+                                                  'Route'    => '/Reporting/SerialLetter/Export'));
                                 }
                             } else {
                                 if (( $serviceTblPersonToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
@@ -2970,23 +2995,41 @@ class Frontend extends Extension implements IFrontendInterface
                                                     }
                                                 }
                                             }
-                                            $StudentNumber = new Small(new Muted('-NA-'));
 
-                                            $Division = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
-                                            if ($Division === '') {
-                                                $Division = new Small(new Muted('-NA-'));
-                                            }
-                                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                                            if ($tblStudent) {
-                                                $StudentNumber = $tblStudent->getIdentifier();
+                                            if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
+                                                $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                                                if ($tblProspect) {
+                                                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['ReservationDivision'] = $tblProspectReservation->getReservationDivision();
+                                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['ReservationYear'] = $tblProspectReservation->getReservationYear();
+                                                    if ($tblProspectReservation->getServiceTblTypeOptionA()) {
+                                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['ReservationOptionA'] = $tblProspectReservation->getServiceTblTypeOptionA()->getName();
+                                                    }
+                                                    if ($tblProspectReservation->getServiceTblTypeOptionB()) {
+                                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['ReservationOptionB'] = $tblProspectReservation->getServiceTblTypeOptionB()->getName();
+                                                    }
+                                                }
+                                            } else {
+                                                $StudentNumber = new Small(new Muted('-NA-'));
+                                                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                                                if ($tblStudent) {
+                                                    if ($tblStudent->getIdentifier() != '') {
+                                                        $StudentNumber = $tblStudent->getIdentifier();
+                                                    }
+                                                }
+
+                                                $Division = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+                                                if ($Division === '') {
+                                                    $Division = new Small(new Muted('-NA-'));
+                                                }
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $StudentNumber;
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['Division'] = $Division;
                                             }
 
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['Person'] =
                                                 ( $tblAddressPerson->getServiceTblPerson()
                                                     ? $tblAddressPerson->getServiceTblPerson()->getLastFirstName()
                                                     : new Warning(new Exclamation().' Person nicht gefunden.') );
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $StudentNumber;
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['Division'] = $Division;
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToAddress'] =
                                                 $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonToWrite'];
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['Address'] =
@@ -3012,37 +3055,65 @@ class Frontend extends Extension implements IFrontendInterface
                             foreach ($AddressList as $Address) {
                                 $countAddresses++;
                                 $dataList[] = array(
-                                    'Number'          => ++$count,
-                                    'Person'          => ( isset($Address['Person']) ? $Address['Person'] : '' ),
-                                    'StudentNumber'   => ( isset($Address['StudentNumber']) ? $Address['StudentNumber'] : '' ),
-                                    'Division'        => ( isset($Address['Division']) ? $Address['Division'] : '' ),
-                                    'PersonToAddress' => ( isset($Address['PersonToAddress']) ? $Address['PersonToAddress'] : '' ),
-                                    'Address'         => ( isset($Address['Address']) ? $Address['Address'] : '' ),
-                                    'Salutation'      => ( isset($Address['Salutation']) ? $Address['Salutation'] : '' ),
-                                    'Option'          => ( isset($Address['Option']) ? $Address['Option'] : '' )
+                                    'Number'              => ++$count,
+                                    'Person'              => ( isset($Address['Person']) ? $Address['Person'] : '' ),
+                                    'StudentNumber'       => ( isset($Address['StudentNumber']) ? $Address['StudentNumber'] : '' ),
+                                    'Division'            => ( isset($Address['Division']) ? $Address['Division'] : '' ),
+                                    'PersonToAddress'     => ( isset($Address['PersonToAddress']) ? $Address['PersonToAddress'] : '' ),
+                                    'Address'             => ( isset($Address['Address']) ? $Address['Address'] : '' ),
+                                    'Company'             => ( isset($Address['Company']) ? $Address['Company'] : '' ),
+                                    'ReservationDivision' => ( isset($Address['ReservationDivision']) ? $Address['ReservationDivision'] : '' ),
+                                    'ReservationYear'     => ( isset($Address['ReservationYear']) ? $Address['ReservationYear'] : '' ),
+                                    'ReservationOptionA'  => ( isset($Address['ReservationOptionA']) ? $Address['ReservationOptionA'] : '' ),
+                                    'ReservationOptionB'  => ( isset($Address['ReservationOptionB']) ? $Address['ReservationOptionB'] : '' ),
+                                    'Salutation'          => ( isset($Address['Salutation']) ? $Address['Salutation'] : '' ),
+                                    'Option'              => ( isset($Address['Option']) ? $Address['Option'] : '' )
                                 );
                             }
                         }
                     } else {
-                        $Division = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
-                        if ($Division === '') {
-                            $Division = new Small(new Muted('-NA-'));
-                        }
-                        $StudentNumber = new Small(new Muted('-NA-'));
-                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        if ($tblStudent) {
-                            $StudentNumber = $tblStudent->getIdentifier();
+                        if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
+                            $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                            if ($tblProspect) {
+                                $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                                $ReservationDivision = $tblProspectReservation->getReservationDivision();
+                                $ReservationYear = $tblProspectReservation->getReservationYear();
+                                if ($tblProspectReservation->getServiceTblTypeOptionA()) {
+                                    $ReservationOptionA = $tblProspectReservation->getServiceTblTypeOptionA()->getName();
+                                }
+                                if ($tblProspectReservation->getServiceTblTypeOptionB()) {
+                                    $ReservationOptionB = $tblProspectReservation->getServiceTblTypeOptionB()->getName();
+                                }
+                            }
+                        } else {
+                            $StudentNumber = new Small(new Muted('-NA-'));
+                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                            if ($tblStudent) {
+                                if ($tblStudent->getIdentifier() != '') {
+                                    $StudentNumber = $tblStudent->getIdentifier();
+                                }
+                            }
+                            $DivisionString = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+                            if ($DivisionString === '') {
+                                $DivisionString = new Small(new Muted('-NA-'));
+                            }
+                            $Division = $DivisionString;
                         }
 
                         $dataList[] = array(
-                            'Number'          => ++$count,
-                            'Person'          => $tblPerson->getLastFirstName(),
-                            'StudentNumber'   => $StudentNumber,
-                            'Division'        => $Division,
-                            'PersonToAddress' => new Warning(new Exclamation().' Keine Person mit Adresse hinterlegt.'),
-                            'Address'         => '',
-                            'Salutation'      => '',
-                            'Option'          => new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
+                            'Number'              => ++$count,
+                            'Person'              => $tblPerson->getLastFirstName(),
+                            'StudentNumber'       => ( isset($StudentNumber) ? $StudentNumber : '' ),
+                            'Division'            => ( isset($Division) ? $Division : '' ),
+                            'PersonToAddress'     => new Warning(new Exclamation().' Keine Person mit Adresse hinterlegt.'),
+                            'Address'             => '',
+                            'Salutation'          => '',
+                            'Company'             => '',
+                            'ReservationDivision' => ( isset($ReservationDivision) ? $ReservationDivision : '' ),
+                            'ReservationYear'     => ( isset($ReservationYear) ? $ReservationYear : '' ),
+                            'ReservationOptionA'  => ( isset($ReservationOptionA) ? $ReservationOptionA : '' ),
+                            'ReservationOptionB'  => ( isset($ReservationOptionB) ? $ReservationOptionB : '' ),
+                            'Option'              => new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
                                 array('Id'       => $Id,
                                       'PersonId' => $tblPerson->getId(),
                                       'Route'    => '/Reporting/SerialLetter/Export'))
