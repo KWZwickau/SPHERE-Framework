@@ -367,7 +367,7 @@ class RadebeulJahreszeugnis extends Certificate
                                     ->setContent('&nbsp;')
                                     ->styleTextColor($textColorBlue)
                                     ->styleMarginTop('25px')
-                                    ->styleBorderBottom('1px', '#000')
+                                    ->styleBorderBottom('1px', $textColorBlue)
                                     , '30%')
                             )
                             ->addSection((new Section())

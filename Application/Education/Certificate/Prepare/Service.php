@@ -307,20 +307,20 @@ class Service extends AbstractService
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblCertificate $tblCertificate
+     * @param TblCertificate|null $tblCertificate
      *
      * @return string
      */
     public function updatePrepareStudentSetCertificate(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblCertificate $tblCertificate
+        TblCertificate $tblCertificate = null
     ) {
 
         if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
             (new Data($this->getBinding()))->updatePrepareStudent(
                 $tblPrepareStudent,
-                $tblCertificate,
+                $tblCertificate ? $tblCertificate : null,
                 $tblPrepareStudent->isApproved(),
                 $tblPrepareStudent->isPrinted(),
                 $tblPrepareStudent->getExcusedDays(),
@@ -330,7 +330,7 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->createPrepareStudent(
                 $tblPrepare,
                 $tblPerson,
-                $tblCertificate
+                $tblCertificate ? $tblCertificate : null
             );
         }
 
