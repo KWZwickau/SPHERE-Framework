@@ -2037,14 +2037,17 @@ class Frontend extends Extension implements IFrontendInterface
             // oberste Tabellen-Kopf-Zeile erstellen
             $headTableColumnList = array();
             $headTableColumnList[] = new TableColumn('', 2, '20%');
+            $countHeaderColumns = 2;
             if (!empty($periodListCount)) {
                 foreach ($periodListCount as $periodId => $count) {
                     $tblPeriod = Term::useService()->getPeriodById($periodId);
                     if ($tblPeriod) {
                         $headTableColumnList[] = new TableColumn($tblPeriod->getDisplayName(), $count);
+                        $countHeaderColumns += $count;
                     }
                 }
-                $headTableColumnList[] = new TableColumn('', 3);
+                $countLastTab = count($columnDefinition) - $countHeaderColumns;
+                $headTableColumnList[] = new TableColumn('', $countLastTab > 0 ? $countLastTab : 1);
             }
             $tableData->prependHead(
                 new TableHead(

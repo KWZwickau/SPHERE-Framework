@@ -704,6 +704,11 @@ class Service extends AbstractService
                             && $tblTest->getServiceTblSubject()
                         ) {
                             $Content['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()] = $tblGradeItem->getDisplayGrade();
+
+                            // bei Zeugnistext als Note Schriftgröße verkleinern
+                            if ($tblGradeItem->getTblGradeText()) {
+                                $Content['Grade']['Data']['IsShrinkSize'][$tblTest->getServiceTblSubject()->getAcronym()] = true;
+                            }
                         }
                     }
                 }
