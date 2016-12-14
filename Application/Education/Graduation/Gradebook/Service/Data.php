@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
@@ -12,7 +13,6 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -43,6 +43,11 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $this->createGradeType('Mitarbeit', 'KMI', 'Kopfnote Mitarbeit', 0, $TestType);
             $this->createGradeType('Ordnung', 'KOR', 'Kopfnote Ordnung', 0, $TestType);
         }
+
+        $this->createGradeText('nicht erteilt', 'NOT_GRANTED');
+        $this->createGradeText('teilgenommen', 'ATTENDED');
+        $this->createGradeText('Keine Benotung ', 'NO_GRADING');
+        $this->createGradeText('befreit', 'LIBERATED');
     }
 
     /**
@@ -131,6 +136,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param string $Comment
      * @param int $Trend
      * @param null $Date
+     * @param TblGradeText $tblGradeText
      *
      * @return TblGrade
      */
@@ -146,7 +152,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Grade,
         $Comment,
         $Trend = 0,
-        $Date = null
+        $Date = null,
+        TblGradeText $tblGradeText = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -164,6 +171,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Entity->setComment($Comment);
         $Entity->setTrend($Trend);
         $Entity->setDate($Date ? new \DateTime($Date) : null);
+        $Entity->setTblGradeText($tblGradeText);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -334,6 +342,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param string $Comment
      * @param int $Trend
      * @param null $Date
+     * @param TblGradeText $tblGradeText
      *
      * @return bool
      */
@@ -342,7 +351,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Grade,
         $Comment = '',
         $Trend = 0,
-        $Date = null
+        $Date = null,
+        TblGradeText $tblGradeText = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -355,6 +365,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setComment($Comment);
             $Entity->setTrend($Trend);
             $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setTblGradeText($tblGradeText);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -520,5 +531,72 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return TblGradeText
+     */
+    public function createGradeText(
+        $Name,
+        $Identifier
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Identifier = strtoupper($Identifier);
+
+        $Entity = $Manager->getEntity('TblGradeText')
+            ->findOneBy(array(
+                TblGradeText::ATTR_IDENTIFIER => $Identifier,
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblGradeText();
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeText', $Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeText',
+            array(
+                TblGradeText::ATTR_IDENTIFIER => $Identifier
+            )
+        );
+    }
+
+    /**
+     * @return false|TblGradeText[]
+     */
+    public function getGradeTextAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeText');
     }
 }
