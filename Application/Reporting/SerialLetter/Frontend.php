@@ -2535,14 +2535,15 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Check === null) {
             $tblAddressAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
             if ($tblAddressAllByPerson) {
+                $FilterCategory = ( $tblFilterCategory ? $tblFilterCategory : null );
                 foreach ($tblAddressAllByPerson as $tblAddressPerson) {
                     if ($tblAddressPerson->getServiceTblPerson()
                         && $tblAddressPerson->getServiceTblPersonToAddress()
-                        && $tblAddressPerson->getServiceTblToPerson()
+                        && $tblAddressPerson->getServiceTblToPerson($FilterCategory)
                     ) {
                         $Global->POST['Check']
                         [$tblAddressPerson->getServiceTblPerson()->getId()]
-                        [$tblAddressPerson->getServiceTblToPerson()->getId()]
+                        [$tblAddressPerson->getServiceTblToPerson($FilterCategory)->getId()]
                         ['Address'] = 1;
 
 //                        $Global->POST['Check']
