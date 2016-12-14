@@ -206,7 +206,7 @@ class Service extends AbstractService
         ) {
 
             $countStudents = count($tblPersonList);
-            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
             foreach ($tblPersonList as $tblPerson) {
                 // Template bereits gesetzt
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
@@ -224,9 +224,9 @@ class Service extends AbstractService
                     }
                 }
 
-                if ($tblConsumer) {
+                if ($tblConsumerBySession) {
                     // Eigene Vorlage
-                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumer))) {
+                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumerBySession))) {
                         if (count($certificateList) == 1) {
                             // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
 //                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
