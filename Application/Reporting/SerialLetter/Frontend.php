@@ -2082,10 +2082,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblRelationshipCompanyList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson);
                 if ($tblRelationshipCompanyList) {
                     foreach ($tblRelationshipCompanyList as $tblRelationshipCompany) {
-                        if ($Item['CompanyRelationship'] === '') {
-                            $Item['CompanyRelationship'] = $tblRelationshipCompany->getTblType()->getName();
-                        } else {
-                            $Item['CompanyRelationship'] .= ', '.$tblRelationshipCompany->getTblType()->getName();
+                        if ($tblRelationshipCompany->getServiceTblCompany()) {
+                            if ($Item['CompanyRelationship'] === '') {
+                                $Item['CompanyRelationship'] = $tblRelationshipCompany->getTblType()->getName();
+                            } else {
+                                $Item['CompanyRelationship'] .= ', '.$tblRelationshipCompany->getTblType()->getName();
+                            }
                         }
                     }
                 }
