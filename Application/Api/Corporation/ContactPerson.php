@@ -9,16 +9,12 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ApiEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
-use SPHERE\Common\Window\Redirect;
-use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class ContactPerson
