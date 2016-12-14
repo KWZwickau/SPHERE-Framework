@@ -22,7 +22,7 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface
      */
     public function __construct()
     {
-        $this->Identifier = 'Sphere-Ajax-Node-' . sha1(uniqid('',true));
+        $this->Identifier = 'Sphere-Ajax-Receiver-' . sha1(uniqid('',true));
     }
 
     /**

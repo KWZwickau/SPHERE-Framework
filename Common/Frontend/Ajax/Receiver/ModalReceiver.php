@@ -21,10 +21,7 @@ class ModalReceiver extends AbstractReceiver
     public function getContainer()
     {
         $Template = $this->getTemplate( __DIR__.'/ModalReceiver.twig' );
-
         $Template->setVariable( 'IDENTIFIER', $this->getIdentifier() );
-
-        //return '<div class="' . $this->getIdentifier() . '"></div>';
         return $Template->getContent();
     }
 
