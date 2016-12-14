@@ -5,7 +5,11 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
 use SPHERE\Common\Frontend\Ajax\Emitter\ApiEmitter;
+use SPHERE\Common\Frontend\Ajax\Emitter\LayoutEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\FieldValueReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -52,7 +56,9 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutSocial;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
@@ -442,9 +448,25 @@ class Frontend extends Extension implements IFrontendInterface
 
         $P = new Pipeline();
         $P->setSuccessMessage('Daten wurden geladen');
-        $P->addEmitter( $E = new ApiEmitter( new Route('SPHERE\Application\Api\Corporation/Similar'), $R = new ModalReceiver() ) );
-        $E->setGetPayload(array( 'MethodName' => 'ajaxLayoutSimilarPerson' ));
-        $E->setPostPayload(array( 'Reload' => (string)$R->getIdentifier() ));
+
+        $P->addEmitter( $E2 = new LayoutEmitter($R2 = new FieldValueReceiver( new NumberField( 'NUFF' )), 0 ) );
+
+        $P->addEmitter( $E3 = new ApiEmitter($R3 = new BlockReceiver(), new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $E3->setGetPayload(array(
+            'MethodName' => 'ajaxContent'
+        ));
+
+        $P->addEmitter( $E4 = new LayoutEmitter($R4 = new InlineReceiver(), new Info( ':)' ) ) );
+
+        $P->addEmitter( $E1 = new ApiEmitter($R1 = new ModalReceiver(), new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $E1->setGetPayload(array(
+            'MethodName' => 'ajaxLayoutSimilarPerson'
+        ));
+        $E1->setPostPayload(array(
+            'Reload' => (string)$R1->getIdentifier(),
+            'E4' => (string)$R4->getIdentifier()
+        ));
+
 
         $Stage->setContent(
             new Layout(array(
@@ -456,11 +478,18 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ),
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            $R1,
+                            $R4
+                        ),4),
                         new LayoutColumn(
-                            $R
-                        )
-                    )
+                            $R2
+                        ,4),
+                        new LayoutColumn(
+                            $R3
+                        ,4)
+                    ))
                 )
             ))
         );
