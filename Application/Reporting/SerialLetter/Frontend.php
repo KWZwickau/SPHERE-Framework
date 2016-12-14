@@ -2624,28 +2624,31 @@ class Frontend extends Extension implements IFrontendInterface
                             /** @var TblToCompany $tblToCompany */
                             foreach ($tblAddressToPersonList as $tblToCompany) {
                                 if ($tblToCompany->getTblAddress()) {
-
-                                    if ($tblToCompany->getServiceTblCompany()->getId() === $tblRelationship->getServiceTblCompany()->getId()) {
-                                        $RelationShip = $tblType->getName();
-                                        $subDataList[] = array(
-                                            'Salutation'   => $tblPerson->getSalutation(),
-                                            'Person'       => $tblPerson->getFullName(),
-                                            'Relationship' => $RelationShip,
-                                            'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToCompany->getId().'][Address]',
-                                                '&nbsp; '.$tblToCompany->getTblAddress()->getGuiString(), 1)
-                                        );
+                                    if ($tblToCompany->getServiceTblCompany() && $tblRelationship->getServiceTblCompany()) {
+                                        if ($tblToCompany->getServiceTblCompany()->getId() === $tblRelationship->getServiceTblCompany()->getId()) {
+                                            $RelationShip = $tblType->getName();
+                                            $subDataList[] = array(
+                                                'Salutation'   => $tblPerson->getSalutation(),
+                                                'Person'       => $tblPerson->getFullName(),
+                                                'Relationship' => $RelationShip,
+                                                'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToCompany->getId().'][Address]',
+                                                    '&nbsp; '.$tblToCompany->getTblAddress()->getGuiString(), 1)
+                                            );
+                                        }
                                     }
                                 } else {
-                                    if ($tblToCompany->getServiceTblCompany()->getId() === $tblRelationship->getServiceTblCompany()->getId()) {
-                                        $RelationShip = $tblType->getName();
-                                        /** @var TblToPerson $tblRelationship */
-                                        $subDataList[] = array(
-                                            'Salutation'   => $tblPerson->getSalutation(),
-                                            'Person'       => $tblPerson->getFullName(),
-                                            'Relationship' => $RelationShip,
-                                            'Address'      => new Warning(
-                                                new Exclamation().' Keine Adresse hinterlegt')
-                                        );
+                                    if ($tblToCompany->getServiceTblCompany() && $tblRelationship->getServiceTblCompany()) {
+                                        if ($tblToCompany->getServiceTblCompany()->getId() === $tblRelationship->getServiceTblCompany()->getId()) {
+                                            $RelationShip = $tblType->getName();
+                                            /** @var TblToPerson $tblRelationship */
+                                            $subDataList[] = array(
+                                                'Salutation'   => $tblPerson->getSalutation(),
+                                                'Person'       => $tblPerson->getFullName(),
+                                                'Relationship' => $RelationShip,
+                                                'Address'      => new Warning(
+                                                    new Exclamation().' Keine Adresse hinterlegt')
+                                            );
+                                        }
                                     }
                                 }
                             }
@@ -2892,14 +2895,16 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
                 /** @var TblPerson $tblPerson */
                 foreach ($tblPersonList as $tblPerson) {
-                    $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
-                        $tblPerson);
-                    if ($tblAddressPersonAllByPerson) {
-                        /** @var TblAddressPerson $tblAddressPerson */
-                        foreach ($tblAddressPersonAllByPerson as $tblAddressPerson) {
-                            // clean data if missing address
-                            if (!$tblAddressPerson->getServiceTblToPerson()) {
-                                SerialLetter::useService()->destroySerialAddressPerson($tblAddressPerson);
+                    if (!$tblFilterCategory) {
+                        $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
+                            $tblPerson);
+                        if ($tblAddressPersonAllByPerson) {
+                            /** @var TblAddressPerson $tblAddressPerson */
+                            foreach ($tblAddressPersonAllByPerson as $tblAddressPerson) {
+                                // clean data if missing address
+                                if (!$tblAddressPerson->getServiceTblToPerson()) {
+                                    SerialLetter::useService()->destroySerialAddressPerson($tblAddressPerson);
+                                }
                             }
                         }
                     }
@@ -2915,7 +2920,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 && TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblSerialLetter->getFilterCategory()->getName()
                             ) {
                                 if ($isCompany) {
-                                    if (( $serviceTblCompanyToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
+                                    if (( $serviceTblCompanyToAddress = $tblAddressPerson->getServiceTblToPerson($tblFilterCategory) )) {
 //                                        $tblAddress = $serviceTblCompanyToAddress->getTblAddress();
                                         $AddressList[$tblAddressPerson->getId()]['Person'] =
                                             $tblPerson->getLastFirstName();
