@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -471,6 +472,7 @@ class Frontend extends Extension
                         && ($tblType = $tblLevel->getServiceTblType())
                     ) {
                         $certificateNameList = array();
+                        $schoolNameList = array();
                         $countTemplates = $countStudents = 0;
                         // für Noteninformation
                         if ($tblGenerateCertificate->getServiceTblCertificateType()
@@ -483,17 +485,24 @@ class Frontend extends Extension
                             }
                         } else {
                             $countTemplates = Generate::useService()->setCertificateTemplates($tblPrepare,
-                                $countStudents, $certificateNameList);
+                                $countStudents, $certificateNameList, $schoolNameList);
                         }
 
                         $text = '';
                         if (!empty($certificateNameList)) {
                             $text = implode(', ', $certificateNameList);
                         }
+                        $schoolText = '';
+                        if (!empty($schoolNameList)) {
+                            foreach ($schoolNameList as $schoolName){
+                                $schoolText .= new Container($schoolName);
+                            }
+                        }
 
                         $tableData[] = array(
                             'SchoolType' => $tblType->getName(),
                             'Division' => $tblDivision->getDisplayName(),
+                            'School' => $schoolText,
                             'Status' => ($countTemplates < $countStudents
                                 ? new Warning(new Exclamation() . ' ' . $countTemplates . ' von '
                                     . $countStudents . ' Zeugnisvorlagen zugeordnet.')
@@ -536,6 +545,7 @@ class Frontend extends Extension
                                     $tableData, null, array(
                                     'SchoolType' => 'Schulart',
                                     'Division' => 'Klasse',
+                                    'School' => 'Aktuelle Schulen',
                                     'Status' => 'Zeugnisvorlagen Zuordnung',
                                     'Templates' => 'Zeugnisvorlagen',
                                     'Option' => ''
@@ -591,6 +601,7 @@ class Frontend extends Extension
                 foreach ($tblStudentList as $tblPerson) {
 
                     $tblCourse = false;
+                    $tblCompany = false;
                     if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
                         && ($tblStudent = $tblPerson->getStudent())
                     ) {
@@ -598,6 +609,7 @@ class Frontend extends Extension
                             $tblTransferType);
                         if ($tblStudentTransfer) {
                             $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                            $tblCompany = $tblStudentTransfer->getServiceTblCompany();
                         }
                     }
 
@@ -605,6 +617,9 @@ class Frontend extends Extension
                         'Number' => $count++,
                         'Student' => $tblPerson->getLastFirstName(),
                         'Course' => $tblCourse ? $tblCourse->getName() : '',
+                        'School' => $tblCompany ? $tblCompany->getName() : new Warning(
+                            new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
+                        )
                     );
 
                     $tblCertificate = false;
@@ -673,6 +688,7 @@ class Frontend extends Extension
                                 'Number' => 'Nr.',
                                 'Student' => 'Schüler',
                                 'Course' => 'Bildungsgang',
+                                'School' => 'Aktuelle Schule',
                                 'Template' => 'Zeugnisvorlage'
                             ), null
                             )

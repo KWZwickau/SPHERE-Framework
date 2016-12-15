@@ -341,7 +341,7 @@ abstract class Certificate extends Extension
         if (isset($Data['Company']['Id'])
             && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
         ) {
-            $Data['Company']['Data']['Name'] = $tblCompany->getDisplayName();
+            $Data['Company']['Data']['Name'] = $tblCompany->getName();
         }
 
         return $Data;

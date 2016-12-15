@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -191,13 +192,15 @@ class Service extends AbstractService
      * @param TblPrepareCertificate $tblPrepare
      * @param int $countStudents
      * @param array $certificateNameList
+     * @param array $schoolNameList
      *
      * @return int
      */
     public function setCertificateTemplates(
         TblPrepareCertificate $tblPrepare,
         &$countStudents = 0,
-        &$certificateNameList = array()
+        &$certificateNameList = array(),
+        &$schoolNameList = array()
     ) {
 
         $countTemplates = 0;
@@ -208,6 +211,27 @@ class Service extends AbstractService
             $countStudents = count($tblPersonList);
             $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
             foreach ($tblPersonList as $tblPerson) {
+                // Schulnamen
+                $tblCompany = false;
+                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                    && ($tblStudent = $tblPerson->getStudent())
+                ) {
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblTransferType);
+                    if ($tblStudentTransfer) {
+                        $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                    }
+                }
+                if ($tblCompany) {
+                    if (!array_search($tblCompany->getName(), $schoolNameList)) {
+                        $schoolNameList[$tblCompany->getId()] = $tblCompany->getName();
+                    }
+                } else {
+                    $schoolNameList[0] = new Warning(
+                        new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
+                    );
+                }
+
                 // Template bereits gesetzt
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
                     if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
