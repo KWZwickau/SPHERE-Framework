@@ -2561,8 +2561,19 @@ class Frontend extends Extension implements IFrontendInterface
             'Salutation'   => 'Anrede',
             'Person'       => 'Person',
             'Relationship' => 'Beziehung',
+            'AddressType'  => 'Adresstyp',
             'Address'      => 'Adressen'
         );
+        if ($tblFilterCategory && $tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+            $columnList = array(
+                'Salutation'   => 'Anrede',
+                'Person'       => 'Person',
+                'Relationship' => 'Beziehung',
+                'Company'      => 'Firma',
+                'AddressType'  => 'Adresstyp',
+                'Address'      => 'Adressen'
+            );
+        }
 
         $personCount = 0;
 
@@ -2588,7 +2599,6 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
-
         } else {
             $tblAddressToPersonList = Address::useService()->getAddressAllByPerson($tblPerson);
         }
@@ -2601,6 +2611,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Salutation'   => $tblPerson->getSalutation(),
                         'Person'       => $tblToPerson->getServiceTblPerson() ? new Bold($tblToPerson->getServiceTblPerson()->getFullName()) : '',
                         'Relationship' => '',
+                        'AddressType'  => $tblToPerson->getTblType()->getName(),
                         'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToPerson->getId().'][Address]',
                             '&nbsp; '.$tblToPerson->getTblAddress()->getGuiString(), 1),
                     );
@@ -2634,6 +2645,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Salutation'   => $tblPerson->getSalutation(),
                                                 'Person'       => $tblPerson->getFullName(),
                                                 'Relationship' => $RelationShip,
+                                                'Company'      => ( $tblToCompany->getServiceTblCompany()
+                                                    ? $tblToCompany->getServiceTblCompany()->getName().' '
+                                                    .$tblToCompany->getServiceTblCompany()->getExtendedName()
+                                                    : '' ),
+                                                'AddressType'  => $tblToCompany->getTblType()->getName(),
                                                 'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToCompany->getId().'][Address]',
                                                     '&nbsp; '.$tblToCompany->getTblAddress()->getGuiString(), 1)
                                             );
@@ -2648,6 +2664,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Salutation'   => $tblPerson->getSalutation(),
                                                 'Person'       => $tblPerson->getFullName(),
                                                 'Relationship' => $RelationShip,
+                                                'Company'      => ( $tblToCompany->getServiceTblCompany()
+                                                    ? $tblToCompany->getServiceTblCompany()->getName().' '
+                                                    .$tblToCompany->getServiceTblCompany()->getExtendedName()
+                                                    : '' ),
+                                                'AddressType'  => $tblToCompany->getTblType()->getName(),
                                                 'Address'      => new Warning(
                                                     new Exclamation().' Keine Adresse hinterlegt')
                                             );
@@ -2680,6 +2701,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Salutation'   => ( $tblToPerson->getServiceTblPerson() ? $tblToPerson->getServiceTblPerson()->getSalutation() : '' ),
                                             'Person'       => ( $tblToPerson->getServiceTblPerson() ? $tblToPerson->getServiceTblPerson()->getFullName() : '' ),
                                             'Relationship' => $direction,
+                                            'AddressType'  => $tblToPerson->getTblType()->getName(),
                                             'Address'      => new CheckBox('Check['.$tblPerson->getId().']['.$tblToPerson.'][Address]',
                                                 '&nbsp; '.$tblToPerson->getTblAddress()->getGuiString(), 1)
                                         );
@@ -2693,6 +2715,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Salutation'   => ( $tblRelationship->getServiceTblPersonFrom() ? $tblRelationship->getServiceTblPersonFrom()->getSalutation() : '' ),
                                         'Person'       => ( $tblRelationship->getServiceTblPersonFrom() ? $tblRelationship->getServiceTblPersonFrom()->getFullName() : '' ),
                                         'Relationship' => $direction,
+                                        'AddressType'  => '',
                                         'Address'      => new Warning(
                                             new Exclamation().' Keine Adresse hinterlegt')
                                     );
@@ -2701,6 +2724,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Salutation'   => ( $tblRelationship->getServiceTblPersonFrom() ? $tblRelationship->getServiceTblPersonFrom()->getSalutation() : '' ),
                                         'Person'       => ( $tblRelationship->getServiceTblPersonTo() ? $tblRelationship->getServiceTblPersonTo()->getFullName() : '' ),
                                         'Relationship' => $direction,
+                                        'AddressType'  => '',
                                         'Address'      => new Warning(
                                             new Exclamation().' Keine Adresse hinterlegt')
                                     );
