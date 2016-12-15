@@ -446,19 +446,30 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('SandBox');
 
+        $R1 = new ModalReceiver();
+        $R2 = new FieldValueReceiver( new NumberField( 'NUFF' ));
+        $R3 = new BlockReceiver();
+        $R4 = new InlineReceiver();
+
         $P = new Pipeline();
+        $P->setLoadingMessage('Interface wird geladen..');
         $P->setSuccessMessage('Daten wurden geladen');
 
-        $P->addEmitter( $E2 = new LayoutEmitter($R2 = new FieldValueReceiver( new NumberField( 'NUFF' )), 0 ) );
+        $P->addEmitter( $E2 = new LayoutEmitter($R2, 0 ) );
 
-        $P->addEmitter( $E3 = new ApiEmitter($R3 = new BlockReceiver(), new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P->addEmitter( $E3 = new ApiEmitter($R3, new Route('SPHERE\Application\Api\Corporation/Similar')) );
         $E3->setGetPayload(array(
             'MethodName' => 'ajaxContent'
         ));
 
         $P->addEmitter( $E4 = new LayoutEmitter($R4 = new InlineReceiver(), new Info( ':)' ) ) );
 
-        $P->addEmitter( $E1 = new ApiEmitter($R1 = new ModalReceiver(), new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P->addEmitter( $E3 = new ApiEmitter($R3, new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $E3->setGetPayload(array(
+            'MethodName' => 'ajaxContent'
+        ));
+
+        $P->addEmitter( $E1 = new ApiEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')) );
         $E1->setGetPayload(array(
             'MethodName' => 'ajaxLayoutSimilarPerson'
         ));

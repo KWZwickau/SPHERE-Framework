@@ -10,6 +10,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\TwigHandler;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Pipeline
@@ -74,7 +75,85 @@ class Pipeline
      */
     public function parseScript( Form $Form = null )
     {
+        foreach ($this->Emitter as $Index => $Emitter) {
+            // ApiEmitter
+            if( $Emitter instanceof ApiEmitter ) {
+                $Url = $Emitter->getAjaxUri() . $Emitter->getAjaxGetPayload();
+                if ($Form === null) {
+                    if (strlen($Emitter->getAjaxPostPayload()) == 2) {
+                        $Method = 'GET';
+                    } else {
+                        $Method = 'POST';
+                    }
+                    $Data = $Emitter->getAjaxPostPayload();
+                } else {
+                    $Method = 'POST';
+                    $Data = 'jQuery("form#' . $Form->getHash() . '").serializeArray()';
+                }
 
+                $ReceiverList = $Emitter->getAjaxReceiver();
+                $ReceiverContext = array();
+                foreach( $ReceiverList as $Receiver ) {
+                    $ReceiverContext[] = $Receiver->getHandler();
+                }
+
+                /** @var IBridgeInterface $Template */
+                if (!isset($Template)) {
+//                    var_dump( 'New Line A' );
+                    $Template = Template::getTwigTemplateString(
+                        'jQuery().ModAjax({ Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, onLoad: { Message: '.json_encode($this->LoadingMessage).' }, onSuccess: { Message: '.json_encode($this->SuccessMessage).' } } }).loadAjax( {{ Method }}, {{ Url }} , {{ Data }}, {{ Callback }} );'
+                    );
+                } else {
+//                    var_dump( 'Callback Line A' );
+                    $Template->setVariable('Callback',
+                        'function(){ jQuery().ModAjax({ Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, onLoad: { Message: '.json_encode($this->LoadingMessage).' }, onSuccess: { Message: '.json_encode($this->SuccessMessage).' } } }).loadAjax( {{ Method }}, {{ Url }} , {{ Data }}, {{ Callback }} ); }'
+                    );
+                    $Template = Template::getTwigTemplateString( $Template->getContent() );
+                }
+
+                $Template->setVariable( 'Method', json_encode($Method) );
+                $Template->setVariable( 'Url', json_encode($Url) );
+                $Template->setVariable( 'Data', json_encode($Data) );
+                $Template->setVariable( 'Receiver', json_encode( $ReceiverContext ) );
+                $Template->setVariable( 'Hash', json_encode(sha1(json_encode($Method).json_encode($Url).json_encode($Data).json_encode( $ReceiverContext ))) );
+
+//                Debugger::screenDump( $Method, $Url, json_encode($Data), json_encode( $ReceiverContext ) );
+            }
+            // LayoutEmitter
+            if( $Emitter instanceof LayoutEmitter ) {
+
+                $Content = $Emitter->getContent();
+
+                $ReceiverList = $Emitter->getAjaxReceiver();
+                $ReceiverContext = array();
+                foreach( $ReceiverList as $Receiver ) {
+                    $ReceiverContext[] = $Receiver->getHandler();
+                }
+
+                /** @var IBridgeInterface $Template */
+                if (!isset($Template)) {
+//                    var_dump('New Line L');
+                    $Template = Template::getTwigTemplateString(
+                        'jQuery().ModAjax({ Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, onLoad: { Message: '.json_encode($this->LoadingMessage).' }, onSuccess: { Message: '.json_encode($this->SuccessMessage).' } } }).loadContent( {{ Content }}, {{ Callback }} );'
+                    );
+                } else {
+//                    var_dump( 'Callback Line L' );
+                    $Template->setVariable('Callback',
+                        'function(){ jQuery().ModAjax({ Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, onLoad: { Message: '.json_encode($this->LoadingMessage).' }, onSuccess: { Message: '.json_encode($this->SuccessMessage).' } } }).loadContent( {{ Content }}, {{ Callback }} ); }'
+                    );
+                    $Template = Template::getTwigTemplateString( $Template->getContent() );
+                }
+                $Template->setVariable( 'Content', $Content );
+                $Template->setVariable( 'Receiver', json_encode( $ReceiverContext ) );
+                $Template->setVariable( 'Hash', json_encode(sha1(json_encode($Content).json_encode($ReceiverContext))) );
+
+//                Debugger::screenDump( $Content, json_encode( $ReceiverContext ) );
+
+            }
+        }
+        $Template->setVariable('Callback', json_encode(false) );
+        return $Template->getContent();
+/*
 //        (new CacheFactory())->createHandler(new TwigHandler())->clearCache();
         $Template = Template::getTemplate(__DIR__ . '/Pipeline.twig');
 
@@ -152,6 +231,7 @@ class Pipeline
         }
 
         return $Template->getContent();
+*/
     }
 
     /**
@@ -196,7 +276,7 @@ class Pipeline
     {
         return (string)'<script type="text/javascript">'
             . 'executeScript(function() {'
-            . 'Client.Use("ModAlways", function(){'
+            . 'Client.Use("ModAjax", function(){'
             . $this->parseScript()
             . '});'
             . '});'
