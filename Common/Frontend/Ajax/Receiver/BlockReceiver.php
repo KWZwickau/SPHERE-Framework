@@ -7,6 +7,18 @@ namespace SPHERE\Common\Frontend\Ajax\Receiver;
  */
 class BlockReceiver extends AbstractReceiver
 {
+
+    /**
+     * BlockReceiver constructor.
+     *
+     * @param string $Content
+     */
+    public function __construct( $Content = '' )
+    {
+        $this->setContent( $Content );
+        parent::__construct();
+    }
+
     /**
      * @return string
      */
@@ -20,7 +32,7 @@ class BlockReceiver extends AbstractReceiver
      */
     public function getContainer()
     {
-        return '<div class="' . $this->getIdentifier() . '"></div>';
+        return '<div class="' . $this->getIdentifier() . '">'.$this->getContent().'</div>';
     }
 
     /**

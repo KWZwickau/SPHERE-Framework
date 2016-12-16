@@ -2,11 +2,9 @@
     'use strict';
     $.fn.ModAjax = function (options) {
 
-        if( typeof $.fn.ModAjax.NotifyHandler == "undefined" ) {
-            $.fn.ModAjax.NotifyHandler = [];
-        }
+// Settings
 
-        var settings = $.extend(true,{
+        var settings = $.extend(true, {
             Receiver: [],
             Notify: {
                 Hash: 'default',
@@ -21,6 +19,26 @@
             }
         }, options);
 
+// Init Notify
+
+        if (typeof document.ModAjax == "undefined" || typeof document.ModAjax.NotifyHandler == "undefined") {
+            document.ModAjax = {};
+            document.ModAjax.NotifyHandler = {};
+        }
+        var getNotifyObject = function () {
+            if (document.ModAjax.NotifyHandler[settings.Notify.Hash]) {
+                return document.ModAjax.NotifyHandler[settings.Notify.Hash];
+            } else {
+                return false;
+            }
+        }
+        var destroyNotifyObject = function () {
+            if (document.ModAjax.NotifyHandler[settings.Notify.Hash]) {
+                document.ModAjax.NotifyHandler[settings.Notify.Hash].close();
+                document.ModAjax.NotifyHandler[settings.Notify.Hash] = null;
+                delete document.ModAjax.NotifyHandler[settings.Notify.Hash];
+            }
+        }
         var parseAjaxError = function (request, status, error) {
             // Parse Error
             var ErrorMessage = '';
@@ -43,7 +61,6 @@
             }
             return ErrorMessage;
         }
-
         var domLoadTemplate = '<div data-notify="container" class="col-xs-11 col-sm-4 alert alert-{0}" role="alert">' +
             '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
             '<span data-notify="icon"><span class="loading-indicator-animate"></span>&nbsp;</span>' +
@@ -54,7 +71,6 @@
             '<span data-notify="message">{2}</span>' +
             '<a href="{3}" target="{4}" data-notify="url"></a>' +
             '</div>';
-
         var domErrorTemplate = '<div data-notify="container" class="col-xs-11 col-sm-8 alert alert-{0}" role="alert">' +
             '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
             '<span data-notify="icon"></span>' +
@@ -65,16 +81,18 @@
             '<span data-notify="message">{2}</span>' +
             '<a href="{3}" target="{4}" data-notify="url"></a>' +
             '</div>';
-
         var getRandomInt = function getRandomInt(min, max) {
             min = Math.ceil(min);
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
-        var onLoadEvent = function ( jqXHR, Config) {
-            if (!$.fn.ModAjax.NotifyHandler[settings.Notify.Hash]) {
-                $.fn.ModAjax.NotifyHandler[settings.Notify.Hash] = $.notify({
+// Event Handler
+
+        var onLoadEvent = function (jqXHR, Config) {
+            var Notify = getNotifyObject();
+            if (!Notify) {
+                document.ModAjax.NotifyHandler[settings.Notify.Hash] = $.notify({
                     title: settings.Notify.onLoad.Title,
                     message: settings.Notify.onLoad.Message + '<br/>' + Config.url
                 }, {
@@ -86,16 +104,17 @@
                     delay: 0,
                     template: domLoadTemplate
                 });
+                Notify = getNotifyObject();
             } else {
-                $.fn.ModAjax.NotifyHandler[settings.Notify.Hash].update({message: settings.Notify.onLoad.Message});
+                Notify.update({message: settings.Notify.onLoad.Message});
             }
-            $.fn.ModAjax.NotifyHandler[settings.Notify.Hash].update({progress: getRandomInt(15, 25)});
+            Notify.update({progress: getRandomInt(15, 25)});
         };
-
         var onErrorEvent = function (request, status, error) {
             var ErrorMessage = parseAjaxError(request, status, error);
-            if (!$.fn.ModAjax.NotifyHandler[settings.Notify.Hash]) {
-                $.fn.ModAjax.NotifyHandler[settings.Notify.Hash] = $.notify({
+            var Notify = getNotifyObject();
+            if (!Notify) {
+                document.ModAjax.NotifyHandler[settings.Notify.Hash] = $.notify({
                     title: settings.Notify.onLoad.Title,
                     message: ErrorMessage
                 }, {
@@ -107,15 +126,16 @@
                     animate: {enter: 'animated fadeInRight', exit: 'animated fadeOutRight'},
                     template: domErrorTemplate
                 });
+                var Notify = getNotifyObject();
             } else {
-                $.fn.ModAjax.NotifyHandler[settings.Notify.Hash].update({showProgressbar: false, title: 'Error', message: ErrorMessage});
+                Notify.update({showProgressbar: false, title: 'Error', message: ErrorMessage});
             }
         };
-
         var onSuccessEvent = function (Response) {
             console.log('onSuccessEvent');
-            if ($.fn.ModAjax.NotifyHandler[settings.Notify.Hash]) {
-                $.fn.ModAjax.NotifyHandler[settings.Notify.Hash].update({progress: getRandomInt(75, 85)});
+            var Notify = getNotifyObject();
+            if (Notify) {
+                Notify.update({progress: getRandomInt(75, 85)});
             }
 
             for (var Index in settings.Receiver) {
@@ -127,26 +147,13 @@
             }
         };
 
+// Execute
+
         var callAjax = function (Method, Url, Data, Callback) {
             console.log('callAjax');
             executeScript = function (Script) {
                 Script();
             };
-            if (Callback == false) {
-                Callback = function () {
-                    console.log('Stop-Ajax-Event');
-                    if ($.fn.ModAjax.NotifyHandler[settings.Notify.Hash]) {
-                        $.fn.ModAjax.NotifyHandler[settings.Notify.Hash].update({
-                            progress: getRandomInt(90, 95),
-                            type: 'success',
-                            title: settings.Notify.onSuccess.Title,
-                            message: settings.Notify.onSuccess.Message
-                        });
-                        $.fn.ModAjax.NotifyHandler[settings.Notify.Hash].close();
-                        $.fn.ModAjax.NotifyHandler[settings.Notify.Hash] = null;
-                    }
-                }
-            }
             jQuery.ajax({
                 method: Method,
                 url: Url,
@@ -156,9 +163,23 @@
                 beforeSend: onLoadEvent,
                 error: onErrorEvent,
                 success: onSuccessEvent
-            }).always(Callback)
+            }).always(function () {
+                if (Callback != false) {
+                    Callback();
+                }
+                console.log('Stop-Ajax-Event');
+                var Notify = getNotifyObject();
+                if (Notify) {
+                    Notify.update({
+                        progress: getRandomInt(90, 95),
+                        type: 'success',
+                        title: settings.Notify.onSuccess.Title,
+                        message: settings.Notify.onSuccess.Message
+                    });
+                    destroyNotifyObject();
+                }
+            });
         };
-
         var callContent = function (Content, Callback) {
             console.log('callContent');
             executeScript = function (Script) {
@@ -168,15 +189,15 @@
             if (Callback == false) {
                 Callback = function () {
                     console.log('Stop-Content-Event');
-                    if ($.fn.ModAjax.NotifyHandler[settings.Notify.Hash]) {
-                        $.fn.ModAjax.NotifyHandler[settings.Notify.Hash].update({
+                    var Notify = getNotifyObject();
+                    if (Notify) {
+                        Notify.update({
                             progress: getRandomInt(90, 95),
                             type: 'success',
                             title: settings.Notify.onSuccess.Title,
                             message: settings.Notify.onSuccess.Message
                         });
-                        $.fn.ModAjax.NotifyHandler[settings.Notify.Hash].close();
-                        $.fn.ModAjax.NotifyHandler[settings.Notify.Hash] = null;
+                        destroyNotifyObject();
                     }
                 }
             }
@@ -185,7 +206,7 @@
 
         return {
             'loadAjax': callAjax,
-            'loadContent': callContent,
+            'loadContent': callContent
         };
     };
 }(jQuery));

@@ -115,8 +115,6 @@ class ContactPerson implements IApiInterface
         $P4->addEmitter( new LayoutEmitter($R4 = new InlineReceiver(),new Success('Modal Fertig')) );
         $R4->setIdentifier( $E4 );
 
-        sleep(2);
-
         return new TableData($Table, null, array(
             ViewPerson::TBL_SALUTATION_SALUTATION => 'Anrede',
             ViewPerson::TBL_PERSON_FIRST_NAME => 'Vorname',
@@ -137,7 +135,6 @@ class ContactPerson implements IApiInterface
     public function ajaxFormCreateContactPerson( $TblSalutation_Id, $TblPerson_FirstName, $TblPerson_LastName, $Reload, $E4 )
     {
 
-        sleep(2);
         $P = new Pipeline();
         $P->setLoadingMessage('Daten werde neu geladen...');
         $P->setSuccessMessage('Daten wurden neu geladen');

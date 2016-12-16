@@ -12,8 +12,10 @@ use SPHERE\System\Extension\Extension;
 abstract class AbstractReceiver extends Extension implements IReceiverInterface
 {
 
-    /** @var string $ReceiverIdentifier */
+    /** @var string $Identifier */
     private $Identifier = '';
+    /** @var string $Content */
+    private $Content = '';
 
     const RESPONSE_CONTAINER = 'Response';
 
@@ -53,4 +55,23 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface
     {
         $this->Identifier = $Identifier;
     }
+
+    /**
+     * @param $Content
+     * @return $this
+     */
+    protected function setContent( $Content )
+    {
+        $this->Content = $Content;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getContent()
+    {
+        return $this->Content;
+    }
+
 }

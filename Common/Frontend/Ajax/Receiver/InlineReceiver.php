@@ -7,6 +7,18 @@ namespace SPHERE\Common\Frontend\Ajax\Receiver;
  */
 class InlineReceiver extends AbstractReceiver
 {
+
+    /**
+     * InlineReceiver constructor.
+     *
+     * @param string $Content
+     */
+    public function __construct( $Content = '' )
+    {
+        $this->setContent( $Content );
+        parent::__construct();
+    }
+
     /**
      * @return string
      */
@@ -20,7 +32,7 @@ class InlineReceiver extends AbstractReceiver
      */
     public function getContainer()
     {
-        return '<span class="' . $this->getIdentifier() . '"></span>';
+        return '<span class="' . $this->getIdentifier() . '">'.$this->getContent().'</span>';
     }
 
     /**

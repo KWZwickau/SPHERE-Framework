@@ -447,9 +447,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('SandBox');
 
         $R1 = new ModalReceiver();
-        $R2 = new FieldValueReceiver( new NumberField( 'NUFF' ));
-        $R3 = new BlockReceiver();
-        $R4 = new InlineReceiver();
+        $R2 = new FieldValueReceiver( (new NumberField( 'NUFF' ))->setDefaultValue(9));
+        $R3 = new BlockReceiver( new \SPHERE\Common\Frontend\Message\Repository\Warning( ':/' ));
+        $R4 = new InlineReceiver( new \SPHERE\Common\Frontend\Message\Repository\Warning( ':P' ));
 
         $P = new Pipeline();
         $P->setLoadingMessage('Interface wird geladen..');
@@ -462,7 +462,7 @@ class Frontend extends Extension implements IFrontendInterface
             'MethodName' => 'ajaxContent'
         ));
 
-        $P->addEmitter( $E4 = new LayoutEmitter($R4 = new InlineReceiver(), new Info( ':)' ) ) );
+        $P->addEmitter( $E4 = new LayoutEmitter($R4, new Info( ':)' ) ) );
 
         $P->addEmitter( $E3 = new ApiEmitter($R3, new Route('SPHERE\Application\Api\Corporation/Similar')) );
         $E3->setGetPayload(array(
