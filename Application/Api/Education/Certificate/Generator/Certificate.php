@@ -341,7 +341,7 @@ abstract class Certificate extends Extension
         if (isset($Data['Company']['Id'])
             && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
         ) {
-            $Data['Company']['Data']['Name'] = $tblCompany->getDisplayName();
+            $Data['Company']['Data']['Name'] = $tblCompany->getName();
         }
 
         return $Data;
@@ -507,24 +507,25 @@ abstract class Certificate extends Extension
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
 
-                        // Liberation?
-                        if (
-                            $this->getTblPerson()
-                            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
-                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
-                        ) {
-                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-                            if ($tblStudentLiberationAll) {
-                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
-                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
-                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        // es steht nur befreit auf dem Zeugnis -> jetzt auswählbar am Stichtagsnotenauftrag
+//                        // Liberation?
+//                        if (
+//                            $this->getTblPerson()
+//                            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+//                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
+//                        ) {
+//                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
+//                            if ($tblStudentLiberationAll) {
+//                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
+//                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
+//                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
+//                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
+//                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
@@ -641,6 +642,8 @@ abstract class Certificate extends Extension
                             , '39%');
                     }
 
+                    $TextSizeSmall = '8px';
+
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                              {{ Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
@@ -650,10 +653,28 @@ abstract class Certificate extends Extension
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop('0px')
-                        ->stylePaddingBottom()
+                        ->stylePaddingTop(
+                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                 4px
+                             {% else %}
+                                 0px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                 5px
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
                         ->styleMarginTop($isShrinkMarginTop ? '0px' : '10px')
-                        ->styleTextSize($TextSize)
+                        ->styleTextSize(
+                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
                         , '9%');
 
                     if ($isShrinkMarginTop && $Lane == 2) {

@@ -62,26 +62,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $prepareList[$tblPrepare->getId()] = $tblPrepare;
                     }
                 }
-
-//                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())) {
-//                    $tblPrepare = $tblPrepareStudent->getTblPrepareCertificate();
-//                    $tblDivision = $tblPrepare->getServiceTblDivision();
-//                    $tblYear = $tblDivision ? $tblDivision->getServiceTblYear() : false;
-//
-//                    $tableContent[] = array(
-//                        'Year' => $tblYear ? $tblYear->getDisplayName() : '',
-//                        'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
-//                        'Student' => $tblPerson->getLastFirstName(),
-//                        'Option' => new Standard(
-//                            'Zeugnis drucken',
-//                            '/Education/Certificate/PrintCertificate/Confirm',
-//                            new Download(),
-//                            array(
-//                                'PrepareId' => $tblPrepare->getId(),
-//                                'PersonId' => $tblPerson->getId(),
-//                            ), false)
-//                    );
-//                }
             }
         }
 
@@ -162,6 +142,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                 foreach ($tblPersonList as $tblPerson) {
                     if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                        && $tblPrepareStudent->getServiceTblCertificate()
                         && !$tblPrepareStudent->isPrinted()
                     ) {
                         $data[] = $tblPerson->getLastFirstName();

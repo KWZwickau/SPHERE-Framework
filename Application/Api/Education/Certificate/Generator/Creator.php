@@ -10,6 +10,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -282,7 +283,8 @@ class Creator extends Extension
 
                             // Revisionssicher speichern
                             if (($tblDivision = $tblPrepare->getServiceTblDivision()) && !$tblPrepareStudent->isPrinted()) {
-                                if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision, $Certificate,
+                                if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision,
+                                    $Certificate,
                                     $File)
                                 ) {
                                     Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
@@ -313,6 +315,9 @@ class Creator extends Extension
                     $ZipFile->getRealPath(),
                     $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
                 )->__toString();
+            } else {
+                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
 

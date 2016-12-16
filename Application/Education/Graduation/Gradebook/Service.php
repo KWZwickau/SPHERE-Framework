@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestTyp
 use SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\Service as ServiceScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
@@ -372,7 +373,9 @@ class Service extends ServiceScoreRule
                 ) {
                     $errorEdit = true;
                 }
-                if ($tblGrade && !isset($value['Attendance']) && $gradeValue === '') {
+                if ($tblGrade  && $gradeValue === ''
+                    && (!isset($value['Attendance']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
+                ) {
                     $errorNoGrade = true;
                 }
                 if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue && empty($value['Date'])) {
@@ -451,7 +454,9 @@ class Service extends ServiceScoreRule
                                 null,
                                 trim($value['Comment']),
                                 0,
-                                null
+                                null,
+                                isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                    ? $tblGradeText : null
                             );
                         } elseif (trim($value['Grade']) !== '') {
                             (new Data($this->getBinding()))->createGrade(
@@ -466,7 +471,9 @@ class Service extends ServiceScoreRule
                                 $grade,
                                 trim($value['Comment']),
                                 $trend,
-                                isset($value['Date']) ? $value['Date'] : null
+                                isset($value['Date']) ? $value['Date'] : null,
+                                isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                    ? $tblGradeText : null
                             );
                         }
                     } elseif ($tblGrade) {
@@ -477,7 +484,9 @@ class Service extends ServiceScoreRule
                                 null,
                                 trim($value['Comment']),
                                 0,
-                                null
+                                null,
+                                isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                    ? $tblGradeText : null
                             );
                         } else {
                             (new Data($this->getBinding()))->updateGrade(
@@ -485,7 +494,9 @@ class Service extends ServiceScoreRule
                                 $grade,
                                 trim($value['Comment']),
                                 $trend,
-                                isset($value['Date']) ? $value['Date'] : null
+                                isset($value['Date']) ? $value['Date'] : null,
+                                isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                    ? $tblGradeText : null
                             );
                         }
                     }
@@ -1154,5 +1165,36 @@ class Service extends ServiceScoreRule
     {
 
         return (new Data($this->getBinding()))->getScoreTypeById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getGradeTextById($Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getGradeTextByIdentifier($Identifier);
+    }
+
+    /**
+     * @return false|TblGradeText[]
+     */
+    public function getGradeTextAll()
+    {
+
+        return (new Data($this->getBinding()))->getGradeTextAll();
     }
 }

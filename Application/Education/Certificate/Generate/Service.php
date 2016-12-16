@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Data;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Setup;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
@@ -28,6 +29,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -189,11 +191,17 @@ class Service extends AbstractService
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param int $countStudents
+     * @param array $certificateNameList
+     * @param array $schoolNameList
      *
      * @return int
      */
-    public function setCertificateTemplates(TblPrepareCertificate $tblPrepare, &$countStudents = 0)
-    {
+    public function setCertificateTemplates(
+        TblPrepareCertificate $tblPrepare,
+        &$countStudents = 0,
+        &$certificateNameList = array(),
+        &$schoolNameList = array()
+    ) {
 
         $countTemplates = 0;
         if (($tblDivision = $tblPrepare->getServiceTblDivision())
@@ -201,25 +209,61 @@ class Service extends AbstractService
         ) {
 
             $countStudents = count($tblPersonList);
-            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
             foreach ($tblPersonList as $tblPerson) {
+                // Schulnamen
+                $tblCompany = false;
+                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                    && ($tblStudent = $tblPerson->getStudent())
+                ) {
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblTransferType);
+                    if ($tblStudentTransfer) {
+                        $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                    }
+                }
+                if ($tblCompany) {
+                    if (!array_search($tblCompany->getName(), $schoolNameList)) {
+                        $schoolNameList[$tblCompany->getId()] = $tblCompany->getName();
+                    }
+                } else {
+                    $schoolNameList[0] = new Warning(
+                        new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
+                    );
+                }
+
                 // Template bereits gesetzt
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
                         $countTemplates++;
+                        if (!isset($certificateNameList[$tblCertificate->getId()])) {
+                            $tblConsumer = $tblCertificate->getServiceTblConsumer();
+                            $certificateNameList[$tblCertificate->getId()]
+                                = ($tblConsumer ? $tblConsumer->getAcronym() . ' ' : '')
+                                . $tblCertificate->getName() . ($tblCertificate->getDescription()
+                                    ? ' ' . $tblCertificate->getDescription() : '');
+                        }
+
                         continue;
                     }
                 }
 
-                if ($tblConsumer) {
-//                    $this->getDebugger()->screenDump($this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumer));
-
+                if ($tblConsumerBySession) {
                     // Eigene Vorlage
-                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumer))) {
+                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumerBySession))) {
                         if (count($certificateList) == 1) {
                             // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
 //                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
                             $countTemplates++;
+                            /** @var TblCertificate $tblCertificate */
+                            $tblCertificate = current($certificateList);
+                            if (!isset($certificateNameList[$tblCertificate->getId()])) {
+                                $tblConsumer = $tblCertificate->getServiceTblConsumer();
+                                $certificateNameList[$tblCertificate->getId()]
+                                    = ($tblConsumer ? $tblConsumer->getAcronym() . ' ' : '')
+                                    . $tblCertificate->getName() . ($tblCertificate->getDescription()
+                                        ? ' ' . $tblCertificate->getDescription() : '');
+                            }
                         } else {
                             continue;
                         }
@@ -229,6 +273,15 @@ class Service extends AbstractService
                             // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
 //                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
                             $countTemplates++;
+                            /** @var TblCertificate $tblCertificate */
+                            $tblCertificate = current($certificateList);
+                            if (!isset($certificateNameList[$tblCertificate->getId()])) {
+                                $tblConsumer = $tblCertificate->getServiceTblConsumer();
+                                $certificateNameList[$tblCertificate->getId()]
+                                    = ($tblConsumer ? $tblConsumer->getAcronym() . ' ' : '')
+                                    . $tblCertificate->getName() . ($tblCertificate->getDescription()
+                                        ? ' ' . $tblCertificate->getDescription() : '');
+                            }
                         } else {
                             continue;
                         }
@@ -269,8 +322,8 @@ class Service extends AbstractService
 
             $tblCourse = false;
             // Bildungsgang nur hier relevant sonst klappt es bei den anderen nicht korrekt
-            if (preg_match( '!(Mittelschule|Oberschule)!is', $tblSchoolType->getName() )
-                && preg_match( '!(0?(7|8|9)|10)!is',$tblLevel->getName() )
+            if (preg_match('!(Mittelschule|Oberschule)!is', $tblSchoolType->getName())
+                && preg_match('!(0?(7|8|9)|10)!is', $tblLevel->getName())
             ) {
                 if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
                     && ($tblStudent = $tblPerson->getStudent())
@@ -356,10 +409,10 @@ class Service extends AbstractService
 
         if ($Data !== null && !empty($Data)) {
             foreach ($Data as $personId => $value) {
-                if (($tblPerson = Person::useService()->getPersonById($personId))
-                    && ($tblCertificate = Generator::useService()->getCertificateById($value))
-                ){
-                    Prepare::useService()->updatePrepareStudentSetCertificate($tblPrepare, $tblPerson, $tblCertificate);
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    $tblCertificate = Generator::useService()->getCertificateById($value);
+                    Prepare::useService()->updatePrepareStudentSetCertificate($tblPrepare, $tblPerson,
+                        $tblCertificate ? $tblCertificate : null);
                 }
             }
         }
