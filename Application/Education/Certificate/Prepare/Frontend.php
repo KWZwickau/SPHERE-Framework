@@ -1655,6 +1655,13 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($tblGrade) {
+            // Zeugnistext
+            if (($tblGradeText = $tblGrade->getTblGradeText())){
+                $studentList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblGradeText->getName();
+
+                return $studentList;
+            }
+
             $gradeValue = $tblGrade->getGrade();
             $trend = $tblGrade->getTrend();
 

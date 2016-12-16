@@ -2340,4 +2340,20 @@ class Data extends AbstractData
             array(TblCertificateField::ATTR_TBL_CERTIFICATE => $tblCertificate->getId())
         );
     }
+
+    /**
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return false|TblCertificate[]
+     */
+    public function getCertificateAllByType(
+        TblCertificateType $tblCertificateType
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCertificate', array(
+                TblCertificate::ATTR_TBL_CERTIFICATE_TYPE => $tblCertificateType->getId()
+            )
+        );
+    }
 }
