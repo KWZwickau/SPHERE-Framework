@@ -1198,21 +1198,27 @@ class Service extends AbstractService
                     // Nur Personen die noch keine Adressen haben
                     if (!SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson)) {
                         $tblRelationshipCompanyList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson);
-                        // nur bei einer Firma
-                        if ($tblRelationshipCompanyList && count($tblRelationshipCompanyList) === 1) {
+                        if ($tblRelationshipCompanyList) {
                             /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToCompany $tblToCompany */
+                            $count = 0;
+                            $tblCompany = false;
+                            // Existieren die Firmen noch zu der Beziehung?
                             foreach ($tblRelationshipCompanyList as $tblRelationshipCompany) {
-                                $tblCompany = $tblRelationshipCompany->getServiceTblCompany();
-                                if ($tblCompany) {
-                                    $tblToCompanyList = Address::useService()->getAddressAllByCompany($tblCompany);
-                                    if ($tblToCompanyList) {
-                                        foreach ($tblToCompanyList as $tblToCompany) {
-                                            if ($tblToCompany->getTblType()->getId() === $tblType->getId()) {
-                                                $tblSalutation = $tblPerson->getTblSalutation();
-                                                $PersonTo = $tblPerson;
-                                                SerialLetter::useService()->createAddressPerson(
-                                                    $tblSerialLetter, $tblPerson, $PersonTo, null, $tblToCompany, ( $tblSalutation ? $tblSalutation : null ));
-                                            }
+                                if ($tblRelationshipCompany->getServiceTblCompany()) {
+                                    $tblCompany = $tblRelationshipCompany->getServiceTblCompany();
+                                    $count++;
+                                }
+                            }
+                            // Automatik nur mit einer Firma
+                            if ($tblCompany && $count == 1) {
+                                $tblToCompanyList = Address::useService()->getAddressAllByCompany($tblCompany);
+                                if ($tblToCompanyList) {
+                                    foreach ($tblToCompanyList as $tblToCompany) {
+                                        if ($tblToCompany->getTblType()->getId() === $tblType->getId()) {
+                                            $tblSalutation = $tblPerson->getTblSalutation();
+                                            $PersonTo = $tblPerson;
+                                            SerialLetter::useService()->createAddressPerson(
+                                                $tblSerialLetter, $tblPerson, $PersonTo, null, $tblToCompany, ( $tblSalutation ? $tblSalutation : null ));
                                         }
                                     }
                                 }
