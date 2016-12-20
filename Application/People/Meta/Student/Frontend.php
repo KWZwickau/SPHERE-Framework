@@ -21,6 +21,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -39,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Bus;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Heart;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
@@ -58,6 +60,7 @@ use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -66,7 +69,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
@@ -95,6 +97,19 @@ class Frontend extends Extension implements IFrontendInterface
                 new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
             )
         );
+
+        $hasApiRight = Access::useService()->hasAuthorization('/Api/Document/Standard/StudentCard/Create');
+        if ($hasApiRight && $tblPerson != null) {
+            $Info = new External(
+                'Herunterladen der Schülerkartei',
+                'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
+                new Download(),
+                array(
+                    'PersonId' => $tblPerson->getId()
+                ),
+                'Schülerkartei herunterladen');
+            $Stage->setMessage($Info);
+        }
 
         $Stage->setContent(
             Student::useService()->createMeta(
