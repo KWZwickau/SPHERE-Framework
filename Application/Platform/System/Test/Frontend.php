@@ -4,8 +4,8 @@ namespace SPHERE\Application\Platform\System\Test;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
-use SPHERE\Common\Frontend\Ajax\Emitter\ApiEmitter;
-use SPHERE\Common\Frontend\Ajax\Emitter\LayoutEmitter;
+use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
+use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\FieldValueReceiver;
@@ -58,11 +58,9 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
-//use SPHERE\System\Database\Filter\Repository\Test;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -452,24 +450,20 @@ class Frontend extends Extension implements IFrontendInterface
         $R4 = new InlineReceiver( new \SPHERE\Common\Frontend\Message\Repository\Warning( ':P' ));
 
         $P = new Pipeline();
-        $P->setLoadingMessage('Interface wird geladen..');
-        $P->setSuccessMessage('Daten wurden geladen');
+//        $P->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
+//        $P->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
-        $P->addEmitter( $E2 = new LayoutEmitter($R2, 0 ) );
+        $P->addEmitter( $E2 = new ClientEmitter($R2, 0 ) );
+        $P->addEmitter( $E4 = new ClientEmitter(array($R1,$R4), new Info( ':)' ) ) );
 
-        $P->addEmitter( $E3 = new ApiEmitter($R3, new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P->addEmitter( $E3 = new ServerEmitter(array($R4,$R3), new Route('SPHERE\Application\Api\Corporation/Similar')) );
         $E3->setGetPayload(array(
             'MethodName' => 'ajaxContent'
         ));
+//        $E3->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
+//        $E3->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
-        $P->addEmitter( $E4 = new LayoutEmitter($R4, new Info( ':)' ) ) );
-
-        $P->addEmitter( $E3 = new ApiEmitter($R3, new Route('SPHERE\Application\Api\Corporation/Similar')) );
-        $E3->setGetPayload(array(
-            'MethodName' => 'ajaxContent'
-        ));
-
-        $P->addEmitter( $E1 = new ApiEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P->addEmitter( $E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')) );
         $E1->setGetPayload(array(
             'MethodName' => 'ajaxLayoutSimilarPerson'
         ));
@@ -477,15 +471,26 @@ class Frontend extends Extension implements IFrontendInterface
             'Reload' => (string)$R1->getIdentifier(),
             'E4' => (string)$R4->getIdentifier()
         ));
+        $E1->setLoadingMessage('Bitte warten', 'Inhalte werden geladen..');
+        $E1->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
-                        new LayoutColumn(
-                            (new Standard( 'Call', '#' ))->ajaxPipelineOnClick( $P )
-                        )
+                        new LayoutColumn(array(
+                            (new Standard( 'Call', '#' ))->ajaxPipelineOnClick( $P ),
+                            (new Form(
+                                new FormGroup(
+                                    new FormRow(
+                                        new FormColumn(array(
+                                            $R2
+                                        ))
+                                    )
+                                )
+                            , new Primary('Ajax-Form?')))->ajaxPipelineOnSubmit( $P )
+                        ))
                     )
                 ),
                 new LayoutGroup(

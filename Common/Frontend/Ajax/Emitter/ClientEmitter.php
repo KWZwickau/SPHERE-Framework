@@ -4,11 +4,11 @@ namespace SPHERE\Common\Frontend\Ajax\Emitter;
 use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 
 /**
- * Class LayoutEmitter
+ * Class ClientEmitter
  *
  * @package SPHERE\Common\Frontend\Ajax\Emitter
  */
-class LayoutEmitter extends AbstractEmitter
+class ClientEmitter extends AbstractEmitter
 {
 
     /** @var string $Content */

@@ -7,11 +7,11 @@ use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 
 /**
- * Class ApiEmitter
+ * Class ServerEmitter
  *
  * @package SPHERE\Common\Frontend\Ajax\Emitter
  */
-class ApiEmitter extends AbstractEmitter
+class ServerEmitter extends AbstractEmitter
 {
     /** @var string $AjaxUri */
     private $AjaxUri = '';

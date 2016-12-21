@@ -13,6 +13,14 @@ abstract class AbstractEmitter extends Extension
 {
     /** @var AbstractReceiver[] $AjaxReceiver */
     private $AjaxReceiver = array();
+    /** @var string $SuccessTitle */
+    private $SuccessTitle = '';
+    /** @var string $SuccessMessage */
+    private $SuccessMessage = '';
+    /** @var string $LoadingTitle */
+    private $LoadingTitle = '';
+    /** @var string $LoadingMessage */
+    private $LoadingMessage = '';
 
     /**
      * @return AbstractReceiver[]
@@ -28,5 +36,61 @@ abstract class AbstractEmitter extends Extension
     final public function setAjaxReceiver($AjaxReceiver)
     {
         $this->AjaxReceiver = $AjaxReceiver;
+    }
+
+    /**
+     * @param string $Title
+     * @param string $Message
+     * @return $this
+     */
+    final public function setSuccessMessage($Title, $Message = '')
+    {
+        $this->SuccessTitle = $Title;
+        $this->SuccessMessage = $Message;
+        return $this;
+    }
+
+    /**
+     * @param string $Title
+     * @param string $Message
+     * @return $this
+     */
+    final public function setLoadingMessage($Title, $Message = '')
+    {
+        $this->LoadingTitle = $Title;
+        $this->LoadingMessage = $Message;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSuccessTitle()
+    {
+        return $this->SuccessTitle;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSuccessMessage()
+    {
+        return $this->SuccessMessage;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLoadingTitle()
+    {
+        return $this->LoadingTitle;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLoadingMessage()
+    {
+        return $this->LoadingMessage;
     }
 }

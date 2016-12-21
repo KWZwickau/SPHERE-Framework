@@ -42,4 +42,15 @@ class BlockReceiver extends AbstractReceiver
     {
         return '.'.$this->getIdentifier();
     }
+
+    /**
+     * @param string $Content
+     *
+     * @return $this
+     */
+    public function initContent( $Content )
+    {
+        $this->setContent( $Content );
+        return $this;
+    }
 }

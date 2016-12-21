@@ -9,11 +9,11 @@
             Notify: {
                 Hash: 'default',
                 onLoad: {
-                    Title: 'Loading',
-                    Message: 'Please wait..',
+                    Title: '',
+                    Message: '',
                 },
                 onSuccess: {
-                    Title: 'Done',
+                    Title: '',
                     Message: '',
                 }
             }
@@ -34,9 +34,11 @@
         }
         var destroyNotifyObject = function () {
             if (document.ModAjax.NotifyHandler[settings.Notify.Hash]) {
-                document.ModAjax.NotifyHandler[settings.Notify.Hash].close();
-                document.ModAjax.NotifyHandler[settings.Notify.Hash] = null;
-                delete document.ModAjax.NotifyHandler[settings.Notify.Hash];
+                window.setTimeout(function () {
+                    document.ModAjax.NotifyHandler[settings.Notify.Hash].close();
+                    document.ModAjax.NotifyHandler[settings.Notify.Hash] = null;
+                    delete document.ModAjax.NotifyHandler[settings.Notify.Hash];
+                }, 1000);
             }
         }
         var parseAjaxError = function (request, status, error) {
@@ -49,9 +51,11 @@
             } else if (request.status == 404) {
                 ErrorMessage = ('The requested page not found. [404]');
             } else if (request.status == 500) {
-                ErrorMessage = ('Internal Server Error [500].');
+                ErrorMessage = ('Internal Server Error [500]');
+            } else if (request.status == 511) {
+                ErrorMessage = ('Network Authentication Required [511]');
             } else if (status === 'parsererror') {
-                ErrorMessage = ('Requested JSON parse failed.');
+                ErrorMessage = ('Requested JSON parse failed');
             } else if (status === 'timeout') {
                 ErrorMessage = ('Time out error.');
             } else if (status === 'abort') {
@@ -71,7 +75,7 @@
             '<span data-notify="message">{2}</span>' +
             '<a href="{3}" target="{4}" data-notify="url"></a>' +
             '</div>';
-        var domErrorTemplate = '<div data-notify="container" class="col-xs-11 col-sm-8 alert alert-{0}" role="alert">' +
+        var domErrorTemplate = '<div data-notify="container" class="col-xs-11 col-sm-11 alert alert-{0}" role="alert">' +
             '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
             '<span data-notify="icon"></span>' +
             '<span data-notify="title">{1}</span><br/>' +
@@ -90,49 +94,48 @@
 // Event Handler
 
         var onLoadEvent = function (jqXHR, Config) {
-            var Notify = getNotifyObject();
-            if (!Notify) {
-                document.ModAjax.NotifyHandler[settings.Notify.Hash] = $.notify({
-                    title: settings.Notify.onLoad.Title,
-                    message: settings.Notify.onLoad.Message + '<br/>' + Config.url
-                }, {
-                    z_index: 32768,
-                    showProgressbar: true,
-                    newest_on_top: true,
-                    placement: {from: 'top', align: 'right'},
-                    type: 'info',
-                    delay: 0,
-                    template: domLoadTemplate
-                });
-                Notify = getNotifyObject();
-            } else {
-                Notify.update({message: settings.Notify.onLoad.Message});
-            }
-            Notify.update({progress: getRandomInt(15, 25)});
-        };
-        var onErrorEvent = function (request, status, error) {
-            var ErrorMessage = parseAjaxError(request, status, error);
-            var Notify = getNotifyObject();
-            if (!Notify) {
-                document.ModAjax.NotifyHandler[settings.Notify.Hash] = $.notify({
-                    title: settings.Notify.onLoad.Title,
-                    message: ErrorMessage
-                }, {
-                    z_index: 32768,
-                    newest_on_top: true,
-                    placement: {from: "top", align: "right"},
-                    type: 'danger',
-                    delay: 0,
-                    animate: {enter: 'animated fadeInRight', exit: 'animated fadeOutRight'},
-                    template: domErrorTemplate
-                });
+            if (settings.Notify.onLoad.Message.length > 0 || settings.Notify.onLoad.Title.length > 0) {
                 var Notify = getNotifyObject();
-            } else {
-                Notify.update({showProgressbar: false, title: 'Error', message: ErrorMessage});
+                if (!Notify) {
+                    document.ModAjax.NotifyHandler[settings.Notify.Hash] = $.notify({
+                        title: settings.Notify.onLoad.Title,
+                        message: settings.Notify.onLoad.Message
+                    }, {
+                        z_index: 32768,
+                        showProgressbar: true,
+                        newest_on_top: true,
+                        placement: {from: 'top', align: 'right'},
+                        type: 'info',
+                        delay: 0,
+                        template: domLoadTemplate
+                    });
+                    Notify = getNotifyObject();
+                } else {
+                    Notify.update({message: settings.Notify.onLoad.Message});
+                }
+                Notify.update({progress: getRandomInt(15, 25)});
             }
+        };
+        var isErrorEvent = false;
+        var onErrorEvent = function (request, status, error) {
+            isErrorEvent = true;
+            var ErrorMessage = parseAjaxError(request, status, error);
+            console.log(request.responseText);
+            document.ModAjax.NotifyHandler[settings.Notify.Hash + '-Error'] = $.notify({
+                title: ErrorMessage,
+                message: '<span class="text-muted"><small>' + this.url + '</small></span>'
+            }, {
+                z_index: 32768,
+                newest_on_top: true,
+                showProgressbar: false,
+                placement: {from: "top", align: "right"},
+                type: 'danger',
+                delay: 0,
+                animate: {enter: 'animated fadeInRight', exit: 'animated fadeOutRight'},
+                template: domErrorTemplate
+            });
         };
         var onSuccessEvent = function (Response) {
-            console.log('onSuccessEvent');
             var Notify = getNotifyObject();
             if (Notify) {
                 Notify.update({progress: getRandomInt(75, 85)});
@@ -141,8 +144,27 @@
             for (var Index in settings.Receiver) {
                 var callReceiver;
                 if (settings.Receiver.hasOwnProperty(Index)) {
-                    callReceiver = new Function('Response', settings.Receiver[Index]);
-                    callReceiver(Response);
+                    try {
+                        callReceiver = new Function('Response', settings.Receiver[Index]);
+                        callReceiver(Response);
+                    } catch (ErrorMessage) {
+                        if( console && console.log ) {
+                            console.log(ErrorMessage);
+                        }
+                        document.ModAjax.NotifyHandler[settings.Notify.Hash + '-Error'] = $.notify({
+                            title: 'Script-Error',
+                            message: '<span class="text-muted"><small>' + ErrorMessage + '</small></span>'
+                        }, {
+                            z_index: 32768,
+                            newest_on_top: true,
+                            showProgressbar: false,
+                            placement: {from: "top", align: "right"},
+                            type: 'danger',
+                            delay: 0,
+                            animate: {enter: 'animated fadeInRight', exit: 'animated fadeOutRight'},
+                            template: domErrorTemplate
+                        });
+                    }
                 }
             }
         };
@@ -150,45 +172,29 @@
 // Execute
 
         var callAjax = function (Method, Url, Data, Callback) {
-            console.log('callAjax');
             executeScript = function (Script) {
                 Script();
             };
+            try {
+                var Payload = JSON.parse(Data);
+            } catch (Error) {
+                var Trigger = new Function(Data);
+                var Payload = Trigger();
+            }
             jQuery.ajax({
                 method: Method,
                 url: Url,
-                data: JSON.parse(Data),
+                data: Payload,
                 dataType: "json",
                 cache: false,
                 beforeSend: onLoadEvent,
                 error: onErrorEvent,
                 success: onSuccessEvent
             }).always(function () {
-                if (Callback != false) {
+                if (Callback && !isErrorEvent) {
                     Callback();
                 }
-                console.log('Stop-Ajax-Event');
-                var Notify = getNotifyObject();
-                if (Notify) {
-                    Notify.update({
-                        progress: getRandomInt(90, 95),
-                        type: 'success',
-                        title: settings.Notify.onSuccess.Title,
-                        message: settings.Notify.onSuccess.Message
-                    });
-                    destroyNotifyObject();
-                }
-            });
-        };
-        var callContent = function (Content, Callback) {
-            console.log('callContent');
-            executeScript = function (Script) {
-                Script();
-            };
-            onSuccessEvent(Content);
-            if (Callback == false) {
-                Callback = function () {
-                    console.log('Stop-Content-Event');
+                if (settings.Notify.onSuccess.Message.length > 0 || settings.Notify.onSuccess.Title.length > 0) {
                     var Notify = getNotifyObject();
                     if (Notify) {
                         Notify.update({
@@ -197,6 +203,28 @@
                             title: settings.Notify.onSuccess.Title,
                             message: settings.Notify.onSuccess.Message
                         });
+                    }
+                }
+                destroyNotifyObject();
+            });
+        };
+        var callContent = function (Content, Callback) {
+            executeScript = function (Script) {
+                Script();
+            };
+            onSuccessEvent(Content);
+            if (Callback == false) {
+                Callback = function () {
+                    if (settings.Notify.onSuccess.Message.length > 0 || settings.Notify.onSuccess.Title.length > 0) {
+                        var Notify = getNotifyObject();
+                        if (Notify) {
+                            Notify.update({
+                                progress: getRandomInt(90, 95),
+                                type: 'success',
+                                title: settings.Notify.onSuccess.Title,
+                                message: settings.Notify.onSuccess.Message
+                            });
+                        }
                         destroyNotifyObject();
                     }
                 }

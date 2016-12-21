@@ -5,8 +5,8 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
-use SPHERE\Common\Frontend\Ajax\Emitter\ApiEmitter;
-use SPHERE\Common\Frontend\Ajax\Emitter\LayoutEmitter;
+use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
+use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
@@ -46,10 +46,15 @@ class ContactPerson implements IApiInterface
         $Dispatcher->registerMethod('ajaxLayoutSimilarPerson');
         $Dispatcher->registerMethod('ajaxFormCreateContactPerson');
         $Dispatcher->registerMethod('ajaxContent');
+        $Dispatcher->registerMethod('frontendDingens');
 
         return $Dispatcher->callMethod($MethodName);
     }
 
+    public function frontendDingens()
+    {
+        return Person::useFrontend()->frontendPerson();
+    }
 
     public function ajaxLayoutSimilarPerson( $TblSalutation_Id = 1, $TblPerson_FirstName, $TblPerson_LastName, $Reload = null, $E4 = null )
     {
@@ -78,7 +83,7 @@ class ContactPerson implements IApiInterface
         foreach( $Result as $Row ) {
 
             $P = new Pipeline();
-            $P->addEmitter( $E = new ApiEmitter($R, new Route(__NAMESPACE__ . '/Similar')) );
+            $P->addEmitter( $E = new ServerEmitter($R, new Route(__NAMESPACE__ . '/Similar')) );
             $E->setGetPayload(array( 'MethodName' => 'ajaxFormCreateContactPerson' ));
             $E->setPostPayload( array(
                 ViewPerson::TBL_SALUTATION_ID => 2,
@@ -90,15 +95,15 @@ class ContactPerson implements IApiInterface
 
             $ViewPerson = $Row[0]->__toArray();
 
-            $P->setLoadingMessage('Datensatz ('.$ViewPerson[ViewPerson::TBL_PERSON_FIRST_NAME].') wird verbunden..');
-            $P->setSuccessMessage('Datensatz ('.$ViewPerson[ViewPerson::TBL_PERSON_FIRST_NAME].') wurde verbunden');
+            $P->setLoadingMessage('Bitte warten', 'Datensatz (' . $ViewPerson[ViewPerson::TBL_PERSON_FIRST_NAME] . ') wird verbunden..');
+            $P->setSuccessMessage('Erfolgreich', 'Datensatz (' . $ViewPerson[ViewPerson::TBL_PERSON_FIRST_NAME] . ') wurde verbunden');
 
             $ViewPerson['DTOption'] = (new Standard('Ansprechpartner anlegen','#'))->ajaxPipelineOnClick( $P );
             $Table[] = $ViewPerson;
         }
 
         $P = new Pipeline();
-        $P->addEmitter( $E = new ApiEmitter($R, new Route(__NAMESPACE__ . '/Similar')) );
+        $P->addEmitter( $E = new ServerEmitter($R, new Route(__NAMESPACE__ . '/Similar')) );
         $E->setGetPayload(array( 'MethodName' => 'ajaxFormCreateContactPerson' ));
         $E->setPostPayload( array(
             ViewPerson::TBL_SALUTATION_ID => 3,
@@ -107,12 +112,12 @@ class ContactPerson implements IApiInterface
             'Reload' => $Reload,
             'E4' => $E4
         ));
-        $P->setLoadingMessage('Neuer Datensatz wird erzeugt..');
-        $P->setSuccessMessage('Neuer Datensatz wurde erzeugt');
+        $P->setLoadingMessage('Bitte warten', 'Neuer Datensatz wird erzeugt..');
+        $P->setSuccessMessage('Erfolgreich', 'Neuer Datensatz wurde erzeugt');
 
         // E4
         $P4 = new Pipeline();
-        $P4->addEmitter( new LayoutEmitter($R4 = new InlineReceiver(),new Success('Modal Fertig')) );
+        $P4->addEmitter( new ClientEmitter($R4 = new InlineReceiver(),new Success('Modal Fertig')) );
         $R4->setIdentifier( $E4 );
 
         return new TableData($Table, null, array(
@@ -134,14 +139,13 @@ class ContactPerson implements IApiInterface
 
     public function ajaxFormCreateContactPerson( $TblSalutation_Id, $TblPerson_FirstName, $TblPerson_LastName, $Reload, $E4 )
     {
-
         $P = new Pipeline();
-        $P->setLoadingMessage('Daten werde neu geladen...');
-        $P->setSuccessMessage('Daten wurden neu geladen');
+        $P->setLoadingMessage('Ansicht wird aktualisiert', 'Daten werde neu geladen...');
+        $P->setSuccessMessage('Erfolgreich', 'Daten wurden neu geladen');
         // E4
-        $P->addEmitter( new LayoutEmitter($R4 = new InlineReceiver(), new Warning('Click Fertig')) );
+        $P->addEmitter( new ClientEmitter($R4 = new InlineReceiver(), new Warning('Click Fertig')) );
         $R4->setIdentifier( $E4 );
-        $P->addEmitter( $E = new ApiEmitter($R = new ModalReceiver(), new Route(__NAMESPACE__ . '/Similar')) );
+        $P->addEmitter( $E = new ServerEmitter($R = new ModalReceiver(), new Route(__NAMESPACE__ . '/Similar')) );
         $R->setIdentifier( $Reload );
         $E->setGetPayload(array( 'MethodName' => 'ajaxLayoutSimilarPerson' ));
         $E->setPostPayload( array(
