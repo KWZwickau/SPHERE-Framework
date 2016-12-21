@@ -60,6 +60,11 @@ use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -92,51 +97,60 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage();
 
-        $Stage->setDescription(
-            new Danger(
-                new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
-            )
-        );
-
+        $Info = '';
         $hasApiRight = Access::useService()->hasAuthorization('/Api/Document/Standard/StudentCard/Create');
         if ($hasApiRight && $tblPerson != null) {
             $Info = new External(
-                'Herunterladen der Schülerkartei',
-                'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
-                new Download(),
-                array(
-                    'PersonId' => $tblPerson->getId()
-                ),
-                'Schülerkartei herunterladen');
-            $Stage->setMessage($Info);
+                'Herunterladen der Schülerkartei', 'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
+                new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen');
         }
 
         $Stage->setContent(
-            Student::useService()->createMeta(
-                (new Form(array(
-                    new FormGroup(
-                        new FormRow(array(
-                            new FormColumn(
-                                new Panel('Identifikation', array(
-                                    new TextField('Meta[Student][Identifier]', 'Schülernummer',
-                                        'Schülernummer')
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new FormColumn(
-                                new Panel('Schulpflicht', array(
-                                    new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '', 'Beginnt am', new Calendar())
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                        )), new Title(new TileSmall().' Grunddaten ', new Bold(new Success($tblPerson->getFullName())))
-                    ),
-                    $this->formGroupTransfer($tblPerson),
-                    $this->formGroupGeneral($tblPerson),
-                    $this->formGroupSubject($tblPerson),
-                    $this->formGroupIntegration($tblPerson),
-                ), new Primary('Speichern', new Save()))
-                )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
-                , $tblPerson, $Meta, $Group
-            )
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Danger(
+                                new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
+                            ),
+                        ), 8),
+                        new LayoutColumn(array(
+                            new PullRight($Info),
+                        ), 4)
+                    ))
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Student::useService()->createMeta(
+                                ( new Form(array(
+                                    new FormGroup(
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new Panel('Identifikation', array(
+                                                    new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                        'Schülernummer')
+                                                ), Panel::PANEL_TYPE_INFO)
+                                                , 4),
+                                            new FormColumn(
+                                                new Panel('Schulpflicht', array(
+                                                    new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '', 'Beginnt am', new Calendar())
+                                                ), Panel::PANEL_TYPE_INFO)
+                                                , 4),
+                                        )), new Title(new TileSmall().' Grunddaten ', new Bold(new Success($tblPerson->getFullName())))
+                                    ),
+                                    $this->formGroupTransfer($tblPerson),
+                                    $this->formGroupGeneral($tblPerson),
+                                    $this->formGroupSubject($tblPerson),
+                                    $this->formGroupIntegration($tblPerson),
+                                ), new Primary('Speichern', new Save()))
+                                )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
+                                , $tblPerson, $Meta, $Group
+                            )
+                        )
+                    )
+                )
+            ))
         );
 
         return $Stage;
