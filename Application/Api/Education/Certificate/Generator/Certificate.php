@@ -388,7 +388,12 @@ abstract class Certificate extends Extension
                                           &nbsp;
                                     {% endif %}')
                 ->styleBorderBottom()
-                , '82%')
+                ->styleAlignCenter()
+                , '64%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBorderBottom()
+                , '18%')
         )->styleMarginTop($MarginTop);
         return $SchoolSlice;
     }
