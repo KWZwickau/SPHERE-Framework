@@ -35,7 +35,7 @@ class StudentCard extends AbstractDocument
         $SmallTextSize = '7px';
         $InputText = '12px';
         $OutLines = '1.2px';
-        $HeightThreeLineBlock = '75px';
+        $HeightThreeLineBlock = '74px';
         $HeightTwoLineBlock = '20px';
 
         $SpaceBetween = '70px';
@@ -233,10 +233,11 @@ class StudentCard extends AbstractDocument
                                                 &nbsp;
                                             {% endif %}')
                                         ->stylePaddingLeft('4px')
+                                        ->stylePaddingTop('1px')
                                         ->styleTextSize($InputText)
                                         ->styleBorderBottom('0.5px')
                                         ->styleBorderLeft($OutLines)
-                                        ->styleHeight('19px')
+                                        ->styleHeight('18px')
                                     ),
                                 ( new Section() )
                                     ->addElementColumn(( new Element() )
@@ -257,10 +258,11 @@ class StudentCard extends AbstractDocument
                                                   &nbsp;
                                             {% endif %}')
                                         ->stylePaddingLeft('4px')
+                                        ->stylePaddingTop('1px')
                                         ->styleTextSize($InputText)
                                         ->styleBorderBottom('0.5px')
                                         ->styleBorderLeft($OutLines)
-                                        ->styleHeight('19px')
+                                        ->styleHeight('18px')
                                     ),
                                 ( new Section() )
                                     ->addElementColumn(( new Element() )
@@ -295,9 +297,10 @@ class StudentCard extends AbstractDocument
                                             {% endif %}
                                         ')
                                         ->stylePaddingLeft('4px')
+                                        ->stylePaddingTop('1px')
                                         ->styleTextSize($InputText)
                                         ->styleBorderLeft($OutLines)
-                                        ->styleHeight('19px')
+                                        ->styleHeight('18px')
                                         , '21%')
                                     ->addElementColumn(( new Element() )
                                         ->setContent('
@@ -308,9 +311,10 @@ class StudentCard extends AbstractDocument
                                         {% endif %}
                                         ')
                                         ->stylePaddingLeft('4px')
+                                        ->stylePaddingTop('1px')
                                         ->styleTextSize($InputText)
                                         ->styleBorderLeft('0.5px')
-                                        ->styleHeight('19px')
+                                        ->styleHeight('18px')
                                         , '21%')
                                     ->addElementColumn(( new Element() )
                                         ->setContent('
@@ -321,9 +325,10 @@ class StudentCard extends AbstractDocument
                                         {% endif %}
                                         ')
                                         ->stylePaddingLeft('4px')
+                                        ->stylePaddingTop('1px')
                                         ->styleTextSize($InputText)
                                         ->styleBorderLeft('0.5px')
-                                        ->styleHeight('19px')
+                                        ->styleHeight('18px')
                                         , '74%')
                             ))
                             , '70%')
@@ -353,6 +358,7 @@ class StudentCard extends AbstractDocument
                                         {% endif %}
                                     ')
                                     ->stylePaddingLeft('4px')
+                                    ->stylePaddingTop('1px')
                                     ->styleTextSize($InputText)
                                     ->styleBorderRight($OutLines)
                                     ->styleBorderLeft('0.5px')
@@ -414,9 +420,10 @@ class StudentCard extends AbstractDocument
                                             {% endif %}
                                         ')
                                     ->stylePaddingLeft('4px')
+                                    ->stylePaddingTop('1px')
                                     ->styleTextSize($InputText)
                                     ->styleBorderLeft($OutLines)
-                                    ->styleHeight('19px')
+                                    ->styleHeight('18px')
                                     , '21%')
                                 ->addElementColumn(( new Element() )
                                     ->setContent('
@@ -427,9 +434,10 @@ class StudentCard extends AbstractDocument
                                         {% endif %}
                                         ')
                                     ->stylePaddingLeft('4px')
+                                    ->stylePaddingTop('1px')
                                     ->styleTextSize($InputText)
                                     ->styleBorderLeft('0.5px')
-                                    ->styleHeight('19px')
+                                    ->styleHeight('18px')
                                     , '21%')
                                 ->addElementColumn(( new Element() )
                                     ->setContent('
@@ -440,9 +448,10 @@ class StudentCard extends AbstractDocument
                                         {% endif %}
                                         ')
                                     ->stylePaddingLeft('4px')
+                                    ->stylePaddingTop('1px')
                                     ->styleTextSize($InputText)
                                     ->styleBorderLeft('0.5px')
-                                    ->styleHeight('19px')
+                                    ->styleHeight('18px')
                                     , '74%')
                             )
                             , '70%')
@@ -456,10 +465,11 @@ class StudentCard extends AbstractDocument
                                     {% endif %}
                                     ')
                                 ->stylePaddingLeft('4px')
+                                ->stylePaddingTop('1px')
                                 ->styleTextSize($InputText)
                                 ->styleBorderRight($OutLines)
                                 ->styleBorderLeft('0.5px')
-                                ->styleHeight('19px')
+                                ->styleHeight('18px')
                             )
                             , '30%')
                     )
@@ -491,10 +501,11 @@ class StudentCard extends AbstractDocument
                         {% endif %}
                         ')
                         ->stylePaddingLeft('4px')
+                        ->stylePaddingTop('1px')
                         ->styleTextSize($InputText)
                         ->styleBorderLeft($OutLines)
                         ->styleBorderRight($OutLines)
-                        ->styleHeight('19px')
+                        ->styleHeight('18px')
                     )
                 )
                 ->addSlice(( new Slice() )
@@ -528,8 +539,9 @@ class StudentCard extends AbstractDocument
                                 {% endif %}
                                 ')
                                 ->stylePaddingLeft('4px')
+                                ->stylePaddingTop('1px')
                                 ->styleTextSize($InputText)
-                                ->styleHeight('19.5px')
+                                ->styleHeight('18.5px')
                                 ->styleBorderRight($OutLines)
                             )
                             ->addElement(( new Element() )
@@ -548,8 +560,9 @@ class StudentCard extends AbstractDocument
                                 {% endif %}
                                 ')
                                 ->stylePaddingLeft('4px')
+                                ->stylePaddingTop('1px')
                                 ->styleTextSize($InputText)
-                                ->styleHeight('19px')
+                                ->styleHeight('18px')
                                 ->styleBorderRight($OutLines)
                             )
                             , '30%')
@@ -578,9 +591,10 @@ class StudentCard extends AbstractDocument
                             ->addElement(( new Element() )
 //                                ->setContent('2020/21') //ToDO füllen ?
                                 ->stylePaddingLeft('4px')
+                                ->stylePaddingTop('1px')
                                 ->styleTextSize($InputText)
                                 ->styleBorderRight($OutLines)
-                                ->styleHeight('19.5px')
+                                ->styleHeight('18.5px')
                             )
                             , '30%')
                     )
@@ -589,11 +603,11 @@ class StudentCard extends AbstractDocument
                     ->addElement(( new Element() )
                         ->setContent('Besuchte Schulen (von/bis)')//ToDO auslesen aus der Historie (später)
                         ->stylePaddingLeft('4px')
-                        ->stylePaddingTop('7px')
+                        ->stylePaddingTop('5px')
                         ->styleBorderTop('0.5px')
                         ->styleBorderRight($OutLines)
                         ->styleBorderLeft($OutLines)
-                        ->styleHeight('19px')
+                        ->styleHeight('21px')
                     )
                     ->addElement(( new Element() )
                         ->styleBorderTop('0.5px')
