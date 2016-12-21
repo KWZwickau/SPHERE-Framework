@@ -1471,12 +1471,12 @@ abstract class Certificate extends Extension
                 $section = new Section();
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('Neigungskurs (Neigungskursbereich)')
+                        ->setContent('<u>Neigungskurs (Neigungskursbereich)</u> / 2. Fremdsprache (abschlussorientiert)' )
                         ->styleBorderTop()
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
-                        , '89%')
+                    , '89%')
                     ->addElementColumn((new Element()), '11%');
                 $sectionList[] = $section;
             } elseif ($elementForeignLanguageName) {
@@ -1489,7 +1489,7 @@ abstract class Certificate extends Extension
                 $section = new Section();
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('2. Fremdsprache (abschlussorientiert)')
+                        ->setContent('Neigungskurs (Neigungskursbereich) / <u>2. Fremdsprache (abschlussorientiert)</u>' )
                         ->styleBorderTop()
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
