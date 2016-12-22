@@ -99,11 +99,21 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string           $DatabaseName
-     * @param null|TblAccount  $tblAccount
+     *
+     */
+    public function flushBulkSave()
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Manager->flushCache();
+    }
+
+    /**
+     * @param string $DatabaseName
+     * @param null|TblAccount $tblAccount
      * @param null|TblConsumer $tblConsumer
-     * @param null|Element     $FromEntity
-     * @param null|Element     $ToEntity
+     * @param null|Element $FromEntity
+     * @param null|Element $ToEntity
+     * @param bool $useBulkSave
      *
      * @return false|TblProtocol
      */
@@ -112,7 +122,8 @@ class Data extends AbstractData
         TblAccount $tblAccount = null,
         TblConsumer $tblConsumer = null,
         Element $FromEntity = null,
-        Element $ToEntity = null
+        Element $ToEntity = null,
+        $useBulkSave = false
     ) {
 
         // Skip if nothing changed
@@ -143,7 +154,11 @@ class Data extends AbstractData
         $Entity->setEntityFrom(( $FromEntity ? serialize($FromEntity) : null ));
         $Entity->setEntityTo(( $ToEntity ? serialize($ToEntity) : null ));
 
-        $Manager->saveEntity($Entity);
+        if( $useBulkSave ) {
+            $Manager->bulkSaveEntity($Entity);
+        } else {
+            $Manager->saveEntity($Entity);
+        }
 
         return $Entity;
     }
