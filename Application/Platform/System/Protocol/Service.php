@@ -134,7 +134,8 @@ class Service extends AbstractService
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),
-            $Entity, TblArchive::ARCHIVE_TYPE_CREATE
+            $Entity, TblArchive::ARCHIVE_TYPE_CREATE,
+            $useBulkSave
         );
 
         return (new Data($this->getBinding()))->createProtocolEntry(
@@ -182,7 +183,8 @@ class Service extends AbstractService
                 $DatabaseName,
                 ( $tblAccount ? $tblAccount : null ),
                 ( $tblConsumer ? $tblConsumer : null ),
-                $To, TblArchive::ARCHIVE_TYPE_UPDATE
+                $To, TblArchive::ARCHIVE_TYPE_UPDATE,
+                $useBulkSave
             );
         };
         return $Protocol;
@@ -227,5 +229,6 @@ class Service extends AbstractService
     public function flushBulkEntries()
     {
         (new Data($this->getBinding()))->flushBulkSave();
+        Archive::useService()->flushBulkEntries();
     }
 }
