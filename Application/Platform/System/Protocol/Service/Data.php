@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Database\Fitting\Manager;
 
 /**
  * Class Data
@@ -15,6 +16,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class Data extends AbstractData
 {
+    /** @var null|Manager $BulkManager */
+    private static $BulkManager = null;
 
     /**
      * Takes an __PHP_Incomplete_Class and casts it to a stdClass object.
@@ -103,8 +106,9 @@ class Data extends AbstractData
      */
     public function flushBulkSave()
     {
-        $Manager = $this->getConnection()->getEntityManager();
-        $Manager->flushCache();
+        if (self::$BulkManager) {
+            self::$BulkManager->flushCache();
+        }
     }
 
     /**
@@ -137,7 +141,15 @@ class Data extends AbstractData
             }
         }
 
-        $Manager = $this->getConnection()->getEntityManager();
+        if ($useBulkSave) {
+            if (self::$BulkManager) {
+                $Manager = self::$BulkManager;
+            } else {
+                $Manager = self::$BulkManager = $this->getConnection()->getEntityManager();
+            }
+        } else {
+            $Manager = $this->getConnection()->getEntityManager();
+        }
 
         $Entity = new TblProtocol();
         $Entity->setProtocolDatabase($DatabaseName);
