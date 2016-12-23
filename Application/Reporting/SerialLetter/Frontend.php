@@ -2236,16 +2236,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Buttons = array();
 //        $Buttons[] = new Standard('Löschen', '/Reporting/SerialLetter/Address/Remove', new Remove(), array('Id' => $tblSerialLetter->getId()));
-        if ($tblFilterCategory) {
-            if ($tblFilterCategory->getName() !== TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-                $Buttons[] = new Standard('Personen direkt anschreiben', '/Reporting/SerialLetter/Address/Person', new Edit()
-                    , array('Id' => $tblSerialLetter->getId()));
-                $Buttons[] = new Standard('Sorgeberechtigte anschreiben', '/Reporting/SerialLetter/Address/Guardian', new Edit()
-                    , array('Id' => $tblSerialLetter->getId()));
-            } elseif ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-                $Buttons[] = new Standard('Firmen mit Personen anschreiben', '/Reporting/SerialLetter/Address/Company', new Edit()
-                    , array('Id' => $tblSerialLetter->getId()));
-            }
+        // Company use other automatic
+        if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+            $Buttons[] = new Standard('Firmen mit Personen anschreiben', '/Reporting/SerialLetter/Address/Company', new Edit()
+                , array('Id' => $tblSerialLetter->getId()));
+        } elseif ($tblFilterCategory || !$tblFilterCategory) {
+            $Buttons[] = new Standard('Personen direkt anschreiben', '/Reporting/SerialLetter/Address/Person', new Edit()
+                , array('Id' => $tblSerialLetter->getId()));
+            $Buttons[] = new Standard('Sorgeberechtigte anschreiben', '/Reporting/SerialLetter/Address/Guardian', new Edit()
+                , array('Id' => $tblSerialLetter->getId()));
         }
 
         $TableShow =
@@ -2310,12 +2309,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             new Title(new Setup().' Adressen', 'Zuweisung'),
                                             new Panel('Serienbrief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter)
                                         ), 6),
-                                        new LayoutColumn(
-                                            ( $tblFilterCategory
-                                                ? array(new Title('Adressauswahl', 'Automatik'),
-                                                    new Panel('Adressen von untenstehenden Personen', $Buttons
-                                                        , Panel::PANEL_TYPE_INFO))
-                                                : '' )
+                                        new LayoutColumn(array(
+                                                new Title('Adressauswahl', 'Automatik'),
+                                                new Panel('Adressen von untenstehenden Personen', $Buttons
+                                                    , Panel::PANEL_TYPE_INFO))
                                             , 6)
                                     ))
                                 )
