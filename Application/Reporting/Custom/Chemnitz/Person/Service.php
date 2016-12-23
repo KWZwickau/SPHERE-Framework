@@ -665,6 +665,8 @@ class Service extends Extension
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                 $Item['Address'] = '';
+                $Item['Phone'] = '';
+                $Item['PhoneGuardian'] = '';
                 $Item['TypeOptionA'] = $Item['TypeOptionB'] = $Item['DivisionLevel'] = $Item['RegistrationDate'] = '';
                 $Item['SchoolYear'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = $Item['Denomination'] = $Item['Nationality'] = '';
@@ -754,6 +756,22 @@ class Service extends Extension
                         }
                     }
                 }
+                // get PhoneNumber by Prospect
+                $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+                if ($tblToPhoneList) {
+                    foreach ($tblToPhoneList as $tblToPhone) {
+                        if (( $tblPhone = $tblToPhone->getTblPhone() )) {
+                            if ($Item['Phone'] == '') {
+                                $Item['Phone'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('.$tblPhone->getNumber();
+                            } else {
+                                $Item['Phone'] .= ', '.$tblPhone->getNumber();
+                            }
+                        }
+                    }
+                    if ($Item['Phone'] != '') {
+                        $Item['Phone'] .= ')';
+                    }
+                }
 
                 $father = null;
                 $mother = null;
@@ -761,6 +779,27 @@ class Service extends Extension
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
                         if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
+                            // get PhoneNumber by Guardian
+                            $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
+                            if ($tblPersonGuardian) {
+                                $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
+                                if ($tblToPhoneList) {
+                                    foreach ($tblToPhoneList as $tblToPhone) {
+                                        if (( $tblPhone = $tblToPhone->getTblPhone() )) {
+                                            if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
+                                                    ' ('.$tblPhone->getNumber();
+                                            } else {
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber();
+                                            }
+                                        }
+                                    }
+                                }
+                                if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                    $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+                                }
+                            }
+
                             if (($salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation())) {
                                 if ($salutation->getId() == 1) {
                                     $father = $guardian->getServiceTblPersonFrom();
@@ -777,6 +816,11 @@ class Service extends Extension
                         }
                     }
                 }
+
+                if (!empty($Item['PhoneGuardian'])) {
+                    $Item['PhoneGuardian'] = implode('; ', $Item['PhoneGuardian']);
+                }
+
                 if ($father !== null) {
                     $Item['FatherSalutation'] = $father->getSalutation();
                     $Item['FatherLastName'] = $father->getLastName();
@@ -837,6 +881,8 @@ class Service extends Extension
             $export->setValue($export->getCell("21", "0"), "Anrede Sorgeberechtigter 2");
             $export->setValue($export->getCell("22", "0"), "Name Sorgeberechtigter 2");
             $export->setValue($export->getCell("23", "0"), "Vorname Sorgeberechtigter 2");
+            $export->setValue($export->getCell("24", "0"), "Telefon");
+            $export->setValue($export->getCell("25", "0"), "Telefon Sorgeberechtigte");
 
             $Row = 1;
             foreach ($PersonList as $PersonData) {
@@ -865,6 +911,8 @@ class Service extends Extension
                 $export->setValue($export->getCell("21", $Row), $PersonData['MotherSalutation']);
                 $export->setValue($export->getCell("22", $Row), $PersonData['MotherLastName']);
                 $export->setValue($export->getCell("23", $Row), $PersonData['MotherFirstName']);
+                $export->setValue($export->getCell("24", $Row), $PersonData['Phone']);
+                $export->setValue($export->getCell("25", $Row), $PersonData['PhoneGuardian']);
 
                 $Row++;
             }
