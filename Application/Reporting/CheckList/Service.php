@@ -6,6 +6,8 @@ namespace SPHERE\Application\Reporting\CheckList;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
@@ -896,6 +898,8 @@ class Service extends AbstractService
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Klassenstufe');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Schulart');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Eingangsdatum');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Telefon');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Adresse');
 
                         $tblListElementListByList = $this->getListElementListByList($tblList);
                         if ($tblListElementListByList) {
@@ -936,8 +940,25 @@ class Service extends AbstractService
                                             $year = false;
                                             $option = false;
                                             $reservationDate = false;
+                                            $Phone = false;
+                                            $Address = false;
                                             $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
                                             if ($tblProspect) {
+                                                // display PhoneNumber
+                                                $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+                                                if ($tblToPhoneList) {
+                                                    foreach ($tblToPhoneList as $tblToPhone) {
+                                                        $tblPhone = $tblToPhone->getTblPhone();
+                                                        if ($tblPhone) {
+                                                            $Phone[] = $tblPhone->getNumber();
+                                                        }
+                                                    }
+                                                    if (!empty($Phone)) {
+                                                        $Phone = implode(', ', $Phone);
+                                                    }
+                                                }
+                                                // display Address
+                                                $Address = Address::useService()->getAddressByPerson($tblPerson)->getGuiString();
                                                 $tblProspectReservation = $tblProspect->getTblProspectReservation();
                                                 if ($tblProspectReservation) {
                                                     $level = $tblProspectReservation->getReservationDivision();
@@ -958,14 +979,17 @@ class Service extends AbstractService
                                                 }
                                             }
                                             $export->setValue($export->getCell($columnCount++, $rowCount), trim($year));
-                                            $export->setValue($export->getCell($columnCount++, $rowCount),
-                                                trim($level));
-                                            $export->setValue($export->getCell($columnCount++, $rowCount),
-                                                trim($option));
+                                            $export->setValue($export->getCell($columnCount++, $rowCount), trim($level));
+                                            $export->setValue($export->getCell($columnCount++, $rowCount), trim($option));
                                             if ($reservationDate) {
-                                                $export->setValue($export->getCell($columnCount, $rowCount),
+                                                $export->setValue($export->getCell($columnCount++, $rowCount),
                                                     $reservationDate);
+                                            } else {
+                                                $export->setValue($export->getCell($columnCount++, $rowCount),
+                                                    '');
                                             }
+                                            $export->setValue($export->getCell($columnCount++, $rowCount), trim($Phone));
+                                            $export->setValue($export->getCell($columnCount, $rowCount), trim($Address));
                                         }
                                     }
                                 } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
@@ -983,7 +1007,7 @@ class Service extends AbstractService
                                     );
                                     if ($tblListObjectElementList) {
                                         foreach ($tblListObjectElementList as $item) {
-                                            $columnCount = $isProspectList ? 5 : 1;
+                                            $columnCount = $isProspectList ? 7 : 1;
                                             foreach ($tblListElementListByList as $tblListElementList) {
                                                 if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
                                                     $export->setValue($export->getCell($columnCount, $rowCount),
