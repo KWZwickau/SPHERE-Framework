@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
@@ -401,6 +402,19 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getAuthenticationByAccount($tblAccount);
 
+    }
+
+    /**
+     * @param string           $Name
+     * @param string           $Description
+     * @param null|TblConsumer $tblConsumer
+     *
+     * @return TblGroup
+     */
+    public function insertGroup($Name, $Description, TblConsumer $tblConsumer = null)
+    {
+
+        return (new Data($this->getBinding()))->createGroup($Name, $Description, $tblConsumer);
     }
 
     /**

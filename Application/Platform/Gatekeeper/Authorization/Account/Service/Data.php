@@ -8,6 +8,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
@@ -94,6 +95,29 @@ class Data extends AbstractData
                     $this->setSettingByAccount($tblAccount, 'Surface', 1);
                 }
         */
+    }
+
+    /**
+     * @param string           $Name
+     * @param string           $Description
+     * @param null|TblConsumer $tblConsumer
+     *
+     * @return TblAccount
+     */
+    public function createGroup($Name, $Description, TblConsumer $tblConsumer = null)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblAccount')->findOneBy(array(TblGroup::ATTR_NAME => $Name));
+        if (null === $Entity) {
+            $Entity = new TblGroup();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Entity->setServiceTblConsumer($tblConsumer);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
     }
 
     /**
