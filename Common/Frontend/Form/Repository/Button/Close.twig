@@ -1,0 +1,4 @@
+<button type="button" class="btn btn-link" {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %} data-dismiss="modal">
+    {% if( Icon is not empty ) %}{{ Icon }}{% endif %}
+    {{ Name }}
+</button>

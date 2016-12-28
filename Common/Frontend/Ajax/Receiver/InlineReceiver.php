@@ -32,7 +32,7 @@ class InlineReceiver extends AbstractReceiver
      */
     public function getContainer()
     {
-        return '<span class="' . $this->getIdentifier() . '">'.$this->getContent().'</span>';
+        return '<span class="Dynamic-Frontend ' . $this->getIdentifier() . '">'.$this->getContent().'</span>';
     }
 
     /**
