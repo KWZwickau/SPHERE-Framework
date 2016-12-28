@@ -12,6 +12,10 @@ class ModalReceiver extends AbstractReceiver
 {
     /** @var IBridgeInterface|null $Template */
     private $Template = null;
+    /** @var null|string $Header */
+    private $Header = null;
+    /** @var null|string $Footer */
+    private $Footer = null;
 
     /**
      * ModalReceiver constructor.
@@ -21,8 +25,8 @@ class ModalReceiver extends AbstractReceiver
     public function __construct($Header = null, $Footer = null)
     {
         $this->Template = $this->getTemplate(__DIR__ . '/ModalReceiver.twig');
-        $this->Template->setVariable('Header', $Header);
-        $this->Template->setVariable('Footer', $Footer);
+        $this->Header = $Header;
+        $this->Footer = $Footer;
         parent::__construct();
     }
 
@@ -48,6 +52,8 @@ class ModalReceiver extends AbstractReceiver
     public function getContainer()
     {
         $this->Template->setVariable('IDENTIFIER', $this->getIdentifier());
+        $this->Template->setVariable('Header', $this->Header);
+        $this->Template->setVariable('Footer', $this->Footer);
         return $this->Template->getContent();
     }
 }

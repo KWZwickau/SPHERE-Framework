@@ -3,7 +3,6 @@ namespace SPHERE\Application\Setting\Authorization\Group;
 
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -19,7 +18,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -48,11 +46,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $CreateUserGroupToggle = new Pipeline();
         $CreateUserGroupToggle->addEmitter(new ClientEmitter($CreateUserGroupReceiver = new ModalReceiver(
-                new PlusSign() . ' Neue Benutzergruppe anlegen'. new PullRight(new Close())
+                new PlusSign() . ' Neue Benutzergruppe anlegen', new Close()
             ), $this->layoutCreateUserGroup()
             )
         );
-
 
         $Stage->addButton((new Standard('Neue Benutzergruppe anlegen', '#',
             new PlusSign()))->ajaxPipelineOnClick($CreateUserGroupToggle));
