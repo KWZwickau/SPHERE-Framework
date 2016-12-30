@@ -10,6 +10,11 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -26,6 +31,8 @@ use SPHERE\System\Database\Filter\Link\Pile;
  */
 class ContactPerson implements IApiInterface
 {
+
+    private static $Sleep = 0;
 
     public static function registerApi()
     {
@@ -47,17 +54,33 @@ class ContactPerson implements IApiInterface
         $Dispatcher->registerMethod('ajaxFormCreateContactPerson');
         $Dispatcher->registerMethod('ajaxContent');
         $Dispatcher->registerMethod('frontendDingens');
+        $Dispatcher->registerMethod('ajaxFormDingens');
 
         return $Dispatcher->callMethod($MethodName);
     }
 
+    public function ajaxFormDingens()
+    {
+        sleep(self::$Sleep);
+        return (string)(new Form(
+            new FormGroup(
+                new FormRow(
+                    new FormColumn(
+                        new TextField('TestA')
+                    )
+                )
+            )))->setConfirm('ajax :)');
+    }
+
     public function frontendDingens()
     {
+        sleep(self::$Sleep);
         return Person::useFrontend()->frontendPerson();
     }
 
     public function ajaxLayoutSimilarPerson( $TblSalutation_Id = 1, $TblPerson_FirstName, $TblPerson_LastName, $Reload = null, $E4 = null )
     {
+        sleep(self::$Sleep);
         $Search = new Pile();
         $Search->addPile( Person::useService(), new ViewPerson() );
 
@@ -83,6 +106,8 @@ class ContactPerson implements IApiInterface
         foreach( $Result as $Row ) {
 
             $P = new Pipeline();
+//            $P->addEmitter( new ClientEmitter($R1 = new ModalReceiver(), new Warning('Click Fertig').$R) );
+//            $R1->setIdentifier( $Reload );
             $P->addEmitter( $E = new ServerEmitter($R, new Route(__NAMESPACE__ . '/Similar')) );
             $E->setGetPayload(array( 'MethodName' => 'ajaxFormCreateContactPerson' ));
             $E->setPostPayload( array(
@@ -103,6 +128,8 @@ class ContactPerson implements IApiInterface
         }
 
         $P = new Pipeline();
+//        $P->addEmitter( new ClientEmitter($R1 = new ModalReceiver(), new Warning('Click Fertig').$R) );
+//        $R1->setIdentifier( $Reload );
         $P->addEmitter( $E = new ServerEmitter($R, new Route(__NAMESPACE__ . '/Similar')) );
         $E->setGetPayload(array( 'MethodName' => 'ajaxFormCreateContactPerson' ));
         $E->setPostPayload( array(
@@ -139,6 +166,8 @@ class ContactPerson implements IApiInterface
 
     public function ajaxFormCreateContactPerson( $TblSalutation_Id, $TblPerson_FirstName, $TblPerson_LastName, $Reload, $E4 )
     {
+        sleep(self::$Sleep+1);
+
         $P = new Pipeline();
         $P->setLoadingMessage('Ansicht wird aktualisiert', 'Daten werde neu geladen...');
         $P->setSuccessMessage('Erfolgreich', 'Daten wurden neu geladen');
@@ -161,6 +190,8 @@ class ContactPerson implements IApiInterface
 
     public function ajaxContent()
     {
+        sleep(self::$Sleep);
+
         return new Info( 'AjaxContent' );
     }
 }

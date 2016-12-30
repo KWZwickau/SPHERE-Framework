@@ -21,9 +21,14 @@
 
 // Init Notify
 
-        if (typeof document.ModAjax == "undefined" || typeof document.ModAjax.NotifyHandler == "undefined") {
+        if (
+            typeof document.ModAjax == "undefined"
+            || typeof document.ModAjax.NotifyHandler == "undefined"
+            || typeof document.ModAjax.NotifyTimeout == "undefined"
+        ) {
             document.ModAjax = {};
             document.ModAjax.NotifyHandler = {};
+            document.ModAjax.NotifyTimeout = {};
         }
         var getNotifyObject = function () {
             if (document.ModAjax.NotifyHandler[settings.Notify.Hash]) {
@@ -31,13 +36,19 @@
             } else {
                 return false;
             }
-        }
+        };
         var destroyNotifyObject = function () {
             if (document.ModAjax.NotifyHandler[settings.Notify.Hash]) {
-                window.setTimeout(function () {
+                if( document.ModAjax.NotifyTimeout[settings.Notify.Hash] ) {
+                    window.clearTimeout( document.ModAjax.NotifyTimeout[settings.Notify.Hash] );
+                }
+                document.ModAjax.NotifyTimeout[settings.Notify.Hash]
+                 = window.setTimeout(function () {
                     document.ModAjax.NotifyHandler[settings.Notify.Hash].close();
                     document.ModAjax.NotifyHandler[settings.Notify.Hash] = null;
                     delete document.ModAjax.NotifyHandler[settings.Notify.Hash];
+                    document.ModAjax.NotifyTimeout[settings.Notify.Hash] = null;
+                    delete document.ModAjax.NotifyTimeout[settings.Notify.Hash];
                 }, 1000);
             }
         }
@@ -113,14 +124,16 @@
                 } else {
                     Notify.update({message: settings.Notify.onLoad.Message});
                 }
-                Notify.update({progress: getRandomInt(15, 25)});
+                Notify.update({progress: getRandomInt(5, 25)});
             }
         };
         var isErrorEvent = false;
         var onErrorEvent = function (request, status, error) {
             isErrorEvent = true;
             var ErrorMessage = parseAjaxError(request, status, error);
-            console.log(request.responseText);
+            if( console && console.log ) {
+                console.log(request.responseText);
+            }
             document.ModAjax.NotifyHandler[settings.Notify.Hash + '-Error'] = $.notify({
                 title: ErrorMessage,
                 message: '<span class="text-muted"><small>' + this.url + '</small></span>'
@@ -138,7 +151,7 @@
         var onSuccessEvent = function (Response) {
             var Notify = getNotifyObject();
             if (Notify) {
-                Notify.update({progress: getRandomInt(75, 85)});
+                Notify.update({progress: getRandomInt(50, 80)});
             }
 
             for (var Index in settings.Receiver) {
@@ -198,7 +211,7 @@
                     var Notify = getNotifyObject();
                     if (Notify) {
                         Notify.update({
-                            progress: getRandomInt(90, 95),
+                            progress: getRandomInt(95, 99),
                             type: 'success',
                             title: settings.Notify.onSuccess.Title,
                             message: settings.Notify.onSuccess.Message
@@ -219,7 +232,7 @@
                         var Notify = getNotifyObject();
                         if (Notify) {
                             Notify.update({
-                                progress: getRandomInt(90, 95),
+                                progress: getRandomInt(95, 99),
                                 type: 'success',
                                 title: settings.Notify.onSuccess.Title,
                                 message: settings.Notify.onSuccess.Message

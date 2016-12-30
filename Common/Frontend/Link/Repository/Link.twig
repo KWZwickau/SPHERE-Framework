@@ -10,6 +10,13 @@
             {
                 jQuery("a#{{ ElementHash }}").on("click", function(Event) {
                     Event.preventDefault();
+                    var DisableLink = jQuery(this);
+                    DisableLink.data("href", DisableLink.attr("href")).removeAttr("href");
+                    DisableLink.addClass('disabled');
+                    setTimeout(function() {
+                        DisableLink.attr("href", DisableLink.data("href"));
+                        DisableLink.removeClass('disabled');
+                    }, 1000);
                     {{ AjaxEventClick }}
                 });
             });
