@@ -32,6 +32,7 @@ class TblCertificate extends Element
     const SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
     const ATTR_IS_GRADE_INFORMATION = 'IsGradeInformation';
     const ATTR_TBL_CERTIFICATE_TYPE = 'tblCertificateType';
+    const ATTR_IS_INFORMATION = 'IsInformation';
 
     /**
      * @Column(type="string")
@@ -70,6 +71,11 @@ class TblCertificate extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblSchoolType;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsInformation;
 
     /**
      * @return bool|TblConsumer
@@ -254,5 +260,21 @@ class TblCertificate extends Element
     {
 
         $this->serviceTblSchoolType = (null === $tblSchoolType ? null : $tblSchoolType->getId());
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isInformation()
+    {
+        return $this->IsInformation;
+    }
+
+    /**
+     * @param boolean $IsInformation
+     */
+    public function setIsInformation($IsInformation)
+    {
+        $this->IsInformation = $IsInformation;
     }
 }

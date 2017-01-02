@@ -111,7 +111,7 @@ class Data extends AbstractData
         $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', '', 'GsHjInformation');
         if ($tblCertificate) {
             if ($tblSchoolTypePrimary) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary);
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary, null, true);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
@@ -150,7 +150,7 @@ class Data extends AbstractData
             'GsHjOneInfo');
         if ($tblCertificate) {
             if ($tblSchoolTypePrimary) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary);
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary, null, true);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
@@ -247,7 +247,7 @@ class Data extends AbstractData
         $tblCertificate = $this->createCertificate('Gymnasium Halbjahresinformation', '', 'GymHjInfo');
         if ($tblCertificate) {
             if ($tblSchoolTypeGym) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeGym);
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeGym, null, true);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
@@ -440,7 +440,7 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
-                    $tblCourseMain);
+                    $tblCourseMain, true);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
@@ -480,7 +480,7 @@ class Data extends AbstractData
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-6', 'MsHjInfo');
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary);
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary, null, true);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
@@ -521,7 +521,7 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary && $tblCourseReal) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
-                    $tblCourseReal);
+                    $tblCourseReal, true);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
                 }
@@ -789,7 +789,7 @@ class Data extends AbstractData
         $tblCertificate = $this->createCertificate('Noteninformation', '',
             'GradeInformation', null, true);
         if ($tblCertificate) {
-            $this->updateCertificate($tblCertificate, $tblCertificateTypeGradeInformation);
+            $this->updateCertificate($tblCertificate, $tblCertificateTypeGradeInformation, null, null, true);
         }
         if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
             $this->setCertificateGradeAllStandard($tblCertificate);
@@ -1510,6 +1510,7 @@ class Data extends AbstractData
      * @param string $Certificate
      * @param TblConsumer|null $tblConsumer
      * @param bool $IsGradeInformation
+     * @param bool $IsInformation
      *
      * @return null|object|TblCertificate
      */
@@ -1518,7 +1519,8 @@ class Data extends AbstractData
         $Description,
         $Certificate,
         TblConsumer $tblConsumer = null,
-        $IsGradeInformation = false
+        $IsGradeInformation = false,
+        $IsInformation = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -1534,6 +1536,7 @@ class Data extends AbstractData
             $Entity->setCertificate($Certificate);
             $Entity->setServiceTblConsumer($tblConsumer);
             $Entity->setIsGradeInformation($IsGradeInformation);
+            $Entity->setIsInformation($IsInformation);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -2045,6 +2048,7 @@ class Data extends AbstractData
      * @param TblCertificateType|null $tblCertificateType
      * @param TblType|null $tblSchoolType
      * @param TblCourse|null $tblCourse
+     * @param bool $IsInformation
      *
      * @return bool
      */
@@ -2052,7 +2056,8 @@ class Data extends AbstractData
         TblCertificate $tblCertificate,
         TblCertificateType $tblCertificateType = null,
         TblType $tblSchoolType = null,
-        TblCourse $tblCourse = null
+        TblCourse $tblCourse = null,
+        $IsInformation = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -2064,6 +2069,7 @@ class Data extends AbstractData
             $Entity->setTblCertificateType($tblCertificateType);
             $Entity->setServiceTblSchoolType($tblSchoolType);
             $Entity->setServiceTblCourse($tblCourse);
+            $Entity->setIsInformation($IsInformation);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

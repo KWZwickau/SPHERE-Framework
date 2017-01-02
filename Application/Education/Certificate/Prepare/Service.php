@@ -25,6 +25,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -1103,7 +1104,8 @@ class Service extends AbstractService
         TblGradeType $tblGradeType,
         TblGradeType $tblNextGradeType = null,
         $Route,
-        $Data
+        $Data,
+        $Trend
     ) {
 
         /**
@@ -1113,26 +1115,23 @@ class Service extends AbstractService
             return $Stage;
         }
 
-
-        // ToDo ScoreType
         $error = false;
-//            if ($tblScoreType) {
-//                foreach ($Data as $gradeTypeId => $value) {
-//                    if (trim($value) !== '' && $tblScoreType) {
-//                        if (!preg_match('!' . $tblScoreType->getPattern() . '!is', trim($value))) {
-//                            $error = true;
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
+
+        foreach ($Data as $gradeTypeId => $value) {
+            if (trim($value) !== '') {
+                if (!preg_match('!^[1-5]{1}$!is', trim($value))) {
+                    $error = true;
+                    break;
+                }
+            }
+        }
 
         $this->setSignerFromSignedInPerson($tblPrepare);
 
         if ($error) {
             $Stage->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger(
-                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-5).
                         Die Daten wurden nicht gespeichert.', new Exclamation())
                 ))));
 
@@ -1146,6 +1145,14 @@ class Service extends AbstractService
                     if (($tblPerson = Person::useService()->getPersonById($personId))) {
                         if (trim($value) && trim($value) !== ''
                         ) {
+                            if (isset($Trend[$personId])) {
+                                if ($Trend[$personId] == TblGrade::VALUE_TREND_PLUS){
+                                    $value = trim($value) . '+';
+                                } elseif ($Trend[$personId] == TblGrade::VALUE_TREND_MINUS){
+                                    $value = trim($value) . '-';
+                                }
+                            }
+
                             Prepare::useService()->updatePrepareGradeForBehavior(
                                 $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
                                 trim($value)
