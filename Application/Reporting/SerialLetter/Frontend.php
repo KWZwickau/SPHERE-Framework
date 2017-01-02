@@ -2466,7 +2466,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Stage->setContent(
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
-                                ( SerialLetter::useService()->removeSerialLetterAddress($tblSerialLetter)
+                                ( SerialLetter::useService()->destroyAddressPersonAllBySerialLetter($tblSerialLetter)
                                     ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Zuweisungen für Adressen des Serienbriefs wurde gelöscht')
                                     : new Danger(new Ban().' Die Adressliste für Serienbriefe konnte nicht gelöscht werden')
                                 ),
@@ -2861,8 +2861,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Number'          => 'Nr.',
                 'Person'          => 'Person',
                 'StudentNumber'   => 'Schüler-Nr.',
-                'Salutation'      => 'Anrede',
                 'Division'        => 'Aktuelle Klasse(n)',
+                'Salutation'      => 'Anrede',
                 'PersonToAddress' => 'Adressat',
                 'Address'         => 'Adresse',
                 'Option'          => ''

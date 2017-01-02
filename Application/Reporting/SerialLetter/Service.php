@@ -17,7 +17,6 @@ use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspec
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany;
@@ -1005,10 +1004,8 @@ class Service extends AbstractService
                             if (isset($item['Address'])) {
                                 $tblToCompany = Address::useService()->getAddressToCompanyById($key);
                                 if ($tblToCompany) {
-                                    $tblSalutation = $tblPerson->getTblSalutation();
                                     $this->createAddressPerson($tblSerialLetter, $tblPerson,
-                                        $tblPerson, null, $tblToCompany,
-                                        ( $tblSalutation ? $tblSalutation : null ));
+                                        $tblPerson, null, $tblToCompany);
                                 }
                             }
                         }
@@ -1022,11 +1019,8 @@ class Service extends AbstractService
                                 $tblToPerson = Address::useService()->getAddressToPersonById($key);
                                 if ($tblToPerson && $tblToPerson->getServiceTblPerson()) {
                                     if ($tblPersonToPerson = $tblToPerson->getServiceTblPerson()) {
-                                        $tblSalutation = $tblPersonToPerson->getTblSalutation();
-
                                         $this->createAddressPerson($tblSerialLetter, $tblPerson,
-                                            $tblToPerson->getServiceTblPerson(), $tblToPerson, null,
-                                            ( $tblSalutation ? $tblSalutation : null ));
+                                            $tblToPerson->getServiceTblPerson(), $tblToPerson, null);
                                     } else {
                                         $this->createAddressPerson($tblSerialLetter, $tblPerson,
                                             $tblToPerson->getServiceTblPerson(), $tblToPerson);
@@ -1058,6 +1052,7 @@ class Service extends AbstractService
     {
         $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
         if ($tblSerialPersonList) {
+            $CreateArray = array();
             /** @var TblSerialPerson $tblSerialPerson */
             foreach ($tblSerialPersonList as $tblSerialPerson) {
                 $tblPerson = $tblSerialPerson->getServiceTblPerson();
@@ -1084,10 +1079,13 @@ class Service extends AbstractService
                             if (!$tblSalutation) {
                                 $tblSalutation = null;
                             }
-                            SerialLetter::useService()->createAddressPerson($tblSerialLetter, $tblPerson, $tblPerson, $tblToPersonChoose, null, $tblSalutation);
+                            $CreateArray[$tblSerialLetter->getId()][$tblPerson->getId()][$tblPerson->getId()] = $tblToPersonChoose;
                         }
                     }
                 }
+            }
+            if (!empty($CreateArray)) {
+                ( new Data($this->getBinding()) )->createAddressPersonList($CreateArray);
             }
         } else {
             return new Warning('Es sind keine Personen im Serienbrief hinterlegt');
@@ -1105,6 +1103,7 @@ class Service extends AbstractService
     {
         $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
         if ($tblSerialPersonList) {
+            $CreateArray = array();
             foreach ($tblSerialPersonList as $tblSerialPerson) {
                 $tblPerson = $tblSerialPerson->getServiceTblPerson();
                 if ($tblPerson) {
@@ -1155,17 +1154,14 @@ class Service extends AbstractService
 
                                         $tblToPersonChoose = $ToPersonChoose;
                                         if (isset($SalutationList[$count])) {
-                                            $tblSalutation = $SalutationList[$count];
-                                        } else {
-                                            $tblSalutation = false;
-                                        }
-                                        if (isset($SalutationList[$count])) {
                                             $PersonTo = $Person[$count];
                                         } else {
                                             $PersonTo = false;
                                         }
-                                        SerialLetter::useService()->createAddressPerson(
-                                            $tblSerialLetter, $tblPerson, $PersonTo, $tblToPersonChoose, null, ( $tblSalutation ? $tblSalutation : null ));
+
+                                        $CreateArray[$tblSerialLetter->getId()][$tblPerson->getId()][$PersonTo->getId()] = $tblToPersonChoose;
+//                                        SerialLetter::useService()->createAddressPerson(
+//                                            $tblSerialLetter, $tblPerson, $PersonTo, $tblToPersonChoose, null, ( $tblSalutation ? $tblSalutation : null ));
                                         $count++;
                                     }
                                 }
@@ -1174,6 +1170,7 @@ class Service extends AbstractService
                     }
                 }
             }
+            ( new Data($this->getBinding()) )->createAddressPersonList($CreateArray);
         } else {
             return new Warning('Es sind keine Personen im Serienbrief hinterlegt');
         }
@@ -1192,6 +1189,7 @@ class Service extends AbstractService
         $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
         $tblType = Address::useService()->getTypeById(1);
         if ($tblSerialPersonList) {
+            $CreateArray = array();
             foreach ($tblSerialPersonList as $tblSerialPerson) {
                 $tblPerson = $tblSerialPerson->getServiceTblPerson();
                 if ($tblPerson) {
@@ -1215,10 +1213,11 @@ class Service extends AbstractService
                                 if ($tblToCompanyList) {
                                     foreach ($tblToCompanyList as $tblToCompany) {
                                         if ($tblToCompany->getTblType()->getId() === $tblType->getId()) {
-                                            $tblSalutation = $tblPerson->getTblSalutation();
+//                                            $tblSalutation = $tblPerson->getTblSalutation();
                                             $PersonTo = $tblPerson;
-                                            SerialLetter::useService()->createAddressPerson(
-                                                $tblSerialLetter, $tblPerson, $PersonTo, null, $tblToCompany, ( $tblSalutation ? $tblSalutation : null ));
+                                            $CreateArray[$tblSerialLetter->getId()][$tblPerson->getId()][$PersonTo->getId()] = $tblToCompany;
+//                                            SerialLetter::useService()->createAddressPerson(
+//                                                $tblSerialLetter, $tblPerson, $PersonTo, null, $tblToCompany, ( $tblSalutation ? $tblSalutation : null ));
                                         }
                                     }
                                 }
@@ -1227,6 +1226,7 @@ class Service extends AbstractService
                     }
                 }
             }
+            ( new Data($this->getBinding()) )->createAddressPersonList($CreateArray, true);
         } else {
             return new Warning('Es sind keine Personen im Serienbrief hinterlegt');
         }
@@ -1240,7 +1240,6 @@ class Service extends AbstractService
      * @param TblPerson          $tblPersonToAddress
      * @param null|TblToPerson   $tblToPerson
      * @param null|TblToCompany  $tblToCompany
-     * @param TblSalutation|null $tblSalutation
      *
      * @return TblAddressPerson
      */
@@ -1249,12 +1248,11 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         TblPerson $tblPersonToAddress,
         TblToPerson $tblToPerson = null,
-        TblToCompany $tblToCompany = null,
-        TblSalutation $tblSalutation = null
+        TblToCompany $tblToCompany = null
     ) {
 
         return ( new Data($this->getBinding()) )->createAddressPerson($tblSerialLetter, $tblPerson, $tblPersonToAddress,
-            $tblToPerson, $tblToCompany, $tblSalutation);
+            $tblToPerson, $tblToCompany);
     }
 
     /**
@@ -1869,6 +1867,7 @@ class Service extends AbstractService
 
         if ($tblPersonSearchList) {
 
+            // existing SerialPersonList
             $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
             $tblPersonList = array();
             if ($tblSerialPersonList) {
@@ -1876,40 +1875,21 @@ class Service extends AbstractService
                     $tblPersonList[] = $tblSerialPerson->getServiceTblPerson();
                 }
             }
-
+            // remove Person on SerialPerson without matching Filter
             $PersonRemoveList = array_diff($tblPersonList, $tblPersonSearchList);
             $PersonRemoveList = array_filter($PersonRemoveList);
             if (!empty($PersonRemoveList)) {
                 $this->removeSerialPersonBulk($tblSerialLetter, $PersonRemoveList);
-//                foreach ($PersonRemoveList as $PersonRemove) {
-//                    if ($PersonRemove) {
-//                        $this->removeSerialPerson($tblSerialLetter, $PersonRemove);
-//                    }
-//                }
             }
+            // add Person with matching Filter that not exist on SerialPerson
             $PersonAddList = array_diff($tblPersonSearchList, $tblPersonList);
             $PersonAddList = array_filter($PersonAddList);
             if (!empty($PersonAddList)) {
                 $this->addSerialPersonBulk($tblSerialLetter, $PersonAddList);
-//                foreach ($PersonAddList as $PersonAdd) {
-//                    if ($PersonAdd) {
-//                        $this->addSerialPerson($tblSerialLetter, $PersonAdd);
-//                    }
-//                }
             }
         } else {
             // delete all exist SerialPerson if result is false
             SerialLetter::useService()->destroySerialPerson($tblSerialLetter);
-//            if ($tblSerialPersonList) {
-//                foreach ($tblSerialPersonList as $tblSerialPerson) {
-//                    if ($tblSerialPerson && $tblSerialPerson->getServiceTblPerson()) {
-//                        $tblPersonList[] = $tblSerialPerson->getServiceTblPerson();
-//                    }
-//                }
-//                if(isset($tblPersonList) && !empty($tblPersonList)){
-//                    $this->removeSerialPersonBulk($tblSerialLetter, $tblPersonList);
-//                }
-//            }
         }
     }
 
@@ -1981,28 +1961,6 @@ class Service extends AbstractService
 
         // Destroy SerialLetter
         return ( new Data($this->getBinding()) )->destroySerialLetter($tblSerialLetter);
-    }
-
-    /**
-     * @param TblSerialLetter $tblSerialLetter
-     *
-     * @return bool
-     */
-    public function removeSerialLetterAddress(TblSerialLetter $tblSerialLetter)
-    {
-        $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
-        if ($tblSerialPersonList) {
-            foreach ($tblSerialPersonList as $tblSerialPerson) {
-                $tblPerson = $tblSerialPerson->getServiceTblPerson();
-                if ($tblPerson) {
-                    // Destroy Address
-                    SerialLetter::useService()->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
