@@ -61,6 +61,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -441,8 +442,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     public function frontendSandbox()
     {
+//        $this->getCache(new TwigHandler())->clearCache();
 
         $Stage = new Stage('SandBox');
+
+//        $Stage->setContent( $this->getTemplate( __DIR__.'/Test.twig' ) );
 
         $R1 = new ModalReceiver();
         $R2 = new FieldValueReceiver( (new NumberField( 'NUFF' ))->setDefaultValue(9));

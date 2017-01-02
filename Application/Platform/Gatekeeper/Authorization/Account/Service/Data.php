@@ -108,7 +108,7 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblAccount')->findOneBy(array(TblGroup::ATTR_NAME => $Name));
+        $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(TblGroup::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblGroup();
             $Entity->setName($Name);
@@ -118,6 +118,21 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAll( TblConsumer $tblConsumer = null )
+    {
+        if( $tblConsumer ) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', array(
+                TblGroup::SERVICE_TBL_CONSUMER => $tblConsumer->getId()
+            ));
+        } else {
+            return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup');
+        }
     }
 
     /**

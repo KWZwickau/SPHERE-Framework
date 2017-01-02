@@ -13,10 +13,12 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Setup;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
@@ -51,6 +53,62 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAll( TblConsumer $tblConsumer = null )
+    {
+
+        return (new Data($this->getBinding()))->getGroupAll($tblConsumer);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param array          $Group
+     *
+     * @return IFormInterface|Redirect|string
+     */
+    public function createGroup(
+        IFormInterface $Form,
+        $Group = null
+    ) {
+        if( $Group === null ) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!isset( $Group['Name'] ) || empty( $Group['Name'] )) {
+            $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
+            $Error = true;
+        }
+        if (!isset( $Group['Description'] ) || empty( $Group['Description'] )) {
+            $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
+            $Error = true;
+        }
+
+        if( !$Error ) {
+
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            if( (new Data($this->getBinding()))->createGroup( $Group['Name'], $Group['Description'], $tblConsumer ) ) {
+
+                /**
+                 * Reset Form Values
+                 */
+                $Global = $this->getGlobal();
+                $Global->POST['Group'] = array('Name' => '', 'Description' => '');
+                $Global->savePost();
+
+                return $Form . new Success( 'Die Benutzergruppe '.$Group['Name'].' wurde erfolgreich angelegt' );
+            } else {
+                return $Form . new Danger( 'Die Benutzergruppe '.$Group['Name'].' konnte nicht angelegt werden' );
+            }
+        }
+
+        return $Form;
     }
 
     /**

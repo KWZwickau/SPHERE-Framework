@@ -50,10 +50,12 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface
 
     /**
      * @param string $Identifier
+     * @return $this
      */
     public function setIdentifier($Identifier)
     {
         $this->Identifier = $Identifier;
+        return $this;
     }
 
     /**
