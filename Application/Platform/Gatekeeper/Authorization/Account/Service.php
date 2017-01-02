@@ -66,6 +66,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Id
+     *
+     * @return bool|TblAccount
+     */
+    public function getGroupById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getGroupById($Id);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param array          $Group
      *
@@ -85,7 +96,7 @@ class Service extends AbstractService
             $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         }
-        if (!isset( $Group['Description'] ) || empty( $Group['Description'] )) {
+        if (!isset( $Group['Description'] )) {
             $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
             $Error = true;
         }
@@ -110,6 +121,19 @@ class Service extends AbstractService
 
         return $Form;
     }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return bool
+     */
+    public function destroyGroup(TblGroup $tblGroup)
+    {
+
+        return (new Data($this->getBinding()))->destroyGroup($tblGroup);
+    }
+
+
 
     /**
      * @param null|string $Session

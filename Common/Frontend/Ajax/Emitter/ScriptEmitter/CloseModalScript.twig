@@ -1,0 +1,5 @@
+$("#{{ Modal }}").modal("toggle");
+$(".modal-backdrop").fadeOut('fast',function(){
+    $("body").removeClass( "modal-open" );
+    $(".modal-backdrop").remove();
+});

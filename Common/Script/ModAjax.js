@@ -220,7 +220,7 @@
                         callReceiver(Response);
                     } catch (ErrorMessage) {
                         if (console && console.log) {
-                            console.log(ErrorMessage);
+                            console.log(ErrorMessage, Response);
                         }
                         document.ModAjax.NotifyHandler[settings.Notify.Hash + '-Error'] = $.notify({
                             title: 'Script-Error',
