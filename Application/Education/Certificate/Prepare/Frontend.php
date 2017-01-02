@@ -911,36 +911,21 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
-                    $FormField = array(
-                        'Content.Input.Remark' => 'TextArea',
-                        'Content.Input.Rating' => 'TextArea',
-                        'Content.Input.Survey' => 'TextArea',
-                        'Content.Input.Deepening' => 'TextField',
-                        'Content.Input.SchoolType' => 'SelectBox',
-                        'Content.Input.Type' => 'SelectBox',
-                        'Content.Input.DateCertifcate' => 'DatePicker',
-                        'Content.Input.DateConference' => 'DatePicker',
-                        'Content.Input.Transfer' => 'SelectBox',
-                    );
-                    $FormLabel = array(
-                        'Content.Input.Remark' => 'Bemerkungen',
-                        'Content.Input.Rating' => 'Einschätzung',
-                        'Content.Input.Survey' => 'Gutachten',
-                        'Content.Input.Deepening' => 'Vertiefungsrichtung',
-                        'Content.Input.SchoolType' => 'Ausbildung fortsetzen',
-                        'Content.Input.Type' => 'Bezieht sich auf',
-                        'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
-                        'Content.Input.DateConference' => 'Datum der Konferenz',
-                        'Content.Input.Transfer' => 'Versetzungsvermerk',
-                    );
+                    $FormField = Generator::useService()->getFormField();
+                    $FormLabel = Generator::useService()->getFormLabel();
 
                     if ($Data === null) {
                         $Global = $this->getGlobal();
                         $tblPrepareInformationAll = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepareCertificate,
                             $tblPerson);
                         $hasTransfer = false;
+                        $isTeamSet = false;
                         if ($tblPrepareInformationAll) {
                             foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
+                                if ($tblPrepareInformation->getField() == 'Team') {
+                                    $isTeamSet = true;
+                                }
+
                                 if ($tblPrepareInformation->getField() == 'SchoolType'
                                     && method_exists($Certificate, 'selectValuesSchoolType')
                                 ) {
@@ -963,6 +948,26 @@ class Frontend extends Extension implements IFrontendInterface
                                 } else {
                                     $Global->POST['Data'][$tblPerson->getId()][$tblPrepareInformation->getField()]
                                         = $tblPrepareInformation->getValue();
+                                }
+                            }
+                        }
+
+                        // Arbeitsgemeinschaften aus der Schülerakte laden
+                        if (!$isTeamSet){
+                            if (($tblStudent = $tblPerson->getStudent())
+                                && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
+                                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                                    $tblStudent, $tblSubjectType
+                                ))
+                            ) {
+                                $tempList = array();
+                                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                    if ($tblStudentSubject->getServiceTblSubject()) {
+                                        $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
+                                    }
+                                }
+                                if (!empty($tempList)) {
+                                    $Global->POST['Data'][$tblPerson->getId()]['Team'] = implode(', ', $tempList);
                                 }
                             }
                         }
@@ -1008,9 +1013,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
 
                                         $key = str_replace('Content.Input.', '', $Placeholder);
-                                        if (!isset($columnTable[$key])) {
-                                            $columnTable[$key] = $Label;
-                                        }
 
                                         if (isset($FormField[$Placeholder])) {
                                             $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$Placeholder];
@@ -1043,6 +1045,15 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $studentTable[$tblPerson->getId()][$key]
                                                         = (new $Field($dataFieldName, '', ''))->setDisabled();
                                                 } else {
+                                                    // Arbeitsgemeinschaften beim Bemerkungsfeld
+                                                    if ($key = 'Remark') {
+                                                        if (!isset($columnTable['Team'])) {
+                                                            $columnTable['Team'] = 'Arbeitsgemeinschaften';
+                                                        }
+                                                        $studentTable[$tblPerson->getId()]['Team']
+                                                            = (new TextField('Data[' . $tblPerson->getId() . '][Team]', '', ''));
+                                                    }
+
                                                     // TextArea Zeichen begrenzen
                                                     if ($FormField[$Placeholder] == 'TextArea'
                                                         && (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
@@ -1068,6 +1079,10 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $studentTable[$tblPerson->getId()][$key]
                                                     = (new TextField($FieldName, '', ''));
                                             }
+                                        }
+
+                                        if (!isset($columnTable[$key])) {
+                                            $columnTable[$key] = $Label;
                                         }
                                     }
                                 }
@@ -1389,28 +1404,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
-                    $FormField = array(
-                        'Content.Input.Remark' => 'TextArea',
-                        'Content.Input.Rating' => 'TextArea',
-                        'Content.Input.Survey' => 'TextArea',
-                        'Content.Input.Deepening' => 'TextField',
-                        'Content.Input.SchoolType' => 'SelectBox',
-                        'Content.Input.Type' => 'SelectBox',
-                        'Content.Input.DateCertifcate' => 'DatePicker',
-                        'Content.Input.DateConference' => 'DatePicker',
-                        'Content.Input.Transfer' => 'SelectBox',
-                    );
-                    $FormLabel = array(
-                        'Content.Input.Remark' => 'Bemerkungen',
-                        'Content.Input.Rating' => 'Einschätzung',
-                        'Content.Input.Survey' => 'Gutachten',
-                        'Content.Input.Deepening' => 'Vertiefungsrichtung',
-                        'Content.Input.SchoolType' => 'Ausbildung fortsetzen',
-                        'Content.Input.Type' => 'Bezieht sich auf',
-                        'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
-                        'Content.Input.DateConference' => 'Datum der Konferenz',
-                        'Content.Input.Transfer' => 'Versetzungsvermerk',
-                    );
+                    $FormField = Generator::useService()->getFormField();
+                    $FormLabel = Generator::useService()->getFormLabel();
 
                     $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
                     if ($PlaceholderList) {

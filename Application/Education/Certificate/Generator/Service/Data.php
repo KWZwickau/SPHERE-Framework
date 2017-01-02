@@ -2235,7 +2235,9 @@ class Data extends AbstractData
         );
 
         if ($tblCertificateField) {
-            return $tblCertificateField->getCharCount();
+            // 1 Zeile (100 Zeichen) für Arbeitsgemeinschaften abziehen
+            $count = $tblCertificateField->getCharCount();
+            return  $count > 100 ? $count - 100 : $count;
         }
 
         return false;

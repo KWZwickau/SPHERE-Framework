@@ -376,4 +376,44 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCertificateAllByType($tblCertificateType);
     }
+
+    /**
+     * @return array
+     */
+    public function getFormField()
+    {
+
+        return array(
+            'Content.Input.Remark' => 'TextArea',
+            'Content.Input.Rating' => 'TextArea',
+            'Content.Input.Survey' => 'TextArea',
+            'Content.Input.Deepening' => 'TextField',
+            'Content.Input.SchoolType' => 'SelectBox',
+            'Content.Input.Type' => 'SelectBox',
+            'Content.Input.DateCertifcate' => 'DatePicker',
+            'Content.Input.DateConference' => 'DatePicker',
+            'Content.Input.Transfer' => 'SelectBox',
+//                        'Content.Input.Team' => 'TextField'
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getFormLabel()
+    {
+
+        return array(
+            'Content.Input.Remark' => 'Bemerkungen',
+            'Content.Input.Rating' => 'Einschätzung',
+            'Content.Input.Survey' => 'Gutachten',
+            'Content.Input.Deepening' => 'Vertiefungsrichtung',
+            'Content.Input.SchoolType' => 'Ausbildung fortsetzen',
+            'Content.Input.Type' => 'Bezieht sich auf',
+            'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
+            'Content.Input.DateConference' => 'Datum der Konferenz',
+            'Content.Input.Transfer' => 'Versetzungsvermerk',
+//                        'Content.Input.Team' => 'Arbeitsgemeinschaften'
+        );
+    }
 }

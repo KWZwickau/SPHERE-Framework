@@ -500,8 +500,7 @@ class Service extends AbstractService
                                 if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
                                     $tblCertificate, $field))
                                 ) {
-                                    // ToDo GCK Enter entfernen funktioniert nicht
-                                    $value = str_replace('\n', ' ', $value);
+                                    $value = str_replace("\n", " ", $value);
 
                                     if (strlen($value) > $CharCount) {
                                         $value = substr($value, 0, $CharCount);
@@ -631,13 +630,28 @@ class Service extends AbstractService
             $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
                 $tblPerson);
             if ($tblPrepareInformationList) {
+                // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
+                $team = '';
+                $remark = '';
+
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
-                    if ($tblPrepareInformation->getField() == 'Transfer') {
+                    if ($tblPrepareInformation->getField() == 'Team') {
+                        $team = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue();
+                    } elseif ($tblPrepareInformation->getField() == 'Remark') {
+                        $remark = $tblPrepareInformation->getValue();
+                    } elseif ($tblPrepareInformation->getField() == 'Transfer') {
                         $Content['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
                             . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
                     } else {
                         $Content['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
                     }
+                }
+
+                if ($team || $remark) {
+                    if ($team) {
+                        $remark = $team . " \n " . $remark;
+                    }
+                    $Content['Input']['Remark'] = $remark;
                 }
             }
 
