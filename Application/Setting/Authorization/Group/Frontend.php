@@ -5,6 +5,8 @@ use SPHERE\Application\Api\Platform\Gatekeeper\ApiUserGroup;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -14,6 +16,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -47,7 +50,7 @@ class Frontend extends Extension implements IFrontendInterface
          * Create New UserGroup
          */
         $pipelineCreateUserGroup = new Pipeline();
-        $receiverCreateUserGroup = new BlockReceiver();
+        $receiverCreateUserGroup = new ModalReceiver( new PlusSign() . ' Neue Benutzergruppe anlegen', new Close() );
         $emitterCreateUserGroup = new ServerEmitter($receiverCreateUserGroup, ApiUserGroup::getRoute());
         $emitterCreateUserGroup->setGetPayload(array(
             ApiUserGroup::API_DISPATCHER => 'createUserGroup',
@@ -55,8 +58,9 @@ class Frontend extends Extension implements IFrontendInterface
             'receiverCreateUserGroup' => $receiverCreateUserGroup->getIdentifier()
         ));
         $pipelineCreateUserGroup->addEmitter($emitterCreateUserGroup);
-        $receiverCreateUserGroup->initContent(
-            (new ApiUserGroup())->formCreateUserGroup()->ajaxPipelineOnSubmit($pipelineCreateUserGroup)
+
+        $Stage->addButton(
+            (new Standard('Neue Benutzergruppe anlegen','#', new PlusSign()))->ajaxPipelineOnClick( $pipelineCreateUserGroup )
         );
 
         $Stage->setContent(
@@ -64,19 +68,10 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            $receiverTableUserGroupList
+                            $receiverTableUserGroupList.$receiverCreateUserGroup
                         )
                     ),
                 ), new Title(new PersonGroup() . ' Bestehende Benutzergruppen')),
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(
-                                $receiverCreateUserGroup
-                            )
-                        )
-                    ),
-                ), new Title(new PlusSign() . ' Neue Benutzergruppe anlegen')),
             ))
         );
 

@@ -17,8 +17,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Common\Frontend\Ajax\Emitter\ScriptEmitter;
+use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
@@ -95,11 +97,17 @@ class Service extends AbstractService
         if (!isset( $Group['Name'] ) || empty( $Group['Name'] )) {
             $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
+        } else {
+            if ((new Data($this->getBinding()))->getGroupByName($Group['Name'])) {
+                $Form->setError('Group[Name]', 'Der angegebene Name wird bereits verwendet');
+                $Error = true;
+            }
         }
         if (!isset( $Group['Description'] )) {
             $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
             $Error = true;
         }
+
 
         if( !$Error ) {
 
@@ -113,13 +121,114 @@ class Service extends AbstractService
                 $Global->POST['Group'] = array('Name' => '', 'Description' => '');
                 $Global->savePost();
 
-                return $Form . new Success( 'Die Benutzergruppe '.$Group['Name'].' wurde erfolgreich angelegt' );
+                $NotifyPipeline = (new Pipeline())->addEmitter(
+                    new ScriptEmitter(
+                        $NotifyReceiver = new InlineReceiver(),
+                        new ScriptEmitter\NotifyScript( 'Benutzergruppe '.$Group['Name'], 'Erfolgreich angelegt', ScriptEmitter\NotifyScript::TYPE_SUCCESS )
+                    )
+                );
+                $NotifyReceiver->initContent( $NotifyPipeline );
+
+                return $Form . $NotifyReceiver;
             } else {
-                return $Form . new Danger( 'Die Benutzergruppe '.$Group['Name'].' konnte nicht angelegt werden' );
+                $NotifyPipeline = (new Pipeline())->addEmitter(
+                    new ScriptEmitter(
+                        $NotifyReceiver = new InlineReceiver(),
+                        new ScriptEmitter\NotifyScript( 'Benutzergruppe '.$Group['Name'], 'Konnte nicht angelegt werden', ScriptEmitter\NotifyScript::TYPE_DANGER, 5000 )
+                    )
+                );
+                $NotifyReceiver->initContent( $NotifyPipeline );
+
+                return $Form . $NotifyReceiver;
             }
         }
 
-        return $Form;
+        $NotifyPipeline = (new Pipeline())->addEmitter(
+            new ScriptEmitter(
+                $NotifyReceiver = new InlineReceiver(),
+                new ScriptEmitter\NotifyScript( 'Benutzergruppe konnte nicht angelegt werden', 'Bitte füllen Sie die benötigten Felder korrekt aus', ScriptEmitter\NotifyScript::TYPE_WARNING, 5000 )
+            )
+        );
+        $NotifyReceiver->initContent( $NotifyPipeline );
+
+        return $Form . $NotifyReceiver;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param array          $Group
+     *
+     * @return IFormInterface|Redirect|string
+     */
+    public function editGroup(
+        IFormInterface $Form,
+        TblGroup $tblGroup,
+        $Group = null
+    ) {
+        if( $Group === null ) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!isset( $Group['Name'] ) || empty( $Group['Name'] )) {
+            $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
+            $Error = true;
+        } else {
+            if ((new Data($this->getBinding()))->getGroupByName($Group['Name'])) {
+                $Form->setError('Group[Name]', 'Der angegebene Name wird bereits verwendet');
+                $Error = true;
+            }
+        }
+        if (!isset( $Group['Description'] )) {
+            $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
+            $Error = true;
+        }
+
+
+        if( !$Error ) {
+
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            if( (new Data($this->getBinding()))->createGroup( $Group['Name'], $Group['Description'], $tblConsumer ) ) {
+
+                /**
+                 * Reset Form Values
+                 */
+                $Global = $this->getGlobal();
+                $Global->POST['Group'] = array('Name' => '', 'Description' => '');
+                $Global->savePost();
+
+                $NotifyPipeline = (new Pipeline())->addEmitter(
+                    new ScriptEmitter(
+                        $NotifyReceiver = new InlineReceiver(),
+                        new ScriptEmitter\NotifyScript( 'Benutzergruppe '.$Group['Name'], 'Erfolgreich angelegt', ScriptEmitter\NotifyScript::TYPE_SUCCESS )
+                    )
+                );
+                $NotifyReceiver->initContent( $NotifyPipeline );
+
+                return $Form . $NotifyReceiver;
+            } else {
+                $NotifyPipeline = (new Pipeline())->addEmitter(
+                    new ScriptEmitter(
+                        $NotifyReceiver = new InlineReceiver(),
+                        new ScriptEmitter\NotifyScript( 'Benutzergruppe '.$Group['Name'], 'Konnte nicht angelegt werden', ScriptEmitter\NotifyScript::TYPE_DANGER, 5000 )
+                    )
+                );
+                $NotifyReceiver->initContent( $NotifyPipeline );
+
+                return $Form . $NotifyReceiver;
+            }
+        }
+
+        $NotifyPipeline = (new Pipeline())->addEmitter(
+            new ScriptEmitter(
+                $NotifyReceiver = new InlineReceiver(),
+                new ScriptEmitter\NotifyScript( 'Benutzergruppe konnte nicht angelegt werden', 'Bitte füllen Sie die benötigten Felder korrekt aus', ScriptEmitter\NotifyScript::TYPE_WARNING, 5000 )
+            )
+        );
+        $NotifyReceiver->initContent( $NotifyPipeline );
+
+        return $Form . $NotifyReceiver;
     }
 
     /**

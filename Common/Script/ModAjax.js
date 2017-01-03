@@ -99,6 +99,8 @@
                 ErrorMessage = ('Not connected.\nPlease verify your network connection.');
             } else if (request.status == 400) {
                 ErrorMessage = ('Bad Request. [400]');
+            } else if (request.status == 403) {
+                ErrorMessage = ('Forbidden. [403]');
             } else if (request.status == 404) {
                 ErrorMessage = ('The requested page not found. [404]');
             } else if (request.status == 500) {
@@ -112,7 +114,7 @@
             } else if (status === 'abort') {
                 ErrorMessage = ('Ajax request aborted.');
             } else {
-                ErrorMessage = ('Uncaught Error.\n' + request.responseText);
+                ErrorMessage = ('Uncaught Error. ' + request.status + '\n' + request.responseText);
             }
             return ErrorMessage;
         }
@@ -263,14 +265,20 @@
                 if (Callback && !isErrorEvent) {
                     Callback();
                 }
-                if (settings.Notify.onSuccess.Message.length > 0 || settings.Notify.onSuccess.Title.length > 0) {
-                    var Notify = getNotifyObject();
-                    if (Notify) {
+                var Notify = getNotifyObject();
+                if (Notify) {
+                    if (settings.Notify.onSuccess.Message.length > 0 || settings.Notify.onSuccess.Title.length > 0) {
                         Notify.update({
                             progress: 100,
                             type: 'success',
                             title: settings.Notify.onSuccess.Title,
                             message: settings.Notify.onSuccess.Message,
+                            icon: 'glyphicons glyphicons-ok'
+                        });
+                    } else {
+                        Notify.update({
+                            progress: 100,
+                            type: 'success',
                             icon: 'glyphicons glyphicons-ok'
                         });
                     }
@@ -283,14 +291,20 @@
             onSuccessEvent(Content);
             if (Callback == false) {
                 Callback = function () {
-                    if (settings.Notify.onSuccess.Message.length > 0 || settings.Notify.onSuccess.Title.length > 0) {
-                        var Notify = getNotifyObject();
-                        if (Notify) {
+                    var Notify = getNotifyObject();
+                    if (Notify) {
+                        if (settings.Notify.onSuccess.Message.length > 0 || settings.Notify.onSuccess.Title.length > 0) {
                             Notify.update({
                                 progress: 100,
                                 type: 'success',
                                 title: settings.Notify.onSuccess.Title,
                                 message: settings.Notify.onSuccess.Message,
+                                icon: 'glyphicons glyphicons-ok'
+                            });
+                        } else {
+                            Notify.update({
+                                progress: 100,
+                                type: 'success',
                                 icon: 'glyphicons glyphicons-ok'
                             });
                         }

@@ -26,7 +26,7 @@ class ScriptEmitter extends AbstractEmitter
      * @param AbstractScript|string $jScript JavaScript
      * @param string $Module "ModAlways"
      */
-    public function __construct($Receiver, $jScript = '', $Module = 'ModAlways')
+    public function __construct($Receiver, $jScript, $Module = 'ModAlways')
     {
         $this->Module = $Module;
         $this->Content = (string)$jScript;

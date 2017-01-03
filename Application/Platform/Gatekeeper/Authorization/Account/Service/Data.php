@@ -167,6 +167,20 @@ class Data extends AbstractData
 
     /**
      * @param string $Name
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', array(
+            TblGroup::ATTR_NAME => $Name
+        ));
+    }
+
+
+    /**
+     * @param string $Name
      * @param string $Description
      * @param bool   $IsActive
      *
