@@ -279,7 +279,8 @@
                         Notify.update({
                             progress: 100,
                             type: 'success',
-                            icon: 'glyphicons glyphicons-ok'
+                            icon: 'glyphicons glyphicons-ok',
+                            message: ''
                         });
                     }
                 }
@@ -305,7 +306,8 @@
                             Notify.update({
                                 progress: 100,
                                 type: 'success',
-                                icon: 'glyphicons glyphicons-ok'
+                                icon: 'glyphicons glyphicons-ok',
+                                message: ''
                             });
                         }
                         destroyNotifyObject();

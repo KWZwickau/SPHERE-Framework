@@ -20,6 +20,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Ajax\Emitter\ScriptEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -61,7 +62,7 @@ class Service extends AbstractService
      * @param TblConsumer $tblConsumer
      * @return bool|TblGroup[]
      */
-    public function getGroupAll( TblConsumer $tblConsumer = null )
+    public function getGroupAll(TblConsumer $tblConsumer = null)
     {
 
         return (new Data($this->getBinding()))->getGroupAll($tblConsumer);
@@ -80,21 +81,22 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param array          $Group
+     * @param array $Group
      *
      * @return IFormInterface|Redirect|string
      */
     public function createGroup(
         IFormInterface $Form,
         $Group = null
-    ) {
-        if( $Group === null ) {
+    )
+    {
+        if ($Group === null) {
             return $Form;
         }
 
         $Error = false;
 
-        if (!isset( $Group['Name'] ) || empty( $Group['Name'] )) {
+        if (!isset($Group['Name']) || empty($Group['Name'])) {
             $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         } else {
@@ -103,16 +105,16 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
-        if (!isset( $Group['Description'] )) {
+        if (!isset($Group['Description'])) {
             $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
             $Error = true;
         }
 
 
-        if( !$Error ) {
+        if (!$Error) {
 
             $tblConsumer = Consumer::useService()->getConsumerBySession();
-            if( (new Data($this->getBinding()))->createGroup( $Group['Name'], $Group['Description'], $tblConsumer ) ) {
+            if ((new Data($this->getBinding()))->createGroup($Group['Name'], $Group['Description'], $tblConsumer)) {
 
                 /**
                  * Reset Form Values
@@ -124,39 +126,36 @@ class Service extends AbstractService
                 $NotifyPipeline = (new Pipeline())->addEmitter(
                     new ScriptEmitter(
                         $NotifyReceiver = new InlineReceiver(),
-                        new ScriptEmitter\NotifyScript( 'Benutzergruppe '.$Group['Name'], 'Erfolgreich angelegt', ScriptEmitter\NotifyScript::TYPE_SUCCESS )
+                        new ScriptEmitter\NotifyScript('Benutzergruppe ' . $Group['Name'], 'Erfolgreich angelegt', ScriptEmitter\NotifyScript::TYPE_SUCCESS)
                     )
                 );
-                $NotifyReceiver->initContent( $NotifyPipeline );
+                $NotifyReceiver->initContent($NotifyPipeline);
 
                 return $Form . $NotifyReceiver;
             } else {
                 $NotifyPipeline = (new Pipeline())->addEmitter(
                     new ScriptEmitter(
                         $NotifyReceiver = new InlineReceiver(),
-                        new ScriptEmitter\NotifyScript( 'Benutzergruppe '.$Group['Name'], 'Konnte nicht angelegt werden', ScriptEmitter\NotifyScript::TYPE_DANGER, 5000 )
+                        new ScriptEmitter\NotifyScript('Benutzergruppe ' . $Group['Name'], 'Konnte nicht angelegt werden', ScriptEmitter\NotifyScript::TYPE_DANGER, 5000)
                     )
                 );
-                $NotifyReceiver->initContent( $NotifyPipeline );
+                $NotifyReceiver->initContent($NotifyPipeline);
 
                 return $Form . $NotifyReceiver;
             }
         }
 
-        $NotifyPipeline = (new Pipeline())->addEmitter(
-            new ScriptEmitter(
-                $NotifyReceiver = new InlineReceiver(),
-                new ScriptEmitter\NotifyScript( 'Benutzergruppe konnte nicht angelegt werden', 'Bitte füllen Sie die benötigten Felder korrekt aus', ScriptEmitter\NotifyScript::TYPE_WARNING, 5000 )
-            )
-        );
-        $NotifyReceiver->initContent( $NotifyPipeline );
-
-        return $Form . $NotifyReceiver;
+        return $Form . new Notify(
+                'Benutzergruppe konnte nicht angelegt werden',
+                'Bitte füllen Sie die benötigten Felder korrekt aus',
+                Notify::TYPE_WARNING,
+                5000
+            );
     }
 
     /**
      * @param IFormInterface $Form
-     * @param array          $Group
+     * @param array $Group
      *
      * @return IFormInterface|Redirect|string
      */
@@ -164,14 +163,15 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblGroup $tblGroup,
         $Group = null
-    ) {
-        if( $Group === null ) {
+    )
+    {
+        if ($Group === null) {
             return $Form;
         }
 
         $Error = false;
 
-        if (!isset( $Group['Name'] ) || empty( $Group['Name'] )) {
+        if (!isset($Group['Name']) || empty($Group['Name'])) {
             $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         } else {
@@ -180,16 +180,16 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
-        if (!isset( $Group['Description'] )) {
+        if (!isset($Group['Description'])) {
             $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
             $Error = true;
         }
 
 
-        if( !$Error ) {
+        if (!$Error) {
 
             $tblConsumer = Consumer::useService()->getConsumerBySession();
-            if( (new Data($this->getBinding()))->editGroup( $tblGroup, $Group['Name'], $Group['Description'], $tblConsumer ) ) {
+            if ((new Data($this->getBinding()))->editGroup($tblGroup, $Group['Name'], $Group['Description'], $tblConsumer)) {
 
                 /**
                  * Reset Form Values
@@ -201,20 +201,20 @@ class Service extends AbstractService
                 $NotifyPipeline = (new Pipeline())->addEmitter(
                     new ScriptEmitter(
                         $NotifyReceiver = new InlineReceiver(),
-                        new ScriptEmitter\NotifyScript( 'Benutzergruppe '.$Group['Name'], 'Erfolgreich angelegt', ScriptEmitter\NotifyScript::TYPE_SUCCESS )
+                        new ScriptEmitter\NotifyScript('Benutzergruppe ' . $Group['Name'], 'Erfolgreich angelegt', ScriptEmitter\NotifyScript::TYPE_SUCCESS)
                     )
                 );
-                $NotifyReceiver->initContent( $NotifyPipeline );
+                $NotifyReceiver->initContent($NotifyPipeline);
 
                 return $Form . $NotifyReceiver;
             } else {
                 $NotifyPipeline = (new Pipeline())->addEmitter(
                     new ScriptEmitter(
                         $NotifyReceiver = new InlineReceiver(),
-                        new ScriptEmitter\NotifyScript( 'Benutzergruppe '.$Group['Name'], 'Konnte nicht angelegt werden', ScriptEmitter\NotifyScript::TYPE_DANGER, 5000 )
+                        new ScriptEmitter\NotifyScript('Benutzergruppe ' . $Group['Name'], 'Konnte nicht angelegt werden', ScriptEmitter\NotifyScript::TYPE_DANGER, 5000)
                     )
                 );
-                $NotifyReceiver->initContent( $NotifyPipeline );
+                $NotifyReceiver->initContent($NotifyPipeline);
 
                 return $Form . $NotifyReceiver;
             }
@@ -223,10 +223,10 @@ class Service extends AbstractService
         $NotifyPipeline = (new Pipeline())->addEmitter(
             new ScriptEmitter(
                 $NotifyReceiver = new InlineReceiver(),
-                new ScriptEmitter\NotifyScript( 'Benutzergruppe konnte nicht angelegt werden', 'Bitte füllen Sie die benötigten Felder korrekt aus', ScriptEmitter\NotifyScript::TYPE_WARNING, 5000 )
+                new ScriptEmitter\NotifyScript('Benutzergruppe konnte nicht angelegt werden', 'Bitte füllen Sie die benötigten Felder korrekt aus', ScriptEmitter\NotifyScript::TYPE_WARNING, 5000)
             )
         );
-        $NotifyReceiver->initContent( $NotifyPipeline );
+        $NotifyReceiver->initContent($NotifyPipeline);
 
         return $Form . $NotifyReceiver;
     }
@@ -241,7 +241,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->destroyGroup($tblGroup);
     }
-
 
 
     /**
@@ -318,7 +317,7 @@ class Service extends AbstractService
 
     /**
      * @param null|Redirect $Redirect
-     * @param null|string   $Session
+     * @param null|string $Session
      *
      * @return bool|Redirect
      */
@@ -331,7 +330,7 @@ class Service extends AbstractService
                 // Destroy Cookie
                 $params = session_get_cookie_params();
                 setcookie(session_name(), '', 0, $params['path'], $params['domain'], $params['secure'],
-                    isset( $params['httponly'] ));
+                    isset($params['httponly']));
                 session_start();
                 // Generate New Id
                 session_regenerate_id(true);
@@ -344,9 +343,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface    $Form
-     * @param string            $CredentialName
-     * @param string            $CredentialLock
+     * @param IFormInterface $Form
+     * @param string $CredentialName
+     * @param string $CredentialLock
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -356,21 +355,22 @@ class Service extends AbstractService
         $CredentialName,
         $CredentialLock,
         TblIdentification $tblIdentification
-    ) {
+    )
+    {
 
         if ($tblIdentification->isActive()) {
             switch ($this->isCredentialValid($CredentialName, $CredentialLock, false, $tblIdentification)) {
                 case false: {
-                    if (null !== $CredentialName && empty( $CredentialName )) {
+                    if (null !== $CredentialName && empty($CredentialName)) {
                         $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                     }
-                    if (null !== $CredentialName && !empty( $CredentialName )) {
+                    if (null !== $CredentialName && !empty($CredentialName)) {
                         $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                     }
-                    if (null !== $CredentialLock && empty( $CredentialLock )) {
+                    if (null !== $CredentialLock && empty($CredentialLock)) {
                         $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                     }
-                    if (null !== $CredentialLock && !empty( $CredentialLock )) {
+                    if (null !== $CredentialLock && !empty($CredentialLock)) {
                         $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                     }
                     break;
@@ -383,7 +383,7 @@ class Service extends AbstractService
         } else {
             if ($CredentialName || $CredentialLock) {
                 return new Warning('Die Anmeldung mit Benutzername und Passwort ist derzeit leider deaktiviert')
-                .new Redirect('/', Redirect::TIMEOUT_ERROR);
+                    . new Redirect('/', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -401,7 +401,7 @@ class Service extends AbstractService
     private function isCredentialValid($Username, $Password, $TokenString, TblIdentification $tblIdentification)
     {
 
-        if (false === ( $tblAccount = $this->getAccountByCredential($Username, $Password, $tblIdentification) )) {
+        if (false === ($tblAccount = $this->getAccountByCredential($Username, $Password, $tblIdentification))) {
             return false;
         } else {
             if (false === $TokenString) {
@@ -413,7 +413,7 @@ class Service extends AbstractService
             } else {
                 try {
                     if (Token::useService()->isTokenValid($TokenString)) {
-                        if (false === ( $Token = $tblAccount->getServiceTblToken() )) {
+                        if (false === ($Token = $tblAccount->getServiceTblToken())) {
                             return null;
                         } else {
                             if ($Token->getIdentifier() == substr($TokenString, 0, 12)) {
@@ -430,7 +430,7 @@ class Service extends AbstractService
                         return null;
                     }
                 } catch (\Exception $E) {
-                    if( $E instanceof ComponentException ) {
+                    if ($E instanceof ComponentException) {
                         return null;
                     }
                     throw $E;
@@ -440,8 +440,8 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string            $Username
-     * @param string            $Password
+     * @param string $Username
+     * @param string $Password
      * @param TblIdentification $tblIdentification
      *
      * @return bool|TblAccount
@@ -453,9 +453,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblAccount  $tblAccount
+     * @param TblAccount $tblAccount
      * @param null|string $Session
-     * @param integer     $Timeout
+     * @param integer $Timeout
      *
      * @return Service\Entity\TblSession
      */
@@ -466,10 +466,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface    $Form
-     * @param string            $CredentialName
-     * @param string            $CredentialLock
-     * @param string            $CredentialKey
+     * @param IFormInterface $Form
+     * @param string $CredentialName
+     * @param string $CredentialLock
+     * @param string $CredentialKey
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -480,38 +480,39 @@ class Service extends AbstractService
         $CredentialLock,
         $CredentialKey,
         TblIdentification $tblIdentification
-    ) {
+    )
+    {
 
         if ($tblIdentification->isActive()) {
             $Auth = $this->isCredentialValid($CredentialName, $CredentialLock, $CredentialKey, $tblIdentification);
-            if( $Auth === false ) {
-                if (null !== $CredentialName && empty( $CredentialName )) {
+            if ($Auth === false) {
+                if (null !== $CredentialName && empty($CredentialName)) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialName && !empty( $CredentialName )) {
+                if (null !== $CredentialName && !empty($CredentialName)) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialLock && empty( $CredentialLock )) {
+                if (null !== $CredentialLock && empty($CredentialLock)) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
-                if (null !== $CredentialLock && !empty( $CredentialLock )) {
+                if (null !== $CredentialLock && !empty($CredentialLock)) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
             }
-            if( $Auth === null ) {
+            if ($Auth === null) {
                 $Form->setSuccess('CredentialName', '');
                 $Form->setSuccess('CredentialLock', '');
                 $Form->setError('CredentialKey', 'Der von Ihnen angegebene YubiKey konnte nicht überprüft werden.'
-                    .'<br/>Bitte versuchen Sie es erneut und verwenden Sie Ihren YubiKey um dieses Feld zu befüllen.');
+                    . '<br/>Bitte versuchen Sie es erneut und verwenden Sie Ihren YubiKey um dieses Feld zu befüllen.');
             }
-            if( $Auth === true ) {
+            if ($Auth === true) {
                 return new Success('Anmeldung erfolgreich', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                .new Redirect('/', Redirect::TIMEOUT_SUCCESS);
+                    . new Redirect('/', Redirect::TIMEOUT_SUCCESS);
             }
         } else {
             if ($CredentialKey) {
                 return new Warning('Die Anmeldung mit Hardware-Token ist derzeit leider deaktiviert')
-                .new Redirect('/', Redirect::TIMEOUT_ERROR);
+                    . new Redirect('/', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -548,7 +549,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole    $tblRole
+     * @param TblRole $tblRole
      *
      * @return bool
      */
@@ -566,7 +567,7 @@ class Service extends AbstractService
             }
         });
         $tblAuthorization = array_filter($tblAuthorization);
-        if (!empty( $tblAuthorization )) {
+        if (!empty($tblAuthorization)) {
             return true;
         }
         return false;
@@ -596,8 +597,8 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string           $Name
-     * @param string           $Description
+     * @param string $Name
+     * @param string $Description
      * @param null|TblConsumer $tblConsumer
      *
      * @return TblGroup
@@ -609,9 +610,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string           $Username
-     * @param string           $Password
-     * @param null|TblToken    $tblToken
+     * @param string $Username
+     * @param string $Password
+     * @param null|TblToken $tblToken
      * @param null|TblConsumer $tblConsumer
      *
      * @return TblAccount
@@ -623,7 +624,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblAccount        $tblAccount
+     * @param TblAccount $tblAccount
      * @param TblIdentification $tblIdentification
      *
      * @return TblAuthentication
@@ -636,7 +637,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole    $tblRole
+     * @param TblRole $tblRole
      *
      * @return TblAuthorization
      */
@@ -657,7 +658,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblPerson  $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return TblUser
      */
@@ -669,7 +670,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblPerson  $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool
      */
@@ -716,7 +717,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole    $tblRole
+     * @param TblRole $tblRole
      *
      * @return bool
      */
@@ -727,7 +728,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblAccount        $tblAccount
+     * @param TblAccount $tblAccount
      * @param TblIdentification $tblIdentification
      *
      * @return bool
@@ -750,7 +751,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string     $Password
+     * @param string $Password
      * @param TblAccount $tblAccount
      *
      * @return bool
@@ -763,7 +764,7 @@ class Service extends AbstractService
 
     /**
      * @param TblConsumer $tblConsumer
-     * @param TblAccount  $tblAccount
+     * @param TblAccount $tblAccount
      *
      * @return bool
      */
@@ -774,7 +775,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblToken   $tblToken
+     * @param TblToken $tblToken
      * @param TblAccount $tblAccount
      *
      * @return bool
@@ -787,7 +788,7 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param string     $Identifier
+     * @param string $Identifier
      *
      * @return bool|TblSetting
      */
@@ -799,8 +800,8 @@ class Service extends AbstractService
 
     /**
      * @param TblAccount $tblAccount
-     * @param string     $Identifier
-     * @param string     $Value
+     * @param string $Identifier
+     * @param string $Value
      *
      * @return bool|TblSetting
      */
