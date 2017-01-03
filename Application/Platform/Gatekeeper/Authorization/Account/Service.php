@@ -17,9 +17,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
-use SPHERE\Common\Frontend\Ajax\Emitter\ScriptEmitter;
-use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -83,7 +80,7 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param array $Group
      *
-     * @return IFormInterface|Redirect|string
+     * @return IFormInterface|string
      */
     public function createGroup(
         IFormInterface $Form,
@@ -123,25 +120,18 @@ class Service extends AbstractService
                 $Global->POST['Group'] = array('Name' => '', 'Description' => '');
                 $Global->savePost();
 
-                $NotifyPipeline = (new Pipeline())->addEmitter(
-                    new ScriptEmitter(
-                        $NotifyReceiver = new InlineReceiver(),
-                        new ScriptEmitter\NotifyScript('Benutzergruppe ' . $Group['Name'], 'Erfolgreich angelegt', ScriptEmitter\NotifyScript::TYPE_SUCCESS)
-                    )
-                );
-                $NotifyReceiver->initContent($NotifyPipeline);
-
-                return $Form . $NotifyReceiver;
+                return $Form . new Notify(
+                        'Benutzergruppe ' . $Group['Name'],
+                        'Erfolgreich angelegt',
+                        Notify::TYPE_SUCCESS
+                    );
             } else {
-                $NotifyPipeline = (new Pipeline())->addEmitter(
-                    new ScriptEmitter(
-                        $NotifyReceiver = new InlineReceiver(),
-                        new ScriptEmitter\NotifyScript('Benutzergruppe ' . $Group['Name'], 'Konnte nicht angelegt werden', ScriptEmitter\NotifyScript::TYPE_DANGER, 5000)
-                    )
-                );
-                $NotifyReceiver->initContent($NotifyPipeline);
-
-                return $Form . $NotifyReceiver;
+                return $Form . new Notify(
+                        'Benutzergruppe ' . $Group['Name'],
+                        'Konnte nicht angelegt werden',
+                        Notify::TYPE_DANGER,
+                        5000
+                    );
             }
         }
 
@@ -157,7 +147,7 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param array $Group
      *
-     * @return IFormInterface|Redirect|string
+     * @return IFormInterface|string
      */
     public function editGroup(
         IFormInterface $Form,
@@ -198,37 +188,27 @@ class Service extends AbstractService
                 $Global->POST['Group'] = array('Name' => '', 'Description' => '');
                 $Global->savePost();
 
-                $NotifyPipeline = (new Pipeline())->addEmitter(
-                    new ScriptEmitter(
-                        $NotifyReceiver = new InlineReceiver(),
-                        new ScriptEmitter\NotifyScript('Benutzergruppe ' . $Group['Name'], 'Erfolgreich angelegt', ScriptEmitter\NotifyScript::TYPE_SUCCESS)
-                    )
-                );
-                $NotifyReceiver->initContent($NotifyPipeline);
-
-                return $Form . $NotifyReceiver;
+                return $Form . new Notify(
+                        'Benutzergruppe ' . $Group['Name'],
+                        'Erfolgreich angelegt',
+                        Notify::TYPE_SUCCESS
+                    );
             } else {
-                $NotifyPipeline = (new Pipeline())->addEmitter(
-                    new ScriptEmitter(
-                        $NotifyReceiver = new InlineReceiver(),
-                        new ScriptEmitter\NotifyScript('Benutzergruppe ' . $Group['Name'], 'Konnte nicht angelegt werden', ScriptEmitter\NotifyScript::TYPE_DANGER, 5000)
-                    )
-                );
-                $NotifyReceiver->initContent($NotifyPipeline);
-
-                return $Form . $NotifyReceiver;
+                return $Form . new Notify(
+                        'Benutzergruppe ' . $Group['Name'],
+                        'Konnte nicht angelegt werden',
+                        Notify::TYPE_DANGER,
+                        5000
+                    );
             }
         }
 
-        $NotifyPipeline = (new Pipeline())->addEmitter(
-            new ScriptEmitter(
-                $NotifyReceiver = new InlineReceiver(),
-                new ScriptEmitter\NotifyScript('Benutzergruppe konnte nicht angelegt werden', 'Bitte füllen Sie die benötigten Felder korrekt aus', ScriptEmitter\NotifyScript::TYPE_WARNING, 5000)
-            )
-        );
-        $NotifyReceiver->initContent($NotifyPipeline);
-
-        return $Form . $NotifyReceiver;
+        return $Form . new Notify(
+                'Benutzergruppe konnte nicht angelegt werden',
+                'Bitte füllen Sie die benötigten Felder korrekt aus',
+                Notify::TYPE_WARNING,
+                5000
+            );
     }
 
     /**

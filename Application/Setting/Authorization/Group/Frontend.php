@@ -30,21 +30,41 @@ class Frontend extends Extension implements IFrontendInterface
 
     public function frontendUserGroup()
     {
-        $Stage = new Stage('Benutzergruppen');
+        $Stage = new Stage('Benutzergruppen', 'Verwalten');
         $Stage->setMessage('');
+
+        $receiverStageContent = new BlockReceiver();
+
+        $receiverGroupList = new BlockReceiver();
+
+        $receiverModalCreate = new ModalReceiver();
+        $receiverModalEdit = new ModalReceiver();
+
+        $receiverStageContent->initContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            $receiverGroupList,
+                            $receiverModalCreate,
+                            $receiverModalEdit
+                        ))
+                    ),
+                ), new Title(new PersonGroup() . ' Bestehende Benutzergruppen')),
+            ))
+        );
 
         /**
          * Show Table UserGroup
          */
         $pipelineTableUserGroupList = new Pipeline();
-        $receiverTableUserGroupList = new BlockReceiver();
-        $emitterTableUserGroupList = new ServerEmitter($receiverTableUserGroupList, ApiUserGroup::getRoute());
+        $emitterTableUserGroupList = new ServerEmitter($receiverGroupList, ApiUserGroup::getRoute());
         $emitterTableUserGroupList->setGetPayload(array(
             ApiUserGroup::API_DISPATCHER => 'pieceTableUserGroupList',
-            'receiverTableUserGroupList' => $receiverTableUserGroupList->getIdentifier()
+            'receiverTableUserGroupList' => $receiverGroupList->getIdentifier()
         ));
         $pipelineTableUserGroupList->addEmitter($emitterTableUserGroupList);
-        $receiverTableUserGroupList->initContent($pipelineTableUserGroupList);
+        $receiverGroupList->initContent($pipelineTableUserGroupList);
 
         /**
          * Create New UserGroup
