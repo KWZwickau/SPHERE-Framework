@@ -718,7 +718,17 @@ class Service extends AbstractService
                         if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
                             && $tblTest->getServiceTblSubject()
                         ) {
-                            $Content['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()] = $tblGradeItem->getDisplayGrade();
+                            // keine Tendenzen auf Zeugnissen
+                            $withTrend = true;
+                            if ($tblPrepareStudent
+                                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                && !$tblCertificate->isInformation()
+                            ) {
+                                $withTrend = false;
+                            }
+
+                            $Content['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
+                                = $tblGradeItem->getDisplayGrade($withTrend);
 
                             // bei Zeugnistext als Note Schriftgröße verkleinern
                             if ($tblGradeItem->getTblGradeText()) {
@@ -1146,9 +1156,9 @@ class Service extends AbstractService
                         if (trim($value) && trim($value) !== ''
                         ) {
                             if (isset($Trend[$personId])) {
-                                if ($Trend[$personId] == TblGrade::VALUE_TREND_PLUS){
+                                if ($Trend[$personId] == TblGrade::VALUE_TREND_PLUS) {
                                     $value = trim($value) . '+';
-                                } elseif ($Trend[$personId] == TblGrade::VALUE_TREND_MINUS){
+                                } elseif ($Trend[$personId] == TblGrade::VALUE_TREND_MINUS) {
                                     $value = trim($value) . '-';
                                 }
                             }

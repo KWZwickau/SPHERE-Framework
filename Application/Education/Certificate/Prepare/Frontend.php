@@ -1602,7 +1602,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($tblPerson) {
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                 $tblTest, $tblSubject, $tblPerson, $studentList,
-                                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null);
+                                                $tblDivisionSubject->getTblSubjectGroup()
+                                                    ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                $tblPrepare
+                                            );
                                         }
                                     }
 
@@ -1623,7 +1626,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         if (isset($divisionPersonList[$tblPerson->getId()])) {
                                             $studentList[$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList);
+                                                $tblTest, $tblSubject, $tblPerson, $studentList, null, $tblPrepare);
                                         }
                                     }
                                 }
@@ -1678,6 +1681,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param TblSubjectGroup $tblSubjectGroup
+     * @param TblPrepareCertificate $tblPrepare
      *
      * @return  $studentList
      */
@@ -1687,7 +1691,8 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubject $tblSubject,
         TblPerson $tblPerson,
         $studentList,
-        TblSubjectGroup $tblSubjectGroup = null
+        TblSubjectGroup $tblSubjectGroup = null,
+        TblPrepareCertificate $tblPrepare = null
     ) {
         $studentList[$tblPerson->getId()]['Name'] =
             $tblPerson->getLastFirstName();
@@ -1731,7 +1736,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $gradeValue = $tblGrade->getGrade();
-            $trend = $tblGrade->getTrend();
 
             $isGradeInRange = true;
             if ($average !== ' ' && $average && $gradeValue !== null) {
@@ -1745,11 +1749,16 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                $gradeValue .= '+';
-            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                $gradeValue .= '-';
+            $withTrend = true;
+            if ($tblPrepare
+                && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                    $tblGrade->getServiceTblPerson()))
+                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                && !$tblCertificate->isInformation()
+            ) {
+                $withTrend = false;
             }
+            $gradeValue = $tblGrade->getDisplayGrade($withTrend);
 
             if ($isGradeInRange) {
                 $gradeValue = new Success($gradeValue);
@@ -1796,7 +1805,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCertificate = false;
             if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
                 if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
-                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'
+                        . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
 
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
@@ -1868,10 +1878,8 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendSigner(
-        $PrepareId = null,
-        $Data = null
-    ) {
+    public function frontendSigner($PrepareId = null, $Data = null)
+    {
 
         $Stage = new Stage('Unterzeichner', 'Auswählen');
         $Stage->addButton(new Standard(
