@@ -70,7 +70,7 @@ class Service extends AbstractService
     /**
      * @param int $Id
      *
-     * @return bool|TblAccount
+     * @return bool|TblGroup
      */
     public function getGroupById($Id)
     {
@@ -189,7 +189,7 @@ class Service extends AbstractService
         if( !$Error ) {
 
             $tblConsumer = Consumer::useService()->getConsumerBySession();
-            if( (new Data($this->getBinding()))->createGroup( $Group['Name'], $Group['Description'], $tblConsumer ) ) {
+            if( (new Data($this->getBinding()))->editGroup( $tblGroup, $Group['Name'], $Group['Description'], $tblConsumer ) ) {
 
                 /**
                  * Reset Form Values
