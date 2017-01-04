@@ -1404,8 +1404,10 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $Phone = implode(', ', $Phone);
                                                 }
                                             }
-                                            // display Address
-                                            $Address = Address::useService()->getAddressByPerson($tblPerson)->getGuiTwoRowString();
+//                                          // display Address
+                                            if (( $tblAddress = Address::useService()->getAddressByPerson($tblPerson) )) {
+                                                $Address = $tblAddress->getGuiTwoRowString();
+                                            }
 
                                             $tblProspectReservation = $tblProspect->getTblProspectReservation();
                                             if ($tblProspectReservation) {
