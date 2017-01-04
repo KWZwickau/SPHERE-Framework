@@ -57,15 +57,4 @@ class ModalReceiver extends AbstractReceiver
         $this->Template->setVariable('Content', $this->getContent());
         return $this->Template->getContent();
     }
-
-    /**
-     * @param string $Content
-     *
-     * @return $this
-     */
-    public function initContent( $Content )
-    {
-        $this->setContent( $Content );
-        return $this;
-    }
 }

@@ -24,13 +24,7 @@
         /**
          * Form Submit-Indicator
          */
-        if( thisForm.hasClass('AjaxSubmit') ) {
-            thisForm.on("submit", function () {
-                var SubmitButton = thisForm.find('button[type="submit"]:not(.disabled)');
-                SubmitButton.prop('disabled', true);
-                setTimeout(function() { SubmitButton.prop('disabled', false); }, 1000);
-            });
-        } else {
+        if( !thisForm.hasClass('AjaxSubmit') ) {
             thisForm.on("submit", function () {
                 thisForm.find('button[type="submit"]:not(.disabled)').html(
                     '<span class="loading-indicator-animate"></span> Bitte warten'

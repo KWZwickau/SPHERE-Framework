@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 
+use SPHERE\Application\Api\Platform\Gatekeeper\ApiUserGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
@@ -17,6 +18,9 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -77,138 +81,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param array $Group
+     * @param string $Name
      *
-     * @return IFormInterface|string
+     * @return bool|TblGroup
      */
-    public function createGroup(
-        IFormInterface $Form,
-        $Group = null
-    )
+    public function getGroupByName($Name)
     {
-        if ($Group === null) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (!isset($Group['Name']) || empty($Group['Name'])) {
-            $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
-            $Error = true;
-        } else {
-            if ((new Data($this->getBinding()))->getGroupByName($Group['Name'])) {
-                $Form->setError('Group[Name]', 'Der angegebene Name wird bereits verwendet');
-                $Error = true;
-            }
-        }
-        if (!isset($Group['Description'])) {
-            $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
-            $Error = true;
-        }
-
-
-        if (!$Error) {
-
-            $tblConsumer = Consumer::useService()->getConsumerBySession();
-            if ((new Data($this->getBinding()))->createGroup($Group['Name'], $Group['Description'], $tblConsumer)) {
-
-                /**
-                 * Reset Form Values
-                 */
-                $Global = $this->getGlobal();
-                $Global->POST['Group'] = array('Name' => '', 'Description' => '');
-                $Global->savePost();
-
-                return $Form . new Notify(
-                        'Benutzergruppe ' . $Group['Name'],
-                        'Erfolgreich angelegt',
-                        Notify::TYPE_SUCCESS
-                    );
-            } else {
-                return $Form . new Notify(
-                        'Benutzergruppe ' . $Group['Name'],
-                        'Konnte nicht angelegt werden',
-                        Notify::TYPE_DANGER,
-                        5000
-                    );
-            }
-        }
-
-        return $Form . new Notify(
-                'Benutzergruppe konnte nicht angelegt werden',
-                'Bitte füllen Sie die benötigten Felder korrekt aus',
-                Notify::TYPE_WARNING,
-                5000
-            );
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param array $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function editGroup(
-        IFormInterface $Form,
-        TblGroup $tblGroup,
-        $Group = null
-    )
-    {
-        if ($Group === null) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (!isset($Group['Name']) || empty($Group['Name'])) {
-            $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
-            $Error = true;
-        } else {
-            if ((new Data($this->getBinding()))->getGroupByName($Group['Name'])) {
-                $Form->setError('Group[Name]', 'Der angegebene Name wird bereits verwendet');
-                $Error = true;
-            }
-        }
-        if (!isset($Group['Description'])) {
-            $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
-            $Error = true;
-        }
-
-
-        if (!$Error) {
-
-            $tblConsumer = Consumer::useService()->getConsumerBySession();
-            if ((new Data($this->getBinding()))->editGroup($tblGroup, $Group['Name'], $Group['Description'], $tblConsumer)) {
-
-                /**
-                 * Reset Form Values
-                 */
-                $Global = $this->getGlobal();
-                $Global->POST['Group'] = array('Name' => '', 'Description' => '');
-                $Global->savePost();
-
-                return $Form . new Notify(
-                        'Benutzergruppe ' . $Group['Name'],
-                        'Erfolgreich angelegt',
-                        Notify::TYPE_SUCCESS
-                    );
-            } else {
-                return $Form . new Notify(
-                        'Benutzergruppe ' . $Group['Name'],
-                        'Konnte nicht angelegt werden',
-                        Notify::TYPE_DANGER,
-                        5000
-                    );
-            }
-        }
-
-        return $Form . new Notify(
-                'Benutzergruppe konnte nicht angelegt werden',
-                'Bitte füllen Sie die benötigten Felder korrekt aus',
-                Notify::TYPE_WARNING,
-                5000
-            );
+        return (new Data($this->getBinding()))->getGroupByName($Name);
     }
 
     /**
@@ -577,6 +456,138 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param array $Group
+     * @param Pipeline|null $pipelineSuccess
+     * @return IFormInterface|string
+     */
+    public function createGroup(
+        IFormInterface $Form,
+        $Group,
+        Pipeline $pipelineSuccess = null
+    )
+    {
+
+        /**
+         * Service
+         */
+        if ($Group === null) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!isset($Group['Name']) || empty($Group['Name'])) {
+            $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
+            $Error = true;
+        } else {
+            if ((Account::useService()->getGroupByName($Group['Name']))) {
+                $Form->setError('Group[Name]', 'Der angegebene Name wird bereits verwendet');
+                $Error = true;
+            }
+        }
+        if (!isset($Group['Description'])) {
+            $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
+            $Error = true;
+        }
+
+        if ($Error) {
+            return $Form . new Notify(
+                    'Benutzergruppe konnte nicht angelegt werden',
+                    'Bitte füllen Sie die benötigten Felder korrekt aus',
+                    Notify::TYPE_WARNING,
+                    5000
+                );
+        } else {
+
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            if ($tblConsumer) {
+                if ($this->insertGroup($Group['Name'], $Group['Description'], $tblConsumer)) {
+                    return $Form. new Notify(
+                            'Benutzergruppe ' . $Group['Name'],
+                            'Erfolgreich angelegt',
+                            Notify::TYPE_SUCCESS
+                        ).($pipelineSuccess ? $pipelineSuccess : '');
+                }
+            }
+            return $Form . new Notify(
+                    'Benutzergruppe ' . $Group['Name'],
+                    'Konnte nicht angelegt werden',
+                    Notify::TYPE_DANGER,
+                    5000
+                );
+        }
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblGroup $tblGroup
+     * @param array $Group
+     * @param Pipeline|null $pipelineSuccess
+     * @return IFormInterface|string
+     */
+    public function editGroup(
+        IFormInterface $Form,
+        TblGroup $tblGroup,
+        $Group,
+        Pipeline $pipelineSuccess = null
+    )
+    {
+
+        /**
+         * Service
+         */
+        if ($Group === null) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!isset($Group['Name']) || empty($Group['Name'])) {
+            $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen ein');
+            $Error = true;
+        } else {
+            if (
+                ($tblGroupExists = Account::useService()->getGroupByName($Group['Name']))
+                && $tblGroupExists->getId() != $tblGroup->getId()
+            ) {
+                $Form->setError('Group[Name]', 'Der angegebene Name wird bereits verwendet');
+                $Error = true;
+            }
+        }
+        if (!isset($Group['Description'])) {
+            $Form->setError('Group[Description]', 'Bitte geben Sie eine Beschreibung ein');
+            $Error = true;
+        }
+
+        if ($Error) {
+            return $Form . new Notify(
+                    'Benutzergruppe konnte nicht geändert werden',
+                    'Bitte füllen Sie die benötigten Felder korrekt aus',
+                    Notify::TYPE_WARNING,
+                    5000
+                );
+        } else {
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            if ($tblConsumer) {
+                if ($this->changeGroup( $tblGroup, $Group['Name'], $Group['Description'], $tblConsumer)) {
+                    return new Notify(
+                            'Benutzergruppe ' . $Group['Name'],
+                            'Erfolgreich geändert',
+                            Notify::TYPE_SUCCESS
+                        ).($pipelineSuccess ? $pipelineSuccess : '');
+                }
+            }
+            return $Form . new Notify(
+                    'Benutzergruppe ' . $Group['Name'],
+                    'Konnte nicht geändert werden',
+                    Notify::TYPE_DANGER,
+                    5000
+                );
+        }
+    }
+
+    /**
      * @param string $Name
      * @param string $Description
      * @param null|TblConsumer $tblConsumer
@@ -588,6 +599,21 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->createGroup($Name, $Description, $tblConsumer);
     }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param string $Name
+     * @param string $Description
+     * @param null|TblConsumer $tblConsumer
+     *
+     * @return false|TblGroup
+     */
+    public function changeGroup( TblGroup $tblGroup, $Name, $Description, TblConsumer $tblConsumer = null)
+    {
+
+        return (new Data($this->getBinding()))->changeGroup( $tblGroup, $Name, $Description, $tblConsumer);
+    }
+
 
     /**
      * @param string $Username

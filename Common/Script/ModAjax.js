@@ -194,7 +194,7 @@
             }
             document.ModAjax.NotifyHandler[settings.Notify.Hash + '-Error'] = $.notify({
                 title: ErrorMessage,
-                message: '<span class="text-muted"><small>' + this.url + '</small></span>'
+                message: '<span class="text-muted"><small><small>' + this.url + '</small></small></span><hr/>' + request.responseText
             }, {
                 z_index: 32768,
                 newest_on_top: true,
@@ -226,7 +226,7 @@
                         }
                         document.ModAjax.NotifyHandler[settings.Notify.Hash + '-Error'] = $.notify({
                             title: 'Script-Error',
-                            message: '<span class="text-muted"><small>' + ErrorMessage + '</small></span>'
+                            message: '<span class="text-muted"><small><small>' + ErrorMessage + '</small></small></span><hr/>' + Response
                         }, {
                             z_index: 32768,
                             newest_on_top: true,

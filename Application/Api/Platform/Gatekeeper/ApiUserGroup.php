@@ -6,14 +6,12 @@ use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Setting\Authorization\Group\Group;
-use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
-use SPHERE\Common\Frontend\Ajax\Emitter\ScriptEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
-use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -65,118 +63,92 @@ class ApiUserGroup extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('pieceTableUserGroupList');
+        $Dispatcher->registerMethod('pieceGroupList');
 
-        $Dispatcher->registerMethod('pieceTableMemberGroup');
-        $Dispatcher->registerMethod('pieceTableMemberAvailable');
+        $Dispatcher->registerMethod('pieceMemberList');
+        $Dispatcher->registerMethod('pieceUserList');
 
-        $Dispatcher->registerMethod('addUserToGroup');
-        $Dispatcher->registerMethod('removeUserFromGroup');
+        $Dispatcher->registerMethod('pieceAddUser');
+        $Dispatcher->registerMethod('pieceRemoveUser');
 
-        $Dispatcher->registerMethod('createUserGroup');
-        $Dispatcher->registerMethod('editUserGroup');
-        $Dispatcher->registerMethod('destroyUserGroup');
+        $Dispatcher->registerMethod('pieceCreateGroup');
+
+        $Dispatcher->registerMethod('pieceEditGroup');
+
+        $Dispatcher->registerMethod('pieceDestroyGroupConfirm');
+        $Dispatcher->registerMethod('pieceDestroyGroup');
 
         return $Dispatcher->callMethod($MethodName);
     }
 
-    public function pieceTableUserGroupList($receiverTableUserGroupList)
+    /**
+     * @param string $receiverGroupList
+     * @param string $receiverModalCreate
+     * @param string $receiverModalEdit
+     * @param string $receiverModalDestroy
+     * @return TableData
+     */
+    public function pieceGroupList($receiverGroupList, $receiverModalCreate, $receiverModalEdit, $receiverModalDestroy)
     {
 
-        $tblGroupAll = Account::useService()->getGroupAll(Consumer::useService()->getConsumerBySession());
-
-        $receiverDestroyGroup = new ModalReceiver('Sind Sie sicher?');
-        $receiverDestroyGroupClose = new InlineReceiver();
-        $receiverEditGroup = new ModalReceiver('Gruppe bearbeiten', new Close());
+        $tblGroupAll = Account::useService()->getGroupAll(
+            Consumer::useService()->getConsumerBySession()
+        );
 
         $TableList = array();
         if ($tblGroupAll) {
             array_walk($tblGroupAll,
                 function (TblGroup $tblGroup) use (
                     &$TableList,
-                    $receiverTableUserGroupList,
-                    $receiverDestroyGroup,
-                    $receiverDestroyGroupClose,
-                    $receiverEditGroup
+                    $receiverGroupList,
+                    $receiverModalCreate,
+                    $receiverModalEdit,
+                    $receiverModalDestroy
                 ) {
-                    /**
-                     * Destroy Group
-                     */
-                    $pipelineDestroyGroup = new Pipeline();
-                    $emitterDestroyGroup = new ServerEmitter(new BlockReceiver(), ApiUserGroup::getRoute());
-                    $emitterDestroyGroup->setLoadingMessage('Gruppe löschen', 'Bitte warten');
-                    $emitterDestroyGroup->setGetPayload(array(
-                        ApiUserGroup::API_DISPATCHER => 'destroyUserGroup',
-                        'Id' => $tblGroup->getId()
-                    ));
-                    $pipelineDestroyGroup->addEmitter($emitterDestroyGroup);
-                    /**
-                     * Close Destroy Dialog
-                     */
-                    $emitterDestroyGroupClose = new ScriptEmitter($receiverDestroyGroupClose,
-                        new ScriptEmitter\CloseModalScript($receiverDestroyGroup));
-                    $pipelineDestroyGroup->addEmitter($emitterDestroyGroupClose);
-                    /**
-                     * Reload Group List
-                     */
-                    $emitterTableUserGroupList = new ServerEmitter((new BlockReceiver())->setIdentifier($receiverTableUserGroupList),
-                        ApiUserGroup::getRoute());
-                    $emitterTableUserGroupList->setGetPayload(array(
-                        ApiUserGroup::API_DISPATCHER => 'pieceTableUserGroupList',
-                        'receiverTableUserGroupList' => $receiverTableUserGroupList
-                    ));
-                    $pipelineDestroyGroup->addEmitter($emitterTableUserGroupList);
-
-                    /**
-                     * Open Confirm Dialog
-                     */
-                    $pipelineDestroyGroupConfirm = new Pipeline();
-                    $emitterDestroyGroupConfirm = new ClientEmitter($receiverDestroyGroup, new Layout(
-                        new LayoutGroup(array(
-                            new LayoutRow(
-                                new LayoutColumn('Wollen Sie die Gruppe ' . $tblGroup->getName() . ' wirklich löschen?')
-                            ),
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new PullRight(
-                                        (new Standard('Ja', __CLASS__,
-                                            new Enable())
-                                        )->ajaxPipelineOnClick($pipelineDestroyGroup)
-                                        . new Close('Nein', new Disable())
-                                    )
-                                )
-                            ),
-                        ))
-                    ));
-                    $pipelineDestroyGroupConfirm->addEmitter($emitterDestroyGroupConfirm);
 
                     /**
                      * Edit Group
                      */
                     $pipelineEditGroup = new Pipeline();
-                    $emitterEditGroup = new ServerEmitter($receiverEditGroup, ApiUserGroup::getRoute());
+                    $emitterEditGroup = new ServerEmitter((new ModalReceiver())->setIdentifier($receiverModalEdit), ApiUserGroup::getRoute());
                     $emitterEditGroup->setGetPayload(array(
-                        ApiUserGroup::API_DISPATCHER => 'editUserGroup',
+                        ApiUserGroup::API_DISPATCHER => 'pieceEditGroup',
                         'Id' => $tblGroup->getId(),
-                        'receiverTableUserGroupList' => $receiverTableUserGroupList,
-                        'receiverEditUserGroup' => $receiverEditGroup->getIdentifier()
+                        'receiverGroupList' => $receiverGroupList,
+                        'receiverModalCreate' => $receiverModalCreate,
+                        'receiverModalEdit' => $receiverModalEdit,
+                        'receiverModalDestroy' => $receiverModalDestroy
                     ));
                     $pipelineEditGroup->addEmitter($emitterEditGroup);
+
+                    /**
+                     * Destroy Group (Confirm)
+                     */
+                    $pipelineDestroyGroup = new Pipeline();
+                    $emitterDestroyGroup = new ServerEmitter((new ModalReceiver())->setIdentifier($receiverModalDestroy), ApiUserGroup::getRoute());
+                    $emitterDestroyGroup->setGetPayload(array(
+                        ApiUserGroup::API_DISPATCHER => 'pieceDestroyGroupConfirm',
+                        'Id' => $tblGroup->getId(),
+                        'receiverGroupList' => $receiverGroupList,
+                        'receiverModalCreate' => $receiverModalCreate,
+                        'receiverModalEdit' => $receiverModalEdit,
+                        'receiverModalDestroy' => $receiverModalDestroy
+                    ));
+                    $pipelineDestroyGroup->addEmitter($emitterDestroyGroup);
 
                     /**
                      * Data
                      */
                     $Group = $tblGroup->__toArray();
-                    $Group['Option'] =
-                        (new Standard('', __CLASS__, new Edit()))->ajaxPipelineOnClick($pipelineEditGroup)->__toString()
-                        . (new Standard('', __CLASS__, new Remove()))->ajaxPipelineOnClick($pipelineDestroyGroupConfirm)->__toString()
-                        . new Standard('', '#', new Setup());
+                    $Group['Option'] = ''
+                        . (new Standard('', __CLASS__, new Edit()))->ajaxPipelineOnClick($pipelineEditGroup)
+                        . (new Standard('', __CLASS__, new Remove()))->ajaxPipelineOnClick($pipelineDestroyGroup)
+                        . (new Standard('', '#', new Setup()));
                     $TableList[] = $Group;
                 });
         }
 
         return new TableData(
-
             $TableList
             , null, array(
             'Name' => 'Name',
@@ -189,7 +161,7 @@ class ApiUserGroup extends Extension implements IApiInterface
                 array("searchable" => false, "targets" => -1),
                 array("type" => "natural", "targets" => '_all')
             )
-        )) . $receiverDestroyGroup . $receiverDestroyGroupClose . $receiverEditGroup;
+        ));
     }
 
     /**
@@ -200,107 +172,70 @@ class ApiUserGroup extends Extension implements IApiInterface
         return new Route(__CLASS__);
     }
 
-    public function pieceTableMemberGroup()
+    public function pieceMemberList()
     {
         return new TableData(array());
     }
 
-    public function pieceTableMemberAvailable()
+    public function pieceUserList()
     {
         return new TableData(array());
     }
 
-    public function addUserToGroup($GroupId, $UserId)
+    public function pieceAddUser($GroupId, $UserId)
     {
         $Pipeline = new Pipeline();
 
         return $Pipeline;
     }
 
-    public function removeUserFromGroup($GroupId, $UserId)
+    public function pieceRemoveUser($GroupId, $UserId)
     {
         $Pipeline = new Pipeline();
 
         return $Pipeline;
     }
 
-    public function createUserGroup($Group, $receiverTableUserGroupList, $receiverCreateUserGroup)
+    /**
+     * @param null|array $Group
+     * @param string $receiverGroupList
+     * @param string $receiverModalCreate
+     * @param string $receiverModalEdit
+     * @param string $receiverModalDestroy
+     * @return Well Form in Well
+     */
+    public function pieceCreateGroup($Group, $receiverGroupList, $receiverModalCreate, $receiverModalEdit, $receiverModalDestroy)
     {
+        /**
+         * On Submit
+         */
+        $pipelineCreateGroup = new Pipeline();
+        $emitterCreateGroup = new ServerEmitter((new ModalReceiver())->setIdentifier($receiverModalCreate),
+            ApiUserGroup::getRoute());
+        $emitterCreateGroup->setGetPayload(array(
+            ApiUserGroup::API_DISPATCHER => 'pieceCreateGroup',
+            'receiverGroupList' => $receiverGroupList,
+            'receiverModalCreate' => $receiverModalCreate,
+            'receiverModalEdit' => $receiverModalEdit,
+            'receiverModalDestroy' => $receiverModalDestroy
+        ));
+        $pipelineCreateGroup->addEmitter($emitterCreateGroup);
 
         /**
-         * Create Group
+         * On Success
          */
-        $pipelineCreateUserGroup = new Pipeline();
-        $emitterCreateUserGroup = new ServerEmitter((new ModalReceiver())->setIdentifier($receiverCreateUserGroup),
-            ApiUserGroup::getRoute());
-        $emitterCreateUserGroup->setGetPayload(array(
-            ApiUserGroup::API_DISPATCHER => 'createUserGroup',
-            'receiverTableUserGroupList' => $receiverTableUserGroupList,
-            'receiverCreateUserGroup' => $receiverCreateUserGroup
-        ));
-        $pipelineCreateUserGroup->addEmitter($emitterCreateUserGroup);
+        $pipelineSuccess = new Pipeline();
+        (new ApiUserGroup())->loadGroupList($pipelineSuccess, (new BlockReceiver())->setIdentifier($receiverGroupList), $receiverModalEdit, $receiverModalDestroy);
+        $pipelineSuccess->addEmitter( (new CloseModal($receiverModalCreate))->getEmitter() );
 
         /**
-         * Reload Group-List
+         * Create Group (Form)
          */
-        $emitterTableUserGroupList = new ServerEmitter((new BlockReceiver())->setIdentifier($receiverTableUserGroupList),
-            ApiUserGroup::getRoute());
-        $emitterTableUserGroupList->setGetPayload(array(
-            ApiUserGroup::API_DISPATCHER => 'pieceTableUserGroupList',
-            'receiverTableUserGroupList' => $receiverTableUserGroupList
-        ));
-        $pipelineCreateUserGroup->addEmitter($emitterTableUserGroupList);
+        $Form = $this->formUserGroup()->ajaxPipelineOnSubmit($pipelineCreateGroup);
 
-        return new Well(Group::useService()->createGroup(
-            (new ApiUserGroup())
-                ->formUserGroup()
-                ->ajaxPipelineOnSubmit($pipelineCreateUserGroup)
-            , $Group
-        ));
-    }
-
-
-    public function editUserGroup($Id, $Group, $receiverTableUserGroupList, $receiverEditUserGroup)
-    {
-        // todo: Edit
-
-        /**
-         * Edit Group
-         */
-        $pipelineEditUserGroup = new Pipeline();
-        $emitterEditUserGroup = new ServerEmitter((new ModalReceiver())->setIdentifier($receiverEditUserGroup),
-            ApiUserGroup::getRoute());
-        $emitterEditUserGroup->setGetPayload(array(
-            ApiUserGroup::API_DISPATCHER => 'editUserGroup',
-            'Id' => $Id,
-            'receiverTableUserGroupList' => $receiverTableUserGroupList,
-            'receiverEditUserGroup' => $receiverEditUserGroup
-        ));
-        $pipelineEditUserGroup->addEmitter($emitterEditUserGroup);
-
-//        /**
-//         * Reload Group-List
-//         */
-//        $emitterTableUserGroupList = new ServerEmitter((new BlockReceiver())->setIdentifier($receiverTableUserGroupList),
-//            ApiUserGroup::getRoute());
-//        $emitterTableUserGroupList->setGetPayload(array(
-//            ApiUserGroup::API_DISPATCHER => 'pieceTableUserGroupList',
-//            'receiverTableUserGroupList' => $receiverTableUserGroupList
-//        ));
-//        $pipelineEditUserGroup->addEmitter($emitterTableUserGroupList);
-
-        $tblGroup = Account::useService()->getGroupById( $Id );
-
-        $Global = $this->getGlobal();
-        $Global->POST['Group'] = $tblGroup->__toArray();
-        $Global->savePost();
-
-        return new Well(Group::useService()->editGroup(
-            (new ApiUserGroup())
-                ->formUserGroup()
-                ->ajaxPipelineOnSubmit($pipelineEditUserGroup)
-            , $tblGroup, $Group
-        ));
+        return new Well( Account::useService()->createGroup(
+            $Form, $Group, $pipelineSuccess
+        ) );
     }
 
     /**
@@ -323,12 +258,143 @@ class ApiUserGroup extends Extension implements IApiInterface
         );
     }
 
-    public function destroyUserGroup($Id)
+    /**
+     * @param Pipeline $Pipeline
+     * @param AbstractReceiver $Receiver
+     * @param string $receiverModalEdit
+     * @param string $receiverModalDestroy
+     */
+    public function loadGroupList(Pipeline $Pipeline, AbstractReceiver $Receiver, $receiverModalEdit, $receiverModalDestroy)
+    {
+
+        $emitterGroupList = new ServerEmitter($Receiver, ApiUserGroup::getRoute());
+        $emitterGroupList->setGetPayload(array(
+            ApiUserGroup::API_DISPATCHER => 'pieceGroupList',
+            'receiverGroupList' => $Receiver->getIdentifier(),
+            'receiverModalEdit' => $receiverModalEdit,
+            'receiverModalDestroy' => $receiverModalDestroy
+        ));
+        $Pipeline->addEmitter($emitterGroupList);
+    }
+
+    /**
+     * @param int $Id
+     * @param null|array $Group
+     * @param string $receiverGroupList
+     * @param string $receiverModalCreate
+     * @param string $receiverModalEdit
+     * @param string $receiverModalDestroy
+     * @return Well Form in Well
+     */
+    public function pieceEditGroup($Id, $Group, $receiverGroupList, $receiverModalCreate, $receiverModalEdit, $receiverModalDestroy)
+    {
+        $tblGroup = Account::useService()->getGroupById( $Id );
+        if( $tblGroup ) {
+
+            /**
+             * On Submit
+             */
+            $pipelineEditGroup = new Pipeline();
+            $emitterEditGroup = new ServerEmitter((new ModalReceiver())->setIdentifier($receiverModalEdit),
+                ApiUserGroup::getRoute());
+            $emitterEditGroup->setGetPayload(array(
+                ApiUserGroup::API_DISPATCHER => 'pieceEditGroup',
+                'Id' => $tblGroup->getId(),
+                'receiverGroupList' => $receiverGroupList,
+                'receiverModalCreate' => $receiverModalCreate,
+                'receiverModalEdit' => $receiverModalEdit,
+                'receiverModalDestroy' => $receiverModalDestroy
+            ));
+            $pipelineEditGroup->addEmitter($emitterEditGroup);
+
+            /**
+             * On Success
+             */
+            $pipelineSuccess = new Pipeline();
+            (new ApiUserGroup())->loadGroupList($pipelineSuccess, (new BlockReceiver())->setIdentifier($receiverGroupList), $receiverModalEdit, $receiverModalDestroy);
+            $pipelineSuccess->addEmitter( (new CloseModal($receiverModalEdit))->getEmitter() );
+
+            /**
+             * Create Group (Form)
+             */
+            $Global = $this->getGlobal();
+            $Global->POST['Group'] = $tblGroup->__toArray();
+            $Global->savePost();
+            $Form = $this->formUserGroup()->ajaxPipelineOnSubmit($pipelineEditGroup);
+
+            return new Well(Account::useService()->editGroup(
+                $Form, $tblGroup, $Group, $pipelineSuccess
+            ));
+        } else {
+            // TODO: Error
+            return new Well('?');
+        }
+    }
+
+    public function pieceDestroyGroupConfirm($Id, $receiverGroupList, $receiverModalCreate, $receiverModalEdit, $receiverModalDestroy)
+    {
+        $tblGroup = Account::useService()->getGroupById($Id);
+
+        if ($tblGroup) {
+
+            /**
+             * On Submit
+             */
+            $pipelineDestroyGroup = new Pipeline();
+            $emitterDestroyGroup = new ServerEmitter((new ModalReceiver())->setIdentifier($receiverModalDestroy), ApiUserGroup::getRoute());
+            $emitterDestroyGroup->setGetPayload(array(
+                ApiUserGroup::API_DISPATCHER => 'pieceDestroyGroup',
+                'Id' => $tblGroup->getId(),
+                'receiverGroupList' => $receiverGroupList,
+                'receiverModalCreate' => $receiverModalCreate,
+                'receiverModalEdit' => $receiverModalEdit,
+                'receiverModalDestroy' => $receiverModalDestroy
+            ));
+            $pipelineDestroyGroup->addEmitter($emitterDestroyGroup);
+
+            return new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn('Wollen Sie die Gruppe ' . $tblGroup->getName() . ' wirklich löschen?')
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new PullRight(
+                                (new Standard('Ja', __CLASS__, new Enable()))->ajaxPipelineOnClick($pipelineDestroyGroup)
+                                . new Close('Nein', new Disable())
+                            )
+                        )
+                    ),
+                ))
+            );
+
+        } else {
+            // TODO: Error
+            return '?';
+        }
+    }
+
+    public function pieceDestroyGroup($Id, $receiverGroupList, $receiverModalEdit, $receiverModalDestroy)
     {
         if (($tblGroup = Account::useService()->getGroupById($Id))) {
             Account::useService()->destroyGroup($tblGroup);
-            return true;
+
+            $pipelineDestroyGroup = new Pipeline();
+            /**
+             * Reload Group List
+             */
+            $this->loadGroupList($pipelineDestroyGroup, (new BlockReceiver())->setIdentifier($receiverGroupList), $receiverModalEdit, $receiverModalDestroy);
+            /**
+             * Close Destroy Group (Confirm)
+             */
+            $pipelineDestroyGroup->addEmitter(
+                (new CloseModal($receiverModalDestroy))->getEmitter()
+            );
+
+            return (string)$pipelineDestroyGroup;
+        } else {
+            // Todo: Error
+            return '?';
         }
-        return false;
     }
 }

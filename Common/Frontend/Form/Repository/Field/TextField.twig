@@ -27,7 +27,7 @@
     //noinspection JSUnresolvedFunction
     executeScript(function() {
         Client.Use('ModAlways', function () {
-            jQuery('input[name="{{ ElementName }}"]').focus();
+            setTimeout(function(){ jQuery('input[name="{{ ElementName }}"]').focus(); }, 300);
         });
     });
 </script>

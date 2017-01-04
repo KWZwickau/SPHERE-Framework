@@ -11,15 +11,12 @@ use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
  *
  * @package SPHERE\Common\Frontend\Ajax\Template
  */
-class Notify
+class Notify extends AbstractTemplate
 {
     const TYPE_INFO = 'info';
     const TYPE_SUCCESS = 'success';
     const TYPE_WARNING = 'warning';
     const TYPE_DANGER = 'danger';
-
-    /** @var null|InlineReceiver $Receiver */
-    private $Receiver = null;
 
     /**
      * Notify constructor.
@@ -33,12 +30,12 @@ class Notify
     {
 
         $Script = new NotifyScript($Title, $Message, $Type, $Delay);
-        $this->Receiver = new InlineReceiver();
-        $Emitter = new ScriptEmitter($this->Receiver, $Script);
+        $this->setTemplate( new InlineReceiver() );
+        $Emitter = new ScriptEmitter($this->getTemplate(), $Script);
         $Pipeline = new Pipeline();
 
         $Pipeline->addEmitter($Emitter);
-        $this->Receiver->initContent($Pipeline);
+        $this->getTemplate()->initContent($Pipeline);
     }
 
     /**
@@ -46,6 +43,6 @@ class Notify
      */
     public function __toString()
     {
-        return (string)$this->Receiver;
+        return (string)$this->getTemplate();
     }
 }
