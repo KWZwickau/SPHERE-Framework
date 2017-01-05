@@ -11,7 +11,6 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
-use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -760,19 +759,15 @@ class Service extends Extension
                 $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
                 if ($tblToPhoneList) {
                     foreach ($tblToPhoneList as $tblToPhone) {
-                        $tblType = $tblToPhone->getTblType();
                         if (( $tblPhone = $tblToPhone->getTblPhone() )) {
                             if ($Item['Phone'] == '') {
-                                $Item['Phone'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('.$tblPhone->getNumber()
-                                    .' '.( $tblType
-                                        // modify TypeShort
-                                        ? str_replace('.', '', $this->getPhoneTypeShort($tblType))
-                                        : '' );
+                                $Item['Phone'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('.$tblPhone->getNumber().' '.
+                                    // modify TypeShort
+                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                             } else {
-                                $Item['Phone'] .= ', '.$tblPhone->getNumber().' '.( $tblType
-                                        // modify TypeShort
-                                        ? str_replace('.', '', $this->getPhoneTypeShort($tblType))
-                                        : '' );
+                                $Item['Phone'] .= ', '.$tblPhone->getNumber().' '.
+                                    // modify TypeShort
+                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                             }
                         }
                     }
@@ -794,21 +789,16 @@ class Service extends Extension
                                 if ($tblToPhoneList) {
                                     foreach ($tblToPhoneList as $tblToPhone) {
                                         if (( $tblPhone = $tblToPhone->getTblPhone() )) {
-                                            $tblType = $tblToPhone->getTblType();
                                             if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
                                                 $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
                                                     $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
-                                                    ' ('.$tblPhone->getNumber()
-                                                    .' '.( $tblType
-                                                        // modify TypeShort
-                                                        ? str_replace('.', '', $this->getPhoneTypeShort($tblType))
-                                                        : '' );
+                                                    ' ('.$tblPhone->getNumber().' '.
+                                                    // modify TypeShort
+                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                             } else {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber()
-                                                    .' '.( $tblType
-                                                        // modify TypeShort
-                                                        ? str_replace('.', '', $this->getPhoneTypeShort($tblType))
-                                                        : '' );
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
+                                                    // modify TypeShort
+                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                             }
                                         }
                                     }
@@ -1369,8 +1359,8 @@ class Service extends Extension
                 $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
                 if ($phoneList) {
                     foreach ($phoneList as $phone) {
-                        $type = $this->getPhoneTypeShort($phone->getTblType());
-                        $phoneNumbers[$phone->getId()] = $phone->getTblPhone()->getNumber().' '.$type
+                        $typeString = Phone::useService()->getPhoneTypeShort($phone);
+                        $phoneNumbers[$phone->getId()] = $phone->getTblPhone()->getNumber().' '.$typeString
                             . ($phone->getRemark() ? ' ' . $phone->getRemark() : '');
                     }
                 }
@@ -1525,31 +1515,11 @@ class Service extends Extension
     }
 
     /**
-     * @param TblType $tblType
-     * @return string
-     */
-    private function getPhoneTypeShort(TblType $tblType)
-    {
-
-        if ($tblType->getName() == 'Privat'){
-            return 'p.';
-        } elseif ($tblType->getName() == 'Geschäftlich'){
-            return 'd.';
-        } elseif ($tblType->getName() == 'Notfall'){
-            return 'N.';
-        } elseif ($tblType->getName() == 'Fax'){
-            return 'F.';
-        } else {
-            return '';
-        }
-    }
-
-    /**
      * @param TblToPerson $tblToPerson
      * @return string
      */
     private function getPhoneGuardianString(TblToPerson $tblToPerson){
-        $type = $this->getPhoneTypeShort($tblToPerson->getTblType());
+        $typeString = Phone::useService()->getPhoneTypeShort($tblToPerson);
         $person = '';
         $tblGuardianPerson = $tblToPerson->getServiceTblPerson();
         if ($tblGuardianPerson){
@@ -1574,7 +1544,7 @@ class Service extends Extension
             }
         }
 
-        return $tblToPerson->getTblPhone()->getNumber() . ' ' . $type . ' ' . $person
+        return $tblToPerson->getTblPhone()->getNumber().' '.$typeString.' '.$person
         . ($tblToPerson->getRemark() ? ' ' . $tblToPerson->getRemark() : '');
     }
 

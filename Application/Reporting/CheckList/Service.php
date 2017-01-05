@@ -23,6 +23,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Reporting\CheckList\Service\Data;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
@@ -898,7 +899,8 @@ class Service extends AbstractService
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Klassenstufe');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Schulart');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Eingangsdatum');
-                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Telefon');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Telefon Interessent');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Telefon Sorgeberechtigte');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Adresse');
 
                         $tblListElementListByList = $this->getListElementListByList($tblList);
@@ -941,6 +943,7 @@ class Service extends AbstractService
                                             $option = false;
                                             $reservationDate = false;
                                             $Phone = false;
+                                            $PhoneGuardian = false;
                                             $Address = false;
                                             $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
                                             if ($tblProspect) {
@@ -950,15 +953,62 @@ class Service extends AbstractService
                                                     foreach ($tblToPhoneList as $tblToPhone) {
                                                         $tblPhone = $tblToPhone->getTblPhone();
                                                         if ($tblPhone) {
-                                                            $Phone[] = $tblPhone->getNumber();
+                                                            if (!$Phone) {
+                                                                $Phone = $tblPerson->getFirstName().' '.$tblPerson->getLastName()
+                                                                    .' ('.$tblPhone->getNumber().' '.
+                                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                            } else {
+                                                                $Phone .= ', '.$tblPhone->getNumber().' '.
+                                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                            }
                                                         }
                                                     }
-                                                    if (!empty($Phone)) {
-                                                        $Phone = implode(', ', $Phone);
+                                                    if ($Phone) {
+                                                        $Phone .= ')';
+                                                    }
+                                                }
+                                                // fill phoneGuardian
+                                                $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                                                if ($guardianList) {
+                                                    foreach ($guardianList as $guardian) {
+                                                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
+                                                            // get PhoneNumber by Guardian
+                                                            $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
+                                                            if ($tblPersonGuardian) {
+                                                                $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
+                                                                if ($tblToPhoneList) {
+                                                                    foreach ($tblToPhoneList as $tblToPhone) {
+                                                                        if (( $tblPhone = $tblToPhone->getTblPhone() )) {
+                                                                            if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
+                                                                                    $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
+                                                                                    ' ('.$tblPhone->getNumber().' '.
+                                                                                    // modify TypeShort
+                                                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                                            } else {
+                                                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
+                                                                                    // modify TypeShort
+                                                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                                    $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+                                                                }
+                                                                if (!$PhoneGuardian && isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                                    $PhoneGuardian = $Item['PhoneGuardian'][$tblPersonGuardian->getId()];
+                                                                } elseif ($PhoneGuardian && isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                                    $PhoneGuardian .= ', '.$Item['PhoneGuardian'][$tblPersonGuardian->getId()];
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                 }
                                                 // display Address
-                                                $Address = Address::useService()->getAddressByPerson($tblPerson)->getGuiString();
+                                                if (( $tblAddress = Address::useService()->getAddressByPerson($tblPerson) )) {
+                                                    $Address = $tblAddress->getGuiString();
+                                                }
                                                 $tblProspectReservation = $tblProspect->getTblProspectReservation();
                                                 if ($tblProspectReservation) {
                                                     $level = $tblProspectReservation->getReservationDivision();
@@ -989,6 +1039,7 @@ class Service extends AbstractService
                                                     '');
                                             }
                                             $export->setValue($export->getCell($columnCount++, $rowCount), trim($Phone));
+                                            $export->setValue($export->getCell($columnCount++, $rowCount), trim($PhoneGuardian));
                                             $export->setValue($export->getCell($columnCount, $rowCount), trim($Address));
                                         }
                                     }
@@ -1007,7 +1058,7 @@ class Service extends AbstractService
                                     );
                                     if ($tblListObjectElementList) {
                                         foreach ($tblListObjectElementList as $item) {
-                                            $columnCount = $isProspectList ? 7 : 1;
+                                            $columnCount = $isProspectList ? 8 : 1;
                                             foreach ($tblListElementListByList as $tblListElementList) {
                                                 if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
                                                     $export->setValue($export->getCell($columnCount, $rowCount),
