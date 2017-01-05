@@ -760,11 +760,19 @@ class Service extends Extension
                 $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
                 if ($tblToPhoneList) {
                     foreach ($tblToPhoneList as $tblToPhone) {
+                        $tblType = $tblToPhone->getTblType();
                         if (( $tblPhone = $tblToPhone->getTblPhone() )) {
                             if ($Item['Phone'] == '') {
-                                $Item['Phone'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('.$tblPhone->getNumber();
+                                $Item['Phone'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('.$tblPhone->getNumber()
+                                    .' '.( $tblType
+                                        // modify TypeShort
+                                        ? str_replace('.', '', $this->getPhoneTypeShort($tblType))
+                                        : '' );
                             } else {
-                                $Item['Phone'] .= ', '.$tblPhone->getNumber();
+                                $Item['Phone'] .= ', '.$tblPhone->getNumber().' '.( $tblType
+                                        // modify TypeShort
+                                        ? str_replace('.', '', $this->getPhoneTypeShort($tblType))
+                                        : '' );
                             }
                         }
                     }
@@ -786,11 +794,21 @@ class Service extends Extension
                                 if ($tblToPhoneList) {
                                     foreach ($tblToPhoneList as $tblToPhone) {
                                         if (( $tblPhone = $tblToPhone->getTblPhone() )) {
+                                            $tblType = $tblToPhone->getTblType();
                                             if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
-                                                    ' ('.$tblPhone->getNumber();
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
+                                                    $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
+                                                    ' ('.$tblPhone->getNumber()
+                                                    .' '.( $tblType
+                                                        // modify TypeShort
+                                                        ? str_replace('.', '', $this->getPhoneTypeShort($tblType))
+                                                        : '' );
                                             } else {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber();
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber()
+                                                    .' '.( $tblType
+                                                        // modify TypeShort
+                                                        ? str_replace('.', '', $this->getPhoneTypeShort($tblType))
+                                                        : '' );
                                             }
                                         }
                                     }
@@ -881,7 +899,7 @@ class Service extends Extension
             $export->setValue($export->getCell("21", "0"), "Anrede Sorgeberechtigter 2");
             $export->setValue($export->getCell("22", "0"), "Name Sorgeberechtigter 2");
             $export->setValue($export->getCell("23", "0"), "Vorname Sorgeberechtigter 2");
-            $export->setValue($export->getCell("24", "0"), "Telefon");
+            $export->setValue($export->getCell("24", "0"), "Telefon Interessent");
             $export->setValue($export->getCell("25", "0"), "Telefon Sorgeberechtigte");
 
             $Row = 1;
