@@ -92,12 +92,5 @@ return array(
             'italic' => $distFontDir . 'DejaVuSerif-Italic',
             'normal' => $distFontDir . 'DejaVuSerif'
         ),
-//    'metapro normal' =>
-//        array(
-//            'bold' => $distFontDir . 'MetaPro-Normal',
-//            'bold_italic' => $distFontDir . 'MetaPro-Normal',
-//            'italic' => $distFontDir . 'MetaPro-Normal',
-//            'normal' => $distFontDir . 'MetaPro-Normal'
-//        )
 )
 ?>

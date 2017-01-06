@@ -8,13 +8,14 @@ use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Template\Template;
 use MOC\V\Core\AutoLoader\AutoLoader;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\EVSR\RadebeulKinderbrief;
 use SPHERE\Application\Document\Storage\FilePointer;
 
 //header('Content-type: text/html; charset=utf-8');
 error_reporting(E_ALL);
 date_default_timezone_set('Europe/Berlin');
 set_time_limit(240);
-//ini_set('display_errors',1);
+ini_set('display_errors',1);
 
 /**
  * Setup: Loader

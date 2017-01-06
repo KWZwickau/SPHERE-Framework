@@ -108,11 +108,4 @@
             'italic'      => DOMPDF_DIR.'/lib/fonts/DejaVuSerifCondensed-Italic',
             'normal'      => DOMPDF_DIR.'/lib/fonts/DejaVuSerifCondensed',
         ),
-    'metapro normal' =>
-        array(
-                'normal' => DOMPDF_DIR . '/lib/fonts/MetaPro-Normal',
-                'bold' => DOMPDF_DIR . '/lib/fonts/MetaPro-Normal',
-                'italic' => DOMPDF_DIR . '/lib/fonts/MetaPro-Normal',
-                'bold_italic' => DOMPDF_DIR . '/lib/fonts/MetaPro-Normal',
-        ),
 ) ?>
