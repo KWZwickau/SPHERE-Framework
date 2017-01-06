@@ -143,6 +143,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblPersonList as $tblPerson) {
                     if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
                         && $tblPrepareStudent->getServiceTblCertificate()
+                        && $tblPrepareStudent->isApproved()
                         && !$tblPrepareStudent->isPrinted()
                     ) {
                         $data[] = $tblPerson->getLastFirstName();

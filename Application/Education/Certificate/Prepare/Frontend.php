@@ -43,6 +43,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
@@ -344,6 +345,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $GradeTypeId
      * @param null $IsNotGradeType
      * @param null $Data
+     * @param null $Trend
      * @param null $CertificateList
      *
      * @return Stage|string
@@ -354,11 +356,18 @@ class Frontend extends Extension implements IFrontendInterface
         $GradeTypeId = null,
         $IsNotGradeType = null,
         $Data = null,
+        $Trend = null,
         $CertificateList = null
     ) {
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
         if ($tblPrepare) {
+            $selectBoxContent = array(
+                TblGrade::VALUE_TREND_NULL => '',
+                TblGrade::VALUE_TREND_PLUS => 'Plus',
+                TblGrade::VALUE_TREND_MINUS => 'Minus'
+            );
+
             // Kopfnoten festlegen
             if (!$IsNotGradeType
                 && $tblPrepare->getServiceTblBehaviorTask()
@@ -379,6 +388,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCurrentGradeType = false;
                 $tblNextGradeType = false;
                 $tblGradeTypeList = array();
+                $hasInformation = false;
                 foreach ($tblTestList as $tblTest) {
                     if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
                         if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
@@ -439,6 +449,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentList) {
+                    $tabIndex = 1;
                     /** @var TblPerson $tblPerson */
                     foreach ($tblStudentList as $tblPerson) {
                         $studentTable[$tblPerson->getId()] = array(
@@ -520,7 +531,16 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblCurrentGradeType
                                 );
                                 if ($tblPrepareGrade) {
-                                    $Global->POST['Data'][$tblPerson->getId()] = $tblPrepareGrade->getGrade();
+                                    $gradeValue = $tblPrepareGrade->getGrade();
+                                    if (strpos($gradeValue, '+') !== false) {
+//                                        $this->getDebugger()->screenDump($gradeValue, $tblPerson->getId(), $tblPerson->getLastFirstName());
+                                        $Global->POST['Trend'][$tblPerson->getId()] = TblGrade::VALUE_TREND_PLUS;
+                                        $gradeValue = str_replace('+', '', $gradeValue);
+                                    } elseif (strpos($gradeValue, '-') !== false) {
+                                        $Global->POST['Trend'][$tblPerson->getId()] = TblGrade::VALUE_TREND_MINUS;
+                                        $gradeValue = str_replace('-', '', $gradeValue);
+                                    }
+                                    $Global->POST['Data'][$tblPerson->getId()] = $gradeValue;
                                 } elseif ($average) {
                                     // Noten aus dem Notendurchschnitt als Vorschlag eintragen
                                     $hasPreviewGrades = true;
@@ -536,39 +556,89 @@ class Frontend extends Extension implements IFrontendInterface
                                 && $tblPrepareStudent->isApproved()
                             ) {
                                 $studentTable[$tblPerson->getId()]['Data'] =
-                                    (new TextField('Data[' . $tblPerson->getId() . ']'))->setDisabled();
+                                    (new NumberField('Data[' . $tblPerson->getId() . ']'))->setDisabled();
+                                if (($tblCertificate = $tblPrepareStudent->getTblPrepareCertificate())
+                                    && $tblCertificate->isGradeInformation()
+                                ) {
+                                    $hasInformation = true;
+                                    $studentTable[$tblPerson->getId()]['Trend'] =
+                                        (new SelectBox('Trend[' . $tblPerson->getId() . ']', '', $selectBoxContent,
+                                            new ResizeVertical()))->setDisabled();
+                                }
                             } else {
                                 $studentTable[$tblPerson->getId()]['Data'] =
-                                    new TextField('Data[' . $tblPerson->getId() . ']');
+                                    (new NumberField('Data[' . $tblPerson->getId() . ']'))->setTabIndex($tabIndex++);
+
+                                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                    && $tblCertificate->isInformation()
+                                ) {
+                                    $hasInformation = true;
+                                    $studentTable[$tblPerson->getId()]['Trend'] =
+                                        (new SelectBox('Trend[' . $tblPerson->getId() . ']', '', $selectBoxContent,
+                                            new ResizeVertical()))->setTabIndex($tabIndex++);
+                                }
                             }
                         }
                     }
                 }
 
+                if ($hasInformation) {
+                    $columnTable['Trend'] = 'Tendenz';
+
+                    $columnDef = array(
+                        array(
+                            "width" => "7px",
+                            "targets" => 0
+                        ),
+                        array(
+                            "width" => "200px",
+                            "targets" => 1
+                        ),
+                        array(
+                            "width" => "80px",
+                            "targets" => 2
+                        ),
+                        array(
+                            "width" => "50px",
+                            "targets" => array(4)
+                        ),
+                        array(
+                            "width" => "80px",
+                            "targets" => array(5)
+                        ),
+                        array(
+                            "width" => "180px",
+                            "targets" => array(6)
+                        )
+                    );
+                } else {
+                    $columnDef = array(
+                        array(
+                            "width" => "7px",
+                            "targets" => 0
+                        ),
+                        array(
+                            "width" => "200px",
+                            "targets" => 1
+                        ),
+                        array(
+                            "width" => "80px",
+                            "targets" => 2
+                        ),
+                        array(
+                            "width" => "50px",
+                            "targets" => array(4)
+                        ),
+                        array(
+                            "width" => "80px",
+                            "targets" => array(5)
+                        ),
+                    );
+                }
+
                 $tableData = new TableData($studentTable, null, $columnTable,
                     array(
-                        "columnDefs" => array(
-                            array(
-                                "width" => "7px",
-                                "targets" => 0
-                            ),
-                            array(
-                                "width" => "200px",
-                                "targets" => 1
-                            ),
-                            array(
-                                "width" => "80px",
-                                "targets" => 2
-                            ),
-                            array(
-                                "width" => "50px",
-                                "targets" => array(4)
-                            ),
-                            array(
-                                "width" => "80px",
-                                "targets" => array(5)
-                            ),
-                        ),
+                        "columnDefs" => $columnDef,
                         'order' => array(
                             array('0', 'asc'),
                         ),
@@ -578,7 +648,8 @@ class Frontend extends Extension implements IFrontendInterface
                         "info" => false,  // Deaktivieren Such-Info
                         "sort" => false,
                         "responsive" => false
-                    ));
+                    )
+                );
 
                 $form = new Form(
                     new FormGroup(array(
@@ -628,7 +699,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblCurrentGradeType,
                                         $tblNextGradeType ? $tblNextGradeType : null,
                                         $Route,
-                                        $Data
+                                        $Data,
+                                        $Trend
                                     )
                                 ))
                             ))
@@ -911,36 +983,21 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
-                    $FormField = array(
-                        'Content.Input.Remark' => 'TextArea',
-                        'Content.Input.Rating' => 'TextArea',
-                        'Content.Input.Survey' => 'TextArea',
-                        'Content.Input.Deepening' => 'TextField',
-                        'Content.Input.SchoolType' => 'SelectBox',
-                        'Content.Input.Type' => 'SelectBox',
-                        'Content.Input.DateCertifcate' => 'DatePicker',
-                        'Content.Input.DateConference' => 'DatePicker',
-                        'Content.Input.Transfer' => 'SelectBox',
-                    );
-                    $FormLabel = array(
-                        'Content.Input.Remark' => 'Bemerkungen',
-                        'Content.Input.Rating' => 'Einschätzung',
-                        'Content.Input.Survey' => 'Gutachten',
-                        'Content.Input.Deepening' => 'Vertiefungsrichtung',
-                        'Content.Input.SchoolType' => 'Ausbildung fortsetzen',
-                        'Content.Input.Type' => 'Bezieht sich auf',
-                        'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
-                        'Content.Input.DateConference' => 'Datum der Konferenz',
-                        'Content.Input.Transfer' => 'Versetzungsvermerk',
-                    );
+                    $FormField = Generator::useService()->getFormField();
+                    $FormLabel = Generator::useService()->getFormLabel();
 
                     if ($Data === null) {
                         $Global = $this->getGlobal();
                         $tblPrepareInformationAll = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepareCertificate,
                             $tblPerson);
                         $hasTransfer = false;
+                        $isTeamSet = false;
                         if ($tblPrepareInformationAll) {
                             foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
+                                if ($tblPrepareInformation->getField() == 'Team' || $tblPrepareInformation->getField() == 'TeamExtra') {
+                                    $isTeamSet = true;
+                                }
+
                                 if ($tblPrepareInformation->getField() == 'SchoolType'
                                     && method_exists($Certificate, 'selectValuesSchoolType')
                                 ) {
@@ -967,6 +1024,27 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
 
+                        // Arbeitsgemeinschaften aus der Schülerakte laden
+                        if (!$isTeamSet) {
+                            if (($tblStudent = $tblPerson->getStudent())
+                                && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
+                                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                                    $tblStudent, $tblSubjectType
+                                ))
+                            ) {
+                                $tempList = array();
+                                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                    if ($tblStudentSubject->getServiceTblSubject()) {
+                                        $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
+                                    }
+                                }
+                                if (!empty($tempList)) {
+                                    $Global->POST['Data'][$tblPerson->getId()]['Team'] = implode(', ', $tempList);
+                                    $Global->POST['Data'][$tblPerson->getId()]['TeamExtra'] = implode(', ', $tempList);
+                                }
+                            }
+                        }
+
                         // Vorsetzen auf Versetzungsvermerk: wird versetzt
                         if (!$hasTransfer) {
                             $Global->POST['Data'][$tblPerson->getId()]['Transfer'] = 1;
@@ -977,6 +1055,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Create Form, Additional Information from Template
                     $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
+                    // Arbeitsgemeinschaften stehen extra und nicht in den Bemerkungen
+                    $hasTeamExtra = false;
                     if ($PlaceholderList) {
                         array_walk($PlaceholderList,
                             function ($Placeholder) use (
@@ -987,7 +1067,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 &$studentTable,
                                 $tblPerson,
                                 $tblPrepareStudent,
-                                $tblCertificate
+                                $tblCertificate,
+                                $hasTeamExtra
                             ) {
 
                                 $PlaceholderList = explode('.', $Placeholder);
@@ -1008,8 +1089,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
 
                                         $key = str_replace('Content.Input.', '', $Placeholder);
-                                        if (!isset($columnTable[$key])) {
-                                            $columnTable[$key] = $Label;
+
+                                        if ($key == 'TeamExtra' || isset($columnTable['TeamExtra'])){
+                                            $hasTeamExtra = true;
                                         }
 
                                         if (isset($FormField[$Placeholder])) {
@@ -1043,6 +1125,16 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $studentTable[$tblPerson->getId()][$key]
                                                         = (new $Field($dataFieldName, '', ''))->setDisabled();
                                                 } else {
+                                                    // Arbeitsgemeinschaften beim Bemerkungsfeld
+                                                    if (!$hasTeamExtra && $key == 'Remark') {
+                                                        if (!isset($columnTable['Team'])) {
+                                                            $columnTable['Team'] = 'Arbeitsgemeinschaften';
+                                                        }
+                                                        $studentTable[$tblPerson->getId()]['Team']
+                                                            = (new TextField('Data[' . $tblPerson->getId() . '][Team]',
+                                                            '', ''));
+                                                    }
+
                                                     // TextArea Zeichen begrenzen
                                                     if ($FormField[$Placeholder] == 'TextArea'
                                                         && (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
@@ -1068,6 +1160,10 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $studentTable[$tblPerson->getId()][$key]
                                                     = (new TextField($FieldName, '', ''));
                                             }
+                                        }
+
+                                        if (!isset($columnTable[$key])) {
+                                            $columnTable[$key] = $Label;
                                         }
                                     }
                                 }
@@ -1389,28 +1485,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
-                    $FormField = array(
-                        'Content.Input.Remark' => 'TextArea',
-                        'Content.Input.Rating' => 'TextArea',
-                        'Content.Input.Survey' => 'TextArea',
-                        'Content.Input.Deepening' => 'TextField',
-                        'Content.Input.SchoolType' => 'SelectBox',
-                        'Content.Input.Type' => 'SelectBox',
-                        'Content.Input.DateCertifcate' => 'DatePicker',
-                        'Content.Input.DateConference' => 'DatePicker',
-                        'Content.Input.Transfer' => 'SelectBox',
-                    );
-                    $FormLabel = array(
-                        'Content.Input.Remark' => 'Bemerkungen',
-                        'Content.Input.Rating' => 'Einschätzung',
-                        'Content.Input.Survey' => 'Gutachten',
-                        'Content.Input.Deepening' => 'Vertiefungsrichtung',
-                        'Content.Input.SchoolType' => 'Ausbildung fortsetzen',
-                        'Content.Input.Type' => 'Bezieht sich auf',
-                        'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
-                        'Content.Input.DateConference' => 'Datum der Konferenz',
-                        'Content.Input.Transfer' => 'Versetzungsvermerk',
-                    );
+                    $FormField = Generator::useService()->getFormField();
+                    $FormLabel = Generator::useService()->getFormLabel();
 
                     $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
                     if ($PlaceholderList) {
@@ -1534,7 +1610,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($tblPerson) {
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                 $tblTest, $tblSubject, $tblPerson, $studentList,
-                                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null);
+                                                $tblDivisionSubject->getTblSubjectGroup()
+                                                    ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                $tblPrepare
+                                            );
                                         }
                                     }
 
@@ -1555,7 +1634,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         if (isset($divisionPersonList[$tblPerson->getId()])) {
                                             $studentList[$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList);
+                                                $tblTest, $tblSubject, $tblPerson, $studentList, null, $tblPrepare);
                                         }
                                     }
                                 }
@@ -1610,6 +1689,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param TblSubjectGroup $tblSubjectGroup
+     * @param TblPrepareCertificate $tblPrepare
      *
      * @return  $studentList
      */
@@ -1619,7 +1699,8 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubject $tblSubject,
         TblPerson $tblPerson,
         $studentList,
-        TblSubjectGroup $tblSubjectGroup = null
+        TblSubjectGroup $tblSubjectGroup = null,
+        TblPrepareCertificate $tblPrepare = null
     ) {
         $studentList[$tblPerson->getId()]['Name'] =
             $tblPerson->getLastFirstName();
@@ -1656,14 +1737,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblGrade) {
             // Zeugnistext
-            if (($tblGradeText = $tblGrade->getTblGradeText())){
+            if (($tblGradeText = $tblGrade->getTblGradeText())) {
                 $studentList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblGradeText->getName();
 
                 return $studentList;
             }
 
             $gradeValue = $tblGrade->getGrade();
-            $trend = $tblGrade->getTrend();
 
             $isGradeInRange = true;
             if ($average !== ' ' && $average && $gradeValue !== null) {
@@ -1677,11 +1757,16 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                $gradeValue .= '+';
-            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                $gradeValue .= '-';
+            $withTrend = true;
+            if ($tblPrepare
+                && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                    $tblGrade->getServiceTblPerson()))
+                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                && !$tblCertificate->isInformation()
+            ) {
+                $withTrend = false;
             }
+            $gradeValue = $tblGrade->getDisplayGrade($withTrend);
 
             if ($isGradeInRange) {
                 $gradeValue = new Success($gradeValue);
@@ -1728,7 +1813,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCertificate = false;
             if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
                 if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
-                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'
+                        . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
 
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
@@ -1800,10 +1886,8 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendSigner(
-        $PrepareId = null,
-        $Data = null
-    ) {
+    public function frontendSigner($PrepareId = null, $Data = null)
+    {
 
         $Stage = new Stage('Unterzeichner', 'Auswählen');
         $Stage->addButton(new Standard(

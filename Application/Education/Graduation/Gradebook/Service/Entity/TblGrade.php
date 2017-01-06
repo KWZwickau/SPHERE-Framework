@@ -303,9 +303,11 @@ class TblGrade extends Element
     }
 
     /**
+     * @param bool $WithTrend
+     * 
      * @return string
      */
-    public function getDisplayGrade()
+    public function getDisplayGrade($WithTrend = true)
     {
 
         if ($this->getTblGradeText()){
@@ -314,11 +316,13 @@ class TblGrade extends Element
 
         $gradeValue = $this->getGrade();
         if ($gradeValue) {
-            $trend = $this->getTrend();
-            if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                $gradeValue .= '+';
-            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                $gradeValue .= '-';
+            if ($WithTrend) {
+                $trend = $this->getTrend();
+                if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                    $gradeValue .= '+';
+                } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                    $gradeValue .= '-';
+                }
             }
         }
 

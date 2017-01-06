@@ -148,9 +148,9 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Form
-     * @param TblCertificate      $tblCertificate
-     * @param array               $GradeList
-     * @param array               $SubjectList
+     * @param TblCertificate $tblCertificate
+     * @param array $GradeList
+     * @param array $SubjectList
      *
      * @return IFormInterface|string
      */
@@ -164,7 +164,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (empty( $GradeList ) && empty( $SubjectList )) {
+        if (empty($GradeList) && empty($SubjectList)) {
             return $Form;
         }
 
@@ -173,7 +173,7 @@ class Service extends AbstractService
         // Kopf-Noten
         foreach ($GradeList as $LaneIndex => $FieldList) {
             foreach ($FieldList as $LaneRanking => $Field) {
-                if (( $tblGradeType = Gradebook::useService()->getGradeTypeById($Field['GradeType']) )) {
+                if (($tblGradeType = Gradebook::useService()->getGradeTypeById($Field['GradeType']))) {
                     $tblCertificateGrade = Generator::useService()->getCertificateGradeByIndex(
                         $tblCertificate, $LaneIndex, $LaneRanking
                     );
@@ -188,7 +188,7 @@ class Service extends AbstractService
                 } else {
                     if ($Field['GradeType'] > 0) {
                         array_push($Error,
-                            'Eine Notenangabe an der Position '.$LaneIndex.':'.$LaneRanking.' konnte nicht gespeichert werden'
+                            'Eine Notenangabe an der Position ' . $LaneIndex . ':' . $LaneRanking . ' konnte nicht gespeichert werden'
                         );
                     }
                 }
@@ -198,7 +198,7 @@ class Service extends AbstractService
         // Fach-Noten
         foreach ($SubjectList as $LaneIndex => $FieldList) {
             foreach ($FieldList as $LaneRanking => $Field) {
-                if (( $tblSubject = Subject::useService()->getSubjectById($Field['Subject']) )) {
+                if (($tblSubject = Subject::useService()->getSubjectById($Field['Subject']))) {
                     $tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
                         $tblCertificate, $LaneIndex, $LaneRanking
                     );
@@ -206,10 +206,10 @@ class Service extends AbstractService
                         // Update
                         (new Data($this->getBinding()))->updateCertificateSubject($tblCertificateSubject,
                             $tblSubject,
-                            ( ( isset( $Field['IsEssential'] ) && $Field['IsEssential'] ) ? true : false ),
-                            ( ( isset( $Field['Liberation'] ) && $Field['Liberation'] )
-                                ? ( Student::useService()->getStudentLiberationCategoryById( $Field['Liberation'] )
-                                    ? Student::useService()->getStudentLiberationCategoryById( $Field['Liberation'] )
+                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false),
+                            ((isset($Field['Liberation']) && $Field['Liberation'])
+                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
                                     : null
                                 )
                                 : null
@@ -219,10 +219,10 @@ class Service extends AbstractService
                         // Create
                         (new Data($this->getBinding()))->createCertificateSubject($tblCertificate,
                             $LaneIndex, $LaneRanking, $tblSubject,
-                            ( ( isset( $Field['IsEssential'] ) && $Field['IsEssential'] ) ? true : false ),
-                            ( ( isset( $Field['Liberation'] ) && $Field['Liberation'] )
-                                ? ( Student::useService()->getStudentLiberationCategoryById( $Field['Liberation'] )
-                                    ? Student::useService()->getStudentLiberationCategoryById( $Field['Liberation'] )
+                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false),
+                            ((isset($Field['Liberation']) && $Field['Liberation'])
+                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
                                     : null
                                 )
                                 : null
@@ -232,12 +232,13 @@ class Service extends AbstractService
                 } else {
                     if ($Field['Subject'] > 0) {
                         array_push($Error,
-                            'Eine Fachangabe an der Position '.$LaneIndex.':'.$LaneRanking.' konnte nicht gespeichert werden'
+                            'Eine Fachangabe an der Position ' . $LaneIndex . ':' . $LaneRanking . ' konnte nicht gespeichert werden'
                         );
                     } else {
-                        if(($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
+                        if (($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex(
                             $tblCertificate, $LaneIndex, $LaneRanking
-                        ))) {
+                        ))
+                        ) {
                             (new Data($this->getBinding()))->removeCertificateSubject($tblCertificateSubject);
                         }
                     }
@@ -245,21 +246,21 @@ class Service extends AbstractService
             }
         }
 
-        if (empty( $Error )) {
-            return new Success(new Enable().' Die Einstellungen wurden gespeichert')
-            .new Redirect('/Education/Certificate/Setting', Redirect::TIMEOUT_SUCCESS);
+        if (empty($Error)) {
+            return new Success(new Enable() . ' Die Einstellungen wurden gespeichert')
+            . new Redirect('/Education/Certificate/Setting', Redirect::TIMEOUT_SUCCESS);
         } else {
             // TODO Show $Error List
-            return new Danger(new Disable().' Eine oder mehrere Einstellungen wurden nicht gespeichert!')
-            .new Redirect('/Education/Certificate/Setting/Configuration', Redirect::TIMEOUT_ERROR,
+            return new Danger(new Disable() . ' Eine oder mehrere Einstellungen wurden nicht gespeichert!')
+            . new Redirect('/Education/Certificate/Setting/Configuration', Redirect::TIMEOUT_ERROR,
                 array('Certificate' => $tblCertificate->getId()));
         }
     }
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param int            $LaneIndex
-     * @param int            $LaneRanking
+     * @param int $LaneIndex
+     * @param int $LaneRanking
      *
      * @return bool|TblCertificateGrade
      */
@@ -271,8 +272,8 @@ class Service extends AbstractService
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param int            $LaneIndex
-     * @param int            $LaneRanking
+     * @param int $LaneIndex
+     * @param int $LaneRanking
      *
      * @return bool|TblCertificateSubject
      */
@@ -319,7 +320,7 @@ class Service extends AbstractService
     /**
      * @return false|TblCertificateType[]
      */
-    public function  getCertificateTypeAll()
+    public function getCertificateTypeAll()
     {
 
         return (new Data($this->getBinding()))->getCertificateTypeAll();
@@ -375,5 +376,45 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->getCertificateAllByType($tblCertificateType);
+    }
+
+    /**
+     * @return array
+     */
+    public function getFormField()
+    {
+
+        return array(
+            'Content.Input.Remark' => 'TextArea',
+            'Content.Input.Rating' => 'TextArea',
+            'Content.Input.Survey' => 'TextArea',
+            'Content.Input.Deepening' => 'TextField',
+            'Content.Input.SchoolType' => 'SelectBox',
+            'Content.Input.Type' => 'SelectBox',
+            'Content.Input.DateCertifcate' => 'DatePicker',
+            'Content.Input.DateConference' => 'DatePicker',
+            'Content.Input.Transfer' => 'SelectBox',
+            'Content.Input.TeamExtra' => 'TextField'
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getFormLabel()
+    {
+
+        return array(
+            'Content.Input.Remark' => 'Bemerkungen',
+            'Content.Input.Rating' => 'Einschätzung',
+            'Content.Input.Survey' => 'Gutachten',
+            'Content.Input.Deepening' => 'Vertiefungsrichtung',
+            'Content.Input.SchoolType' => 'Ausbildung fortsetzen',
+            'Content.Input.Type' => 'Bezieht sich auf',
+            'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
+            'Content.Input.DateConference' => 'Datum der Konferenz',
+            'Content.Input.Transfer' => 'Versetzungsvermerk',
+            'Content.Input.TeamExtra' => 'Arbeitsgemeinschaften'
+        );
     }
 }

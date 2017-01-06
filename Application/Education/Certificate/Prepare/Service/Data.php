@@ -11,6 +11,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
@@ -695,7 +696,17 @@ class Data extends AbstractData
                                     $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
                                     $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
                                     $Entity->setServiceTblTestType($tblTestType);
-                                    $Entity->setGrade($tblGrade->getDisplayGrade());
+                                    // keine Tendenzen auf Zeugnissen
+                                    $withTrend = true;
+                                    if ($tblGrade->getServiceTblPerson()
+                                        && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                            $tblGrade->getServiceTblPerson()))
+                                        && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                        && !$tblCertificate->isInformation()
+                                    ) {
+                                        $withTrend = false;
+                                    }
+                                    $Entity->setGrade($tblGrade->getDisplayGrade($withTrend));
 
                                     $Manager->bulkSaveEntity($Entity);
                                     // ToDo GCK Protokoll bulkSave sonst witzlos
@@ -864,7 +875,15 @@ class Data extends AbstractData
                                 $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
                                 $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
                                 $Entity->setServiceTblTestType($tblTestType);
-                                $Entity->setGrade($tblGrade->getDisplayGrade());
+
+                                // keine Tendenzen auf Zeugnissen
+                                $withTrend = true;
+                                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                    && !$tblCertificate->isInformation()
+                                ) {
+                                    $withTrend = false;
+                                }
+                                $Entity->setGrade($tblGrade->getDisplayGrade($withTrend));
 
                                 $Manager->bulkSaveEntity($Entity);
                                 // ToDo GCK Protokoll bulkSave sonst witzlos

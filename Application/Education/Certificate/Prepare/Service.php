@@ -25,6 +25,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -500,8 +501,7 @@ class Service extends AbstractService
                                 if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
                                     $tblCertificate, $field))
                                 ) {
-                                    // ToDo GCK Enter entfernen funktioniert nicht
-                                    $value = str_replace('\n', ' ', $value);
+                                    $value = str_replace("\n", " ", $value);
 
                                     if (strlen($value) > $CharCount) {
                                         $value = substr($value, 0, $CharCount);
@@ -631,14 +631,36 @@ class Service extends AbstractService
             $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
                 $tblPerson);
             if ($tblPrepareInformationList) {
+                // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
+                $team = '';
+                $remark = '';
+
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
-                    if ($tblPrepareInformation->getField() == 'Transfer') {
+                    if ($tblPrepareInformation->getField() == 'Team') {
+                        $team = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue();
+                    } elseif ($tblPrepareInformation->getField() == 'Remark') {
+                        $remark = $tblPrepareInformation->getValue();
+                    } elseif ($tblPrepareInformation->getField() == 'Transfer') {
                         $Content['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
                             . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
                     } else {
                         $Content['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
                     }
                 }
+
+                // Streichung leeres Bemerkungsfeld
+                if ($remark == ''){
+                    $remark = '---';
+                }
+
+                if ($team || $remark) {
+                    if ($team) {
+                        $remark = $team . " \n " . $remark;
+                    }
+                }
+                $Content['Input']['Remark'] = $remark;
+            } else {
+                $Content['Input']['Remark'] = '---';
             }
 
             // Klassenlehrer
@@ -703,7 +725,17 @@ class Service extends AbstractService
                         if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
                             && $tblTest->getServiceTblSubject()
                         ) {
-                            $Content['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()] = $tblGradeItem->getDisplayGrade();
+                            // keine Tendenzen auf Zeugnissen
+                            $withTrend = true;
+                            if ($tblPrepareStudent
+                                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                && !$tblCertificate->isInformation()
+                            ) {
+                                $withTrend = false;
+                            }
+
+                            $Content['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
+                                = $tblGradeItem->getDisplayGrade($withTrend);
 
                             // bei Zeugnistext als Note Schriftgröße verkleinern
                             if ($tblGradeItem->getTblGradeText()) {
@@ -788,7 +820,7 @@ class Service extends AbstractService
                     /** @var TblStudentSubject $tblStudentSubject */
                     $tblStudentSubject = current($tblStudentSubjectList);
                     if (($tblSubjectOrientation = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Orientation'][$tblSubjectOrientation->getAcronym()]['Name'] = $tblSubjectOrientation->getName();
+                        $Content['Student']['Orientation'][str_replace(' ', '', $tblSubjectOrientation->getAcronym())]['Name'] = $tblSubjectOrientation->getName();
                     }
                 }
 
@@ -803,7 +835,7 @@ class Service extends AbstractService
                             && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
                             && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
                         ) {
-                            $Content['Student']['ForeignLanguage'][$tblSubjectForeignLanguage->getAcronym()]['Name'] = $tblSubjectForeignLanguage->getName();
+                            $Content['Student']['ForeignLanguage'][str_replace(' ', '', $tblSubjectForeignLanguage->getAcronym())]['Name'] = $tblSubjectForeignLanguage->getName();
                         }
                     }
                 }
@@ -816,7 +848,7 @@ class Service extends AbstractService
                     /** @var TblStudentSubject $tblStudentSubject */
                     $tblStudentSubject = current($tblStudentSubjectList);
                     if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
+                        $Content['Student']['Profile'][str_replace(' ', '', $tblSubjectProfile->getAcronym())]['Name']
                             = str_replace('Profil', '', $tblSubjectProfile->getName());
                     }
                 }
@@ -1089,7 +1121,8 @@ class Service extends AbstractService
         TblGradeType $tblGradeType,
         TblGradeType $tblNextGradeType = null,
         $Route,
-        $Data
+        $Data,
+        $Trend
     ) {
 
         /**
@@ -1099,26 +1132,23 @@ class Service extends AbstractService
             return $Stage;
         }
 
-
-        // ToDo ScoreType
         $error = false;
-//            if ($tblScoreType) {
-//                foreach ($Data as $gradeTypeId => $value) {
-//                    if (trim($value) !== '' && $tblScoreType) {
-//                        if (!preg_match('!' . $tblScoreType->getPattern() . '!is', trim($value))) {
-//                            $error = true;
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
+
+        foreach ($Data as $gradeTypeId => $value) {
+            if (trim($value) !== '') {
+                if (!preg_match('!^[1-5]{1}$!is', trim($value))) {
+                    $error = true;
+                    break;
+                }
+            }
+        }
 
         $this->setSignerFromSignedInPerson($tblPrepare);
 
         if ($error) {
             $Stage->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger(
-                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-5).
                         Die Daten wurden nicht gespeichert.', new Exclamation())
                 ))));
 
@@ -1132,6 +1162,14 @@ class Service extends AbstractService
                     if (($tblPerson = Person::useService()->getPersonById($personId))) {
                         if (trim($value) && trim($value) !== ''
                         ) {
+                            if (isset($Trend[$personId])) {
+                                if ($Trend[$personId] == TblGrade::VALUE_TREND_PLUS) {
+                                    $value = trim($value) . '+';
+                                } elseif ($Trend[$personId] == TblGrade::VALUE_TREND_MINUS) {
+                                    $value = trim($value) . '-';
+                                }
+                            }
+
                             Prepare::useService()->updatePrepareGradeForBehavior(
                                 $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
                                 trim($value)

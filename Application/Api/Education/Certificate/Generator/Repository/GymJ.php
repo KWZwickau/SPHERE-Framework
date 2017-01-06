@@ -71,7 +71,7 @@ class GymJ extends Certificate
                 ->addSlice($this->getCertificateHead('Jahreszeugnis des Gymnasiums'))
                 ->addSlice($this->getDivisionAndYear())
                 ->addSlice($this->getStudentName())
-                ->addSlice($this->getGradeLanes('14px', true, '5px'))
+                ->addSlice($this->getGradeLanes('14px', false, '5px'))
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -108,8 +108,8 @@ class GymJ extends Certificate
                             , '23%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Subject.Team is not empty) %}
-                                    {{ Content.Subject.Team }}
+                            ->setContent('{% if(Content.Input.TeamExtra is not empty) %}
+                                    {{ Content.Input.TeamExtra }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
@@ -119,7 +119,7 @@ class GymJ extends Certificate
                     ->styleMarginTop('5px')
                 )
                 ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('50px'))
+                ->addSlice($this->getDescriptionContent('30px'))
                 ->addSlice($this->getTransfer())
                 ->addSlice($this->getDateLine('15px'))
                 ->addSlice($this->getSignPart(true))
