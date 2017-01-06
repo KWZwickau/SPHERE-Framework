@@ -11,7 +11,6 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
-use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -762,9 +761,13 @@ class Service extends Extension
                     foreach ($tblToPhoneList as $tblToPhone) {
                         if (( $tblPhone = $tblToPhone->getTblPhone() )) {
                             if ($Item['Phone'] == '') {
-                                $Item['Phone'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('.$tblPhone->getNumber();
+                                $Item['Phone'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('.$tblPhone->getNumber().' '.
+                                    // modify TypeShort
+                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                             } else {
-                                $Item['Phone'] .= ', '.$tblPhone->getNumber();
+                                $Item['Phone'] .= ', '.$tblPhone->getNumber().' '.
+                                    // modify TypeShort
+                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                             }
                         }
                     }
@@ -787,10 +790,15 @@ class Service extends Extension
                                     foreach ($tblToPhoneList as $tblToPhone) {
                                         if (( $tblPhone = $tblToPhone->getTblPhone() )) {
                                             if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
-                                                    ' ('.$tblPhone->getNumber();
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
+                                                    $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
+                                                    ' ('.$tblPhone->getNumber().' '.
+                                                    // modify TypeShort
+                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                             } else {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber();
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
+                                                    // modify TypeShort
+                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                             }
                                         }
                                     }
@@ -881,7 +889,7 @@ class Service extends Extension
             $export->setValue($export->getCell("21", "0"), "Anrede Sorgeberechtigter 2");
             $export->setValue($export->getCell("22", "0"), "Name Sorgeberechtigter 2");
             $export->setValue($export->getCell("23", "0"), "Vorname Sorgeberechtigter 2");
-            $export->setValue($export->getCell("24", "0"), "Telefon");
+            $export->setValue($export->getCell("24", "0"), "Telefon Interessent");
             $export->setValue($export->getCell("25", "0"), "Telefon Sorgeberechtigte");
 
             $Row = 1;
@@ -1351,8 +1359,8 @@ class Service extends Extension
                 $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
                 if ($phoneList) {
                     foreach ($phoneList as $phone) {
-                        $type = $this->getPhoneTypeShort($phone->getTblType());
-                        $phoneNumbers[$phone->getId()] = $phone->getTblPhone()->getNumber().' '.$type
+                        $typeString = Phone::useService()->getPhoneTypeShort($phone);
+                        $phoneNumbers[$phone->getId()] = $phone->getTblPhone()->getNumber().' '.$typeString
                             . ($phone->getRemark() ? ' ' . $phone->getRemark() : '');
                     }
                 }
@@ -1507,31 +1515,11 @@ class Service extends Extension
     }
 
     /**
-     * @param TblType $tblType
-     * @return string
-     */
-    private function getPhoneTypeShort(TblType $tblType)
-    {
-
-        if ($tblType->getName() == 'Privat'){
-            return 'p.';
-        } elseif ($tblType->getName() == 'Geschäftlich'){
-            return 'd.';
-        } elseif ($tblType->getName() == 'Notfall'){
-            return 'N.';
-        } elseif ($tblType->getName() == 'Fax'){
-            return 'F.';
-        } else {
-            return '';
-        }
-    }
-
-    /**
      * @param TblToPerson $tblToPerson
      * @return string
      */
     private function getPhoneGuardianString(TblToPerson $tblToPerson){
-        $type = $this->getPhoneTypeShort($tblToPerson->getTblType());
+        $typeString = Phone::useService()->getPhoneTypeShort($tblToPerson);
         $person = '';
         $tblGuardianPerson = $tblToPerson->getServiceTblPerson();
         if ($tblGuardianPerson){
@@ -1556,7 +1544,7 @@ class Service extends Extension
             }
         }
 
-        return $tblToPerson->getTblPhone()->getNumber() . ' ' . $type . ' ' . $person
+        return $tblToPerson->getTblPhone()->getNumber().' '.$typeString.' '.$person
         . ($tblToPerson->getRemark() ? ' ' . $tblToPerson->getRemark() : '');
     }
 

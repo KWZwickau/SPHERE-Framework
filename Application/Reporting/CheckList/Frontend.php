@@ -17,6 +17,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
@@ -1347,7 +1348,8 @@ class Frontend extends Extension implements IFrontendInterface
                         'Level'           => 'Kl. - Stufe',
                         'SchoolOption'    => 'Schulart',
                         'ReservationDate' => 'Eingangs&shy;datum',
-                        'Phone'           => 'Telefon',
+                        'Phone'           => 'Telefon Interessent',
+                        'PhoneGuardian'   => 'Telefon Sorgeberechtigte',
                         'Address'         => 'Adresse'
                     );
                     // set Header for prospectList
@@ -1388,6 +1390,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $year = false;
                                         $option = false;
                                         $Phone = false;
+                                        $PhoneGuardian = false;
                                         $Address = false;
                                         $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
                                         if ($tblProspect) {
@@ -1397,15 +1400,64 @@ class Frontend extends Extension implements IFrontendInterface
                                                 foreach ($tblToPhoneList as $tblToPhone) {
                                                     $tblPhone = $tblToPhone->getTblPhone();
                                                     if ($tblPhone) {
-                                                        $Phone[] = $tblPhone->getNumber();
+                                                        if (!$Phone) {
+                                                            $Phone = $tblPerson->getFirstName().' '.$tblPerson->getLastName()
+                                                                .' ('.$tblPhone->getNumber().' '.
+                                                                str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                        } else {
+                                                            $Phone .= ', '.$tblPhone->getNumber().' '.
+                                                                str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                        }
                                                     }
                                                 }
-                                                if (!empty($Phone)) {
-                                                    $Phone = implode(', ', $Phone);
+                                                if ($Phone) {
+                                                    $Phone .= ')';
                                                 }
                                             }
+                                            // fill phoneGuardian
+                                            $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                                            if ($guardianList) {
+                                                foreach ($guardianList as $guardian) {
+                                                    if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
+                                                        // get PhoneNumber by Guardian
+                                                        $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
+                                                        if ($tblPersonGuardian) {
+                                                            $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
+                                                            if ($tblToPhoneList) {
+                                                                foreach ($tblToPhoneList as $tblToPhone) {
+                                                                    if (( $tblPhone = $tblToPhone->getTblPhone() )) {
+                                                                        if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                                            $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
+                                                                                $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
+                                                                                ' ('.$tblPhone->getNumber().' '.
+                                                                                // modify TypeShort
+                                                                                str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                                        } else {
+                                                                            $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
+                                                                                // modify TypeShort
+                                                                                str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+                                                            }
+                                                            if (!$PhoneGuardian && isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                                $PhoneGuardian = $Item['PhoneGuardian'][$tblPersonGuardian->getId()];
+                                                            } elseif ($PhoneGuardian && isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                                $PhoneGuardian .= ', <br/>'.$Item['PhoneGuardian'][$tblPersonGuardian->getId()];
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+
                                             // display Address
-                                            $Address = Address::useService()->getAddressByPerson($tblPerson)->getGuiTwoRowString();
+                                            if (( $tblAddress = Address::useService()->getAddressByPerson($tblPerson) )) {
+                                                $Address = $tblAddress->getGuiTwoRowString();
+                                            }
 
                                             $tblProspectReservation = $tblProspect->getTblProspectReservation();
                                             if ($tblProspectReservation) {
@@ -1434,6 +1486,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $list[$count]['Level'] = $level;
                                         $list[$count]['SchoolOption'] = $option;
                                         $list[$count]['Phone'] = $Phone;
+                                        $list[$count]['PhoneGuardian'] = $PhoneGuardian;
                                         $list[$count]['Address'] = $Address;
                                     }
                                 }
