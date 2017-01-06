@@ -8,6 +8,8 @@ use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Template\Template;
 use MOC\V\Core\AutoLoader\AutoLoader;
+use MOC\V\Core\HttpKernel\Component\Bridge\Repository\UniversalRequest;
+use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\EVSR\RadebeulKinderbrief;
 use SPHERE\Application\Document\Storage\FilePointer;
 
@@ -27,7 +29,7 @@ AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/../../Library/Mark
 AutoLoader::getNamespaceAutoLoader('phpFastCache', __DIR__ . '/../../Library/PhpFastCache/4.3.6/src');
 
 $Template = Template::getTwigTemplateString( file_get_contents(__DIR__.'/Twig.twig'));
-
+$Template->setVariable('HOST', (new UniversalRequest())->getHost() );
 
 $Fp = new FilePointer( 'pdf' );
 $Fp->saveFile();
