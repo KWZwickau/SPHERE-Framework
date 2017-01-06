@@ -994,7 +994,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $isTeamSet = false;
                         if ($tblPrepareInformationAll) {
                             foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
-                                if ($tblPrepareInformation->getField() == 'Team') {
+                                if ($tblPrepareInformation->getField() == 'Team' || $tblPrepareInformation->getField() == 'TeamExtra') {
                                     $isTeamSet = true;
                                 }
 
@@ -1040,6 +1040,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                                 if (!empty($tempList)) {
                                     $Global->POST['Data'][$tblPerson->getId()]['Team'] = implode(', ', $tempList);
+                                    $Global->POST['Data'][$tblPerson->getId()]['TeamExtra'] = implode(', ', $tempList);
                                 }
                             }
                         }
@@ -1054,6 +1055,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Create Form, Additional Information from Template
                     $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
+                    // Arbeitsgemeinschaften stehen extra und nicht in den Bemerkungen
+                    $hasTeamExtra = false;
                     if ($PlaceholderList) {
                         array_walk($PlaceholderList,
                             function ($Placeholder) use (
@@ -1064,7 +1067,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 &$studentTable,
                                 $tblPerson,
                                 $tblPrepareStudent,
-                                $tblCertificate
+                                $tblCertificate,
+                                $hasTeamExtra
                             ) {
 
                                 $PlaceholderList = explode('.', $Placeholder);
@@ -1085,6 +1089,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
 
                                         $key = str_replace('Content.Input.', '', $Placeholder);
+
+                                        if ($key == 'TeamExtra' || isset($columnTable['TeamExtra'])){
+                                            $hasTeamExtra = true;
+                                        }
 
                                         if (isset($FormField[$Placeholder])) {
                                             $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$Placeholder];
@@ -1118,7 +1126,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                         = (new $Field($dataFieldName, '', ''))->setDisabled();
                                                 } else {
                                                     // Arbeitsgemeinschaften beim Bemerkungsfeld
-                                                    if ($key = 'Remark') {
+                                                    if (!$hasTeamExtra && $key == 'Remark') {
                                                         if (!isset($columnTable['Team'])) {
                                                             $columnTable['Team'] = 'Arbeitsgemeinschaften';
                                                         }

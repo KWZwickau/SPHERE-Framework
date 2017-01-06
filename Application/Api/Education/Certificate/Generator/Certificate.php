@@ -483,7 +483,7 @@ abstract class Certificate extends Extension
         $isSlice = true,
         $languagesWithStartLevel = array(),
         $TextSize = '14px',
-        $IsGradeUnderlined = true
+        $IsGradeUnderlined = false
     ) {
 
         $SubjectSlice = (new Slice());
@@ -754,7 +754,7 @@ abstract class Certificate extends Extension
                     , '16%')
                 ->addElementColumn((new Element())
                     ->setContent('Fehltage entschuldigt:')
-                    ->styleBorderBottom('1px')
+//                    ->styleBorderBottom('1px')
                     ->styleAlignRight()
                     , '25%')
                 ->addElementColumn((new Element())
@@ -763,12 +763,12 @@ abstract class Certificate extends Extension
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                    ->styleBorderBottom('1px')
+//                    ->styleBorderBottom('1px')
                     ->styleAlignCenter()
                     , '10%')
                 ->addElementColumn((new Element())
                     ->setContent('unentschuldigt:')
-                    ->styleBorderBottom('1px')
+//                    ->styleBorderBottom('1px')
                     ->styleAlignRight()
                     , '25%')
                 ->addElementColumn((new Element())
@@ -777,12 +777,12 @@ abstract class Certificate extends Extension
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                    ->styleBorderBottom('1px')
+//                    ->styleBorderBottom('1px')
                     ->styleAlignCenter()
                     , '10%')
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    ->styleBorderBottom('1px')
+//                    ->styleBorderBottom('1px')
                     ->styleAlignCenter()
                     , '4%')
             )
@@ -1100,7 +1100,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    protected function getGradeLanes($TextSize = '14px', $IsGradeUnderlined = true, $MarginTop = '15px')
+    protected function getGradeLanes($TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px')
     {
 
         $GradeSlice = (new Slice());
@@ -1188,7 +1188,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    public function getProfileStandard($TextSize = '14px', $IsGradeUnderlined = true)
+    public function getProfileStandard($TextSize = '14px', $IsGradeUnderlined = false)
     {
 
         $slice = new Slice();
@@ -1220,16 +1220,36 @@ abstract class Certificate extends Extension
             }
         }
 
+        $foreignLanguageName = '&nbsp;';
+        // 3. Fremdsprache
+        if ($this->getTblPerson()
+            && ($tblStudent = $this->getTblPerson()->getStudent())
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if ($tblStudentSubject->getTblStudentSubjectRanking()
+                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '3'
+                    && ($tblSubjectForeign = $tblStudentSubject->getServiceTblSubject())
+                ) {
+                    $foreignLanguageName = $tblSubjectForeign->getName();
+                }
+            }
+        }
+
         if ($tblSubject) {
             // Todo noch richtig Klären erstmal fest für Chemnitz
-            // $SubjectAcronym = $tblSubject-getAcronym();
+            // $SubjectAcronym = str_replace(' ', '', $tblSubject-getAcronym());
             $SubjectAcronym = 'PRO';
 
             $elementName = (new Element())
                 // Profilname aus der Schülerakte
+                // bei einem Leerzeichen im Acronymn stürzt das TWIG ab
                 ->setContent('
-                   {% if(Content.Student.Profile.' . $tblSubject->getAcronym() . ' is not empty) %}
-                       {{ Content.Student.Profile.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                   {% if(Content.Student.Profile.' . str_replace(' ', '', $tblSubject->getAcronym()) . ' is not empty) %}
+                       {{ Content.Student.Profile.' . str_replace(' ', '', $tblSubject->getAcronym()) . '.Name' . ' }}
                    {% else %}
                         &nbsp;
                    {% endif %}
@@ -1303,7 +1323,6 @@ abstract class Certificate extends Extension
             ->addElementColumn((new Element()), '48%');
         $sectionList[] = $section;
 
-        // Todo sprachliches Profil
         $section = new Section();
         $section
             ->addElementColumn((new Element())
@@ -1319,7 +1338,7 @@ abstract class Certificate extends Extension
                 , '4%')
             ->addElementColumn((new Element())
                 ->styleMarginTop('5px')
-                ->setContent('&nbsp;')
+                ->setContent($foreignLanguageName)
                 ->styleBorderBottom()
                 , '48%');
         $sectionList[] = $section;
@@ -1345,7 +1364,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    public function getOrientationStandard($TextSize = '14px', $IsGradeUnderlined = true)
+    public function getOrientationStandard($TextSize = '14px', $IsGradeUnderlined = false)
     {
 
         $marginTop = '5px';
@@ -1377,8 +1396,8 @@ abstract class Certificate extends Extension
                     $elementOrientationName = new Element();
                     $elementOrientationName
                         ->setContent('
-                            {% if(Content.Student.Orientation.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                 {{ Content.Student.Orientation.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% if(Content.Student.Orientation.' . str_replace(' ', '', $tblSubject->getAcronym()) . ' is not empty) %}
+                                 {{ Content.Student.Orientation.' . str_replace(' ', '', $tblSubject->getAcronym()) . '.Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
@@ -1471,12 +1490,12 @@ abstract class Certificate extends Extension
                 $section = new Section();
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('<u>Neigungskurs (Neigungskursbereich)</u> / 2. Fremdsprache (abschlussorientiert)' )
+                        ->setContent('<u>Neigungskurs (Neigungskursbereich)</u> / 2. Fremdsprache (abschlussorientiert)')
                         ->styleBorderTop()
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
-                    , '89%')
+                        , '89%')
                     ->addElementColumn((new Element()), '11%');
                 $sectionList[] = $section;
             } elseif ($elementForeignLanguageName) {
@@ -1489,7 +1508,7 @@ abstract class Certificate extends Extension
                 $section = new Section();
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('Neigungskurs (Neigungskursbereich) / <u>2. Fremdsprache (abschlussorientiert)</u>' )
+                        ->setContent('Neigungskurs (Neigungskursbereich) / <u>2. Fremdsprache (abschlussorientiert)</u>')
                         ->styleBorderTop()
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
@@ -1499,8 +1518,7 @@ abstract class Certificate extends Extension
                 $sectionList[] = $section;
             } else {
                 $elementName = (new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
+                    ->setContent('---')
                     ->styleBorderBottom()
                     ->styleMarginTop($marginTop)
                     ->styleTextSize($TextSize);
@@ -1747,7 +1765,7 @@ abstract class Certificate extends Extension
                         ->setContent($Subject['SubjectName'] . ':')
                         ->styleTextColor($TextColor)
                         ->stylePaddingTop()
-                        ->styleMarginTop($count == 1 ? $MarginTop :'7px')
+                        ->styleMarginTop($count == 1 ? $MarginTop : '7px')
                         ->styleTextSize($TextSize)
                         , $widthText);
 
@@ -1763,7 +1781,7 @@ abstract class Certificate extends Extension
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
                         ->stylePaddingTop('3px')
                         ->stylePaddingBottom('3px')
-                        ->styleMarginTop($count == 1 ? $MarginTop :'7px')
+                        ->styleMarginTop($count == 1 ? $MarginTop : '7px')
                         ->styleTextSize($TextSize)
                         , $widthGrade);
                 }

@@ -60,7 +60,7 @@ class GymHjInfo extends Certificate
                 ->addSlice($this->getCertificateHead('Halbjahresinformation des Gymnasiums'))
                 ->addSlice($this->getDivisionAndYear('20px', '1. Schulhalbjahr'))
                 ->addSlice($this->getStudentName())
-                ->addSlice( $this->getGradeLanes() )
+                ->addSlice($this->getGradeLanes())
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('Leistungen in den einzelnen Fächern:')
@@ -68,14 +68,14 @@ class GymHjInfo extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes(true, array('Lane' => 1, 'Rank' => 3)))
+                ->addSlice($this->getSubjectLanes(true, array('Lane' => 1, 'Rank' => 3))->styleHeight('270px'))
                 ->addSlice($this->getProfileStandard())
                 ->addSlice($this->getDescriptionHead(true))
                 ->addSlice($this->getDescriptionContent('95px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice($this->getSignPart(false))
                 ->addSlice($this->getParentSign())
-                ->addSlice($this->getInfo('10px',
+                ->addSlice($this->getInfo('20px',
                     'Notenerläuterung:',
                     '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)' //,

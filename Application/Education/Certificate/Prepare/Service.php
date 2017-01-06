@@ -648,12 +648,19 @@ class Service extends AbstractService
                     }
                 }
 
+                // Streichung leeres Bemerkungsfeld
+                if ($remark == ''){
+                    $remark = '---';
+                }
+
                 if ($team || $remark) {
                     if ($team) {
                         $remark = $team . " \n " . $remark;
                     }
-                    $Content['Input']['Remark'] = $remark;
                 }
+                $Content['Input']['Remark'] = $remark;
+            } else {
+                $Content['Input']['Remark'] = '---';
             }
 
             // Klassenlehrer
@@ -813,7 +820,7 @@ class Service extends AbstractService
                     /** @var TblStudentSubject $tblStudentSubject */
                     $tblStudentSubject = current($tblStudentSubjectList);
                     if (($tblSubjectOrientation = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Orientation'][$tblSubjectOrientation->getAcronym()]['Name'] = $tblSubjectOrientation->getName();
+                        $Content['Student']['Orientation'][str_replace(' ', '', $tblSubjectOrientation->getAcronym())]['Name'] = $tblSubjectOrientation->getName();
                     }
                 }
 
@@ -828,7 +835,7 @@ class Service extends AbstractService
                             && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
                             && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
                         ) {
-                            $Content['Student']['ForeignLanguage'][$tblSubjectForeignLanguage->getAcronym()]['Name'] = $tblSubjectForeignLanguage->getName();
+                            $Content['Student']['ForeignLanguage'][str_replace(' ', '', $tblSubjectForeignLanguage->getAcronym())]['Name'] = $tblSubjectForeignLanguage->getName();
                         }
                     }
                 }
@@ -841,7 +848,7 @@ class Service extends AbstractService
                     /** @var TblStudentSubject $tblStudentSubject */
                     $tblStudentSubject = current($tblStudentSubjectList);
                     if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
+                        $Content['Student']['Profile'][str_replace(' ', '', $tblSubjectProfile->getAcronym())]['Name']
                             = str_replace('Profil', '', $tblSubjectProfile->getName());
                     }
                 }
