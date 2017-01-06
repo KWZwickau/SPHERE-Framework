@@ -805,16 +805,14 @@ abstract class Certificate extends Extension
     public function getDescriptionContent($Height = '150px', $MarginTop = '0px')
     {
         $DescriptionSlice = (new Slice());
-        $DescriptionSlice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('{% if(Content.Input.Remark is not empty) %}
-                            {{ Content.Input.Remark|nl2br }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}')
-                ->styleHeight($Height)
-                ->styleMarginTop($MarginTop)
-            )
+        $DescriptionSlice->addElement(( new Element() )
+            ->setContent('{% if(Content.Input.Remark is not empty) %}
+                        {{ Content.Input.Remark|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+            ->styleHeight($Height)
+            ->styleMarginTop($MarginTop)
         );
         return $DescriptionSlice;
     }
