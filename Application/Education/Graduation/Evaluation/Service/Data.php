@@ -326,23 +326,50 @@ class Data extends AbstractData
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+        $Entity = null;
+        if ($tblTask && $tblGradeType) {
+            if ($tblSubjectGroup === null) {
+                $Entity = $Entity = $Manager->getEntity('TblTest')
+                    ->findOneBy(
+                        array(
+                            TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                        )
+                    );
+            } else {
+                $Entity = $Entity = $Manager->getEntity('TblTest')
+                    ->findOneBy(
+                        array(
+                            TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                        )
+                    );
+            }
+        }
 
-        $Entity = new TblTest();
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblSubject($tblSubject);
-        $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
-        $Entity->setServiceTblPeriod($tblPeriod);
-        $Entity->setServiceTblGradeType($tblGradeType);
-        $Entity->setTblTestType($tblTestType);
-        $Entity->setTblTask($tblTask);
-        $Entity->setDescription($Description);
-        $Entity->setDate($Date ? new \DateTime($Date) : null);
-        $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
-        $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
-        $Entity->setIsContinues($IsContinues);
+        if ($Entity === null) {
+            $Entity = new TblTest();
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+            $Entity->setServiceTblPeriod($tblPeriod);
+            $Entity->setServiceTblGradeType($tblGradeType);
+            $Entity->setTblTestType($tblTestType);
+            $Entity->setTblTask($tblTask);
+            $Entity->setDescription($Description);
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
+            $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
+            $Entity->setIsContinues($IsContinues);
 
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
 
         return $Entity;
     }
@@ -762,12 +789,12 @@ class Data extends AbstractData
                     TblTestLink::ATTR_TBL_LINK_ID => $LinkId
                 )
             );
-            if ($tblTestLinkList){
+            if ($tblTestLinkList) {
                 /** @var TblTestLink $item */
-                foreach ($tblTestLinkList as $item){
+                foreach ($tblTestLinkList as $item) {
                     if ($item->getTblTest()
                         && $item->getTblTest()->getId() != $tblTest->getId()
-                    ){
+                    ) {
                         $resultList[] = $item->getTblTest();
                     }
                 }
