@@ -24,6 +24,21 @@ abstract class Style extends Extension
     protected $Style = array();
 
     /**
+     * Custom Font-Family
+     * - MetaPro
+     *
+     * @param string $Name
+     *
+     * @return $this
+     */
+    public function styleFontFamily($Name)
+    {
+
+        $this->Style[] = "font-family: '".$Name."' !important;";
+        return $this;
+    }
+
+    /**
      * @param string $Color
      *
      * @return $this
@@ -264,6 +279,16 @@ abstract class Style extends Extension
     {
 
         $this->Style[] = 'height: '.$Height.' !important;';
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function styleTextUnderline()
+    {
+
+        $this->Style[] = 'text-decoration: underline;';
         return $this;
     }
 }
