@@ -136,21 +136,21 @@ class Data extends AbstractData
             ));
     }
 
-    /**
-     * @param TblSerialLetter   $tblSerialLetter
-     * @param TblFilterCategory $tblFilterCategory
-     *
-     * @return false|TblFilterField[]
-     */
-    public function getFilterFieldActiveAllBySerialLetter(TblSerialLetter $tblSerialLetter, TblFilterCategory $tblFilterCategory)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterField',
-            array(
-                TblFilterField::ATTR_TBL_SERIAL_LETTER   => $tblSerialLetter->getId(),
-                TblFilterField::ATTR_TBL_FILTER_CATEGORY => $tblFilterCategory->getId()
-            ));
-    }
+//    /**
+//     * @param TblSerialLetter   $tblSerialLetter
+//     * @param TblFilterCategory $tblFilterCategory
+//     *
+//     * @return false|TblFilterField[]
+//     */
+//    public function getFilterFieldActiveAllBySerialLetter(TblSerialLetter $tblSerialLetter, TblFilterCategory $tblFilterCategory)
+//    {
+//
+//        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterField',
+//            array(
+//                TblFilterField::ATTR_TBL_SERIAL_LETTER   => $tblSerialLetter->getId(),
+//                TblFilterField::ATTR_TBL_FILTER_CATEGORY => $tblFilterCategory->getId()
+//            ));
+//    }
 
     /**
      * @param $Name
@@ -292,20 +292,27 @@ class Data extends AbstractData
     /**
      * @param TblSerialLetter   $tblSerialLetter
      * @param TblFilterCategory $tblFilterCategory
-     * @param                   $FilterField
-     * @param                   $FilterValue
+     * @param string            $FilterField
+     * @param string            $FilterValue
+     * @param int               $FilterNumber
      *
      * @return TblFilterField
      */
-    public function createFilterField(TblSerialLetter $tblSerialLetter, TblFilterCategory $tblFilterCategory, $FilterField, $FilterValue)
-    {
+    public function createFilterField(
+        TblSerialLetter $tblSerialLetter,
+        TblFilterCategory $tblFilterCategory,
+        $FilterField,
+        $FilterValue,
+        $FilterNumber
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
-
         $Entity = $Manager->getEntity('TblFilterField')
             ->findOneBy(array(
                 TblFilterField::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId(),
-                TblFilterField::ATTR_FIELD             => $FilterField
+                TblFilterField::ATTR_FIELD             => $FilterField,
+//                TblFilterField::ATTR_VALUE             => $FilterValue
+                TblFilterField::ATTR_FILTER_NUMBER     => $FilterNumber
             ));
 
         /** @var TblFilterField $Entity */
@@ -315,6 +322,7 @@ class Data extends AbstractData
             $Entity->setFilterCategory($tblFilterCategory);
             $Entity->setField($FilterField);
             $Entity->setValue($FilterValue);
+            $Entity->setFilterNumber($FilterNumber);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -603,10 +611,11 @@ class Data extends AbstractData
         if (null !== $EntityList) {
             foreach ($EntityList as $Entity) {
                 Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                    $Entity);
+                    $Entity, true);
                 $Manager->bulkKillEntity($Entity);
             }
             $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
         }
 
         return true;
