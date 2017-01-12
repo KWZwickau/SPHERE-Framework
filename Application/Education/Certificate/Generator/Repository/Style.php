@@ -276,6 +276,18 @@ abstract class Style extends Extension
     }
 
     /**
+     * @param string $Height
+     *
+     * @return $this
+     */
+    public function styleLineHeight($Height = '100%')
+    {
+
+        $this->Style[] = 'line-height: '.$Height.' !important;';
+        return $this;
+    }
+
+    /**
      * @return $this
      */
     public function styleTextUnderline()
