@@ -8,13 +8,15 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Student;
 
 /**
- * Class CosHjPri
+ * Class CosHjZSek
  *
  * @package SPHERE\Application\Api\Education\Certificate\Certificate\Repository
  */
-class CosHjPri extends Certificate
+class CosHjZSek extends Certificate
 {
 
     const TEXT_SIZE = '13px';
@@ -26,7 +28,6 @@ class CosHjPri extends Certificate
      */
     public function buildCertificate($IsSample = true)
     {
-
         if ($IsSample) {
             $Header = ( new Section() )
                 ->addElementColumn(( new Element\Sample() )
@@ -61,32 +62,32 @@ class CosHjPri extends Certificate
 
         return ( new Frame() )->addDocument(( new Document() )
             ->addPage(( new Page() )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addSliceColumn((new Slice())
+//                ->addSlice($Header)
+                ->addSlice(( new Slice() )
+                    ->addSection(( new Section() )
+                        ->addSliceColumn(( new Slice() )
                             ->addSection($Header)
-                            ->addElement((new Element())
+                            ->addElement(( new Element() )
                                 ->setContent('Evangelische Schule Coswig')
                                 ->styleFontFamily('Trebuchet MS')
                                 ->styleTextSize('21px')
                                 ->styleTextBold()
                                 ->styleAlignCenter()
-                                ->styleMarginTop('35px')
-                                ->styleLineHeight('85%')
+                                ->styleMarginTop('25px')
                             )
-                            ->addElement((new Element())
+                            ->addElement(( new Element() )
                                 ->setContent('staatlich anerkannte Ersatzschule')
                                 ->styleFontFamily('Trebuchet MS')
                                 ->styleTextSize('16px')
                                 ->styleAlignCenter()
                             )
                             ->addElement(( new Element() )
-                                ->setContent('Halbjahresinformation der Schule (Primarstufe)')
+                                ->setContent('Halbjahreszeugnis der Schule (Sekundarstufe)')
                                 ->styleFontFamily('Trebuchet MS')
                                 ->styleTextSize('20px')
                                 ->styleTextBold()
                                 ->styleAlignCenter()
-                                ->styleMarginTop('35px')
+                                ->styleMarginTop('25px')
                             )
                             ->addSection(( new Section() )
                                 ->addSliceColumn(( new Slice() )
@@ -117,7 +118,7 @@ class CosHjPri extends Certificate
                                             ->styleAlignCenter()
                                             ->styleTextSize(self::TEXT_SIZE)
                                             , '10%')
-                                    )->styleMarginTop('45px')
+                                    )->styleMarginTop('15px')
                                 )
                             )
                             ->addSection(( new Section() )
@@ -136,35 +137,60 @@ class CosHjPri extends Certificate
                                             , '64%')
                                         ->addElementColumn(( new Element() )
                                             ->setContent('&nbsp;')
+                                            ->styleFontFamily('Trebuchet MS')
                                             ->styleTextSize(self::TEXT_SIZE)
                                             , '18%')
-                                    )->styleMarginTop('35px')
+                                    )->styleMarginTop('10px')
                                 )
                             )
                             ->addSection(( new Section() )
-                                ->addSliceColumn($this->getGradeLanesCoswig(self::TEXT_SIZE, false, '25px'))
+                                ->addSliceColumn(( new Slice() )
+                                    ->addSection(( new Section() )
+                                        ->addElementColumn(( new Element() )
+                                            ->setContent('
+                                {% if(Content.Student.Course.Degree is not empty) %}
+                                        nahm am Unterricht der Schulart Mittelschule mit dem Ziel des
+                                        {{ Content.Student.Course.Degree }} teil.
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}')
+                                            ->styleFontFamily('Trebuchet MS')
+                                            ->styleTextSize(self::TEXT_SIZE)
+                                            , '100%')
+                                    )->styleMarginTop('0px')
+                                )
+                            )
+                            ->addSection(( new Section() )
+                                ->addSliceColumn($this->getGradeLanesCoswig(self::TEXT_SIZE, false, '10px'))
                             )
                             ->addSection(( new Section() )
                                 ->addSliceColumn(( new Slice() )
                                     ->addElement(( new Element() )
                                         ->setContent('Leistung in den einzelnen Fächern')
                                         ->styleFontFamily('Trebuchet MS')
-                                        ->styleTextBold()
                                         ->styleTextItalic()
-                                        ->styleMarginTop('30px')
+                                        ->styleTextBold()
+                                        ->styleMarginTop('15px')
                                         ->styleTextSize(self::TEXT_SIZE)
                                     )
                                 )
                             )
                             ->addSection(( new Section() )
                                 ->addSliceColumn($this->getSubjectLanesCoswig(true, array(), self::TEXT_SIZE, false)
-                                    ->styleHeight('185px'))
+                                    ->styleHeight('248px'))
                             )
-                            ->addElement(( new Element() )
-                                ->setContent('Bemerkungen:')
-                                ->styleFontFamily('Trebuchet MS')
-                                ->styleTextItalic()
-                                ->styleTextSize(self::TEXT_SIZE)
+                            ->addSection(( new Section() )
+                                ->addSliceColumn($this->getObligationToVotePart())
+                            )
+                            ->addSection(( new Section() )
+                                ->addSliceColumn(( new Slice() )
+                                    ->addElement(( new Element() )
+                                        ->setContent('Bemerkungen:')
+                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleTextItalic()
+                                        ->styleTextSize(self::TEXT_SIZE)
+                                    )->stylePaddingTop('5px')
+                                )
                             )
                             ->addSection(( new Section() )
                                 ->addSliceColumn(( new Slice() )
@@ -179,7 +205,7 @@ class CosHjPri extends Certificate
                                             ->styleLineHeight('85%')
                                             ->styleTextSize(self::TEXT_SIZE)
                                             , '85%')
-                                    )->styleHeight('95px')
+                                    )->styleHeight('55px')
                                 )
                             )
                             ->addSection(( new Section() )
@@ -190,10 +216,10 @@ class CosHjPri extends Certificate
                                     , '22%')
                                 ->addElementColumn(( new Element() )
                                     ->setContent('{% if(Content.Input.Missing is not empty) %}
-                                            {{ Content.Input.Missing }}
-                                        {% else %}
-                                            &nbsp;
-                                        {% endif %}')
+                                    {{ Content.Input.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                                     ->styleFontFamily('Trebuchet MS')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     , '7%')
@@ -206,10 +232,10 @@ class CosHjPri extends Certificate
                                     , '15%')
                                 ->addElementColumn(( new Element() )
                                     ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
-                                            {{ Content.Input.Bad.Missing }}
-                                        {% else %}
-                                            &nbsp;
-                                        {% endif %}')
+                                    {{ Content.Input.Bad.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                                     ->styleFontFamily('Trebuchet MS')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     , '7%')
@@ -226,10 +252,10 @@ class CosHjPri extends Certificate
                                             , '7%')
                                         ->addElementColumn(( new Element() )
                                             ->setContent('{% if(Content.Input.Date is not empty) %}
-                                                {{ Content.Input.Date }}
-                                            {% else %}
-                                                &nbsp;
-                                            {% endif %}')
+                                                    {{ Content.Input.Date }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}')
                                             ->styleFontFamily('Trebuchet MS')
                                             ->styleBorderBottom()
                                             ->styleAlignCenter()
@@ -237,8 +263,7 @@ class CosHjPri extends Certificate
                                             , '20%')
                                         ->addElementColumn(( new Element() )
                                             , '56%')
-                                    )
-                                    ->styleMarginTop('30px')
+                                    )->styleMarginTop('15px')
                                 )
                             )
                             ->addSection(( new Section() )
@@ -282,16 +307,16 @@ class CosHjPri extends Certificate
                                             , '30%')
                                         ->addElementColumn(( new Element() )
                                             ->setContent('{% if(Content.DivisionTeacher.Name is not empty) %}
-                                                {{ Content.DivisionTeacher.Name }}
-                                            {% else %}
-                                                &nbsp;
-                                            {% endif %}')
+                                    {{ Content.DivisionTeacher.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                                             ->styleFontFamily('Trebuchet MS')
                                             ->styleTextSize('11px')
                                             ->stylePaddingTop('2px')
                                             , '35%')
-                                    )
-                                    ->styleMarginTop('30px')
+
+                                    )->styleMarginTop('25px')
                                 )
                             )
                             ->addSection(( new Section() )
@@ -316,23 +341,232 @@ class CosHjPri extends Certificate
                                             ->styleTextSize('11px')
                                             , '100%')
                                     )
-                                    ->styleMarginTop('30px')
+                                    ->styleMarginTop('25px')
                                 )
                             )
                             ->addSection(( new Section() )
-                                ->addElementColumn(( new Element() )
-                                    ->setContent('Notenstufen 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft, 6 = ungenügend')
-                                    ->styleFontFamily('Trebuchet MS')
-                                    ->styleTextSize('9px')
-                                    ->styleMarginTop('20px')
+                                ->addSliceColumn(( new Slice() )
+                                    ->addElement(( new Element() )
+                                        ->setContent('Notenstufen 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft, 6 = ungenügend')
+                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleTextSize('9px')
+                                        ->styleMarginTop('5px')
+                                    )
                                 )
                             )
                         )
-                    )->styleBorderAll()
+                    )
+                    ->styleBorderAll()
                     ->stylePaddingLeft('20px')
                     ->stylePaddingRight('20px')
                 )
             )
         );
+    }
+
+    /**
+     * @param string $TextSize
+     * @param bool   $IsGradeUnderlined
+     *
+     * @return Slice
+     */
+    private function getObligationToVotePart($TextSize = self::TEXT_SIZE, $IsGradeUnderlined = false)
+    {
+
+        $marginTop = '5px';
+
+        $slice = new Slice();
+        $sectionList = array();
+
+        $elementOrientationName = false;
+        $elementOrientationGrade = false;
+        $elementForeignLanguageName = false;
+        $elementForeignLanguageGrade = false;
+        if ($this->getTblPerson()
+            && ( $tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()) )
+        ) {
+
+            // Neigungskurs
+            if (( $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION') )
+                && ( $tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType) )
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                $tblStudentSubject = current($tblSubjectList);
+                if (( $tblSubject = $tblStudentSubject->getServiceTblSubject() )) {
+                    $elementOrientationName = new Element();
+                    $elementOrientationName
+                        ->setContent('
+                            {% if(Content.Student.Orientation.'.$tblSubject->getAcronym().' is not empty) %}
+                                 {{ Content.Student.Orientation.'.$tblSubject->getAcronym().'.Name'.' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->stylePaddingTop('0px')
+                        ->stylePaddingBottom('0px')
+                        ->styleMarginTop($marginTop)
+                        ->styleTextSize($TextSize);
+
+                    $elementOrientationGrade = new Element();
+                    $elementOrientationGrade
+                        ->setContent('
+                            {% if(Content.Grade.Data.'.$tblSubject->getAcronym().' is not empty) %}
+                                {{ Content.Grade.Data.'.$tblSubject->getAcronym().' }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor('#E9E9E9')
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                        ->stylePaddingTop()
+                        ->stylePaddingBottom()
+                        ->styleMarginTop($marginTop)
+                        ->styleTextSize($TextSize);
+                }
+            }
+
+            // 2. Fremdsprache
+            if (( $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE') )
+                && ( $tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType) )
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if ($tblStudentSubject->getTblStudentSubjectRanking()
+                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                        && ( $tblSubject = $tblStudentSubject->getServiceTblSubject() )
+                    ) {
+                        $elementForeignLanguageName = new Element();
+                        $elementForeignLanguageName
+                            ->setContent('
+                            {% if(Content.Student.ForeignLanguage.'.$tblSubject->getAcronym().' is not empty) %}
+                                 {{ Content.Student.ForeignLanguage.'.$tblSubject->getAcronym().'.Name'.' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleMarginTop($marginTop)
+                            ->styleTextSize($TextSize);
+
+                        $elementForeignLanguageGrade = new Element();
+                        $elementForeignLanguageGrade
+                            ->setContent('
+                            {% if(Content.Grade.Data.'.$tblSubject->getAcronym().' is not empty) %}
+                                {{ Content.Grade.Data.'.$tblSubject->getAcronym().' }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#E9E9E9')
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleMarginTop($marginTop)
+                            ->styleTextSize($TextSize);
+                    }
+                }
+            }
+
+            if ($elementOrientationName || $elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn(( new Element() )
+                        ->setContent('Wahlpflichtbereich:')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleTextItalic()
+                        ->styleTextBold()
+                        ->styleMarginTop('20px')
+                        ->styleTextSize($TextSize)
+                    );
+                $sectionList[] = $section;
+            }
+
+            if ($elementOrientationName && $elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementOrientationName, '39%')
+                    ->addElementColumn($elementOrientationGrade, '9%')
+                    ->addElementColumn(( new Element() ), '4%')
+                    ->addElementColumn($elementForeignLanguageName, '39%')
+                    ->addElementColumn($elementForeignLanguageGrade, '9%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn(( new Element() )
+                        ->setContent('Neigungskurs')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleBorderTop()
+                        ->styleMarginTop('5px')
+                        ->styleTextSize('11px')
+                        , '48%')
+                    ->addElementColumn(( new Element() ), '4%')
+                    ->addElementColumn(( new Element() )
+                        ->setContent('2. Fremdsprache (abschlussorientiert)')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleBorderTop()
+                        ->styleMarginTop('5px')
+                        ->styleTextSize('11px')
+                        , '48%'
+                    );
+                $sectionList[] = $section;
+            } elseif ($elementOrientationName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementOrientationName, '39%')
+                    ->addElementColumn($elementOrientationGrade, '9%')
+                    ->addElementColumn(( new Element() ), '52%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn(( new Element() )
+                        ->setContent('Neigungskurs')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleBorderTop()
+                        ->styleMarginTop('5px')
+                        ->styleTextSize('11px')
+                    );
+                $sectionList[] = $section;
+            } elseif ($elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementForeignLanguageName, '39%')
+                    ->addElementColumn($elementForeignLanguageGrade, '9%')
+                    ->addElementColumn(( new Element() ), '52%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn(( new Element() )
+                        ->setContent('2. Fremdsprache (abschlussorientiert)')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleBorderTop()
+                        ->styleMarginTop('5px')
+                        ->styleTextSize('11px')
+                    );
+                $sectionList[] = $section;
+            }
+        }
+
+        return empty($sectionList)
+            ? $slice->addElement(( new Element() )
+                ->setContent('&nbsp;')
+            )->styleHeight('76px')
+            : $slice->addSectionList($sectionList);
     }
 }
