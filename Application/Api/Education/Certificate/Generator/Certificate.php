@@ -473,9 +473,10 @@ abstract class Certificate extends Extension
 
     /**
      * @param bool|true $isSlice
-     * @param array $languagesWithStartLevel
-     * @param string $TextSize
-     * @param bool $IsGradeUnderlined
+     * @param array     $languagesWithStartLevel
+     * @param string    $TextSize
+     * @param bool      $IsGradeUnderlined
+     * @param string    $BoxColor
      *
      * @return Section[]|Slice
      */
@@ -483,7 +484,8 @@ abstract class Certificate extends Extension
         $isSlice = true,
         $languagesWithStartLevel = array(),
         $TextSize = '14px',
-        $IsGradeUnderlined = false
+        $IsGradeUnderlined = false,
+        $BoxColor = '#BBB'
     ) {
 
         $SubjectSlice = (new Slice());
@@ -656,7 +658,7 @@ abstract class Certificate extends Extension
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor($BoxColor)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
@@ -1098,7 +1100,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    protected function getGradeLanes($TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px')
+    protected function getGradeLanes($TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px', $BoxColor = '#BBB')
     {
 
         $GradeSlice = (new Slice());
@@ -1160,7 +1162,7 @@ abstract class Certificate extends Extension
                                          &ndash;
                                      {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor($BoxColor)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
