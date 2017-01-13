@@ -1419,7 +1419,7 @@ class Data extends AbstractData
                         // Begrenzung des Bemerkungsfelds
                         $FieldName = 'Remark';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                            $this->createCertificateField($tblCertificate, $FieldName, 800);
+                            $this->createCertificateField($tblCertificate, $FieldName, 600);
                         }
                     }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
@@ -1459,7 +1459,7 @@ class Data extends AbstractData
                         // Begrenzung des Bemerkungsfelds
                         $FieldName = 'Remark';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                            $this->createCertificateField($tblCertificate, $FieldName, 800);
+                            $this->createCertificateField($tblCertificate, $FieldName, 600);
                         }
                     }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
@@ -2265,8 +2265,12 @@ class Data extends AbstractData
 
         if ($tblCertificateField) {
             // 1 Zeile (100 Zeichen) für Arbeitsgemeinschaften abziehen
-            $count = $tblCertificateField->getCharCount();
-            return  $count > 100 ? $count - 100 : $count;
+            if ($FieldName == 'Remark'){
+                $count = $tblCertificateField->getCharCount();
+                return  $count > 100 ? $count - 100 : $count;
+            } else {
+                return $tblCertificateField->getCharCount();
+            }
         }
 
         return false;

@@ -662,7 +662,7 @@ abstract class Certificate extends Extension
                             '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  4px
                              {% else %}
-                                 0px
+                                 2px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
@@ -1928,12 +1928,13 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param string $TextColor
      * @param string $TextSize
+     * @param string $GradeFieldBackgroundColor
      * @param bool $IsGradeUnderlined
      * @param string $MarginTop
-     * @param string $TextColor
      * @param int $GradeFieldWidth
-     * @param string $GradeFieldBackgroundColor
+     * @param string $fontFamily
      *
      * @return Slice
      */
@@ -1942,8 +1943,9 @@ abstract class Certificate extends Extension
         $TextSize = '13px',
         $GradeFieldBackgroundColor = 'rgb(224,226,231)',
         $IsGradeUnderlined = false,
-        $MarginTop = '15px',
-        $GradeFieldWidth = 28
+        $MarginTop = '20px',
+        $GradeFieldWidth = 28,
+        $fontFamily = 'MetaPro'
     ) {
 
         $widthText = (50 - $GradeFieldWidth - 4) . '%';
@@ -1999,8 +2001,9 @@ abstract class Certificate extends Extension
                         ->setContent($Grade['GradeName'] . ':')
                         ->styleTextColor($TextColor)
                         ->stylePaddingTop()
-                        ->styleMarginTop('7px')
+                        ->styleMarginTop('4px')
                         ->styleTextSize($TextSize)
+                        ->styleFontFamily($fontFamily)
                         , $widthText);
                     $GradeSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
@@ -2012,10 +2015,11 @@ abstract class Certificate extends Extension
                         ->styleAlignCenter()
                         ->styleBackgroundColor($GradeFieldBackgroundColor)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
-                        ->stylePaddingTop('3px')
-                        ->stylePaddingBottom('3px')
-                        ->styleMarginTop('7px')
+                        ->stylePaddingTop('-4px')
+                        ->stylePaddingBottom('2px')
+                        ->styleMarginTop('8px')
                         ->styleTextSize($TextSize)
+                        ->styleFontFamily($fontFamily)
                         , $widthGrade);
                 }
 
@@ -2037,6 +2041,7 @@ abstract class Certificate extends Extension
      * @param bool $IsGradeUnderlined
      * @param string $MarginTop
      * @param int $GradeFieldWidth
+     * @param string $fontFamily
      *
      * @return Slice
      */
@@ -2045,8 +2050,9 @@ abstract class Certificate extends Extension
         $TextSize = '13px',
         $GradeFieldBackgroundColor = 'rgb(224,226,231)',
         $IsGradeUnderlined = false,
-        $MarginTop = '15px',
-        $GradeFieldWidth = 28
+        $MarginTop = '8px',
+        $GradeFieldWidth = 28,
+        $fontFamily = 'MetaPro'
     ) {
 
         $widthText = (50 - $GradeFieldWidth - 4) . '%';
@@ -2136,8 +2142,9 @@ abstract class Certificate extends Extension
                         ->setContent($Subject['SubjectName'] . ':')
                         ->styleTextColor($TextColor)
                         ->stylePaddingTop()
-                        ->styleMarginTop($count == 1 ? $MarginTop : '7px')
+                        ->styleMarginTop($count == 1 ? $MarginTop : '4px')
                         ->styleTextSize($TextSize)
+                        ->styleFontFamily($fontFamily)
                         , $widthText);
 
                     $SubjectSection->addElementColumn((new Element())
@@ -2150,10 +2157,11 @@ abstract class Certificate extends Extension
                         ->styleAlignCenter()
                         ->styleBackgroundColor($GradeFieldBackgroundColor)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
-                        ->stylePaddingTop('3px')
-                        ->stylePaddingBottom('3px')
-                        ->styleMarginTop($count == 1 ? $MarginTop : '7px')
+                        ->stylePaddingTop('-4px')
+                        ->stylePaddingBottom('2px')
+                        ->styleMarginTop($count == 1 ? '14px' : '8px')
                         ->styleTextSize($TextSize)
+                        ->styleFontFamily($fontFamily)
                         , $widthGrade);
                 }
 
