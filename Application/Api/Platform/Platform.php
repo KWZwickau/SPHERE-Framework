@@ -19,6 +19,6 @@ class Platform implements IApplicationInterface
 
         Database::registerModule();
         Gatekeeper::registerModule();
-        ApiUserGroup::registerApi();
+//        ApiUserGroup::registerApi();
     }
 }

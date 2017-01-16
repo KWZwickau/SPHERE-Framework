@@ -23,7 +23,7 @@ class Authorization implements IApplicationInterface
 
         Token::registerModule();
         Account::registerModule();
-        Group::registerModule();
+//        Group::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Benutzerverwaltung'), new Link\Icon(new Person()))

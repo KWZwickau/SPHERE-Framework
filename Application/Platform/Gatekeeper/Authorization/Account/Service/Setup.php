@@ -33,9 +33,9 @@ class Setup extends AbstractSetup
         $this->setTableAuthentication($Schema, $tblAccount, $tblIdentification);
         $this->setTableUser($Schema, $tblAccount);
         $this->setTableSetting($Schema, $tblAccount);
-        $tblGroup = $this->setTableGroup($Schema);
-        $this->setTableGroupRole($Schema, $tblGroup);
-        $this->setTableGroupAccount($Schema, $tblGroup, $tblAccount);
+//        $tblGroup = $this->setTableGroup($Schema);
+//        $this->setTableGroupRole($Schema, $tblGroup);
+//        $this->setTableGroupAccount($Schema, $tblGroup, $tblAccount);
         /**
          * Migration & Protocol
          */
