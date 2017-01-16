@@ -271,6 +271,47 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface|null $Stage
+     * @param TblList             $tblList
+     * @param TblListElementList  $tblListElementList
+     * @param string              $ElementName
+     *
+     * @return IFormInterface|string
+     */
+    public function updateListElementList(IFormInterface $Stage = null, TblList $tblList, TblListElementList $tblListElementList, $ElementName)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ElementName) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ElementName) && empty($ElementName)) {
+            $Stage->setError('ElementName', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$tblListElementList) {
+            return new Danger(new Ban().' Listenelement nicht gefunden')
+                .new Redirect('/Reporting/CheckList/Element/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblList->getId()));
+        }
+
+        if (!$Error) {
+            if (( new Data($this->getBinding()) )->updateListElementList($tblListElementList, $ElementName)) {
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Das Check-Listen Element ist erfolgreich gespeichert worden')
+                    .new Redirect('/Reporting/CheckList/Element/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblList->getId()));
+            } else {
+                return new Danger('Das Check-Listen Element konnte nicht gespeichert werden.');
+            }
+        }
+
+        return $Stage;
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblList

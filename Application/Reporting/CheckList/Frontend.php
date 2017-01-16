@@ -337,21 +337,23 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblListElementListByList) {
                     foreach ($tblListElementListByList as &$tblListElementList) {
                         $count++;
-                        $contentTable[] = array(
-                            'Number' => ( $tblListElementList->getSortOrder() != ''
-                                ? $tblListElementList->getSortOrder()
-                                : $count
-                            ),
-                            'Named'  => new PullClear(
-                                new PullLeft(new ResizeVertical().' '.$tblListElementList->getName())
-                            ),
-                            'Type'   => $tblListElementList->getTblElementType()->getName(),
-                            'Option' => (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                                '/Reporting/CheckList/Element/Remove',
-                                new Minus(), array(
+                        $Item['Number'] = ( $tblListElementList->getSortOrder() != ''
+                            ? $tblListElementList->getSortOrder()
+                            : $count );
+                        $Item['Named'] = new PullClear(
+                            new PullLeft(new ResizeVertical().' '.$tblListElementList->getName()));
+                        $Item['Type'] = $tblListElementList->getTblElementType()->getName();
+                        $Item['Option'] = new Standard('', '/Reporting/CheckList/Element/Edit', new Edit(),
+                                array(
+                                    'Id'        => $tblList->getId(),
+                                    'ElementId' => $tblListElementList->getId()
+                                )).
+                            new Standard('', '/Reporting/CheckList/Element/Remove', new Remove(),
+                                array(
                                     'Id' => $tblListElementList->getId()
-                                )))->__toString()
-                        );
+                                ));
+
+                        array_push($contentTable, $Item);
                     }
                 }
 
@@ -431,6 +433,68 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
             ))
         )));
+    }
+
+    /**
+     * @param null $Id
+     * @param null $ElementId
+     * @param null $ElementName
+     *
+     * @return Stage|string
+     */
+    public function frontendListElementEdit($Id = null, $ElementId = null, $ElementName = null)
+    {
+
+        $Stage = new Stage('Name des Elements', 'bearbeiten');
+        $tblList = ( $Id !== null ? CheckList::useService()->getListById($Id) : false );
+        if (!$tblList) {
+            $Stage->setContent(new Warning('Check-Liste nicht gefunden!'));
+            return $Stage.new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+        $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList/Element/Select', new ChevronLeft(), array('Id' => $tblList->getId())));
+        $tblListElementList = ( $ElementId !== null ? CheckList::useService()->getListElementListById($ElementId) : false );
+        if (!$tblListElementList) {
+            $Stage->setContent(new Warning('Check-Listen Element nicht gefunden!'));
+            return $Stage.new Redirect('/Reporting/CheckList/Element/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblList->getId()));
+        }
+        if ($ElementName === null) {
+            $Global = $this->getGlobal();
+            $Global->POST['ElementName'] = $tblListElementList->getName();
+            $Global->savePost();
+        }
+
+        $Form = new Form(new FormGroup(new FormRow(new FormColumn(
+            new TextField('ElementName', 'Name', 'Name')
+        ))));
+        $Form->appendFormButton(new Primary('Speichern', new Save()));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Check-Liste', new Bold($tblList->getName()).
+                                ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
+                                Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Element', $tblListElementList->getName(), Panel::PANEL_TYPE_SUCCESS)
+                            , 4)
+                    ))
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            CheckList::useService()->updateListElementList($Form, $tblList, $tblListElementList, $ElementName)
+                        ))
+                    )
+                    , new Title(new Edit().' Bearbeiten'))
+            ))
+        );
+
+        return $Stage;
     }
 
     /**
