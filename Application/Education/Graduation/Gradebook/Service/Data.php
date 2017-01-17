@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -480,19 +481,22 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblGradeType $tblGradeType
-     * @return false|TblGrade[]
+     *
+     * @return false|Entity\TblGrade[]
      */
-    public function getGradesByGradeType(TblPerson $tblPerson, TblSubject $tblSubject, TblGradeType $tblGradeType)
+    public function getGradesByGradeType(TblPerson $tblPerson, TblDivision $tblDivision, TblSubject $tblSubject, TblGradeType $tblGradeType)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblGrade', array(
                 TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
                 TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
                 TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
-            ));
+            ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
     }
 
     /**
