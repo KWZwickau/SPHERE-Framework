@@ -457,6 +457,70 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @return Form
+     */
+    public function formPersonDisabled()
+    {
+
+        $tblGroupList = Group::useService()->getGroupAllSorted();
+        if ($tblGroupList) {
+            // Create CheckBoxes
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblGroupList, function (TblGroup &$tblGroup) {
+
+                switch (strtoupper($tblGroup->getMetaTable())) {
+                    case 'COMMON':
+                        $Global = $this->getGlobal();
+                        $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
+                        $Global->savePost();
+                        $tblGroup = ( new RadioBox(
+                            'Person[Group]['.$tblGroup->getId().']',
+                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getId()
+                        ) )->setDisabled();
+                        break;
+                    default:
+                        $tblGroup = ( new CheckBox(
+                            'Person[Group]['.$tblGroup->getId().']',
+                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getId()
+                        ) )->setDisabled();
+                }
+            });
+        } else {
+            $tblGroupList = array(new Warning('Keine Gruppen vorhanden'));
+        }
+
+        $tblSalutationAll = Person::useService()->getSalutationAll();
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Anrede', array(
+                            ( new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
+                                new Conversation()) )->setDisabled(),
+                            ( new AutoCompleter('Person[Title]', 'Titel', '', array('Dipl.- Ing.'),
+                                new Conversation()) )->setDisabled(),
+                        ), Panel::PANEL_TYPE_INFO), 2),
+                    new FormColumn(
+                        new Panel('Vorname', array(
+                            ( new TextField('Person[FirstName]', '', 'Vorname') )->setDisabled(),
+                            ( new TextField('Person[SecondName]', '', 'Zweiter Vorname') )->setDisabled(),
+                        ), Panel::PANEL_TYPE_INFO), 3),
+                    new FormColumn(
+                        new Panel('Nachname', array(
+                            ( new TextField('Person[LastName]', '', 'Nachname') )->setDisabled(),
+                            ( new TextField('Person[BirthName]', '', 'Geburtsname') )->setDisabled(),
+                        ), Panel::PANEL_TYPE_INFO), 3),
+                    new FormColumn(
+                        new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),
+                ))
+            ))
+        );
+    }
+
+    /**
      * @param $Id
      * @param bool|false $Confirm
      * @param null $Group
