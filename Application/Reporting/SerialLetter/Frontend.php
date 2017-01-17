@@ -611,7 +611,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblSerialLetter != null) {
             $FormGroup[] = new FormGroup(new FormRow(new FormColumn(
-                new InfoMessage('Filter können über das leeren der Gruppe entfernt werden -[Nicht ausgewählt]-')
+                new InfoMessage('Filter können über das leeren der Gruppe entfernt werden "-[Nicht ausgewählt]-"')
             )));
             $tblFilterFieldList = SerialLetter::useService()->getFilterFieldAllBySerialLetter($tblSerialLetter);
             if ($tblFilterFieldList) {
@@ -620,7 +620,7 @@ class Frontend extends Extension implements IFrontendInterface
                     // found Filter
                     $FormGroup[] = new FormGroup(new FormRow(array(
                             new FormColumn(
-                                new SelectBox('FilterGroup['.$tblFilterField->getFilterNumber().']['.$tblFilterField->getField().']',
+                                new SelectBox('FilterGroup['.$tblFilterField->getField().']['.$tblFilterField->getFilterNumber().']',
                                     'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
                                 , 3),
                         ))
@@ -632,7 +632,7 @@ class Frontend extends Extension implements IFrontendInterface
             // new Filter
             $FormGroup[] = new FormGroup(new FormRow(array(
                 new FormColumn(
-                    new SelectBox('FilterGroup[][TblGroup_Id]',
+                    new SelectBox('FilterGroup[TblGroup_Id][]',
                         'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
                     , 3),
             )));
@@ -640,7 +640,7 @@ class Frontend extends Extension implements IFrontendInterface
             // first Filter
             $FormGroup[] = new FormGroup(new FormRow(array(
                 new FormColumn(
-                    new SelectBox('FilterGroup[0][TblGroup_Id]',
+                    new SelectBox('FilterGroup[TblGroup_Id][0]',
                         'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
                     , 3),
             )));
@@ -692,18 +692,18 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormGroup[] = new FormGroup(array(
                             new FormRow(array(
                                 new FormColumn(
-                                    new SelectBox('FilterGroup['.$FilterNumber.'][TblGroup_Id]', 'Gruppe: Name', array('Name' => $GroupList))
+                                    new SelectBox('FilterGroup[TblGroup_Id]['.$FilterNumber.']', 'Gruppe: Name', array('Name' => $GroupList))
                                     , 3),
                                 new FormColumn(
-                                    new SelectBox('FilterYear['.$FilterNumber.'][TblYear_Id]', 'Bildung: Schuljahr',
+                                    new SelectBox('FilterYear[TblYear_Id]['.$FilterNumber.']', 'Bildung: Schuljahr',
                                         array('{{Name}} {{Description}}' => Term::useService()->getYearAll()))
                                     , 3),
                                 new FormColumn(
-                                    new SelectBox('FilterLevel['.$FilterNumber.'][TblLevel_Id]', 'Klasse: Stufe',
+                                    new SelectBox('FilterStudent[TblLevel_Id]['.$FilterNumber.']', 'Klasse: Stufe',
                                         array('{{ Name }} {{ serviceTblType.Name }}' => $LevelList))
                                     , 3),
                                 new FormColumn(
-                                    new AutoCompleter('FilterDivision['.$FilterNumber.'][TblDivision_Name]', 'Klasse: Gruppe', '',
+                                    new AutoCompleter('FilterStudent[TblDivision_Name]['.$FilterNumber.']', 'Klasse: Gruppe', '',
                                         array('Name' => Division::useService()->getDivisionAll()))
                                     , 3),
                             ))
@@ -730,18 +730,18 @@ class Frontend extends Extension implements IFrontendInterface
             $FormGroup[] = new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('FilterGroup[][TblGroup_Id]', 'Gruppe: Name', array('Name' => $GroupList))
+                        new SelectBox('FilterGroup[TblGroup_Id][]', 'Gruppe: Name', array('Name' => $GroupList))
                         , 3),
                     new FormColumn(
-                        new SelectBox('FilterYear[][TblYear_Id]', 'Bildung: Schuljahr',
+                        new SelectBox('FilterYear[TblYear_Id][]', 'Bildung: Schuljahr',
                             array('{{Name}} {{Description}}' => Term::useService()->getYearAll()))
                         , 3),
                     new FormColumn(
-                        new SelectBox('FilterLevel[][TblLevel_Id]', 'Klasse: Stufe',
+                        new SelectBox('FilterStudent[TblLevel_Id][]', 'Klasse: Stufe',
                             array('{{ Name }} {{ serviceTblType.Name }}' => $LevelList))
                         , 3),
                     new FormColumn(
-                        new AutoCompleter('FilterDivision[][TblDivision_Name]', 'Klasse: Gruppe', '',
+                        new AutoCompleter('FilterStudent[TblDivision_Name][]', 'Klasse: Gruppe', '',
                             array('Name' => Division::useService()->getDivisionAll()))
                         , 3),
                 ))
@@ -751,27 +751,27 @@ class Frontend extends Extension implements IFrontendInterface
             $FormGroup[] = new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('FilterGroup[0][TblGroup_Id]', 'Gruppe: Name', array('Name' => $GroupList))
+                        new SelectBox('FilterGroup[TblGroup_Id][0]', 'Gruppe: Name', array('Name' => $GroupList))
                         , 3),
                     new FormColumn(
-                        new SelectBox('FilterYear[0][TblYear_Id]', 'Bildung: Schuljahr',
+                        new SelectBox('FilterYear[TblYear_Id][0]', 'Bildung: Schuljahr',
                             array('{{Name}} {{Description}}' => Term::useService()->getYearAll()))
                         , 3),
                     new FormColumn(
-                        new SelectBox('FilterLevel[0][TblLevel_Id]', 'Klasse: Stufe',
+                        new SelectBox('FilterStudent[TblLevel_Id][0]', 'Klasse: Stufe',
                             array('{{ Name }} {{ serviceTblType.Name }}' => $LevelList))
                         , 3),
                     new FormColumn(
-                        new AutoCompleter('FilterDivision[0][TblDivision_Name]', 'Klasse: Gruppe', '',
+                        new AutoCompleter('FilterStudent[TblDivision_Name][0]', 'Klasse: Gruppe', '',
                             array('Name' => Division::useService()->getDivisionAll()))
                         , 3),
                 ))
             ));
             // POST StandardGroup (first Visit)
             $Global = $this->getGlobal();
-            if (!isset($Global->POST['FilterGroup'][0]['TblGroup_Id'])) {
-                if (!isset($Global->POST['FilterGroup'][0]['TblGroup_Id'])) {
-                    $Global->POST['FilterGroup'][0]['TblGroup_Id'] = $tblGroup->getId();
+            if (!isset($Global->POST['FilterGroup']['TblGroup_Id'][0])) {
+                if (!isset($Global->POST['FilterGroup']['TblGroup_Id'][0])) {
+                    $Global->POST['FilterGroup']['TblGroup_Id'][0] = $tblGroup->getId();
                 }
                 $Global->savePost();
             }
@@ -815,7 +815,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormGroup[] = new FormGroup(array(
                             new FormRow(array(
                                 new FormColumn(
-                                    new SelectBox('FilterGroup['.$FilterNumber.'][TblGroup_Id]', 'Gruppe: Name', array('Name' => $GroupList))
+                                    new SelectBox('FilterGroup[TblGroup_Id]['.$FilterNumber.']', 'Gruppe: Name', array('Name' => $GroupList))
                                     , 3),
                                 new FormColumn(
                                     new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear]['.$FilterNumber.']', 'Interessent: Schuljahr',
@@ -848,7 +848,7 @@ class Frontend extends Extension implements IFrontendInterface
             $FormGroup[] = new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('FilterGroup[][TblGroup_Id]', 'Gruppe: Name', array('Name' => $GroupList))
+                        new SelectBox('FilterGroup[TblGroup_Id][]', 'Gruppe: Name', array('Name' => $GroupList))
                         , 3),
                     new FormColumn(
                         new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear][]', 'Interessent: Schuljahr',
@@ -869,7 +869,7 @@ class Frontend extends Extension implements IFrontendInterface
             $FormGroup[] = new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('FilterGroup[0][TblGroup_Id]', 'Gruppe: Name', array('Name' => $GroupList))
+                        new SelectBox('FilterGroup[TblGroup_Id][0]', 'Gruppe: Name', array('Name' => $GroupList))
                         , 3),
                     new FormColumn(
                         new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear][0]', 'Interessent: Schuljahr',
@@ -887,9 +887,9 @@ class Frontend extends Extension implements IFrontendInterface
             ));
             // POST StandardGroup (first Visit)
             $Global = $this->getGlobal();
-            if (!isset($Global->POST['FilterGroup'][0]['TblGroup_Id'])) {
-                $Global->POST['FilterGroup'][0]['TblGroup_Id'] = $tblGroup->getId();
-                $Global->savePost();;
+            if (!isset($Global->POST['FilterGroup']['TblGroup_Id'][0])) {
+                $Global->POST['FilterGroup']['TblGroup_Id'][0] = $tblGroup->getId();
+                $Global->savePost();
             }
         }
 
@@ -929,7 +929,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormGroup[] = new FormGroup(array(
                             new FormRow(array(
                                 new FormColumn(
-                                    new SelectBox('FilterGroup['.$FilterNumber.'][TblGroup_Id]', 'Gruppe: Name', array('Name' => $tblGroupList))
+                                    new SelectBox('FilterGroup[TblGroup_Id]['.$FilterNumber.']', 'Gruppe: Name', array('Name' => $tblGroupList))
                                     , 3),
                                 new FormColumn(
                                     new AutoCompleter('FilterCompany[TblCompany_Name]['.$FilterNumber.']', 'Firma: Name', '',
@@ -940,7 +940,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('ExtendedName' => Company::useService()->getCompanyAll()))
                                     , 3),
                                 new FormColumn(
-                                    new SelectBox('FilterRelationship['.$FilterNumber.'][TblType_Id]', 'Beziehung: Typ', array('Name' => $TypeList))
+                                    new SelectBox('FilterRelationship[TblType_Id]['.$FilterNumber.']', 'Beziehung: Typ', array('Name' => $TypeList))
                                     , 3),
                             ))
                         ));
@@ -951,7 +951,7 @@ class Frontend extends Extension implements IFrontendInterface
             $FormGroup[] = new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('FilterGroup[][TblGroup_Id]', 'Gruppe: Name', array('Name' => $tblGroupList))
+                        new SelectBox('FilterGroup[TblGroup_Id][]', 'Gruppe: Name', array('Name' => $tblGroupList))
                         , 3),
                     new FormColumn(
                         new AutoCompleter('FilterCompany[TblCompany_Name][]', 'Firma: Name', '',
@@ -962,7 +962,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('ExtendedName' => Company::useService()->getCompanyAll()))
                         , 3),
                     new FormColumn(
-                        new SelectBox('FilterRelationship[][TblType_Id]', 'Beziehung: Typ', array('Name' => $TypeList))
+                        new SelectBox('FilterRelationship[TblType_Id][]', 'Beziehung: Typ', array('Name' => $TypeList))
                         , 3),
                 ))
             ));
@@ -971,7 +971,7 @@ class Frontend extends Extension implements IFrontendInterface
             $FormGroup[] = new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('FilterGroup[0][TblGroup_Id]', 'Gruppe: Name', array('Name' => $tblGroupList))
+                        new SelectBox('FilterGroup[TblGroup_Id][0]', 'Gruppe: Name', array('Name' => $tblGroupList))
                         , 3),
                     new FormColumn(
                         new AutoCompleter('FilterCompany[TblCompany_Name][0]', 'Firma: Name', '',
@@ -982,16 +982,16 @@ class Frontend extends Extension implements IFrontendInterface
                             array('ExtendedName' => Company::useService()->getCompanyAll()))
                         , 3),
                     new FormColumn(
-                        new SelectBox('FilterRelationship[0][TblType_Id]', 'Beziehung: Typ', array('Name' => $TypeList))
+                        new SelectBox('FilterRelationship[TblType_Id][0]', 'Beziehung: Typ', array('Name' => $TypeList))
                         , 3),
                 ))
             ));
             // POST StandardGroup (first Visit)
             $Global = $this->getGlobal();
-            if (!isset($Global->POST['FilterGroup'][0]['TblGroup_Id'])) {
-                $Global->POST['FilterGroup'][0]['TblGroup_Id'] = $tblGroup->getId();
+            if (!isset($Global->POST['FilterGroup']['TblGroup_Id'][0])) {
+                $Global->POST['FilterGroup']['TblGroup_Id'][0] = $tblGroup->getId();
             }
-            $Global->savePost();;
+            $Global->savePost();
         }
 
         return new Form(
@@ -1005,8 +1005,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null   $SerialLetter
      * @param string $TabActive
      * @param null   $FilterGroup
-     * @param null   $FilterLevel
-     * @param null   $FilterDivision
+     * @param null   $FilterStudent
      * @param null   $FilterYear
      * @param null   $FilterProspect
      * @param null   $FilterCompany
@@ -1020,8 +1019,7 @@ class Frontend extends Extension implements IFrontendInterface
         $SerialLetter = null,
         $TabActive = null,
         $FilterGroup = null,
-        $FilterLevel = null,
-        $FilterDivision = null,
+        $FilterStudent = null,
         $FilterYear = null,
         $FilterProspect = null,
         $FilterCompany = null,
@@ -1081,38 +1079,41 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Global = $this->getGlobal();
         // Post FilterField
-        if ($FilterGroup === null && $FilterLevel === null && $FilterDivision === null && $FilterYear === null
+        if ($FilterGroup === null && $FilterStudent === null && $FilterYear === null
             && $FilterProspect === null && $FilterCompany === null && $FilterRelationship === null
         ) {
             if ($tblFilterFieldList) {
                 foreach ($tblFilterFieldList as $tblFilterField) {
                     $FilterNumber = $tblFilterField->getFilterNumber();
                     if (stristr($tblFilterField->getField(), 'TblGroup_')) {
-                        $FilterGroup[$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
+                        $FilterGroup[$tblFilterField->getField()][$FilterNumber] = $tblFilterField->getValue();
                     }
+                    // changed array order
                     if (stristr($tblFilterField->getField(), 'TblLevel_')) {
-                        $FilterLevel[$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
+                        $FilterStudent[$tblFilterField->getField()][$FilterNumber] = $tblFilterField->getValue();
                     }
+                    // changed array order
                     if (stristr($tblFilterField->getField(), 'TblDivision_')) {
-                        $FilterDivision[$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
+                        $FilterStudent[$tblFilterField->getField()][$FilterNumber] = $tblFilterField->getValue();
                     }
                     if (stristr($tblFilterField->getField(), 'TblYear_')) {
-                        $FilterYear[$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
+                        $FilterYear[$tblFilterField->getField()][$FilterNumber] = $tblFilterField->getValue();
                     }
+                    // changed array order
                     if (stristr($tblFilterField->getField(), 'TblProspectReservation_')) {
                         $FilterProspect[$tblFilterField->getField()][$FilterNumber] = $tblFilterField->getValue();
                     }
+                    // changed array order
                     if (stristr($tblFilterField->getField(), 'TblCompany_')) {
                         $FilterCompany[$tblFilterField->getField()][$FilterNumber] = $tblFilterField->getValue();
                     }
                     if (stristr($tblFilterField->getField(), 'TblType_')) {
-                        $FilterRelationship[$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
+                        $FilterRelationship[$tblFilterField->getField()][$FilterNumber] = $tblFilterField->getValue();
                     }
                 }
             }
             $Global->POST['FilterGroup'] = $FilterGroup;
-            $Global->POST['FilterLevel'] = $FilterLevel;
-            $Global->POST['FilterDivision'] = $FilterDivision;
+            $Global->POST['FilterStudent'] = $FilterStudent;
             $Global->POST['FilterYear'] = $FilterYear;
             $Global->POST['FilterProspect'] = $FilterProspect;
             $Global->POST['FilterCompany'] = $FilterCompany;
@@ -1263,7 +1264,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new Edit().' Serienbrief '.new Bold($CategoryName)
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, $FilterLevel, $FilterDivision, $FilterYear)))
+                                            , $SerialLetter, $FilterGroup, $FilterStudent, $FilterYear)))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -1331,7 +1332,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new Edit().' Serienbrief '.new Bold($CategoryName)
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, null, $FilterProspect)))
+                                            , $SerialLetter, $FilterGroup, null, null, $FilterProspect)))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
@@ -1405,7 +1406,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel(new Edit().' Serienbrief '.new Bold($CategoryName)
                                         , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, null, null, $FilterCompany, $FilterRelationship)))
+                                            , $SerialLetter, $FilterGroup, null, null, null, $FilterCompany, $FilterRelationship)))
                                         , Panel::PANEL_TYPE_INFO)
                                 )
                             )
