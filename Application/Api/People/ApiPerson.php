@@ -4,24 +4,23 @@ namespace SPHERE\Application\Api\People;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Person as PersonApp;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Main;
@@ -78,7 +77,7 @@ class ApiPerson extends Extension implements IApiInterface
             || ( !isset( $Person['LastName'] ) || empty( $Person['LastName'] ) )
         ) {
             // get Form to set ErrorMassages
-            $Form = Person::useFrontend()->formPerson();
+            $Form = PersonApp::useFrontend()->formPerson();
             if( (!isset( $Person['FirstName'] ) || empty( $Person['FirstName'] ) ) ) {
                 $Form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
             }
@@ -95,7 +94,7 @@ class ApiPerson extends Extension implements IApiInterface
 
         // dynamic search
         $Pile = new Pile();
-        $Pile->addPile( Person::useService(), new ViewPerson() );
+        $Pile->addPile(PersonApp::useService(), new ViewPerson());
         // find Input fields in ViewPerson
         $Result = $Pile->searchPile( array(
             array(
@@ -106,12 +105,12 @@ class ApiPerson extends Extension implements IApiInterface
 
         if (empty($Result) || $Confirm) { // Create new Person
 
-            $Form = Person::useFrontend()->formPerson();
+            $Form = PersonApp::useFrontend()->formPerson();
             $Form->appendFormButton(
                 new Primary('Speichern', new Save())
             )->ajaxPipelineOnSubmit($this->pipelineValidatePerson($CreatePersonReceiver));
 
-            return Person::useService()->createPerson( $Form, $Person );
+            return PersonApp::useService()->createPerson($Form, $Person);
 
         } else { // show existent matched Person
 
@@ -124,9 +123,8 @@ class ApiPerson extends Extension implements IApiInterface
                 $Address = new Warning('Keine Adresse hinterlegt');
                 if (isset($TableList[$Index]['TblPerson_Id'])) {
                     $PersonId = $TableList[$Index]['TblPerson_Id'];
-                    $tblPerson = Person::useService()->getPersonById($PersonId);
+                    $tblPerson = PersonApp::useService()->getPersonById($PersonId);
                     if ($tblPerson) {
-                        $PersonName = $tblPerson->getFirstName().', '.$tblPerson->getLastName();
                         $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                         if ($tblAddress) {
                             $Address = $tblAddress->getGuiString();
@@ -134,7 +132,7 @@ class ApiPerson extends Extension implements IApiInterface
                     }
                 }
                 $TableList[$Index]['Address'] = $Address;
-                $TableList[$Index]['Option'] = new Standard('', '/People/Person', new PersonIcon(), array('Id' => $PersonId), 'Zur Person '.$PersonName.'');
+                $TableList[$Index]['Option'] = new Standard('', '/People/Person', new PersonIcon(), array('Id' => $PersonId), 'Zur Person');
             }
 
             $ConfirmPersonReceiver = (new BlockReceiver())->setIdentifier( $CreatePersonReceiver );
@@ -148,29 +146,34 @@ class ApiPerson extends Extension implements IApiInterface
             $ConfirmPersonEmitter->setPostPayload(array( 'Person' => $Person));
             $ConfirmPersonPipeline->addEmitter( $ConfirmPersonEmitter );
 
-            $Form = Person::useFrontend()->formPersonDisabled();
-            $Form
-                ->appendFormButton(
-                    new Primary('Ändern', new Edit())
-                )// ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                ->ajaxPipelineOnSubmit(
-                    $this->pipelineValidatePerson($CreatePersonReceiver)
-                );
+            $Form = PersonApp::useFrontend()->formPersonDisabled();
+//            $Form->appendFormButton(
+//                    new Primary('Ändern', new Edit())
+//                )// ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+//                ->ajaxPipelineOnSubmit(
+//                    $this->pipelineCreatePerson($CreatePersonReceiver, $Person)
+//                );
+            $EditButton = ( new Standard('Eingaben ändern', '#', new Edit()) )->ajaxPipelineOnClick(
+                $this->pipelineCreatePerson($CreatePersonReceiver, $Person));
 
             return new Layout(array(
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn($Form)
-                    )
+                    new LayoutRow(array(
+                        new LayoutColumn($Form),
+                        new LayoutColumn(array($EditButton,
+                            ( new PrimaryLink('Neue Person speichern', '#', new Save()) )->ajaxPipelineOnClick($ConfirmPersonPipeline)
+                        ))
+                    ))
                 ),
                 new LayoutGroup(
                     new LayoutRow(array(
-//                        new LayoutColumn(
-//                            new Info('Meinten Sie vielleicht eine der folgenden Personen?')
-//                        ),
+                        new LayoutColumn(
+                            new Info('Personen mit ähnlichem Namen gefunden. Ist diese Person schon angelegt?')
+                        ),
                         new LayoutColumn(
                             new TableData($TableList, null, array(
                                 ViewPerson::TBL_SALUTATION_SALUTATION => 'Anrede',
+                                ViewPerson::TBL_PERSON_TITLE          => 'Titel',
                                 ViewPerson::TBL_PERSON_FIRST_NAME     => 'Vorname',
                                 ViewPerson::TBL_PERSON_SECOND_NAME    => 'Zweiter Vorname',
                                 ViewPerson::TBL_PERSON_LAST_NAME      => 'Nachname',
@@ -179,17 +182,7 @@ class ApiPerson extends Extension implements IApiInterface
                                 'Option'                              => '',
                             ))
                         )
-                    )), new Title('Meinten Sie vielleicht eine der folgenden Personen?')
-                ),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            array(
-                                new Standard('Zurück', '/People/Person', new ChevronLeft()),
-                                ( new PrimaryLink('Neue Person speichern', '#', new Save()) )->ajaxPipelineOnClick($ConfirmPersonPipeline)
-                            )
-                        )
-                    )
+                    )) //, new Title('Meinten Sie vielleicht eine der folgenden Personen?')
                 )
             ));
         }
@@ -197,13 +190,28 @@ class ApiPerson extends Extension implements IApiInterface
 
     public function pieceFormCreatePerson( $CreatePersonReceiver )
     {
-        $Form = Person::useFrontend()->formPerson();
+        $Form = PersonApp::useFrontend()->formPerson();
         $Form->appendFormButton(
             new Primary('Speichern', new Save())
         )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
             ->ajaxPipelineOnSubmit($this->pipelineValidatePerson($CreatePersonReceiver));
 
         return (string)$Form;
+    }
+
+    private function pipelineCreatePerson($CreatePersonReceiver, $Person = null)
+    {
+        $CreatePersonEditReceiver = ( new BlockReceiver() )->setIdentifier($CreatePersonReceiver);
+        $CreatePersonPipeline = new Pipeline();
+        $CreatePersonEmitter = new ServerEmitter($CreatePersonEditReceiver, ApiPerson::getRoute());
+        $CreatePersonEmitter->setGetPayload(array(
+            ApiPerson::API_DISPATCHER => 'pieceFormCreatePerson',
+            'CreatePersonReceiver'    => $CreatePersonReceiver
+        ));
+        $CreatePersonEmitter->setPostPayload(array('Person' => $Person));
+        $CreatePersonEmitter->setLoadingMessage('Bearbeitung wird geladen...');
+        $CreatePersonPipeline->addEmitter($CreatePersonEmitter);
+        return $CreatePersonPipeline;
     }
 
     private function pipelineValidatePerson( $CreatePersonReceiver )
