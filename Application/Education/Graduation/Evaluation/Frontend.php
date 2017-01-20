@@ -1967,7 +1967,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($studentList as $personId => $student) {
                     $tblPerson = Person::useService()->getPersonById($personId);
                     if ($tblPerson) {
-                        $tblGradeList = Gradebook::useService()->getGradesByGradeType($tblPerson, $tblSubject,
+                        $tblGradeList = Gradebook::useService()->getGradesByGradeType($tblPerson, $tblDivision, $tblSubject,
                             $tblTest->getServiceTblGradeType());
 
                         $previewsGrade = '';
