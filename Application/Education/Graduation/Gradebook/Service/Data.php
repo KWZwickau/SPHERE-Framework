@@ -35,7 +35,9 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $this->createScoreType('Verbale Bewertung', 'VERBAL');
 
         $tblScoreType = $this->createScoreType('Noten (1-5) mit Komma', 'GRADES_V1');
-        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^[1-5]{1}((\.|,)[0-9]+)?');
+        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^(5((\.|,)0+)?|[1-4]{1}((\.|,)[0-9]+)?)$');
+
+        $this->createScoreType('Noten (1-6) mit Komma', 'GRADES_COMMA', '^(6((\.|,)0+)?|[1-5]{1}((\.|,)[0-9]+)?)$');
 
         $TestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
         if ($TestType) {

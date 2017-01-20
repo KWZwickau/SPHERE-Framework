@@ -2232,7 +2232,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $student[$tblPerson->getId()]['Grade']
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
                         new Quote()))->setTabIndex(1);
-                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
+                    || $tblScoreType->getIdentifier() == 'GRADES_COMMA'
+                ) {
                     $student[$tblPerson->getId()]['Grade']
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '',
                         ''))->setTabIndex($tabIndex++);
@@ -2786,21 +2788,21 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     // Sortierung nach Fächer-Acroynm
-                    if (!empty($tableHeaderList[$tblDivision->getId()])){
-                                            asort($tableHeaderList[$tblDivision->getId()]);
-                                        }
-                                        $prependTableHeaderList[$tblDivision->getId()]['Number'] = '#';
-                                        $prependTableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
-                                        $tableHeaderList[$tblDivision->getId()] = $prependTableHeaderList[$tblDivision->getId()]
-                                            + $tableHeaderList[$tblDivision->getId()];
+                    if (!empty($tableHeaderList[$tblDivision->getId()])) {
+                        asort($tableHeaderList[$tblDivision->getId()]);
+                    }
+                    $prependTableHeaderList[$tblDivision->getId()]['Number'] = '#';
+                    $prependTableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
+                    $tableHeaderList[$tblDivision->getId()] = $prependTableHeaderList[$tblDivision->getId()]
+                        + $tableHeaderList[$tblDivision->getId()];
 
-                                        // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
-                                        if (!empty($studentList)) {
-                                            foreach ($studentList as $divisionListId => $students) {
-                                                if (is_array($students)) {
-                                                    foreach ($students as $studentId => $student) {
-                                                        foreach ($tableHeaderList[$divisionListId] as $key => $value) {
-                                                            if (!isset($student[$key])) {
+                    // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
+                    if (!empty($studentList)) {
+                        foreach ($studentList as $divisionListId => $students) {
+                            if (is_array($students)) {
+                                foreach ($students as $studentId => $student) {
+                                    foreach ($tableHeaderList[$divisionListId] as $key => $value) {
+                                        if (!isset($student[$key])) {
                                             $studentList[$divisionId][$studentId][$key] = "";
                                         }
                                     }
@@ -2963,7 +2965,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblGrade) {
             // Zeugnistext
-            if (($tblGradeText = $tblGrade->getTblGradeText())){
+            if (($tblGradeText = $tblGrade->getTblGradeText())) {
                 $studentList[$tblDivision->getId()][$tblPerson->getId()]
                 ['Subject' . $tblSubject->getId()] = $tblGradeText->getName();
 
@@ -3354,7 +3356,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $sum = 0;
 
                 $description = '';
-                if ($tblScoreType->getIdentifier() == 'GRADES') {
+                if ($tblScoreType->getIdentifier() == 'GRADES' || $tblScoreType->getIdentifier() == 'GRADES_COMMA') {
                     $minRange = 1;
                     $maxRange = 6;
                     $description = 'Note ';
