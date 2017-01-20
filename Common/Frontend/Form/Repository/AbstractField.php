@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Frontend\Form\Repository;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\System\Extension\Extension;
@@ -332,6 +333,44 @@ abstract class AbstractField extends Extension implements IFieldInterface
     public function setInputAlignRight()
     {
         $this->Template->setVariable( 'ElementClass', 'text-right' );
+        return $this;
+    }
+
+    /**
+     * @param Pipeline|Pipeline[] $Pipeline
+     * @return $this
+     */
+    public function ajaxPipelineOnChange( $Pipeline )
+    {
+        $Script = '';
+        if( is_array( $Pipeline ) ) {
+            foreach( $Pipeline as $Element ) {
+                $Script .= $Element->parseScript( $this );
+            }
+        } else {
+            $Script = $Pipeline->parseScript( $this );
+        }
+
+        $this->Template->setVariable('AjaxEventChange', $Script);
+        return $this;
+    }
+
+    /**
+     * @param Pipeline|Pipeline[] $Pipeline
+     * @return $this
+     */
+    public function ajaxPipelineOnKeyUp( $Pipeline )
+    {
+        $Script = '';
+        if( is_array( $Pipeline ) ) {
+            foreach( $Pipeline as $Element ) {
+                $Script .= $Element->parseScript( $this );
+            }
+        } else {
+            $Script = $Pipeline->parseScript( $this );
+        }
+
+        $this->Template->setVariable('AjaxEventKeyUp', $Script);
         return $this;
     }
 }

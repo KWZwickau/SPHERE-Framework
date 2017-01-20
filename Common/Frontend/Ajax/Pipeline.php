@@ -7,6 +7,7 @@ use SPHERE\Common\Frontend\Ajax\Emitter\AbstractEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ScriptEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 
 /**
@@ -97,32 +98,54 @@ class Pipeline
     }
 
     /**
-     * @param Form $Form
+     * @param Form|AbstractField|null $FrontendElement
      * @return string
      * @throws \Exception
      */
-    public function parseScript(Form $Form = null)
+    public function parseScript($FrontendElement = null)
     {
         foreach ($this->Emitter as $Index => $Emitter) {
+            $Method = 'GET';
+            $Data = array();
             // ServerEmitter
             if ($Emitter instanceof ServerEmitter) {
                 $Url = $Emitter->getAjaxUri() . $Emitter->getAjaxGetPayload();
-                if ($Form === null) {
+                if ($FrontendElement === null) {
                     if (strlen($Emitter->getAjaxPostPayload()) == 2) {
                         $Method = 'GET';
                     } else {
                         $Method = 'POST';
                     }
                     $Data = $Emitter->getAjaxPostPayload();
-                } else {
+                } else if( $FrontendElement instanceof Form ) {
                     $Method = 'POST';
                     if (strlen($Emitter->getAjaxPostPayload()) > 2) {
                         $Data = 'var EmitterData = ' . $Emitter->getAjaxPostPayload() . ';';
-                        $Data .= 'var FormData = jQuery("form#' . $Form->getHash() . '").serializeArray();';
+                        $Data .= 'var FormData = jQuery("form#' . $FrontendElement->getHash() . '").serializeArray();';
                         $Data .= 'for( var Index in FormData ) { EmitterData[FormData[Index]["name"]] = FormData[Index]["value"]; };';
                         $Data .= 'return EmitterData;';
                     } else {
-                        $Data = 'return jQuery("form#' . $Form->getHash() . '").serializeArray();';
+                        $Data = 'return jQuery("form#' . $FrontendElement->getHash() . '").serializeArray();';
+                    }
+                } else if( $FrontendElement instanceof AbstractField ) {
+                    $Method = 'POST';
+                    if (strlen($Emitter->getAjaxPostPayload()) > 2) {
+                        $Data = 'var EmitterData = ' . $Emitter->getAjaxPostPayload() . ';';
+
+                        $Data .= 'var Element = jQuery("[name=\"' . $FrontendElement->getName() . '\"]");';
+                        $Data .= 'var DataSet = Element.closest("form");';
+                        $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); }';
+                        $Data .= 'else { DataSet = jQuery.deparam("'. $FrontendElement->getName() .'=" + Element.val() ); }';
+
+                        $Data .= 'for( var Index in DataSet ) { EmitterData[DataSet[Index]["name"]] = DataSet[Index]["value"]; };';
+
+                        $Data .= 'return EmitterData;';
+                    } else {
+                        $Data = 'var Element = jQuery("[name=\"' . $FrontendElement->getName() . '\"]");';
+                        $Data .= 'var DataSet = Element.closest("form");';
+                        $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); }';
+                        $Data .= 'else { DataSet = jQuery.deparam("'. $FrontendElement->getName() .'=" + Element.val() ); }';
+                        $Data .= 'return DataSet';
                     }
                 }
 

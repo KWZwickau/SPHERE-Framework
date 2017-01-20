@@ -32,3 +32,30 @@
     });
 </script>
 {% endif %}
+
+{% if( AjaxEventChange is not empty or AjaxEventKeyUp is not empty ) %}
+<script type="text/javascript">
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
+    {
+        Client.Use('ModAlways', function()
+        {
+            Client.Use('ModAjax', function()
+            {
+                {% if( AjaxEventChange is not empty ) %}
+                jQuery('input[type="text"][name="{{ ElementName }}"]').on('change',function(Event){
+                    Event.preventDefault();
+                    {{ AjaxEventChange }}
+                })
+                {% endif %}
+                {% if( AjaxEventKeyUp is not empty ) %}
+                jQuery('input[type="text"][name="{{ ElementName }}"]').on('keyup',function(Event){
+                    Event.preventDefault();
+                    {{ AjaxEventKeyUp }}
+                })
+                {% endif %}
+            });
+        });
+    });
+</script>
+{% endif %}

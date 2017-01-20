@@ -28,6 +28,11 @@ class Script extends Extension
          */
 
         $this->setSource(
+            'jQuery.deparam', '/Library/jQuery.BBQ/1.3pre/jQuery.deparam.js',
+            "'undefined' !== typeof jQuery.deparam"
+        );
+
+        $this->setSource(
             'jQuery', '/Library/jQuery/1.11.3/jquery-1.11.3.min.js',
             "'undefined' !== typeof jQuery"
         );
@@ -239,6 +244,7 @@ class Script extends Extension
                 'List.Js',
                 'Bootstrap.Notify',
                 'Bootstrap',
+                'jQuery.deparam',
                 'jQuery.Ui',
                 'jQuery'
             )
