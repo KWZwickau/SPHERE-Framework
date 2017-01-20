@@ -494,7 +494,7 @@ class Frontend extends Extension
                         }
                         $schoolText = '';
                         if (!empty($schoolNameList)) {
-                            foreach ($schoolNameList as $schoolName){
+                            foreach ($schoolNameList as $schoolName) {
                                 $schoolText .= new Container($schoolName);
                             }
                         }
@@ -628,27 +628,32 @@ class Frontend extends Extension
                     ) {
 
                     } else {
-                        // Mögliche Certificate herausfinden und bei einem eindeutiten Certificate vor auswählen
-                        $tblCertificateListByConsumer = Generate::useService()->getPossibleCertificates($tblPrepare,
-                            $tblPerson, Consumer::useService()->getConsumerBySession());
-                        $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
-                            $tblPerson);
-                        if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
-                            if (count($tblCertificateListByConsumer) != 1) {
-                                $certificateList = array_merge($tblCertificateListByConsumer,
-                                    $tblCertificateListByStandard);
-                            } else {
-                                $certificateList = $tblCertificateListByConsumer;
-                            }
-                        } elseif ($tblCertificateListByConsumer) {
-                            $certificateList = $tblCertificateListByConsumer;
-                        } elseif ($tblCertificateListByStandard) {
-                            $certificateList = $tblCertificateListByStandard;
+                        // Noteninformation
+                        if ($tblPrepare->isGradeInformation()) {
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
                         } else {
-                            $certificateList = array();
-                        }
-                        if (count($certificateList) == 1) {
-                            $tblCertificate = current($certificateList);
+                            // Mögliche Certificate herausfinden und bei einem eindeutiten Certificate vor auswählen
+                            $tblCertificateListByConsumer = Generate::useService()->getPossibleCertificates($tblPrepare,
+                                $tblPerson, Consumer::useService()->getConsumerBySession());
+                            $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
+                                $tblPerson);
+                            if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
+                                if (count($tblCertificateListByConsumer) != 1) {
+                                    $certificateList = array_merge($tblCertificateListByConsumer,
+                                        $tblCertificateListByStandard);
+                                } else {
+                                    $certificateList = $tblCertificateListByConsumer;
+                                }
+                            } elseif ($tblCertificateListByConsumer) {
+                                $certificateList = $tblCertificateListByConsumer;
+                            } elseif ($tblCertificateListByStandard) {
+                                $certificateList = $tblCertificateListByStandard;
+                            } else {
+                                $certificateList = array();
+                            }
+                            if (count($certificateList) == 1) {
+                                $tblCertificate = current($certificateList);
+                            }
                         }
                     }
                     if ($Global && $tblCertificate) {

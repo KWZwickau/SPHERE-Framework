@@ -569,7 +569,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 $studentTable[$tblPerson->getId()]['Data'] =
                                     (new NumberField('Data[' . $tblPerson->getId() . ']'))->setTabIndex($tabIndex++);
 
-                                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                if ($tblPrepareStudent
+                                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                                     && $tblCertificate->isInformation()
                                 ) {
                                     $hasInformation = true;

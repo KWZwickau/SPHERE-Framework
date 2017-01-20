@@ -1250,6 +1250,15 @@ class Service extends AbstractService
                     }
                 }
 
+                // Noteninformation
+                if ($tblPrepare->isGradeInformation())
+                {
+                    $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson,
+                        Generator::useService()->getCertificateByCertificateClassName('GradeInformation')
+                    );
+                    continue;
+                }
+
                 if ($tblConsumer) {
                     // Eigene Vorlage
                     if (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare, $tblPerson,
