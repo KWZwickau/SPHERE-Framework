@@ -417,7 +417,7 @@ class Service extends ServiceScoreRule
             return $Stage;
         }
 
-
+        $this->getDebugger()->screenDump($Grade);
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
@@ -474,6 +474,22 @@ class Service extends ServiceScoreRule
                                 isset($value['Date']) ? $value['Date'] : null,
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
                                     ? $tblGradeText : null
+                            );
+                        } elseif ($value['Text'] && ($tblGradeText = $this->getGradeTextById($value['Text']))){
+                            (new Data($this->getBinding()))->createGrade(
+                                $tblPerson,
+                                $tblTestByPerson->getServiceTblDivision(),
+                                $tblTestByPerson->getServiceTblSubject(),
+                                $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
+                                $tblTestByPerson->getServiceTblPeriod() ? $tblTestByPerson->getServiceTblPeriod() : null,
+                                $tblTestByPerson->getServiceTblGradeType() ? $tblTestByPerson->getServiceTblGradeType() : null,
+                                $tblTestByPerson,
+                                $tblTestByPerson->getTblTestType(),
+                                $grade,
+                                trim($value['Comment']),
+                                $trend,
+                                isset($value['Date']) ? $value['Date'] : null,
+                                $tblGradeText
                             );
                         }
                     } elseif ($tblGrade) {
