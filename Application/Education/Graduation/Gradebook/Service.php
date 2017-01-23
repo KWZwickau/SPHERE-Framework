@@ -374,7 +374,8 @@ class Service extends ServiceScoreRule
                     $errorEdit = true;
                 }
                 if ($tblGrade  && $gradeValue === ''
-                    && (!isset($value['Attendance']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
+                    && !isset($value['Attendance'])
+                    && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
                 ) {
                     $errorNoGrade = true;
                 }
