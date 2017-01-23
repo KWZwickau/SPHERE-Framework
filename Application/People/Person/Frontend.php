@@ -92,33 +92,41 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$Id) {
 
-            $ValidatePersonReceiver = new BlockReceiver();
-            $ValidatePersonPipeline = new Pipeline();
-            $ValidatePersonEmitter = new ServerEmitter($ValidatePersonReceiver, ApiPerson::getRoute());
-            $ValidatePersonEmitter->setGetPayload(array(
-                ApiPerson::API_DISPATCHER => 'pieceFormValidatePerson',
-                'ValidatePersonReceiver'  => $ValidatePersonReceiver->getIdentifier(),
-            ));
-            $ValidatePersonPipeline->addEmitter($ValidatePersonEmitter);
-            $ValidatePersonReceiver->initContent($ValidatePersonPipeline);
+            $FormCreatePersonReceiver = new BlockReceiver();
+            $TableSimilarPersonReceiver = new BlockReceiver();
+            $InfoSimilarPersonReceiver = new BlockReceiver();
 
-            $BasicTable = Person::useService()->createPerson(
-                $this->formPersonCreate($ValidatePersonPipeline)
-                    ->appendFormButton(new Primary('Speichern', new Save()))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $Person);
+            $FormCreatePersonPipeline = new Pipeline();
+            $FormCreatePersonEmitter = new ServerEmitter( $FormCreatePersonReceiver, ApiPerson::getRoute() );
+            $FormCreatePersonEmitter->setGetPayload(array(
+                ApiPerson::API_DISPATCHER => 'FormCreatePerson'
+            ));
+            $FormCreatePersonEmitter->setPostPayload(array(
+                'Receiver' => array(
+                    'FormCreatePerson' => $FormCreatePersonReceiver->getIdentifier(),
+                    'TableSimilarPerson' => $TableSimilarPersonReceiver->getIdentifier(),
+                    'InfoSimilarPerson' => $InfoSimilarPersonReceiver->getIdentifier()
+                )
+            ));
+            $FormCreatePersonPipeline->addEmitter( $FormCreatePersonEmitter );
+            $FormCreatePersonReceiver->initContent( $FormCreatePersonPipeline );
 
             $Stage->setContent(
                 new Layout(array(
-                    new LayoutGroup(
+                    new LayoutGroup(array(
+                        new LayoutRow(
+                            new LayoutColumn(array(
+                                new Well(
+                                $InfoSimilarPersonReceiver
+                                .$FormCreatePersonReceiver
+                                )
+                            ))
+                        ),
                         new LayoutRow(
                             new LayoutColumn(
-                                new Well(
-                                    $BasicTable.
-                                    $ValidatePersonReceiver
-                                )
+                                $TableSimilarPersonReceiver
                             )
-                        ),
+                        )),
                         new Title(new PersonParent().' Grunddaten', 'der Person')
                     ),
                 ))
@@ -150,7 +158,7 @@ class Frontend extends Extension implements IFrontendInterface
 
 
                 $BasicTable = Person::useService()->updatePerson(
-                    $this->formPerson()
+                    $this->formUpdatePerson()
                         ->appendFormButton(new Primary('Speichern', new Save()))
                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
                     $tblPerson, $Person, $Group);
@@ -394,7 +402,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    public function formPerson()
+    public function formUpdatePerson()
     {
 
         $tblGroupList = Group::useService()->getGroupAllSorted();
@@ -465,21 +473,13 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $ValidatePersonPipeline
-     *
      * @return Form
      */
-    public function formPersonCreate($ValidatePersonPipeline)
+    public function formCreatePerson()
     {
 
         $tblGroupList = Group::useService()->getGroupAllSorted();
         if ($tblGroupList) {
-            // Sort by Name
-//            usort($tblGroupList, function (TblGroup $ObjectA, TblGroup $ObjectB) {
-//
-//                return strnatcmp($ObjectA->getName(), $ObjectB->getName());
-//            });
-
             // Create CheckBoxes
             /** @noinspection PhpUnusedParameterInspection */
             $TabIndex = 7;
@@ -507,6 +507,15 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblGroupList = array(new Warning('Keine Gruppen vorhanden'));
         }
+
+        $ValidatePersonReceiver = new BlockReceiver();
+        $ValidatePersonPipeline = new Pipeline();
+        $ValidatePersonEmitter = new ServerEmitter($ValidatePersonReceiver, ApiPerson::getRoute());
+        $ValidatePersonEmitter->setGetPayload(array(
+            ApiPerson::API_DISPATCHER => 'pieceFormValidatePerson',
+            'ValidatePersonReceiver'  => $ValidatePersonReceiver->getIdentifier(),
+        ));
+        $ValidatePersonPipeline->addEmitter($ValidatePersonEmitter);
 
         $tblSalutationAll = Person::useService()->getSalutationAll();
 
