@@ -474,7 +474,7 @@ class Service extends ServiceScoreRule
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
                                     ? $tblGradeText : null
                             );
-                        } elseif ($value['Text'] && ($tblGradeText = $this->getGradeTextById($value['Text']))){
+                        } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))){
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
                                 $tblTestByPerson->getServiceTblDivision(),
