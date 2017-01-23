@@ -35,6 +35,17 @@
 
 {% if( AjaxEventChange is not empty or AjaxEventKeyUp is not empty ) %}
 <script type="text/javascript">
+
+    var typewatch = function ()
+    {
+        var timer = 0;
+        return function (callback, ms)
+        {
+            clearTimeout(timer);
+            timer = setTimeout(callback, ms);
+        }
+    }();
+
     //noinspection JSUnresolvedFunction
     executeScript(function()
     {
@@ -50,8 +61,11 @@
                 {% endif %}
                 {% if( AjaxEventKeyUp is not empty ) %}
                 jQuery('input[type="text"][name="{{ ElementName }}"]').on('keyup',function(Event){
-                    Event.preventDefault();
-                    {{ AjaxEventKeyUp }}
+                    typewatch(function ()
+                    {
+                        Event.preventDefault();
+                        {{ AjaxEventKeyUp }}
+                    }, 1000);
                 })
                 {% endif %}
             });
