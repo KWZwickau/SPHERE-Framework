@@ -417,7 +417,6 @@ class Service extends ServiceScoreRule
             return $Stage;
         }
 
-        $this->getDebugger()->screenDump($Grade);
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
