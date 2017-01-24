@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -134,8 +135,8 @@ class ApiPerson extends Extension implements IApiInterface
         if ($tblGroupList) {
             // Create CheckBoxes
             /** @noinspection PhpUnusedParameterInspection */
-            $TabIndex = 7;
-            array_walk($tblGroupList, function (TblGroup &$tblGroup) use (&$TabIndex) {
+            $tabIndex = 7;
+            array_walk($tblGroupList, function (TblGroup &$tblGroup) use (&$tabIndex) {
 
                 switch (strtoupper($tblGroup->getMetaTable())) {
                     case 'COMMON':
@@ -153,7 +154,7 @@ class ApiPerson extends Extension implements IApiInterface
                             'Person[Group][' . $tblGroup->getId() . ']',
                             $tblGroup->getName() . ' ' . new Muted(new Small($tblGroup->getDescription())),
                             $tblGroup->getId()
-                        ))->setTabIndex($TabIndex++);
+                        ) )->setTabIndex($tabIndex++);
                 }
             });
         } else {
@@ -265,7 +266,9 @@ class ApiPerson extends Extension implements IApiInterface
                             if ($tblCommon) {
                                 $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
                                 if ($tblCommonBirthDates) {
-                                    $BirthDay = $tblCommonBirthDates->getBirthday();
+                                    if ($tblCommonBirthDates->getBirthday() != '') {
+                                        $BirthDay = $tblCommonBirthDates->getBirthday();
+                                    }
                                 }
                             }
 
@@ -290,10 +293,17 @@ class ApiPerson extends Extension implements IApiInterface
                     'BirthDay' => 'Geburtstag',
                     'Address' => 'Adresse',
                     'Option' => '',
-                ));
+                ), array('order'      => array(
+                    array(4, 'asc'),
+                    array(2, 'asc')
+                ),
+                         'columnDefs' => array(
+                             array('type' => 'german-string', 'targets' => 4),
+                             array('type' => 'german-string', 'targets' => 2),
+                         )));
 
-                $InfoPersonEmitter = new ClientEmitter($InfoPersonReceiver, new Danger(
-                    count($TableList) . ' Personen mit ähnlichem Namen gefunden. Ist diese Person schon angelegt?'
+                $InfoPersonEmitter = new ClientEmitter($InfoPersonReceiver, new Danger(new Bold(
+                        count($TableList).' Personen mit ähnlichem Namen gefunden. Ist diese Person schon angelegt?')
                     . new Link('Zur Liste springen', null, null, array(), false, $Table->getHash())
                 ));
                 $InfoPersonPipeline->addEmitter($InfoPersonEmitter);

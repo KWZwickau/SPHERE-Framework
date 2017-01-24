@@ -414,9 +414,9 @@ class Frontend extends Extension implements IFrontendInterface
 //            });
 
             // Create CheckBoxes
-            $TabIndex = 7;
+            $tabIndex = 7;
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblGroupList, function (TblGroup &$tblGroup) use (&$TabIndex) {
+            array_walk($tblGroupList, function (TblGroup &$tblGroup) use (&$tabIndex) {
 
                 switch (strtoupper($tblGroup->getMetaTable())) {
                     case 'COMMON':
@@ -434,7 +434,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Person[Group]['.$tblGroup->getId().']',
                             $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
                             $tblGroup->getId()
-                        ) )->setTabIndex($TabIndex++);
+                        ) )->setTabIndex($tabIndex++);
                 }
             });
         } else {
@@ -482,8 +482,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblGroupList) {
             // Create CheckBoxes
             /** @noinspection PhpUnusedParameterInspection */
-            $TabIndex = 7;
-            array_walk($tblGroupList, function (TblGroup &$tblGroup) use (&$TabIndex) {
+            $tabIndex = 7;
+            array_walk($tblGroupList, function (TblGroup &$tblGroup) use (&$tabIndex) {
 
                 switch (strtoupper($tblGroup->getMetaTable())) {
                     case 'COMMON':
@@ -501,7 +501,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Person[Group]['.$tblGroup->getId().']',
                             $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
                             $tblGroup->getId()
-                        ) )->setTabIndex($TabIndex++);
+                        ) )->setTabIndex($tabIndex++);
                 }
             });
         } else {
