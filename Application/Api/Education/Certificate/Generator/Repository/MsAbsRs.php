@@ -325,7 +325,7 @@ class MsAbsRs extends Certificate
                 )
                 /////////////////////////
                 ->addSlice($this->getDescriptionHead())
-                ->addSlice($this->getDescriptionContent('230px'))
+                ->addSlice($this->getDescriptionContent('215px', '15px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice((new Slice())
                     ->addSection((new Section())

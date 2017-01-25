@@ -119,7 +119,7 @@ class GymJ extends Certificate
                     ->styleMarginTop('5px')
                 )
                 ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('30px'))
+                ->addSlice($this->getDescriptionContent('30px', '5px'))
                 ->addSlice($this->getTransfer())
                 ->addSlice($this->getDateLine('15px'))
                 ->addSlice($this->getSignPart(true))

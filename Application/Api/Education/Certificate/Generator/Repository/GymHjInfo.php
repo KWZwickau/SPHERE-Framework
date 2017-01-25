@@ -71,7 +71,7 @@ class GymHjInfo extends Certificate
                 ->addSlice($this->getSubjectLanes(true, array('Lane' => 1, 'Rank' => 3))->styleHeight('270px'))
                 ->addSlice($this->getProfileStandard())
                 ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('95px'))
+                ->addSlice($this->getDescriptionContent('80px', '15px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice($this->getSignPart(false))
                 ->addSlice($this->getParentSign())

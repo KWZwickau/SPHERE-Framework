@@ -1591,7 +1591,7 @@ abstract class Certificate extends Extension
             }
         }
 
-        $foreignLanguageName = '&nbsp;';
+        $foreignLanguageName = '---';
         // 3. Fremdsprache
         if ($this->getTblPerson()
             && ($tblStudent = $this->getTblPerson()->getStudent())
@@ -1647,7 +1647,7 @@ abstract class Certificate extends Extension
                 ->styleTextSize($TextSize);
         } else {
             $elementName = (new Element())
-                ->setContent('&nbsp;')
+                ->setContent('---')
                 ->styleAlignCenter()
                 ->styleBorderBottom()
                 ->styleMarginTop('10px')
@@ -1711,6 +1711,7 @@ abstract class Certificate extends Extension
                 ->styleMarginTop('5px')
                 ->setContent($foreignLanguageName)
                 ->styleBorderBottom()
+                ->styleAlignCenter()
                 , '48%');
         $sectionList[] = $section;
 

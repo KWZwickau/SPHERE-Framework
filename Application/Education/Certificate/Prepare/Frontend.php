@@ -1138,7 +1138,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     // TextArea Zeichen begrenzen
                                                     if ($FormField[$Placeholder] == 'TextArea'
                                                         && (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
-                                                            $tblCertificate, $key
+                                                            $tblCertificate, $key, !$hasTeamExtra
                                                         )))
                                                     ) {
                                                         /** @var TextArea $Field */

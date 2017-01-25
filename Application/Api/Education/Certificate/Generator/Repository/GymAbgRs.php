@@ -391,7 +391,7 @@ class GymAbgRs extends Certificate
                     )->styleMarginTop('15px')
                 )
                 ->addSlice($this->getDescriptionHead())
-                ->addSlice($this->getDescriptionContent('150px'))
+                ->addSlice($this->getDescriptionContent('135px', '15px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice($this->getSignPart())
                 ->addSlice($this->getParentSign())

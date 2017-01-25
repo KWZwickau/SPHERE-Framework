@@ -254,7 +254,7 @@ class MsAbgHs extends Certificate
                 ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
                 ->addSlice($this->getOrientationStandard())
                 ->addSlice($this->getDescriptionHead())
-                ->addSlice($this->getDescriptionContent('250px'))
+                ->addSlice($this->getDescriptionContent('235px', '15px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice($this->getSignPart())
                 ->addSlice($this->getInfo('150px',
