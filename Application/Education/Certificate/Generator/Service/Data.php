@@ -1237,6 +1237,12 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Halbjahresinformation', 'Primarstufe', 'EVSC\CosHjPri', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary
+                                , null, true);
+                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1256,6 +1262,27 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Halbjahresinformation', 'Sekundarstufe', 'EVSC\CosHjSek', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypeSecondary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1279,6 +1306,14 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Halbjahreszeugnis', 'Sekundarstufe', 'EVSC\CosHjZSek', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypeSecondary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1302,6 +1337,11 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Jahreszeugnis', 'Primarstufe', 'EVSC\CosJPri', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1321,6 +1361,11 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Jahreszeugnis', 'Sekundarstufe', 'EVSC\CosJSek', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypeSecondary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary);
+                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1349,6 +1394,21 @@ class Data extends AbstractData
                     $tblCertificate = $this->createCertificate(
                         'Halbjahresinformation', '', 'FESH\HorHj', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1368,10 +1428,33 @@ class Data extends AbstractData
                     $this->createCertificate(
                         'Halbjahresinformation', '1. Klasse', 'FESH\HorHjOne', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
 
                     $tblCertificate = $this->createCertificate(
                         'Jahreszeugnis', '', 'FESH\HorJ', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
                     if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
                         $this->setCertificateGradeAllStandard($tblCertificate);
                     }
@@ -1391,6 +1474,14 @@ class Data extends AbstractData
                     $this->createCertificate(
                         'Jahreszeugnis', '1. Klasse', 'FESH\HorJOne', $tblConsumerCertificate
                     );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
                 }
             }
 
