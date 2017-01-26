@@ -1425,7 +1425,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
                     }
 
-                    $this->createCertificate(
+                    $tblCertificate = $this->createCertificate(
                         'Halbjahresinformation', '1. Klasse', 'FESH\HorHjOne', $tblConsumerCertificate
                     );
                     if ($tblCertificate) {
@@ -1471,7 +1471,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
                     }
 
-                    $this->createCertificate(
+                    $tblCertificate = $this->createCertificate(
                         'Jahreszeugnis', '1. Klasse', 'FESH\HorJOne', $tblConsumerCertificate
                     );
                     if ($tblCertificate) {
