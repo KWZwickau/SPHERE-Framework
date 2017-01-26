@@ -374,7 +374,8 @@ class Service extends ServiceScoreRule
                     $errorEdit = true;
                 }
                 if ($tblGrade  && $gradeValue === ''
-                    && (!isset($value['Attendance']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
+                    && !isset($value['Attendance'])
+                    && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
                 ) {
                     $errorNoGrade = true;
                 }
@@ -416,7 +417,6 @@ class Service extends ServiceScoreRule
 
             return $Stage;
         }
-
 
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
@@ -474,6 +474,22 @@ class Service extends ServiceScoreRule
                                 isset($value['Date']) ? $value['Date'] : null,
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
                                     ? $tblGradeText : null
+                            );
+                        } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))){
+                            (new Data($this->getBinding()))->createGrade(
+                                $tblPerson,
+                                $tblTestByPerson->getServiceTblDivision(),
+                                $tblTestByPerson->getServiceTblSubject(),
+                                $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
+                                $tblTestByPerson->getServiceTblPeriod() ? $tblTestByPerson->getServiceTblPeriod() : null,
+                                $tblTestByPerson->getServiceTblGradeType() ? $tblTestByPerson->getServiceTblGradeType() : null,
+                                $tblTestByPerson,
+                                $tblTestByPerson->getTblTestType(),
+                                $grade,
+                                trim($value['Comment']),
+                                $trend,
+                                isset($value['Date']) ? $value['Date'] : null,
+                                $tblGradeText
                             );
                         }
                     } elseif ($tblGrade) {
