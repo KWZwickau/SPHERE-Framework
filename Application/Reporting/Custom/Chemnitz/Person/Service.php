@@ -1446,12 +1446,18 @@ class Service extends Extension
                     }
 
                     // Wahlfach
-                    $tblStudentElective = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                    $tblStudentElectiveList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                         $tblStudent,
                         Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE')
                     );
-                    if ($tblStudentElective && ($tblSubject = $tblStudentElective[0]->getServiceTblSubject())){
-                        $Item['Elective'] = $tblSubject->getAcronym();
+                    $AcronymList = array();
+                    if ($tblStudentElectiveList) {
+                        foreach ($tblStudentElectiveList as $tblStudentElective) {
+                            if (( $tblSubject = $tblStudentElective->getServiceTblSubject() )) {
+                                $AcronymList[] = $tblSubject->getAcronym();
+                            }
+                        }
+                        $Item['Elective'] = implode('<br/>', $AcronymList);
                     }
 
                     $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
