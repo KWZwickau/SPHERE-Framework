@@ -32,8 +32,8 @@ class CosHjZSek extends Certificate
             $Header = array(( new Section() )
                 ->addSliceColumn(( new Slice() )
                     ->addSection(( new Section() )
-                        ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/Coswig_logo.jpg',
-                            '84px', '100px') )
+                        ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/Coswig_logo_300dpi.jpg',
+                            '100px', '100px') )
                             ->stylePaddingTop('12px')
                             ->styleHeight('0px')
                             ->styleAlignCenter()
@@ -75,8 +75,8 @@ class CosHjZSek extends Certificate
             );
         } else {
             $Header = array(( new Section() )
-                ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/Coswig_logo.jpg',
-                    '84px', '100px') )
+                ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/Coswig_logo_300dpi.jpg',
+                    '100px', '100px') )
                     ->stylePaddingTop('12px')
                     ->styleHeight('20px')
                     ->styleAlignCenter()
@@ -339,18 +339,29 @@ class CosHjZSek extends Certificate
                                     )
                                     ->addSection(( new Section() )
                                         ->addElementColumn(( new Element() )
+                                            ->setContent('{% if(Content.Headmaster.Name is not empty) %}
+                                                    {{ Content.Headmaster.Name }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}'
+                                            )
+                                            ->styleFontFamily('Trebuchet MS')
+                                            ->styleLineHeight('85%')
+                                            ->styleTextSize('11px')
+                                            ->stylePaddingBottom('3px')
                                             , '35%')
                                         ->addElementColumn(( new Element() )
                                             , '30%')
                                         ->addElementColumn(( new Element() )
                                             ->setContent('{% if(Content.DivisionTeacher.Name is not empty) %}
-                                    {{ Content.DivisionTeacher.Name }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
+                                                    {{ Content.DivisionTeacher.Name }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}')
                                             ->styleFontFamily('Trebuchet MS')
+                                            ->styleLineHeight('85%')
                                             ->styleTextSize('11px')
-                                            ->stylePaddingTop('2px')
+                                            ->stylePaddingBottom('3px')
                                             , '35%')
 
                                     )->styleMarginTop('25px')
