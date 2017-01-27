@@ -2031,7 +2031,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($isTestAppointedDateTask) {
             $tableData = new TableData(
-                $studentList, null, $columnDefinition, null
+                $studentList, null, $columnDefinition,
+                array(
+                "paging"         => false, // Deaktivieren Blättern
+                "iDisplayLength" => -1,    // Alle Einträge zeigen
+                "searching"      => false, // Deaktivieren Suchen
+                "info"           => false,  // Deaktivieren Such-Info
+                "responsive"   => false
+                )
             );
 
             // oberste Tabellen-Kopf-Zeile erstellen
