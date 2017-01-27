@@ -260,7 +260,7 @@ class MsAbsHs extends Certificate
                 ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
                 ->addSlice($this->getOrientationStandard())
                 ->addSlice($this->getDescriptionHead())
-                ->addSlice($this->getDescriptionContent('240px'))
+                ->addSlice($this->getDescriptionContent('225px', '15px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice((new Slice())
                     ->addSection((new Section())

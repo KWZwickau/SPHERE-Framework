@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -210,8 +211,9 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     public function getGradeTypeById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGradeType', $Id);
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType', $Id);
+//        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGradeType', $Id);
+//        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -222,9 +224,11 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     public function getGradeTypeByCode($Code)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGradeType')
-            ->findOneBy(array(TblGradeType::ATTR_CODE => $Code));
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType', array(TblGradeType::ATTR_CODE => $Code));
+
+//        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGradeType')
+//            ->findOneBy(array(TblGradeType::ATTR_CODE => $Code));
+//        return (null === $Entity ? false : $Entity);
     }
 
     /**

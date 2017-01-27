@@ -312,6 +312,7 @@ class Frontend extends Extension
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($GenerateCertificateId))) {
 
             $divisionExistsList = array();
+            $hasPreSelectedDivisions = false;
             $Global = $this->getGlobal();
             if (!$Global->POST) {
                 if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
@@ -328,6 +329,7 @@ class Frontend extends Extension
                             $tblGenerateCertificate->getServiceTblAppointedDateTask()
                         );
                         if ($tblTestAllByTest) {
+                            $hasPreSelectedDivisions = true;
                             foreach ($tblTestAllByTest as $tblTest) {
                                 if (($tblDivision = $tblTest->getServiceTblDivision())) {
                                     $Global->POST['Data']['Division'][$tblDivision->getId()] = 1;
@@ -340,6 +342,7 @@ class Frontend extends Extension
                             $tblGenerateCertificate->getServiceTblBehaviorTask()
                         );
                         if ($tblTestAllByTest) {
+                            $hasPreSelectedDivisions = true;
                             foreach ($tblTestAllByTest as $tblTest) {
                                 if (($tblDivision = $tblTest->getServiceTblDivision())) {
                                     $Global->POST['Data']['Division'][$tblDivision->getId()] = 1;
@@ -434,6 +437,16 @@ class Frontend extends Extension
                             ), 3),
                         ))
                     )),
+                    $hasPreSelectedDivisions
+                        ? new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                                    'Die vorselektierten Klassen aus den Notenaufträgen wurden noch nicht gespeichert.',
+                                    new Exclamation())
+                            )),
+                        ))
+                    )) : null,
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
@@ -528,7 +541,7 @@ class Frontend extends Extension
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                new Panel('Zeugnisdatum', '31.01.2017', Panel::PANEL_TYPE_INFO)
+                                new Panel('Zeugnisdatum', $tblGenerateCertificate->getDate(), Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
                                 new Panel('Typ', 'Halbjahreszeugnis/Halbjahresinformation', Panel::PANEL_TYPE_INFO)
@@ -708,7 +721,7 @@ class Frontend extends Extension
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                new Panel('Zeugnisdatum', '31.01.2017', Panel::PANEL_TYPE_INFO)
+                                new Panel('Zeugnisdatum', $tblPrepare->getDate(), Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
                                 new Panel('Typ', 'Halbjahreszeugnis/Halbjahresinformation', Panel::PANEL_TYPE_INFO)
@@ -717,7 +730,7 @@ class Frontend extends Extension
                                 new Panel('Name', 'SN Noteninfo, KN Noteninfo', Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Division', $tblDivision->getDisplayName(), Panel::PANEL_TYPE_INFO)
+                                new Panel('Klasse', $tblDivision->getDisplayName(), Panel::PANEL_TYPE_INFO)
                             ), 3)
                         ))
                     )),
