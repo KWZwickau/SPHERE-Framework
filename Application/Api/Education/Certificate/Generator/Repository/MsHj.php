@@ -79,7 +79,7 @@ class MsHj extends Certificate
                 ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
                 ->addSlice($this->getOrientationStandard())
                 ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('95px', '5px'))
+                ->addSlice($this->getDescriptionContent('85px', '15px'))
                 ->addSlice($this->getDateLine())
                 ->addSlice($this->getSignPart())
                 ->addSlice($this->getParentSign())

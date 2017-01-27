@@ -297,9 +297,9 @@ class Service extends AbstractService
             );
 
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Unterzeichner wurde ausgewählt.')
-            . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
-                'PrepareId' => $tblPrepare->getId()
-            ));
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                    'PrepareId' => $tblPrepare->getId()
+                ));
         }
 
         return $Stage;
@@ -336,10 +336,10 @@ class Service extends AbstractService
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Zeugnisvorlage wurde ausgewählt.')
-        . new Redirect('/Education/Certificate/Prepare/Certificate', Redirect::TIMEOUT_SUCCESS, array(
-            'PrepareId' => $tblPrepare->getId(),
-            'PersonId' => $tblPerson->getId()
-        ));
+            . new Redirect('/Education/Certificate/Prepare/Certificate', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId(),
+                'PersonId' => $tblPerson->getId()
+            ));
     }
 
     /**
@@ -499,7 +499,7 @@ class Service extends AbstractService
                                 $value = trim($value);
                                 // Zeichenbegrenzen
                                 if (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
-                                    $tblCertificate, $field))
+                                    $tblCertificate, $field, !isset($array['TeamExtra'])))
                                 ) {
                                     $value = str_replace("\n", " ", $value);
 
@@ -527,10 +527,10 @@ class Service extends AbstractService
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
-        . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
-            'PrepareId' => $tblPrepare->getId(),
-            'Route' => $Route
-        ));
+            . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId(),
+                'Route' => $Route
+            ));
     }
 
     /**
@@ -649,13 +649,13 @@ class Service extends AbstractService
                 }
 
                 // Streichung leeres Bemerkungsfeld
-                if ($remark == ''){
+                if ($remark == '') {
                     $remark = '---';
                 }
 
                 if ($team || $remark) {
                     if ($team) {
-                        $remark = $team . " \n " . $remark;
+                        $remark = $team . " \n\n " . $remark;
                     }
                 }
                 $Content['Input']['Remark'] = $remark;
@@ -674,10 +674,14 @@ class Service extends AbstractService
                     }
                     $Content['DivisionTeacher']['Name'] = $firstName . ' '
                         . $tblPrepare->getServiceTblPersonSigner()->getLastName();
+                } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                    && $tblConsumer->getAcronym() == 'ESZC'
+                ) {
+                    $Content['DivisionTeacher']['Name'] = trim($tblPrepare->getServiceTblPersonSigner()->getSalutation()
+                        . " " . $tblPrepare->getServiceTblPersonSigner()->getLastName());
                 } else {
                     $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
                 }
-
             }
 
             // Schulleitung
@@ -820,7 +824,8 @@ class Service extends AbstractService
                     /** @var TblStudentSubject $tblStudentSubject */
                     $tblStudentSubject = current($tblStudentSubjectList);
                     if (($tblSubjectOrientation = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Orientation'][str_replace(' ', '', $tblSubjectOrientation->getAcronym())]['Name'] = $tblSubjectOrientation->getName();
+                        $Content['Student']['Orientation'][str_replace(' ', '',
+                            $tblSubjectOrientation->getAcronym())]['Name'] = $tblSubjectOrientation->getName();
                     }
                 }
 
@@ -835,7 +840,8 @@ class Service extends AbstractService
                             && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
                             && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
                         ) {
-                            $Content['Student']['ForeignLanguage'][str_replace(' ', '', $tblSubjectForeignLanguage->getAcronym())]['Name'] = $tblSubjectForeignLanguage->getName();
+                            $Content['Student']['ForeignLanguage'][str_replace(' ', '',
+                                $tblSubjectForeignLanguage->getAcronym())]['Name'] = $tblSubjectForeignLanguage->getName();
                         }
                     }
                 }
@@ -1179,19 +1185,19 @@ class Service extends AbstractService
                 }
 
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
-                . new Redirect('/Education/Certificate/Prepare/Prepare/Setting',
-                    Redirect::TIMEOUT_SUCCESS,
-                    $tblNextGradeType ? array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'Route' => $Route,
-                        'GradeTypeId' => $tblNextGradeType->getId()
-                    )
-                        : array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'Route' => $Route,
-                        'IsNotGradeType' => true
-                    )
-                );
+                    . new Redirect('/Education/Certificate/Prepare/Prepare/Setting',
+                        Redirect::TIMEOUT_SUCCESS,
+                        $tblNextGradeType ? array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'Route' => $Route,
+                            'GradeTypeId' => $tblNextGradeType->getId()
+                        )
+                            : array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'Route' => $Route,
+                            'IsNotGradeType' => true
+                        )
+                    );
             }
         }
 

@@ -2344,10 +2344,11 @@ class Data extends AbstractData
     /**
      * @param TblCertificate $tblCertificate
      * @param string $FieldName
+     * @param bool $HasTeamInRemark
      *
-     * @return false|integer
+     * @return false|int
      */
-    public function getCharCountByCertificateAndField(TblCertificate $tblCertificate, $FieldName)
+    public function getCharCountByCertificateAndField(TblCertificate $tblCertificate, $FieldName, $HasTeamInRemark = true)
     {
 
         $tblCertificateField = $this->getCertificateFieldByCertificateAndField(
@@ -2355,8 +2356,12 @@ class Data extends AbstractData
         );
 
         if ($tblCertificateField) {
-            // 1 Zeile (100 Zeichen) für Arbeitsgemeinschaften abziehen
-            if ($FieldName == 'Remark'){
+            // 3 Zeile (300 Zeichen) für Arbeitsgemeinschaften und Abstand abziehen
+            if ($FieldName == 'Remark' && $HasTeamInRemark){
+                $count = $tblCertificateField->getCharCount();
+                return  $count > 300 ? $count - 300 : $count;
+                // Abstand abziehen
+            } elseif ($FieldName == 'Remark'){
                 $count = $tblCertificateField->getCharCount();
                 return  $count > 100 ? $count - 100 : $count;
             } else {

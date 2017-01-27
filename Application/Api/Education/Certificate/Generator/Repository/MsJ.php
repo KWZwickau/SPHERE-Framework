@@ -109,7 +109,7 @@ class MsJ extends Certificate
                     ->styleHeight('270px'))
                 ->addSlice($this->getOrientationStandard())
                 ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('55px', '5px'))
+                ->addSlice($this->getDescriptionContent('45px', '15px'))
                 ->addSlice($this->getTransfer())
                 ->addSlice($this->getDateLine('10px'))
                 ->addSlice($this->getSignPart(true, '15px'))

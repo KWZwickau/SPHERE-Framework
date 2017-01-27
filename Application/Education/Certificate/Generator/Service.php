@@ -357,13 +357,14 @@ class Service extends AbstractService
     /**
      * @param TblCertificate $tblCertificate
      * @param string $FieldName
+     * @param bool $HasTeamInRemark
      *
-     * @return false|integer
+     * @return false|int
      */
-    public function getCharCountByCertificateAndField(TblCertificate $tblCertificate, $FieldName)
+    public function getCharCountByCertificateAndField(TblCertificate $tblCertificate, $FieldName, $HasTeamInRemark)
     {
 
-        return (new Data($this->getBinding()))->getCharCountByCertificateAndField($tblCertificate, $FieldName);
+        return (new Data($this->getBinding()))->getCharCountByCertificateAndField($tblCertificate, $FieldName, $HasTeamInRemark);
     }
 
     /**
