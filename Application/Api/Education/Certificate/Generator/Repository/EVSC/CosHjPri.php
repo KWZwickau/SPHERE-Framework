@@ -26,12 +26,59 @@ class CosHjPri extends Certificate
      */
     public function buildCertificate($IsSample = true)
     {
-
         if ($IsSample) {
-            $Header = ( new Section() )
-                ->addElementColumn(( new Element\Sample() )
-                    ->styleTextSize('30px')
-                )
+            $Header = array(( new Section() )
+                ->addSliceColumn(( new Slice() )
+                    ->addSection(( new Section() )
+                        ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/Coswig_logo_300dpi.jpg',
+                            '100px', '100px') )
+                            ->stylePaddingTop('12px')
+                            ->styleHeight('0px')
+                            ->styleAlignCenter()
+                            , '25%')
+                        ->addElementColumn(( new Element() )
+                            ->setContent('FREISTAAT SACHSEN')
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleTextSize('21px')
+                            ->styleAlignCenter()
+                            ->stylePaddingTop('22px')
+                            , '50%')
+                        ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px') )
+                            ->stylePaddingTop('12px')
+                            , '25%')
+                    )
+                ),
+                ( new Section() )
+                    ->addSliceColumn(( new Slice() )
+                        ->addSection(( new Section() )
+                            ->addElementColumn(( new Element\Sample() )
+                                ->styleTextSize('30px')
+                                ->styleMarginTop('55px')
+                                ->styleHeight('0px')
+                            )
+                            ->addElementColumn(( new Element() )
+                                ->setContent('Evangelische Schule Coswig')
+                                ->styleFontFamily('Trebuchet MS')
+                                ->styleTextSize('21px')
+                                ->styleTextBold()
+                                ->styleAlignCenter()
+                                ->styleMarginTop('40px')
+                                ->styleLineHeight('85%')
+                                , '50%')
+                            ->addElementColumn(( new Element() )
+                                , '25%')
+                        )
+                    )
+            );
+        } else {
+            $Header = array(( new Section() )
+                ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/Coswig_logo_300dpi.jpg',
+                    '100px', '100px') )
+                    ->stylePaddingTop('12px')
+                    ->styleHeight('20px')
+                    ->styleAlignCenter()
+                    , '25%')
                 ->addElementColumn(( new Element() )
                     ->setContent('FREISTAAT SACHSEN')
                     ->styleFontFamily('Trebuchet MS')
@@ -42,21 +89,18 @@ class CosHjPri extends Certificate
                 ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
                     '165px', '50px') )
                     ->stylePaddingTop('12px')
-                    , '25%');
-        } else {
-            $Header = ( new Section() )
-                ->addElementColumn(( new Element() ), '25%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('FREISTAAT SACHSEN')
-                    ->styleFontFamily('Trebuchet MS')
-                    ->styleTextSize('21px')
-                    ->styleAlignCenter()
-                    ->stylePaddingTop('27px')
-                    , '50%')
-                ->addElementColumn(( new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                    '165px', '50px') )
-                    ->stylePaddingTop('12px')
-                    , '25%');
+                    , '25%'),
+                ( new Section() )
+                    ->addElementColumn(( new Element() )
+                        ->setContent('Evangelische Schule Coswig')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleTextSize('21px')
+                        ->styleTextBold()
+                        ->styleAlignCenter()
+                        ->styleMarginTop('40px')
+                        ->styleLineHeight('85%')
+                    )
+            );
         }
 
         return ( new Frame() )->addDocument(( new Document() )
@@ -64,16 +108,7 @@ class CosHjPri extends Certificate
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addSliceColumn((new Slice())
-                            ->addSection($Header)
-                            ->addElement((new Element())
-                                ->setContent('Evangelische Schule Coswig')
-                                ->styleFontFamily('Trebuchet MS')
-                                ->styleTextSize('21px')
-                                ->styleTextBold()
-                                ->styleAlignCenter()
-                                ->styleMarginTop('35px')
-                                ->styleLineHeight('85%')
-                            )
+                            ->addSectionList($Header)
                             ->addElement((new Element())
                                 ->setContent('staatlich anerkannte Ersatzschule')
                                 ->styleFontFamily('Trebuchet MS')
@@ -86,7 +121,7 @@ class CosHjPri extends Certificate
                                 ->styleTextSize('20px')
                                 ->styleTextBold()
                                 ->styleAlignCenter()
-                                ->styleMarginTop('35px')
+                                ->styleMarginTop('30px')
                             )
                             ->addSection(( new Section() )
                                 ->addSliceColumn(( new Slice() )
@@ -277,18 +312,29 @@ class CosHjPri extends Certificate
                                     )
                                     ->addSection(( new Section() )
                                         ->addElementColumn(( new Element() )
+                                            ->setContent('{% if(Content.Headmaster.Name is not empty) %}
+                                                    {{ Content.Headmaster.Name }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}'
+                                            )
+                                            ->styleFontFamily('Trebuchet MS')
+                                            ->styleLineHeight('85%')
+                                            ->styleTextSize('11px')
+                                            ->stylePaddingBottom('3px')
                                             , '35%')
                                         ->addElementColumn(( new Element() )
                                             , '30%')
                                         ->addElementColumn(( new Element() )
                                             ->setContent('{% if(Content.DivisionTeacher.Name is not empty) %}
-                                                {{ Content.DivisionTeacher.Name }}
-                                            {% else %}
-                                                &nbsp;
-                                            {% endif %}')
+                                                    {{ Content.DivisionTeacher.Name }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}')
                                             ->styleFontFamily('Trebuchet MS')
+                                            ->styleLineHeight('85%')
                                             ->styleTextSize('11px')
-                                            ->stylePaddingTop('2px')
+                                            ->stylePaddingBottom('3px')
                                             , '35%')
                                     )
                                     ->styleMarginTop('30px')
