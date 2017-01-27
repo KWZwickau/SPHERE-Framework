@@ -38,6 +38,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 
 /**
  * Class Service
@@ -165,7 +166,12 @@ class Service extends ServiceScoreRule
     public function getGradeTypeById($Id)
     {
 
-        return (new Data($this->getBinding()))->getGradeTypeById($Id);
+        $Cache = $this->getCache( new MemoryHandler() );
+        if( !($Result = $Cache->getValue( $Id, __METHOD__ )) ) {
+            $Result = (new Data($this->getBinding()))->getGradeTypeById($Id);
+            $Cache->setValue( $Id, $Result, 0, __METHOD__ );
+        }
+        return $Result;
     }
 
     /**
