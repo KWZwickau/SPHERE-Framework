@@ -2539,4 +2539,211 @@ abstract class Certificate extends Extension
             return $SectionList;
         }
     }
+
+    /**
+     * @param $TextSize
+     * @param bool $IsGradeUnderlined
+     * @return Slice
+     */
+    protected function getObligationToVotePartCustomForCoswig($TextSize = '14px', $IsGradeUnderlined = false)
+    {
+
+        $marginTop = '5px';
+
+        $slice = new Slice();
+        $sectionList = array();
+
+        $elementOrientationName = false;
+        $elementOrientationGrade = false;
+        $elementForeignLanguageName = false;
+        $elementForeignLanguageGrade = false;
+        if ($this->getTblPerson()
+            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+        ) {
+
+            // Neigungskurs
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                $tblStudentSubject = current($tblSubjectList);
+                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                    $subjectAcronym = 'NK';
+
+                    $elementOrientationName = new Element();
+                    $elementOrientationName
+                        ->setContent('
+                            {% if(Content.Student.Orientation.' . $tblSubject->getAcronym() . ' is not empty) %}
+                                 {{ Content.Student.Orientation.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->stylePaddingTop('0px')
+                        ->stylePaddingBottom('0px')
+                        ->styleMarginTop($marginTop)
+                        ->styleTextSize($TextSize);
+
+                    $elementOrientationGrade = new Element();
+                    $elementOrientationGrade
+                        ->setContent('
+                            {% if(Content.Grade.Data.' . $subjectAcronym . ' is not empty) %}
+                                {{ Content.Grade.Data.' . $subjectAcronym . ' }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor('#E9E9E9')
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                        ->stylePaddingTop()
+                        ->stylePaddingBottom()
+                        ->styleMarginTop($marginTop)
+                        ->styleTextSize($TextSize);
+                }
+            }
+
+            // 2. Fremdsprache
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if ($tblStudentSubject->getTblStudentSubjectRanking()
+                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                        && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                    ) {
+                        $elementForeignLanguageName = new Element();
+                        $elementForeignLanguageName
+                            ->setContent('
+                            {% if(Content.Student.ForeignLanguage.' . $tblSubject->getAcronym() . ' is not empty) %}
+                                 {{ Content.Student.ForeignLanguage.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleMarginTop($marginTop)
+                            ->styleTextSize($TextSize);
+
+                        $elementForeignLanguageGrade = new Element();
+                        $elementForeignLanguageGrade
+                            ->setContent('
+                            {% if(Content.Grade.Data.' . $tblSubject->getAcronym() . ' is not empty) %}
+                                {{ Content.Grade.Data.' . $tblSubject->getAcronym() . ' }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#E9E9E9')
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleMarginTop($marginTop)
+                            ->styleTextSize($TextSize);
+                    }
+                }
+            }
+
+            if ($elementOrientationName || $elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Wahlpflichtbereich:')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleTextItalic()
+                        ->styleTextBold()
+                        ->styleMarginTop('20px')
+                        ->styleTextSize($TextSize)
+                    );
+                $sectionList[] = $section;
+            }
+
+            if ($elementOrientationName && $elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementOrientationName, '39%')
+                    ->addElementColumn($elementOrientationGrade, '9%')
+                    ->addElementColumn((new Element()), '4%')
+                    ->addElementColumn($elementForeignLanguageName, '39%')
+                    ->addElementColumn($elementForeignLanguageGrade, '9%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Neigungskurs')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleBorderTop()
+                        ->styleMarginTop('5px')
+                        ->styleTextSize('11px')
+                        , '48%')
+                    ->addElementColumn((new Element()), '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('2. Fremdsprache (abschlussorientiert)')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleBorderTop()
+                        ->styleMarginTop('5px')
+                        ->styleTextSize('11px')
+                        , '48%'
+                    );
+                $sectionList[] = $section;
+            } elseif ($elementOrientationName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementOrientationName, '39%')
+                    ->addElementColumn($elementOrientationGrade, '9%')
+                    ->addElementColumn((new Element()), '52%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Neigungskurs')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleBorderTop()
+                        ->styleMarginTop('5px')
+                        ->styleTextSize('11px')
+                    );
+                $sectionList[] = $section;
+            } elseif ($elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementForeignLanguageName, '39%')
+                    ->addElementColumn($elementForeignLanguageGrade, '9%')
+                    ->addElementColumn((new Element()), '52%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('2. Fremdsprache (abschlussorientiert)')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
+                        ->styleBorderTop()
+                        ->styleMarginTop('5px')
+                        ->styleTextSize('11px')
+                    );
+                $sectionList[] = $section;
+            }
+        }
+
+        return empty($sectionList)
+            ? $slice->addElement(( new Element() )
+                ->setContent('&nbsp;')
+            )->styleHeight('76px')
+            : $slice->addSectionList($sectionList);
+    }
 }
