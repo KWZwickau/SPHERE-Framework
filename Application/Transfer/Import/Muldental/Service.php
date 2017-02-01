@@ -153,7 +153,7 @@ class Service
                         }
                     }
                     return
-                        new Success('Es wurden ' . $countCompany . ' Firmen erfolgreich angelegt.');
+                        new Success('Es wurden '.$countCompany.' Institutionen erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
                     return new Info(json_encode($Location)) .

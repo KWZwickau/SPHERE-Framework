@@ -562,8 +562,8 @@ class Service extends AbstractService
                 $Match = true;
             }
 
-            if ($Name === 'Firmen und Beziehungen' && !$this->getDynamicFilterAllByName('Firmen und Beziehungen', $tblAccount)) {
-                $Filter = $this->addDynamicFilter($tblAccount, 'Firmen und Beziehungen', false);
+            if ($Name === 'Institutionen und Beziehungen' && !$this->getDynamicFilterAllByName('Institutionen und Beziehungen', $tblAccount)) {
+                $Filter = $this->addDynamicFilter($tblAccount, 'Institutionen und Beziehungen', false);
                 $Mask = $this->addDynamicFilterMask($Filter, 1, 'SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember');
                 $this->addDynamicFilterOption($Mask, 'TblGroup_Name');
                 $Mask = $this->addDynamicFilterMask($Filter, 2, 'SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany');

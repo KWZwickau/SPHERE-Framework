@@ -204,7 +204,7 @@ class Service extends Extension
 
                     return
                         new Success('Es wurden ' . $countPerson . ' Personen erfolgreich angelegt.')
-                        . new Success('Es wurden ' . $countCompany . ' Firmen erfolgreich angelegt.')
+                        .new Success('Es wurden '.$countCompany.' Institutionen erfolgreich angelegt.')
                         . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel(
                                 'Fehler',
@@ -688,7 +688,7 @@ class Service extends Extension
                         ''
                     );
                 } else {
-                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse konnte nicht zur Firma hinzugefügt werden.';
+                    $error[] = 'Zeile: '.( $RunY + 1 ).' Die Adresse konnte nicht zur Institution hinzugefügt werden.';
                 }
 
                 /*
@@ -719,11 +719,11 @@ class Service extends Extension
                     );
                 }
             } else {
-                $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Firma wurde nicht hinzugefügt.';
+                $error[] = 'Zeile: '.( $RunY + 1 ).' Die Institution wurde nicht hinzugefügt.';
             }
 
         } else {
-            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person/Firma wurde nicht hinzugefügt.';
+            $error[] = 'Zeile: '.( $RunY + 1 ).' Die Person/Institution wurde nicht hinzugefügt.';
         }
 
         return array(

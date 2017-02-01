@@ -135,7 +135,7 @@ class Frontend extends Extension implements IFrontendInterface
         $PanelSelectCompanyTitle = new PullClear(
             'Förderverein auswählen:'
             .new PullRight(
-                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
                     , array(), '"Förderverein hinzufügen" verlassen'
                 ))
         );
@@ -161,7 +161,7 @@ class Frontend extends Extension implements IFrontendInterface
                         !empty( $TableContent ) ?
                             new Panel($PanelSelectCompanyTitle, $TableContent, Panel::PANEL_TYPE_INFO, null, 15)
                             : new Panel($PanelSelectCompanyTitle,
-                            new Warning('Es ist keine Firma vorhanden die ausgewählt werden kann')
+                            new Warning('Es ist keine Institution vorhanden die ausgewählt werden kann')
                             , Panel::PANEL_TYPE_INFO)
                     ), 12),
                 )),

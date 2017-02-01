@@ -75,7 +75,7 @@ class Radebeul implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Radebeul', 'Schulen (Firmen)',
+            'Radebeul', 'Schulen (Institutionen)',
             new Standard('', '/Transfer/Import/Radebeul/Company', new Upload(), array(), 'Upload')
         );
     }

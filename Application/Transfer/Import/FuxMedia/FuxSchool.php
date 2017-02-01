@@ -70,7 +70,7 @@ class FuxSchool implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-            'FuxSchool', 'Firmendaten (Einrichtungsdaten)',
+            'FuxSchool', 'Institutionendaten (Einrichtungsdaten)',
             new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload')
         );
     }

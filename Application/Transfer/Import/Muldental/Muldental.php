@@ -56,7 +56,7 @@ class Muldental implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Muldental', 'Firmen-Daten',
+            'Muldental', 'Institutionen-Daten',
             new Standard('', '/Transfer/Import/Muldental/Company', new Upload(), array(), 'Upload')
         );
     }

@@ -117,7 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) auswählen'))
                     . (new Standard('(' . CheckList::useService()->countListObjectListByList($tblList) . ')',
                         '/Reporting/CheckList/Object/Select', new Listing(),
-                        array('ListId' => $tblList->getId()), 'Person / Firma / Gruppe / Klasse auswählen'))
+                        array('ListId' => $tblList->getId()), 'Person / Institution / Gruppe / Klasse auswählen') )
                     .( new Standard(new View(), '/Reporting/CheckList/Object/Element/Show', new CommodityItem(),
                         array('Id' => $tblList->getId()), 'Check-Listen-Inhalt anzeigen') );
 
@@ -521,8 +521,8 @@ class Frontend extends Extension implements IFrontendInterface
         $ObjectTypeSelect = null
     ) {
 
-        $Stage = new Stage('Check-Listen', 'Eine Person / Firma / Gruppe / Klasse einer Check-Liste zuordnen');
-        $Stage->setMessage('Der aktuell ausgewählten Checkliste können hier Personen, Firmen, Gruppen oder Klassen zugeordnet werden.
+        $Stage = new Stage('Check-Listen', 'Eine Person / Institution / Gruppe / Klasse einer Check-Liste zuordnen');
+        $Stage->setMessage('Der aktuell ausgewählten Checkliste können hier Personen, Institutionen, Gruppen oder Klassen zugeordnet werden.
         Bei der Gruppenauswahl besteht zudem die Möglichkeit eine dynamische Verteilung vorzunehmen,
         d.h. bei Änderung von Positionen in der Gruppe wird die Checkliste automatisch aktualisiert (Standardeinstellung).');
 
@@ -939,7 +939,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             new FormRow(array(
                                                 new FormColumn(
                                                     new SelectBox('ObjectTypeSelect[Id]',
-                                                        'Person / Firma / Gruppe / Klasse',
+                                                        'Person / Institution / Gruppe / Klasse',
                                                         array(
                                                             '{{ Name }}' => $tblObjectTypeAll
                                                         )),
@@ -1134,8 +1134,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                         return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
                                 ' Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
-                            .new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().$countAdd.' Firma/en hinzugefügt.')
-                            .( $countExists > 0 ? new Warning($countExists.' Firma/en existierten bereits in der Check-Liste') : '' )
+                            .new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().$countAdd.' Institution/en hinzugefügt.')
+                            .( $countExists > 0 ? new Warning($countExists.' Institution/en existierten bereits in der Check-Liste') : '' )
                             .new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
                                 array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     }
@@ -1561,7 +1561,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $list[$count]['Name'] = $tblCompany->getName().new Container($tblCompany->getExtendedName())
                                         .new PullClear(new PullRight(new Standard('', '/Corporation/Company',
                                             new Building(),
-                                            array('Id' => $tblCompany->getId()), 'Zur Firma')));
+                                            array('Id' => $tblCompany->getId()), 'Zur Institution')));
                                 } else {
                                     $list[$count]['Name'] = '';
                                 }
@@ -1693,7 +1693,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         : new Info($countPerson.' Interessenten') )
                                         : new Info(
                                         'Anzahl der Objekte: '.( $countPerson + $countCompany ).' (Personen: '.$countPerson
-                                        .', Firmen: '.$countCompany.')'
+                                        .', Institutionen: '.$countCompany.')'
                                     )),
                                 new TableData($list, null, $columnDefinition,
                                     array(
@@ -1814,7 +1814,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel(( $tblCompany ? 'Firma' : ( $tblPerson ? 'Person' : '' ) ), $PanelName, Panel::PANEL_TYPE_SUCCESS)
+                            new Panel(( $tblCompany ? 'Institution' : ( $tblPerson ? 'Person' : '' ) ), $PanelName, Panel::PANEL_TYPE_SUCCESS)
                             , 4),
                         new LayoutColumn(
                             new Panel('Check-Liste', new Bold($tblList->getName()).

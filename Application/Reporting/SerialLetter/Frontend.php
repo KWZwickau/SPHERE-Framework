@@ -132,7 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
         $LayoutTabs[] = new LayoutTab('Dynamisch (Personengruppe)', 'PERSONGROUP');
         $LayoutTabs[] = new LayoutTab('Dynamisch (Schüler)', 'STUDENT');
         $LayoutTabs[] = new LayoutTab('Dynamisch (Interessenten)', 'PROSPECT');
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Firmengruppe)', 'COMPANY');
+        $LayoutTabs[] = new LayoutTab('Dynamisch (Institutionengruppe)', 'COMPANY');
 
         $TableContent = array();
         if ($tblSerialLetterAll) {
@@ -272,7 +272,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
                 break;
             case 'COMPANY':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Firmengruppe');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Institutionengruppe');
 
                 $FormSerialLetterDynamic = $this->formFilterCompany();
                 $FormSerialLetterDynamic
@@ -932,11 +932,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new SelectBox('FilterGroup[TblGroup_Id]['.$FilterNumber.']', 'Gruppe: Name', array('Name' => $tblGroupList))
                                     , 3),
                                 new FormColumn(
-                                    new AutoCompleter('FilterCompany[TblCompany_Name]['.$FilterNumber.']', 'Firma: Name', '',
+                                    new AutoCompleter('FilterCompany[TblCompany_Name]['.$FilterNumber.']', 'Institution: Name', '',
                                         array('Name' => Company::useService()->getCompanyAll()))
                                     , 3),
                                 new FormColumn(
-                                    new AutoCompleter('FilterCompany[TblCompany_ExtendedName]['.$FilterNumber.']', 'Firma: Zusatz', '',
+                                    new AutoCompleter('FilterCompany[TblCompany_ExtendedName]['.$FilterNumber.']', 'Institution: Zusatz', '',
                                         array('ExtendedName' => Company::useService()->getCompanyAll()))
                                     , 3),
                                 new FormColumn(
@@ -954,11 +954,11 @@ class Frontend extends Extension implements IFrontendInterface
                         new SelectBox('FilterGroup[TblGroup_Id][]', 'Gruppe: Name', array('Name' => $tblGroupList))
                         , 3),
                     new FormColumn(
-                        new AutoCompleter('FilterCompany[TblCompany_Name][]', 'Firma: Name', '',
+                        new AutoCompleter('FilterCompany[TblCompany_Name][]', 'Institution: Name', '',
                             array('Name' => Company::useService()->getCompanyAll()))
                         , 3),
                     new FormColumn(
-                        new AutoCompleter('FilterCompany[TblCompany_ExtendedName][]', 'Firma: Zusatz', '',
+                        new AutoCompleter('FilterCompany[TblCompany_ExtendedName][]', 'Institution: Zusatz', '',
                             array('ExtendedName' => Company::useService()->getCompanyAll()))
                         , 3),
                     new FormColumn(
@@ -974,11 +974,11 @@ class Frontend extends Extension implements IFrontendInterface
                         new SelectBox('FilterGroup[TblGroup_Id][0]', 'Gruppe: Name', array('Name' => $tblGroupList))
                         , 3),
                     new FormColumn(
-                        new AutoCompleter('FilterCompany[TblCompany_Name][0]', 'Firma: Name', '',
+                        new AutoCompleter('FilterCompany[TblCompany_Name][0]', 'Institution: Name', '',
                             array('Name' => Company::useService()->getCompanyAll()))
                         , 3),
                     new FormColumn(
-                        new AutoCompleter('FilterCompany[TblCompany_ExtendedName][0]', 'Firma: Zusatz', '',
+                        new AutoCompleter('FilterCompany[TblCompany_ExtendedName][0]', 'Institution: Zusatz', '',
                             array('ExtendedName' => Company::useService()->getCompanyAll()))
                         , 3),
                     new FormColumn(
@@ -1381,7 +1381,7 @@ class Frontend extends Extension implements IFrontendInterface
                         : '' );
                 break;
             case 'COMPANY':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Firmengruppe');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Institutionengruppe');
 
                 if ($tblFilterCategory) {
                     $CategoryName = $tblFilterCategory->getName();
@@ -1429,7 +1429,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             array('Salutation'          => 'Anrede',
                                                   'Name'                => 'Name',
                                                   'Address'             => 'Adresse',
-                                                  'CompanyName'         => 'Firmenname',
+                                                  'CompanyName'         => 'Name der Institution',
                                                   'CompanyExtendedName' => 'Zusatz',
                                                   'Type'                => 'Typ'
                                             ),
@@ -2475,7 +2475,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Buttons[] = new Standard('Löschen', '/Reporting/SerialLetter/Address/Remove', new Remove(), array('Id' => $tblSerialLetter->getId()));
         // Company use other automatic
         if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-            $Buttons[] = new Standard('Firmen mit Personen anschreiben', '/Reporting/SerialLetter/Address/Company', new Edit()
+            $Buttons[] = new Standard('Institutionen mit Personen anschreiben', '/Reporting/SerialLetter/Address/Company', new Edit()
                 , array('Id' => $tblSerialLetter->getId()));
         } elseif ($tblFilterCategory || !$tblFilterCategory) {
             $Buttons[] = new Standard('Personen direkt anschreiben', '/Reporting/SerialLetter/Address/Person', new Edit()
@@ -2620,7 +2620,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSetAddressByCompany($Id = null)
     {
 
-        $Stage = new Stage('Befüllen der Adressen', 'aus Firmen');
+        $Stage = new Stage('Befüllen der Adressen', 'aus Institutionen');
         $tblSerialLetter = ( !$Id ? false : SerialLetter::useService()->getSerialLetterById($Id) );
         if (!$tblSerialLetter) {
             return $Stage->setContent(new WarningMessage('Kein Serienbrief ausgewählt'))
@@ -2803,7 +2803,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Salutation'   => 'Anrede',
                 'Person'       => 'Person',
                 'Relationship' => 'Beziehung',
-                'Company'      => 'Firma',
+                'Company'      => 'Institution',
                 'AddressType'  => 'Adresstyp',
                 'Address'      => 'Adressen'
             );
@@ -3142,7 +3142,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Person'     => 'Person',
                     'Salutation' => 'Anrede',
 //                    'PersonToAddress' => 'Adressat',
-                    'Company'    => 'Firma',
+                    'Company'    => 'Institution',
                     'Address'    => 'Adresse',
                     'Option'     => ''
                 );

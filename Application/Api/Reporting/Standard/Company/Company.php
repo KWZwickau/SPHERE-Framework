@@ -27,7 +27,7 @@ class Company
                 $fileLocation = \SPHERE\Application\Reporting\Standard\Company\Company::useService()->createGroupListExcel($groupList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Firmengruppenliste ".$tblGroup->getName()
+                    "Institutionengruppenliste ".$tblGroup->getName()
                     ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }

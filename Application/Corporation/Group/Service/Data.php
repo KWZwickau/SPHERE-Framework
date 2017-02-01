@@ -34,7 +34,14 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createGroup('Alle', 'Firmendaten', '', true, 'COMMON');
+        if (( $tblGroup = $this->getGroupByMetaTable('COMMON') )) {
+            if ($tblGroup && $tblGroup->getRemark() !== 'Institutionendaten') {
+                $this->updateGroup($tblGroup, 'Alle', 'Institutionendaten', '');
+            }
+        } else {
+            $this->createGroup('Alle', 'Institutionendaten', '', true, 'COMMON');
+        }
+//        $this->createGroup('Alle', 'Firmendaten', '', true, 'COMMON');
         $this->createGroup('Schulen', '', '', true, 'SCHOOL');
         $this->createGroup('Kita', 'Kindertagesstätte', '', true, 'NURSERY');
     }
@@ -255,6 +262,7 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
+        /** @var TblGroup[] $EntityList */
         return ( null === $EntityList ? false : $EntityList );
     }
 

@@ -83,7 +83,7 @@ class ViewMailToCompany extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Kontakt E-Mail (Firma)';
+        return 'Kontakt E-Mail (Institution)';
     }
 
     /**

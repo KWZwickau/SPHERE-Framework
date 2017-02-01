@@ -23,10 +23,8 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Database;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\More;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -82,7 +80,7 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     private $FilterPackAll = array('Adresse-Personen', 'Person-Adressen', 'Person-Personenbeziehung-Person', 'Person-Sorgeberechtigte-Adressen',
-        'Firmen und Beziehungen', 'Schüler-Befreiung', 'Schüler-Einverständnis', 'Schüler-Fehltage', 'Schüler-Förderbedarf-Antrag',
+        'Institutionen und Beziehungen', 'Schüler-Befreiung', 'Schüler-Einverständnis', 'Schüler-Fehltage', 'Schüler-Förderbedarf-Antrag',
         'Schüler-Förderbedarf-Schwerpunkte', 'Schüler-Förderbedarf-Teilstörung', 'Schüler-Krankenakte', 'Schüler-Schließfach',
         'Schüler-Taufe', 'Schüler-Transfer', 'Schüler-Transport');
 

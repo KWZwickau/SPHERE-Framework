@@ -65,7 +65,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $Number
      * @param array $Type
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendCreateToPerson($Id, $Number, $Type)
     {
@@ -155,13 +155,13 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $Number
      * @param array $Type
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendCreateToCompany($Id, $Number, $Type)
     {
 
         $Stage = new Stage('Telefonnummer', 'Hinzufügen');
-        $Stage->setMessage('Eine Telefonnummer zur gewählten Firma hinzufügen');
+        $Stage->setMessage('Eine Telefonnummer zur gewählten Institution hinzufügen');
 
         $tblCompany = Company::useService()->getCompanyById($Id);
         if ($tblCompany) {
@@ -176,7 +176,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(
                             new LayoutColumn(
-                                new Panel(new Building() . ' Firma',
+                                new Panel(new Building().' Institution',
                                     array(
                                         new Bold($tblCompany->getName()),
                                         $tblCompany->getExtendedName()),
@@ -204,7 +204,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
-            return $Stage . new Danger(new Ban() . ' Firma nicht gefunden.')
+            return $Stage.new Danger(new Ban().' Institution nicht gefunden.')
             . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
         }
     }
@@ -214,7 +214,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $Number
      * @param array $Type
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendUpdateToPerson($Id, $Number, $Type)
     {
@@ -280,18 +280,18 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $Number
      * @param array $Type
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendUpdateToCompany($Id, $Number, $Type)
     {
 
         $Stage = new Stage('Telefonnummer', 'Bearbeiten');
-        $Stage->setMessage('Die Telefonnummer der gewählten Firma ändern');
+        $Stage->setMessage('Die Telefonnummer der gewählten Institution ändern');
 
         $tblToCompany = Phone::useService()->getPhoneToCompanyById($Id);
 
         if (!$tblToCompany->getServiceTblCompany()){
-            return $Stage . new Danger('Firma nicht gefunden', new Ban())
+            return $Stage.new Danger('Institution nicht gefunden', new Ban())
             . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
@@ -312,7 +312,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new Building().' Firma', array(
+                            new Panel(new Building().' Institution', array(
                                 new Bold($tblToCompany->getServiceTblCompany()->getName()),
                                 $tblToCompany->getServiceTblCompany()->getExtendedName()),
                                 Panel::PANEL_TYPE_SUCCESS
@@ -544,7 +544,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int $Id
      * @param bool $Confirm
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendDestroyToPerson($Id, $Confirm = false)
     {
@@ -626,7 +626,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int $Id
      * @param bool $Confirm
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendDestroyToCompany($Id, $Confirm = false)
     {
@@ -637,7 +637,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCompany = $tblToCompany->getServiceTblCompany();
 
             if (!$tblCompany){
-                return $Stage . new Danger('Firma nicht gefunden', new Ban())
+                return $Stage.new Danger('Institution nicht gefunden', new Ban())
                 . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
@@ -647,7 +647,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new Building() . ' Firma',
+                        new Panel(new Building().' Institution',
                             array(
                                 new Bold($tblCompany->getName()),
                                 $tblCompany->getExtendedName()),

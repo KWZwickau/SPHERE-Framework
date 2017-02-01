@@ -232,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
-                    new Warning('Keine Firmenbeziehungen hinterlegt')
+                    new Warning('Keine Institutionenbeziehungen hinterlegt')
                     , 3)
             );
         }
@@ -330,7 +330,7 @@ class Frontend extends Extension implements IFrontendInterface
         $PanelSelectCompanyTitle = new PullClear(
             'Schule auswählen:'
             .new PullRight(
-                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
                     , array(), '"Schule hinzufügen" verlassen'
                 ))
         );
@@ -366,7 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
                         !empty( $TableContent ) ?
                             new Panel($PanelSelectCompanyTitle, $TableContent, Panel::PANEL_TYPE_INFO, null, 15)
                             : new Panel($PanelSelectCompanyTitle,
-                            new Warning('Es ist keine Firma vorhanden die als Schule ausgewählt werden kann')
+                            new Warning('Es ist keine Institution vorhanden die als Schule ausgewählt werden kann')
                             , Panel::PANEL_TYPE_INFO)
                     ,
                     ), 8),

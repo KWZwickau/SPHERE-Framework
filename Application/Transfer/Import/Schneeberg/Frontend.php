@@ -286,7 +286,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $View = new Stage();
         $View->setTitle('Schneeberg Import');
-        $View->setDescription('Schulen (Firmen)');
+        $View->setDescription('Schulen (Institutionen)');
         $View->setContent(
             new Layout(
                 new LayoutGroup(
