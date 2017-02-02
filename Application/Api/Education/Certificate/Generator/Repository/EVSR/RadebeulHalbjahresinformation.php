@@ -122,7 +122,7 @@ class RadebeulHalbjahresinformation extends Certificate
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent(
-                                        'Halbjahreszeugnis'
+                                        'Halbjahresinformation'
                                     )
                                     ->styleMarginTop('-14px')
                                     ->styleTextBold()
@@ -286,31 +286,8 @@ class RadebeulHalbjahresinformation extends Certificate
                                     ->styleTextSize($textSize)
                                     ->styleFontFamily($fontFamily)
                                     ->styleLineHeight('80%')
-                                    ->styleHeight('90px')
+                                    ->styleHeight('140px')
                                 )
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('Versetzungsvermerk:')
-                                    ->styleTextColor($textColorBlue)
-                                    ->styleTextSize($textSize)
-                                    ->styleFontFamily($fontFamily)
-                                    ->styleMarginTop('5px')
-                                    , '22%')
-                                ->addElementColumn((new Element())
-                                    ->setContent('
-                                        {% if(Content.Input.Transfer) %}
-                                            {{ Content.Input.Transfer|nl2br }}
-                                        {% else %}
-                                            &nbsp;
-                                        {% endif %}
-                                    ')
-                                    ->styleTextColor($textColorBlue)
-                                    ->styleTextSize($textSize)
-                                    ->styleFontFamily($fontFamily)
-                                    ->styleMarginTop('5px')
-                                    ->styleHeight('40px')
-                                    , '78%')
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
