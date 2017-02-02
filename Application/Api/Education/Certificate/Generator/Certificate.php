@@ -1676,11 +1676,11 @@ abstract class Certificate extends Extension
                 , '20%')
             ->addElementColumn($elementName
                 ->styleMarginTop($marginTop)
-                , '32%')
+                , '42%')
             ->addElementColumn((new Element())
                 ->setContent($profileAppendText)
                 ->styleMarginTop($marginTop)
-                , '48%');
+            );
         $sectionList[] = $section;
         $section = new Section();
         $section
@@ -1690,8 +1690,8 @@ abstract class Certificate extends Extension
                 ->setContent('besuchtes Profil')
                 ->styleAlignCenter()
                 ->styleTextSize('11px')
-                , '32%')
-            ->addElementColumn((new Element()), '48%');
+                , '42%')
+            ->addElementColumn((new Element()));
         $sectionList[] = $section;
 
         $section = new Section();
