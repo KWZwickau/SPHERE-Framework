@@ -129,10 +129,10 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty($LayoutTabs) && $TabActive === 'PERSON') {
             $LayoutTabs[0]->setActive();
         }
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Personengruppe)', 'PERSONGROUP');
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Schüler)', 'STUDENT');
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Interessenten)', 'PROSPECT');
-        $LayoutTabs[] = new LayoutTab('Dynamisch (Institutionengruppe)', 'COMPANY');
+        $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_PERSON_GROUP.')', 'PERSONGROUP');
+        $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT.')', 'STUDENT');
+        $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT.')', 'PROSPECT');
+        $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_COMPANY_GROUP.')', 'COMPANY');
 
         $TableContent = array();
         if ($tblSerialLetterAll) {
@@ -194,7 +194,7 @@ class Frontend extends Extension implements IFrontendInterface
                     , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetter, $SerialLetter))), Panel::PANEL_TYPE_INFO);
                 break;
             case 'PERSONGROUP':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Personengruppe');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP);
 
 //                // Filter Group
 //                if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
@@ -230,7 +230,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
                 break;
             case 'STUDENT':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Schüler');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT);
 
                 $FormSerialLetterDynamic = $this->formFilterStudent();
                 $FormSerialLetterDynamic
@@ -251,7 +251,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
                 break;
             case 'PROSPECT':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Interessenten');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT);
 
                 $FormSerialLetterDynamic = $this->formFilterProspect();
                 $FormSerialLetterDynamic
@@ -272,7 +272,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
                 break;
             case 'COMPANY':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Institutionengruppe');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
 
                 $FormSerialLetterDynamic = $this->formFilterCompany();
                 $FormSerialLetterDynamic
@@ -1239,7 +1239,7 @@ class Frontend extends Extension implements IFrontendInterface
                         : '' );
                 break;
             case 'STUDENT':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Schüler');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT);
 
                 if ($tblFilterCategory) {
                     $CategoryName = $tblFilterCategory->getName();
@@ -1307,7 +1307,7 @@ class Frontend extends Extension implements IFrontendInterface
                         : '' );
                 break;
             case 'PROSPECT':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Interessenten');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT);
 
                 if ($tblFilterCategory) {
                     $CategoryName = $tblFilterCategory->getName();
@@ -1381,7 +1381,7 @@ class Frontend extends Extension implements IFrontendInterface
                         : '' );
                 break;
             case 'COMPANY':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName('Institutionengruppe');
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
 
                 if ($tblFilterCategory) {
                     $CategoryName = $tblFilterCategory->getName();

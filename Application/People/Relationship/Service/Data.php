@@ -149,7 +149,7 @@ class Data extends AbstractData
      * @param string   $Name
      * @param string   $Description
      *
-     * @return bool
+     * @return TblGroup
      */
     public function updateGroup(TblGroup $tblGroup, $Name, $Description = '')
     {
@@ -163,9 +163,9 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
+            return $Entity;
         }
-        return false;
+        return $Entity;
     }
 
     /**

@@ -34,12 +34,10 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createGroup('Alle', 'Institutionendaten', '', true, 'COMMON');
+        //ToDO nach einem Datenbankupdate entfernen
         if (( $tblGroup = $this->getGroupByMetaTable('COMMON') )) {
-            if ($tblGroup && $tblGroup->getRemark() !== 'Institutionendaten') {
-                $this->updateGroup($tblGroup, 'Alle', 'Institutionendaten', '');
-            }
-        } else {
-            $this->createGroup('Alle', 'Institutionendaten', '', true, 'COMMON');
+            $this->updateGroup($tblGroup, 'Alle', 'Institutionendaten', $tblGroup->getRemark());
         }
 //        $this->createGroup('Alle', 'Firmendaten', '', true, 'COMMON');
         $this->createGroup('Schulen', '', '', true, 'SCHOOL');
