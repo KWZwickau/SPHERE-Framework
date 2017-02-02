@@ -174,6 +174,7 @@ class HorHjOne extends Certificate
                             ->styleMarginTop('35px')
                             ->stylePaddingLeft('15px')
                             ->stylePaddingRight('15px')
+                            ->styleAlignJustify()
                         )
                     )
                     ->addSection(( new Section() )
