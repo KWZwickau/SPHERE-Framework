@@ -11,6 +11,7 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblFileType;
 use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
 use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Document\Storage\Service\Setup;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -120,19 +121,20 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param Certificate $Certificate
      * @param FilePointer $File
      *
+     * @param TblPrepareCertificate $tblPrepareCertificate
      * @return bool|TblFile
-     * @throws \Exception
      */
     public function saveCertificateRevision(
         TblPerson $tblPerson,
         TblDivision $tblDivision,
         Certificate $Certificate,
-        FilePointer $File
+        FilePointer $File,
+        TblPrepareCertificate $tblPrepareCertificate
     ) {
 
         // Load Tmp
@@ -153,16 +155,26 @@ class Service extends AbstractService
                     'TBL-PERSON-ID:'.$tblPerson->getId()
                 );
                 $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
-                if ($tblFileType) {
+                if ($tblFileType && $tblDirectory) {
+                    $tblFile = false;
                     $tblBinary = $this->createBinary($File->getFileContent());
-                    $tblFile = $this->createFile(
-                        $tblBinary,
-                        $tblDirectory,
-                        $tblFileType,
-                        $tblYear->getYear().' - '.$tblPerson->getLastFirstName().' - '.$Certificate->getCertificateName(),
-                        'Erstellt: '.date('d.m.Y H:i:s'),
-                        true
-                    );
+                    if ($tblBinary) {
+                        $name = $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - '
+                            . $Certificate->getCertificateName() . ' - ' . $tblPrepareCertificate->getId();
+
+                        if (($tblFile = $this->exitsFile($tblDirectory, $tblFileType, $name))) {
+                            $this->updateFile($tblFile, $tblBinary, 'Zuletzt erstellt: ' . date('d.m.Y H:i:s'));
+                        } else {
+                            $tblFile = $this->createFile(
+                                $tblBinary,
+                                $tblDirectory,
+                                $tblFileType,
+                                $name,
+                                'Erstellt: ' . date('d.m.Y H:i:s'),
+                                true
+                            );
+                        }
+                    }
                     if ($tblFile) {
                         return $tblFile;
                     } else {
@@ -350,5 +362,37 @@ class Service extends AbstractService
         }
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDirectory $tblDirectory
+     * @param TblFileType $tblFileType
+     * @param $Name
+     *
+     * @return false|TblFile
+     */
+    public function exitsFile(
+        TblDirectory $tblDirectory,
+        TblFileType $tblFileType,
+        $Name
+    ) {
+
+        return (new Data($this->getBinding()))->exitsFile($tblDirectory, $tblFileType, $Name);
+    }
+
+    /**
+     * @param TblFile $tblFile
+     * @param TblBinary $tblBinary
+     * @param $Description
+     *
+     * @return bool
+     */
+    public function updateFile(
+        TblFile $tblFile,
+        TblBinary $tblBinary,
+        $Description
+    ) {
+
+        return (new Data($this->getBinding()))->updateFile($tblFile, $tblBinary, $Description);
     }
 }

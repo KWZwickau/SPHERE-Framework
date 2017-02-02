@@ -281,11 +281,20 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblFileList) {
                 foreach ($tblFileList as $tblFile) {
                     $name = explode(' - ', $tblFile->getName());
-                    if (count($name) == 3) {
+
+                    if ($tblFile->getEntityUpdate()){
+                        $date = $tblFile->getEntityUpdate()->format('d.m.Y');
+                        $isChanged = true;
+                    } else {
+                        $date = $tblFile->getEntityCreate()->format('d.m.Y');
+                        $isChanged = false;
+                    }
+                    if (count($name) >= 3) {
                         $dataList[] = array(
                             'Year' => $name[0],
-                            'Date' => $tblFile->getEntityCreate()->format('d.m.Y'),
+                            'Date' => $date,
                             'Certificate' => $name[2],
+                            'Changed' => $isChanged ? 'geändert': '',
                             'Option' => new External(
                                 'Herunterladen',
                                 '/Api/Education/Certificate/Generator/Download',
@@ -316,6 +325,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Year' => 'Jahr',
                                     'Date' => 'Gedruckt am',
                                     'Certificate' => 'Zeugnis',
+                                    'Changed' => 'geändert',
                                     'Option' => ''
                                 ),
                                     array(
