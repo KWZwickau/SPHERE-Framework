@@ -228,6 +228,7 @@ class HorHj extends Certificate
                             ->styleMarginTop('5px')
                             ->stylePaddingLeft('15px')
                             ->stylePaddingRight('15px')
+                            ->styleAlignJustify()
                         )
                     )
                     ->addSection(( new Section() )
