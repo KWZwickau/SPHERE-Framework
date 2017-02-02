@@ -26,6 +26,7 @@ class HorHjOne extends Certificate
     {
 
         $TextSize = '12px';
+        $TextSizeInput = '15px';
 
         $Header = ( ( new Element\Sample() )
             ->styleTextSize('30px')
@@ -99,20 +100,22 @@ class HorHjOne extends Certificate
                         ->addElementColumn(( new Element() )
                             ->setContent('Klasse')
                             ->styleTextSize($TextSize)
-                            ->styleMarginTop('33px')
+                            ->styleMarginTop('34px')
                             , '8%')
                         ->addElementColumn(( new Element() )
                             ->setContent('{{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}')
+                            ->styleTextSize($TextSizeInput)
                             ->styleMarginTop('32px')
                             , '43%')
                         ->addElementColumn(( new Element() )
                             ->setContent('1. Schulhalbjahr')
                             ->styleTextSize($TextSize)
                             ->styleAlignRight()
-                            ->styleMarginTop('33px')
+                            ->styleMarginTop('34px')
                             , '30%')
                         ->addElementColumn(( new Element() )
                             ->setContent('{{ Content.Division.Data.Year }}')
+                            ->styleTextSize($TextSizeInput)
                             ->styleAlignCenter()
                             ->styleMarginTop('32px')
                             , '15%')
@@ -139,12 +142,13 @@ class HorHjOne extends Certificate
                         ->addElementColumn(( new Element() )
                             ->setContent('Vor- und Zuname:')
                             ->styleTextSize($TextSize)
-                            ->styleMarginTop('7px')
+                            ->styleMarginTop('12px')
                             , '18%')
                         ->addElementColumn(( new Element() )
                             ->setContent('{{ Content.Person.Data.Name.First }}
                                           {{ Content.Person.Data.Name.Last }}')
-                            ->styleMarginTop('5px')
+                            ->styleTextSize($TextSizeInput)
+                            ->styleMarginTop('10px')
                             , '78%')
                         ->addElementColumn(( new Element() )
                             , '2%'
