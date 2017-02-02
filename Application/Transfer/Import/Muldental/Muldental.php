@@ -24,10 +24,14 @@ class Muldental implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Company', __NAMESPACE__ . '\Frontend::frontendCompanyImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Staff', __NAMESPACE__ . '\Frontend::frontendStaffImport'
+        ));
 
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetCompany'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetClubMember'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStaff'), 2, 2);
     }
 
     /**
@@ -84,6 +88,19 @@ class Muldental implements IModuleInterface
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
             'Muldental', 'Mitglieder-Daten',
             new Standard('', '/Transfer/Import/Muldental/ClubMember', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetStaff()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
+            'Muldental', 'Mitarbeiter-Daten',
+            new Standard('', '/Transfer/Import/Muldental/Staff', new Upload(), array(), 'Upload')
         );
     }
 }
