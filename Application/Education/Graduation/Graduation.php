@@ -124,7 +124,7 @@ class Graduation implements IApplicationInterface
                         new Bold('Notenaufträge (Ansicht: Lehrer)')
                     ),
                     new TableColumn(
-                        'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren),
+                        'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebenen Zensuren),
                          wo der angemeldete Lehrer als Klassenlehrer hinterlegt ist.'
                     ),
                 )) : null,
