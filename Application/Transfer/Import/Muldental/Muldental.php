@@ -24,8 +24,12 @@ class Muldental implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Company', __NAMESPACE__ . '\Frontend::frontendCompanyImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/CompanyNursery', __NAMESPACE__.'\Frontend::frontendCompanyNurseryImport'
+        ));
 
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetCompany'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetCompanyNursery'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetClubMember'), 2, 2);
     }
@@ -58,6 +62,19 @@ class Muldental implements IModuleInterface
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
             'Muldental', 'Firmen-Daten',
             new Standard('', '/Transfer/Import/Muldental/Company', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetCompanyNursery()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
+            'Muldental', 'Kita\'s-Daten',
+            new Standard('', '/Transfer/Import/Muldental/CompanyNursery', new Upload(), array(), 'Upload')
         );
     }
 
