@@ -39,7 +39,7 @@ class TblUser extends Element
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
+            return Person::useService()->getPersonById($this->serviceTblPerson, true);
         }
     }
 
