@@ -19,6 +19,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -139,7 +140,7 @@ class Service
                                 $city = trim($Document->getValue($Document->getCell($Location['Ort'],
                                     $RunY)));
 
-                                if ($streetName && $streetNumber && $zipCode && $city){
+                                if ($streetName && $streetNumber && $zipCode && $city) {
                                     Address::useService()->insertAddressToCompany(
                                         $tblCompany,
                                         $streetName,
@@ -158,8 +159,8 @@ class Service
                 } else {
                     Debugger::screenDump($Location);
                     return new Info(json_encode($Location)) .
-                    new Danger(
-                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                        new Danger(
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
         }
@@ -1106,7 +1107,7 @@ class Service
                     Debugger::screenDump($Location);
 
                     return new Warning(json_encode($Location)) . new Danger(
-                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
         }
@@ -1301,7 +1302,7 @@ class Service
                     Debugger::screenDump($Location);
 
                     return new Warning(json_encode($Location)) . new Danger(
-                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
         }
@@ -1349,16 +1350,20 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Kürzel' => null,
+                    'Gruppe' => null,
+                    'Zusatz 1' => null,
+                    'Kurz' => null,
                     'Anrede' => null,
-                    'Titel' => null,
                     'Name' => null,
                     'Vorname' => null,
                     'Straße' => null,
-                    'Ort' => null,
-                    'Telefon' => null,
-                    'Mobil' => null,
-                    'geboren' => null,
+                    'Plz' => null,
+                    'Wohnort' => null,
+                    'Ortsteil' => null,
+                    'Geb.-datum' => null,
+                    'Telefon mobil' => null,
+                    'Telefon privat' => null,
+                    'E-Mail' => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -1384,20 +1389,12 @@ class Service
                         $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
                         if ($firstName !== '' && $lastName !== '') {
 
-                            $cityName = trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)));
-                            $cityCode = '';
-                            $cityDistrict = '';
-                            $pos = strpos($cityName, " ");
-                            if ($pos !== false) {
-                                $cityCode = trim(substr($cityName, 0, $pos));
-                                $cityName = trim(substr($cityName, $pos + 1));
-
-                                $pos = strpos($cityName, " OT ");
-                                if ($pos !== false) {
-                                    $cityDistrict = trim(substr($cityName, $pos + 4));
-                                    $cityName = trim(substr($cityName, 0, $pos));
-                                }
-                            }
+                            $cityCode = str_pad(
+                                trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
+                                5,
+                                "0",
+                                STR_PAD_LEFT
+                            );
 
                             $tblPersonExits = Person::useService()->existsPerson(
                                 $firstName,
@@ -1405,20 +1402,12 @@ class Service
                                 $cityCode
                             );
 
-                            $acronym = trim($Document->getValue($Document->getCell($Location['Kürzel'], $RunY)));
-
                             if ($tblPersonExits) {
 
                                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
-
-                                Group::useService()->addGroupPerson($tblStaffGroup, $tblPersonExits);
-                                Group::useService()->addGroupPerson($tblTeacherGroup, $tblPersonExits);
-
-                                if ($acronym !== '') {
-                                    Teacher::useService()->insertTeacher($tblPersonExits, $acronym);
-                                }
-
                                 $countStaffExists++;
+
+                                $tblPerson = $tblPersonExits;
 
                             } else {
 
@@ -1434,104 +1423,120 @@ class Service
 
                                 $tblPerson = Person::useService()->insertPerson(
                                     $tblSalutation ? $tblSalutation : null,
-                                    trim($Document->getValue($Document->getCell($Location['Titel'], $RunY))),
+                                    '',
                                     $firstName,
                                     '',
                                     $lastName,
                                     array(
-                                        0 => Group::useService()->getGroupByMetaTable('COMMON'),
-                                        1 => $tblStaffGroup,
-                                        2 => $tblTeacherGroup
+                                        0 => Group::useService()->getGroupByMetaTable('COMMON')
                                     )
                                 );
 
                                 if ($tblPerson !== false) {
                                     $countStaff++;
+                                }
+                            }
 
-                                    if ($acronym !== '') {
-                                        Teacher::useService()->insertTeacher($tblPerson, $acronym);
+                            if ($tblPerson) {
+                                Group::useService()->addGroupPerson($tblStaffGroup, $tblPerson);
+
+                                $acronym = trim($Document->getValue($Document->getCell($Location['Kurz'], $RunY)));
+                                if ($acronym !== '') {
+                                    Teacher::useService()->insertTeacher($tblPerson, $acronym);
+                                }
+
+                                $group = trim($Document->getValue($Document->getCell($Location['Gruppe'], $RunY)));
+                                if ($group == 'Lehrer'){
+                                    Group::useService()->addGroupPerson($tblTeacherGroup, $tblPerson);
+                                }
+
+                                $day = trim($Document->getValue($Document->getCell($Location['Geb.-datum'],
+                                    $RunY)));
+                                if ($day !== '') {
+                                    $birthday = $day; // date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                                } else {
+                                    $birthday = '';
+                                }
+
+                                $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
+
+                                Common::useService()->insertMeta(
+                                    $tblPerson,
+                                    $birthday,
+                                    '',
+                                    $gender,
+                                    '',
+                                    '',
+                                    TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Zusatz 1'],
+                                        $RunY)))
+                                );
+
+                                // Address
+                                $StreetName = '';
+                                $StreetNumber = '';
+                                $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                    $RunY)));
+                                if (preg_match_all('!\d+!', $Street, $matches)) {
+                                    $pos = strpos($Street, $matches[0][0]);
+                                    if ($pos !== null) {
+                                        $StreetName = trim(substr($Street, 0, $pos));
+                                        $StreetNumber = trim(substr($Street, $pos));
                                     }
+                                }
 
-                                    $day = trim($Document->getValue($Document->getCell($Location['geboren'],
-                                        $RunY)));
-                                    if ($day !== '') {
-                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                    } else {
-                                        $birthday = '';
-                                    }
-//                                    $gender = trim($Document->getValue($Document->getCell($Location['Geschlecht'],
-//                                        $RunY)));
-//                                    if ($gender == 'm') {
-//                                        $gender = TblCommonBirthDates::VALUE_GENDER_MALE;
-//                                    } elseif ($gender == 'w') {
-//                                        $gender = TblCommonBirthDates::VALUE_GENDER_FEMALE;
-//                                    } else {
-                                    $gender = TblCommonBirthDates::VALUE_GENDER_NULL;
-//                                    }
-
-                                    Common::useService()->insertMeta(
-                                        $tblPerson,
-                                        $birthday,
-                                        '',
-                                        $gender,
-                                        '',
-                                        '',
-                                        TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
-                                        '',
+                                $cityName = trim($Document->getValue($Document->getCell($Location['Wohnort'], $RunY)));
+                                $cityDistrict = trim($Document->getValue($Document->getCell($Location['Ortsteil'],
+                                    $RunY)));
+                                if ($StreetName && $StreetNumber && $cityCode && $cityName) {
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict,
                                         ''
                                     );
+                                } else {
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse der Person wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                }
 
-                                    // Address
-                                    $StreetName = '';
-                                    $StreetNumber = '';
-                                    $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
-                                        $RunY)));
-                                    if (preg_match_all('!\d+!', $Street, $matches)) {
-                                        $pos = strpos($Street, $matches[0][0]);
-                                        if ($pos !== null) {
-                                            $StreetName = trim(substr($Street, 0, $pos));
-                                            $StreetNumber = trim(substr($Street, $pos));
-                                        }
+                                $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon privat'],
+                                    $RunY)));
+                                if ($phoneNumber != '') {
+                                    $tblType = Phone::useService()->getTypeById(1);
+                                    if (0 === strpos($phoneNumber, '01')) {
+                                        $tblType = Phone::useService()->getTypeById(2);
                                     }
+                                    Phone::useService()->insertPhoneToPerson(
+                                        $tblPerson,
+                                        $phoneNumber,
+                                        $tblType,
+                                        ''
+                                    );
+                                }
 
-                                    if ($StreetName && $StreetNumber && $cityCode && $cityName) {
-                                        Address::useService()->insertAddressToPerson(
-                                            $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict,
-                                            ''
-                                        );
-                                    } else {
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse der Person wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon mobil'],
+                                    $RunY)));
+                                if ($phoneNumber != '') {
+                                    $tblType = Phone::useService()->getTypeById(1);
+                                    if (0 === strpos($phoneNumber, '01')) {
+                                        $tblType = Phone::useService()->getTypeById(2);
                                     }
+                                    Phone::useService()->insertPhoneToPerson(
+                                        $tblPerson,
+                                        $phoneNumber,
+                                        $tblType,
+                                        ''
+                                    );
+                                }
 
-                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon'],
-                                        $RunY)));
-                                    if ($phoneNumber != '') {
-                                        $tblType = Phone::useService()->getTypeById(1);
-                                        if (0 === strpos($phoneNumber, '01')) {
-                                            $tblType = Phone::useService()->getTypeById(2);
-                                        }
-                                        Phone::useService()->insertPhoneToPerson(
-                                            $tblPerson,
-                                            $phoneNumber,
-                                            $tblType,
-                                            ''
-                                        );
-                                    }
-
-                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Mobil'],
-                                        $RunY)));
-                                    if ($phoneNumber != '') {
-                                        $tblType = Phone::useService()->getTypeById(1);
-                                        if (0 === strpos($phoneNumber, '01')) {
-                                            $tblType = Phone::useService()->getTypeById(2);
-                                        }
-                                        Phone::useService()->insertPhoneToPerson(
-                                            $tblPerson,
-                                            $phoneNumber,
-                                            $tblType,
-                                            ''
-                                        );
-                                    }
+                                $mailAddress = trim($Document->getValue($Document->getCell($Location['E-Mail'],
+                                    $RunY)));
+                                if ($mailAddress != '') {
+                                    Mail::useService()->insertMailToPerson(
+                                        $tblPerson,
+                                        $mailAddress,
+                                        Mail::useService()->getTypeById(1),
+                                        ''
+                                    );
                                 }
                             }
                         } else {

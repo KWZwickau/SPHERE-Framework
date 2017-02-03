@@ -166,7 +166,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(array(
                             new Well(
-                                Muldental::useService()->createCompaniesFromFile(
+                                Muldental::useService()->createStaffsFromFile(
                                     new Form(
                                         new FormGroup(
                                             new FormRow(
