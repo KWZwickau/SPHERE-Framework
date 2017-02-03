@@ -456,6 +456,9 @@ class Service
                                 }
                                 $county = trim($Document->getValue($Document->getCell($Location['Schüler_Landkreis'],
                                     $RunY)));
+                                if ($county == 'LL'){
+                                    $county = 'Landkreis Leipzig';
+                                }
                                 if (trim($Document->getValue($Document->getCell($Location['Schüler_Bundesland'],
                                         $RunY))) == 'SN'
                                 ) {
