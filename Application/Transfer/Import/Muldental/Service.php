@@ -165,6 +165,166 @@ class Service
         return new Danger('File nicht gefunden');
     }
 
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null   $File
+     *
+     * @return IFormInterface|Danger|Success|string
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createCompaniesNurseryFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Institution' => null,
+                    'Straße'      => null,
+                    'PLZ'         => null,
+                    'Ort'         => null,
+                    'Name'        => null,
+                    'Vorname'     => null,
+                    'Telefon'     => null,
+                    'Mail'        => null,
+                    'Träger'      => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countCompany = 0;
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        $companyName = trim($Document->getValue($Document->getCell($Location['Institution'],
+                            $RunY)));
+
+                        if ($companyName) {
+                            $FirstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                            $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                            $tblCompany = Company::useService()->insertCompany(
+                                $companyName,
+                                trim($Document->getValue($Document->getCell($Location['Träger'], $RunY)))
+                                .( $FirstName || $LastName ?
+                                    ' Ansprechpartner: '.$FirstName.' '.$LastName
+                                    : '' )
+                            );
+                            if ($tblCompany) {
+                                $countCompany++;
+
+                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON'),
+                                    $tblCompany
+                                );
+                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('NURSERY'),
+                                    $tblCompany
+                                );
+
+                                $streetName = '';
+                                $streetNumber = '';
+                                $street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                    $RunY)));
+                                if (preg_match_all('!\d+!', $street, $matches)) {
+                                    $pos = strpos($street, $matches[0][0]);
+                                    if ($pos !== null) {
+                                        $streetName = trim(substr($street, 0, $pos));
+                                        $streetNumber = trim(substr($street, $pos));
+                                    }
+                                }
+                                $zipCode = trim($Document->getValue($Document->getCell($Location['PLZ'],
+                                    $RunY)));
+                                $city = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                    $RunY)));
+
+                                if ($streetName && $streetNumber && $zipCode && $city) {
+                                    Address::useService()->insertAddressToCompany(
+                                        $tblCompany,
+                                        $streetName,
+                                        $streetNumber,
+                                        $zipCode,
+                                        $city,
+                                        '',
+                                        ''
+                                    );
+                                }
+                                $phoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon'], $RunY)));
+                                if ($phoneNumber) {
+                                    // Vereinheitlichen der Telefonnummer
+                                    $phoneNumber = str_replace(' / ', '/', $phoneNumber);
+                                    $phoneNumber = str_replace(' - ', '/', $phoneNumber);
+                                    $phoneNumber = str_replace('- ', '/', $phoneNumber);
+                                    $phoneNumber = str_replace('-', '/', $phoneNumber);
+                                    $phoneNumber = str_replace(' ', '/', $phoneNumber);
+
+                                    $tblType = Phone::useService()->getTypeById(3);
+                                    if (0 === strpos($phoneNumber, '01')) {
+                                        $tblType = Phone::useService()->getTypeById(4);
+                                    }
+                                    Phone::useService()->insertPhoneToCompany($tblCompany, $phoneNumber, $tblType, '');
+                                }
+
+                                $mail = trim($Document->getValue($Document->getCell($Location['Mail'],
+                                    $RunY)));
+                                if ($mail) {
+                                    Mail::useService()->insertMailToCompany($tblCompany, $mail, Mail::useService()->getTypeById(2), '');
+                                }
+                            }
+                        }
+                    }
+                    return
+                        new Success('Es wurden '.$countCompany.' Kindergärten erfolgreich angelegt.');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Info(json_encode($Location)).
+                        new Danger(
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
+
 
     /**
      * @param IFormInterface|null $Form
