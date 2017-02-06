@@ -100,6 +100,7 @@ class Service
                     'Vorname' => null,
                     'Geb.-Datum' => null,
                     'Straße' => null,
+                    'Nr.' => null,
                     'PLZ' => null,
                     'Ort' => null,
                     'Anmeldedat.' => null,
@@ -272,17 +273,19 @@ class Service
                                         );
 
                                         // Address
-                                        $StreetName = '';
-                                        $StreetNumber = '';
-                                        $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $StreetName = trim($Document->getValue($Document->getCell($Location['Straße'],
                                             $RunY)));
-                                        if (preg_match_all('!\d+!', $Street, $matches)) {
-                                            $pos = strpos($Street, $matches[0][0]);
-                                            if ($pos !== null) {
-                                                $StreetName = trim(substr($Street, 0, $pos));
-                                                $StreetNumber = trim(substr($Street, $pos));
-                                            }
-                                        }
+                                        $StreetNumber = trim($Document->getValue($Document->getCell($Location['Nr.'],
+                                            $RunY)));
+//                                        $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+//                                            $RunY)));
+//                                        if (preg_match_all('!\d+!', $Street, $matches)) {
+//                                            $pos = strpos($Street, $matches[0][0]);
+//                                            if ($pos !== null) {
+//                                                $StreetName = trim(substr($Street, 0, $pos));
+//                                                $StreetNumber = trim(substr($Street, $pos));
+//                                            }
+//                                        }
                                         if ($StreetName && $StreetNumber && $cityCode && $cityName) {
                                             Address::useService()->insertAddressToPerson(
                                                 $tblPersonCustody1, $StreetName, $StreetNumber, $cityCode, $cityName,
@@ -344,17 +347,19 @@ class Service
                                         );
 
                                         // Address
-                                        $StreetName = '';
-                                        $StreetNumber = '';
-                                        $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $StreetName = trim($Document->getValue($Document->getCell($Location['Straße'],
                                             $RunY)));
-                                        if (preg_match_all('!\d+!', $Street, $matches)) {
-                                            $pos = strpos($Street, $matches[0][0]);
-                                            if ($pos !== null) {
-                                                $StreetName = trim(substr($Street, 0, $pos));
-                                                $StreetNumber = trim(substr($Street, $pos));
-                                            }
-                                        }
+                                        $StreetNumber = trim($Document->getValue($Document->getCell($Location['Nr.'],
+                                            $RunY)));
+//                                        $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+//                                            $RunY)));
+//                                        if (preg_match_all('!\d+!', $Street, $matches)) {
+//                                            $pos = strpos($Street, $matches[0][0]);
+//                                            if ($pos !== null) {
+//                                                $StreetName = trim(substr($Street, 0, $pos));
+//                                                $StreetNumber = trim(substr($Street, $pos));
+//                                            }
+//                                        }
                                         if ($StreetName && $StreetNumber && $cityCode && $cityName) {
                                             Address::useService()->insertAddressToPerson(
                                                 $tblPersonCustody2, $StreetName, $StreetNumber, $cityCode, $cityName,
@@ -382,17 +387,19 @@ class Service
                                 }
 
                                 // Address
-                                $StreetName = '';
-                                $StreetNumber = '';
-                                $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                $StreetName = trim($Document->getValue($Document->getCell($Location['Straße'],
                                     $RunY)));
-                                if (preg_match_all('!\d+!', $Street, $matches)) {
-                                    $pos = strpos($Street, $matches[0][0]);
-                                    if ($pos !== null) {
-                                        $StreetName = trim(substr($Street, 0, $pos));
-                                        $StreetNumber = trim(substr($Street, $pos));
-                                    }
-                                }
+                                $StreetNumber = trim($Document->getValue($Document->getCell($Location['Nr.'],
+                                    $RunY)));
+//                                $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+//                                    $RunY)));
+//                                if (preg_match_all('!\d+!', $Street, $matches)) {
+//                                    $pos = strpos($Street, $matches[0][0]);
+//                                    if ($pos !== null) {
+//                                        $StreetName = trim(substr($Street, 0, $pos));
+//                                        $StreetNumber = trim(substr($Street, $pos));
+//                                    }
+//                                }
                                 if ($StreetName && $StreetNumber && $cityCode && $cityName) {
                                     Address::useService()->insertAddressToPerson(
                                         $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''

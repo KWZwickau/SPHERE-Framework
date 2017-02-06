@@ -148,4 +148,90 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $View;
     }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     */
+    public function frontendStaffImport($File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('Muldental Import');
+        $View->setDescription('Mitarbeiter');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Muldental::useService()->createStaffsFromFile(
+                                    new Form(
+                                        new FormGroup(
+                                            new FormRow(
+                                                new FormColumn(
+                                                    new FileUpload('File', 'Datei auswählen', 'Datei auswählen',
+                                                        null,
+                                                        array('showPreview' => false))
+                                                )
+                                            )
+                                        )
+                                        , new Primary('Hochladen')
+                                    ), $File
+                                )
+                                ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     */
+    public function frontendCompanyNurseryImport($File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('FuxSchool Import');
+        $View->setDescription('Institutionen (Kita\'s)');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Muldental::useService()->createCompaniesNurseryFromFile(
+                                    new Form(
+                                        new FormGroup(
+                                            new FormRow(
+                                                new FormColumn(
+                                                    new FileUpload('File', 'Datei auswählen', 'Datei auswählen',
+                                                        null,
+                                                        array('showPreview' => false))
+                                                )
+                                            )
+                                        )
+                                        , new Primary('Hochladen')
+                                    ), $File
+                                )
+                                ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
 }

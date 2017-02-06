@@ -53,7 +53,7 @@ class Creator extends Extension
                         // Revisionssicher speichern
                         if (($tblDivision = $tblPrepare->getServiceTblDivision()) && !$tblPrepareStudent->isPrinted()) {
                             if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision, $Certificate,
-                                $File)
+                                $File, $tblPrepare)
                             ) {
                                 Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
                             }
@@ -259,6 +259,7 @@ class Creator extends Extension
             $FileList = array();
             foreach ($tblStudentList as $tblPerson) {
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                    && $tblPrepareStudent->isApproved()
                     && !$tblPrepareStudent->isPrinted()
                 ) {
                     if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
@@ -285,7 +286,7 @@ class Creator extends Extension
                             if (($tblDivision = $tblPrepare->getServiceTblDivision()) && !$tblPrepareStudent->isPrinted()) {
                                 if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision,
                                     $Certificate,
-                                    $File)
+                                    $File, $tblPrepare)
                                 ) {
                                     Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
                                 }

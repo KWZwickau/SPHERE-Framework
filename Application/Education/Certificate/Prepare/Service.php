@@ -679,6 +679,11 @@ class Service extends AbstractService
                 ) {
                     $Content['DivisionTeacher']['Name'] = trim($tblPrepare->getServiceTblPersonSigner()->getSalutation()
                         . " " . $tblPrepare->getServiceTblPersonSigner()->getLastName());
+                } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                    && $tblConsumer->getAcronym() == 'EVSC'
+                ) {
+                    $Content['DivisionTeacher']['Name'] = trim($tblPrepare->getServiceTblPersonSigner()->getFirstName()
+                        . " " . $tblPrepare->getServiceTblPersonSigner()->getLastName());
                 } else {
                     $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
                 }

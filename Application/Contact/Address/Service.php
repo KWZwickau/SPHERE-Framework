@@ -328,8 +328,13 @@ class Service extends AbstractService
             $Nation
         );
 
-        return (new Data($this->getBinding()))->addAddressToCompany($tblCompany, $tblAddress,
-            Address::useService()->getTypeById(1), '');
+        $tblType = Address::useService()->getTypeById(1);
+        // Nur eine Hauptadresse
+        if ($this->getAddressAllByCompanyAndType($tblCompany, $tblType)) {
+            return ( new Data($this->getBinding()) )->addAddressToCompany($tblCompany, $tblAddress,
+                Address::useService()->getTypeById(2), '');
+        }
+        return ( new Data($this->getBinding()) )->addAddressToCompany($tblCompany, $tblAddress, $tblType, '');
     }
 
     /**

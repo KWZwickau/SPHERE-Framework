@@ -264,6 +264,17 @@ abstract class Style extends Extension
     }
 
     /**
+     * @return $this
+     */
+    public function styleAlignJustify()
+    {
+
+//        $this->Design[] = 'Align Justify';
+        $this->Style[] ='text-align: justify !important;';
+        return $this;
+    }
+
+    /**
      * @param string $Height
      *
      * @return $this
