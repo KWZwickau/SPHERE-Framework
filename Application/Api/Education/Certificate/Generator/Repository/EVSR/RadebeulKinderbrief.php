@@ -32,6 +32,8 @@ class RadebeulKinderbrief  extends Certificate
     public function buildCertificate($IsSample = true)
     {
 
+        $fontFamily = 'MetaPro';
+
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
                 ->addSlice((new Slice())
@@ -61,9 +63,11 @@ class RadebeulKinderbrief  extends Certificate
                                 {{ Content.Person.Data.Name.First }}
                                 {{ Content.Person.Data.Name.Last }}
                             ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleLineHeight('80%')
                             ->styleTextSize('20px')
-                            ->styleTextUnderline()
                             ->styleAlignCenter()
+                            ->stylePaddingTop('40px')
                         )
                     )
                 )
@@ -73,10 +77,12 @@ class RadebeulKinderbrief  extends Certificate
                             ->setContent('
                                 nach dem ersten Halbjahr des Schuljahres {{ Content.Division.Data.Year }} 
                             ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleLineHeight('80%')
                             ->styleMarginTop('30px')
                             ->styleTextSize('20px')
-                            ->styleTextUnderline()
                             ->styleAlignCenter()
+                            ->stylePaddingTop('5px')
                         )
                     )
                 )
@@ -89,6 +95,8 @@ class RadebeulKinderbrief  extends Certificate
                                     &nbsp;
                                 {% endif %}
                             ')
+                        ->styleFontFamily($fontFamily)
+                        ->styleLineHeight('80%')
                         ->styleMarginTop('30px')
                     )
                 )
