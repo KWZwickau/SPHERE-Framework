@@ -35,7 +35,7 @@ class Data extends AbstractData
     {
 
         $this->createGroup('Alle', 'Institutionendaten', '', true, 'COMMON');
-        //ToDO nach einem Datenbankupdate entfernen
+        //ToDO nach einem Datenbankupdate für alle Mandanten entfernen
         if (( $tblGroup = $this->getGroupByMetaTable('COMMON') )) {
             $this->updateGroup($tblGroup, 'Alle', 'Institutionendaten', $tblGroup->getRemark());
         }
