@@ -762,7 +762,13 @@ class Service extends AbstractService
                 if ($tblPrepareGradeSubjectList) {
                     foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
                         if ($tblPrepareGrade->getServiceTblSubject()) {
-                            $Content['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = $tblPrepareGrade->getGrade();
+                            $Content['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()]
+                                = $tblPrepareGrade->getGrade();
+
+                            // bei Zeugnistext als Note Schriftgröße verkleinern
+                            if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())) {
+                                $Content['Grade']['Data']['IsShrinkSize'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = true;
+                            }
                         }
                     }
                 }
