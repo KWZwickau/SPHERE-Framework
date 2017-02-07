@@ -13,7 +13,6 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -239,6 +238,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     public function getGradeTypeByName($Name)
     {
 
+        /** @var TblGradeType $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGradeType')
             ->findOneBy(array(TblGradeType::ATTR_NAME => $Name));
         return (null === $Entity ? false : $Entity);
@@ -392,6 +392,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     {
 
 //        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', $Id);
+        /** @var TblGrade $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGrade', $Id);
         return (null === $Entity ? false : $Entity);
     }
@@ -608,5 +609,20 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeText');
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeText',
+            array(
+                TblGradeText::ATTR_NAME => $Name
+            )
+        );
     }
 }

@@ -1221,4 +1221,15 @@ class Service extends ServiceScoreRule
 
         return (new Data($this->getBinding()))->getGradeTextAll();
     }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getGradeTextByName($Name);
+    }
 }
