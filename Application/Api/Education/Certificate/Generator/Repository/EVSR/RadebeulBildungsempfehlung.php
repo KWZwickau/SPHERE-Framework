@@ -77,7 +77,7 @@ class RadebeulBildungsempfehlung extends Certificate
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent(
-                                        '- staatlich genehmnigte Ersatzschule -'
+                                        '- staatlich genehmigte Ersatzschule -'
                                     )
                                     ->styleAlignCenter()
                                 )
@@ -277,7 +277,7 @@ class RadebeulBildungsempfehlung extends Certificate
                                   hat ausweislich {{ Content.Input.Type }}
                              {% else %}
                                 hat ausweislich der Halbjahresinformation /
-                                der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz¹
+                                der für das Jahreszeugnis vorgesehenen Noten gemäß Beschluss der Klassenkonferenz¹
                             {% endif %}
                              vom
                              {% if(Content.Input.DateCertifcate is not empty) %}
@@ -400,7 +400,7 @@ class RadebeulBildungsempfehlung extends Certificate
                             {% endif %}
                                 beschlossen.
                                 ')
-                        ->styleMarginTop('20px')
+                        ->styleMarginTop('13px')
                     )
                 )
                 ->addSlice((new Slice())
@@ -436,7 +436,7 @@ class RadebeulBildungsempfehlung extends Certificate
                         ->addElementColumn((new Element())
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
-                            ->styleMarginTop('100px')
+                            ->styleMarginTop('95px')
                             , '35%')
                     )
                     ->addSection((new Section())
@@ -473,7 +473,7 @@ class RadebeulBildungsempfehlung extends Certificate
                     )
                     ->stylePaddingTop()
                     ->stylePaddingBottom()
-                    ->styleMarginTop('20px')
+                    ->styleMarginTop('13px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -486,7 +486,6 @@ class RadebeulBildungsempfehlung extends Certificate
                             . new Container('² Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
                         )
                         ->styleTextSize('9px')
-                        ->styleMarginTop('5px')
                     )
                 )
             )
