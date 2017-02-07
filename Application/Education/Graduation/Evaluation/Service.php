@@ -1011,4 +1011,17 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getTestLinkAllByTest($tblTest);
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblTask $tblTask
+     *
+     * @return false|TblTest[]
+     */
+    public function getTestListBy(TblDivision $tblDivision, TblSubject $tblSubject, TblTask $tblTask)
+    {
+
+        return (new Data($this->getBinding()))->getTestListBy($tblDivision, $tblSubject, $tblTask);
+    }
 }

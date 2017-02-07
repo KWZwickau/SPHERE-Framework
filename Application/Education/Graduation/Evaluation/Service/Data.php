@@ -37,13 +37,14 @@ class Data extends AbstractData
      * @param $Name
      * @param $Identifier
      *
-     * @return null|TblGradeType
+     * @return null|TblTestType
      */
     public function createTestType($Name, $Identifier)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
+        /** @var TblTestType $Entity */
         $Entity = $Manager->getEntity('TblTestType')
             ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => $Identifier));
 
@@ -67,6 +68,7 @@ class Data extends AbstractData
     public function getTestById($Id)
     {
 
+        /** @var TblTest $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTest', $Id);
         return (null === $Entity ? false : $Entity);
     }
@@ -220,6 +222,7 @@ class Data extends AbstractData
     public function getTaskById($Id)
     {
 
+        /** @var TblTask $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTask', $Id);
         return (null === $Entity ? false : $Entity);
     }
@@ -241,6 +244,7 @@ class Data extends AbstractData
     public function getTestTypeById($Id)
     {
 
+        /** @var TblTestType $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTestType', $Id);
         return (null === $Entity ? false : $Entity);
     }
@@ -253,6 +257,7 @@ class Data extends AbstractData
     public function getTestTypeByIdentifier($Identifier)
     {
 
+        /** @var TblTestType $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblTestType')
             ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => strtoupper($Identifier)));
         return (null === $Entity ? false : $Entity);
@@ -802,5 +807,22 @@ class Data extends AbstractData
         }
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblTask $tblTask
+     *
+     * @return false|TblTest[]
+     */
+    public function getTestListBy(TblDivision $tblDivision, TblSubject $tblSubject, TblTask $tblTask)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest', array(
+            TblTest::ATTR_SERVICE_TBL_DIVISION  => $tblDivision->getId(),
+            TblTest::ATTR_SERVICE_TBL_SUBJECT  => $tblSubject->getId(),
+            TblTest::ATTR_TBL_TASK  => $tblTask->getId()
+        ));
     }
 }
