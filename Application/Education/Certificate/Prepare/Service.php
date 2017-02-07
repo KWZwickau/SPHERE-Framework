@@ -894,10 +894,27 @@ class Service extends AbstractService
                 $gradeList = array();
                 foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                     if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())) {
-                        $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject(
-                            $tblPrepare, $tblPerson, $tblDivision, $tblSubject,
-                            Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
-                        );
+                        $tblPrepareGrade = false;
+                        if ($tblPrepareStudent->isApproved()) {
+                            // kopierte Zenur
+                            $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject(
+                                $tblPrepare, $tblPerson, $tblDivision, $tblSubject,
+                                Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+                            );
+                        } elseif ($tblPrepare->getServiceTblAppointedDateTask()) {
+                            // Zensur aus dem Stichtagsnotenauftrag
+                            $tblTestList = Evaluation::useService()->getTestListBy($tblDivision, $tblSubject,
+                                $tblPrepare->getServiceTblAppointedDateTask());
+                            if ($tblTestList) {
+                                foreach ($tblTestList as $tblTest) {
+                                    $tblPrepareGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                        $tblPerson);
+                                    if ($tblPrepareGrade) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                         if ($tblPrepareGrade && $tblPrepareGrade->getGrade() != '') {
                             $grade = str_replace('+', '', $tblPrepareGrade->getGrade());
                             $grade = str_replace('-', '', $grade);
@@ -932,36 +949,62 @@ class Service extends AbstractService
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
         ) {
 
-            $tblPrepareGradeList = $this->getPrepareGradeAllByPerson(
-                $tblPrepare,
-                $tblPerson,
-                Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
-            );
+            $gradeList = array();
 
-            if ($tblPrepareGradeList) {
-                $gradeList = array();
-                /** @var TblPrepareGrade $tblPrepareGrade */
-                foreach ($tblPrepareGradeList as $tblPrepareGrade) {
-                    if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
-                        $tblCertificateSubject = Generator::useService()->getCertificateSubjectBySubject(
-                            $tblCertificate,
-                            $tblSubject
-                        );
-                        if (!$tblCertificateSubject
-                            && $tblPrepareGrade && $tblPrepareGrade->getGrade() != ''
-                        ) {
-                            $grade = str_replace('+', '', $tblPrepareGrade->getGrade());
-                            $grade = str_replace('-', '', $grade);
-                            if (is_numeric($grade)) {
-                                $gradeList[] = $grade;
+            if ($tblPrepareStudent->isApproved()) {
+                // kopierte Zenuren
+                $tblPrepareGradeList = $this->getPrepareGradeAllByPerson(
+                    $tblPrepare,
+                    $tblPerson,
+                    Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+                );
+                if ($tblPrepareGradeList) {
+                    /** @var TblPrepareGrade $tblPrepareGrade */
+                    foreach ($tblPrepareGradeList as $tblPrepareGrade) {
+                        if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
+                            $tblCertificateSubject = Generator::useService()->getCertificateSubjectBySubject(
+                                $tblCertificate,
+                                $tblSubject
+                            );
+                            if (!$tblCertificateSubject
+                                && $tblPrepareGrade && $tblPrepareGrade->getGrade() != ''
+                            ) {
+                                $grade = str_replace('+', '', $tblPrepareGrade->getGrade());
+                                $grade = str_replace('-', '', $grade);
+                                if (is_numeric($grade)) {
+                                    $gradeList[] = $grade;
+                                }
                             }
                         }
                     }
                 }
-
-                if (!empty($gradeList)) {
-                    return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
+            } elseif ($tblPrepare->getServiceTblAppointedDateTask()) {
+                // Zensur aus dem Stichtagsnotenauftrag
+                $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblAppointedDateTask(), $tblDivision);
+                if ($tblTestList) {
+                    foreach ($tblTestList as $tblTest) {
+                        if (($tblSubject = $tblTest->getServiceTblSubject())) {
+                            $tblCertificateSubject = Generator::useService()->getCertificateSubjectBySubject(
+                                $tblCertificate,
+                                $tblSubject
+                            );
+                            $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
+                            if (!$tblCertificateSubject
+                                && $tblGrade && $tblGrade->getGrade() != ''
+                            ) {
+                                $grade = str_replace('+', '', $tblGrade->getGrade());
+                                $grade = str_replace('-', '', $grade);
+                                if (is_numeric($grade)) {
+                                    $gradeList[] = $grade;
+                                }
+                            }
+                        }
+                    }
                 }
+            }
+
+            if (!empty($gradeList)) {
+                return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
             }
         }
 
@@ -1268,8 +1311,7 @@ class Service extends AbstractService
                 }
 
                 // Noteninformation
-                if ($tblPrepare->isGradeInformation())
-                {
+                if ($tblPrepare->isGradeInformation()) {
                     $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson,
                         Generator::useService()->getCertificateByCertificateClassName('GradeInformation')
                     );
