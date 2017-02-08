@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -106,15 +107,17 @@ class Frontend extends Extension implements IFrontendInterface
 
 
     /**
-     * @param null|int $Id Company-Id
+     * @param null|int   $Id Company-Id
      * @param null|array $Person Form-Person-Data
-     * @param null|int $Group Company-Group-Id
-     * @param null|int $tblPerson Link-Person-Id
-     * @param null|int $tblType Link-Relationship-Id
-     * @param bool $doCreate New-Person-Toggle
+     * @param null|int   $Group Company-Group-Id
+     * @param null|int   $tblPerson Link-Person-Id
+     * @param null|int   $tblType Link-Relationship-Id
+     * @param null|int   $tblSalutation Link-Salutation-Id
+     * @param bool       $doCreate New-Person-Toggle
+     *
      * @return Stage
      */
-    public function frontendContact($Id = null, $Person = null, $Group = null, $tblPerson = null, $tblType = null, $doCreate = false)
+    public function frontendContact($Id = null, $Person = null, $Group = null, $tblPerson = null, $tblType = null, $tblSalutation = null, $doCreate = false)
     {
         $Stage = new Stage('Firmen', 'Ansprechpartner');
         $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array(
@@ -130,6 +133,13 @@ class Frontend extends Extension implements IFrontendInterface
         // Link Person to Company
         if( $tblCompany && $tblPerson && $tblType ) {
             $tblPerson = Person::useService()->getPersonById( $tblPerson );
+            // set missing Salutation
+            if ($tblPerson->getSalutation() === '') {
+                $tblSalutation = ( $tblSalutation != null ? Person::useService()->getSalutationById($tblSalutation) : false );
+                if ($tblSalutation) {
+                    Person::useService()->updateSalutation($tblPerson, $tblSalutation);
+                }
+            }
             $tblType = Relationship::useService()->getTypeById( $tblType );
             if( $tblPerson && $tblType && $tblGroup ) {
                 Relationship::useService()->addCompanyRelationshipToPerson(
@@ -255,7 +265,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ) )
                     )
                 )
-                , new Title( new \SPHERE\Common\Frontend\Icon\Repository\Success().' Zugewiesene Ansprechpartner')),
+                , new Title(new SuccessIcon().' Zugewiesene Ansprechpartner')),
             new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(
@@ -270,7 +280,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Search->addPile( Person::useService(), new ViewPerson() );
 
             $Filter = array();
-            $Filter[ViewPerson::TBL_SALUTATION_ID] = array($Person[ViewPerson::TBL_SALUTATION_ID]);
+//            $Filter[ViewPerson::TBL_SALUTATION_ID] = array($Person[ViewPerson::TBL_SALUTATION_ID]);
             $Filter[ViewPerson::TBL_PERSON_FIRST_NAME] = explode( ' ', $Person[ViewPerson::TBL_PERSON_FIRST_NAME] );
             $Filter[ViewPerson::TBL_PERSON_LAST_NAME] = explode( ' ', $Person[ViewPerson::TBL_PERSON_LAST_NAME] );
 
@@ -284,14 +294,25 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var AbstractView[] $Row */
             foreach( $Result as $Row ) {
                 $ViewArray = $Row[0]->__toArray();
+
+                if (isset($Person[ViewPerson::TBL_SALUTATION_ID])) {
+                    $tblSalutation = Person::useService()->getSalutationById($Person[ViewPerson::TBL_SALUTATION_ID]);
+                    if ($tblSalutation) {
+                        // missing salutation get search salutation
+                        if (!isset($ViewArray[ViewPerson::TBL_SALUTATION_SALUTATION])) {
+                            $ViewArray[ViewPerson::TBL_SALUTATION_SALUTATION] = $tblSalutation->getSalutation();
+                        }
+                    }
+                }
                 $Address = Person::useService()->getPersonById( $ViewArray[ViewPerson::TBL_PERSON_ID] )->fetchMainAddress();
                 $ViewArray['DTAddress'] = ( $Address ? $Address->getGuiTwoRowString() : '');
                 $ViewArray['DTOption'] = new \SPHERE\Common\Frontend\Link\Repository\Primary(
                     'Ansprechpartner hinzufügen',$this->getRequest()->getPathInfo(), new PlusSign(), array(
-                        'Id' => $Id,
-                        'Group' => $Group,
-                        'tblPerson' => $ViewArray[ViewPerson::TBL_PERSON_ID],
-                        'tblType' => $Person[ViewRelationshipToCompany::TBL_TYPE_ID]
+                    'Id'            => $Id,
+                    'Group'         => $Group,
+                    'tblPerson'     => $ViewArray[ViewPerson::TBL_PERSON_ID],
+                    'tblType'       => $Person[ViewRelationshipToCompany::TBL_TYPE_ID],
+                    'tblSalutation' => $Person[ViewPerson::TBL_SALUTATION_ID]
                 ));
                 $PossibleTable[] = $ViewArray;
             }
@@ -367,7 +388,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null|array $Meta
      * @param null|int $Group
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendCompany($TabActive = false, $Id = null, $Company = null, $Meta = null, $Group = null)
     {
@@ -641,7 +662,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
                                 (Company::useService()->destroyCompany($tblCompany)
-                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Firma wurde gelöscht.')
+                                    ? new Success(new SuccessIcon().' Die Firma wurde gelöscht.')
                                     : new Danger(new Ban() . ' Die Firma konnte nicht gelöscht werden.')
                                 ),
                                 new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_SUCCESS, array('Id' => $Group))

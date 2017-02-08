@@ -261,6 +261,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson     $tblPerson
+     * @param TblSalutation $tblSalutation
+     *
+     * @return bool
+     */
+    public function updateSalutation(TblPerson $tblPerson, TblSalutation $tblSalutation)
+    {
+
+        return ( new Data($this->getBinding()) )->updateSalutation($tblPerson, $tblSalutation);
+    }
+
+    /**
      * @param array $IdArray of TblPerson->Id
      *
      * @return TblPerson[]
