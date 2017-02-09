@@ -78,10 +78,6 @@ class Protocol implements IModuleInterface
 
         $Stage = new Stage('Protokoll', 'Aktivitäten');
 
-//        if( isset( $Filter['ProtocolDatabase'] ) && $Filter['ProtocolDatabase'] == 0 ) {
-//            $Filter['ProtocolDatabase'] = '';
-//        }
-
         $Form = new Form(new FormGroup(new FormRow(array(
             new FormColumn(
                 new Panel('Metadaten', array(
@@ -122,16 +118,9 @@ class Protocol implements IModuleInterface
                 if (!empty( $Input )) {
                     $Input = explode(' ', $Input);
                     foreach ($Input as &$SearchString) {
-                        if (( $SplitPos = strpos($SearchString, '=') )) {
-                            if ($SplitPos < ( strlen($SearchString) - 1 )) {
-                                $SearchArray = explode('=', $SearchString);
-                                if (isset($SearchArray[0]) && isset($SearchArray[1])) {
-                                    $SearchString = $SearchArray[0].'";s:'.strlen($SearchArray[1]).':"'.$SearchArray[1];
-                                }
-                            }
+                        if (preg_match('!([^\s]+)=([^\s]+)!is', $SearchString, $SearchArray)) {
+                            $SearchString = $SearchArray[1].'";s:'.strlen($SearchArray[2]).':"'.$SearchArray[2];
                         }
-//                        // delete missPlaced "="
-//                        $SearchString = str_replace('=', '',$SearchString);
                     }
                     $Input = array_filter($Input);
                 } else {
@@ -226,7 +215,8 @@ class Protocol implements IModuleInterface
                                     array(0, 'desc')
                                 ),
                                 'columnDefs' => array(
-                                    array('type' => 'de_datetime', 'targets' => 0)
+                                    array('type' => 'de_datetime', 'targets' => 0),
+                                    array('width' => '25%', 'targets' => array(2, 3, 4))
                                 )
                             ))
                         ))
