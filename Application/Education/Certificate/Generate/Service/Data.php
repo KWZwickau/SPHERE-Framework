@@ -96,4 +96,38 @@ class Data extends AbstractData
 
         return $Entity;
     }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param $Date
+     * @param $IsDivisionTeacherAvailable
+     * @param $HeadmasterName
+     *
+     * @return bool
+     */
+    public function updateGenerateCertificate(
+        TblGenerateCertificate $tblGenerateCertificate,
+        $Date,
+        $IsDivisionTeacherAvailable,
+        $HeadmasterName
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGenerateCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblGenerateCertificate', $tblGenerateCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setIsDivisionTeacherAvailable($IsDivisionTeacherAvailable);
+            $Entity->setHeadmasterName($HeadmasterName);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
 }

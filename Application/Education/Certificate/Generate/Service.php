@@ -130,13 +130,13 @@ class Service extends AbstractService
         )
         ) {
             return new Success('Die Zeugniserstellung ist angelegt worden',
-                new \SPHERE\Common\Frontend\Icon\Repository\Success())
-            . new Redirect('/Education/Certificate/Generate/Division/Select', Redirect::TIMEOUT_SUCCESS, array(
-                'GenerateCertificateId' => $tblGenerateCertificate->getId()
-            ));
+                    new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/Education/Certificate/Generate/Division/Select', Redirect::TIMEOUT_SUCCESS, array(
+                    'GenerateCertificateId' => $tblGenerateCertificate->getId()
+                ));
         } else {
             return new Danger('Die Zeugniserstellung konnte nicht angelegt werden', new Exclamation())
-            . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS);
+                . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS);
         }
     }
 
@@ -183,9 +183,9 @@ class Service extends AbstractService
         }
 
         return new Success('Die Klassen wurden erfolgreich zugeordnet.',
-            new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        . new Redirect('/Education/Certificate/Generate/Division', Redirect::TIMEOUT_SUCCESS,
-            array('GenerateCertificateId' => $tblGenerateCertificate->getId()));
+                new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Certificate/Generate/Division', Redirect::TIMEOUT_SUCCESS,
+                array('GenerateCertificateId' => $tblGenerateCertificate->getId()));
     }
 
     /**
@@ -250,7 +250,9 @@ class Service extends AbstractService
 
                 if ($tblConsumerBySession) {
                     // Eigene Vorlage
-                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson, $tblConsumerBySession))) {
+                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson,
+                        $tblConsumerBySession))
+                    ) {
                         if (count($certificateList) == 1) {
                             // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
 //                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
@@ -418,8 +420,70 @@ class Service extends AbstractService
         }
 
         return new Success('Die Zeugnisvorlagen wurden erfolgreich zugeordnet.',
-            new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        . new Redirect('/Education/Certificate/Generate/Division', Redirect::TIMEOUT_SUCCESS,
-            array('GenerateCertificateId' => $tblPrepare->getServiceTblGenerateCertificate()->getId()));
+                new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Certificate/Generate/Division', Redirect::TIMEOUT_SUCCESS,
+                array('GenerateCertificateId' => $tblPrepare->getServiceTblGenerateCertificate()->getId()));
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param null $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateGenerateCertificate(
+        IFormInterface $Form = null,
+        TblGenerateCertificate $tblGenerateCertificate,
+        $Data = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Form;
+        }
+
+        $Error = false;
+        if (isset($Data['Date']) && empty($Data['Date'])) {
+            $Form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+
+        if ($Error) {
+            return $Form;
+        }
+
+        if ((new Data($this->getBinding()))->updateGenerateCertificate(
+            $tblGenerateCertificate,
+            $Data['Date'],
+            isset($Data['IsTeacherAvailable']),
+            $Data['HeadmasterName'])
+        ) {
+            if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                foreach ($tblPrepareList as $tblPrepare) {
+                    Prepare::useService()->updatePrepareData(
+                        $tblPrepare,
+                        $Data['Date'],
+                        $tblPrepare->getName(),
+                        $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
+                        $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
+                        isset($Data['IsTeacherAvailable'])
+                            ? ($tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null)
+                            : null
+                    );
+                }
+            }
+
+            return new Success('Die Zeugniserstellung ist geändert worden',
+                    new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS, array(
+                    'GenerateCertificateId' => $tblGenerateCertificate->getId()
+                ));
+        } else {
+            return new Danger('Die Zeugniserstellung konnte nicht geändert werden', new Exclamation())
+                . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS);
+        }
     }
 }
