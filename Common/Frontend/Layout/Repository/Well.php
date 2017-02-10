@@ -21,6 +21,9 @@ class Well extends Extension implements ITemplateInterface
     public function __construct($Content)
     {
 
+        if( is_array($Content) ) {
+            $Content = implode($Content);
+        }
         $this->Content = $Content;
     }
 

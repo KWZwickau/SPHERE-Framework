@@ -4,6 +4,7 @@ namespace SPHERE\Application\Transfer;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Transfer\Export\Export;
 use SPHERE\Application\Transfer\Import\Import;
+use SPHERE\Application\Transfer\Untis\Untis;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -19,6 +20,7 @@ class Transfer implements IClusterInterface
     public static function registerCluster()
     {
 
+        Untis::registerApplication();
         Import::registerApplication();
         Export::registerApplication();
 
