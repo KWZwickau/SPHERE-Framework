@@ -2,8 +2,10 @@
 namespace SPHERE\Application\Education\ClassRegister;
 
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -105,9 +107,12 @@ class ClassRegister implements IApplicationInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendDivisionTeacher()
+    public function frontendDivisionTeacher($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Klassenbuch', 'Auswählen');
@@ -129,19 +134,25 @@ class ClassRegister implements IApplicationInterface
             }
         }
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/ClassRegister/Teacher',
+            $IsAllYears, $YearId, $tblYear);
+
         if ($tblPerson) {
             $tblDivisionList = Division::useService()->getDivisionAllByTeacher($tblPerson);
         } else {
             $tblDivisionList = false;
         }
 
-        return $this->getDivisionSelectStage($Stage, $tblDivisionList);
+        return $this->getDivisionSelectStage($Stage, $tblDivisionList, '/Education/ClassRegister/Teacher', $tblYear, $buttonList);
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendDivisionAll()
+    public function frontendDivisionAll($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Klassenbuch', 'Auswählen');
@@ -155,27 +166,41 @@ class ClassRegister implements IApplicationInterface
                 '/Education/ClassRegister/All', new Edit()));
         }
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/ClassRegister/All',
+            $IsAllYears, $YearId, $tblYear);
 
         $tblDivisionList = Division::useService()->getDivisionAll();
-        return $this->getDivisionSelectStage($Stage, $tblDivisionList, '/Education/ClassRegister/All');
+        return $this->getDivisionSelectStage($Stage, $tblDivisionList, '/Education/ClassRegister/All', $tblYear, $buttonList);
     }
 
     /**
      * @param Stage $Stage
      * @param array $tblDivisionList
      * @param string $BasicRoute
+     * @param bool|TblYear $tblYear
+     * @param array $buttonList
      *
      * @return Stage
      */
     public function getDivisionSelectStage(
         Stage $Stage,
         $tblDivisionList,
-        $BasicRoute = '/Education/ClassRegister/Teacher'
+        $BasicRoute = '/Education/ClassRegister/Teacher',
+        $tblYear = false,
+        $buttonList = array()
     ) {
         $divisionTable = array();
         if ($tblDivisionList) {
             /** @var TblDivision $tblDivision */
             foreach ($tblDivisionList as $tblDivision) {
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision  && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
                 $divisionTable[] = array(
                     'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
                     'Type' => $tblDivision->getTypeName(),
@@ -195,6 +220,9 @@ class ClassRegister implements IApplicationInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionTable, null, array(
                                 'Year' => 'Schuljahr',

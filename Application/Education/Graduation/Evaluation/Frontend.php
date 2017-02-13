@@ -53,6 +53,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -107,9 +108,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null|integer $YearId
+     *
      * @return Stage
      */
-    public function frontendTestTeacher()
+    public function frontendTestTeacher($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Leistungsüberprüfung', 'Auswahl');
@@ -135,6 +139,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Teacher', $IsAllYears, $YearId, $tblYear);
+
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
@@ -144,6 +150,14 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
                     $tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject();
+                    // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                    /** @var TblYear $tblYear */
+                    if ($tblYear && $tblDivisionSubject && $tblDivisionSubject->getTblDivision()
+                        && $tblDivisionSubject->getTblDivision()->getServiceTblYear()
+                        && $tblDivisionSubject->getTblDivision()->getServiceTblYear()->getId() != $tblYear->getId()
+                    ) {
+                        continue;
+                    }
                     if ($tblDivisionSubject && $tblDivisionSubject->getTblDivision()) {
                         if ($tblDivisionSubject->getTblSubjectGroup()) {
                             if ($tblDivisionSubject->getServiceTblSubject()) {
@@ -275,6 +289,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year' => 'Schuljahr',
@@ -301,9 +318,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendHeadmasterTest()
+    public function frontendHeadmasterTest($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Leistungsüberprüfung', 'Auswahl');
@@ -321,9 +341,20 @@ class Frontend extends Extension implements IFrontendInterface
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Headmaster', $IsAllYears,
+            $YearId, $tblYear);
+
         $tblDivisionAll = Division::useService()->getDivisionAll();
         if ($tblDivisionAll) {
             foreach ($tblDivisionAll as $tblDivision) {
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
                 $tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                 if ($tblDivisionSubjectAllByDivision) {
                     /** @var TblDivisionSubject $tblDivisionSubject */
@@ -411,6 +442,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year' => 'Schuljahr',
@@ -3485,5 +3519,54 @@ class Frontend extends Extension implements IFrontendInterface
                 $countStudents += count($tblDivisionStudentAll);
             }
         }
+    }
+
+
+    /**
+     * @param $Route
+     * @param $IsAllYears
+     * @param $YearId
+     * @param $tblYear
+     *
+     * @return array
+     */
+    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear)
+    {
+
+        $tblYear = false;
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId);
+        } elseif (!$IsAllYears && $tblYearList) {
+            $tblYear = end($tblYearList);
+        }
+
+        $buttonList = array();
+        if ($tblYearList) {
+            $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
+            /** @var TblYear $tblYearItem */
+            foreach ($tblYearList as $tblYearItem) {
+                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
+                    $buttonList[] = (new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
+                        $Route, new Edit(), array('YearId' => $tblYearItem->getId())));
+                } else {
+                    $buttonList[] = (new Standard($tblYearItem->getDisplayName(), $Route,
+                        null, array('YearId' => $tblYearItem->getId())));
+                }
+            }
+
+            if ($IsAllYears) {
+                $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                    $Route, new Edit(), array('IsAllYears' => true)));
+            } else {
+                $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                    array('IsAllYears' => true)));
+            }
+
+            // Abstandszeile
+            $buttonList[] = new Container('&nbsp;');
+        }
+
+        return $buttonList;
     }
 }
