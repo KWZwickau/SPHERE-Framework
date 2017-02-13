@@ -111,7 +111,7 @@ class LectureshipGateway extends AbstractConverter
         $this->setPointer(new FieldPointer('L', 'Software: Gruppe'));
 
 
-        $this->scanFile(0,2);
+        $this->scanFile(0);
     }
 
     /**
