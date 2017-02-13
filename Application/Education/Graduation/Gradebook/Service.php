@@ -379,11 +379,14 @@ class Service extends ServiceScoreRule
                 ) {
                     $errorEdit = true;
                 }
-                if ($tblGrade  && $gradeValue === ''
-                    && !isset($value['Attendance'])
-                    && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
-                ) {
-                    $errorNoGrade = true;
+                // nicht bei Notenaufträgen #SSW-1085
+                if (!$tblTest->getTblTask()) {
+                    if ($tblGrade && $gradeValue === ''
+                        && !isset($value['Attendance'])
+                        && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
+                    ) {
+                        $errorNoGrade = true;
+                    }
                 }
                 if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue && empty($value['Date'])) {
                     $errorNoDate = true;
