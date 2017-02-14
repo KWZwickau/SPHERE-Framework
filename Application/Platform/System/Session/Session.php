@@ -177,7 +177,7 @@ class Session extends Extension implements IModuleInterface
                                 'order' => array(array(0, 'desc')),
                                 'columnDefs' => array(
                                     array('type' => 'de_datetime', 'width' => '20%', 'targets' => 0),
-                                    array('width' => '35%', 'targets' => array(2,3) )
+                                    array('width' => '35%', 'targets' => array(2, 3))
                                 )
                             )),
                             new Redirect(
