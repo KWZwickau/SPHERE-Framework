@@ -97,6 +97,11 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
         );
         $this->setSource(
+            'jQuery.DataTable.FixedHeader',
+            '/Library/DataTables/FixedHeader-3.1.2/js/dataTables.fixedHeader.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable.FixedHeader"
+        );
+        $this->setSource(
             'jQuery.DataTable.RowReorder',
             '/Library/DataTables/RowReorder-1.1.2/js/dataTables.rowReorder.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.RowReorder"
@@ -267,6 +272,7 @@ class Script extends Extension
                 'jQuery.DataTable.Buttons.Bootstrap',
                 'jQuery.DataTable.Buttons',
                 'jQuery.DataTable.RowReorder',
+                'jQuery.DataTable.FixedHeader',
                 'jQuery.DataTable.Responsive',
                 'jQuery.DataTable.Bootstrap',
                 'jQuery.DataTable',
