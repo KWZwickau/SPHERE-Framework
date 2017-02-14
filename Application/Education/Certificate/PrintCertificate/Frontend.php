@@ -12,6 +12,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
@@ -23,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -46,8 +48,10 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Zeugnis', 'Übersicht (nicht gedruckte Zeugnisse)');
-        $Stage->addButton(new Standard('Historie', '/Education/Certificate/PrintCertificate/History', null, array(),
-            'Bereits gedruckte Zeugnisse ansehen und drucken'));
+        $Stage->addButton(new Standard('Historie Personen', '/Education/Certificate/PrintCertificate/History', null, array(),
+            'Bereits gedruckte Zeugnisse pro Schüler ansehen und drucken'));
+        $Stage->addButton(new Standard('Historie Klassen', '/Education/Certificate/PrintCertificate/History/Division', null, array(),
+            'Bereits gedruckte Zeugnisse pro Klasse ansehen und drucken'));
 
         // freigebene und nicht gedruckte Zeugnisse
         $tableContent = array();
@@ -353,4 +357,143 @@ class Frontend extends Extension implements IFrontendInterface
         }
     }
 
+    /**
+     * @return Stage
+     */
+    public function frontendPrintCertificateHistoryDivision()
+    {
+
+        $Stage = new Stage('Zeugnis', 'Klasse auswählen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
+        ));
+
+        $tblDivisionList = Division::useService()->getDivisionAll();
+
+        $divisionTable = array();
+        if ($tblDivisionList) {
+            /** @var TblDivision $tblDivision */
+            foreach ($tblDivisionList as $tblDivision) {
+                if (Prepare::useService()->getPrepareAllByDivision($tblDivision)) {
+                    $divisionTable[] = array(
+                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                        'Type' => $tblDivision->getTypeName(),
+                        'Division' => $tblDivision->getDisplayName(),
+                        'Option' => new Standard(
+                            '', '/Education/Certificate/PrintCertificate/History/Division/Selected', new Select(),
+                            array(
+                                'DivisionId' => $tblDivision->getId()
+                            ),
+                            'Auswählen'
+                        )
+                    );
+                }
+            }
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new TableData($divisionTable, null, array(
+                                'Year' => 'Schuljahr',
+                                'Type' => 'Schulart',
+                                'Division' => 'Klasse',
+                                'Option' => ''
+                            ), array(
+                                'order' => array(
+                                    array('0', 'desc'),
+                                    array('2', 'asc'),
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2),
+                                )
+                            ))
+                        ))
+                    ))
+                ), new Title(new Select() . ' Auswahl'))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return Stage|string
+     */
+    public function frontendPrintCertificateHistorySelectedDivision($DivisionId = null)
+    {
+
+        $Stage = new Stage('Zeugnis', 'Auswahl');
+        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/PrintCertificate/History/Division', new ChevronLeft()));
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $dataList = array();
+            if ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision)){
+                foreach ($tblPrepareList as $tblPrepare){
+                    if (Prepare::useService()->isPreparePrinted($tblPrepare)) {
+                        $dataList[] = array(
+                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                            'Date' => $tblPrepare->getDate(),
+                            'Name' => $tblPrepare->getName(),
+                            'Option' => new External(
+                                'Herunterladen',
+                                '/Api/Education/Certificate/Generator/History/DownloadZip',
+                                new Download(),
+                                array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                ),
+                                'Zeugnis herunterladen')
+                        );
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Klasse',
+                                    $tblDivision->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                                empty($dataList)
+                                    ? new Warning('Keine Zeugnisse vorhanden', new Exclamation())
+                                    : new TableData(
+                                    $dataList, null, array(
+                                    'Year' => 'Jahr',
+                                    'Date' => 'Zeugnisdatum',
+                                    'Name' => 'Name',
+                                    'Option' => ''
+                                ),
+                                    array(
+                                        'order' => array(
+                                            array(0, 'desc'),
+                                            array(1, 'desc')
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => 1),
+                                            array('type' => 'natural', 'targets' => 1),
+                                        )
+                                    )
+                                )
+                            ))
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage
+                . new Danger('Klasse nicht gefunden', new Ban())
+                . new Redirect('/Education/Certificate/PrintCertificate/History/Division', Redirect::TIMEOUT_ERROR);
+        }
+    }
 }

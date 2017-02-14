@@ -30,16 +30,22 @@ class PrintCertificate implements IModuleInterface
          * Route
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ , __NAMESPACE__ . '\Frontend::frontendPrintCertificate')
+            __NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendPrintCertificate')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '\Confirm' , __NAMESPACE__ . '\Frontend::frontendConfirmPrintCertificate')
+            __NAMESPACE__ . '\Confirm', __NAMESPACE__ . '\Frontend::frontendConfirmPrintCertificate')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__  . '\History', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistory')
+            __NAMESPACE__ . '\History', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistory')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__  . '\History\Person', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistoryPerson')
+            __NAMESPACE__ . '\History\Person', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistoryPerson')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\History\Division', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistoryDivision')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\History\Division\Selected', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistorySelectedDivision')
         );
     }
 
