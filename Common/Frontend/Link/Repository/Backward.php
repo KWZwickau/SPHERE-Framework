@@ -39,7 +39,7 @@ class Backward extends Standard
 
         if ($this->BackStep) {
             parent::__construct('Zurück', $this->BackStep->getPath(), new ChevronLeft(),
-                $this->BackStep->getData(), $this->BackStep->getRoute());
+                $this->BackStep->getData());
         }
     }
 
