@@ -164,7 +164,7 @@ class ApiPerson extends Extension implements IApiInterface
         $ValidatePersonReceiver = new BlockReceiver();
         $ValidatePersonReceiver->setIdentifier($Receiver['TableSimilarPerson']);
         $ValidatePersonPipeline = new Pipeline();
-        $ValidatePersonPipeline->setLoadingMessage('Suche ähnliche Personen');
+//        $ValidatePersonPipeline->setLoadingMessage('Suche ähnliche Personen');
         $ValidatePersonEmitter = new ServerEmitter($ValidatePersonReceiver, ApiPerson::getRoute());
         $ValidatePersonEmitter->setGetPayload(array(
             ApiPerson::API_DISPATCHER => 'TableSimilarPerson'
