@@ -26,17 +26,20 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 
@@ -344,25 +347,27 @@ class Service extends ServiceScoreRule
 
         $tblTest = Evaluation::useService()->getTestById($TestId);
 
-        $errorRange = false;
+        $errorRange = array();
         // check if grade has pattern
         if (!empty($Grade) && $tblScoreType && $tblScoreType->getPattern() !== '') {
             foreach ($Grade as $personId => $value) {
+                $tblPerson = Person::useService()->getPersonById($personId);
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
                 if (!isset($value['Attendance']) && $gradeValue !== '') {
                     if (!preg_match('!' . $tblScoreType->getPattern() . '!is', $gradeValue)) {
-                        $errorRange = true;
-                        break;
+                        if ($tblPerson) {
+                            $errorRange[] = new Container(new Bold($tblPerson->getLastFirstName()));
+                        }
                     }
                 }
             }
         }
 
-        $errorEdit = false;
+        $errorEdit = array();
         // Grund bei Noten-Änderung angeben
-        $errorNoGrade = false;
+        $errorNoGrade = array();
         // Datum ist Pflichtfeld bei einem fortlaufenden Test
-        $errorNoDate = false;
+        $errorNoDate = array();
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
@@ -377,7 +382,7 @@ class Service extends ServiceScoreRule
                     && ($gradeValue != $tblGrade->getGrade()
                         || (isset($value['Trend']) && $value['Trend'] != $tblGrade->getTrend()))
                 ) {
-                    $errorEdit = true;
+                    $errorEdit[] = new Container(new Bold($tblPerson->getLastFirstName()));
                 }
                 // nicht bei Notenaufträgen #SSW-1085
                 if (!$tblTest->getTblTask()) {
@@ -385,46 +390,55 @@ class Service extends ServiceScoreRule
                         && !isset($value['Attendance'])
                         && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
                     ) {
-                        $errorNoGrade = true;
+                        $errorNoGrade[] = new Container(new Bold($tblPerson->getLastFirstName()));
                     }
                 }
                 if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue && empty($value['Date'])) {
-                    $errorNoDate = true;
+                    $errorNoDate[] = new Container(new Bold($tblPerson->getLastFirstName()));
                 }
             }
         }
 
-        if ($errorRange || $errorEdit || $errorNoGrade || $errorNoDate) {
-            if ($errorRange) {
+        if (!empty($errorRange) || !empty($errorEdit) || !empty($errorNoGrade) || !empty($errorNoDate)) {
+            if (!empty($errorRange)) {
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
                             'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
-                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                        Die Daten wurden nicht gespeichert.' . implode('', $errorRange), new Exclamation())
                     ))));
             }
-            if ($errorEdit) {
+            if (!empty($errorEdit)) {
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
                             'Bei den Notenänderungen wurde nicht in jedem Fall ein Grund angegeben.
-                             Die Daten wurden nicht gespeichert.', new Exclamation())
+                             Die Daten wurden nicht gespeichert.' . implode('', $errorEdit), new Exclamation())
                     ))));
             }
-            if ($errorNoGrade) {
+            if (!empty($errorNoGrade)) {
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
                             'Bereits eingetragene Zensuren können nur über "Nicht teilgenommen" entfernt werden.
-                            Die Daten wurden nicht gespeichert.', new Exclamation())
+                            Die Daten wurden nicht gespeichert.' . implode('', $errorNoGrade), new Exclamation())
                     ))));
             }
-            if ($errorNoDate) {
+            if (!empty($errorNoDate)) {
                 $Stage->prependGridGroup(
                     new FormGroup(new FormRow(new FormColumn(new Danger(
                             'Bei einem fortlaufenden Datum muss zu jeder Zensur ein Datum angegeben werden.
-                            Die Daten wurden nicht gespeichert.', new Exclamation())
+                            Die Daten wurden nicht gespeichert.' . implode('', $errorNoDate), new Exclamation())
                     ))));
             }
 
             return $Stage;
+        }
+
+        $tblPersonTeacher = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPersonTeacher = $tblPersonAllByAccount[0];
+            }
         }
 
         if (!empty($Grade)) {
@@ -453,6 +467,7 @@ class Service extends ServiceScoreRule
                         if (isset($value['Attendance'])) {
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
+                                $tblPersonTeacher ? $tblPersonTeacher : null,
                                 $tblTestByPerson->getServiceTblDivision(),
                                 $tblTestByPerson->getServiceTblSubject(),
                                 $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
@@ -470,6 +485,7 @@ class Service extends ServiceScoreRule
                         } elseif (trim($value['Grade']) !== '') {
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
+                                $tblPersonTeacher ? $tblPersonTeacher : null,
                                 $tblTestByPerson->getServiceTblDivision(),
                                 $tblTestByPerson->getServiceTblSubject(),
                                 $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
@@ -487,6 +503,7 @@ class Service extends ServiceScoreRule
                         } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))){
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
+                                $tblPersonTeacher ? $tblPersonTeacher : null,
                                 $tblTestByPerson->getServiceTblDivision(),
                                 $tblTestByPerson->getServiceTblSubject(),
                                 $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
@@ -511,7 +528,8 @@ class Service extends ServiceScoreRule
                                 0,
                                 null,
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null
+                                    ? $tblGradeText : null,
+                                $tblPersonTeacher
                             );
                         } else {
                             (new Data($this->getBinding()))->updateGrade(
@@ -521,7 +539,8 @@ class Service extends ServiceScoreRule
                                 $trend,
                                 isset($value['Date']) ? $value['Date'] : null,
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null
+                                    ? $tblGradeText : null,
+                                $tblPersonTeacher
                             );
                         }
                     }
@@ -530,8 +549,8 @@ class Service extends ServiceScoreRule
         }
 
         return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        . new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
-            array('Id' => $tblTest->getId()));
+            . new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblTest->getId()));
     }
 
     /**

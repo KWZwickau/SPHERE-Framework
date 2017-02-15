@@ -128,6 +128,7 @@ class Setup extends AbstractSetup
         if (!$Table->hasColumn('Date')) {
             $Table->addColumn('Date', 'datetime', array('notnull' => false));
         }
+        $this->createColumn($Table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->createForeignKey($Table, $tblGradeText, true);
