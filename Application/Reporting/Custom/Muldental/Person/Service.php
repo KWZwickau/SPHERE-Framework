@@ -11,7 +11,6 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -31,8 +30,15 @@ class Service
     {
 
         $tblPersonList = false;
+        $tblYear = false;
         if (!empty($tblDivisionList)) {
             $tblPersonList = Division::useService()->getPersonAllByDivisionList($tblDivisionList);
+            foreach ($tblDivisionList as $tblDivision) {
+                if ($tblDivision->getServiceTblYear()) {
+                    $tblYear = $tblDivision->getServiceTblYear();
+                    break;
+                }
+            }
         }
 
         // Mentor Groups
@@ -82,7 +88,7 @@ class Service
         $TableContent = array();
         $CountNumber = 0;
         if (!empty($tblPersonListSorted)) {
-            array_walk($tblPersonListSorted, function (TblPerson $tblPerson) use (&$TableContent, &$CountNumber) {
+            array_walk($tblPersonListSorted, function (TblPerson $tblPerson) use (&$TableContent, &$CountNumber, $tblYear) {
                 $CountNumber++;
                 // Content
                 $Item['Division'] = '';
@@ -118,16 +124,15 @@ class Service
 
                 //Division
                 $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-                $YearList = Term::useService()->getYearByNow();
-                if ($tblDivisionStudentList && $YearList) {
+
+                // Division by Year
+                if ($tblDivisionStudentList && $tblYear) {
                     $DivisionArray = array();
-                    foreach ($YearList as $tblYear) {
-                        foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                            if (( $tblDivision = $tblDivisionStudent->getTblDivision() )) {
-                                if (( $tblYearDivision = $tblDivision->getServiceTblYear() )) {
-                                    if ($tblYearDivision->getId() == $tblYear->getId()) {
-                                        $DivisionArray[] = $tblDivision->getDisplayName();
-                                    }
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        if (( $tblDivision = $tblDivisionStudent->getTblDivision() )) {
+                            if (( $tblYearDivision = $tblDivision->getServiceTblYear() )) {
+                                if ($tblYearDivision->getId() == $tblYear->getId()) {
+                                    $DivisionArray[] = $tblDivision->getDisplayName();
                                 }
                             }
                         }

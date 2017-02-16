@@ -18,7 +18,7 @@ class Person extends AbstractModule implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/ClassList'), new Link\Name('Klassenlisten EVAMTL'))
+            new Link(new Link\Route(__NAMESPACE__.'/ClassList'), new Link\Name('Klassenlisten'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
