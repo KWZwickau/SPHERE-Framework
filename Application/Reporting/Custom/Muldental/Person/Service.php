@@ -222,7 +222,6 @@ class Service
                 $GuardianList = array();
                 $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($tblToPersonList) {
-//                    if($tblPerson->getFirstName() == 'Steffen'){        // ToDO nach den Tests entfernen
                     /** @var TblToPerson $tblToPerson */
                     foreach ($tblToPersonList as $tblToPerson) {
                         if (( $tblType = $tblToPerson->getTblType() )) {
@@ -231,7 +230,6 @@ class Service
                             }
                         }
                     }
-//                    }
                 }
 
                 $ContactMailList = array();
