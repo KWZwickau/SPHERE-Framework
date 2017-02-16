@@ -77,7 +77,7 @@ class RadebeulBildungsempfehlung extends Certificate
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent(
-                                        '- staatlich genehmigte Ersatzschule -'
+                                        '- staatlich anerkannte Ersatzschule -'
                                     )
                                     ->styleAlignCenter()
                                 )
