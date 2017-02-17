@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -50,6 +51,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -110,6 +112,13 @@ class Frontend extends Extension
                     'Name' => $tblGenerateCertificate->getName(),
                     'Option' =>
                         (new Standard(
+                            '', '/Education/Certificate/Generate/Edit', new Edit(),
+                            array(
+                                'Id' => $tblGenerateCertificate->getId(),
+                            )
+                            , 'Bearbeiten'
+                        ))
+                        . (new Standard(
                             '', '/Education/Certificate/Generate/Division/Select', new Listing(),
                             array(
                                 'GenerateCertificateId' => $tblGenerateCertificate->getId(),
@@ -748,5 +757,96 @@ class Frontend extends Extension
         } else {
             return new Danger('Klasse nicht gefunden', new Exclamation());
         }
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendEditGenerate($Id = null, $Data = null)
+    {
+
+        $Stage = new Stage('Zeugnis generieren', 'Bearbeiten');
+
+        if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($Id))) {
+
+            $Stage->addButton(
+                new Standard('Zurück', '/Education/Certificate/Generate', new ChevronLeft())
+            );
+
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+
+                $Global->POST['Data']['Date'] = $tblGenerateCertificate->getDate();
+                $Global->POST['Data']['IsTeacherAvailable'] = $tblGenerateCertificate->isDivisionTeacherAvailable();
+                $Global->POST['Data']['HeadmasterName'] = $tblGenerateCertificate->getHeadmasterName();
+
+                $Global->savePost();
+            }
+
+            $Form = $this->formEditGenerate()
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Zeugnisgenerierung',
+                                    array(
+                                        $tblGenerateCertificate->getDate(),
+                                        $tblGenerateCertificate->getName()
+                                    ),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            ),
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Generate::useService()->updateGenerateCertificate($Form,
+                                    $tblGenerateCertificate, $Data))
+                            ),
+                        ))
+                    ), new Title(new Edit() . ' Bearbeiten'))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return $Stage . new Danger('Zeugnisgenerierung nicht gefunden', new Ban())
+                . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @return Form
+     */
+    private function formEditGenerate()
+    {
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 6
+                ),
+
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new CheckBox('Data[IsTeacherAvailable]',
+                        'Name des Klassenlehrers und Name des Schulleiters (falls vorhanden) auf dem Zeugnis anzeigen',
+                        1
+                    ), 12
+                ),
+                new FormColumn(
+                    new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiter/in'), 12
+                ),
+            )),
+        )));
     }
 }
