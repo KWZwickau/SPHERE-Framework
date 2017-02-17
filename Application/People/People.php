@@ -73,8 +73,7 @@ class People implements IClusterInterface
                                 new PullRight(
                                     new Standard('', '/People/Search/Group',
                                         new \SPHERE\Common\Frontend\Icon\Repository\Group(),
-                                        array('Id' => $tblGroup->getId()),
-                                        'zur Gruppe')
+                                        array('Id' => $tblGroup->getId()))
                                 ), array(3, 0, 3))
                         )
                     )));

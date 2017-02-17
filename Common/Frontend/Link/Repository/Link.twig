@@ -1,6 +1,7 @@
 {% if( Disabled is empty ) %}
-    <a id="{{ ElementHash }}" href="{{ UrlBase }}{{ ElementPath }}" class="{{ ElementType }}" data-toggle="tooltip" data-container="body"
-       title="{{ ElementToolTip }}">{{ ElementIcon }} {{ ElementName }}</a>
+    <a id="{{ ElementHash }}" href="{{ UrlBase }}{{ ElementPath }}" class="{{ ElementType }}" data-trigger="hover"
+       data-toggle="popover" data-content="{{ ElementToolTip }}"
+    >{{ ElementIcon }} {{ ElementName }}</a>
     {% if( AjaxEventClick is not empty ) %}
     <script language=javascript>
         //noinspection JSUnresolvedFunction
@@ -17,6 +18,6 @@
     </script>
     {% endif %}
 {% else %}
-    <a href="#" class="{{ ElementType }}" data-toggle="tooltip" data-container="body"
-       title="{{ ElementToolTip }}" disabled>{{ ElementIcon }} {{ ElementName }}</a>
+    <a href="#" class="{{ ElementType }}" data-trigger="hover" data-toggle="popover"
+       data-content="{{ ElementToolTip }}" disabled>{{ ElementIcon }} {{ ElementName }}</a>
 {% endif %}
