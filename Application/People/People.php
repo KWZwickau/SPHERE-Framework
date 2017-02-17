@@ -57,10 +57,12 @@ class People implements IClusterInterface
     {
 
         $tblGroupAll = Group::useService()->getGroupAllSorted();
+        $tblGroupLockedList = array();
+        $tblGroupCustomList = array();
         if ($tblGroupAll) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
-                $tblGroupAll[$tblGroup->getName()] =
+                $content =
                     new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
                                 $tblGroup->getName()
@@ -77,12 +79,23 @@ class People implements IClusterInterface
                                 ), array(3, 0, 3))
                         )
                     )));
-                $tblGroupAll[$Index] = false;
+
+                if ($tblGroup->isLocked()){
+                    $tblGroupLockedList[] = $content;
+                } else {
+                    $tblGroupCustomList[] = $content;
+                }
             }
-            $tblGroupAll = array_filter($tblGroupAll);
         }
 
-        return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Panel('Personen in Gruppen', $tblGroupAll), 6))));
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Personen in festen Gruppen', $tblGroupLockedList), 6
+                ),
+                !empty($tblGroupCustomList) ?
+                    new LayoutColumn(
+                        new Panel('Personen in individuellen Gruppen', $tblGroupCustomList), 6) : null
+        ))));
     }
 
     /**
