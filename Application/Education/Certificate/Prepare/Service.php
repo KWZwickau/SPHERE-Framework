@@ -519,6 +519,13 @@ class Service extends AbstractService
                                         $field,
                                         $value);
                                 }
+                                // auf Leer zurücksetzen
+                            } elseif (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson,
+                                $field))
+                            ) {
+                                (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
+                                    $field,
+                                    $value);
                             }
                         }
                     }
