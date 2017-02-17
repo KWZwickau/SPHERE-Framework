@@ -292,9 +292,12 @@ class Frontend extends FrontendScoreRule
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendTeacherGradebook()
+    public function frontendTeacherGradebook($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Notenbuch', 'Auswahl');
@@ -318,6 +321,9 @@ class Frontend extends FrontendScoreRule
             }
         }
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Graduation/Gradebook/Gradebook/Teacher',
+            $IsAllYears, $YearId, $tblYear);
+
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
@@ -327,6 +333,15 @@ class Frontend extends FrontendScoreRule
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
                     $tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject();
+                    // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                    /** @var TblYear $tblYear */
+                    if ($tblYear && $tblDivisionSubject && $tblDivisionSubject->getTblDivision()
+                        && $tblDivisionSubject->getTblDivision()->getServiceTblYear()
+                        && $tblDivisionSubject->getTblDivision()->getServiceTblYear()->getId() != $tblYear->getId()
+                    ) {
+                        continue;
+                    }
+
                     if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                         if ($tblDivisionSubject->getTblSubjectGroup()) {
                             $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
@@ -360,7 +375,15 @@ class Frontend extends FrontendScoreRule
             $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
             if ($tblDivisionTeacherAllByTeacher) {
                 foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
-                    if ($tblDivisionTeacher->getTblDivision()) {
+                    if (($tblDivision = $tblDivisionTeacher->getTblDivision())) {
+                        // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                        /** @var TblYear $tblYear */
+                        if ($tblYear && $tblDivision  && $tblDivision->getServiceTblYear()
+                            && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                        ) {
+                            continue;
+                        }
+
                         $tblDivisionSubjectAllByDivision
                             = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
                         if ($tblDivisionSubjectAllByDivision) {
@@ -472,7 +495,15 @@ class Frontend extends FrontendScoreRule
                             $studentViewLinkButton
                                 ? $studentViewLinkButton
                                 : null,
-                            new Title(new Select() . ' Auswahl'),
+                        ))
+                    ))
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
+                        new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year' => 'Schuljahr',
                                 'Type' => 'Schulart',
@@ -491,7 +522,7 @@ class Frontend extends FrontendScoreRule
                             ))
                         ))
                     ))
-                ))
+                ), new Title(new Select() . ' Auswahl'))
             ))
         );
 
@@ -499,9 +530,12 @@ class Frontend extends FrontendScoreRule
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendHeadmasterGradeBook()
+    public function frontendHeadmasterGradeBook($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Notenbuch', 'Auswahl');
@@ -519,9 +553,20 @@ class Frontend extends FrontendScoreRule
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Graduation/Gradebook/Gradebook/Headmaster',
+            $IsAllYears, $YearId, $tblYear);
+
         $tblDivisionAll = Division::useService()->getDivisionAll();
         if ($tblDivisionAll) {
             foreach ($tblDivisionAll as $tblDivision) {
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
                 $tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                 if ($tblDivisionSubjectAllByDivision) {
                     foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
@@ -625,8 +670,18 @@ class Frontend extends FrontendScoreRule
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            $studentViewLinkButton,
-                            new Title(new Select().' Auswahl'),
+                            $studentViewLinkButton
+                                ? $studentViewLinkButton
+                                : null,
+                        ))
+                    ))
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
+                        new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year' => 'Schuljahr',
                                 'Type' => 'Schulart',
@@ -645,7 +700,7 @@ class Frontend extends FrontendScoreRule
                             ))
                         ))
                     ))
-                ))
+                ), new Title(new Select() . ' Auswahl'))
             ))
         );
 
