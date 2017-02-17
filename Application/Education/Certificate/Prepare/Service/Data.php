@@ -901,4 +901,35 @@ class Data extends AbstractData
 
         return true;
     }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+            array(
+                TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                TblPrepareStudent::ATTR_IS_PRINTED => true
+            ))
+            ? true : false;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentAllByPrepare(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+            array(
+                TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+            )
+        );
+    }
 }

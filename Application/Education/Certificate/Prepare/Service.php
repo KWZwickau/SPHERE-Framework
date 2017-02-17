@@ -1379,4 +1379,26 @@ class Service extends AbstractService
             return false;
         }
     }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        return (new Data($this->getBinding()))->isPreparePrinted($tblPrepareCertificate);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentAllByPrepare(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareStudentAllByPrepare($tblPrepareCertificate);
+    }
 }
