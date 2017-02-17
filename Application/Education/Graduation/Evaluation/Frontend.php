@@ -2256,11 +2256,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         /** @var TblGrade $tblGrade */
-        if ($tblGrade && $tblGrade->getGrade()) {
-            $labelComment = new Warning('Bei Notenänderung bitte einen Grund angeben');
-        } else {
-            $labelComment = '';
-        }
 
         if (!$IsEdit && !$IsTaskAndInPeriod) {
             /** @var TblGrade $tblGrade */
@@ -2296,8 +2291,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $student[$tblPerson->getId()]['Comment']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', $labelComment,
-                new Comment()))->setTabIndex(1000 + $tabIndex);
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '',
+                new Comment()))->setTabIndex(1000 + $tabIndex)->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
             $student[$tblPerson->getId()]['Attendance'] =
                 (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(2000 + $tabIndex);
 
