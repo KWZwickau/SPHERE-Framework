@@ -27,7 +27,13 @@ class Data extends AbstractData
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP);
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT);
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT);
-        $this->createFilterCategory(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
+        if ($this->getFilterCategoryByName('Institutionengruppe')) {
+            // no Update required
+        } elseif (( $tblFilterCategory = $this->getFilterCategoryByName('Firmengruppe') )) {
+            $this->updateFilterCategory($tblFilterCategory, TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
+        } else {
+            $this->createFilterCategory(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
+        }
     }
 
     /**
@@ -51,6 +57,31 @@ class Data extends AbstractData
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblFilterCategory $tblFilterCategory
+     * @param string            $Name
+     *
+     * @return \Doctrine\ORM\Mapping\Entity|object|TblFilterCategory
+     */
+    public function updateFilterCategory(TblFilterCategory $tblFilterCategory, $Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblFilterCategory', $tblFilterCategory->getId());
+
+        if ($Entity != null) {
+            /** @var TblFilterCategory $Entity */
+            $Protocol = clone $Entity;
+
+            $Entity->setName($Name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
         }
 
         return $Entity;

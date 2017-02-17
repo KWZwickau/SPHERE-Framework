@@ -26,12 +26,12 @@ class Company extends Extension implements IApplicationInterface, IModuleInterfa
         if (0 === strpos(self::getRequest()->getPathInfo(), (new Link\Route(__NAMESPACE__))->getValue())) {
             $Parameter = self::getRequest()->getParameterArray();
             if (isset( $Parameter['Id'] )) {
-                $Name = 'Firma bearbeiten';
+                $Name = 'Institution bearbeiten';
             } else {
-                $Name = 'Firma anlegen';
+                $Name = 'Institution anlegen';
             }
         } else {
-            $Name = 'Firma anlegen';
+            $Name = 'Institution anlegen';
         }
 
         Main::getDisplay()->addApplicationNavigation(

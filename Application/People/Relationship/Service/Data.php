@@ -59,7 +59,14 @@ class Data extends AbstractData
     {
 
         $tblGroupPerson = $this->createGroup('PERSON', 'Personenbeziehung', 'Person zu Person');
-        $tblGroupCompany = $this->createGroup('COMPANY', 'Firmenbeziehungen', 'Person zu Firma');
+//        $tblGroupCompany = $this->createGroup('COMPANY', 'Firmenbeziehungen', 'Person zu Firma');
+        if (( $tblGroupCompany = $this->getGroupByIdentifier('COMPANY') )) {
+            if ($tblGroupCompany && $tblGroupCompany->getName() !== 'Institutionenbeziehungen') {
+                $tblGroupCompany = $this->updateGroup($tblGroupCompany, 'Institutionenbeziehungen', 'Person zu Institution');
+            }
+        } else {
+            $tblGroupCompany = $this->createGroup('COMPANY', 'Institutionenbeziehungen', 'Person zu Institution');
+        }
 
         $tblType = $this->createType('Sorgeberechtigt', '', $tblGroupPerson);
         $this->updateType($tblType, false);
@@ -133,6 +140,30 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param string   $Name
+     * @param string   $Description
+     *
+     * @return TblGroup
+     */
+    public function updateGroup(TblGroup $tblGroup, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblGroup $Entity */
+        $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
         }
         return $Entity;
     }
@@ -306,6 +337,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToPerson', $Id);
+        /** @var TblToPerson $Entity */
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -318,6 +350,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToCompany', $Id);
+        /** @var TblToCompany $Entity */
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -519,6 +552,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblSiblingRank', $Id);
+        /** @var TblSiblingRank $Entity */
         return ( null === $Entity ? false : $Entity );
     }
 

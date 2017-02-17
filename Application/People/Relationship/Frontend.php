@@ -67,7 +67,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int $To
      * @param array $Type
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendCreateToPerson($Id, $To, $Type)
     {
@@ -237,7 +237,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int $To
      * @param array $Type
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendCreateToCompany($Id, $To, $Type)
     {
@@ -351,9 +351,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Company Panel
         if ($currentCompany) {
-            $PanelCompany = new Panel('zu folgender Firma ' . new Building(),
+            $PanelCompany = new Panel('zu folgender Institution '.new Building(),
                 array(
-                    new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Firma, '),
+                    new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Institution, '),
                     new PullLeft(new RadioBox('To', $currentCompany->getName()
                         . new Container(new Container($currentCompany->getExtendedName()))
                         . new Container(new Container(new Muted($currentCompany->getDescription()))),
@@ -362,19 +362,19 @@ class Frontend extends Extension implements IFrontendInterface
                         new Building(),
                         array('Id' => $currentCompany->getId()),
                         'zu ' . $currentCompany->getDisplayName() . ' wechseln')),
-                    new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Firma wählen: '),
-                    new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen', 'Address' => 'Adresse')),
+                    new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Institution wählen: '),
+                    new TableData($tblCompanyAll, null, array('Company' => 'Institution wählen', 'Address' => 'Adresse')),
                 ), Panel::PANEL_TYPE_INFO,
-                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
                     , array(), 'Die aktuell gewählte Person verlassen'
                 )
             );
         } else {
-            $PanelCompany = new Panel('zu folgender Firma ' . new Building(),
+            $PanelCompany = new Panel('zu folgender Institution '.new Building(),
                 array(
-                    new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen', 'Address' => 'Adresse')),
+                    new TableData($tblCompanyAll, null, array('Company' => 'Institution wählen', 'Address' => 'Adresse')),
                 ), Panel::PANEL_TYPE_INFO,
-                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
                     , array(), 'Die aktuell gewählte Person verlassen'
                 )
             );
@@ -412,7 +412,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int $To
      * @param array $Type
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendUpdateToPerson($Id, $To, $Type)
     {
@@ -466,7 +466,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int $To
      * @param array $Type
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendUpdateToCompany($Id, $To, $Type)
     {
@@ -658,7 +658,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                                 . new Standard(
                                     '', '/Corporation/Company', new Building(),
-                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()), 'zur Firma'
+                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()), 'zur Institution'
                                 )
                                 :
                                 new Standard(
@@ -676,7 +676,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
-                    new Warning('Keine Firmenbeziehungen hinterlegt')
+                    new Warning('Keine Institutionenbeziehungen hinterlegt')
                 )
             );
         }
@@ -703,7 +703,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int $Id
      * @param bool $Confirm
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendDestroyToPerson($Id, $Confirm = false)
     {
@@ -773,7 +773,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int $Id
      * @param bool $Confirm
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendDestroyToCompany($Id, $Confirm = false)
     {
@@ -783,7 +783,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
             if (!$tblToCompany) {
-                return $Stage . new Danger('Firma nicht gefunden', new Ban())
+                return $Stage.new Danger('Institution nicht gefunden', new Ban())
                 . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
             $tblPerson = $tblToCompany->getServiceTblPerson();

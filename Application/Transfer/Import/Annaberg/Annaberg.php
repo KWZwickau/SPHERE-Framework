@@ -93,7 +93,7 @@ class Annaberg implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Annaberg', 'Schulen (Firmen)',
+            'Annaberg', 'Schulen (Institutionen)',
             new Standard('', '/Transfer/Import/Annaberg/Company', new Upload(), array(), 'Upload')
         );
     }

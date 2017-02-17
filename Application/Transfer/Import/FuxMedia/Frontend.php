@@ -291,7 +291,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $View = new Stage();
         $View->setTitle('FuxSchool Import');
-        $View->setDescription('Firmendaten');
+        $View->setDescription('Institutionendaten');
         $View->setContent(
             new Layout(
                 new LayoutGroup(

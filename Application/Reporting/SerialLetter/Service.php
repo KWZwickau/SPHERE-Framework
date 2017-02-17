@@ -1209,14 +1209,14 @@ class Service extends AbstractService
                             /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToCompany $tblToCompany */
                             $count = 0;
                             $tblCompany = false;
-                            // Existieren die Firmen noch zu der Beziehung?
+                            // Existieren die Institutionen noch zu der Beziehung?
                             foreach ($tblRelationshipCompanyList as $tblRelationshipCompany) {
                                 if ($tblRelationshipCompany->getServiceTblCompany()) {
                                     $tblCompany = $tblRelationshipCompany->getServiceTblCompany();
                                     $count++;
                                 }
                             }
-                            // Automatik nur mit einer Firma
+                            // Automatik nur mit einer Institution
                             if ($tblCompany && $count == 1) {
                                 $tblToCompanyList = Address::useService()->getAddressAllByCompany($tblCompany);
                                 if ($tblToCompanyList) {
@@ -1601,8 +1601,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Person_Schüler-Nr.");
             if ($isCompany) {
                 $export->setValue($export->getCell($column++, $row), "Person_Aktuelle Klasse(n)");
-                $export->setValue($export->getCell($column++, $row), "Firma");
-                $export->setValue($export->getCell($column, $row), "Firma Zusatz");
+                $export->setValue($export->getCell($column++, $row), "Institution");
+                $export->setValue($export->getCell($column, $row), "Institution Zusatz");
             } else {
                 $export->setValue($export->getCell($column, $row), "Person_Aktuelle Klasse(n)");
             }

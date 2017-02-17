@@ -349,14 +349,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 Relationship::useFrontend()->frontendLayoutPerson($tblPerson),
                                 Relationship::useFrontend()->frontendLayoutCompany($tblPerson)
                             ))),
-                        ), (new Title(new TagList().' Beziehungen', new Bold(new SuccessText($tblPerson->getFullName())).' zu Personen und Firmen'))
+                        ), ( new Title(new TagList().' Beziehungen', new Bold(new SuccessText($tblPerson->getFullName())).' zu Personen und Institutionen') )
                             ->addButton(
                                 new Standard('Personenbeziehung hinzufügen', '/People/Person/Relationship/Create',
                                     new ChevronDown(), array('Id' => $tblPerson->getId())
                                 )
                             )
                             ->addButton(
-                                new Standard('Firmenbeziehung hinzufügen', '/Corporation/Company/Relationship/Create',
+                                new Standard('Institutionenbeziehung hinzufügen', '/Corporation/Company/Relationship/Create',
                                     new ChevronDown(), array('Id' => $tblPerson->getId())
                                 )
                             )

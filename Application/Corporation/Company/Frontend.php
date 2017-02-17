@@ -119,7 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendContact($Id = null, $Person = null, $Group = null, $tblPerson = null, $tblType = null, $tblSalutation = null, $doCreate = false)
     {
-        $Stage = new Stage('Firmen', 'Ansprechpartner');
+        $Stage = new Stage('Institution', 'Ansprechpartner');
         $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array(
             'Id' => $Id,
             'Group' => $Group
@@ -247,7 +247,7 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(
-                        new Panel( 'Firma', array(
+                        new Panel('Institution', array(
                             $tblCompany->getName(),
                             $tblCompany->getExtendedName(),
                             $tblCompany->getDescription(),
@@ -367,7 +367,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                     ))
                 ), new Title( new PlusSign().' Neue Person anlegen',
-                    'Es wird eine neue Person angelegt und mit der Firma verknüpft'
+                    'Es wird eine neue Person angelegt und mit der Institution verknüpft'
                 ))
             );
         }
@@ -393,7 +393,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCompany($TabActive = false, $Id = null, $Company = null, $Meta = null, $Group = null)
     {
 
-        $Stage = new Stage('Firmen', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
+        $Stage = new Stage('Institutionen', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
         if ($Group) {
             $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(),
                 array('Id' => $Group)));
@@ -411,7 +411,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(new LayoutColumn(new Well($BasicTable))),
-                        new Title(new Building() . ' Grunddaten', 'der Firma')
+                        new Title(new Building().' Grunddaten', 'der Institution')
                     ),
                 ))
             );
@@ -502,17 +502,17 @@ class Frontend extends Extension implements IFrontendInterface
                                     $BasicTable
                                 )
                             ))),
-                            new Title(new Building() . ' Grunddaten', 'der Firma')
+                            new Title(new Building().' Grunddaten', 'der Institution')
                         ),
 //                    new LayoutGroup(array(
 //                        new LayoutRow(new LayoutColumn(new LayoutTabs($MetaTabs))),
 //                        new LayoutRow(new LayoutColumn($MetaTable)),
-//                    ), new Title(new Tag().' Informationen', 'zur Firma')),
+//                    ), new Title(new Tag().' Informationen', 'zur Institution')),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
                                 Address::useFrontend()->frontendLayoutCompany($tblCompany)
                             )),
-                        ), (new Title(new TagList() . ' Adressdaten', 'der Firma'))
+                        ), ( new Title(new TagList().' Adressdaten', 'der Institution') )
                             ->addButton(
                                 new Standard('Adresse hinzufügen', '/Corporation/Company/Address/Create',
                                     new ChevronDown(), array('Id' => $tblCompany->getId())
@@ -524,7 +524,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 Phone::useFrontend()->frontendLayoutCompany($tblCompany)
                                 . Mail::useFrontend()->frontendLayoutCompany($tblCompany)
                             )),
-                        ), (new Title(new TagList() . ' Kontaktdaten', 'der Firma'))
+                        ), ( new Title(new TagList().' Kontaktdaten', 'der Institution') )
                             ->addButton(
                                 new Standard('Telefonnummer hinzufügen', '/Corporation/Company/Phone/Create',
                                     new ChevronDown(), array('Id' => $tblCompany->getId())
@@ -546,7 +546,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
 
             } else {
-                return $Stage . new Danger(new Ban() . ' Firma nicht gefunden.')
+                return $Stage.new Danger(new Ban().' Institution nicht gefunden.')
                     . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR, array('Id' => $Group));
             }
         }
@@ -598,7 +598,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Firmenname', array(
+                        new Panel('Name der Institution', array(
                             (new TextField('Company[Name]', 'Name', 'Name'))->setRequired(),
                             new TextField('Company[ExtendedName]', 'Zusatz', 'Zusatz'),
                             new TextField('Company[Description]', 'Beschreibung', 'Beschreibung'),
@@ -619,7 +619,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDestroyCompany($Id = null, $Confirm = false, $Group = null)
     {
 
-        $Stage = new Stage('Firma', 'Löschen');
+        $Stage = new Stage('Institution', 'Löschen');
         if ($Id) {
             if ($Group) {
                 $Stage->addButton(new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group)));
@@ -629,7 +629,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            new Danger('Die Firma konnte nicht gefunden werden.', new Ban()),
+                            new Danger('Die Institution konnte nicht gefunden werden.', new Ban()),
                             new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR, array('Id' => $Group))
                         )))
                     )))
@@ -638,10 +638,10 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!$Confirm) {
                     $Stage->setContent(
                         new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                            new Panel('Firma', new Bold($tblCompany->getName() . ($tblCompany->getDescription() !== '' ? '&nbsp;&nbsp;'
+                            new Panel('Institution', new Bold($tblCompany->getName().( $tblCompany->getDescription() !== '' ? '&nbsp;&nbsp;'
                                     . new Muted(new Small(new Small($tblCompany->getDescription()))) : '')),
                                 Panel::PANEL_TYPE_INFO),
-                            new Panel(new Question() . ' Diese Firma wirklich löschen?', array(
+                            new Panel(new Question().' Diese Institution wirklich löschen?', array(
                                 $tblCompany->getName(),
                                 $tblCompany->getExtendedName(),
                                 $tblCompany->getDescription()
@@ -662,8 +662,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
                                 (Company::useService()->destroyCompany($tblCompany)
-                                    ? new Success(new SuccessIcon().' Die Firma wurde gelöscht.')
-                                    : new Danger(new Ban() . ' Die Firma konnte nicht gelöscht werden.')
+                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Institution wurde gelöscht.')
+                                    : new Danger(new Ban().' Die Institution konnte nicht gelöscht werden.')
                                 ),
                                 new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_SUCCESS, array('Id' => $Group))
                             )))

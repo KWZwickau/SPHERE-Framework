@@ -83,7 +83,7 @@ class ViewPhoneToCompany extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Kontakt Telefon (Firma)';
+        return 'Kontakt Telefon (Institution)';
     }
 
     /**

@@ -122,7 +122,7 @@ class ViewAddressToCompany extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Kontakt Adressdaten (Firma)';
+        return 'Kontakt Adressdaten (Institution)';
     }
 
     /**
