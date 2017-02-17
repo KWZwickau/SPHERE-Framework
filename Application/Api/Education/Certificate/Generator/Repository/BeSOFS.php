@@ -170,7 +170,7 @@ class BeSOFS extends Certificate
                         ->styleBorderBottom()
                     )
                     ->addElement((new Element())
-                        ->setContent('Wohnhaft in')
+                        ->setContent('wohnhaft in')
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
                         ->stylePaddingLeft()
