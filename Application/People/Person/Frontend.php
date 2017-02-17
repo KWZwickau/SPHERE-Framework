@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Person;
 
+use SPHERE\Application\Api\People\ApiPerson;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -14,6 +15,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
+use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -90,16 +92,41 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$Id) {
 
-            $BasicTable = Person::useService()->createPerson(
-                $this->formPerson()
-                    ->appendFormButton(new Primary('Speichern', new Save()))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $Person);
+            $FormCreatePersonReceiver = new BlockReceiver();
+            $TableSimilarPersonReceiver = new BlockReceiver();
+            $InfoSimilarPersonReceiver = new BlockReceiver();
+
+            $FormCreatePersonPipeline = new Pipeline();
+            $FormCreatePersonEmitter = new ServerEmitter( $FormCreatePersonReceiver, ApiPerson::getRoute() );
+            $FormCreatePersonEmitter->setGetPayload(array(
+                ApiPerson::API_DISPATCHER => 'FormCreatePerson'
+            ));
+            $FormCreatePersonEmitter->setPostPayload(array(
+                'Receiver' => array(
+                    'FormCreatePerson' => $FormCreatePersonReceiver->getIdentifier(),
+                    'TableSimilarPerson' => $TableSimilarPersonReceiver->getIdentifier(),
+                    'InfoSimilarPerson' => $InfoSimilarPersonReceiver->getIdentifier()
+                )
+            ));
+            $FormCreatePersonPipeline->addEmitter( $FormCreatePersonEmitter );
+            $FormCreatePersonReceiver->initContent( $FormCreatePersonPipeline );
 
             $Stage->setContent(
                 new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(new LayoutColumn(new Well($BasicTable))),
+                    new LayoutGroup(array(
+                        new LayoutRow(
+                            new LayoutColumn(array(
+                                new Well(
+                                $InfoSimilarPersonReceiver
+                                .$FormCreatePersonReceiver
+                                )
+                            ))
+                        ),
+                        new LayoutRow(
+                            new LayoutColumn(
+                                $TableSimilarPersonReceiver
+                            )
+                        )),
                         new Title(new PersonParent().' Grunddaten', 'der Person')
                     ),
                 ))
@@ -129,8 +156,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
+
                 $BasicTable = Person::useService()->updatePerson(
-                    $this->formPerson()
+                    $this->formUpdatePerson()
                         ->appendFormButton(new Primary('Speichern', new Save()))
                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
                     $tblPerson, $Person, $Group);
@@ -374,7 +402,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    private function formPerson()
+    public function formUpdatePerson()
     {
 
         $tblGroupList = Group::useService()->getGroupAllSorted();
@@ -386,8 +414,9 @@ class Frontend extends Extension implements IFrontendInterface
 //            });
 
             // Create CheckBoxes
+            $tabIndex = 7;
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblGroupList, function (TblGroup &$tblGroup) {
+            array_walk($tblGroupList, function (TblGroup &$tblGroup) use (&$tabIndex) {
 
                 switch (strtoupper($tblGroup->getMetaTable())) {
                     case 'COMMON':
@@ -401,11 +430,11 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                         break;
                     default:
-                        $tblGroup = new CheckBox(
+                        $tblGroup = ( new CheckBox(
                             'Person[Group]['.$tblGroup->getId().']',
                             $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
                             $tblGroup->getId()
-                        );
+                        ) )->setTabIndex($tabIndex++);
                 }
             });
         } else {
@@ -419,20 +448,101 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Anrede', array(
-                            new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
-                                new Conversation()),
-                            new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
-                                new Conversation()),
+                            ( new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
+                                new Conversation()) )->setTabIndex(1),
+                            ( new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
+                                new Conversation()) )->setTabIndex(4),
                         ), Panel::PANEL_TYPE_INFO), 2),
                     new FormColumn(
                         new Panel('Vorname', array(
-                            (new TextField('Person[FirstName]', 'Rufname', 'Vorname'))->setRequired(),
-                            new TextField('Person[SecondName]', 'weitere Vornamen', 'Zweiter Vorname'),
+                            ( new TextField('Person[FirstName]', 'Rufname', 'Vorname') )->setRequired()
+                                ->setTabIndex(2),
+                            ( new TextField('Person[SecondName]', 'weitere Vornamen', 'Zweiter Vorname') )->setTabIndex(5),
                         ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Nachname', array(
-                            (new TextField('Person[LastName]', 'Nachname', 'Nachname'))->setRequired(),
-                            new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname'),
+                            ( new TextField('Person[LastName]', 'Nachname', 'Nachname') )->setRequired()
+                                ->setTabIndex(3),
+                            ( new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname') )->setTabIndex(6),
+                        ), Panel::PANEL_TYPE_INFO), 3),
+                    new FormColumn(
+                        new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),
+                ))
+            ))
+        );
+    }
+
+    /**
+     * @return Form
+     */
+    public function formCreatePerson()
+    {
+
+        $tblGroupList = Group::useService()->getGroupAllSorted();
+        if ($tblGroupList) {
+            // Create CheckBoxes
+            /** @noinspection PhpUnusedParameterInspection */
+            $tabIndex = 7;
+            array_walk($tblGroupList, function (TblGroup &$tblGroup) use (&$tabIndex) {
+
+                switch (strtoupper($tblGroup->getMetaTable())) {
+                    case 'COMMON':
+                        $Global = $this->getGlobal();
+                        $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
+                        $Global->savePost();
+                        $tblGroup = new RadioBox(
+                            'Person[Group]['.$tblGroup->getId().']',
+                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getId()
+                        );
+                        break;
+                    default:
+                        $tblGroup = ( new CheckBox(
+                            'Person[Group]['.$tblGroup->getId().']',
+                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getId()
+                        ) )->setTabIndex($tabIndex++);
+                }
+            });
+        } else {
+            $tblGroupList = array(new Warning('Keine Gruppen vorhanden'));
+        }
+
+        $ValidatePersonReceiver = new BlockReceiver();
+        $ValidatePersonPipeline = new Pipeline();
+        $ValidatePersonEmitter = new ServerEmitter($ValidatePersonReceiver, ApiPerson::getRoute());
+        $ValidatePersonEmitter->setGetPayload(array(
+            ApiPerson::API_DISPATCHER => 'pieceFormValidatePerson',
+            'ValidatePersonReceiver'  => $ValidatePersonReceiver->getIdentifier(),
+        ));
+        $ValidatePersonPipeline->addEmitter($ValidatePersonEmitter);
+
+        $tblSalutationAll = Person::useService()->getSalutationAll();
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Anrede', array(
+                            ( new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
+                                new Conversation()) )->setTabIndex(1),
+                            ( new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
+                                new Conversation()) )->setTabIndex(4),
+                        ), Panel::PANEL_TYPE_INFO), 2),
+                    new FormColumn(
+                        new Panel('Vorname', array(
+                            ( new TextField('Person[FirstName]', 'Rufname', 'Vorname') )->setRequired()
+                                ->ajaxPipelineOnKeyUp($ValidatePersonPipeline)
+                                ->setAutoFocus()
+                                ->setTabIndex(2),
+                            ( new TextField('Person[SecondName]', 'weitere Vornamen', 'Zweiter Vorname') )->setTabIndex(5),
+                        ), Panel::PANEL_TYPE_INFO), 3),
+                    new FormColumn(
+                        new Panel('Nachname', array(
+                            ( new TextField('Person[LastName]', 'Nachname', 'Nachname') )->setRequired()
+                                ->ajaxPipelineOnKeyUp($ValidatePersonPipeline)
+                                ->setTabIndex(3),
+                            ( new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname') )->setTabIndex(6),
                         ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),
