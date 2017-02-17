@@ -186,6 +186,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblLevel[]
+     */
+    public function getAllLevelByName($Name)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel'
+            , array(
+                TblLevel::ATTR_NAME => $Name
+            ));
+    }
+
+    /**
      * @param int $Id
      * @param bool $IsForced
      *
@@ -426,6 +440,22 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivision',
             array(
                 TblDivision::ATTR_LEVEL => $tblLevel->getId()
+            ));
+    }
+
+    /**
+     * @param TblLevel $tblLevel
+     * @param TblYear  $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByLevelAndYear(TblLevel $tblLevel, TblYear $tblYear)
+    {
+
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+                TblDivision::ATTR_YEAR  => $tblYear->getId()
             ));
     }
 
@@ -698,7 +728,7 @@ class Data extends AbstractData
      * @param TblDivision $tblDivision
      * @param TblDivision $tblDivisionCopy
      *
-     * @return bool|TblDivisionTeacher
+     * @return bool|TblDivisionTeacher[]
      */
     public function copyTeacherAllByDivision(TblDivision $tblDivision, TblDivision $tblDivisionCopy)
     {

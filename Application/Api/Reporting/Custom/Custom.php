@@ -144,6 +144,14 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'\Radebeul\Person::downloadDiseaseList'
             ));
         }
+
+        // Muldental
+        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym === 'DEMO') {
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Muldental/Common/ClassList/Download',
+                __NAMESPACE__.'\Muldental\Common::downloadClassList'
+            ));
+        }
     }
 
     /**
