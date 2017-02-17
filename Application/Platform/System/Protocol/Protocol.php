@@ -4,7 +4,7 @@ namespace SPHERE\Application\Platform\System\Protocol;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -78,20 +78,19 @@ class Protocol implements IModuleInterface
 
         $Stage = new Stage('Protokoll', 'Aktivitäten');
 
-        if( isset( $Filter['ProtocolDatabase'] ) && $Filter['ProtocolDatabase'] == 0 ) {
-            $Filter['ProtocolDatabase'] = '';
-        }
-
         $Form = new Form(new FormGroup(new FormRow(array(
             new FormColumn(
                 new Panel('Metadaten', array(
-                    new SelectBox('Filter[ProtocolDatabase]', 'Datenbank',
-                        array_merge( array( 0 => '' ),
-                            array_combine(
-                                Protocol::useService()->getProtocolDatabaseNameList(),
+//                    new SelectBox('Filter[ProtocolDatabase]', 'Datenbank',
+//                        array_merge( array( 0 => '' ),
+//                            array_combine(
+//                                Protocol::useService()->getProtocolDatabaseNameList(),
+//                                Protocol::useService()->getProtocolDatabaseNameList()
+//                            )
+//                        )
+//                    ),
+                    new AutoCompleter('Filter[ProtocolDatabase]', 'Datenbank', '',
                                 Protocol::useService()->getProtocolDatabaseNameList()
-                            )
-                        )
                     ),
                     new TextField('Filter[EntityCreate]', 'Timestamp', 'Timestamp'),
                 ), Panel::PANEL_TYPE_INFO)
@@ -107,6 +106,7 @@ class Protocol implements IModuleInterface
                 new Panel('Payload', array(
                     new TextField('Filter[EntityFrom]', 'Daten-Original', 'Daten-Original'),
                     new TextField('Filter[EntityTo]', 'Daten-Ergebnis', 'Daten-Ergebnis'),
+                    new \SPHERE\Common\Frontend\Message\Repository\Info('Id suche ohne Leerzeichen möglich (z.B. "Id=500")')
                 ), Panel::PANEL_TYPE_INFO)
                 , 4)
         ))), new Primary('Suchen'));
@@ -117,6 +117,12 @@ class Protocol implements IModuleInterface
 
                 if (!empty( $Input )) {
                     $Input = explode(' ', $Input);
+                    foreach ($Input as &$SearchString) {
+                        if (preg_match('!([^\s]+)=([^\s]+)!is', $SearchString, $SearchArray)) {
+                            $SearchString = $SearchArray[1].'";s:'.strlen($SearchArray[2]).':"'.$SearchArray[2];
+                        }
+                    }
+                    $Input = array_filter($Input);
                 } else {
                     $Input = false;
                 }
@@ -209,7 +215,8 @@ class Protocol implements IModuleInterface
                                     array(0, 'desc')
                                 ),
                                 'columnDefs' => array(
-                                    array('type' => 'de_datetime', 'targets' => 0)
+                                    array('type' => 'de_datetime', 'targets' => 0),
+                                    array('width' => '25%', 'targets' => array(2, 3, 4))
                                 )
                             ))
                         ))
@@ -246,6 +253,11 @@ class Protocol implements IModuleInterface
             if (!empty( $Search[$Name] )) {
                 array_walk($Search[$Name], function (&$Text) {
 
+                    // mark the search with "="
+                    $FilterArray = explode('"', $Text);
+                    if (isset($FilterArray[0]) && isset($FilterArray[2])) {
+                        $Text = $FilterArray[0].'] => '.$FilterArray[2];
+                    }
                     $Text = '!'.preg_quote(trim($Text), '!').'!is';
                 });
                 return preg_replace($Search[$Name], '<span style="background-color: yellow;">${0}</span>',
