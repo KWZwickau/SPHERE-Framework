@@ -58,15 +58,19 @@
 namespace SPHERE\Application\Transfer\Untis\Import;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 /**
  * Class LectureshipGateway
@@ -76,39 +80,47 @@ class LectureshipGateway extends AbstractConverter
 {
 
     private $ResultList = array();
+    private $IsError = false;
+    private $Year = false;
+    private $Division = false;
+    private $Subject = false;
 
     /**
      * LectureshipGateway constructor.
-     * @param string $File GPU002.TXT
+     *
+     * @param string  $File GPU002.TXT
+     * @param TblYear $tblYear
      */
-    public function __construct($File)
+    public function __construct($File, TblYear $tblYear)
     {
         $this->loadFile($File);
+        $this->Year = $tblYear;
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
-        $this->setPointer(new FieldPointer('E', 'Datei: Klasse'));
-        $this->setPointer(new FieldPointer('E', 'Software: Klassenstufe'));
-        $this->setPointer(new FieldPointer('E', 'tblLevel'));
-        $this->setSanitizer(new FieldSanitizer('E', 'Software: Klassenstufe', array($this, 'sanitizeLevel')));
-        $this->setSanitizer(new FieldSanitizer('E', 'tblLevel', array($this, 'fetchLevel')));
-        $this->setPointer(new FieldPointer('E', 'Software: Klassengruppe'));
-        $this->setSanitizer(new FieldSanitizer('E', 'Software: Klassengruppe', array($this, 'sanitizeGroup')));
+        $this->setPointer(new FieldPointer('E', 'FileDivision'));
+        $this->setPointer(new FieldPointer('E', 'AppDivision'));
+        $this->setPointer(new FieldPointer('E', 'DivisionId'));
+        $this->setSanitizer(new FieldSanitizer('E', 'AppDivision', array($this, 'sanitizeDivision')));
+        $this->setSanitizer(new FieldSanitizer('E', 'DivisionId', array($this, 'fetchDivision')));
 
-        $this->setPointer(new FieldPointer('F', 'Datei: Lehrer'));
-        $this->setPointer(new FieldPointer('F', 'Software: Lehrer'));
-        $this->setPointer(new FieldPointer('F', 'tblTeacher'));
-        $this->setSanitizer(new FieldSanitizer('F', 'Software: Lehrer', array($this, 'sanitizeTeacher')));
-        $this->setSanitizer(new FieldSanitizer('F', 'tblTeacher', array($this, 'fetchTeacher')));
+        $this->setPointer(new FieldPointer('F', 'FileTeacher'));
+        $this->setPointer(new FieldPointer('F', 'AppTeacher'));
+        $this->setPointer(new FieldPointer('F', 'TeacherId'));
+        $this->setSanitizer(new FieldSanitizer('F', 'AppTeacher', array($this, 'sanitizeTeacher')));
+        $this->setSanitizer(new FieldSanitizer('F', 'TeacherId', array($this, 'fetchTeacher')));
 
-        $this->setPointer(new FieldPointer('G', 'Datei: Fach'));
-        $this->setPointer(new FieldPointer('G', 'Software: Fach'));
-        $this->setPointer(new FieldPointer('G', 'tblSubject'));
-        $this->setSanitizer(new FieldSanitizer('G', 'Software: Fach', array($this, 'sanitizeSubject')));
-        $this->setSanitizer(new FieldSanitizer('G', 'tblSubject', array($this, 'fetchSubject')));
+        $this->setPointer(new FieldPointer('G', 'FileSubject'));
+        $this->setPointer(new FieldPointer('G', 'AppSubject'));
+        $this->setPointer(new FieldPointer('G', 'SubjectId'));
+        $this->setSanitizer(new FieldSanitizer('G', 'AppSubject', array($this, 'sanitizeSubject')));
+        $this->setSanitizer(new FieldSanitizer('G', 'SubjectId', array($this, 'fetchSubject')));
 
-        $this->setPointer(new FieldPointer('L', 'Datei: Gruppe'));
-        $this->setPointer(new FieldPointer('L', 'Software: Gruppe'));
+        $this->setPointer(new FieldPointer('L', 'FileSubjectGroup'));
+        $this->setPointer(new FieldPointer('L', 'AppSubjectGroup'));
+        $this->setPointer(new FieldPointer('L', 'SubjectGroupId'));
+        $this->setSanitizer(new FieldSanitizer('L', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
+        $this->setSanitizer(new FieldSanitizer('L', 'SubjectGroupId', array($this, 'fetchSubjectGroup')));
 
 
         $this->scanFile(0);
@@ -134,89 +146,230 @@ class LectureshipGateway extends AbstractConverter
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
         }
+        if (!$this->IsError) {
+            $tblYear = $this->Year;
+            Import::useService()->createUntisImportLectureShip($Result, $tblYear);
+        } else {
+            $this->IsError = false;
+        }
+
         $this->ResultList[] = $Result;
     }
 
     /**
      * @param $Value
-     * @return Danger|string
+     *
+     * @return null|Danger|int
      */
-    protected function sanitizeLevel($Value)
+    protected function sanitizeDivision($Value)
     {
-        if (preg_match('!^(.*?)\s.*?$!is', $Value, $Match)) {
-            return $Match[1];
+        $LevelName = null;
+        $DivisionName = null;
+        $this->MatchDivision($Value, $LevelName, $DivisionName);
+        $tblLevel = null;
+
+        $tblDivisionList = array();
+        // search with Level
+        if (( $tblLevelList = Division::useService()->getLevelByName($LevelName) )) {
+            foreach ($tblLevelList as $tblLevel) {
+                if (( $tblDivision = Division::useService()->getDivisionByGroupAndLevelAndYear($DivisionName, $tblLevel, $this->Year) )) {
+                    $tblDivisionList[] = $tblDivision;
+                }
+            }
+            if (empty($tblDivisionList)) {
+                $this->IsError = true;
+                return new Danger(new Ban().' Klasse nicht gefunden!');
+            } elseif (count($tblDivisionList) == 1) {
+                /** @var TblDivision $tblDivision */
+                $tblDivision = $tblDivisionList[0];
+                return $tblDivision->getDisplayName();
+            } else {
+                $this->IsError = true;
+                return new Danger(new Ban().' Zu viele Treffer für die Klasse!');
+            }
         }
-        return '';
+        // search without Level
+        if ($tblLevel === null) {
+            if (( $tblDivision = Division::useService()->getDivisionByGroupAndLevelAndYear($DivisionName, $tblLevel, $this->Year) )) {
+                $tblDivisionList[] = $tblDivision;
+            }
+            if (empty($tblDivisionList)) {
+                $this->IsError = true;
+                return new Danger(new Ban().' Klasse nicht gefunden!');
+            } elseif (count($tblDivisionList) == 1) {
+                $tblDivision = $tblDivisionList[0];
+                return $tblDivision->getDisplayName();
+            } else {
+                $this->IsError = true;
+                return new Danger(new Ban().' Zu viele Treffer für die Klasse!');
+            }
+        }
+        return null;
     }
+
     /**
      * @param $Value
-     * @return bool|TblLevel
+     *
+     * @return null|Danger|int
      */
-    protected function fetchLevel($Value)
+    protected function fetchDivision($Value)
     {
+        $LevelName = null;
+        $DivisionName = null;
+        $this->MatchDivision($Value, $LevelName, $DivisionName);
+        $tblLevel = null;
+
+        $tblDivisionList = array();
+        // search with Level
+        if (( $tblLevelList = Division::useService()->getLevelByName($LevelName) )) {
+            foreach ($tblLevelList as $tblLevel) {
+                if (( $tblDivision = Division::useService()->getDivisionByGroupAndLevelAndYear($DivisionName, $tblLevel, $this->Year) )) {
+                    $tblDivisionList[] = $tblDivision;
+                }
+            }
+            if (!empty($tblDivisionList) && count($tblDivisionList) == 1) {
+                $tblDivision = $tblDivisionList[0];
+                $this->Division = $tblDivision->getId();
+                return $tblDivision->getId();
+            }
+        }
+        // search without Level
+        if ($tblLevel === null) {
+            if (( $tblDivision = Division::useService()->getDivisionByGroupAndLevelAndYear($DivisionName, $tblLevel, $this->Year) )) {
+                $tblDivisionList[] = $tblDivision;
+            }
+            if (!empty($tblDivisionList) && count($tblDivisionList) == 1) {
+                $tblDivision = $tblDivisionList[0];
+                $this->Division = $tblDivision->getId();
+                return $tblDivision->getId();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param $Value
+     * @param $LevelName
+     * @param $DivisionName
+     */
+    protected function MatchDivision($Value, &$LevelName, &$DivisionName)
+    {
+        if (preg_match('!^(.*?)\s([a-zA-Z]*?)$!is', $Value, $Match)) {
+            $LevelName = $Match[1];
+            $DivisionName = $Match[2];
+        } elseif (preg_match('!^([a-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
+            $DivisionName = $Match[1];
+            $LevelName = $Match[2];
+        } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
+            $DivisionName = $Match[1];
+            $LevelName = null;
+        }
+    }
+
+    /**
+     * @param $Value
+     *
+     * @return Warning|string
+     */
+    protected function sanitizeSubjectGroup($Value)
+    {
+        if (preg_match('!^(.+?)$!is', $Value, $Match)) {
+            $GroupName = $Match[1];
+            $tblDivision = Division::useService()->getDivisionById($this->Division);
+            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
+            if ($tblDivision && $tblSubject) {
+                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
+                if ($tblSubjectGroup) {
+                    return $tblSubjectGroup->getName().', '.$tblSubjectGroup->getDescription();
+                }
+                return new Warning(new WarningIcon().' Gruppe nicht gefunden');
+            }
+            return new Warning(new WarningIcon().' Klasse/Fach fehlt');
+        }
         return '';
     }
 
     /**
      * @param $Value
-     * @return Danger|string
+     *
+     * @return int|null
      */
-    protected function sanitizeGroup($Value)
+    protected function fetchSubjectGroup($Value)
     {
-        if (preg_match('!^.*?\s(.*?)$!is', $Value, $Match)) {
-            return $Match[1];
+        if (preg_match('!^(.+?)$!is', $Value, $Match)) {
+            $GroupName = $Match[1];
+            $tblDivision = Division::useService()->getDivisionById($this->Division);
+            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
+            if ($tblDivision && $tblSubject) {
+                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
+                if ($tblSubjectGroup) {
+                    return $tblSubjectGroup->getId();
+                }
+                return null;
+            }
+            return null;
         }
-        return '';
+        return null;
     }
 
     /**
      * @param $Value
-     * @return Danger|string
+     *
+     * @return Warning|string
      */
-    protected function sanitizeTeacher( $Value )
+    protected function sanitizeTeacher($Value)
     {
-        if( empty($Value) ) {
-            return new Danger( 'Lehrer wurde nicht angegeben' );
+        if (empty($Value)) {
+            return new Warning(new WarningIcon().' Lehrer wurde nicht angegeben');
         }
 
-        if( !($tblTeacher = Teacher::useService()->getTeacherByAcronym( $Value )) ) {
-            return new Danger( 'Das Lehrer-Kürzel '.$Value.' ist in der Schulsoftware nicht vorhanden' );
+        if (!( $tblTeacher = Teacher::useService()->getTeacherByAcronym($Value) )) {
+            return new Warning(new WarningIcon().' Das Lehrer-Kürzel '.$Value.' ist in der Schulsoftware nicht vorhanden');
         } else {
             return $tblTeacher->getAcronym().' - '.$tblTeacher->getServiceTblPerson()->getFullName();
         }
     }
+
     /**
      * @param $Value
+     *
      * @return bool|TblTeacher
      */
     protected function fetchTeacher($Value)
     {
-        return Teacher::useService()->getTeacherByAcronym($Value);
+        $tblPerson = Teacher::useService()->getTeacherByAcronym($Value);
+        return ( $tblPerson ? $tblPerson->getId() : null );
     }
 
     /**
      * @param $Value
-     * @return Danger|string
+     *
+     * @return string
      */
     protected function sanitizeSubject($Value)
     {
         if (empty($Value)) {
-            return new Danger('Fach wurde nicht angegeben');
+            return new Warning(new WarningIcon().' Fach wurde nicht angegeben');
         }
 
-        if (!($tblSubject = Subject::useService()->getSubjectByAcronym($Value))) {
-            return new Danger('Das Fach ' . $Value . ' ist in der Schulsoftware nicht vorhanden');
+        if (!( $tblSubject = Subject::useService()->getSubjectByAcronym($Value) )) {
+            return new Warning(new WarningIcon().' Das Fach '.$Value.' ist in der Schulsoftware nicht vorhanden');
         } else {
-            return $tblSubject->getAcronym() . ' - ' . $tblSubject->getName();
+            return $tblSubject->getAcronym().' - '.$tblSubject->getName();
         }
     }
 
     /**
      * @param $Value
+     *
      * @return bool|TblSubject
      */
     protected function fetchSubject($Value)
     {
-        return Subject::useService()->getSubjectByAcronym($Value);
+        $tblSubject = Subject::useService()->getSubjectByAcronym($Value);
+        if ($tblSubject) {
+            $this->Subject = $tblSubject->getId();
+        }
+        return ( $tblSubject ? $tblSubject->getId() : null );
     }
 }

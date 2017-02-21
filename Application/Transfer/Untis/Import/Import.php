@@ -3,7 +3,7 @@ namespace SPHERE\Application\Transfer\Untis\Import;
 
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -21,7 +21,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
+use SPHERE\System\Database\Link\Identifier;
+
 
 /**
  * Class Lectureship
@@ -36,17 +37,29 @@ class Import implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__ . '::frontendDashboard'
+            __NAMESPACE__, __CLASS__.'::frontendDashboard'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Lectureship/Show', __NAMESPACE__.'/Frontend::frontendLectureshipShow'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Lectureship/Edit', __NAMESPACE__.'/Frontend::frontendLectureshipEdit'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Lectureship/Destroy', __NAMESPACE__.'/Frontend::frontendLectureshipDestroy'
         ));
 
     }
 
     /**
-     * @return IServiceInterface
+     * @return Service
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+        return new Service(new Identifier('Setting', 'Consumer', null, null, Consumer::useService()->getConsumerBySession()),
+            __DIR__.'/Service/Entity',
+            __NAMESPACE__.'\Service\Entity'
+        );
     }
 
     /**
@@ -54,7 +67,7 @@ class Import implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        return new Frontend();
     }
 
     /**
@@ -66,8 +79,8 @@ class Import implements IModuleInterface
         $Stage = new Stage('Untis', 'Datentransfer');
 
         $Stage->setMessage('Daten importieren');
-
-        if(empty($tblYearAll = Term::useService()->getYearAll())) {
+        $tblYearAll = Term::useService()->getYearAll();
+        if (!$tblYearAll) {
             $tblYearAll = array();
         }
 
@@ -81,14 +94,14 @@ class Import implements IModuleInterface
                                 new FormGroup(array(
                                     new FormRow(
                                         new FormColumn(
-                                            (new SelectBox('tblYear', 'Schuljahr auswählen', array(
+                                            ( new SelectBox('tblYear', 'Schuljahr auswählen', array(
                                                 '{{ Year }} {{ Description }}' => $tblYearAll
-                                            )))->setRequired()
+                                            )) )->setRequired()
                                         )
                                     ),
                                     new FormRow(
                                         new FormColumn(
-                                            (new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null, array('showPreview' => false)))->setRequired()
+                                            ( new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null, array('showPreview' => false)) )->setRequired()
                                         )
                                     ),
                                 )),

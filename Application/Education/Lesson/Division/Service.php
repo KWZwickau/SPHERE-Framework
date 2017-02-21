@@ -1039,6 +1039,29 @@ class Service extends AbstractService
     }
 
     /**
+     * @param             $Name
+     * @param TblDivision $tblDivision
+     * @param TblSubject  $tblSubject
+     *
+     * @return bool|TblSubjectGroup
+     */
+    public function getSubjectGroupByNameAndDivisionAndSubject($Name, TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject($tblDivision, $tblSubject);
+        if ($tblDivisionSubjectList) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
+                if ($tblSubjectGroup && $tblSubjectGroup->getName() === $Name) {
+                    return $tblSubjectGroup;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      *
      * @return bool
@@ -2063,5 +2086,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getLevelBy($serviceTblType, $Name);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblLevel[]
+     */
+    public function getLevelByName($Name)
+    {
+
+        return ( new Data($this->getBinding()) )->getLevelByName($Name);
     }
 }
