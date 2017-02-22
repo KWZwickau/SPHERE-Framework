@@ -276,22 +276,31 @@ class Service extends AbstractService
     }
 
     /**
-     * @param      $Name
-     * @param null $Level
-     * @param      $Year
+     * @param string        $Name
+     * @param TblLevel|null $tblLevel
+     * @param TblYear       $tblYear
      *
-     * @return bool|false|\SPHERE\System\Database\Fitting\Element
+     * @return false|TblDivision[]
      */
-    public function getDivisionByGroupAndLevelAndYear($Name, $Level = null, $Year)
+    public function getDivisionByDivisionNameAndLevelAndYear($Name, TblLevel $tblLevel = null, TblYear $tblYear)
     {
 
-        if ($Level !== null) {
-            $tblLevel = $this->getLevelById($Level);
+        if ($tblYear && $tblLevel && $Name != '') {
+            $tblDivisionList = array();
+            if (( $tblDivision = ( new Data($this->getBinding()) )->getDivisionByDivisionNameAndLevelAndYear($Name, $tblLevel, $tblYear) )) {
+                $tblDivisionList[] = $tblDivision;
+                return $tblDivisionList;
+            } else {
+                return false;
+            }
+
+        } elseif ($tblYear && ( $tblLevel === null ) && $Name != '') {
+            return ( new Data($this->getBinding()) )->getDivisionByDivisionNameAndYear($Name, $tblYear);
+        } elseif ($tblYear && $tblLevel) {
+            return ( new Data($this->getBinding()) )->getDivisionByLevelAndYear($tblLevel, $tblYear);
         } else {
-            $tblLevel = null;
+            return false;
         }
-        $tblYear = Term::useService()->getYearById($Year);
-        return (new Data($this->getBinding()))->getDivisionByGroupAndLevelAndYear($Name, $tblLevel, $tblYear);
     }
 
     /**
@@ -1036,6 +1045,15 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->getSubjectGroupById($Id);
+    }
+
+    /**
+     * @return false|TblSubjectGroup[]
+     */
+    public function getSubjectGroupAll()
+    {
+
+        return ( new Data($this->getBinding()) )->getSubjectGroupAll();
     }
 
     /**
@@ -2089,13 +2107,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Name
+     * @param string $Name
      *
      * @return false|TblLevel[]
      */
-    public function getLevelByName($Name)
+    public function getLevelAllByName($Name)
     {
 
-        return ( new Data($this->getBinding()) )->getLevelByName($Name);
+        return ( new Data($this->getBinding()) )->getLevelAllByName($Name);
     }
 }

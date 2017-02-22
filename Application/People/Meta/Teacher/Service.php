@@ -88,6 +88,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @return false|TblTeacher[]
+     */
+    public function getTeacherAll()
+    {
+
+        return ( new Data($this->getBinding()) )->getTeacherAll();
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblTeacher
+     */
+    public function getTeacherById($Id)
+    {
+
+        return ( new Data($this->getBinding()) )->getTeacherById($Id);
+    }
+
+    /**
      *
      * @param TblPerson $tblPerson
      *

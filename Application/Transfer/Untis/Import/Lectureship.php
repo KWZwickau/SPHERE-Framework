@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -40,7 +41,7 @@ class Lectureship extends Import
      * @param null|UploadedFile $File
      * @param null|int          $tblYear
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendUpload(UploadedFile $File = null, $tblYear = null)
     {
@@ -71,7 +72,10 @@ class Lectureship extends Import
             return $Stage;
         }
 
-        if ($File && !$File->getError()) {
+        if ($File && !$File->getError()
+            && ( $File->getClientOriginalExtension() == 'txt'
+                || $File->getClientOriginalExtension() == 'csv' )
+        ) {
 
             // remove existing import
             Import::useService()->destroyUntisImportLectureship();
@@ -115,11 +119,12 @@ class Lectureship extends Import
                                 new Standard('Weiter', '/Transfer/Untis/Import/Lectureship/Show', new ChevronRight())
                             )
                         ))
-                        , new Title('Validierung'))
+                        , new Title('Validierung', new Danger('Rote Einträge werden nicht Importiert!')))
                 )
             );
         } else {
-            // TODO: Upload Error
+            return $Stage->setContent(new WarningMessage('Ungültige Dateiendung!'))
+                .new Redirect('/Transfer/Untis/Import', Redirect::TIMEOUT_ERROR);
         }
 
         return $Stage;

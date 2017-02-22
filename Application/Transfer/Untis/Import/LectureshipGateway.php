@@ -62,6 +62,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
@@ -118,9 +119,7 @@ class LectureshipGateway extends AbstractConverter
 
         $this->setPointer(new FieldPointer('L', 'FileSubjectGroup'));
         $this->setPointer(new FieldPointer('L', 'AppSubjectGroup'));
-        $this->setPointer(new FieldPointer('L', 'SubjectGroupId'));
         $this->setSanitizer(new FieldSanitizer('L', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
-        $this->setSanitizer(new FieldSanitizer('L', 'SubjectGroupId', array($this, 'fetchSubjectGroup')));
 
 
         $this->scanFile(0);
@@ -148,7 +147,9 @@ class LectureshipGateway extends AbstractConverter
         }
         if (!$this->IsError) {
             $tblYear = $this->Year;
-            Import::useService()->createUntisImportLectureShip($Result, $tblYear);
+            if ($tblYear) {
+                Import::useService()->createUntisImportLectureShip($Result, $tblYear);
+            }
         } else {
             $this->IsError = false;
         }
@@ -165,15 +166,24 @@ class LectureshipGateway extends AbstractConverter
     {
         $LevelName = null;
         $DivisionName = null;
+        if ($Value === '') {
+            $this->IsError = true;
+            return new Danger(new Ban().' Keine Klasse angegeben!');
+        }
         $this->MatchDivision($Value, $LevelName, $DivisionName);
         $tblLevel = null;
+        $tblYear = Term::useService()->getYearById($this->Year);
 
         $tblDivisionList = array();
         // search with Level
-        if (( $tblLevelList = Division::useService()->getLevelByName($LevelName) )) {
+        if (( $tblLevelList = Division::useService()->getLevelAllByName($LevelName) ) && $tblYear) {
             foreach ($tblLevelList as $tblLevel) {
-                if (( $tblDivision = Division::useService()->getDivisionByGroupAndLevelAndYear($DivisionName, $tblLevel, $this->Year) )) {
-                    $tblDivisionList[] = $tblDivision;
+                if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
+                    if ($tblDivisionArray) {
+                        foreach ($tblDivisionArray as $tblDivision) {
+                            $tblDivisionList[] = $tblDivision;
+                        }
+                    }
                 }
             }
             if (empty($tblDivisionList)) {
@@ -189,9 +199,13 @@ class LectureshipGateway extends AbstractConverter
             }
         }
         // search without Level
-        if ($tblLevel === null) {
-            if (( $tblDivision = Division::useService()->getDivisionByGroupAndLevelAndYear($DivisionName, $tblLevel, $this->Year) )) {
-                $tblDivisionList[] = $tblDivision;
+        if ($tblLevel === null && $tblYear) {
+            if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
+                if ($tblDivisionArray) {
+                    foreach ($tblDivisionArray as $tblDivision) {
+                        $tblDivisionList[] = $tblDivision;
+                    }
+                }
             }
             if (empty($tblDivisionList)) {
                 $this->IsError = true;
@@ -203,6 +217,10 @@ class LectureshipGateway extends AbstractConverter
                 $this->IsError = true;
                 return new Danger(new Ban().' Zu viele Treffer für die Klasse!');
             }
+        }
+        if (!$tblYear) {
+            $this->IsError = true;
+            return new Danger(new Ban().' Schuljahr nicht gefunden!');
         }
         return null;
     }
@@ -218,13 +236,18 @@ class LectureshipGateway extends AbstractConverter
         $DivisionName = null;
         $this->MatchDivision($Value, $LevelName, $DivisionName);
         $tblLevel = null;
+        $tblYear = Term::useService()->getYearById($this->Year);
 
         $tblDivisionList = array();
         // search with Level
-        if (( $tblLevelList = Division::useService()->getLevelByName($LevelName) )) {
+        if (( $tblLevelList = Division::useService()->getLevelAllByName($LevelName) ) && $tblYear) {
             foreach ($tblLevelList as $tblLevel) {
-                if (( $tblDivision = Division::useService()->getDivisionByGroupAndLevelAndYear($DivisionName, $tblLevel, $this->Year) )) {
-                    $tblDivisionList[] = $tblDivision;
+                if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
+                    if ($tblDivisionArray) {
+                        foreach ($tblDivisionArray as $tblDivision) {
+                            $tblDivisionList[] = $tblDivision;
+                        }
+                    }
                 }
             }
             if (!empty($tblDivisionList) && count($tblDivisionList) == 1) {
@@ -234,9 +257,13 @@ class LectureshipGateway extends AbstractConverter
             }
         }
         // search without Level
-        if ($tblLevel === null) {
-            if (( $tblDivision = Division::useService()->getDivisionByGroupAndLevelAndYear($DivisionName, $tblLevel, $this->Year) )) {
-                $tblDivisionList[] = $tblDivision;
+        if ($tblLevel === null && $tblYear) {
+            if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
+                if ($tblDivisionArray) {
+                    foreach ($tblDivisionArray as $tblDivision) {
+                        $tblDivisionList[] = $tblDivision;
+                    }
+                }
             }
             if (!empty($tblDivisionList) && count($tblDivisionList) == 1) {
                 $tblDivision = $tblDivisionList[0];
@@ -260,10 +287,14 @@ class LectureshipGateway extends AbstractConverter
         } elseif (preg_match('!^([a-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
             $DivisionName = $Match[1];
             $LevelName = $Match[2];
+        } elseif (preg_match('!^([0-9]*?)$!is', $Value, $Match)) {
+            $DivisionName = null;
+            $LevelName = $Match[1];
         } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
             $DivisionName = $Match[1];
             $LevelName = null;
         }
+
     }
 
     /**
@@ -274,43 +305,44 @@ class LectureshipGateway extends AbstractConverter
     protected function sanitizeSubjectGroup($Value)
     {
         if (preg_match('!^(.+?)$!is', $Value, $Match)) {
-            $GroupName = $Match[1];
-            $tblDivision = Division::useService()->getDivisionById($this->Division);
-            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
-            if ($tblDivision && $tblSubject) {
-                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
-                if ($tblSubjectGroup) {
-                    return $tblSubjectGroup->getName().', '.$tblSubjectGroup->getDescription();
-                }
-                return new Warning(new WarningIcon().' Gruppe nicht gefunden');
-            }
-            return new Warning(new WarningIcon().' Klasse/Fach fehlt');
+//            $GroupName = $Match[1];
+//            $tblDivision = Division::useService()->getDivisionById($this->Division);
+//            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
+//            if ($tblDivision && $tblSubject) {
+//                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
+//                if ($tblSubjectGroup) {
+//                    return $tblSubjectGroup->getName().', '.$tblSubjectGroup->getDescription();
+//                }
+//                return new Warning(new WarningIcon().' Gruppe nicht gefunden');
+//            }
+//            return new Warning(new WarningIcon().' Klasse/Fach fehlt');
+            return $Match[1];
         }
         return '';
     }
 
-    /**
-     * @param $Value
-     *
-     * @return int|null
-     */
-    protected function fetchSubjectGroup($Value)
-    {
-        if (preg_match('!^(.+?)$!is', $Value, $Match)) {
-            $GroupName = $Match[1];
-            $tblDivision = Division::useService()->getDivisionById($this->Division);
-            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
-            if ($tblDivision && $tblSubject) {
-                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
-                if ($tblSubjectGroup) {
-                    return $tblSubjectGroup->getId();
-                }
-                return null;
-            }
-            return null;
-        }
-        return null;
-    }
+//    /**
+//     * @param $Value
+//     *
+//     * @return int|null
+//     */
+//    protected function fetchSubjectGroup($Value)
+//    {
+//        if (preg_match('!^(.+?)$!is', $Value, $Match)) {
+//            $GroupName = $Match[1];
+//            $tblDivision = Division::useService()->getDivisionById($this->Division);
+//            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
+//            if ($tblDivision && $tblSubject) {
+//                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
+//                if ($tblSubjectGroup) {
+//                    return $tblSubjectGroup->getId();
+//                }
+//                return null;
+//            }
+//            return null;
+//        }
+//        return null;
+//    }
 
     /**
      * @param $Value
@@ -337,8 +369,9 @@ class LectureshipGateway extends AbstractConverter
      */
     protected function fetchTeacher($Value)
     {
-        $tblPerson = Teacher::useService()->getTeacherByAcronym($Value);
-        return ( $tblPerson ? $tblPerson->getId() : null );
+        $tblTeacher = Teacher::useService()->getTeacherByAcronym($Value);
+
+        return ( $tblTeacher ? $tblTeacher->getId() : null );
     }
 
     /**

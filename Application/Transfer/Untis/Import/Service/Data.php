@@ -3,10 +3,9 @@
 namespace SPHERE\Application\Transfer\Untis\Import\Service;
 
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Transfer\Untis\Import\Service\Entity\TblUntisImportLectureship;
@@ -58,17 +57,31 @@ class Data extends AbstractData
             ));
     }
 
+    /**
+     * @param TblYear     $tblYear
+     * @param string      $SchoolClass
+     * @param string      $TeacherAcronym
+     * @param string      $SubjectName
+     * @param string      $SubjectGroupName
+     * @param TblDivision $tblDivision
+     * @param TblTeacher  $tblTeacher
+     * @param TblSubject  $tblSubject
+     * @param string      $SubjectGroup
+     * @param TblAccount  $tblAccount
+     *
+     * @return TblUntisImportLectureship
+     */
     public function createUntisImportLectureship(
         TblYear $tblYear,
         $SchoolClass,
         $TeacherAcronym,
         $SubjectName,
-        $GroupName,
-        $tblDivision,
-        $tblPerson,
-        $tblSubject,
-        $tblGroup,
-        $tblAccount
+        $SubjectGroupName,
+        TblDivision $tblDivision,
+        TblTeacher $tblTeacher,
+        TblSubject $tblSubject,
+        $SubjectGroup,
+        TblAccount $tblAccount
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -78,11 +91,11 @@ class Data extends AbstractData
         $Entity->setSchoolClass($SchoolClass);
         $Entity->setTeacherAcronym($TeacherAcronym);
         $Entity->setSubjectName($SubjectName);
-        $Entity->setGroupName($GroupName);
+        $Entity->setSubjectGroupName($SubjectGroupName);
         $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblPerson($tblPerson);
+        $Entity->setServiceTblTeacher($tblTeacher);
         $Entity->setServiceTblSubject($tblSubject);
-        $Entity->setServiceTblSubjectGroup($tblGroup);
+        $Entity->setSubjectGroup($SubjectGroup);
         $Entity->setServiceTblAccount($tblAccount);
         $Entity->setIsIgnore(false);
 
@@ -95,18 +108,20 @@ class Data extends AbstractData
     /**
      * @param TblUntisImportLectureship|null $tblUntisImportLectureship
      * @param TblDivision|null               $tblDivision
-     * @param TblPerson|null                 $tblPerson
+     * @param TblTeacher|null                $tblTeacher
      * @param TblSubject|null                $tblSubject
-     * @param TblSubjectGroup                $tblSubjectGroup
+     * @param string                         $SubjectGroup
+     * @param bool                           $IsIgnore
      *
      * @return bool
      */
     public function updateUntisImportLectureship(
         TblUntisImportLectureship $tblUntisImportLectureship = null,
         TblDivision $tblDivision = null,
-        TblPerson $tblPerson = null,
+        TblTeacher $tblTeacher = null,
         TblSubject $tblSubject = null,
-        TblSubjectGroup $tblSubjectGroup = null
+        $SubjectGroup = '',
+        $IsIgnore = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -116,9 +131,10 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setSubjectName($tblSubject);
-            $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+            $Entity->setServiceTblTeacher($tblTeacher);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setSubjectGroup($SubjectGroup);
+            $Entity->setIsIgnore($IsIgnore);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -134,7 +150,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function updateUntisImportLectureshipIsIgnore(TblUntisImportLectureship $tblUntisImportLectureship, $IsIgnore)
+    public function updateUntisImportLectureshipIsIgnore(TblUntisImportLectureship $tblUntisImportLectureship, $IsIgnore = true)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -172,6 +188,28 @@ class Data extends AbstractData
             }
             $Manager->flushCache();
             Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblUntisImportLectureship $tblUntisImportLectureship
+     *
+     * @return bool
+     */
+    public function destroyUntisImportLectureship(TblUntisImportLectureship $tblUntisImportLectureship)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblUntisImportLectureship $Entity */
+        $Entity = $Manager->getEntity('TblUntisImportLectureship')
+            ->find($tblUntisImportLectureship->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity, true);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;

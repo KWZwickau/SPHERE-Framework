@@ -58,8 +58,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'TeacherAcronym')) {
             $Table->addColumn('TeacherAcronym', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'serviceTblTeacher')) {
+            $Table->addColumn('serviceTblTeacher', 'bigint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'SubjectName')) {
             $Table->addColumn('SubjectName', 'string');
@@ -67,11 +67,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'GroupName')) {
-            $Table->addColumn('GroupName', 'string');
+        if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'SubjectGroupName')) {
+            $Table->addColumn('SubjectGroupName', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'serviceTblSubjectGroup')) {
-            $Table->addColumn('serviceTblSubjectGroup', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'SubjectGroup')) {
+            $Table->addColumn('SubjectGroup', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'serviceTblAccount')) {
             $Table->addColumn('serviceTblAccount', 'bigint', array('notnull' => false));

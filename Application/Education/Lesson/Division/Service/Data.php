@@ -202,6 +202,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|TblSubjectGroup[]
+     */
+    public function getSubjectGroupAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectGroup');
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblSubjectGroup
@@ -480,31 +489,58 @@ class Data extends AbstractData
     }
 
     /**
-     * @param               $Name
-     * @param TblLevel|null $tblLevel
-     * @param TblYear $tblYear
+     * @param string   $Name
+     * @param TblLevel $tblLevel
+     * @param TblYear  $tblYear
      *
-     * @return bool|false|Element
+     * @return false|TblDivision
      */
-    public function getDivisionByGroupAndLevelAndYear($Name, TblLevel $tblLevel = null, TblYear $tblYear)
+    public function getDivisionByDivisionNameAndLevelAndYear($Name, TblLevel $tblLevel, TblYear $tblYear)
     {
 
-        if ($tblLevel === null) {
-            $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
-                array(
-                    TblDivision::ATTR_NAME => $Name,
-                    TblDivision::ATTR_YEAR => $tblYear->getId(),
-                ));
-        } else {
-            $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
-                array(
-                    TblDivision::ATTR_NAME => $Name,
-                    TblDivision::ATTR_LEVEL => $tblLevel->getId(),
-                    TblDivision::ATTR_YEAR => $tblYear->getId(),
-                ));
-        }
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_NAME  => $Name,
+                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+                TblDivision::ATTR_YEAR  => $tblYear->getId(),
+            ));
 
-        return ($Entity ? $Entity : false);
+        return $Entity;
+    }
+
+    /**
+     * @param string  $Name
+     * @param TblYear $tblYear
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionByDivisionNameAndYear($Name, TblYear $tblYear)
+    {
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_NAME => $Name,
+                TblDivision::ATTR_YEAR => $tblYear->getId(),
+            ));
+
+        return $EntityList;
+    }
+
+    /**
+     * @param TblLevel $tblLevel
+     * @param TblYear  $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionByLevelAndYear(TblLevel $tblLevel, TblYear $tblYear)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+                TblDivision::ATTR_YEAR  => $tblYear->getId(),
+            ));
+
+        return $EntityList;
     }
 
     /**
@@ -1993,7 +2029,7 @@ class Data extends AbstractData
      *
      * @return false|TblLevel[]
      */
-    public function getLevelByName($Name)
+    public function getLevelAllByName($Name)
     {
 
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',

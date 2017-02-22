@@ -7,13 +7,12 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\System\Database\Fitting\Element;
@@ -31,12 +30,12 @@ class TblUntisImportLectureship extends Element
     const ATTR_SCHOOL_CLASS = 'SchoolClass';
     const ATTR_TEACHER_ACRONYM = 'TeacherAcronym';
     const ATTR_SUBJECT_NAME = 'SubjectName';
-    const ATTR_GROUP_NAME = 'GroupName';
+    const ATTR_SUBJECT_GROUP_NAME = 'SubjectGroupName';
 
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_TEACHER = 'serviceTblTeacher';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-    const ATTR_SERVICE_TBL_SUBJECT_GROUP = 'serviceTblSubjectGroup';
+    const ATTR_SUBJECT_GROUP = 'SubjectGroup';
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
 
     const ATTR_IS_IGNORE = 'IsIgnore';
@@ -60,16 +59,8 @@ class TblUntisImportLectureship extends Element
     /**
      * @Column(type="string")
      */
-    protected $GroupName;
+    protected $SubjectGroupName;
 
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblPerson;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblSubject;
     /**
      * @Column(type="bigint")
      */
@@ -77,7 +68,15 @@ class TblUntisImportLectureship extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblSubjectGroup;
+    protected $serviceTblTeacher;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblSubject;
+    /**
+     * @Column(type="string")
+     */
+    protected $SubjectGroup;
     /**
      * @Column(type="bigint")
      */
@@ -162,19 +161,19 @@ class TblUntisImportLectureship extends Element
     /**
      * @return string
      */
-    public function getGroupName()
+    public function getSubjectGroupName()
     {
 
-        return $this->GroupName;
+        return $this->SubjectGroupName;
     }
 
     /**
-     * @param string $GroupName
+     * @param string $SubjectGroupName
      */
-    public function setGroupName($GroupName)
+    public function setSubjectGroupName($SubjectGroupName)
     {
 
-        $this->GroupName = $GroupName;
+        $this->SubjectGroupName = $SubjectGroupName;
     }
 
     /**
@@ -200,25 +199,25 @@ class TblUntisImportLectureship extends Element
     }
 
     /**
-     * @return bool|TblPerson
+     * @return bool|TblTeacher
      */
-    public function getServiceTblPerson()
+    public function getServiceTblTeacher()
     {
 
-        if (null === $this->serviceTblPerson) {
+        if (null === $this->serviceTblTeacher) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
+            return Teacher::useService()->getTeacherById($this->serviceTblTeacher);
         }
     }
 
     /**
-     * @param TblPerson|null $tblPerson
+     * @param TblTeacher|null $tblTeacher
      */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
+    public function setServiceTblTeacher(TblTeacher $tblTeacher = null)
     {
 
-        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblTeacher = ( null === $tblTeacher ? null : $tblTeacher->getId() );
     }
 
     /**
@@ -244,25 +243,21 @@ class TblUntisImportLectureship extends Element
     }
 
     /**
-     * @return bool|TblSubjectGroup
+     * @return string
      */
-    public function getServiceTblSubjectGroup()
+    public function getSubjectGroup()
     {
 
-        if (null === $this->serviceTblSubjectGroup) {
-            return false;
-        } else {
-            return Division::useService()->getSubjectGroupById($this->serviceTblSubjectGroup);
-        }
+        return $this->SubjectGroup;
     }
 
     /**
-     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param string $SubjectGroup
      */
-    public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
+    public function setSubjectGroup($SubjectGroup = '')
     {
 
-        $this->serviceTblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
+        $this->SubjectGroup = $SubjectGroup;
     }
 
     /**
