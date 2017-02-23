@@ -154,6 +154,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblScoreRule', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblScoreRule', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
+        }
 
         return $Table;
     }
@@ -175,6 +178,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblScoreCondition', 'Priority')) {
             $Table->addColumn('Priority', 'integer');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreCondition', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
 
         return $Table;

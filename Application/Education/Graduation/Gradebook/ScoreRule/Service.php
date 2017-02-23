@@ -73,6 +73,17 @@ abstract class Service extends ServiceMinimumGrade
     }
 
     /**
+     * @param bool $IsActive
+     *
+     * @return bool|TblScoreCondition[]
+     */
+    public function getScoreConditionListByActive($IsActive = true)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionListByActive($IsActive);
+    }
+
+    /**
      * @return bool|TblScoreRule[]
      */
     public function getScoreRuleAll()
@@ -481,7 +492,8 @@ abstract class Service extends ServiceMinimumGrade
                 $tblScoreCondition,
                 $ScoreCondition['Name'],
                 isset($ScoreCondition['Round']) ? $ScoreCondition['Round'] : '',
-                $ScoreCondition['Priority']
+                $ScoreCondition['Priority'],
+                $tblScoreCondition->isActive()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_SUCCESS);
@@ -606,7 +618,8 @@ abstract class Service extends ServiceMinimumGrade
             (new Data($this->getBinding()))->updateScoreRule(
                 $tblScoreRule,
                 $ScoreRule['Name'],
-                $ScoreRule['Description']
+                $ScoreRule['Description'],
+                $tblScoreRule->isActive()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
@@ -893,5 +906,75 @@ abstract class Service extends ServiceMinimumGrade
     {
 
         return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectAllByScoreType($tblScoreType);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool
+     */
+    public function isScoreRuleUsed(TblScoreRule $tblScoreRule)
+    {
+
+        return (new Data($this->getBinding()))->isScoreRuleUsed($tblScoreRule);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool
+     */
+    public function destroyScoreRule(TblScoreRule $tblScoreRule)
+    {
+
+        return (new Data($this->getBinding()))->destroyScoreRule($tblScoreRule);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param bool $IsActive
+     *
+     * @return string
+     */
+    public function setScoreRuleActive(TblScoreRule $tblScoreRule, $IsActive = true)
+    {
+
+        return (new Data($this->getBinding()))->updateScoreRule($tblScoreRule, $tblScoreRule->getName(),
+            $tblScoreRule->getDescription(), $IsActive);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool
+     */
+    public function isScoreConditionUsed(TblScoreCondition $tblScoreCondition)
+    {
+
+        return (new Data($this->getBinding()))->isScoreConditionUsed($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool
+     */
+    public function destroyScoreCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        return (new Data($this->getBinding()))->destroyScoreCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param bool $IsActive
+     *
+     * @return string
+     */
+    public function setScoreConditionActive(TblScoreCondition $tblScoreCondition, $IsActive = true)
+    {
+
+        return (new Data($this->getBinding()))->updateScoreCondition($tblScoreCondition, $tblScoreCondition->getName(),
+            $tblScoreCondition->getRound(), $tblScoreCondition->getPriority(), $IsActive);
     }
 }
