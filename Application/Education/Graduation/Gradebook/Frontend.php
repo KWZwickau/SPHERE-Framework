@@ -94,19 +94,10 @@ class Frontend extends FrontendScoreRule
             Kategorien: Kopfnote (z.B. Betragen, Mitarbeit, Fleiß usw.) und Leistungsüberprüfung
             (z.B. Klassenarbeit, Leistungskontrolle usw.) unterschieden.');
 
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        if (!$tblTestType || !($tblGradeTypeAllTest = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType))) {
-            $tblGradeTypeAllTest = array();
-        }
-
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-        if (!$tblTestType || !($tblGradeTypeAllBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType))) {
-            $tblGradeTypeAllBehavior = array();
-        }
-        $tblGradeTypeAll = array_merge($tblGradeTypeAllTest, $tblGradeTypeAllBehavior);
+        $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAll();
 
         $TableContent = array();
-        if (!empty($tblGradeTypeAll)) {
+        if ($tblGradeTypeAll) {
             array_walk($tblGradeTypeAll, function (TblGradeType $tblGradeType) use (&$TableContent) {
 
                 if ($tblGradeType->isHighlighted()) {

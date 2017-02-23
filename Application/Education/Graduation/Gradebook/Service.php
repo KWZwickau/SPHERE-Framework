@@ -227,35 +227,26 @@ class Service extends ServiceScoreRule
     }
 
     /**
+     * @param TblTestType $tblTestType
+     * @param bool $IsActive
+     *
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAllWhereTestOrBehavior()
+    public function getGradeTypeAllByTestType(TblTestType $tblTestType, $IsActive = true)
     {
 
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        if (!$tblTestType || !($tblGradeTypeAllTest = $this->getGradeTypeAllByTestType($tblTestType))) {
-            $tblGradeTypeAllTest = array();
-        }
-
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-        if (!$tblTestType || !($tblGradeTypeAllBehavior = $this->getGradeTypeAllByTestType($tblTestType))) {
-            $tblGradeTypeAllBehavior = array();
-        }
-
-        $tblGradeTypeAll = array_merge($tblGradeTypeAllTest, $tblGradeTypeAllBehavior);
-
-        return (empty($tblGradeTypeAll) ? false : $tblGradeTypeAll);
+        return (new Data($this->getBinding()))->getGradeTypeAllByTestType($tblTestType, $IsActive);
     }
 
     /**
-     * @param TblTestType $tblTestType
-     * @return bool|TblGradeType[]
+     * @return false|TblGradeType[]
      */
-    public function getGradeTypeAllByTestType(TblTestType $tblTestType)
+    public function getGradeTypeAll()
     {
 
-        return (new Data($this->getBinding()))->getGradeTypeAllByTestType($tblTestType);
+        return (new Data($this->getBinding()))->getGradeTypeAll();
     }
+
 
     /**
      * @param $Id

@@ -258,15 +258,31 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
     /**
      * @param TblTestType $tblTestType
+     * @param bool $IsActive
+     *
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAllByTestType(TblTestType $tblTestType)
+    public function getGradeTypeAllByTestType(TblTestType $tblTestType, $IsActive = true)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
             array(
-                TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
+                TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+                TblGradeType::ATTR_IS_ACTIVE => $IsActive
             ),
+            array(
+                TblGradeType::ATTR_NAME => self::ORDER_ASC
+            )
+        );
+    }
+
+    /**
+     * @return false|TblGradeType[]
+     */
+    public function getGradeTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
             array(
                 TblGradeType::ATTR_NAME => self::ORDER_ASC
             )

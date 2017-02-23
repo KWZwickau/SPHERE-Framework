@@ -86,9 +86,11 @@ class TblScoreRule extends Element
     }
 
     /**
+     * @param bool $IsActive
+     *
      * @return false|TblGradeType[]
      */
-    public function getGradeTypesAll()
+    public function getGradeTypesAll($IsActive = true)
     {
 
         $resultList = array();
@@ -101,7 +103,7 @@ class TblScoreRule extends Element
                         $tblScoreGroupGradeTypeListByGroup = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($group->getTblScoreGroup());
                         if ($tblScoreGroupGradeTypeListByGroup){
                             foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeType){
-                                if ($tblScoreGroupGradeType->getTblGradeType()) {
+                                if ($tblScoreGroupGradeType->getTblGradeType() && $tblScoreGroupGradeType->getTblGradeType()->isActive() == $IsActive) {
                                     $resultList[$tblScoreGroupGradeType->getTblGradeType()->getId()] = $tblScoreGroupGradeType->getTblGradeType();
                                 }
                             }
