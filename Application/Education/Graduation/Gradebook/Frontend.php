@@ -40,9 +40,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
@@ -120,13 +122,23 @@ class Frontend extends FrontendScoreRule
                         'Category' => $tblGradeType->getServiceTblTestType() ? $tblGradeType->getServiceTblTestType()->getName() : '',
                     );
                 }
+                $Item['Status'] = $tblGradeType->isActive()
+                    ? new \SPHERE\Common\Frontend\Text\Repository\Success(new PlusSign() . ' aktiv')
+                    : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv');
                 $Item['Description'] = $tblGradeType->getDescription();
-                $Item['Option'] = (new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
-                    'Id' => $tblGradeType->getId()
-                ), 'Zensuren-Typ bearbeiten'));
-                // löschen erstmal deaktiviert, kann zu Problemen führen
-//                    . (new Standard('', '/Education/Graduation/Gradebook/GradeType/Destroy', new Remove(),
-//                        array('Id' => $tblGradeType->getId()), 'Löschen'));
+                $Item['Option'] =
+                    (new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
+                        'Id' => $tblGradeType->getId()
+                    ), 'Zensuren-Typ bearbeiten'))
+                    . ($tblGradeType->isActive()
+                        ? (new Standard('', '/Education/Graduation/Gradebook/GradeType/Activate', new MinusSign(),
+                            array('Id' => $tblGradeType->getId()), 'Deaktivieren'))
+                        : (new Standard('', '/Education/Graduation/Gradebook/GradeType/Activate', new PlusSign(),
+                            array('Id' => $tblGradeType->getId()), 'Aktivieren')))
+                    . ($tblGradeType->isUsed()
+                        ? ''
+                        : (new Standard('', '/Education/Graduation/Gradebook/GradeType/Destroy', new Remove(),
+                            array('Id' => $tblGradeType->getId()), 'Löschen')));
 
                 array_push($TableContent, $Item);
             });
@@ -142,11 +154,18 @@ class Frontend extends FrontendScoreRule
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($TableContent, null, array(
+                                'Status' => 'Status',
                                 'Category' => 'Kategorie',
                                 'DisplayName' => 'Name',
                                 'DisplayCode' => 'Abk&uuml;rzung',
                                 'Description' => 'Beschreibung',
                                 'Option' => ''
+                            ), array(
+                                'order' => array(
+                                    array('0', 'asc'),
+                                    array('1', 'asc'),
+                                    array('2', 'asc'),
+                                )
                             ))
                         ))
                     ))
@@ -2477,5 +2496,42 @@ class Frontend extends FrontendScoreRule
         }
 
         return false;
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return string
+     */
+    public function frontendActivateGradeType(
+        $Id = null
+    ) {
+
+        $Route = '/Education/Graduation/Gradebook/GradeType';
+
+        $Stage = new Stage('Zensuren-Typ', 'Aktivieren/Deaktivieren');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', $Route, new ChevronLeft())
+        );
+
+        if (($tblGradeType = Gradebook::useService()->getGradeTypeById($Id))) {
+            $IsActive = !$tblGradeType->isActive();
+            if ((Gradebook::useService()->setGradeTypeActive($tblGradeType, $IsActive))) {
+
+                return $Stage . new Success('Die Zensuren-Typ wurde '
+                        . ($IsActive ? 'aktiviert.' : 'deaktiviert.')
+                        , new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                    . new Redirect($Route, Redirect::TIMEOUT_SUCCESS);
+            } else {
+
+                return $Stage . new Danger('Die Zensuren-Typ konnte nicht '
+                        . ($IsActive ? 'aktiviert' : 'deaktiviert') . ' werden.'
+                        , new Ban())
+                    . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+            }
+        } else {
+            return $Stage . new Danger('Zensuren-Typ nicht gefunden.', new Ban())
+                . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+        }
     }
 }

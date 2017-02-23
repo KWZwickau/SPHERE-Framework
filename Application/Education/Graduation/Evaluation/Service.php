@@ -1024,4 +1024,15 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getTestListBy($tblDivision, $tblSubject, $tblTask);
     }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
+    }
 }

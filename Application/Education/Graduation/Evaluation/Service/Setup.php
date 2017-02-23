@@ -139,6 +139,8 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
         $this->getConnection()->addForeignKey($Table, $tblTask, true);
 
+        $this->createIndex($Table, array('serviceTblGradeType'), false);
+
         return $Table;
     }
 

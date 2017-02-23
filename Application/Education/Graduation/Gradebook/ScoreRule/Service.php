@@ -64,6 +64,17 @@ abstract class Service extends ServiceMinimumGrade
     }
 
     /**
+     * @param bool $IsActive
+     *
+     * @return bool|TblScoreGroup[]
+     */
+    public function getScoreGroupListByActive($IsActive = true)
+    {
+
+        return (new Data($this->getBinding()))->getScoreGroupListByActive($IsActive);
+    }
+
+    /**
      * @return bool|TblScoreCondition[]
      */
     public function getScoreConditionAll()
@@ -543,7 +554,8 @@ abstract class Service extends ServiceMinimumGrade
                 $ScoreGroup['Name'],
                 isset($ScoreGroup['Round']) ? $ScoreGroup['Round'] : '',
                 $ScoreGroup['Multiplier'],
-                isset($ScoreGroup['IsEveryGradeASingleGroup'])
+                isset($ScoreGroup['IsEveryGradeASingleGroup']),
+                $tblScoreGroup->isActive()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_SUCCESS);
@@ -976,5 +988,40 @@ abstract class Service extends ServiceMinimumGrade
 
         return (new Data($this->getBinding()))->updateScoreCondition($tblScoreCondition, $tblScoreCondition->getName(),
             $tblScoreCondition->getRound(), $tblScoreCondition->getPriority(), $IsActive);
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     *
+     * @return bool
+     */
+    public function isScoreGroupUsed(TblScoreGroup $tblScoreGroup)
+    {
+
+        return (new Data($this->getBinding()))->isScoreGroupUsed($tblScoreGroup);
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     *
+     * @return bool
+     */
+    public function destroyScoreGroup(TblScoreGroup $tblScoreGroup)
+    {
+
+        return (new Data($this->getBinding()))->destroyScoreGroup($tblScoreGroup);
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @param bool $IsActive
+     *
+     * @return string
+     */
+    public function setScoreGroupActive(TblScoreGroup $tblScoreGroup, $IsActive = true)
+    {
+
+        return (new Data($this->getBinding()))->updateScoreGroup($tblScoreGroup, $tblScoreGroup->getName(),
+            $tblScoreGroup->getRound(), $tblScoreGroup->getMultiplier(), $tblScoreGroup->isEveryGradeASingleGroup(), $IsActive);
     }
 }

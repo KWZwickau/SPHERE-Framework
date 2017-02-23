@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
@@ -152,7 +154,8 @@ class Service extends ServiceScoreRule
                 $GradeType['Code'],
                 $GradeType['Description'],
                 isset($GradeType['IsHighlighted']) ? true : false,
-                Evaluation::useService()->getTestTypeById($GradeType['Type'])
+                Evaluation::useService()->getTestTypeById($GradeType['Type']),
+                $tblGradeType->isActive()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_SUCCESS);
@@ -1253,5 +1256,46 @@ class Service extends ServiceScoreRule
     {
 
         return (new Data($this->getBinding()))->getGradeTextByName($Name);
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    {
+
+        if((new Data($this->getBinding()))->isGradeTypeUsedInGradebook($tblGradeType)) {
+            return true;
+        }
+
+        if (Generator::useService()->isGradeTypeUsed($tblGradeType)) {
+            return true;
+        }
+
+        if (Prepare::useService()->isGradeTypeUsed($tblGradeType)) {
+            return true;
+        }
+
+        if (Evaluation::useService()->isGradeTypeUsed($tblGradeType)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param bool $IsActive
+     *
+     * @return string
+     */
+    public function setGradeTypeActive(TblGradeType $tblGradeType, $IsActive = true)
+    {
+
+        return (new Data($this->getBinding()))->updateGradeType($tblGradeType, $tblGradeType->getName(),
+            $tblGradeType->getCode(), $tblGradeType->getDescription(), $tblGradeType->isHighlighted(),
+            $tblGradeType->getServiceTblTestType() ? $tblGradeType->getServiceTblTestType() : null, $IsActive);
     }
 }

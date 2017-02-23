@@ -2565,4 +2565,22 @@ class Data extends AbstractData
             )
         );
     }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    {
+
+        return $this->getCachedEntityBy(
+            __METHOD__,
+            $this->getConnection()->getEntityManager(),
+            'TblCertificateGrade',
+            array(
+                TblCertificateGrade::SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()
+            )
+        ) ? true : false;
+    }
 }

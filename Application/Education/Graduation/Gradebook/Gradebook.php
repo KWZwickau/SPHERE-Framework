@@ -66,6 +66,10 @@ class Gradebook implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Destroy',
                 __NAMESPACE__.'\Frontend::frontendDestroyGradeType')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Activate',
+                __NAMESPACE__.'\Frontend::frontendActivateGradeType')
+        );
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook',
@@ -172,6 +176,14 @@ class Gradebook implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Edit',
                 __NAMESPACE__.'\Frontend::frontendEditScoreGroup')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyScoreGroup')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Activate',
+                __NAMESPACE__.'\Frontend::frontendActivateScoreGroup')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Group\Select',
