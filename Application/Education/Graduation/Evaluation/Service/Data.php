@@ -312,6 +312,7 @@ class Data extends AbstractData
      * @param null $CorrectionDate
      * @param null $ReturnDate
      * @param bool $IsContinues
+     * @param null $FinishDate
      *
      * @return TblTest
      */
@@ -327,7 +328,8 @@ class Data extends AbstractData
         $Date = null,
         $CorrectionDate = null,
         $ReturnDate = null,
-        $IsContinues = false
+        $IsContinues = false,
+        $FinishDate = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -371,6 +373,7 @@ class Data extends AbstractData
             $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
             $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
             $Entity->setIsContinues($IsContinues);
+            $Entity->setFinishDate($FinishDate ? new \DateTime($FinishDate) : null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -385,6 +388,7 @@ class Data extends AbstractData
      * @param null $Date
      * @param null $CorrectionDate
      * @param null $ReturnDate
+     * @param null $FinishDate
      *
      * @return bool
      */
@@ -393,7 +397,8 @@ class Data extends AbstractData
         $Description = '',
         $Date = null,
         $CorrectionDate = null,
-        $ReturnDate = null
+        $ReturnDate = null,
+        $FinishDate = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -406,6 +411,7 @@ class Data extends AbstractData
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
             $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
+            $Entity->setFinishDate($FinishDate ? new \DateTime($FinishDate) : null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

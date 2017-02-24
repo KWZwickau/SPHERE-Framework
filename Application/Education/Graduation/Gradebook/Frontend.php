@@ -912,6 +912,10 @@ class Frontend extends FrontendScoreRule
                                         if (strlen($tblGrade->getDate()) > 6) {
                                             $displayGradeDate = substr($tblGrade->getDate(), 0, 6);
                                         }
+                                    } elseif ($tblTest->isContinues() && $tblTest->getFinishDate()) {
+                                        if (strlen($tblTest->getFinishDate()) > 6) {
+                                            $displayGradeDate = substr($tblTest->getFinishDate(), 0, 6);
+                                        }
                                     }
 
                                     $data[$column] =

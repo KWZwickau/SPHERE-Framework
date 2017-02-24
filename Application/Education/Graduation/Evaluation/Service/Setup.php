@@ -135,6 +135,7 @@ class Setup extends AbstractSetup
         if (!$Table->hasColumn('IsContinues')){
             $Table->addColumn('IsContinues', 'boolean');
         }
+        $this->createColumn($Table, 'FinishDate', self::FIELD_TYPE_DATETIME, true);
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
         $this->getConnection()->addForeignKey($Table, $tblTask, true);

@@ -207,7 +207,8 @@ class Service extends AbstractService
             isset($Test['IsContinues']) ? null : $Test['Date'],
             isset($Test['IsContinues']) ? null : $Test['CorrectionDate'],
             isset($Test['IsContinues']) ? null : $Test['ReturnDate'],
-            isset($Test['IsContinues'])
+            isset($Test['IsContinues']),
+            isset($Test['FinishDate']) ? $Test['FinishDate'] : null
         );
         if (isset($Test['Link']) && $tblTest) {
             $LinkId = $this->getNextLinkId();
@@ -226,7 +227,8 @@ class Service extends AbstractService
                         isset($Test['IsContinues']) ? null : $Test['Date'],
                         isset($Test['IsContinues']) ? null : $Test['CorrectionDate'],
                         isset($Test['IsContinues']) ? null : $Test['ReturnDate'],
-                        isset($Test['IsContinues'])
+                        isset($Test['IsContinues']),
+                        isset($Test['FinishDate']) ? $Test['FinishDate'] : null
                     );
 
                     $this->createTestLink($tblTestAdd, $LinkId);
@@ -270,23 +272,29 @@ class Service extends AbstractService
             return $Stage;
         }
 
+        $tblTest = $this->getTestById($Id);
+
         $Error = false;
         if (isset($Test['Date']) && empty($Test['Date'])) {
             $Stage->setError('Test[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+        if ($tblTest && $tblTest->getFinishDate() && isset($Test['FinishDate']) && empty($Test['FinishDate'])) {
+            $Stage->setError('Test[FinishDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
         if ($Error) {
             return $Stage;
         }
 
-        $tblTest = $this->getTestById($Id);
         if ($tblTest) {
             (new Data($this->getBinding()))->updateTest(
                 $tblTest,
                 $Test['Description'],
                 isset($Test['Date']) ?  $Test['Date'] : null,
                 isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
-                isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null
+                isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null,
+                isset($Test['FinishDate']) ? $Test['FinishDate'] : null
             );
             if (($tblTestLinkList = $tblTest->getLinkedTestAll())){
                 foreach ($tblTestLinkList as $tblTestItem){
@@ -295,7 +303,8 @@ class Service extends AbstractService
                         $Test['Description'],
                         isset($Test['Date']) ?  $Test['Date'] : null,
                         isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
-                        isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null
+                        isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null,
+                        isset($Test['FinishDate']) ? $Test['FinishDate'] : null
                     );
                 }
             }

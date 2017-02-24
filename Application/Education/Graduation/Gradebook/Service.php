@@ -387,7 +387,8 @@ class Service extends ServiceScoreRule
                         $errorNoGrade[] = new Container(new Bold($tblPerson->getLastFirstName()));
                     }
                 }
-                if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue && empty($value['Date'])) {
+                if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue
+                    && empty($value['Date']) && !$tblTest->getFinishDate()) {
                     $errorNoDate[] = new Container(new Bold($tblPerson->getLastFirstName()));
                 }
             }
@@ -610,6 +611,13 @@ class Service extends ServiceScoreRule
                     // Zensuren-Datum
                     if ($item->getServiceTblTest()->isContinues() && $item->getDate()) {
                         $gradeDate = new \DateTime($item->getDate());
+                        // Noten nur vom vor dem Stichtag
+                        if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
+                            $tempGradeList[] = $item;
+                        }
+                    } // Enddatum des Tests, falls vorhanden
+                    elseif ($item->getServiceTblTest()->isContinues() && $item->getServiceTblTest()->getFinishDate()) {
+                        $gradeDate = new \DateTime($item->getServiceTblTest()->getFinishDate());
                         // Noten nur vom vor dem Stichtag
                         if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
                             $tempGradeList[] = $item;

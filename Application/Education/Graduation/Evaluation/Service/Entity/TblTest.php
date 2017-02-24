@@ -53,6 +53,11 @@ class TblTest extends Element
     protected $ReturnDate;
 
     /**
+     * @Column(type="datetime")
+     */
+    protected $FinishDate;
+
+    /**
      * @Column(type="string")
      */
     protected $Description;
@@ -386,5 +391,32 @@ class TblTest extends Element
         } else {
             return '';
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getFinishDate()
+    {
+
+        if (null === $this->FinishDate) {
+            return false;
+        }
+        /** @var \DateTime $FinishDate */
+        $FinishDate = $this->FinishDate;
+        if ($FinishDate instanceof \DateTime) {
+            return $FinishDate->format('d.m.Y');
+        } else {
+            return (string)$FinishDate;
+        }
+    }
+
+    /**
+     * @param null|\DateTime $FinishDate
+     */
+    public function setFinishDate(\DateTime $FinishDate = null)
+    {
+
+        $this->FinishDate = $FinishDate;
     }
 }

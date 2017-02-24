@@ -1174,20 +1174,24 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(
                     new CheckBox('Test[IsContinues]', new Bold('fortlaufendes Datum (z.B. für Mündliche Noten)'), 1,
                         array(
+                            'Test[FinishDate]',
                             'Test[Date]',
                             'Test[CorrectionDate]',
                             'Test[ReturnDate]'
                         ))
                 ),
                 new FormColumn(
-                    new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
+                    (new DatePicker('Test[FinishDate]', '', 'Enddatum (optional für Notendatum)', new Calendar()))->setDisabled(), 3
                 ),
                 new FormColumn(
-                    new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
+                    new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 3
+                ),
+                new FormColumn(
+                    new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 3
                 ),
                 new FormColumn(
                     new DatePicker('Test[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)',
-                        new Calendar()), 4
+                        new Calendar()), 3
                 ),
             )),
             $panel
@@ -1276,6 +1280,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Test']['Date'] = $tblTest->getDate();
                 $Global->POST['Test']['CorrectionDate'] = $tblTest->getCorrectionDate();
                 $Global->POST['Test']['ReturnDate'] = $tblTest->getReturnDate();
+                $Global->POST['Test']['FinishDate'] = $tblTest->getFinishDate();
                 $Global->savePost();
             }
 
@@ -1306,7 +1311,11 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                 )),
                 $tblTest->isContinues()
-                    ? null
+                    ? new FormRow(array(
+                        new FormColumn(
+                            new DatePicker('Test[FinishDate]', '', 'Enddatum (optional für Notendatum)', new Calendar()), 4
+                        )
+                    ))
                     : new FormRow(array(
                     new FormColumn(
                         new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
@@ -1890,11 +1899,17 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestTemp,
                                             $tblPerson);
                                         if ($tblGrade) {
-                                            if (!$tblTestTemp->isContinues()
-                                                || ($tblTestTemp->isContinues() && $tblGrade->getDate() && $tblTask->getDate()
+                                            if (!$tblTestTemp->isContinues()    // Testdatum
+                                                || ($tblTestTemp->isContinues()   // Notendatum
+                                                    && $tblGrade->getDate() && $tblTask->getDate()
                                                     && ($taskDate = new \DateTime($tblTask->getDate()))
                                                     && ($gradeDate = new \DateTime($tblGrade->getDate()))
                                                     && ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')))
+                                                || ($tblTestTemp->isContinues() && !$tblGrade->getDate() // Test-Enddatum
+                                                    && $tblTestTemp->getFinishDate() && $tblTask->getDate()
+                                                    && ($taskDate = new \DateTime($tblTask->getDate()))
+                                                    && ($finishDate = new \DateTime($tblTest->getFinishDate()))
+                                                    && ($taskDate->format('Y-m-d') >= $finishDate->format('Y-m-d')))
                                             ) {
                                                 $data[$column] = $tblTestTemp->getServiceTblGradeType()
                                                     ? ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
@@ -2030,7 +2045,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         } else {
             $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
-            $gradeType = $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '';
+            $gradeType = ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
+                . ($tblTest->getFinishDate() ? ' (Enddatum: ' . $tblTest->getFinishDate() . ')': '');
 
             $tableColumns = array();
             $tableColumns['Number'] = '#';
@@ -2040,7 +2056,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tableColumns['Trend'] = 'Tendenz';
             }
             if ($tblTest->isContinues()) {
-                $tableColumns['Date'] = 'Datum';
+                $tableColumns['Date'] = 'Datum' . ($tblTest->getFinishDate() ? ' (' . $tblTest->getFinishDate() . ')' : '');
             }
             $tableColumns['Comment'] = 'Vermerk Notenänderung';
             $tableColumns['Attendance'] = 'Nicht teilgenommen';
