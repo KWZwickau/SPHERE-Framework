@@ -40,7 +40,13 @@ class Data extends AbstractData
         $this->createGroup('Mitarbeiter', 'Alle Mitarbeiter', '', true, TblGroup::META_TABLE_STAFF);
         $this->createGroup('Lehrer', 'Alle Mitarbeiter, welche einer Lehrtätigkeit nachgehen', '', true, TblGroup::META_TABLE_TEACHER);
         $this->createGroup('Vereinsmitglieder', '', '', true, TblGroup::META_TABLE_CLUB);
-        $this->createGroup('Firmen-Ansprechpartner', 'Firmen Ansprechpartner', '', true, TblGroup::META_TABLE_COMPANY_CONTACT);
+        $this->createGroup('Institutionen-Ansprechpartner', 'Institutionen Ansprechpartner', '', true, TblGroup::META_TABLE_COMPANY_CONTACT);
+
+        //ToDO nach einem Datenbankupdate für alle Mandanten entfernen
+        if (( $tblGroup = $this->getGroupByMetaTable(TblGroup::META_TABLE_COMPANY_CONTACT) )) {
+            $this->updateGroup($tblGroup, 'Institutionen-Ansprechpartner', 'Institutionen Ansprechpartner', $tblGroup->getRemark());
+        }
+//        $this->createGroup('Firmen-Ansprechpartner', 'Firmen Ansprechpartner', '', true, TblGroup::META_TABLE_COMPANY_CONTACT);
     }
 
     /**
@@ -157,6 +163,7 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(TblGroup::ATTR_NAME => $Name));
+        /** @var TblGroup $Entity */
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -173,6 +180,7 @@ class Data extends AbstractData
                 TblGroup::ATTR_META_TABLE => $MetaTable,
                 TblGroup::ATTR_IS_LOCKED  => true
             ));
+        /** @var TblGroup $Entity */
         return ( null === $Entity ? false : $Entity );
     }
 

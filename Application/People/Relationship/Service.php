@@ -239,12 +239,12 @@ class Service extends AbstractService
         $Error = false;
 
         if (empty($tblCompanyTo)) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Institution')))));
             $Error = true;
         } else {
             $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
             if (!$tblCompanyTo){
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Institution')))));
                 $Error = true;
             }
         }
@@ -363,12 +363,12 @@ class Service extends AbstractService
         $Error = false;
 
         if (empty($tblCompanyTo)) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Institution')))));
             $Error = true;
         } else {
             $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
             if (!$tblCompanyTo){
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Institution')))));
                 $Error = true;
             }
         }

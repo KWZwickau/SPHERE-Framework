@@ -519,6 +519,13 @@ class Service extends AbstractService
                                         $field,
                                         $value);
                                 }
+                                // auf Leer zurücksetzen
+                            } elseif (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson,
+                                $field))
+                            ) {
+                                (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
+                                    $field,
+                                    $value);
                             }
                         }
                     }
@@ -1371,5 +1378,27 @@ class Service extends AbstractService
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        return (new Data($this->getBinding()))->isPreparePrinted($tblPrepareCertificate);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentAllByPrepare(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareStudentAllByPrepare($tblPrepareCertificate);
     }
 }

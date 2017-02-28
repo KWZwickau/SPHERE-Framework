@@ -390,7 +390,7 @@ class Service extends AbstractService
                         array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
                 }
             } else {
-                return new Danger('Firma nicht gefunden', new Ban());
+                return new Danger('Institution nicht gefunden', new Ban());
             }
         }
         return $Form;

@@ -21,6 +21,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -97,9 +98,12 @@ class Frontend extends Extension implements IFrontendInterface
 
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendTeacherSelectDivision()
+    public function frontendTeacherSelectDivision($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
@@ -127,10 +131,22 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionList = false;
         }
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Teacher',
+            $IsAllYears, $YearId, $tblYear);
+
         $divisionTable = array();
         if ($tblDivisionList) {
             foreach ($tblDivisionList as $tblDivisionTeacher) {
                 $tblDivision = $tblDivisionTeacher->getTblDivision();
+
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
                 $divisionTable[] = array(
                     'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
                     'Type' => $tblDivision->getTypeName(),
@@ -151,6 +167,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionTable, null, array(
                                 'Year' => 'Schuljahr',
@@ -177,9 +196,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendHeadmasterSelectDivision()
+    public function frontendHeadmasterSelectDivision($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
@@ -193,22 +215,35 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivisionList = Division::useService()->getDivisionAll();
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Headmaster',
+            $IsAllYears, $YearId, $tblYear);
+
         $divisionTable = array();
         if ($tblDivisionList) {
             foreach ($tblDivisionList as $tblDivision) {
-                $divisionTable[] = array(
-                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                    'Type' => $tblDivision->getTypeName(),
-                    'Division' => $tblDivision->getDisplayName(),
-                    'Option' => new Standard(
-                        '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                        array(
-                            'DivisionId' => $tblDivision->getId(),
-                            'Route' => 'Headmaster'
-                        ),
-                        'Auswählen'
-                    )
-                );
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
+                if ($tblDivision) {
+                    $divisionTable[] = array(
+                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                        'Type' => $tblDivision->getTypeName(),
+                        'Division' => $tblDivision->getDisplayName(),
+                        'Option' => new Standard(
+                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                            array(
+                                'DivisionId' => $tblDivision->getId(),
+                                'Route' => 'Headmaster'
+                            ),
+                            'Auswählen'
+                        )
+                    );
+                }
             }
         }
 
@@ -216,6 +251,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionTable, null, array(
                                 'Year' => 'Schuljahr',

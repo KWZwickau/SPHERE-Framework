@@ -154,6 +154,28 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson     $tblPerson
+     * @param TblSalutation $tblSalutation
+     *
+     * @return bool
+     */
+    public function updateSalutation(TblPerson $tblPerson, TblSalutation $tblSalutation)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblPerson $Entity */
+        $Entity = $Manager->getEntityById('TblPerson', $tblPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblSalutation($tblSalutation);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return bool|TblSalutation[]
      */
     public function getSalutationAll()

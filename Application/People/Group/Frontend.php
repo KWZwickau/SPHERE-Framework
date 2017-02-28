@@ -77,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Gruppen', 'Übersicht');
         $Stage->addButton(new Backward());
 
-        $tblGroupAll = Group::useService()->getGroupAll();
+        $tblGroupAll = Group::useService()->getGroupAllSorted();
         if ($tblGroupAll) {
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) {
 
@@ -332,7 +332,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $FilterGroupId
      * @param null $FilterDivisionId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendGroupPersonAdd(
         $Id = null,

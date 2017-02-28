@@ -77,7 +77,7 @@ class RadebeulBildungsempfehlung extends Certificate
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent(
-                                        '- staatlich genehmigte Ersatzschule -'
+                                        '- staatlich anerkannte Ersatzschule -'
                                     )
                                     ->styleAlignCenter()
                                 )
@@ -326,7 +326,6 @@ class RadebeulBildungsempfehlung extends Certificate
                         ->setContent('2. Gutachten²')
                         ->styleTextSize('20px')
                         ->styleTextBold()
-                        ->styleMarginTop('5px')
                         ->stylePaddingBottom('5px')
                     )
                 )
@@ -424,7 +423,7 @@ class RadebeulBildungsempfehlung extends Certificate
                         ->addElementColumn((new Element())
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
-                            ->styleMarginTop('100px')
+                            ->styleMarginTop('95px')
 
                             , '35%')
                         ->addElementColumn((new Element())
@@ -457,6 +456,16 @@ class RadebeulBildungsempfehlung extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('
+                                        {% if(Content.Headmaster.Name is not empty) %}
+                                            {{ Content.Headmaster.Name }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
+                            ->styleTextSize('11px')
+                            ->stylePaddingTop('2px')
+                            ->styleAlignCenter()
                             , '35%')
                         ->addElementColumn((new Element())
                             , '30%')
@@ -486,6 +495,7 @@ class RadebeulBildungsempfehlung extends Certificate
                             . new Container('² Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
                         )
                         ->styleTextSize('9px')
+                        ->styleMarginTop('5px')
                     )
                 )
             )

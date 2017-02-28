@@ -193,7 +193,7 @@ class BeMi extends Certificate
                         ->styleBorderBottom()
                     )
                     ->addElement((new Element())
-                        ->setContent('Wohnhaft in')
+                        ->setContent('wohnhaft in')
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
                         ->stylePaddingLeft()
@@ -236,16 +236,20 @@ class BeMi extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent('
                             {% if Content.Person.Common.BirthDates.Gender == 2 %}
-                                                Die Schülerin
-                                            {% else %}
-                                              {% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                                    Der Schüler
-                                                {% else %}
-                                                  Die Schülerin/Der Schüler¹
-                                                {% endif %}
-                                            {% endif %}
-                                hat ausweislich der Halbjahresinformation /
-                            der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz¹
+                                    Die Schülerin
+                                {% else %}
+                                  {% if Content.Person.Common.BirthDates.Gender == 1 %}
+                                        Der Schüler
+                                    {% else %}
+                                      Die Schülerin/Der Schüler¹
+                                    {% endif %}
+                                {% endif %}
+                                {% if Content.Input.Type is not empty %}
+                                 hat ausweislich {{ Content.Input.Type }}
+                                {% else %}
+                                    hat ausweislich der Halbjahresinformation /
+                                    der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz¹
+                                {% endif %}
                              vom
                              {% if(Content.Input.DateCertifcate is not empty) %}
                                 {{ Content.Input.DateCertifcate }}
@@ -333,7 +337,8 @@ class BeMi extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleHeight('135px')
+                        ->styleHeight('140px')
+                        ->styleAlignJustify()
                         ->stylePaddingBottom()
                     )
                 )
@@ -379,7 +384,7 @@ class BeMi extends Certificate
                                      fortzusetzen.
                                 {% endif %}
                             {% endif %}')
-                        ->styleMarginTop('13px')
+                        ->styleMarginTop('2px')
 
                     )
                     ->stylePaddingTop()
@@ -403,7 +408,7 @@ class BeMi extends Certificate
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Datum:')
-                            ->styleMarginTop('50px')
+                            ->styleMarginTop('45px')
                             , '7%')
                         ->addElementColumn((new Element())
                             ->setContent('{% if(Content.Input.Date is not empty) %}
@@ -413,7 +418,7 @@ class BeMi extends Certificate
                                 {% endif %}')
                             ->styleBorderBottom('1px', '#000')
                             ->styleAlignCenter()
-                            ->styleMarginTop('50px')
+                            ->styleMarginTop('45px')
                             , '28%')
                         ->addElementColumn((new Element())
                             , '65%')
@@ -485,12 +490,14 @@ class BeMi extends Certificate
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent(
-                                '¹ Nichtzutreffendes streichen.'
-//                            . new Container('² An sorbische Schulen, an denen Sorbisch je nach Unterrichtsfach und Klassenstufe
-//                            Unterrichtssprache ist, kann nach Entscheidung ')
-//                            . new Container('&nbsp;&nbsp;der Schulkonferenz gem. § 21 Abs. 5 SOGS das
-//                            Fach Deutsch durch das Fach Sorbisch ersetzt werden.')
-                                . new Container('² Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
+                                '{% if Content.Input.Type is empty %}
+                                     ¹ Nichtzutreffendes streichen.
+                                {% else %}
+                                     {% if Content.Person.Common.BirthDates.Gender == 0 %}
+                                        ¹ Nichtzutreffendes streichen.     
+                                    {% endif %}
+                                {% endif %}'
+                                .new Container('² Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
                             )
                             ->styleTextSize('9px')
                             ->styleMarginTop('5px')

@@ -20,11 +20,12 @@ class Link extends AbstractLink implements ILinkInterface
      * @param IIconInterface|null $Icon
      * @param array               $Data
      * @param bool|string         $ToolTip
+     * @param null|string         $Anchor
      */
-    public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false)
+    public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false, $Anchor = null)
     {
 
         $this->setType(self::TYPE_LINK);
-        parent::__construct($Name, $Path, $Icon, $Data, $ToolTip);
+        parent::__construct($Name, $Path, $Icon, $Data, $ToolTip, $Anchor);
     }
 }

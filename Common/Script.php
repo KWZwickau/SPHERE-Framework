@@ -28,6 +28,11 @@ class Script extends Extension
          */
 
         $this->setSource(
+            'jQuery.deparam', '/Library/jQuery.BBQ/1.3pre/jQuery.deparam.js',
+            "'undefined' !== typeof jQuery.deparam"
+        );
+
+        $this->setSource(
             'jQuery', '/Library/jQuery/1.11.3/jquery-1.11.3.min.js',
             "'undefined' !== typeof jQuery"
         );
@@ -95,6 +100,11 @@ class Script extends Extension
             'jQuery.DataTable.Responsive',
             '/Library/DataTables/Responsive-2.1.0/js/dataTables.responsive.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
+        );
+        $this->setSource(
+            'jQuery.DataTable.FixedHeader',
+            '/Library/DataTables/FixedHeader-3.1.2/js/dataTables.fixedHeader.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable.FixedHeader"
         );
         $this->setSource(
             'jQuery.DataTable.RowReorder',
@@ -239,6 +249,7 @@ class Script extends Extension
                 'List.Js',
                 'Bootstrap.Notify',
                 'Bootstrap',
+                'jQuery.deparam',
                 'jQuery.Ui',
                 'jQuery'
             )
@@ -267,6 +278,7 @@ class Script extends Extension
                 'jQuery.DataTable.Buttons.Bootstrap',
                 'jQuery.DataTable.Buttons',
                 'jQuery.DataTable.RowReorder',
+                'jQuery.DataTable.FixedHeader',
                 'jQuery.DataTable.Responsive',
                 'jQuery.DataTable.Bootstrap',
                 'jQuery.DataTable',

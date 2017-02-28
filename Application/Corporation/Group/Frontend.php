@@ -81,7 +81,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 );
                 $Footer .= new PullRight(
-                    new Label(CorporationCompany::useService()->countCompanyAllByGroup($tblGroup) . ' Firmen',
+                    new Label(CorporationCompany::useService()->countCompanyAllByGroup($tblGroup).' Institutionen',
                         Label::LABEL_TYPE_INFO)
                 );
                 $tblGroup = new LayoutColumn(

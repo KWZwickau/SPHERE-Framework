@@ -36,7 +36,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendGroupList($GroupId = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Firmengruppenlisten');
+        $Stage = new Stage('Auswertung', 'Institutionengruppenlisten');
         $tblGroupAll = Group::useService()->getGroupAll();
         $groupList = array();
 
@@ -56,7 +56,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new TableData(
-                                    $tblGroupAll, null, array('Name' => 'Name', 'Count' => 'Firmen', 'Option' => '')
+                                    $tblGroupAll, null, array('Name' => 'Name', 'Count' => 'Institutionen', 'Option' => '')
                                 )
                             )
                         )

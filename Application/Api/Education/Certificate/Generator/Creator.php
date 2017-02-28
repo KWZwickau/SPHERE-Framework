@@ -324,4 +324,68 @@ class Creator extends Extension
 
         return new Stage($Name, 'Nicht gefunden');
     }
+
+    /**
+     * @param null $PrepareId
+     * @param string $Name
+     *
+     * @return Stage|string
+     */
+    public function downloadHistoryZip($PrepareId = null, $Name = 'Zeugnis')
+    {
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
+        ) {
+            $FileList = array();
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())) {
+                    $tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson);
+                    if ($tblFileList) {
+                        foreach ($tblFileList as $tblFile) {
+                            $name = explode(' - ', $tblFile->getName());
+                            if (count($name) >= 4 && $name[3] == $tblPrepare->getId()) {
+                                $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
+                                $personLastName = str_replace('ü', 'ue', $personLastName);
+                                $personLastName = str_replace('ö', 'oe', $personLastName);
+                                $personLastName = str_replace('ß', 'ss', $personLastName);
+                                $File = Storage::createFilePointer('pdf', $Name . '-' . $personLastName
+                                    . '-' . date('Y-m-d') . '--');
+                                $File->setFileContent(stream_get_contents($tblFile->getTblBinary()->getBinaryBlob()));
+                                $File->saveFile();
+
+                                $FileList[] = $File;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!empty($FileList)) {
+                $ZipFile = new FilePointer('zip');
+                $ZipFile->saveFile();
+
+                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
+                /** @var FilePointer $File */
+                foreach ($FileList as $File) {
+                    $ZipArchive->compactFile(
+                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
+                            $File->getRealPath()
+                        )
+                        , false);
+                }
+
+                return FileSystem::getDownload(
+                    $ZipFile->getRealPath(),
+                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
+                )->__toString();
+            } else {
+                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                    . new Redirect('/Education/Certificate/PrintCertificate');
+            }
+        }
+
+        return new Stage($Name, 'Nicht gefunden');
+    }
 }

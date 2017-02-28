@@ -444,27 +444,27 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Anrede' => null,
-                    'Firma' => null,
-                    'Name' => null,
-                    'Vorname' => null,
-                    'Strasse' => null,
-                    'Ort' => null,
-                    'Plz' => null,
+                    'Anrede'          => null,
+                    'Institution'     => null,
+                    'Name'            => null,
+                    'Vorname'         => null,
+                    'Strasse'         => null,
+                    'Ort'             => null,
+                    'Plz'             => null,
                     'Telefon_private' => null,
-                    'Telefon_dienst' => null,
-                    'Fax' => null,
-                    'Mail' => null,
-                    'Beruf' => null,
-                    'Freunde' => null,
-                    'Post' => null,
-                    'Gebet' => null,
-                    'Partner' => null,
-                    'Verein' => null,
-                    'Offizielle' => null,
-                    'Ehemalige' => null,
-                    'Sonstiges' => null,
-                    'Sonstiges2' => null,
+                    'Telefon_dienst'  => null,
+                    'Fax'             => null,
+                    'Mail'            => null,
+                    'Beruf'           => null,
+                    'Freunde'         => null,
+                    'Post'            => null,
+                    'Gebet'           => null,
+                    'Partner'         => null,
+                    'Verein'          => null,
+                    'Offizielle'      => null,
+                    'Ehemalige'       => null,
+                    'Sonstiges'       => null,
+                    'Sonstiges2'      => null,
 
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
@@ -533,7 +533,7 @@ class Service
                     }
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Firma'],
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Institution'],
                                 $RunY)))) == 'falsch'
                         ) {
 
@@ -818,7 +818,7 @@ class Service
      * @param IFormInterface|null $Stage
      * @param null $Select
      *
-     * @return IFormInterface
+     * @return IFormInterface|string
      */
     public function getClass(IFormInterface $Stage = null, $Select = null)
     {

@@ -21,7 +21,7 @@ class Company implements IModuleInterface
 //            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firmen'))
 //        );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/GroupList'), new Link\Name('Firmengruppenlisten'))
+            new Link(new Link\Route(__NAMESPACE__.'/GroupList'), new Link\Name('Institutionengruppenlisten'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

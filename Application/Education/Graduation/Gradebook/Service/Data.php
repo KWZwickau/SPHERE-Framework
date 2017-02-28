@@ -128,6 +128,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblPerson $tblPersonTeacher
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
@@ -145,6 +146,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      */
     public function createGrade(
         TblPerson $tblPerson,
+        TblPerson $tblPersonTeacher = null,
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         TblSubjectGroup $tblSubjectGroup = null,
@@ -163,6 +165,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
         $Entity = new TblGrade();
         $Entity->setServiceTblPerson($tblPerson);
+        $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
         $Entity->setServiceTblDivision($tblDivision);
         $Entity->setServiceTblSubject($tblSubject);
         $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
@@ -350,6 +353,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param int $Trend
      * @param null $Date
      * @param TblGradeText $tblGradeText
+     * @param TblPerson $tblPersonTeacher
      *
      * @return bool
      */
@@ -359,7 +363,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Comment = '',
         $Trend = 0,
         $Date = null,
-        TblGradeText $tblGradeText = null
+        TblGradeText $tblGradeText = null,
+        TblPerson $tblPersonTeacher = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -373,6 +378,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setTrend($Trend);
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setTblGradeText($tblGradeText);
+            $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

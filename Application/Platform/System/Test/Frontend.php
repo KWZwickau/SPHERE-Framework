@@ -55,12 +55,14 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutSocial;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -82,7 +84,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Message: Red alert.Processor of a distant x-ray vision, lower the death!Make it so, chemical wind!Fantastic nanomachines, to the alpha quadrant.Boldly sonic showers lead to the understanding.The death is a ship-wide cosmonaut.Wobble nosily like a post-apocalyptic space suit.Cosmonauts are the emitters of the fantastic ionic cannon.Where is the strange teleporter?');
 
         $Stage->addButton(
-            new Standard('Link', new Route(__NAMESPACE__))
+            new Standard('Link', new Route(__NAMESPACE__), null, array(), true)
+        );
+        $Stage->addButton(
+            new External('Link', 'www.google.de')
         );
 
         $D1 = new TblDivision();
@@ -441,8 +446,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     public function frontendSandbox()
     {
+//        $this->getCache(new TwigHandler())->clearCache();
 
         $Stage = new Stage('SandBox');
+
+//        $Stage->setContent( $this->getTemplate( __DIR__.'/Test.twig' ) );
 
         $R1 = new ModalReceiver();
         $R2 = new FieldValueReceiver( (new NumberField( 'NUFF' ))->setDefaultValue(9));
@@ -450,8 +458,8 @@ class Frontend extends Extension implements IFrontendInterface
         $R4 = new InlineReceiver( new \SPHERE\Common\Frontend\Message\Repository\Warning( ':P' ));
 
         $P = new Pipeline();
-//        $P->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
-//        $P->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
+        $P->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
+        $P->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
         $P->addEmitter( $E2 = new ClientEmitter($R2, 0 ) );
         $P->addEmitter( $E4 = new ClientEmitter(array($R1,$R4), new Info( ':)' ) ) );
@@ -460,12 +468,13 @@ class Frontend extends Extension implements IFrontendInterface
         $E3->setGetPayload(array(
             'MethodName' => 'ajaxContent'
         ));
-//        $E3->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
-//        $E3->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
+        $E3->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
+        $E3->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
         $P->addEmitter( $E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')) );
         $E1->setGetPayload(array(
             'MethodName' => 'ajaxLayoutSimilarPerson'
+//            'MethodName' => 'ajaxFormDingens'
         ));
         $E1->setPostPayload(array(
             'Reload' => (string)$R1->getIdentifier(),
@@ -473,6 +482,15 @@ class Frontend extends Extension implements IFrontendInterface
         ));
         $E1->setLoadingMessage('Bitte warten', 'Inhalte werden geladen..');
         $E1->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
+
+        $P2 = new Pipeline();
+        $P2->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
+        $P2->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
+
+        $P2->addEmitter( $E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $E1->setGetPayload(array(
+            'MethodName' => 'ajaxFormDingens'
+        ));
 
 
         $Stage->setContent(
@@ -489,7 +507,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         ))
                                     )
                                 )
-                            , new Primary('Ajax-Form?')))->ajaxPipelineOnSubmit( $P )
+                            , new Primary('Ajax-Form?')))->ajaxPipelineOnSubmit( $P2 )->setConfirm('Test with Ajax')
                         ))
                     )
                 ),

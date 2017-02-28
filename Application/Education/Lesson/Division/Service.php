@@ -315,6 +315,77 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblLevel[]
+     */
+    public function getLevelAllByName($Name)
+    {
+
+        return ( new Data($this->getBinding()) )->getAllLevelByName($Name);
+    }
+
+    /**
+     * @param TblLevel $tblLevel
+     * used LevelName to find same Level range
+     * @param TblYear  $tblYear
+     *
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionAllByLevelNameAndYear(TblLevel $tblLevel, TblYear $tblYear)
+    {
+
+        $tblDivisionList = array();
+        $tblLevelList = Division::useService()->getLevelAllByName($tblLevel->getName());
+        if ($tblLevelList && $tblYear) {
+            array_walk($tblLevelList, function ($tblLevel) use (&$tblDivisionList, $tblYear) {
+                $DivisionArray = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear);
+                if ($DivisionArray) {
+                    /** @var TblDivision $tblDivision */
+                    foreach ($DivisionArray as $tblDivision) {
+                        $tblDivisionList[] = $tblDivision;
+                    }
+                }
+            });
+        }
+
+        return ( !empty($tblDivisionList) ? $tblDivisionList : false );
+    }
+
+    /**
+     * @param TblLevel $tblLevel
+     * @param TblYear  $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByLevelAndYear(TblLevel $tblLevel, TblYear $tblYear)
+    {
+
+        return ( new Data($this->getBinding()) )->getDivisionAllByLevelAndYear($tblLevel, $tblYear);
+    }
+
+    /**
+     * @param TblDivision[] $tblDivisionList
+     *
+     * @return array|bool
+     */
+    public function getPersonAllByDivisionList($tblDivisionList)
+    {
+
+        $tblPersonList = array();
+        if (!empty($tblDivisionList)) {
+            foreach ($tblDivisionList as $tblDivision) {
+                $tblPersonDivisionList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonDivisionList) {
+                    $tblPersonList = array_merge($tblPersonList, $tblPersonDivisionList);
+                }
+            }
+        }
+        return ( !empty($tblPersonList) ? $tblPersonList : false );
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param TblPerson $tblPerson
      *

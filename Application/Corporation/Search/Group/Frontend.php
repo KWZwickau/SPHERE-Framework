@@ -112,7 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )),
                     new LayoutRow(new LayoutColumn(array(
-                        new Headline('Verfügbare Firmen', 'in dieser Gruppe'),
+                        new Headline('Verfügbare Institutionen', 'in dieser Gruppe'),
                         new TableData($Result, null,
                             array(
                                 'Name'         => 'Name',

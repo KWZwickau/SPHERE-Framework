@@ -79,7 +79,7 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param array $Company
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function createCompany(IFormInterface $Form = null, $Company)
     {
@@ -112,12 +112,12 @@ class Service extends AbstractService
                         );
                     }
                 }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Firma wurde erfolgreich erstellt')
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Institution wurde erfolgreich erstellt')
                 . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblCompany->getId())
                 );
             } else {
-                return new Danger(new Ban() . ' Die Firma konnte nicht erstellt werden')
+                return new Danger(new Ban().' Die Institution konnte nicht erstellt werden')
                 . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);
             }
         }
@@ -154,7 +154,7 @@ class Service extends AbstractService
      * @param array $Company
      * @param null|int $Group
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function updateCompany(IFormInterface $Form = null, TblCompany $tblCompany, $Company, $Group)
     {
@@ -198,10 +198,10 @@ class Service extends AbstractService
                         Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
                     }
                 }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Firma wurde erfolgreich aktualisiert')
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Institution wurde erfolgreich aktualisiert')
                 . new Redirect(null, Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Danger(new Ban() . ' Die Firma konnte nicht aktualisiert werden')
+                return new Danger(new Ban().' Die Institution konnte nicht aktualisiert werden')
                 . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);
             }
         }

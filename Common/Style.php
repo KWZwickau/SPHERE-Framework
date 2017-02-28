@@ -85,6 +85,8 @@ class Style extends Extension
             true);
         $this->setSource('/Library/DataTables/RowReorder-1.1.2/css/rowReorder.bootstrap.min.css', false,
             true);
+        $this->setSource('/Library/DataTables/FixedHeader-3.1.2/css/fixedHeader.bootstrap.min.css', false,
+            true);
 
 ////        $this->setSource( '/Library/jQuery.DataTables/1.10.7/media/css/jquery.dataTables.min.css' );
 //        $this->setSource('/Library/jQuery.DataTables/1.10.7/extensions/Responsive/css/dataTables.responsive.css', false,

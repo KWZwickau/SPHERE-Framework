@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareIn
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -82,9 +83,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendTeacherSelectDivision()
+    public function frontendTeacherSelectDivision($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Noteninformation', 'Klasse auswählen');
@@ -112,23 +116,36 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionList = false;
         }
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/GradeInformation/Teacher',
+            $IsAllYears, $YearId, $tblYear);
+
         $divisionTable = array();
         if ($tblDivisionList) {
             foreach ($tblDivisionList as $tblDivisionTeacher) {
                 $tblDivision = $tblDivisionTeacher->getTblDivision();
-                $divisionTable[] = array(
-                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                    'Type' => $tblDivision->getTypeName(),
-                    'Division' => $tblDivision->getDisplayName(),
-                    'Option' => new Standard(
-                        '', '/Education/Certificate/GradeInformation/Create', new Select(),
-                        array(
-                            'DivisionId' => $tblDivision->getId(),
-                            'Route' => 'Teacher'
-                        ),
-                        'Auswählen'
-                    )
-                );
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
+                if ($tblDivision) {
+                    $divisionTable[] = array(
+                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                        'Type' => $tblDivision->getTypeName(),
+                        'Division' => $tblDivision->getDisplayName(),
+                        'Option' => new Standard(
+                            '', '/Education/Certificate/GradeInformation/Create', new Select(),
+                            array(
+                                'DivisionId' => $tblDivision->getId(),
+                                'Route' => 'Teacher'
+                            ),
+                            'Auswählen'
+                        )
+                    );
+                }
             }
         }
 
@@ -136,6 +153,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionTable, null, array(
                                 'Year' => 'Schuljahr',
@@ -159,9 +179,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendHeadmasterSelectDivision()
+    public function frontendHeadmasterSelectDivision($IsAllYears = false, $YearId = null)
     {
         $Stage = new Stage('Noteninformation', 'Klasse auswählen');
 
@@ -173,22 +196,35 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Education/Certificate/GradeInformation/Headmaster', new Edit()));
         }
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/GradeInformation/Headmaster',
+            $IsAllYears, $YearId, $tblYear);
+
         $divisionTable = array();
         if (($tblDivisionList = Division::useService()->getDivisionAll())) {
             foreach ($tblDivisionList as $tblDivision) {
-                $divisionTable[] = array(
-                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                    'Type' => $tblDivision->getTypeName(),
-                    'Division' => $tblDivision->getDisplayName(),
-                    'Option' => new Standard(
-                        '', '/Education/Certificate/GradeInformation/Create', new Select(),
-                        array(
-                            'DivisionId' => $tblDivision->getId(),
-                            'Route' => 'Headmaster'
-                        ),
-                        'Auswählen'
-                    )
-                );
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
+                if ($tblDivision) {
+                    $divisionTable[] = array(
+                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                        'Type' => $tblDivision->getTypeName(),
+                        'Division' => $tblDivision->getDisplayName(),
+                        'Option' => new Standard(
+                            '', '/Education/Certificate/GradeInformation/Create', new Select(),
+                            array(
+                                'DivisionId' => $tblDivision->getId(),
+                                'Route' => 'Headmaster'
+                            ),
+                            'Auswählen'
+                        )
+                    );
+                }
             }
         }
 
@@ -196,6 +232,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionTable, null, array(
                                 'Year' => 'Schuljahr',
