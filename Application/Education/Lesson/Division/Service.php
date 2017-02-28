@@ -646,6 +646,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject  $tblSubject
+     * @param             $SubjectGroup
+     *
+     * @return bool|null|object|TblDivisionSubject
+     */
+    public function addSubjectToDivisionWithGroupImport(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        $SubjectGroup
+    ) {
+
+        $tblSubjectGroup = ( new Data($this->getBinding()) )->createSubjectGroup($SubjectGroup);
+        if ($tblSubjectGroup) {
+            return ( new Data($this->getBinding()) )->addDivisionSubject($tblDivision, $tblSubject, $tblSubjectGroup);
+        }
+        return false;
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param int $DivisionSubject
      * @param array $Student

@@ -44,11 +44,11 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param TblAccount|null $tblAccount
      *
      * @return false|TblUntisImportLectureship[]
      */
-    public function getUntisImportLectureshipByAccount(TblAccount $tblAccount)
+    public function getUntisImportLectureshipAllByAccount(TblAccount $tblAccount)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUntisImportLectureship',
@@ -69,7 +69,7 @@ class Data extends AbstractData
      * @param string      $SubjectGroup
      * @param TblAccount  $tblAccount
      *
-     * @return TblUntisImportLectureship
+     * @return \SPHERE\System\Database\Fitting\Manager
      */
     public function createUntisImportLectureship(
         TblYear $tblYear,
@@ -77,9 +77,9 @@ class Data extends AbstractData
         $TeacherAcronym,
         $SubjectName,
         $SubjectGroupName,
-        TblDivision $tblDivision,
-        TblTeacher $tblTeacher,
-        TblSubject $tblSubject,
+        TblDivision $tblDivision = null,
+        TblTeacher $tblTeacher = null,
+        TblSubject $tblSubject = null,
         $SubjectGroup,
         TblAccount $tblAccount
     ) {
@@ -99,10 +99,10 @@ class Data extends AbstractData
         $Entity->setServiceTblAccount($tblAccount);
         $Entity->setIsIgnore(false);
 
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        $Manager->bulkSaveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
 
-        return $Entity;
+        return $Manager;
     }
 
     /**

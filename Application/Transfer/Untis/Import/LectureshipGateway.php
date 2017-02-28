@@ -81,6 +81,7 @@ class LectureshipGateway extends AbstractConverter
 {
 
     private $ResultList = array();
+    private $ImportList = array();
     private $IsError = false;
     private $Year = false;
     private $Division = false;
@@ -134,22 +135,26 @@ class LectureshipGateway extends AbstractConverter
     }
 
     /**
+     * @return array
+     */
+    public function getImportList()
+    {
+        return $this->ImportList;
+    }
+
+    /**
      * @param array $Row
      *
      * @return void
      */
     public function runConvert($Row)
     {
-        // TODO: Implement runConvert() method.
         $Result = array();
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
         }
         if (!$this->IsError) {
-            $tblYear = $this->Year;
-            if ($tblYear) {
-                Import::useService()->createUntisImportLectureShip($Result, $tblYear);
-            }
+            $this->ImportList[] = $Result;
         } else {
             $this->IsError = false;
         }

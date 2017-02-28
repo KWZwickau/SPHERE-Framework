@@ -155,12 +155,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Name
-     * @param $Description
+     * @param        $Name
+     * @param string $Description
      *
      * @return TblSubjectGroup
      */
-    public function createSubjectGroup($Name, $Description)
+    public function createSubjectGroup($Name, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
