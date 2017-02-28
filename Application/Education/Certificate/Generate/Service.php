@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Certificate\Generate;
 
 use SPHERE\Application\Education\Certificate\Generate\Service\Data;
+use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblCertificateSetting;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Setup;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -324,16 +325,19 @@ class Service extends AbstractService
 
             $tblCourse = false;
             // Bildungsgang nur hier relevant sonst klappt es bei den anderen nicht korrekt
-            if (preg_match('!(Mittelschule|Oberschule)!is', $tblSchoolType->getName())
-                && preg_match('!(0?(7|8|9)|10)!is', $tblLevel->getName())
-            ) {
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                    && ($tblStudent = $tblPerson->getStudent())
+            // #SSW-1064 Automatische Zuordnung von Zeugnissen ist nicht korrekt in Coswig
+            if (($tblCertificateSetting = $this->getCertificateSetting()) && $tblCertificateSetting->getUseCourseForCertificateChoosing()) {
+                if (preg_match('!(Mittelschule|Oberschule)!is', $tblSchoolType->getName())
+                    && preg_match('!(0?(7|8|9)|10)!is', $tblLevel->getName())
                 ) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                        && ($tblStudent = $tblPerson->getStudent())
+                    ) {
+                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType);
+                        if ($tblStudentTransfer) {
+                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                        }
                     }
                 }
             }
@@ -485,5 +489,14 @@ class Service extends AbstractService
             return new Danger('Die Zeugniserstellung konnte nicht geändert werden', new Exclamation())
                 . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS);
         }
+    }
+
+    /**
+     * @return false|TblCertificateSetting
+     */
+    public function getCertificateSetting()
+    {
+
+        return (new Data($this->getBinding()))->getCertificateSetting();
     }
 }

@@ -32,6 +32,7 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $this->setTableGenerateCertificate($Schema);
+        $this->setTableCertificateSetting($Schema);
 
         /**
          * Migration & Protocol
@@ -58,6 +59,22 @@ class Setup extends AbstractSetup
         $this->createColumn( $Table, 'HeadmasterName', self::FIELD_TYPE_STRING );
         $this->createColumn( $Table, 'IsDivisionTeacherAvailable', self::FIELD_TYPE_BOOLEAN );
         $this->createColumn( $Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT );
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableCertificateSetting(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblCertificateSetting');
+        if (!$Table->hasColumn('UseCourseForCertificateChoosing')) {
+            $Table->addColumn('UseCourseForCertificateChoosing', 'boolean', array('default' => true));
+        }
 
         return $Table;
     }
