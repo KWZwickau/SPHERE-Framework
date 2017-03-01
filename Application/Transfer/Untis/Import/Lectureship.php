@@ -2,11 +2,19 @@
 namespace SPHERE\Application\Transfer\Untis\Import;
 
 use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -101,14 +109,38 @@ class Lectureship extends Import implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Import', new ChevronLeft()));
 
         $Stage->setMessage('Importvorbereitung / Daten importieren');
-        $tblYearAll = Term::useService()->getYearAll();
+//        $tblYearAll = Term::useService()->getYearAll();
+        // get short list of years (year must have periods)
+        $tblYearAll = Term::useService()->getYearAllSinceYears(1);
         if (!$tblYearAll) {
             $tblYearAll = array();
         }
 
+        // try to POST tblYear if YearByNow exist
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($tblYearList) {
+            $tblYear = false;
+            // last Entity should be the first created year
+            foreach ($tblYearList as $tblYearEntity) {
+                $tblYear = $tblYearEntity;
+            }
+            if ($tblYear) {
+                $Global = $this->getGlobal();
+                $Global->POST['tblYear'] = $tblYear->getId();
+                $Global->savePost();
+            }
+        }
+
+        $tblUntisImportLectureshipList = Import::useService()->getUntisImportLectureshipAll(true);
+
         $Stage->setContent(
             new Layout(
-                new LayoutGroup(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( $tblUntisImportLectureshipList ? new WarningMessage(new WarningIcon().' Vorsicht vorhandene Importdaten werden entfernt!') : '' )
+                            , 6, array(LayoutColumn::GRID_OPTION_HIDDEN_SM)
+                        )),
                     new LayoutRow(
                         new LayoutColumn(new Well(array(
                             new Form(
@@ -122,7 +154,6 @@ class Lectureship extends Import implements IFrontendInterface
                                                     )) )->setRequired(),
                                                     ( new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null, array('showPreview' => false)) )->setRequired()
                                                 ), Panel::PANEL_TYPE_INFO)
-
                                         )
                                     ),
                                 )),
@@ -130,8 +161,8 @@ class Lectureship extends Import implements IFrontendInterface
                                 new Link\Route(__NAMESPACE__.'/Lectureship')
                             )
                         )), 6)
-                    ), new TitleLayout('Lehraufträge', 'importieren')
-                )
+                    )
+                ), new TitleLayout('Lehraufträge', 'importieren'))
             )
         );
 
@@ -151,12 +182,11 @@ class Lectureship extends Import implements IFrontendInterface
         $Stage->setMessage('Lehraufträge importieren');
 
         if ($File === null || $tblYear === null || $tblYear <= 0) {
-            // TODO: Form Error
             $Stage->setContent(
                 ( $tblYear <= 0
-                    ? new WarningMessage('Bitte geben Sie das Schuljahr sowie eine Datei an.')
-                    : new WarningMessage('Bitte geben sie die Datei an.') ).
-                new Redirect(new Route(__NAMESPACE__), Redirect::TIMEOUT_ERROR, array(
+                    ? new WarningMessage('Bitte geben Sie das Schuljahr an.')
+                    : new WarningMessage('Bitte geben sie die Datei an.') )
+                .new Redirect(new Route(__NAMESPACE__), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear
                 ))
             );
@@ -164,9 +194,10 @@ class Lectureship extends Import implements IFrontendInterface
         }
         $tblYear = Term::useService()->getYearById($tblYear);
         if (!$tblYear) {
-            // TODO: Form Error
+
             $Stage->setContent(
-                new Redirect(new Route(__NAMESPACE__), Redirect::TIMEOUT_ERROR, array(
+                new WarningMessage('Bitte geben Sie ein gültiges Schuljahr an.')
+                .new Redirect(new Route(__NAMESPACE__), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear
                 ))
             );
@@ -195,8 +226,9 @@ class Lectureship extends Import implements IFrontendInterface
             $Gateway = new LectureshipGateway($Payload->getRealPath(), $tblYear);
 
             $ImportList = $Gateway->getImportList();
-            if ($ImportList && $tblYear) {
-                Import::useService()->createUntisImportLectureShipByImportList($ImportList, $tblYear);
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($ImportList && $tblYear && $tblAccount) {
+                Import::useService()->createUntisImportLectureShipByImportList($ImportList, $tblYear, $tblAccount);
             }
 
             $Stage->setContent(
@@ -247,12 +279,18 @@ class Lectureship extends Import implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Import', new ChevronLeft()));
         $tblUntisImportLectureshipList = Import::useService()->getUntisImportLectureshipAll(true);
         $TableContent = array();
+        $TableCompare = array();
         $tblYear = false;
         if ($tblUntisImportLectureshipList) {
             array_walk($tblUntisImportLectureshipList, function (TblUntisImportLectureship $tblUntisImportLectureship)
-            use (&$TableContent, &$tblYear, $Visible) {
+            use (&$TableContent, &$tblYear, $Visible, &$TableCompare) {
 
                 $ImportError = 0;
+                //compare informations
+                $Item['PersonId'] = '';
+                $Item['SubjectId'] = '';
+                $Item['DivisionId'] = '';
+
 
                 $Item['FileDivision'] = $tblUntisImportLectureship->getSchoolClass();
                 $Item['AppDivision'] = new Warning('Keine Klasse hinterlegt');
@@ -270,17 +308,22 @@ class Lectureship extends Import implements IFrontendInterface
                 }
                 if (( $tblDivision = $tblUntisImportLectureship->getServiceTblDivision() )) {
                     $Item['AppDivision'] = $tblDivision->getDisplayName();
+                    $Item['DivisionId'] = $tblDivision->getId();
                 } else {
                     $ImportError++;
                 }
                 if (( $tblTeacher = $tblUntisImportLectureship->getServiceTblTeacher() )) {
                     $Item['AppTeacher'] = $tblTeacher->getAcronym().' - '.
                         ( ( $tblPerson = $tblTeacher->getServiceTblPerson() ) ? $tblPerson->getFullName() : 'Fehlende Person' );
+                    if ($tblPerson) {
+                        $Item['PersonId'] = $tblPerson->getId();
+                    }
                 } else {
                     $ImportError++;
                 }
                 if (( $tblSubject = $tblUntisImportLectureship->getServiceTblSubject() )) {
                     $Item['AppSubject'] = $tblSubject->getAcronym().' - '.$tblSubject->getName();
+                    $Item['SubjectId'] = $tblSubject->getId();
                 } else {
                     $ImportError++;
                 }
@@ -296,18 +339,18 @@ class Lectureship extends Import implements IFrontendInterface
 //                }
                 // no import by Warning
                 if ($ImportError >= 1) {
-                    $Item['Ignore'] = new Danger(new Ban());
+                    $Item['Ignore'] = new Center(new Danger(new Ban()));
                 } else {
                     // manual no Import
                     if ($tblUntisImportLectureship->getIsIgnore()) {
-                        $Item['Ignore'] = new Danger(new Disable());
+                        $Item['Ignore'] = new Center(new Danger(new Disable()));
                         $ImportError++;
                     } else {
-                        $Item['Ignore'] = new Success(new SuccessIcon());
+                        $Item['Ignore'] = new Center(new Success(new SuccessIcon()));
                     }
                 }
-                if ($Item['Ignore'] == new Success(new SuccessIcon())) {
-                    $Item['Option'] .= new Standard('', '/Transfer/Untis/Import/Lectureship/Ignore', new Disable(),
+                if ($Item['Ignore'] == new Center(new Success(new SuccessIcon()))) {
+                    $Item['Option'] .= new Standard('', '/Transfer/Untis/Import/Lectureship/Ignore', new Remove(),
                         array('Id' => $tblUntisImportLectureship->getId()), 'Manuell sperren');
                 }
 
@@ -326,6 +369,123 @@ class Lectureship extends Import implements IFrontendInterface
                         }
                     }
                 }
+                if ($ImportError == 0) {
+                    array_push($TableCompare, $Item);
+                }
+
+            });
+        } else {
+            $Stage->setContent(new WarningMessage('Leider konnten keine Lehraufträge importiert werden.
+            Bitte kontrollieren Sie ihre Datei und das angegebene Schuljahr')
+                .new Redirect('/Transfer/Untis/Import', Redirect::TIMEOUT_WAIT));
+            return $Stage;
+        }
+
+        // get all exist Lectureship by matched Import
+        $tblSubjectTeacherList = array();
+        /** @var TblYear $tblYear */
+        if (!empty($tblUntisImportLectureshipList)) {
+            $tblDivisionList = Import::useService()->getDivisionListByUntisImportLectureship($tblUntisImportLectureshipList);
+            if ($tblDivisionList) {
+                $tblSubjectTeacherList = Import::useService()->getSubjectTeacherListByDivisionList($tblDivisionList);
+            }
+        }
+
+        // find existing and/or probably soon deleted Lectureship
+        $TableControl = array();
+        // need persistent List by boubled import Lectureship entrys
+        $tblComparePersistent = $TableCompare;
+        if (!empty($tblSubjectTeacherList)) {
+            array_walk($tblSubjectTeacherList, function (TblSubjectTeacher $tblSubjectTeacher) use (&$TableControl, &$TableCompare, $tblComparePersistent) {
+                $Item['Division'] = '';
+                $Item['Person'] = '';
+                $Item['Subject'] = '';
+                $Item['SubjectGroup'] = '';
+                $Item['Status'] = new Danger(new Remove().' Lehrauftrag löschen!');
+
+                $tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject();
+                if ($tblDivisionSubject) {
+                    $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                    if ($tblSubject) {
+                        $Item['Subject'] = $tblSubject->getAcronym().' - '.$tblSubject->getName();
+                        $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
+                        if ($tblSubjectGroup) {
+
+                            $Item['SubjectGroup'] = $tblSubjectGroup->getName();
+                        }
+                    }
+                    $tblDivision = $tblDivisionSubject->getTblDivision();
+                    if ($tblDivision) {
+                        $Item['Division'] = $tblDivision->getDisplayName();
+                    }
+                }
+
+                $tblPerson = $tblSubjectTeacher->getServiceTblPerson();
+                if ($tblPerson) {
+                    $Item['Person'] = $tblPerson->getFullName();
+                    $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
+                    if ($tblTeacher) {
+                        $Item['Person'] = $tblTeacher->getAcronym().' - '.$tblPerson->getFullName();
+                    }
+                    if (!empty($tblComparePersistent)) {
+                        // matched rows will be recreated
+                        foreach ($tblComparePersistent as $Key => &$Compare) {
+                            if ($Compare['PersonId'] == $tblPerson->getId()
+                                && $Compare['AppSubject'] == $Item['Subject']
+                                && $Compare['AppSubjectGroup'] == $Item['SubjectGroup']
+                                && $Compare['AppDivision'] == $Item['Division']
+                            ) {
+                                $Item['Status'] = new Info(new PersonIcon()).' Lehrauftrag behalten';
+                                unset($TableCompare[$Key]);
+                            }
+                        }
+                    }
+                }
+                array_push($TableControl, $Item);
+            });
+            $TableCompare = array_filter($TableCompare);
+        }
+
+        // Add Lectureship
+        if (!empty($TableCompare)) {
+            array_walk($TableCompare, function ($AddLectureship) use (&$TableControl) {
+
+                $Item['Division'] = $AddLectureship['AppDivision'];
+                $Item['Person'] = '';
+                $Item['Subject'] = $AddLectureship['AppSubject'].new Success(' (Neu)');
+                $Item['SubjectGroup'] = ( $AddLectureship['AppSubjectGroup'] !== '' ? $AddLectureship['AppSubjectGroup'].new Success(' (Neu)') : '' );
+
+                $tblDivision = ( isset($AddLectureship['DivisionId'])
+                    ? Division::useService()->getDivisionById($AddLectureship['DivisionId'])
+                    : false );
+                $tblSubject = ( isset($AddLectureship['SubjectId'])
+                    ? Subject::useService()->getSubjectById($AddLectureship['SubjectId'])
+                    : false );
+                if ($tblDivision && $tblSubject) {
+                    if (Division::useService()->getSubjectGroupByNameAndDivisionAndSubject(
+                        $AddLectureship['AppSubjectGroup'],
+                        $tblDivision,
+                        $tblSubject)
+                    ) {
+                        $Item['SubjectGroup'] = $AddLectureship['AppSubjectGroup'];
+                    }
+
+                    if (Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision)) {
+                        $Item['Subject'] = $AddLectureship['AppSubject'];
+                    }
+                }
+
+
+                $Item['Status'] = new Success(new Ok().' Lehrauftrag erstellen!');
+                $tblPerson = Person::useService()->getPersonById($AddLectureship['PersonId']);
+                if ($tblPerson) {
+                    $Item['Person'] = $tblPerson->getFullName();
+                    $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
+                    if ($tblTeacher) {
+                        $Item['Person'] = $tblTeacher->getAcronym().' - '.$tblPerson->getFullName();
+                    }
+                }
+                array_push($TableControl, $Item);
             });
         }
 
@@ -344,13 +504,14 @@ class Lectureship extends Import implements IFrontendInterface
                         ),
                         new LayoutColumn(
                             new Standard(( !$Visible ? new Info(new Bold('Alle')) : 'Alle' ),
-                                '/Transfer/Untis/Import/Lectureship/Show', new Listing())
+                                '/Transfer/Untis/Import/Lectureship/Show', new Listing(), array(),
+                                'Anzeige aller verfügbarer Daten')
                             .new Standard(( $Visible == 1 ? new Info(new Bold('Gültige Importe')) : 'Gültige Importe' ),
-                                '/Transfer/Untis/Import/Lectureship/Show', new Ok()
-                                , array('Visible' => 1))
+                                '/Transfer/Untis/Import/Lectureship/Show', new Ok(), array('Visible' => 1),
+                                'Anzeige der aktuell möglichen Importe')
                             .new Standard(( $Visible == 2 ? new Info(new Bold('Fehler')) : 'Fehler' ),
-                                '/Transfer/Untis/Import/Lectureship/Show', new EyeOpen()
-                                , array('Visible' => 2))
+                                '/Transfer/Untis/Import/Lectureship/Show', new EyeOpen(), array('Visible' => 2),
+                                'Anzeige aller Fehler')
                         ),
                         new LayoutColumn(
                             new TableData($TableContent, new Title(( !$Visible ? 'Alle Datensätze' :
@@ -366,12 +527,39 @@ class Lectureship extends Import implements IFrontendInterface
                                     'AppSubjectGroup'  => 'Software: Gruppe',
                                     'Ignore'           => 'Importieren',
                                     'Option'           => '',
-                                )
-                            )
+                                ),
+                                array(
+                                    'order'      => array(array(1, 'asc'), array(5, 'asc')),
+                                    'columnDefs' => array(
+                                        array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                                        array('orderable' => false, 'width' => '73px', 'targets' => -2),
+                                        array('type' => 'natural', 'targets' => 0),
+                                        array('type' => 'natural', 'targets' => 1))
+                                ))
                         ),
+                        new LayoutColumn(array(
+                            new TitleLayout(new EyeOpen().' Änderungsübersicht zu den Livedaten'),
+                            new TableData($TableControl, null,
+                                array(
+                                    'Division'     => 'Klasse',
+                                    'Person'       => 'Lehrer',
+                                    'Subject'      => 'Fach',
+                                    'SubjectGroup' => 'Fach Gruppe',
+                                    'Status'       => 'Änderung',
+                                ),
+                                array(
+                                    'order'      => array(array(4, 'desc'),
+                                        array(0, 'asc'),
+                                        array(2, 'asc')),
+                                    'columnDefs' => array(
+//                                        array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                                        array('type' => 'natural', 'targets' => 0))
+                                ))
+                        )),
                         new LayoutColumn(
-                            new PrimaryLink('Import', '/Transfer/Untis/Import/Lectureship/Import', new Save())
-                        )
+                            new Container(new PrimaryLink('Import der Änderungen', '/Transfer/Untis/Import/Lectureship/Import', new Save(),
+                                array('YearId' => ( $tblYear ? $tblYear->getId() : null )), 'Diese Aktion ist unwiderruflich!'))
+                            , 4)
                     ))
                 )
             )
@@ -535,7 +723,7 @@ class Lectureship extends Import implements IFrontendInterface
     {
 
         $Stage = new Stage('Importvorbereitung', 'Leeren');
-        $Stage->setMessage('Hierbei werden alle noch nicht importierte Daten der letzten Importvorbereitung gelöscht.');
+        $Stage->setMessage('Hierbei werden alle nicht importierte Daten der letzten Importvorbereitung gelöscht.');
         $tblUntisImportLectureshipList = Import::useService()->getUntisImportLectureshipAll(true);
         if (!$tblUntisImportLectureshipList) {
             $Stage->setContent(new Warning('Keine Restdaten eines Import\s vorhanden'));
@@ -546,7 +734,7 @@ class Lectureship extends Import implements IFrontendInterface
             $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Import', new ChevronLeft()));
             $Stage->setContent(
                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                    new Panel(new Question().'Verbleibende Importvorbereitung der Lehraufträge wirklich löschen? '
+                    new Panel(new Question().'Vorhandene Importvorbereitung der Lehraufträge wirklich löschen? '
                         .new Muted(new Small('Anzahl Datensätze: "<b>'.count($tblUntisImportLectureshipList).'</b>"')),
                         '',
                         Panel::PANEL_TYPE_DANGER,
@@ -601,16 +789,25 @@ class Lectureship extends Import implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendImportLectureShip()
+    /**
+     * @param $YearId
+     *
+     * @return Stage
+     */
+    public function frontendImportLectureShip($YearId = null)
     {
         $Stage = new Stage('Import', 'Ergebnis');
-        $LayoutColumnList = Import::useService()->importUntisLectureship();
+        $tblYear = Term::useService()->getYearById($YearId);
+        $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Import', new ChevronLeft(), array(), 'Zurück zum Untis-Import'));
+
+        $Stage->setMessage(
+            new Container('Abgebildet werden alle Lehraufträge aller importierten Klassen für das ausgewählte Jahr '.( $tblYear ? $tblYear->getYear() : '' ).'.')
+            .new Container('Lehraufträge anderer Klassen bleiben unangetastet!'));
+        $LayoutRowList = Import::useService()->importUntisLectureship();
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
-                        $LayoutColumnList
-                    )
+                    $LayoutRowList
                 )
             )
         );

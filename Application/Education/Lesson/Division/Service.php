@@ -322,7 +322,7 @@ class Service extends AbstractService
     public function getLevelAllByName($Name)
     {
 
-        return ( new Data($this->getBinding()) )->getAllLevelByName($Name);
+        return ( new Data($this->getBinding()) )->getLevelAllByName($Name);
     }
 
     /**
@@ -909,6 +909,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $SubjectTeacherList
+     *
+     * @return bool
+     */
+    public function addSubjectTeacherList($SubjectTeacherList)
+    {
+
+        return ( new Data($this->getBinding()) )->addSubjectTeacherList($SubjectTeacherList);
+    }
+
+    /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
      * @return bool|TblSubjectTeacher[]
@@ -933,6 +944,17 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->removeSubjectTeacher($tblSubjectTeacher, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblSubjectTeacher[] $tblSubjectTeacherList
+     *
+     * @return bool
+     */
+    public function removeSubjectTeacherList($tblSubjectTeacherList)
+    {
+
+        return ( new Data($this->getBinding()) )->removeSubjectTeacherList($tblSubjectTeacherList);
     }
 
     /**
@@ -2195,16 +2217,5 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getLevelBy($serviceTblType, $Name);
-    }
-
-    /**
-     * @param string $Name
-     *
-     * @return false|TblLevel[]
-     */
-    public function getLevelAllByName($Name)
-    {
-
-        return ( new Data($this->getBinding()) )->getLevelAllByName($Name);
     }
 }

@@ -122,7 +122,6 @@ class LectureshipGateway extends AbstractConverter
         $this->setPointer(new FieldPointer('L', 'AppSubjectGroup'));
         $this->setSanitizer(new FieldSanitizer('L', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
 
-
         $this->scanFile(0);
     }
 
@@ -154,7 +153,24 @@ class LectureshipGateway extends AbstractConverter
             $Result = array_merge($Result, $Part);
         }
         if (!$this->IsError) {
-            $this->ImportList[] = $Result;
+            $tblDivision = ( isset($Result['DivisionId']) && $Result['DivisionId'] !== null ? Division::useService()->getDivisionById($Result['DivisionId']) : null );
+            $tblTeacher = ( isset($Result['TeacherId']) && $Result['TeacherId'] !== null ? Teacher::useService()->getTeacherById($Result['TeacherId']) : null );
+            $tblSubject = ( isset($Result['SubjectId']) && $Result['SubjectId'] !== null ? Subject::useService()->getSubjectById($Result['SubjectId']) : null );
+            $FileDivision = $Result['FileDivision'];
+            $FileTeacher = $Result['FileTeacher'];
+            $FileSubject = $Result['FileSubject'];
+            $FileSubjectGroup = $Result['FileSubjectGroup'];
+            $AppSubjectGroup = $Result['AppSubjectGroup'];
+
+            $ImportRow = array('tblDivision'      => $tblDivision,
+                               'tblTeacher'       => $tblTeacher,
+                               'tblSubject'       => $tblSubject,
+                               'FileDivision'     => $FileDivision,
+                               'FileTeacher'      => $FileTeacher,
+                               'FileSubject'      => $FileSubject,
+                               'FileSubjectGroup' => $FileSubjectGroup,
+                               'AppSubjectGroup'  => $AppSubjectGroup);
+            $this->ImportList[] = $ImportRow;
         } else {
             $this->IsError = false;
         }

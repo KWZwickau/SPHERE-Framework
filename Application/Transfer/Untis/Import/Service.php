@@ -2,11 +2,13 @@
 namespace SPHERE\Application\Transfer\Untis\Import;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Transfer\Untis\Import\Service\Data;
 use SPHERE\Application\Transfer\Untis\Import\Service\Entity\TblUntisImportLectureship;
 use SPHERE\Application\Transfer\Untis\Import\Service\Setup;
@@ -18,10 +20,9 @@ use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
-use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -77,46 +78,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array   $ImportList
-     * @param TblYear $tblYear
+     * @param            $ImportList
+     * @param TblYear    $tblYear
+     * @param TblAccount $tblAccount
      *
      * @return bool
      */
-    public function createUntisImportLectureShipByImportList($ImportList, TblYear $tblYear)
+    public function createUntisImportLectureShipByImportList($ImportList, TblYear $tblYear, TblAccount $tblAccount)
     {
 
-        $Manager = false;
-        if (!empty($ImportList)) {
-            foreach ($ImportList as $Result) {
-//                Debugger::screenDump($Result);
-                // create new import
-                $tblDivision = ( isset($Result['DivisionId']) && $Result['DivisionId'] !== null ? Division::useService()->getDivisionById($Result['DivisionId']) : null );
-                $tblTeacher = ( isset($Result['TeacherId']) && $Result['TeacherId'] !== null ? Teacher::useService()->getTeacherById($Result['TeacherId']) : null );
-                $tblSubject = ( isset($Result['SubjectId']) && $Result['SubjectId'] !== null ? Subject::useService()->getSubjectById($Result['SubjectId']) : null );
-
-                $tblAccount = Account::useService()->getAccountBySession();
-                if (!$tblAccount) {
-                    $tblAccount = null;
-                }
-
-                $Manager = ( new Data($this->getBinding()) )->createUntisImportLectureship(
-                    $tblYear,
-                    $Result['FileDivision'],
-                    $Result['FileTeacher'],
-                    $Result['FileSubject'],
-                    $Result['FileSubjectGroup'],
-                    $tblDivision,
-                    $tblTeacher,
-                    $tblSubject,
-                    $Result['AppSubjectGroup'],
-                    $tblAccount);
-
-            }
-        }
-        if ($Manager) {
-            $Manager->flushCache();
-            Protocol::useService()->flushBulkEntries();
-        }
+        ( new Data($this->getBinding()) )->createUntisImportLectureship($ImportList, $tblYear, $tblAccount);
 
         return true;
     }
@@ -216,12 +187,88 @@ class Service extends AbstractService
         return false;
     }
 
+    /**
+     * @param TblUntisImportLectureship[] $tblUntisImportLectureshipList
+     *
+     * @return TblDivision[]|bool
+     */
+    public function getDivisionListByUntisImportLectureship($tblUntisImportLectureshipList)
+    {
+        $tblDivisionList = array();
+        if (!empty($tblUntisImportLectureshipList)) {
+            foreach ($tblUntisImportLectureshipList as $tblUntisImportLectureship) {
+                $tblDivision = $tblUntisImportLectureship->getServiceTblDivision();
+                if ($tblDivision) {
+                    if (!array_key_exists($tblDivision->getId(), $tblDivisionList)) {
+                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                    }
+                }
+            }
+        }
+
+        return ( !empty($tblDivisionList) ? $tblDivisionList : false );
+    }
+
+    /**
+     * @param TblDivision[] $tblDivisionList
+     *
+     * @return TblSubjectTeacher[]|bool
+     */
+    public function getSubjectTeacherListByDivisionList($tblDivisionList = array())
+    {
+
+        $SubjectTeacherList = array();
+        if (!empty($tblDivisionList)) {
+            foreach ($tblDivisionList as $tblDivision) {
+                $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+                if ($tblDivisionSubjectList) {
+                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                        $tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
+                        if ($tblSubjectTeacherList) {
+                            $SubjectTeacherList = array_merge($SubjectTeacherList, $tblSubjectTeacherList);
+                        }
+                    }
+                }
+            }
+        }
+        return ( !empty($SubjectTeacherList) ? $SubjectTeacherList : false );
+    }
+
+    /**
+     * @param TblSubjectTeacher[] $SubjectTeacherList
+     *
+     * @return bool
+     */
+    public function removeLectureshipBySubjectTeacherList($SubjectTeacherList = array())
+    {
+
+        if (!empty($SubjectTeacherList)) {
+            Division::useService()->removeSubjectTeacherList($SubjectTeacherList);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return LayoutRow[]
+     */
     public function importUntisLectureship()
     {
 
         $InfoList = array();
         $tblUntisImportLectureshipList = $this->getUntisImportLectureshipAll(true);
         if ($tblUntisImportLectureshipList) {
+
+            //remove Lectureship (by used import division)
+            $tblDivisionList = $this->getDivisionListByUntisImportLectureship($tblUntisImportLectureshipList);
+            if ($tblDivisionList) {
+                $tblSubjectTeacherList = $this->getSubjectTeacherListByDivisionList($tblDivisionList);
+                if ($tblSubjectTeacherList) {
+                    $this->removeLectureshipBySubjectTeacherList($tblSubjectTeacherList);
+                }
+            }
+
+            $createSubjectTeacherList = array();
             foreach ($tblUntisImportLectureshipList as $Key => $tblUntisImportLectureship) {
                 $ImportError = 0;
                 if (!( $tblDivision = $tblUntisImportLectureship->getServiceTblDivision() )) {
@@ -253,9 +300,9 @@ class Service extends AbstractService
                 if (!$tblDivisionSubject) {
                     // add Subject
                     $tblDivisionSubject = Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
-                    $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] =
-                        new SuccessText($tblSubject->getAcronym().' - '.$tblSubject->getName().' (neu)')
-                        .new PullRight($tblPerson->getFullName());
+//                    $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] =
+//                        new SuccessText($tblSubject->getAcronym().' - '.$tblSubject->getName().' (neu)')
+//                        .new PullRight($tblPerson->getFullName());
                 }
 
                 if ($SubjectGroup) {
@@ -272,53 +319,21 @@ class Service extends AbstractService
                     }
                 }
                 if ($tblDivisionSubject) {
-                    $tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
-                    $foundTeacher = false;
-                    if ($tblDivisionTeacherList) {
-                        foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
-                            $CreateDate = $tblDivisionTeacher->getEntityCreate();
-                            //ToDO gescheites Verfahren um Lehraufträge zu entfernen!!! + Anzeige dieser Daten
-                            // aktuell werden Lehraufträge gelöscht (im aktuellen Fach/Klasse) die nicht von "Heute" sind.
-                            $tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson();
-                            if ($tblPersonTeacher) {
-                                if ($CreateDate->format('d.m.Y:i') != ( new \DateTime('now') )->format('d.m.Y:i')
-                                    && $tblPerson->getId() != $tblPersonTeacher->getId()
-                                ) {
-                                    Division::useService()->removeSubjectTeacher($tblDivisionTeacher);
-                                    $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key.'L'] =
-                                        $tblSubject->getAcronym().' - '.$tblSubject->getName()
-                                        .new DangerText(new PullRight($tblPersonTeacher->getFullName().' (entfernt)'));
-                                } else {
-                                    if ($tblDivisionTeacher->getServiceTblPerson()) {
-                                        if ($tblDivisionTeacher->getServiceTblPerson()->getId() == $tblPerson->getId()) {
-                                            $foundTeacher = true;
-                                        }
-                                    }
-                                }
-                            } else {
-                                if ($CreateDate->format('d.m.Y:i') != ( new \DateTime('now') )->format('d.m.Y:i')) {
-                                    Division::useService()->removeSubjectTeacher($tblDivisionTeacher);
-                                } else {
-                                    if ($tblDivisionTeacher->getServiceTblPerson()) {
-                                        if ($tblDivisionTeacher->getServiceTblPerson()->getId() == $tblPerson->getId()) {
-                                            $foundTeacher = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (!$foundTeacher) {
-                        // add Subject Teacher
-                        Division::useService()->addSubjectTeacher($tblDivisionSubject, $tblPerson);
-                        $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] =
-                            $tblSubject->getAcronym().' - '.$tblSubject->getName()
-                            .new SuccessText(new PullRight($tblPerson->getFullName().' (neu)'));
-                    }
+                    // add Subject Teacher
+
+                    $createSubjectTeacherList[] = array('tblDivisionSubject' => $tblDivisionSubject,
+                                                        'tblPerson'          => $tblPerson);
+//                    $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] =
+//                        $tblSubject->getAcronym().' - '.$tblSubject->getName()
+//                        .new SuccessText(new PullRight($tblPerson->getFullName().' (neu)'));
                 }
-                // entfernen des erfolgreichen Imports
-//                Import::useService()->destroyUntisImportLectureship($tblUntisImportLectureship);
+
             }
+            // bulkSave for Lectureship
+            Division::useService()->addSubjectTeacherList($createSubjectTeacherList);
+
+            //Delete tblImport
+            Import::useService()->destroyUntisImportLectureship();
         }
 
         $LayoutColumnArray = array();
@@ -351,6 +366,23 @@ class Service extends AbstractService
                 }
             }
         }
-        return $LayoutColumnArray;
+
+        // save clean view by LayoutRows
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $tblPhone
+         */
+        foreach ($LayoutColumnArray as $LayoutColumn) {
+            if ($LayoutRowCount % 3 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($LayoutColumn);
+            $LayoutRowCount++;
+        }
+
+        return $LayoutRowList;
     }
 }

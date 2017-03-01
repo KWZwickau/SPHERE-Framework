@@ -190,11 +190,11 @@ class Data extends AbstractData
      *
      * @return false|TblLevel[]
      */
-    public function getAllLevelByName($Name)
+    public function getLevelAllByName($Name)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel'
-            , array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
+            array(
                 TblLevel::ATTR_NAME => $Name
             ));
     }
@@ -1081,6 +1081,43 @@ class Data extends AbstractData
     }
 
     /**
+     * @param array $SubjectTeacherList
+     *
+     * @return bool
+     */
+    public function addSubjectTeacherList($SubjectTeacherList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if ($SubjectTeacherList) {
+            foreach ($SubjectTeacherList as $Content) {
+                /** @var TblDivisionSubject $tblDivisionSubject */
+                $tblDivisionSubject = $Content['tblDivisionSubject'];
+                /** @var TblPerson $tblPerson */
+                $tblPerson = $Content['tblPerson'];
+                $Entity = $Manager->getEntity('TblSubjectTeacher')
+                    ->findOneBy(array(
+                        TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                        TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                    ));
+
+                if (null === $Entity) {
+                    $Entity = new TblSubjectTeacher();
+                    $Entity->setServiceTblPerson($tblPerson);
+                    $Entity->setTblDivisionSubject($tblDivisionSubject);
+                    $Manager->bulkSaveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param TblPerson $tblPerson
      * @param bool $IsSoftRemove
@@ -1300,6 +1337,31 @@ class Data extends AbstractData
                 $Manager->killEntity($Entity);
             }
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubjectTeacher[] $tblSubjectTeacherList
+     *
+     * @return bool
+     */
+    public function removeSubjectTeacherList($tblSubjectTeacherList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if ($tblSubjectTeacherList) {
+            foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
+                $Entity = $Manager->getEntityById('TblSubjectTeacher', $tblSubjectTeacher->getId());
+                if (null !== $Entity) {
+                    /** @var TblSubjectTeacher $Entity */
+                    $Manager->bulkKillEntity($Entity);
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;
@@ -2052,20 +2114,5 @@ class Data extends AbstractData
                 TblLevel::ATTR_NAME => $Name
             ));
         return ($Entity ? $Entity : false);
-    }
-
-    /**
-     * @param string $Name
-     *
-     * @return false|TblLevel[]
-     */
-    public function getLevelAllByName($Name)
-    {
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
-            array(
-                TblLevel::ATTR_NAME => $Name
-            ));
-        return $EntityList;
     }
 }

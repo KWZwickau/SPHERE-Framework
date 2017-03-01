@@ -58,51 +58,43 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYear     $tblYear
-     * @param string      $SchoolClass
-     * @param string      $TeacherAcronym
-     * @param string      $SubjectName
-     * @param string      $SubjectGroupName
-     * @param TblDivision $tblDivision
-     * @param TblTeacher  $tblTeacher
-     * @param TblSubject  $tblSubject
-     * @param string      $SubjectGroup
-     * @param TblAccount  $tblAccount
+     * @param            $ImportList
+     * @param TblYear    $tblYear
+     * @param TblAccount $tblAccount
      *
-     * @return \SPHERE\System\Database\Fitting\Manager
+     * @return bool
      */
     public function createUntisImportLectureship(
+        $ImportList,
         TblYear $tblYear,
-        $SchoolClass,
-        $TeacherAcronym,
-        $SubjectName,
-        $SubjectGroupName,
-        TblDivision $tblDivision = null,
-        TblTeacher $tblTeacher = null,
-        TblSubject $tblSubject = null,
-        $SubjectGroup,
         TblAccount $tblAccount
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($ImportList)) {
+            foreach ($ImportList as $Result) {
 
-        $Entity = new TblUntisImportLectureship();
-        $Entity->setServiceTblYear($tblYear);
-        $Entity->setSchoolClass($SchoolClass);
-        $Entity->setTeacherAcronym($TeacherAcronym);
-        $Entity->setSubjectName($SubjectName);
-        $Entity->setSubjectGroupName($SubjectGroupName);
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblTeacher($tblTeacher);
-        $Entity->setServiceTblSubject($tblSubject);
-        $Entity->setSubjectGroup($SubjectGroup);
-        $Entity->setServiceTblAccount($tblAccount);
-        $Entity->setIsIgnore(false);
+                $Entity = new TblUntisImportLectureship();
+                $Entity->setServiceTblYear($tblYear);
+                $Entity->setSchoolClass($Result['FileDivision']);
+                $Entity->setTeacherAcronym($Result['FileTeacher']);
+                $Entity->setSubjectName($Result['FileSubject']);
+                $Entity->setSubjectGroupName($Result['FileSubjectGroup']);
+                $Entity->setServiceTblDivision($Result['tblDivision']);
+                $Entity->setServiceTblTeacher($Result['tblTeacher']);
+                $Entity->setServiceTblSubject($Result['tblSubject']);
+                $Entity->setSubjectGroup($Result['AppSubjectGroup']);
+                $Entity->setServiceTblAccount($tblAccount);
+                $Entity->setIsIgnore(false);
 
-        $Manager->bulkSaveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
-
-        return $Manager;
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
     }
 
     /**
