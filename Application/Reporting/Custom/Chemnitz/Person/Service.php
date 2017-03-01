@@ -1432,32 +1432,27 @@ class Service extends Extension
                     if ($tblStudentElectiveList) {
                         foreach ($tblStudentElectiveList as $tblStudentElective) {
                             if ($tblStudentElective->getServiceTblSubject()) {
-                                $ElectiveList[] = $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                $tblSubjectRanking = $tblStudentElective->getTblStudentSubjectRanking();
+                                if ($tblSubjectRanking) {
+                                    $ElectiveList[$tblStudentElective->getTblStudentSubjectRanking()->getIdentifier()] =
+                                        $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                } else {
+                                    $ElectiveList[] =
+                                        $tblStudentElective->getServiceTblSubject()->getAcronym();
+                                }
                             }
+                        }
+                        if (!empty($ElectiveList)) {
+                            ksort($ElectiveList);
                         }
                         $ElectiveCount = 1;
                         if (!empty( $ElectiveList )) {
-                            $Item['Elective'] = implode(', ', $ElectiveList);
-                            foreach ($ElectiveList as $Elective) {
-                                $Item['Elective'.$ElectiveCount] = $Elective;
+                            $Item['Elective'] = implode('<br/>', $ElectiveList);
+                            foreach ($ElectiveList as $Key => $Elective) {
+                                $Item['Elective'.$Key] = $Elective;
                                 $ElectiveCount++;
                             }
                         }
-                    }
-
-                    // Wahlfach
-                    $tblStudentElectiveList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                        $tblStudent,
-                        Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE')
-                    );
-                    $AcronymList = array();
-                    if ($tblStudentElectiveList) {
-                        foreach ($tblStudentElectiveList as $tblStudentElective) {
-                            if (( $tblSubject = $tblStudentElective->getServiceTblSubject() )) {
-                                $AcronymList[] = $tblSubject->getAcronym();
-                            }
-                        }
-                        $Item['Elective'] = implode('<br/>', $AcronymList);
                     }
 
                     $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -1634,28 +1629,23 @@ class Service extends Extension
                 } else {
                     $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow2']);
                 }
-
-                if ($PersonData['ExcelAddressRow0'] != '') {
-                    $Row++;
-                    $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow2']);
+                if (isset($PersonData['Elective2'])) {
+                    $export->setValue($export->getCell(7, $Row), $PersonData['Elective2']);
                 }
 
-                if (isset( $PersonData['Elective2'] )) {
-                    $export->setValue($export->getCell(7, $Row), $PersonData['Elective2']);
+                if ($PersonData['ExcelAddressRow0'] != '' || isset($PersonData['Elective3'])) {
+                    $Row++;
+                    if (isset($PersonData['Elective3'])) {
+                        $export->setValue($export->getCell(7, $Row), $PersonData['Elective3']);
+                    }
+                    if ($PersonData['ExcelAddressRow0'] != '') {
+                        $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow2']);
+                    }
                 }
                 $RowCounting = array(3, 4, 5, 6, 7, 8, 9, 10);
                 foreach ($RowCounting as $RowCount) {
                     if (isset( $PersonData['ExcelNameRow'.$RowCount] ) || isset( $PersonData['ExcelAddressRow'.$RowCount] )) {
                         $Row++;
-                        // Test Style the Border (missing dashed line)
-//                        if($RowCount == 3 && isset($PersonData['ExcelAddressRow'.$RowCount])){
-//                            $export->setStyle($export->getCell(2, $Row), $export->getCell(2, $Row))
-//                                ->setBorderTop(1);
-//                        }
-//                        if($RowCount == 6 && isset($PersonData['ExcelAddressRow'.$RowCount])){
-//                            $export->setStyle($export->getCell(2, $Row), $export->getCell(2, $Row))
-//                                ->setBorderTop(1);
-//                        }
                         if (isset( $PersonData['ExcelNameRow'.$RowCount] )) {
                             $export->setValue($export->getCell(0, $Row), $PersonData['ExcelNameRow'.$RowCount]);
                         }
