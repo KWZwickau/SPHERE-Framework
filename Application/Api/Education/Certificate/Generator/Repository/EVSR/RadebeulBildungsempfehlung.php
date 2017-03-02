@@ -342,7 +342,7 @@ class RadebeulBildungsempfehlung extends Certificate
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Auf Grund des Leitungsstandes und des Gutachtens wird
+                        ->setContent('Auf Grund des Leistungsstandes und des Gutachtens wird
                         {% if Content.Person.Common.BirthDates.Gender == 2 %}
                                 der Schülerin
                             {% else %}
