@@ -1165,17 +1165,17 @@ class Service extends Extension
                 $Item['Number'] = $count++;
                 $Item['Orientation'] = '';
                 $Item['Education'] = '';
-                $Item['ExcelNameRow2'] = '';
+                $Item['ExcelName'] = '';
                 $Item['Address'] = '';
-                $Item['ExcelAddressRow0'] = '';
-                $Item['ExcelAddressRow1'] = '';
-                $Item['ExcelAddressRow2'] = '';
+                $Item['ExcelAddress'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = '';
                 $Item['PhoneNumbers'] = '';
+                $Item['ExcelPhoneNumbers'] = '';
                 $Item['Orientation'] = '';
                 $Item['Education'] = '';
                 $Item['Group'] = '';
                 $Item['Elective'] = '';
+                $Item['ExcelElective'] = '';
                 $Item['Integration'] = '';
 
                 $father = null;
@@ -1230,66 +1230,50 @@ class Service extends Extension
                     $Item['ExcelSibling'] = $Sibling;
                 }
 
-                if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
-                    $address = $addressList[0];
-                } else {
-                    $address = null;
+                if (!( $tblAddress = Address::useService()->getAddressByPerson($tblPerson) )) {
+                    $tblAddress = false;
+                }
+                if ($tblAddress) {
+                    if ($tblAddress->getTblCity()->getDisplayDistrict() != '') {
+                        $Item['ExcelAddress'][] = $tblAddress->getTblCity()->getDisplayDistrict();
+                    }
+                    $Item['ExcelAddress'][] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+                    $Item['ExcelAddress'][] = $tblAddress->getTblCity()->getCode().' '.$tblAddress->getTblCity()->getName();
                 }
 
-                $AddressFatherString = '';
-                $AddressMotherString = '';
                 if ($father) {
-                    $AddressListFather = Address::useService()->getAddressAllByPerson($father);
-                    if ($AddressListFather && $AddressListFather[0]->getTblAddress()->getId() != ( $address != null ? $address->getTblAddress()->getId() : null )) {
-                        $AddressFatherString =
-                            '<br/>- - - - - - -<br/>'.
-                            '('.$father->getLastFirstName().')<br/>'.
-                            ( $AddressListFather[0]->getTblAddress()->getTblCity()->getDistrict() != ''
-                                ? $AddressListFather[0]->getTblAddress()->getTblCity()->getDistrict().' '
-                                : '' ).
-                            $AddressListFather[0]->getTblAddress()->getStreetName().' '.
-                            $AddressListFather[0]->getTblAddress()->getStreetName().' '.
-                            $AddressListFather[0]->getTblAddress()->getStreetNumber().'<br>'.
-                            $AddressListFather[0]->getTblAddress()->getTblCity()->getCode().' '.
-                            $AddressListFather[0]->getTblAddress()->getTblCity()->getName();
-                        $Item['ExcelAddressRow3'] = '- - - - - - -';
-                        $Item['ExcelAddressRow4'] = '('.$father->getLastFirstName().')';
-                        $Item['ExcelAddressRow5'] =
-                            ( $AddressListFather[0]->getTblAddress()->getTblCity()->getDistrict() != ''
-                                ? $AddressListFather[0]->getTblAddress()->getTblCity()->getDistrict().' '
-                                : '' ).
-                            $AddressListFather[0]->getTblAddress()->getStreetName().' '.
-                            $AddressListFather[0]->getTblAddress()->getStreetNumber();
-                        $Item['ExcelAddressRow6'] = $AddressListFather[0]->getTblAddress()->getTblCity()->getCode().' '.
-                            $AddressListFather[0]->getTblAddress()->getTblCity()->getName();
-
+                    $tblAddressFather = Address::useService()->getAddressByPerson($father);
+                    if ($tblAddressFather && $tblAddressFather->getId() != ( $tblAddress ? $tblAddress->getId() : null )) {
+                        if (!empty($Item['ExcelAddress'])) {
+                            $Item['ExcelAddress'][] = '- - - - - - -';
+                        }
+                        $Item['ExcelAddress'][] = '('.$father->getLastFirstName().')';
+                        if ($tblAddressFather->getTblCity()->getDistrict() != '') {
+                            $Item['ExcelAddress'][] = $tblAddressFather->getTblCity()->getDistrict();
+                        }
+                        $Item['ExcelAddress'][] = $tblAddressFather->getStreetName().' '.$tblAddressFather->getStreetNumber();
+                        $Item['ExcelAddress'][] = $tblAddressFather->getTblCity()->getCode().' '.$tblAddressFather->getTblCity()->getName();
                     }
                 }
                 if ($mother) {
-                    $AddressListMother = Address::useService()->getAddressAllByPerson($mother);
-                    if ($AddressListMother && $AddressListMother[0]->getTblAddress()->getId() != ( $address != null ? $address->getTblAddress()->getId() : null )) {
-                        $AddressMotherString =
-                            '<br/>- - - - - - -<br/>'.
-                            '('.$mother->getLastFirstName().')<br/>'.
-                            ( $AddressListMother[0]->getTblAddress()->getTblCity()->getDistrict() != ''
-                                ? $AddressListMother[0]->getTblAddress()->getTblCity()->getDistrict().' '
-                                : '' ).
-                            $AddressListMother[0]->getTblAddress()->getStreetName().' '.
-                            $AddressListMother[0]->getTblAddress()->getStreetNumber().'<br>'.
-                            $AddressListMother[0]->getTblAddress()->getTblCity()->getCode().' '.
-                            $AddressListMother[0]->getTblAddress()->getTblCity()->getName();
-                        $Item['ExcelAddressRow7'] = '- - - - - - -';
-                        $Item['ExcelAddressRow8'] = '('.$mother->getLastFirstName().')';
-                        $Item['ExcelAddressRow9'] =
-                            ( $AddressListMother[0]->getTblAddress()->getTblCity()->getDistrict() != ''
-                                ? $AddressListMother[0]->getTblAddress()->getTblCity()->getDistrict().' '
-                                : '' ).
-                            $AddressListMother[0]->getTblAddress()->getStreetName().' '.
-                            $AddressListMother[0]->getTblAddress()->getStreetNumber();
-                        $Item['ExcelAddressRow10'] = $AddressListMother[0]->getTblAddress()->getTblCity()->getCode().' '.
-                            $AddressListMother[0]->getTblAddress()->getTblCity()->getName();
+                    $tblAddressMother = Address::useService()->getAddressByPerson($mother);
+                    if ($tblAddressMother && $tblAddressMother->getId() != ( $tblAddress ? $tblAddress->getId() : null )) {
+                        if (!empty($Item['ExcelAddress'])) {
+                            $Item['ExcelAddress'][] = '- - - - - - -';
+                        }
+                        $Item['ExcelAddress'][] = '('.$mother->getLastFirstName().')';
+                        if ($tblAddressMother->getTblCity()->getDistrict() != '') {
+                            $Item['ExcelAddress'][] = $tblAddressMother->getTblCity()->getDistrict();
+                        }
+                        $Item['ExcelAddress'][] = $tblAddressMother->getStreetName().' '.$tblAddressMother->getStreetNumber();
+                        $Item['ExcelAddress'][] = $tblAddressMother->getTblCity()->getCode().' '.$tblAddressMother->getTblCity()->getName();
                     }
                 }
+
+                if (!empty($Item['ExcelAddress'])) {
+                    $Item['Address'] = implode('<br/>', $Item['ExcelAddress']);
+                }
+
 
                 $Item['FatherName'] = $father ? ($tblPerson->getLastName() == $father->getLastName()
                     ? $father->getFirstSecondName() : $father->getFirstSecondName() . ' ' . $father->getLastName()) : '';
@@ -1314,39 +1298,17 @@ class Service extends Extension
                         .( $mother ? $Item['MotherName'] : '' ).')' : '' )
                     .( $SiblingString != '' ? '<br/>'.$SiblingString : '' );
 
-                $Item['ExcelNameRow1'] = $tblPerson->getLastFirstName();
+                $Item['ExcelName'][] = $tblPerson->getLastFirstName();
                 if ($father || $mother) {
-                    $Item['ExcelNameRow2'] = '(' . ($father ? $Item['FatherName']
+                    $Item['ExcelName'][] = '('.( $father ? $Item['FatherName']
                             . ($mother ? ', ' : '') : '')
                         . ($mother ? $Item['MotherName'] : '') . ')';
                 }
-                $SiblingCount = 3;
+
                 if (!empty( $Sibling )) {
                     foreach ($Sibling as $Child) {
-                        $Item['ExcelNameRow'.$SiblingCount] = $Child;
-                        $SiblingCount++;
+                        $Item['ExcelName'][] = $Child;
                     }
-                }
-
-                if ($address !== null) {
-                    $Item['Address'] =
-                        ( $address->getTblAddress()->getTblCity()->getDistrict() !== '' ?
-                            $address->getTblAddress()->getTblCity()->getDistrict().'<br>'
-                            : '' ).
-                        $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber() . '<br>' .
-                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getName()
-                        .( $AddressFatherString != '' ? $AddressFatherString : '' )
-                        .( $AddressMotherString != '' ? $AddressMotherString : '' );
-
-                    if ($address->getTblAddress()->getTblCity()->getDistrict() !== '') {
-                        $Item['ExcelAddressRow0'] = $address->getTblAddress()->getTblCity()->getDistrict();
-                    }
-                    $Item['ExcelAddressRow1'] = $address->getTblAddress()->getStreetName() . ' ' .
-                        $address->getTblAddress()->getStreetNumber();
-                    $Item['ExcelAddressRow2'] = $address->getTblAddress()->getTblCity()->getCode() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getName();
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -1389,6 +1351,7 @@ class Service extends Extension
                     $Item['ExcelPhoneNumbers'] = $phoneNumbers;
                 }
 
+                // NK/Profil
                 if ($tblStudent) {
                     $isSet = false;
                     // Profil
@@ -1423,6 +1386,27 @@ class Service extends Extension
 //                        }
 //                    }
 
+                    // Bildungsgang
+                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                    if ($tblTransferType) {
+                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType);
+                        if ($tblStudentTransfer) {
+                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                            if ($tblCourse) {
+                                if ($tblCourse->getName() == 'Gymnasium') {
+                                    $Item['Education'] = 'GY';
+                                } elseif ($tblCourse->getName() == 'Hauptschule') {
+                                    $Item['Education'] = 'HS';
+                                } elseif ($tblCourse->getName() == 'Realschule') {
+                                    $Item['Education'] = 'RS';
+                                } else {
+                                    $Item['Education'] = $tblCourse->getName();
+                                }
+                            }
+                        }
+                    }
+
                     // Wahlfach
                     $tblStudentElectiveList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                         $tblStudent,
@@ -1445,32 +1429,10 @@ class Service extends Extension
                         if (!empty($ElectiveList)) {
                             ksort($ElectiveList);
                         }
-                        $ElectiveCount = 1;
                         if (!empty( $ElectiveList )) {
                             $Item['Elective'] = implode('<br/>', $ElectiveList);
-                            foreach ($ElectiveList as $Key => $Elective) {
-                                $Item['Elective'.$Key] = $Elective;
-                                $ElectiveCount++;
-                            }
-                        }
-                    }
-
-                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                    if ($tblTransferType) {
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblTransferType);
-                        if ($tblStudentTransfer) {
-                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            if ($tblCourse) {
-                                if ($tblCourse->getName() == 'Gymnasium') {
-                                    $Item['Education'] = 'GY';
-                                } elseif ($tblCourse->getName() == 'Hauptschule') {
-                                    $Item['Education'] = 'HS';
-                                } elseif ($tblCourse->getName() == 'Realschule') {
-                                    $Item['Education'] = 'RS';
-                                } else {
-                                    $Item['Education'] = $tblCourse->getName();
-                                }
+                            foreach ($ElectiveList as $Elective) {
+                                $Item['ExcelElective'][] = $Elective;
                             }
                         }
                     }
@@ -1561,13 +1523,8 @@ class Service extends Extension
     public function createPrintClassListExcel($PersonList, $tblPersonList, $DivisionId)
     {
 
+        // get PersonList sorted by GradeBook
         if (!empty($PersonList)) {
-
-//            // sortieren
-//            foreach ($PersonList as $key => $row) {
-//                $sort[$key] = strtoupper($row['ExcelNameRow1']);
-//            }
-//            array_multisort($sort, SORT_ASC, $PersonList);
 
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
@@ -1603,68 +1560,61 @@ class Service extends Extension
 
             $Row = 2;
             foreach ($PersonList as $PersonData) {
-                if ($PersonData['Integration'] === '1') {
-                    $export->setStyle($export->getCell(0, $Row), $export->getCell(0, $Row))->setFontBold();
-                    $SetIntegrationNotice = true;
-                }
-                $rowPerson = $Row;
-                $export->setValue($export->getCell(0, $Row), $PersonData['ExcelNameRow1']);
+                $NameRow = $AddressRow = $PhoneRow = $ElectiveRow = $Row;
+
                 $export->setValue($export->getCell(1, $Row), $PersonData['Birthday']);
-                if ($PersonData['ExcelAddressRow0'] != '') {
-                    $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow0']);
-                } else {
-                    $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow1']);
-                }
                 $export->setValue($export->getCell(4, $Row), $PersonData['Group']);
                 $export->setValue($export->getCell(5, $Row), $PersonData['Orientation']);
                 $export->setValue($export->getCell(6, $Row), $PersonData['Education']);
-                if (isset( $PersonData['Elective1'] )) {
-                    $export->setValue($export->getCell(7, $Row), $PersonData['Elective1']);
-                }
 
-                $Row++;
-                $export->setValue($export->getCell(0, $Row), $PersonData['ExcelNameRow2']);
-                if ($PersonData['ExcelAddressRow0'] != '') {
-                    $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow1']);
-                } else {
-                    $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow2']);
-                }
-                if (isset($PersonData['Elective2'])) {
-                    $export->setValue($export->getCell(7, $Row), $PersonData['Elective2']);
-                }
 
-                if ($PersonData['ExcelAddressRow0'] != '' || isset($PersonData['Elective3'])) {
-                    $Row++;
-                    if (isset($PersonData['Elective3'])) {
-                        $export->setValue($export->getCell(7, $Row), $PersonData['Elective3']);
-                    }
-                    if ($PersonData['ExcelAddressRow0'] != '') {
-                        $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow2']);
-                    }
-                }
-                $RowCounting = array(3, 4, 5, 6, 7, 8, 9, 10);
-                foreach ($RowCounting as $RowCount) {
-                    if (isset( $PersonData['ExcelNameRow'.$RowCount] ) || isset( $PersonData['ExcelAddressRow'.$RowCount] )) {
-                        $Row++;
-                        if (isset( $PersonData['ExcelNameRow'.$RowCount] )) {
-                            $export->setValue($export->getCell(0, $Row), $PersonData['ExcelNameRow'.$RowCount]);
+                if (isset($PersonData['ExcelName']) && !empty($PersonData['ExcelName'])) {
+                    foreach ($PersonData['ExcelName'] as $Key => $Name) {
+                        if ($Key == 0) {
+                            if ($PersonData['Integration'] === '1') {
+                                $export->setStyle($export->getCell(0, $Row), $export->getCell(0, $Row))->setFontBold();
+                                $SetIntegrationNotice = true;
+                            }
                         }
-                        if (isset( $PersonData['ExcelAddressRow'.$RowCount] )) {
-                            $export->setValue($export->getCell(2, $Row), $PersonData['ExcelAddressRow'.$RowCount]);
+                        $export->setValue($export->getCell(0, $NameRow), $Name);
+                        $NameRow++;
+                    }
+                }
+                if (isset($PersonData['ExcelAddress']) && !empty($PersonData['ExcelAddress'])) {
+                    foreach ($PersonData['ExcelAddress'] as $Address) {
+                        if ($Address == '- - - - - - -') {
+                            $export->setStyle($export->getCell(2, $AddressRow), $export->getCell(2, $AddressRow))
+                                ->setBorderTop();
+                        } else {
+                            $export->setValue($export->getCell(2, $AddressRow), $Address);
+                            $AddressRow++;
                         }
                     }
                 }
-
-                $Row++;
-
-                if (!empty($PersonData['ExcelPhoneNumbers'])) {
-                    foreach ($PersonData['ExcelPhoneNumbers'] as $phone) {
-                        $export->setValue($export->getCell(3, $rowPerson++), $phone);
+                if (isset($PersonData['ExcelPhoneNumbers']) && !empty($PersonData['ExcelPhoneNumbers'])) {
+                    foreach ($PersonData['ExcelPhoneNumbers'] as $Phone) {
+                        $export->setValue($export->getCell(3, $PhoneRow), $Phone);
+                        $PhoneRow++;
+                    }
+                }
+                if (isset($PersonData['ExcelElective']) && !empty($PersonData['ExcelElective'])) {
+                    foreach ($PersonData['ExcelElective'] as $Elective) {
+                        $export->setValue($export->getCell(7, $ElectiveRow), $Elective);
+                        $ElectiveRow++;
                     }
                 }
 
-                if ($rowPerson > $Row) {
-                    $Row = $rowPerson;
+                if ($NameRow > $Row) {
+                    $Row = $NameRow;
+                }
+                if ($AddressRow > $Row) {
+                    $Row = $AddressRow;
+                }
+                if ($PhoneRow > $Row) {
+                    $Row = $PhoneRow;
+                }
+                if ($ElectiveRow > $Row) {
+                    $Row = $ElectiveRow;
                 }
 
                 // Gittertrennlinie
