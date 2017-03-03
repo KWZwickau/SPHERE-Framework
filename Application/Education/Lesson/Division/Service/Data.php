@@ -2017,4 +2017,42 @@ class Data extends AbstractData
             ));
         return ($Entity ? $Entity : false);
     }
+
+    /**
+     * Bei Gruppen, ohne Ohne-Gruppe
+     *
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectListByDivision(TblDivision $tblDivision)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionSubject',
+            array(
+                TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
+
+        $resultList = array();
+        if ($EntityList) {
+            /** @var TblDivisionSubject $item */
+            foreach ($EntityList as $item) {
+                if ($item->getTblDivision() && $item->getServiceTblSubject()) {
+                    if ($item->getTblSubjectGroup()) {
+                        $resultList[] = $item;
+                    } else {
+                        if (!$this->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                            $item->getTblDivision(), $item->getServiceTblSubject()
+                        )
+                        ) {
+                            $resultList[] = $item;
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
 }

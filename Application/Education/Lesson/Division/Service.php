@@ -2135,4 +2135,17 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getLevelBy($serviceTblType, $Name);
     }
+
+    /**
+     * Bei Gruppen, ohne Ohne-Gruppe
+     *
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectListByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectListByDivision($tblDivision);
+    }
 }

@@ -88,6 +88,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblYear')) {
             $Table->addColumn('serviceTblYear', 'bigint', array('notnull' => false));
         }
+        if (!$Table->hasColumn('IsLocked')){
+            $Table->addColumn('IsLocked', 'boolean', array('default' => true));
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
 

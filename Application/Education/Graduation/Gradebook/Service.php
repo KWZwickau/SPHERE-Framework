@@ -461,7 +461,9 @@ class Service extends ServiceScoreRule
                     if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestByPerson,
                         $tblPerson))
                     ) {
+                        $hasCreatedGrade = false;
                         if (isset($value['Attendance'])) {
+                            $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
                                 $tblPersonTeacher ? $tblPersonTeacher : null,
@@ -480,6 +482,7 @@ class Service extends ServiceScoreRule
                                     ? $tblGradeText : null
                             );
                         } elseif (trim($value['Grade']) !== '') {
+                            $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
                                 $tblPersonTeacher ? $tblPersonTeacher : null,
@@ -498,6 +501,7 @@ class Service extends ServiceScoreRule
                                     ? $tblGradeText : null
                             );
                         } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))){
+                            $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
                                 $tblPersonTeacher ? $tblPersonTeacher : null,
@@ -514,6 +518,12 @@ class Service extends ServiceScoreRule
                                 isset($value['Date']) ? $value['Date'] : null,
                                 $tblGradeText
                             );
+                        }
+
+                        if ($hasCreatedGrade) {
+                            if (($tblTask = $tblTest->getTblTask()) && !$tblTask->isLocked()) {
+                                Evaluation::useService()->setTaskLocked($tblTask);
+                            }
                         }
                     } elseif ($tblGrade) {
 
