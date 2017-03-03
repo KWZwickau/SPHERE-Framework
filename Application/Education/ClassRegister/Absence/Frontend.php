@@ -17,6 +17,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -287,7 +288,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Well(Absence::useService()->updateAbsence($Form, $tblAbsence, $BasicRoute, $Data))
+                                    new Well(Absence::useService()->updateAbsence($Form, $tblAbsence, $BasicRoute,
+                                        $Data))
                                 )
                             ))
                         ))
@@ -357,9 +359,16 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
+            $now = new \DateTime('now');
+
             if (!$Month || !$Year) {
-                $Month = $firstMonth;
-                $Year = $firstYear;
+                if ($startDate <= $now && $now <= $endDate) {
+                    $Month = $now->format('m');
+                    $Year = $now->format('Y');
+                } else {
+                    $Month = $firstMonth;
+                    $Year = $firstYear;
+                }
             }
 
             $months = array(
@@ -408,7 +417,26 @@ class Frontend extends Extension implements IFrontendInterface
             $holidays = array();
             for ($i = 1; $i <= $maxDays; $i++) {
                 $date = new \DateTime($i . '.' . $Month . '.' . $Year);
-                $tableHead['Day' . str_pad($i, 2, '0', STR_PAD_LEFT)] = $i . '<br>' . $days[$date->format('w')];
+                if ($date->format('d.m.Y') == $now->format('d.m.Y')) {
+                    $tableHead['Day' . str_pad($i, 2, '0', STR_PAD_LEFT)] = $i . '<br>' . $days[$date->format('w')]
+                        . '<br>' . new \SPHERE\Common\Frontend\Link\Repository\Primary('',
+                            '/Education/ClassRegister/Absence/Month/Edit', new Edit(), array(
+                                'DivisionId' => $DivisionId,
+                                'Month' => $Month,
+                                'Year' => $Year,
+                                'BasicRoute' => $BasicRoute,
+                                'SelectedDate' => $date->format('d.m.Y')
+                            ));
+                } else {
+                    $tableHead['Day' . str_pad($i, 2, '0', STR_PAD_LEFT)] = $i . '<br>' . $days[$date->format('w')]
+                        . '<br>' . new Standard('', '/Education/ClassRegister/Absence/Month/Edit', new Edit(), array(
+                            'DivisionId' => $DivisionId,
+                            'Month' => $Month,
+                            'Year' => $Year,
+                            'BasicRoute' => $BasicRoute,
+                            'SelectedDate' => $date->format('d.m.Y')
+                        ));
+                }
 
                 if ($date->format('w') != 0 && $date->format('w') != 6) {
                     if (Term::useService()->getHolidayByDay($tblYear, $date)) {
@@ -649,5 +677,277 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
         return $Stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $Month
+     * @param null $Year
+     * @param string $BasicRoute
+     * @param null $SelectedDate
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendEditAbsenceMonth(
+        $DivisionId = null,
+        $Month = null,
+        $Year = null,
+        $BasicRoute = '',
+        $SelectedDate = null,
+        $Data = null
+    ) {
+
+        $Stage = new Stage('Fehlzeiten Bearbeiten', 'Monatsübersicht');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/ClassRegister/Absence/Month', new ChevronLeft(),
+            array(
+                'DivisionId' => $DivisionId,
+                'Month' => $Month,
+                'Year' => $Year,
+                'BasicRoute' => $BasicRoute,
+            )
+        ));
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $firstMonth = null;
+            $firstYear = null;
+
+            $startDate = false;
+            $endDate = false;
+            $tblYear = $tblDivision->getServiceTblYear();
+            if ($tblYear) {
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                if ($tblPeriodList) {
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        if ($startDate) {
+                            if ($startDate > new \DateTime($tblPeriod->getFromDate())) {
+                                $firstMonth = (new \DateTime($tblPeriod->getFromDate()))->format('m');
+                                $firstYear = (new \DateTime($tblPeriod->getFromDate()))->format('Y');
+                                $startDate = new \DateTime($tblPeriod->getFromDate());
+                            }
+                        } else {
+                            $firstMonth = (new \DateTime($tblPeriod->getFromDate()))->format('m');
+                            $firstYear = (new \DateTime($tblPeriod->getFromDate()))->format('Y');
+                            $startDate = new \DateTime($tblPeriod->getFromDate());
+                        }
+
+                        if ($endDate) {
+                            if ($endDate < new \DateTime($tblPeriod->getToDate())) {
+                                $endDate = new \DateTime($tblPeriod->getToDate());
+                            }
+                        } else {
+                            $endDate = new \DateTime($tblPeriod->getToDate());
+                        }
+                    }
+                }
+            }
+
+            $now = new \DateTime('now');
+
+            if (!$Month || !$Year) {
+                if ($startDate <= $now && $now <= $endDate) {
+                    $Month = $now->format('m');
+                    $Year = $now->format('Y');
+                } else {
+                    $Month = $firstMonth;
+                    $Year = $firstYear;
+                }
+            }
+
+            $months = array(
+                '01' => "Januar",
+                '02' => "Februar",
+                '03' => "März",
+                '04' => "April",
+                '05' => "Mai",
+                '06' => "Juni",
+                '07' => "Juli",
+                '08' => "August",
+                '09' => "September",
+                '10' => "Oktober",
+                '11' => "November",
+                '12' => "Dezember"
+            );
+
+            $buttonList = array();
+            if ($startDate && $endDate) {
+                while ($startDate <= $endDate) {
+                    $startDateYear = $startDate->format('Y');
+                    $startDateMonth = $startDate->format('m');
+                    $buttonList[] = new Standard(
+                        $startDateMonth == $Month && $startDateYear == $Year
+                            ? new Info(new Bold($startDateYear . ' ' . $months[$startDateMonth]))
+                            : $startDateYear . ' ' . $months[$startDateMonth],
+                        '/Education/ClassRegister/Absence/Month',
+                        null,
+                        array(
+                            'DivisionId' => $tblDivision->getId(),
+                            'Month' => $startDateMonth,
+                            'Year' => $startDateYear,
+                            'BasicRoute' => $BasicRoute
+                        )
+                    );
+                    $startDate->modify('+1 month');
+                }
+            }
+
+
+            if ($SelectedDate) {
+                $SelectedDate = new \DateTime($SelectedDate);
+            }
+
+            $days = array("So", "Mo", "Di", "Mi", "Do", "Fr", "Sa");
+
+            $maxDays = cal_days_in_month(CAL_GREGORIAN, $Month, $Year);
+            $tableHead['Number'] = '#';
+            $tableHead['Name'] = 'Schüler';
+            $holidays = array();
+            for ($i = 1; $i <= $maxDays; $i++) {
+                $date = new \DateTime($i . '.' . $Month . '.' . $Year);
+                if ($date->format('d.m.Y') == $SelectedDate->format('d.m.Y')) {
+                    $tableHead['Day' . str_pad($i, 2, '0',
+                        STR_PAD_LEFT)] = new \SPHERE\Common\Frontend\Message\Repository\Info(
+                        $i . '<br>' . $days[$date->format('w')]
+                    );
+                } else {
+                    $tableHead['Day' . str_pad($i, 2, '0', STR_PAD_LEFT)] = $i . '<br>' . $days[$date->format('w')];
+                }
+                if ($date->format('w') != 0 && $date->format('w') != 6) {
+                    if (Term::useService()->getHolidayByDay($tblYear, $date)) {
+                        $holidays[$i] = new Muted(new Small('f'));
+                    } else {
+                        $holidays[$i] = '';
+                    }
+                } else {
+                    $holidays[$i] = new Muted(new Small('w'));
+                }
+            }
+
+            $tableHead['ExcusedDays'] = 'E';
+            $tableHead['UnexcusedDays'] = 'U';
+            $tableHead['TotalDays'] = 'G';
+
+            $studentTable = array();
+            $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+            if ($tblStudentList) {
+                $statusList = array(
+                    TblAbsence::VALUE_STATUS_NULL => 'anwesend',
+                    TblAbsence::VALUE_STATUS_EXCUSED => 'entschuldigt',
+                    TblAbsence::VALUE_STATUS_UNEXCUSED => 'unentschuldigt',
+                );
+
+                $Global = $this->getGlobal();
+
+                /** @var TblPerson $tblPerson */
+                foreach ($tblStudentList as $tblPerson) {
+                    $studentTable[$tblPerson->getId()]['Number'] = count($studentTable) + 1;
+                    $studentTable[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
+                    $countExcused = 0;
+                    $countUnexcused = 0;
+                    $tblAbsenceAllByPerson = Absence::useService()->getAbsenceAllByPerson($tblPerson, $tblDivision);
+                    if ($tblAbsenceAllByPerson) {
+                        foreach ($tblAbsenceAllByPerson as $tblAbsence) {
+                            $fromDate = new \DateTime($tblAbsence->getFromDate());
+                            if ($tblAbsence->getToDate()) {
+                                $toDate = new \DateTime($tblAbsence->getToDate());
+                                if ($toDate > $fromDate) {
+                                    $date = $fromDate;
+                                    while ($date <= $toDate) {
+
+                                        if ($date == $SelectedDate) {
+                                            $Global->POST['Data'][$tblPerson->getId()] = $tblAbsence->getStatus();
+                                        } else {
+                                            $this->setStatusForDay($tblPerson, $tblAbsence, $tblYear, $studentTable,
+                                                $date,
+                                                $Month,
+                                                $Year, $countExcused, $countUnexcused);
+                                        }
+
+                                        $date = $date->modify('+1 day');
+                                    }
+                                }
+                            } else {
+                                if ($fromDate == $SelectedDate) {
+                                    $Global->POST['Data'][$tblPerson->getId()] = $tblAbsence->getStatus();
+                                } else {
+                                    $this->setStatusForDay($tblPerson, $tblAbsence, $tblYear, $studentTable, $fromDate,
+                                        $Month, $Year,
+                                        $countExcused, $countUnexcused);
+                                }
+                            }
+                        }
+                    }
+
+                    $Global->savePost();
+
+                    $studentTable[$tblPerson->getId()]['TotalDays'] = ($countExcused + $countUnexcused);
+                    $studentTable[$tblPerson->getId()]['ExcusedDays'] = $countExcused;
+                    $studentTable[$tblPerson->getId()]['UnexcusedDays'] = $countUnexcused;
+
+                    for ($i = 1; $i <= $maxDays; $i++) {
+                        if ($SelectedDate && $SelectedDate->format('d') == str_pad($i, 2, '0', STR_PAD_LEFT)) {
+                            $studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0',
+                                STR_PAD_LEFT)] = new SelectBox('Data[' . $tblPerson->getId() . ']', '', $statusList);
+                        } elseif (!isset($studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0',
+                                STR_PAD_LEFT)])
+                        ) {
+                            $studentTable[$tblPerson->getId()]['Day' . str_pad($i, 2, '0',
+                                STR_PAD_LEFT)] = $holidays[$i];
+                        }
+                    }
+                }
+            }
+
+            $form = new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new TableData($studentTable, null, $tableHead, false)
+                        )
+                    )
+                )
+            );
+            $form->appendFormButton(new Primary('Speichern', new Save()));
+
+            $Stage->setContent(
+                new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    new Panel(
+                                        'Klasse',
+                                        $tblDivision->getDisplayName(),
+                                        Panel::PANEL_TYPE_INFO
+                                    )
+                                )),
+                                new LayoutColumn($buttonList),
+                                new LayoutColumn(array(
+                                    '<br>',
+                                    new Panel(
+                                        'Monat',
+                                        $Year . ' ' . $months[$Month],
+                                        Panel::PANEL_TYPE_INFO
+                                    )
+                                )),
+                                new LayoutColumn(array(
+                                    Absence::useService()->createAbsenceList($form, $tblDivision, $BasicRoute,
+                                        $SelectedDate, $Data)
+                                ))
+                            ))
+                        )),
+                    )
+                )
+            );
+
+            return $Stage;
+        } else {
+            $Stage->addButton(new Standard(
+                'Zurück', $BasicRoute, new ChevronLeft()
+            ));
+
+            return $Stage . new Danger('Person nicht gefunden.', new Ban());
+        }
     }
 }
