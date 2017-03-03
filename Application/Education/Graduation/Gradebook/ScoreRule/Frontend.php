@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -43,9 +44,13 @@ use SPHERE\Common\Frontend\Icon\Repository\Group;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -57,6 +62,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -170,17 +176,31 @@ class Frontend extends FrontendMinimumGradeCount
                 }
 
                 $contentTable[] = array(
+                    'Status' => $tblScoreRule->isActive()
+                        ? new \SPHERE\Common\Frontend\Text\Repository\Success(new PlusSign() . ' aktiv')
+                        : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv'),
                     'Name' => $tblScoreRule->getName(),
                     'Structure' => empty($structure) ? '' : implode('<br>', $structure),
                     'Option' =>
                         (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
                             array('Id' => $tblScoreRule->getId()), 'Bearbeiten')) .
-                        (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Select', new Listing(),
-                            array('Id' => $tblScoreRule->getId()), 'Berechnungsvarianten auswählen')) .
-                        (new Standard('', '/Education/Graduation/Gradebook/Score/Division', new Equalizer(),
-                            array('Id' => $tblScoreRule->getId()), 'Fach-Klassen zuordnen')) .
-                        (new Standard('', '/Education/Graduation/Gradebook/Score/SubjectGroup', new Group(),
-                            array('Id' => $tblScoreRule->getId()), 'Fachgruppen zuordnen'))
+                        ($tblScoreRule->isActive()
+                            ? (new Standard('', '/Education/Graduation/Gradebook/Score/Activate', new MinusSign(),
+                                array('Id' => $tblScoreRule->getId()), 'Deaktivieren'))
+                            : (new Standard('', '/Education/Graduation/Gradebook/Score/Activate', new PlusSign(),
+                                array('Id' => $tblScoreRule->getId()), 'Aktivieren'))) .
+                        ($tblScoreRule->isUsed()
+                            ? ''
+                            : (new Standard('', '/Education/Graduation/Gradebook/Score/Destroy', new Remove(),
+                                array('Id' => $tblScoreRule->getId()), 'Löschen'))) .
+                        ($tblScoreRule->isActive() ?
+                            (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Select', new Listing(),
+                                array('Id' => $tblScoreRule->getId()), 'Berechnungsvarianten auswählen')) .
+                            (new Standard('', '/Education/Graduation/Gradebook/Score/Division', new Equalizer(),
+                                array('Id' => $tblScoreRule->getId()), 'Fach-Klassen zuordnen')) .
+                            (new Standard('', '/Education/Graduation/Gradebook/Score/SubjectGroup', new Group(),
+                                array('Id' => $tblScoreRule->getId()), 'Fachgruppen zuordnen'))
+                            : '')
                 );
             }
         }
@@ -195,9 +215,15 @@ class Frontend extends FrontendMinimumGradeCount
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($contentTable, null, array(
+                                'Status' => 'Status',
                                 'Name' => 'Name',
                                 'Structure' => '',
                                 'Option' => '',
+                            ), array(
+                                'order' => array(
+                                    array('0', 'asc'),
+                                    array('1', 'asc'),
+                                )
                             ))
                         ))
                     ))
@@ -319,6 +345,9 @@ class Frontend extends FrontendMinimumGradeCount
                 }
 
                 $contentTable[] = array(
+                    'Status' => $tblScoreCondition->isActive()
+                        ? new \SPHERE\Common\Frontend\Text\Repository\Success(new PlusSign() . ' aktiv')
+                        : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv'),
                     'Name' => $tblScoreCondition->getName(),
                     'ScoreGroups' => $scoreGroups,
                     'GradeTypes' => $gradeTypes,
@@ -326,11 +355,25 @@ class Frontend extends FrontendMinimumGradeCount
                     'Option' =>
                         (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Edit(),
                             array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
-                        (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select', new Listing(),
-                            array('Id' => $tblScoreCondition->getId()), 'Zensuren-Gruppen auswählen')) .
-                        (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Select',
-                            new Equalizer(),
-                            array('Id' => $tblScoreCondition->getId()), 'Zensuren-Typen (Bedingungen) auswählen'))
+                        ($tblScoreCondition->isActive()
+                            ? (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Activate',
+                                new MinusSign(),
+                                array('Id' => $tblScoreCondition->getId()), 'Deaktivieren'))
+                            : (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Activate',
+                                new PlusSign(),
+                                array('Id' => $tblScoreCondition->getId()), 'Aktivieren'))) .
+                        ($tblScoreCondition->isUsed()
+                            ? ''
+                            : (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Destroy', new Remove(),
+                                array('Id' => $tblScoreCondition->getId()), 'Löschen'))) .
+                        ($tblScoreCondition->isActive() ?
+                            (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select',
+                                new Listing(),
+                                array('Id' => $tblScoreCondition->getId()), 'Zensuren-Gruppen auswählen')) .
+                            (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Select',
+                                new Equalizer(),
+                                array('Id' => $tblScoreCondition->getId()),
+                                'Zensuren-Typen (Bedingungen) auswählen')) : '')
                 );
             }
         }
@@ -344,14 +387,22 @@ class Frontend extends FrontendMinimumGradeCount
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData($contentTable, null, array(
-                                'Name' => 'Name',
-                                'ScoreGroups' => 'Zensuren-Gruppen',
-                                'GradeTypes' => 'Zensuren-Typen (Bedingungen)',
-                                'Priority' => 'Priorität',
+                            new TableData($contentTable, null,
+                                array(
+                                    'Status' => 'Status',
+                                    'Name' => 'Name',
+                                    'ScoreGroups' => 'Zensuren-Gruppen',
+                                    'GradeTypes' => 'Zensuren-Typen (Bedingungen)',
+                                    'Priority' => 'Priorität',
 //                                'Round' => 'Runden',
-                                'Option' => '',
-                            ))
+                                    'Option' => '',
+                                ), array(
+                                    'order' => array(
+                                        array('0', 'asc'),
+                                        array('1', 'asc'),
+                                    )
+                                )
+                            )
                         ))
                     ))
                 ), new Title(new ListingTable() . ' Übersicht')),
@@ -429,6 +480,9 @@ class Frontend extends FrontendMinimumGradeCount
                 }
 
                 $contentTable[] = array(
+                    'Status' => $tblScoreGroup->isActive()
+                        ? new \SPHERE\Common\Frontend\Text\Repository\Success(new PlusSign() . ' aktiv')
+                        : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv'),
                     'Name' => $tblScoreGroup->getName(),
                     'Multiplier' => $tblScoreGroup->getMultiplier(),
                     'GradeTypes' => $gradeTypes,
@@ -436,9 +490,19 @@ class Frontend extends FrontendMinimumGradeCount
                     'Option' =>
                         (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Edit(),
                             array('Id' => $tblScoreGroup->getId()), 'Bearbeiten'))
-                        . (new Standard('', '/Education/Graduation/Gradebook/Score/Group/GradeType/Select',
-                            new Listing(),
-                            array('Id' => $tblScoreGroup->getId()), 'Zensuren-Typen auswählen'))
+                        . ($tblScoreGroup->isActive()
+                            ? (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Activate', new MinusSign(),
+                                array('Id' => $tblScoreGroup->getId()), 'Deaktivieren'))
+                            : (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Activate', new PlusSign(),
+                                array('Id' => $tblScoreGroup->getId()), 'Aktivieren')))
+                        . ($tblScoreGroup->isUsed()
+                            ? ''
+                            : (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Destroy', new Remove(),
+                                array('Id' => $tblScoreGroup->getId()), 'Löschen')))
+                        . ($tblScoreGroup->isActive() ?
+                            (new Standard('', '/Education/Graduation/Gradebook/Score/Group/GradeType/Select',
+                                new Listing(),
+                                array('Id' => $tblScoreGroup->getId()), 'Zensuren-Typen auswählen')) : '')
                 );
             }
         }
@@ -453,11 +517,17 @@ class Frontend extends FrontendMinimumGradeCount
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($contentTable, null, array(
+                                'Status' => 'Status',
                                 'Name' => 'Name',
                                 'Multiplier' => 'Faktor',
                                 'GradeTypes' => 'Zensuren-Typen',
                                 'IsEveryGradeASingleGroup' => 'Noten einzeln',
                                 'Option' => '',
+                            ), array(
+                                'order' => array(
+                                    array('0', 'asc'),
+                                    array('1', 'asc'),
+                                )
                             ))
                         ))
                     ))
@@ -663,10 +733,10 @@ class Frontend extends FrontendMinimumGradeCount
                 $GradeType['Multiplier'])
         ) {
             return $Stage
-            . new Warning('Bitte geben Sie als Faktor eine Zahl an. Der Zensuren-Type wurde nicht hinzugefügt.',
-                new Exclamation())
-            . new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblScoreGroup->getId()));
+                . new Warning('Bitte geben Sie als Faktor eine Zahl an. Der Zensuren-Type wurde nicht hinzugefügt.',
+                    new Exclamation())
+                . new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreGroup->getId()));
         } else {
             $multiplier = $GradeType['Multiplier'];
         }
@@ -720,7 +790,7 @@ class Frontend extends FrontendMinimumGradeCount
                 $Stage->setContent(new Warning('Die Zensuren-Gruppe konnte nicht abgerufen werden'));
             } else {
                 $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition);
-                $tblScoreGroupAll = Gradebook::useService()->getScoreGroupAll();
+                $tblScoreGroupAll = Gradebook::useService()->getScoreGroupListByActive();
                 $tblScoreGroupAllByCondition = array();
                 if ($tblScoreConditionGroupListByCondition) {
                     /** @var TblScoreConditionGroupList $tblScoreConditionGroup */
@@ -742,7 +812,7 @@ class Frontend extends FrontendMinimumGradeCount
                     foreach ($tblScoreConditionGroupListByCondition as &$tblScoreConditionGroupList) {
                         $tblScoreConditionGroupList->Name = $tblScoreConditionGroupList->getTblScoreGroup()->getName()
                             . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier()
-                                .  ($tblScoreConditionGroupList->getTblScoreGroup()->isEveryGradeASingleGroup()
+                                . ($tblScoreConditionGroupList->getTblScoreGroup()->isEveryGradeASingleGroup()
                                     ? ', Noten einzeln' : '') . ')'));
                         $tblScoreConditionGroupList->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary(
@@ -909,7 +979,7 @@ class Frontend extends FrontendMinimumGradeCount
             return $Stage;
         } else {
             return $Stage . new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -967,7 +1037,7 @@ class Frontend extends FrontendMinimumGradeCount
             return $Stage;
         } else {
             return $Stage . new Danger(new Ban() . ' Zensuren-Gruppe nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -1024,7 +1094,7 @@ class Frontend extends FrontendMinimumGradeCount
             return $Stage;
         } else {
             return $Stage . new Danger(new Ban() . ' Berechnungsvariante nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -1129,7 +1199,7 @@ class Frontend extends FrontendMinimumGradeCount
                                     new Title('Verfügbare', 'Zensuren-Typen'),
                                     new TableData($tblGradeTypeAll, null,
                                         array(
-                                            'Name'   => 'Name ',
+                                            'Name' => 'Name ',
                                             'Option' => ' '
                                         )
                                     )
@@ -1194,7 +1264,7 @@ class Frontend extends FrontendMinimumGradeCount
                 $Stage->setContent(new Warning('Die Berechnungsvorschrift konnte nicht abgerufen werden'));
             } else {
                 $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
-                $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
+                $tblScoreConditionAll = Gradebook::useService()->getScoreConditionListByActive();
                 $tblScoreConditionAllByRule = array();
                 if ($tblScoreRuleConditionListByRule) {
                     /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
@@ -1245,7 +1315,8 @@ class Frontend extends FrontendMinimumGradeCount
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Berechnungsvorschrift', $tblScoreRule->getName(), Panel::PANEL_TYPE_INFO),
+                                    new Panel('Berechnungsvorschrift', $tblScoreRule->getName(),
+                                        Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
                             ))
@@ -1720,5 +1791,290 @@ class Frontend extends FrontendMinimumGradeCount
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyScore(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Stage = new Stage('Berechnungsvorschrift', 'Löschen');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Score', new ChevronLeft())
+        );
+
+        if (($tblScoreRule = Gradebook::useService()->getScoreRuleById($Id))) {
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel('Berechnungsvorschrift',
+                            $tblScoreRule->getName() . ($tblScoreRule->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                . new Muted(new Small($tblScoreRule->getDescription())) : ''),
+                            Panel::PANEL_TYPE_INFO),
+                        new Panel(new Question() . ' Diese Berechnungsvorschrift wirklich löschen?', array(
+                            $tblScoreRule->getName() . ($tblScoreRule->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                . new Muted(new Small($tblScoreRule->getDescription())) : '')
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Graduation/Gradebook/Score/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            . new Standard(
+                                'Nein', '/Education/Graduation/Gradebook/Score', new Disable())
+                        )
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Gradebook::useService()->destroyScoreRule($tblScoreRule)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Die Berechnungsvorschrift wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Berechnungsvorschrift konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+
+            return $Stage;
+
+        } else {
+            return $Stage . new Danger('Berechnungsvorschrift nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    public function frontendActivateScore(
+        $Id = null
+    ) {
+
+        $Stage = new Stage('Berechnungsvorschrift', 'Aktivieren/Deaktivieren');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Score', new ChevronLeft())
+        );
+
+        if (($tblScoreRule = Gradebook::useService()->getScoreRuleById($Id))) {
+            $IsActive = !$tblScoreRule->isActive();
+            if ((Gradebook::useService()->setScoreRuleActive($tblScoreRule, $IsActive))) {
+
+                return $Stage . new Success('Die Berechnungsvorschrift wurde '
+                        . ($IsActive ? 'aktiviert.' : 'deaktiviert.')
+                        , new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                    . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+            } else {
+
+                return $Stage . new Danger('Die Berechnungsvorschrift konnte nicht '
+                        . ($IsActive ? 'aktiviert' : 'deaktiviert') . ' werden.'
+                        , new Ban())
+                    . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+            }
+        } else {
+            return $Stage . new Danger('Berechnungsvorschrift nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyScoreCondition(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Stage = new Stage('Berechnungsvariante', 'Löschen');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Score/Condition', new ChevronLeft())
+        );
+
+        if (($tblScoreCondition = Gradebook::useService()->getScoreConditionById($Id))) {
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel('Berechnungsvariante',
+                            $tblScoreCondition->getName(),
+                            Panel::PANEL_TYPE_INFO),
+                        new Panel(new Question() . ' Diese Berechnungsvariante wirklich löschen?', array(
+                            $tblScoreCondition->getName()
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Graduation/Gradebook/Score/Condition/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            . new Standard(
+                                'Nein', '/Education/Graduation/Gradebook/Score/Condition', new Disable())
+                        )
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Gradebook::useService()->destroyScoreCondition($tblScoreCondition)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Die Berechnungsvariante wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Berechnungsvariante konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+
+            return $Stage;
+
+        } else {
+            return $Stage . new Danger('Berechnungsvariante nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return string
+     */
+    public function frontendActivateScoreCondition(
+        $Id = null
+    ) {
+
+        $Route = '/Education/Graduation/Gradebook/Score/Condition';
+
+        $Stage = new Stage('Berechnungsvariante', 'Aktivieren/Deaktivieren');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', $Route, new ChevronLeft())
+        );
+
+        if (($tblScoreCondition = Gradebook::useService()->getScoreConditionById($Id))) {
+            $IsActive = !$tblScoreCondition->isActive();
+            if ((Gradebook::useService()->setScoreConditionActive($tblScoreCondition, $IsActive))) {
+
+                return $Stage . new Success('Die Berechnungsvariante wurde '
+                        . ($IsActive ? 'aktiviert.' : 'deaktiviert.')
+                        , new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                    . new Redirect($Route, Redirect::TIMEOUT_SUCCESS);
+            } else {
+
+                return $Stage . new Danger('Die Berechnungsvariante konnte nicht '
+                        . ($IsActive ? 'aktiviert' : 'deaktiviert') . ' werden.'
+                        , new Ban())
+                    . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+            }
+        } else {
+            return $Stage . new Danger('Berechnungsvariante nicht gefunden.', new Ban())
+                . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyScoreGroup(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Route = '/Education/Graduation/Gradebook/Score/Group';
+
+        $Stage = new Stage('Zensuren-Gruppe', 'Löschen');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', $Route, new ChevronLeft())
+        );
+
+        if (($tblScoreGroup = Gradebook::useService()->getScoreGroupById($Id))) {
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel('Zensuren-Gruppe',
+                            $tblScoreGroup->getName(),
+                            Panel::PANEL_TYPE_INFO),
+                        new Panel(new Question() . ' Diese Zensuren-Gruppe wirklich löschen?', array(
+                            $tblScoreGroup->getName()
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', $Route . '/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            . new Standard(
+                                'Nein', $Route, new Disable())
+                        )
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Gradebook::useService()->destroyScoreGroup($tblScoreGroup)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Die Zensuren-Gruppe wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Zensuren-Gruppe konnte nicht gelöscht werden')
+                            ),
+                            new Redirect($Route, Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+
+            return $Stage;
+
+        } else {
+            return $Stage . new Danger('Zensuren-Gruppe nicht gefunden.', new Ban())
+                . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return string
+     */
+    public function frontendActivateScoreGroup(
+        $Id = null
+    ) {
+
+        $Route = '/Education/Graduation/Gradebook/Score/Group';
+
+        $Stage = new Stage('Zensuren-Gruppe', 'Aktivieren/Deaktivieren');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', $Route, new ChevronLeft())
+        );
+
+        if (($tblScoreGroup = Gradebook::useService()->getScoreGroupById($Id))) {
+            $IsActive = !$tblScoreGroup->isActive();
+            if ((Gradebook::useService()->setScoreGroupActive($tblScoreGroup, $IsActive))) {
+
+                return $Stage . new Success('Die Zensuren-Gruppe wurde '
+                        . ($IsActive ? 'aktiviert.' : 'deaktiviert.')
+                        , new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                    . new Redirect($Route, Redirect::TIMEOUT_SUCCESS);
+            } else {
+
+                return $Stage . new Danger('Die Zensuren-Gruppe konnte nicht '
+                        . ($IsActive ? 'aktiviert' : 'deaktiviert') . ' werden.'
+                        , new Ban())
+                    . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+            }
+        } else {
+            return $Stage . new Danger('Zensuren-Gruppe nicht gefunden.', new Ban())
+                . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+        }
     }
 }

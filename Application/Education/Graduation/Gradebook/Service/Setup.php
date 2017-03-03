@@ -80,6 +80,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeType', 'serviceTblTestType')) {
             $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblGradeType', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
+        }
 
         return $Table;
     }
@@ -154,6 +157,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblScoreRule', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblScoreRule', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
+        }
 
         return $Table;
     }
@@ -175,6 +181,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblScoreCondition', 'Priority')) {
             $Table->addColumn('Priority', 'integer');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreCondition', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
 
         return $Table;
@@ -200,6 +209,9 @@ class Setup extends AbstractSetup
         }
         if (!$Table->hasColumn('IsEveryGradeASingleGroup')) {
             $Table->addColumn('IsEveryGradeASingleGroup', 'boolean');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreGroup', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
 
         return $Table;

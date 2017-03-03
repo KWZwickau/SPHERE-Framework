@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -417,5 +418,16 @@ class Service extends AbstractService
             'Content.Input.Transfer' => 'Versetzungsvermerk',
             'Content.Input.TeamExtra' => 'Arbeitsgemeinschaften'
         );
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
     }
 }

@@ -1401,4 +1401,15 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getPrepareStudentAllByPrepare($tblPrepareCertificate);
     }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
+    }
 }
