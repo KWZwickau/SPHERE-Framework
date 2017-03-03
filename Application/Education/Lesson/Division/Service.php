@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
@@ -2147,5 +2149,22 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDivisionSubjectListByDivision($tblDivision);
+    }
+
+    /**
+     * Kann nur gelöscht werden wenn noch keine Tests und Noten existieren
+     *
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function canRemoveSubjectGroup(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        if (Evaluation::useService()->existsTestByDivisionSubject($tblDivisionSubject)) {
+            return false;
+        }
+
+        return !Gradebook::useService()->existsGradeByDivisionSubject($tblDivisionSubject);
     }
 }

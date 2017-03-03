@@ -1311,4 +1311,15 @@ class Service extends ServiceScoreRule
             $tblGradeType->getCode(), $tblGradeType->getDescription(), $tblGradeType->isHighlighted(),
             $tblGradeType->getServiceTblTestType() ? $tblGradeType->getServiceTblTestType() : null, $IsActive);
     }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function existsGradeByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->existsGradeByDivisionSubject($tblDivisionSubject);
+    }
 }

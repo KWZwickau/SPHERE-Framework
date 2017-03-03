@@ -361,7 +361,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $StudentId
      * @param null $Remove
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendStudentAdd($Id = null, $StudentId = null, $Remove = null)
     {
@@ -660,7 +660,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Remove
      * @param null $Description
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendTeacherAdd($Id = null, $TeacherId = null, $Remove = null, $Description = null)
     {
@@ -812,7 +812,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Remove
      * @param null $Description
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendCustodyAdd($Id = null, $PersonId = null, $Remove = null, $Description = null)
     {
@@ -962,7 +962,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Subject
      * @param null $Remove
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendSubjectAdd($Id = null, $Subject = null, $Remove = null)
     {
@@ -1091,7 +1091,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionSubjectId
      * @param null $Student
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendSubjectStudentAdd($Id = null, $DivisionSubjectId = null, $Student = null)
     {
@@ -1243,7 +1243,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $SubjectTeacherId
      * @param null $PersonId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendSubjectTeacherAdd($Id = null, $DivisionSubjectId = null, $SubjectTeacherId = null, $PersonId = null)
     {
@@ -1428,7 +1428,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null       $DivisionSubjectId
      * @param null|array $Group
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendSubjectGroupAdd($Id = null, $DivisionSubjectId = null, $Group = null)
     {
@@ -1455,7 +1455,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
             $tblDivision);
         $TableContent = array();
-        if (!empty( $tblDivisionSubjectList )) {
+        if (!empty($tblDivisionSubjectList)) {
             array_walk($tblDivisionSubjectList,
                 function (TblDivisionSubject $tblDivisionSubject) use (&$TableContent, $tblDivision, $tblSubject) {
 
@@ -1470,18 +1470,21 @@ class Frontend extends Extension implements IFrontendInterface
                         $Temp['Option'] = new Standard('Bearbeiten',
                                 '/Education/Lesson/Division/SubjectGroup/Change', new Pencil(),
                                 array(
-                                    'Id'                => $tblDivisionSubject->getTblSubjectGroup()->getId(),
-                                    'DivisionId'        => $tblDivision->getId(),
-                                    'SubjectId'         => $tblSubject->getId(),
+                                    'Id' => $tblDivisionSubject->getTblSubjectGroup()->getId(),
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'SubjectId' => $tblSubject->getId(),
                                     'DivisionSubjectId' => $tblDivisionSubject->getId()
                                 ))
-                            .new Standard('Löschen', '/Education/Lesson/Division/SubjectGroup/Remove',
-                                new Remove(),
-                                array(
-                                    'Id'                => $tblDivision->getId(),
-                                    'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                                    'SubjectGroupId'    => $tblDivisionSubject->getTblSubjectGroup()->getId()
-                                ));
+                            . (Division::useService()->canRemoveSubjectGroup($tblDivisionSubject)
+                                ? new Standard('Löschen', '/Education/Lesson/Division/SubjectGroup/Remove',
+                                    new Remove(),
+                                    array(
+                                        'Id' => $tblDivision->getId(),
+                                        'DivisionSubjectId' => $tblDivisionSubject->getId(),
+                                        'SubjectGroupId' => $tblDivisionSubject->getTblSubjectGroup()->getId()
+                                    ))
+                                : ''
+                            );
                         array_push($TableContent, $Temp);
                     }
                 });
@@ -1558,7 +1561,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionSubjectId
      * @param null $Group
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendSubjectGroupChange($Id = null, $SubjectId = null, $DivisionId = null, $DivisionSubjectId = null, $Group = null)
     {
@@ -1632,7 +1635,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $DivisionSubjectId
      * @param $SubjectGroupId
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendSubjectGroupRemove($Id = null, $DivisionSubjectId = null, $SubjectGroupId = null)
     {
@@ -1675,7 +1678,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $Division
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendDivisionChange($Id = null, $Division = null)
     {
@@ -1870,6 +1873,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $tblDivisionSubjectList = array_filter($tblDivisionSubjectList);
 
+                $Acronym = array();
                 /** @var TblDivisionSubject $row */
                 foreach ($tblDivisionSubjectList as $key => $row) {
                     $name[$key] = strtoupper($row->getServiceTblSubject() ? $row->getServiceTblSubject()->getName() : '');
@@ -2231,7 +2235,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Division
      * @param null $Level
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendCopyDivision($Id = null, $Division = null, $Level = null)
     {

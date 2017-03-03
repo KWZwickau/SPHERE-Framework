@@ -1088,4 +1088,15 @@ class Service extends AbstractService
             $IsLocked
         );
     }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function existsTestByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->existsTestByDivisionSubject($tblDivisionSubject);
+    }
 }
