@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -1650,6 +1651,9 @@ class Frontend extends Extension implements IFrontendInterface
                 , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
         );
 
+        $buttonList = array();
+        $tblNextTest = null;
+
         $isTestAppointedDateTask = ($tblTest->getTblTestType()->getId()
             == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')->getId());
         $tblDivision = $tblTest->getServiceTblDivision();
@@ -1992,41 +1996,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefinition['Text'] = 'oder Zeugnistext';
                 $columnDefinition['Comment'] = 'Vermerk Notenänderung';
             } else {
-                // Kopfnote
-                $gradeType = 'Kopfnote: ' . ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
-                    . ($tblTask->getServiceTblPeriod()
-                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
-                        : new Small(new Muted(' Gesamtes Schuljahr')));
-
-                foreach ($studentList as $personId => $student) {
-                    $tblPerson = Person::useService()->getPersonById($personId);
-                    if ($tblPerson) {
-                        $tblGradeList = Gradebook::useService()->getGradesByGradeType($tblPerson, $tblDivision, $tblSubject,
-                            $tblTest->getServiceTblGradeType());
-
-                        $previewsGrade = '';
-                        if ($tblGradeList) {
-                            $count = count($tblGradeList);
-                            for ($i = 0; $i < $count; $i++) {
-                                /** @var TblGrade $tblGrade */
-                                $tblGrade = array_pop($tblGradeList);
-                                if ($tblTask->getEntityCreate() > $tblGrade->getEntityCreate()) {
-                                    $previewsGrade = $tblGrade->getDisplayGrade();
-                                    break;
-                                }
-                            }
-                        }
-
-                        $studentList[$tblPerson->getId()]['PreviewsGrade'] = $previewsGrade;
-                    }
-                }
-
-                $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
-                $tableColumns['Grade'] = 'Zensur';
-                if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
-                    $tableColumns['Trend'] = 'Tendenz';
-                }
-                $tableColumns['Comment'] = 'Vermerk Notenänderung';
+                // Kopfnotenauftrag
+                $gradeType = $this->setContentForBehaviorTask(
+                    $tblTest,
+                    $tblTask ? $tblTask : null,
+                    $tblDivision,
+                    $tblSubject,
+                    $tblScoreType ? $tblScoreType : null,
+                    $tblNextTest,
+                    $BasicRoute,
+                    $studentList,
+                    $tableColumns,
+                    $buttonList);
             }
         } else {
             $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
@@ -2120,7 +2101,8 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
                 , new Primary('Speichern', new Save()))
             , $tblTest->getId(), $Grade, $BasicRoute, $tblScoreType ? $tblScoreType : null,
-            empty($studentTestList) ? null : $studentTestList
+            empty($studentTestList) ? null : $studentTestList,
+            $tblNextTest ? $tblNextTest : null
         );
         $warningNoScoreType = new WarningMessage('Kein Bewertungssystem hinterlegt.
                                 Zensuren können erst vergeben werden nachdem für diese Fach-Klasse ein Bewertungssystem
@@ -2215,6 +2197,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )),
                 (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null),
+                (!empty($buttonList) ? new LayoutGroup(new LayoutRow(new LayoutColumn($buttonList))) : null),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -3563,5 +3546,121 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $buttonList;
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblTask|null $tblTask
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblScoreType|null $tblScoreType
+     * @param TblTest $tblNextTest
+     * @param string $BasicRoute
+     * @param $studentList
+     * @param $tableColumns
+     * @param $buttonList
+     *
+     * @return string
+     */
+    private function setContentForBehaviorTask(
+        TblTest $tblTest,
+        TblTask $tblTask = null,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblScoreType $tblScoreType = null,
+        TblTest &$tblNextTest = null,
+        $BasicRoute,
+        &$studentList,
+        &$tableColumns,
+        &$buttonList
+    ) {
+        $gradeType = 'Kopfnote: ' . ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
+            . ($tblTask->getServiceTblPeriod()
+                ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
+                : new Small(new Muted(' Gesamtes Schuljahr')));
+
+        // Navigation zwischen den Kopfnotentypen
+        if ($tblTask
+            && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask,
+            $tblDivision))) {
+            $tblCurrentGradeType = false;
+            $tblNextGradeType = false;
+//            $tblNextTest = false;
+            $tblGradeTypeList = array();
+            foreach ($tblTestList as $tblTestItem) {
+                if ($tblSubject && $tblTestItem->getServiceTblSubject()
+                    && $tblSubject->getId() == $tblTestItem->getServiceTblSubject()->getId()
+                    && (!$tblTest->getServiceTblSubjectGroup()
+                        || ($tblTest->getServiceTblSubjectGroup() && $tblTestItem->getServiceTblSubjectGroup()
+                            && $tblTest->getServiceTblSubjectGroup()->getId() == $tblTestItem->getServiceTblSubjectGroup()->getId())
+                    )
+                    && ($tblGradeTypeItem = $tblTestItem->getServiceTblGradeType())) {
+                    if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
+                        $tblGradeTypeList[$tblTestItem->getId()] = $tblGradeTypeItem;
+                        if ($tblCurrentGradeType && !$tblNextGradeType) {
+                            $tblNextGradeType = $tblGradeTypeItem;
+                            $tblNextTest = $tblTestItem;
+                        }
+                        if ($tblTest->getServiceTblGradeType()
+                            && $tblTest->getServiceTblGradeType()->getId() == $tblGradeTypeItem->getId()) {
+                            $tblCurrentGradeType = $tblGradeTypeItem;
+                        }
+                    }
+                }
+            }
+            /** @var TblGradeType $tblGradeType */
+            foreach ($tblGradeTypeList as $testId => $tblGradeType) {
+                if ($tblCurrentGradeType->getId() == $tblGradeType->getId()) {
+                    $name = new Info(new Bold($tblGradeType->getName()));
+                    $icon = new Edit();
+                } else {
+                    $name = $tblGradeType->getName();
+                    $icon = null;
+                }
+
+                // letzte Kopfnote --> zur ersten springen
+                if (!$tblNextTest){
+                    $tblNextTest = Evaluation::useService()->getTestById($testId);
+                }
+
+                $buttonList[] = new Standard($name,
+                    $BasicRoute . '/Grade/Edit', $icon, array(
+                        'Id' => $testId,
+                    )
+                );
+            }
+        }
+
+        foreach ($studentList as $personId => $student) {
+            $tblPerson = Person::useService()->getPersonById($personId);
+            if ($tblPerson) {
+                $tblGradeList = Gradebook::useService()->getGradesByGradeType($tblPerson, $tblDivision, $tblSubject,
+                    $tblTest->getServiceTblGradeType());
+
+                $previewsGrade = '';
+                if ($tblGradeList) {
+                    $count = count($tblGradeList);
+                    for ($i = 0; $i < $count; $i++) {
+                        /** @var TblGrade $tblGrade */
+                        $tblGrade = array_pop($tblGradeList);
+                        if ($tblTask->getEntityCreate() > $tblGrade->getEntityCreate()) {
+                            $previewsGrade = $tblGrade->getDisplayGrade();
+                            break;
+                        }
+                    }
+                }
+
+                $studentList[$tblPerson->getId()]['PreviewsGrade'] = $previewsGrade;
+            }
+        }
+
+        $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
+        $tableColumns['Grade'] = 'Zensur';
+        if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+            $tableColumns['Trend'] = 'Tendenz';
+        }
+        $tableColumns['Comment'] = 'Vermerk Notenänderung';
+
+        return $gradeType;
     }
 }

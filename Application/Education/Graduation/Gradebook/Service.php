@@ -322,6 +322,7 @@ class Service extends ServiceScoreRule
      * @param $BasicRoute
      * @param TblScoreType|null $tblScoreType
      * @param null $studentTestList
+     * @param TblTest $tblNextTest
      *
      * @return IFormInterface|string
      */
@@ -331,7 +332,8 @@ class Service extends ServiceScoreRule
         $Grade = null,
         $BasicRoute,
         TblScoreType $tblScoreType = null,
-        $studentTestList = null
+        $studentTestList = null,
+        TblTest $tblNextTest = null
     ) {
 
         /**
@@ -548,9 +550,11 @@ class Service extends ServiceScoreRule
             }
         }
 
-        return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        return new Success('Erfolgreich gespeichert.'
+                . ($tblNextTest ? ' Sie werden zum nächsten Kopfnoten-Typ weitergeleitet.' : '')
+                , new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
-                array('Id' => $tblTest->getId()));
+                array('Id' => $tblNextTest ? $tblNextTest->getId() : $tblTest->getId()));
     }
 
     /**
