@@ -1254,4 +1254,15 @@ class Service extends ServiceScoreRule
 
         return (new Data($this->getBinding()))->getGradeTextByName($Name);
     }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function existsGradeByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->existsGradeByDivisionSubject($tblDivisionSubject);
+    }
 }
