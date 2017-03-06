@@ -205,17 +205,17 @@ class Lectureship extends Import implements IFrontendInterface
         }
 
         if ($File && !$File->getError()
-            && ( $File->getClientOriginalExtension() == 'txt'
-                || $File->getClientOriginalExtension() == 'csv' )
+            && ( strtolower($File->getClientOriginalExtension()) == 'txt'
+                || strtolower($File->getClientOriginalExtension()) == 'csv' )
         ) {
 
             // remove existing import
             Import::useService()->destroyUntisImportLectureship();
 
             // match File
-            $Extension = ( $File->getClientOriginalExtension() == 'txt'
+            $Extension = ( strtolower($File->getClientOriginalExtension()) == 'txt'
                 ? 'csv'
-                : $File->getClientOriginalExtension()
+                : strtolower($File->getClientOriginalExtension())
             );
 
             $Payload = new FilePointer($Extension);
