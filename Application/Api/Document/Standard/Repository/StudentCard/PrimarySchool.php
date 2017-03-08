@@ -26,7 +26,7 @@ class PrimarySchool extends AbstractStudentCard
     public function getName()
     {
 
-        return 'Schülerkartei für Grundschulen';
+        return 'Schülerkartei - Grundschule';
     }
 
     /**

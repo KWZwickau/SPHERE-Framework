@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Document\Standard\Repository\StudentCard;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
+use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
@@ -129,12 +130,17 @@ abstract class AbstractStudentCard extends AbstractDocument
         }
         for ($i = 1; $i <= $countSubjectColumns; $i++) {
             $text = '&nbsp;';
-            switch ($i) {
-                // ToDo dynamic
-//                case 1: $text = 'Betragen'; break;
-//                case 2: $text = 'Fleiß'; break;
-                case 3: $text = 'Deutsch'; break;
-                case 4: $text = 'Sachunterricht'; break;
+
+            if (($tblDocument = Generator::useService()->getDocumentByName($this->getName()))
+                && ($tblDocumentSubject = Generator::useService()->getDocumentSubjectByDocumentAndRanking($tblDocument, $i))
+            ){
+                if ($tblDocumentSubject->isEssential()) {
+                    if (($tblSubject = $tblDocumentSubject->getServiceTblSubject())) {
+                        $text = $tblSubject->getName();
+                    }
+                } else {
+                    // Todo nicht essential --> hat Schüler eine Note in diesem Fach?
+                }
             }
             $element = (new Element())
                 ->setContent($this->setRotatedContend($text))
