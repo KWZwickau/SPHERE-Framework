@@ -65,7 +65,7 @@ class StudentCard extends AbstractModule implements IModuleInterface
     public static function frontendSelectPerson()
     {
 
-        $Stage = new Stage('Schulbescheinigung', 'Schüler auswählen');
+        $Stage = new Stage('Schülerkartei', 'Schüler auswählen');
 
         $dataList = array();
         if (( $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT') )) {

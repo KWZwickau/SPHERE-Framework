@@ -10,6 +10,7 @@ namespace SPHERE\Application\Api\Document;
 
 use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Person\Person;
@@ -53,12 +54,12 @@ class Creator extends Extension
     }
 
     /**
-     * @param AbstractDocument $DocumentClass
+     * @param AbstractDocument|AbstractStudentCard $DocumentClass
      * @param array $Data
      *
      * @return FilePointer
      */
-    private static function buildDummyFile(AbstractDocument $DocumentClass, $Data = array())
+    private static function buildDummyFile($DocumentClass, $Data = array())
     {
 
         // Create Tmp

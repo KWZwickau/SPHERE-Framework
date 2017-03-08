@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Api\Document\Standard\Repository;
+namespace SPHERE\Application\Api\Document\Standard\Repository\StudentCard;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -12,7 +12,7 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 /**
  * Class StudentCard
  *
- * @package SPHERE\Application\Api\Document\Standard\Repository
+ * @package SPHERE\Application\Api\Document\Standard\Repository\StudentCard
  */
 class StudentCard extends AbstractDocument
 {
