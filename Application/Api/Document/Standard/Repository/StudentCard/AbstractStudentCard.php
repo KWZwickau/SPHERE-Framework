@@ -13,8 +13,10 @@ use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Document\Generator\Service\Entity\TblDocument;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 
 /**
  * Class AbstractStudentCard
@@ -25,6 +27,7 @@ abstract class AbstractStudentCard extends AbstractDocument
 {
 
     /**
+     * @param array $subjectPosition
      * @param int $countSubjectColumns
      * @param int $widthFirstColumns
      * @param int $widthLastColumns
@@ -36,6 +39,7 @@ abstract class AbstractStudentCard extends AbstractDocument
      * @return array
      */
     protected function setGradeLayoutHeader(
+        &$subjectPosition = array(),
         $countSubjectColumns = 18,
         $widthFirstColumns = 6,
         $widthLastColumns = 5,
@@ -129,20 +133,21 @@ abstract class AbstractStudentCard extends AbstractDocument
 
             $section->addElementColumn($element, $widthString);
         }
+        if ($this->getTblPerson()) {
+            $tblSubjectList = Generator::useService()->getStudentCardSubjectListByPerson($this->getTblPerson(), $this);
+        } else {
+            $tblSubjectList = false;
+        }
+        $tblDocument = Generator::useService()->getDocumentByName($this->getName());
+        $pointer = 1;
         for ($i = 1; $i <= $countSubjectColumns; $i++) {
-            $text = '&nbsp;';
-
-            if (($tblDocument = Generator::useService()->getDocumentByName($this->getName()))
-                && ($tblDocumentSubject = Generator::useService()->getDocumentSubjectByDocumentAndRanking($tblDocument, $i))
-            ){
-                if ($tblDocumentSubject->isEssential()) {
-                    if (($tblSubject = $tblDocumentSubject->getServiceTblSubject())) {
-                        $text = $tblSubject->getName();
-                    }
-                } else {
-                    // Todo nicht essential --> hat Schüler eine Note in diesem Fach?
-                }
+            if (($tblSubject = $this->getNextSubject($tblDocument, $tblSubjectList, $pointer))) {
+                $text = $tblSubject->getName();
+                $subjectPosition[$i] = $tblSubject;
+            } else {
+                $text = '&nbsp;';
             }
+
             $element = (new Element())
                 ->setContent($this->setRotatedContend($text))
                 ->styleHeight($heightHeader)
@@ -175,6 +180,7 @@ abstract class AbstractStudentCard extends AbstractDocument
     }
 
     /**
+     * @param array $subjectPosition
      * @param int $countSubjectColumns
      * @param int $countRows
      * @param int $widthFirstColumns
@@ -188,6 +194,7 @@ abstract class AbstractStudentCard extends AbstractDocument
      * @return array
      */
     protected function setGradeLayoutBody(
+        $subjectPosition = array(),
         $countSubjectColumns = 18,
         $countRows = 12,
         $widthFirstColumns = 6,
@@ -207,7 +214,6 @@ abstract class AbstractStudentCard extends AbstractDocument
         $countTotalColumns = 3 + $countGradesTotal + 4;
 
         $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR'));
-        $tblDocument = Generator::useService()->getDocumentByName($this->getName());
 
         $sliceList = array();
         for ($j = 1; $j <= $countRows; $j++) {
@@ -263,10 +269,20 @@ abstract class AbstractStudentCard extends AbstractDocument
                 } elseif ($i >= 8 && $i <= (3 + $countGradesTotal)) {
                     $thicknessLeft = $i == 8 ? $thicknessOutLines : $thicknessInnerLines;
                     $widthColumn = $widthString;
-                    if ($tblDocument
-                        && ($tblDocumentSubject = Generator::useService()->getDocumentSubjectByDocumentAndRanking($tblDocument, $i - 7))
-                        && ($tblSubject = $tblDocumentSubject->getServiceTblSubject())
-                    ) {
+//                    if ($tblDocument
+//                        && ($tblDocumentSubject = Generator::useService()->getDocumentSubjectByDocumentAndRanking($tblDocument, $i - 7))
+//                        && ($tblSubject = $tblDocumentSubject->getServiceTblSubject())
+//                    ) {
+//                        $content = '{% if(Content.Certificate.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' is not empty) %}
+//                                {{ Content.Certificate.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' }}
+//                            {% else %}
+//                                 &nbsp;
+//                            {% endif %}';
+//                    } else {
+//                        $content = '&nbsp;';
+//                    }
+                    if (isset($subjectPosition[$i - 7])) {
+                        $tblSubject = $subjectPosition[$i - 7];
                         $content = '{% if(Content.Certificate.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' is not empty) %}
                                 {{ Content.Certificate.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' }}
                             {% else %}
@@ -505,5 +521,45 @@ abstract class AbstractStudentCard extends AbstractDocument
                     ->styleAlignCenter()
                     , '4%')
             );
+    }
+
+    /**
+     * @param TblDocument|false $tblDocument
+     * @param TblSubject[]|false $tblSubjectList
+     * @param integer $pointer
+     *
+     * @return TblSubject|false
+     */
+    protected function getNextSubject($tblDocument, $tblSubjectList, &$pointer)
+    {
+        if ($pointer > 30) {
+            return false;
+        }
+
+        if ($tblDocument
+            && ($tblDocumentSubject = Generator::useService()->getDocumentSubjectByDocumentAndRanking($tblDocument,
+                $pointer))
+        ) {
+            if (($tblSubject = $tblDocumentSubject->getServiceTblSubject())) {
+                if ($tblDocumentSubject->isEssential()) {
+                    $pointer++;
+                    return $tblSubject;
+                } else {
+                    // hat Schüler eine Note in diesem Fach?
+                    if ($tblSubjectList
+                        && isset($tblSubjectList[$tblSubject->getId()])
+                    ) {
+                        $pointer++;
+                        return $tblSubject;
+                    } else {
+                        return $this->getNextSubject($tblDocument, $tblSubjectList, ++$pointer);
+                    }
+                }
+            }
+        } else {
+            $pointer++;
+        }
+
+        return false;
     }
 }

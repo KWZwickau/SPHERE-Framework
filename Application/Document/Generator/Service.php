@@ -19,6 +19,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareSt
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -221,5 +222,66 @@ class Service extends AbstractService
         }
 
         return $Data;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param AbstractDocument $documentClass
+     * @return TblSubject[]|false
+     */
+    public function getStudentCardSubjectListByPerson(TblPerson $tblPerson, AbstractDocument $documentClass)
+    {
+
+        $resultList = array();
+        $list = array();
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
+                ) {
+                    foreach ($tblPrepareList as $tblPrepare) {
+                        if($tblPrepare->getServiceTblGenerateCertificate()
+                            && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
+                            && ($tblCertificateType->getIdentifier() == 'HALF_YEAR' || $tblCertificateType->getIdentifier() == 'YEAR')
+                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && $tblPrepareStudent->isApproved()
+                            && $tblPrepareStudent->isPrinted()
+                        ) {
+                            $list[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Sortieren nach Zeugnisdatum
+        ksort($list);
+
+        /** @var TblPrepareStudent $item */
+        foreach ($list as $item) {
+            if (($tblPrepare = $item->getTblPrepareCertificate())
+                && ($tblDivision = $tblPrepare->getServiceTblDivision())
+                && ($tblPrepare->getServiceTblGenerateCertificate())
+                && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+            ) {
+                // Fachnoten
+                if (($tblDocument = $this->getDocumentByName($documentClass->getName()))
+                    && ($tblDocumentSubjectList = $this->getDocumentSubjectListByDocument($tblDocument))
+                ) {
+                    foreach ($tblDocumentSubjectList as $tblDocumentSubject) {
+                        if (($tblSubject = $tblDocumentSubject->getServiceTblSubject())
+                            && ($tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblPrepare,
+                                $tblPerson, $tblDivision, $tblSubject,
+                                Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')))
+                        ) {
+                            $resultList[$tblSubject->getId()] = $tblSubject;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 }

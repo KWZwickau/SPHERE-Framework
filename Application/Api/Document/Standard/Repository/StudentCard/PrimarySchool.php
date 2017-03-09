@@ -46,6 +46,8 @@ class PrimarySchool extends AbstractStudentCard
 
         $SpaceBetween = '100px';
 
+        $subjectPosition = array();
+
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
                 ->addSlice($this->setLetterRow())
@@ -524,8 +526,8 @@ class PrimarySchool extends AbstractStudentCard
                         ->styleHeight('15px')
                     )
                 )
-                ->addSliceArray($this->setGradeLayoutHeader())
-                ->addSliceArray($this->setGradeLayoutBody())
+                ->addSliceArray($this->setGradeLayoutHeader($subjectPosition))
+                ->addSliceArray($this->setGradeLayoutBody($subjectPosition))
             )
         );
     }
