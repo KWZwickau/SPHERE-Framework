@@ -8,9 +8,10 @@
 
 namespace SPHERE\Application\Api\Document;
 
-use MOC\V\Component\Document\Document;
+use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
+use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Person\Person;
@@ -42,7 +43,12 @@ class Creator extends Extension
             /** @var AbstractDocument $Document */
             $Document = new $DocumentClass();
 
-            $Data['Person']['Id'] = $tblPerson->getId();
+            if (strpos($DocumentClass, 'StudentCard') !== false ){
+                $Data = Generator::useService()->setStudentCardContent($tblPerson, $Document);
+            } else {
+                $Data['Person']['Id'] = $tblPerson->getId();
+            }
+
             $File = self::buildDummyFile($Document, $Data);
 
             $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
@@ -65,7 +71,7 @@ class Creator extends Extension
         // Create Tmp
         $File = Storage::createFilePointer('pdf');
         /** @var DomPdf $Document */
-        $Document = Document::getPdfDocument($File->getFileLocation());
+        $Document = PdfDocument::getPdfDocument($File->getFileLocation());
         $Document->setContent($DocumentClass->createDocument($Data));
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
