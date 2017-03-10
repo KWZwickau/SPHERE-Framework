@@ -21,9 +21,10 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        // Schülerkartei - Grundschule
         if (($tblSchoolType = Type::useService()->getTypeByName('Grundschule'))) {
             $tblDocument = $this->createDocument('Schülerkartei - Grundschule',
-                'Standard\Repository\StudentCard\PrimarySchool');
+                'Standard\Repository\StudentCard\PrimarySchool', $tblSchoolType);
             if ($tblDocument && !$this->getDocumentSubjectListByDocument($tblDocument)) {
                 $i = 3;
                 $this->setDocumentSubject($tblDocument, 'DE', $i++);
@@ -35,6 +36,32 @@ class Data extends AbstractData
                 $this->setDocumentSubject($tblDocument, 'WE', $i++);
                 $this->setDocumentSubject($tblDocument, 'REV', $i++);
                 $this->setDocumentSubject($tblDocument, 'SPO', $i);
+            }
+        }
+
+        // Schülerkartei - Gymnasium
+        if (($tblSchoolType = Type::useService()->getTypeByName('Gymnasium'))) {
+            $tblDocument = $this->createDocument('Schülerkartei - Gymnasium',
+                'Standard\Repository\StudentCard\GrammarSchool', $tblSchoolType);
+            if ($tblDocument && !$this->getDocumentSubjectListByDocument($tblDocument)) {
+                $i = 1;
+                $this->setDocumentSubject($tblDocument, 'DE', $i++);
+                $this->setDocumentSubject($tblDocument, 'EN', $i++);
+                $this->setDocumentSubject($tblDocument, 'FRZ', $i++, false);
+                $this->setDocumentSubject($tblDocument, 'KU', $i++);
+                $this->setDocumentSubject($tblDocument, 'MU', $i++);
+                $this->setDocumentSubject($tblDocument, 'GE', $i++);
+                $this->setDocumentSubject($tblDocument, 'GRW', $i++, false);
+                $this->setDocumentSubject($tblDocument, 'GEO', $i++);
+                $this->setDocumentSubject($tblDocument, 'MA', $i++);
+                $this->setDocumentSubject($tblDocument, 'BIO', $i++);
+                $this->setDocumentSubject($tblDocument, 'CH', $i++);
+                $this->setDocumentSubject($tblDocument, 'PH', $i++);
+                $this->setDocumentSubject($tblDocument, 'TC', $i++, false);
+                $this->setDocumentSubject($tblDocument, 'IN', $i++);
+                $this->setDocumentSubject($tblDocument, 'REV', $i++, false);
+                $this->setDocumentSubject($tblDocument, 'SPO', $i++);
+                $this->setDocumentSubject($tblDocument, 'PRO', $i, false);
             }
         }
     }

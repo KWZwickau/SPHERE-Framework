@@ -10,8 +10,6 @@ namespace SPHERE\Application\Api\Document\Standard;
 
 use SPHERE\Application\Api\Document\Creator;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Extension\Extension;
 
@@ -57,22 +55,23 @@ class Standard extends Extension implements IModuleInterface
     public static function createStudentCardPdf($PersonId = null)
     {
 
-        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\StudentCard\PrimarySchool');
+//        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\StudentCard\PrimarySchool');
+        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\StudentCard\GrammarSchool');
     }
 
     /**
-     * @return IServiceInterface
+     *
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
-     * @return IFrontendInterface
+     *
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 }

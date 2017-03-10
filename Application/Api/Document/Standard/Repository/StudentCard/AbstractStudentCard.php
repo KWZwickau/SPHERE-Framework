@@ -368,159 +368,52 @@ abstract class AbstractStudentCard extends AbstractDocument
     protected function setLetterRow($textSize = '18px')
     {
 
+        $countCharacters = 27;
+        $width = (100/$countCharacters) . '%';
+        $section = new Section();
+        for ($i = 1; $i <= $countCharacters; $i++)
+        {
+            switch ($i){
+                case 1: $character = 'A'; break;
+                case 2: $character = 'B'; break;
+                case 3: $character = 'C'; break;
+                case 4: $character = 'D'; break;
+                case 5: $character = 'E'; break;
+                case 6: $character = 'F'; break;
+                case 7: $character = 'G'; break;
+                case 8: $character = 'H'; break;
+                case 9: $character = 'I'; break;
+                case 10: $character = 'J'; break;
+                case 11: $character = 'K'; break;
+                case 12: $character = 'L'; break;
+                case 13: $character = 'M'; break;
+                case 14: $character = 'N'; break;
+                case 15: $character = 'O'; break;
+                case 16: $character = 'P'; break;
+                case 17: $character = 'Q'; break;
+                case 18: $character = 'R'; break;
+                case 19: $character = 'S'; break;
+                case 20: $character = 'Sch'; break;
+                case 21: $character = 'St'; break;
+                case 22: $character = 'T'; break;
+                case 23: $character = 'U'; break;
+                case 24: $character = 'V'; break;
+                case 25: $character = 'W'; break;
+                case 26: $character = 'XY'; break;
+                case 27: $character = 'Z'; break;
+                default: $character ='';
+            }
+            $section
+                ->addElementColumn(( new Element() )
+                    ->setContent($character)
+                    ->styleTextSize($textSize)
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+                    , $width);
+        }
+
         return ( new Slice() )
-            ->addSection(( new Section() )
-                ->addElementColumn(( new Element() )
-                    ->setContent('A')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('B')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('C')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('D')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('E')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('F')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('G')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('H')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('I')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('J')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('K')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('L')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('N')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('M')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('O')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('P')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('Q')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('R')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('S')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('T')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('U')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('V')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('W')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('XY')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-                ->addElementColumn(( new Element() )
-                    ->setContent('Z')
-                    ->styleTextSize($textSize)
-                    ->styleTextBold()
-                    ->styleAlignCenter()
-                    , '4%')
-            );
+            ->addSection($section);
     }
 
     /**

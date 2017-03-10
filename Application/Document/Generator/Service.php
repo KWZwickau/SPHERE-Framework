@@ -20,6 +20,8 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -112,6 +114,19 @@ class Service extends AbstractService
     {
 
         $Data['Person']['Id'] = $tblPerson->getId();
+
+        // Profil
+        if (($tblStudent = $tblPerson->getStudent())
+            &&($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+            if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
+                $Data['Student']['Profile'] = $tblSubjectProfile->getName();
+            }
+        }
 
         $list = array();
         if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
