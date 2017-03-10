@@ -38,6 +38,26 @@ class Data  extends AbstractData
     }
 
     /**
+     * @return false|TblTeacher[]
+     */
+    public function getTeacherAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher');
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblTeacher
+     */
+    public function getTeacherById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher', $Id);
+    }
+
+    /**
      *
      * @param TblPerson $tblPerson
      *
@@ -54,7 +74,7 @@ class Data  extends AbstractData
     /**
      * @param $Acronym
      *
-     * @return false|\SPHERE\System\Database\Fitting\Element
+     * @return false|TblTeacher
      */
     public function getTeacherByAcronym($Acronym)
     {
