@@ -1572,12 +1572,16 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblListElementListByList) {
                                 foreach ($tblListElementListByList as $tblListElementList) {
                                     if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX') {
-                                        $list[$count]['Field'.$tblListElementList->getId()] = new Unchecked();
+                                        $list[$count]['Field'.$tblListElementList->getId()] = new Unchecked().' ';
                                     } else {
                                         $list[$count]['Field'.$tblListElementList->getId()] = '';
                                     }
 
-                                    $tblListObjectElementList = CheckList::useService()->getListObjectElementListByListAndListElementListAndObjectTypeAndObjectId($tblList, $tblListElementList, $tblObjectType, $objectId);
+                                    $tblListObjectElementList = CheckList::useService()->getListObjectElementListByListAndListElementListAndObjectTypeAndObjectId(
+                                        $tblList,
+                                        $tblListElementList,
+                                        $tblObjectType,
+                                        $objectId);
                                     if ($tblListObjectElementList) {
                                         if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX') {
                                             if ($tblListObjectElementList->getValue() == 1) {
@@ -1590,9 +1594,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
                             // Edit Button
-                            $list[$count]['Field'] = new Standard('', '/Reporting/CheckList/Object/Element/Edit', new Edit(), array('ObjectId'     => $objectId,
-                                                                                                                                    'ListId'       => $tblList->getId(),
-                                                                                                                                    'ObjectTypeId' => $tblObjectType->getId()));
+                            $list[$count]['Field'] = new Standard('', '/Reporting/CheckList/Object/Element/Edit', new Edit(),
+                                array('ObjectId'     => $objectId,
+                                      'ListId'       => $tblList->getId(),
+                                      'ObjectTypeId' => $tblObjectType->getId()));
                             $count++;
                         }
                     }
