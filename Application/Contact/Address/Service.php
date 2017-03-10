@@ -671,6 +671,18 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getAddressByPerson($tblPerson);
     }
 
+    /** get Main Address (Type ID 1)
+     *
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblToPerson
+     */
+    public function getAddressToPersonByPerson(TblPerson $tblPerson)
+    {
+
+        return ( new Data($this->getBinding()) )->getAddressToPersonByPerson($tblPerson);
+    }
+
     /**
      * @param TblCompany $tblCompany
      *

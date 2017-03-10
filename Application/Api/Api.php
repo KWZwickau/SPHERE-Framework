@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Education\Education;
 use SPHERE\Application\Api\People\Person;
 use SPHERE\Application\Api\Platform\Platform;
 use SPHERE\Application\Api\Reporting\Reporting;
+use SPHERE\Application\Api\Setting\Setting;
 use SPHERE\Application\Api\Test\Test;
 use SPHERE\Application\IClusterInterface;
 
@@ -30,5 +31,6 @@ class Api implements IClusterInterface
         Document::registerApplication();
         Corporation::registerApplication();
         Person::registerApplication();
+        Setting::registerApplication();
     }
 }
