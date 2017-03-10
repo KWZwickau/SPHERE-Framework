@@ -1595,9 +1595,14 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                             // Edit Button
                             $list[$count]['Field'] = new Standard('', '/Reporting/CheckList/Object/Element/Edit', new Edit(),
-                                array('ObjectId'     => $objectId,
-                                      'ListId'       => $tblList->getId(),
-                                      'ObjectTypeId' => $tblObjectType->getId()));
+                                array('ObjectId'        => $objectId,
+                                      'ListId'          => $tblList->getId(),
+                                      'ObjectTypeId'    => $tblObjectType->getId(),
+                                      'YearPersonId'    => $YearPersonId,
+                                      'LevelPersonId'   => $LevelPersonId,
+                                      'SchoolOption1Id' => $SchoolOption1Id,
+                                      'SchoolOption2Id' => $SchoolOption2Id
+                                ));
                             $count++;
                         }
                     }
@@ -1720,10 +1725,23 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $ListId
      * @param null $ObjectTypeId
      * @param null $Data
+     * @param null $YearPersonId
+     * @param null $LevelPersonId
+     * @param null $SchoolOption1Id
+     * @param null $SchoolOption2Id
      *
      * @return Stage
      */
-    public function frontendListObjectElementEdit($ObjectId = null, $ListId = null, $ObjectTypeId = null, $Data = null)
+    public function frontendListObjectElementEdit(
+        $ObjectId = null,
+        $ListId = null,
+        $ObjectTypeId = null,
+        $Data = null,
+        $YearPersonId = null,
+        $LevelPersonId = null,
+        $SchoolOption1Id = null,
+        $SchoolOption2Id = null
+    )
     {
 
         $Stage = new Stage('Eintrag', 'Bearbeiten');
@@ -1737,7 +1755,13 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Zur Listenauswahl', '/Reporting/CheckList', new ChevronLeft()));
             return $Stage->setContent(new Warning('Fehlerhafte Parameter'));
         }
-        $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList/Object/Element/Show', new ChevronLeft(), array('Id' => $tblList->getId())));
+        $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList/Object/Element/Show', new ChevronLeft(),
+            array('Id'              => $tblList->getId(),
+                  'YearPersonId'    => $YearPersonId,
+                  'LevelPersonId'   => $LevelPersonId,
+                  'SchoolOption1Id' => $SchoolOption1Id,
+                  'SchoolOption2Id' => $SchoolOption2Id)
+        ));
 
         $formColumnArray = array();
         $formRowArray = array();
