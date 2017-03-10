@@ -15,6 +15,12 @@ use SPHERE\Application\Transfer\Import\Radebeul\Radebeul;
 use SPHERE\Application\Transfer\Import\Schneeberg\Schneeberg;
 use SPHERE\Application\Transfer\Import\Schulstiftung\Schulstiftung;
 use SPHERE\Application\Transfer\Import\Seelitz\Seelitz;
+use SPHERE\Application\Transfer\Import\Zwickau\Zwickau;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -33,43 +39,46 @@ class Import implements IApplicationInterface
         FuxSchool::registerModule();
         Schulstiftung::registerModule();
 
-        $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
+        $consumerAcronym = (Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '');
         if ($consumerAcronym == 'ESZC' || $consumerAcronym == 'DEMO') {
             Chemnitz::registerModule();
         }
-        if ($consumerAcronym === 'EVSR' || $consumerAcronym == 'DEMO'){
+        if ($consumerAcronym === 'EVSR' || $consumerAcronym == 'DEMO') {
             Radebeul::registerModule();
         }
         if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
             Hormersdorf::registerModule();
         }
-        if ($consumerAcronym === 'EVSC' || $consumerAcronym == 'DEMO'){
+        if ($consumerAcronym === 'EVSC' || $consumerAcronym == 'DEMO') {
             Coswig::registerModule();
         }
-        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym == 'DEMO'){
+        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym == 'DEMO') {
             Muldental::registerModule();
         }
-        if ($consumerAcronym === 'EZGH' || $consumerAcronym == 'DEMO'){
+        if ($consumerAcronym === 'EZGH' || $consumerAcronym == 'DEMO') {
             Herrnhut::registerModule();
         }
-        if ($consumerAcronym === 'LWSZ' || $consumerAcronym == 'DEMO'){
+        if ($consumerAcronym === 'LWSZ' || $consumerAcronym == 'DEMO') {
             Zwenkau::registerModule();
         }
-        if ($consumerAcronym === 'ESS' || $consumerAcronym == 'DEMO'){
+        if ($consumerAcronym === 'ESS' || $consumerAcronym == 'DEMO') {
             Schneeberg::registerModule();
         }
-        if ($consumerAcronym === 'EGE' || $consumerAcronym == 'DEMO'){
+        if ($consumerAcronym === 'EGE' || $consumerAcronym == 'DEMO') {
             Annaberg::registerModule();
         }
-        if ($consumerAcronym === 'ESRL' || $consumerAcronym == 'DEMO'){
+        if ($consumerAcronym === 'ESRL' || $consumerAcronym == 'DEMO') {
             Seelitz::registerModule();
+        }
+        if ($consumerAcronym === 'CMS' || $consumerAcronym == 'DEMO') {
+            Zwickau::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendDashboard'
+            __NAMESPACE__, __CLASS__ . '::frontendDashboard'
         ));
     }
 
@@ -81,7 +90,41 @@ class Import implements IApplicationInterface
 
         $Stage = new Stage('Dashboard', 'Import');
 
-        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Import'));
+        $dataList = array();
+
+        $consumerAcronym = (Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '');
+        if ($consumerAcronym === 'CMS' || $consumerAcronym == 'DEMO') {
+            $dataList = Zwickau::setLinks($dataList);
+        }
+
+        $table = new TableData(
+            $dataList,
+            null,
+            array(
+                'Consumer' => 'Mandant',
+                'Name' => 'Name',
+                'Option' => ''
+            ),
+            array(
+                'order' => array(
+                    array('0', 'asc'),
+                    array('1', 'asc'),
+                )
+            )
+        );
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            $table
+                        ))
+                    ))
+                ))
+            ))
+            . Main::getDispatcher()->fetchDashboard('Import')
+        );
 
         return $Stage;
     }
