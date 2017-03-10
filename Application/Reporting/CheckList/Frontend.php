@@ -1854,7 +1854,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new LayoutColumn(new Well(
                             CheckList::useService()->updateListObjectElement(
-                                $Form, $tblList, $tblObjectType, $ObjectId, $Data
+                                $Form, $tblList, $tblObjectType, $ObjectId, $Data, $YearPersonId, $LevelPersonId, $SchoolOption1Id, $SchoolOption2Id
                             )
                         ))
                     ))

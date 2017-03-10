@@ -552,6 +552,10 @@ class Service extends AbstractService
      * @param TblObjectType|null  $tblObjectType
      * @param null                $ObjectId
      * @param null                $Data
+     * @param null                $YearPersonId
+     * @param null                $LevelPersonId
+     * @param null                $SchoolOption1Id
+     * @param null                $SchoolOption2Id
      *
      * @return IFormInterface|string
      */
@@ -560,7 +564,11 @@ class Service extends AbstractService
         TblList $tblList = null,
         TblObjectType $tblObjectType = null,
         $ObjectId = null,
-        $Data = null
+        $Data = null,
+        $YearPersonId = null,
+        $LevelPersonId = null,
+        $SchoolOption1Id = null,
+        $SchoolOption2Id = null
     ) {
         /**
          * Skip to Frontend
@@ -621,9 +629,13 @@ class Service extends AbstractService
             }
         }
 
-        return $Stage;
-//        .new Redirect('/Reporting/CheckList/Object/Element/Show', Redirect::TIMEOUT_SUCCESS,
-//            array('Id' => $tblList->getId()));
+        return $Stage
+            .new Redirect('/Reporting/CheckList/Object/Element/Show', Redirect::TIMEOUT_SUCCESS,
+                array('Id'              => $tblList->getId(),
+                      'YearPersonId'    => $YearPersonId,
+                      'LevelPersonId'   => $LevelPersonId,
+                      'SchoolOption1Id' => $SchoolOption1Id,
+                      'SchoolOption2Id' => $SchoolOption2Id));
     }
 
     /**
