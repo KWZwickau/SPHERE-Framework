@@ -131,7 +131,11 @@ class TblDivision extends Element
     {
 
         if ($this->getTblLevel()) {
-            return $this->getTblLevel()->getName() . (is_numeric($this->getName()) ?  '-' : '') . $this->getName();
+            if (strlen($this->getName()) >= 2) {
+                return $this->getTblLevel()->getName().( is_numeric($this->getName()) ? '-' : ' ' ).$this->getName();
+            } else {
+                return $this->getTblLevel()->getName().( is_numeric($this->getName()) ? '-' : '' ).$this->getName();
+            }
         } else {
             return $this->getName();
         }
