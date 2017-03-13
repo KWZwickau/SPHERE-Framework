@@ -59,14 +59,7 @@ class Data extends AbstractData
     {
 
         $tblGroupPerson = $this->createGroup('PERSON', 'Personenbeziehung', 'Person zu Person');
-//        $tblGroupCompany = $this->createGroup('COMPANY', 'Firmenbeziehungen', 'Person zu Firma');
-        if (( $tblGroupCompany = $this->getGroupByIdentifier('COMPANY') )) {
-            if ($tblGroupCompany && $tblGroupCompany->getName() !== 'Institutionenbeziehungen') {
-                $tblGroupCompany = $this->updateGroup($tblGroupCompany, 'Institutionenbeziehungen', 'Person zu Institution');
-            }
-        } else {
-            $tblGroupCompany = $this->createGroup('COMPANY', 'Institutionenbeziehungen', 'Person zu Institution');
-        }
+        $tblGroupCompany = $this->createGroup('COMPANY', 'Institutionenbeziehungen', 'Person zu Institution');
 
         $tblType = $this->createType('Sorgeberechtigt', '', $tblGroupPerson);
         $this->updateType($tblType, false);
