@@ -23,6 +23,20 @@ class Account implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account', __NAMESPACE__.'\Frontend::frontendPrepare')
         );
+        //FrontendAddress
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Address', __NAMESPACE__.'\Frontend::frontendAddress')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Address/Select', __NAMESPACE__.'\Frontend::frontendAddressSelect')
+        );
+        //FrontendMail
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Mail', __NAMESPACE__.'\Frontend::frontendMail')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Mail/Select', __NAMESPACE__.'\Frontend::frontendMailSelect')
+        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Person', __NAMESPACE__.'\Frontend::frontendPreparePersonList')
         );

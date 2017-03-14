@@ -112,6 +112,50 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblUserAccount     $tblUserAccount
+     * @param TblToPersonAddress $tblToPersonAddress
+     *
+     * @return bool
+     */
+    public function updateUserAccountByToPersonAddress(TblUserAccount $tblUserAccount, TblToPersonAddress $tblToPersonAddress)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblUserAccount $Entity */
+        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblToPersonAddress($tblToPersonAddress !== null ? $tblToPersonAddress : null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblUserAccount  $tblUserAccount
+     * @param TblToPersonMail $tblToPersonMail
+     *
+     * @return bool
+     */
+    public function updateUserAccountByToPersonMail(TblUserAccount $tblUserAccount, TblToPersonMail $tblToPersonMail)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblUserAccount $Entity */
+        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblToPersonMail($tblToPersonMail !== null ? $tblToPersonMail : null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblUserAccount $tblUserAccount
      *
      * @return bool

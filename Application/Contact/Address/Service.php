@@ -13,6 +13,7 @@ use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\Contact\Address\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -138,8 +139,12 @@ class Service extends AbstractService
      * @param array          $City
      * @param integer        $State
      * @param array          $Type
+     * @param string         $County
+     * @param string         $Nation
+     * @param string         $Route
+     * @param array          $RouteData
      *
-     * @return IFormInterface|string
+     * @return IFormInterface|string|TblToPerson
      */
     public function createAddressToPerson(
         IFormInterface $Form,
@@ -149,7 +154,9 @@ class Service extends AbstractService
         $State,
         $Type,
         $County,
-        $Nation
+        $Nation,
+        $Route = '',
+        $RouteData = array()
     ) {
 
         /**
@@ -194,6 +201,15 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $Form->setSuccess('Type[Type]');
+            // control there is no other MainAddress
+            if ($tblType->getName() == 'Hauptadresse') {
+                $tblAddressMain = Address::useService()->getAddressByPerson($tblPerson);
+                if ($tblAddressMain) {
+                    $Form->setError('Type[Type]', '"'.$tblPerson->getFullName()
+                        .'" besitzt bereits eine Hauptadresse');
+                    $Error = true;
+                }
+            }
         }
 
         if (!$Error) {
@@ -209,16 +225,33 @@ class Service extends AbstractService
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
             );
 
-            if ((new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
-                $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich hinzugefügt')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblPerson->getId()));
+            if ($Route != '') {
+                if (( $tblToPerson = ( new Data($this->getBinding()) )->addAddressToPerson($tblPerson, $tblAddress, $tblType, $Type['Remark']) )) {
+                    // add TblToPerson to TblUserAccount
+                    if ($Route == '/People/User/Account/Address') {
+                        if (isset($RouteData['Id'])) {
+                            $tblUserAccount = Account::useService()->getUserAccountById($RouteData['Id']);
+                            if ($tblUserAccount) {
+                                Account::useService()->updateUserAccountByToPersonAddress($tblUserAccount, $tblToPerson);
+                            }
+                        }
+                    }
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich hinzugefügt')
+                        .new Redirect($Route, Redirect::TIMEOUT_SUCCESS, $RouteData);
+                } else {
+                    return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
+                        .new Redirect($Route, Redirect::TIMEOUT_SUCCESS, $RouteData);
+                }
             } else {
-                return new Danger(new Ban() . ' Die Adresse konnte nicht hinzugefügt werden')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblPerson->getId()));
+                if (( new Data($this->getBinding()) )->addAddressToPerson($tblPerson, $tblAddress, $tblType, $Type['Remark'])) {
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich hinzugefügt')
+                        .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                            array('Id' => $tblPerson->getId()));
+                } else {
+                    return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
+                        .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
+                            array('Id' => $tblPerson->getId()));
+                }
             }
         }
         return $Form;

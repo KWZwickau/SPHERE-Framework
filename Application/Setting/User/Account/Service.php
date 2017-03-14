@@ -218,6 +218,30 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblUserAccount     $tblUserAccount
+     * @param TblToPersonAddress $tblToPersonAddress
+     *
+     * @return bool
+     */
+    public function updateUserAccountByToPersonAddress(TblUserAccount $tblUserAccount, TblToPersonAddress $tblToPersonAddress)
+    {
+
+        return ( new Data($this->getBinding()) )->updateUserAccountByToPersonAddress($tblUserAccount, $tblToPersonAddress);
+    }
+
+    /**
+     * @param TblUserAccount  $tblUserAccount
+     * @param TblToPersonMail $tblToPersonMail
+     *
+     * @return bool
+     */
+    public function updateUserAccountByToPersonMail(TblUserAccount $tblUserAccount, TblToPersonMail $tblToPersonMail)
+    {
+
+        return ( new Data($this->getBinding()) )->updateUserAccountByToPersonMail($tblUserAccount, $tblToPersonMail);
+    }
+
+    /**
      * @param TblUserAccount $tblUserAccount
      *
      * @return bool

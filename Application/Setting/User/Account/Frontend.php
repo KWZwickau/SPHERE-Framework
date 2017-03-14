@@ -3,6 +3,9 @@ namespace SPHERE\Application\Setting\User\Account;
 
 
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -20,12 +23,20 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title as TitleLayout;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -34,12 +45,14 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Exchange;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
@@ -68,6 +81,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Address'] = new WarningMessage('Keine Adresse gewählt');
                 $Item['Mail'] = new WarningMessage('Keine E-Mail gewählt');
                 $Item['PersonList'] = '';
+                $Item['Option'] = new Standard('', '/People/User/Account/Address', new Building(),
+                        array('Id' => $tblUserAccount->getId()), 'Adresse ändern/anlegen')
+                    .new Standard('', '/People/User/Account/Mail', new MailIcon(),
+                        array('Id' => $tblUserAccount->getId()), 'E-Mail ändern/anlegen')
+                    .new Standard('', '/People/User/Account/Destroy', new Remove(),
+                        array('Id' => $tblUserAccount->getId()), 'Daten entfernen');
 
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
@@ -142,7 +161,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         'UserPass'   => 'Passwort',
                                         'Address'    => 'Adresse',
                                         'Mail'       => 'E-Mail',
-                                        'PersonList' => 'Beziehungs Person(en)'
+                                        'PersonList' => 'Beziehungs Person(en)',
+                                        'Option'     => ''
                                     ))
                                 : new WarningMessage('Keine Personen vorhanden denen ein Account erstellt werden soll.
                                 Bitte klicken Sie auf die '.new Standard('Personenzuweisung', '/People/User/Account/Person', new Listing()))
@@ -153,6 +173,389 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Street
+     * @param null $City
+     * @param null $State
+     * @param null $Type
+     * @param null $County
+     * @param null $Nation
+     *
+     * @return Stage
+     */
+    public function frontendAddress(
+        $Id = null,
+        $Street = null,
+        $City = null,
+        $State = null,
+        $Type = null,
+        $County = null,
+        $Nation = null
+    ) {
+
+        $Stage = new Stage('Adresse', 'Auswählen');
+        $Stage->addButton(new Standard('Zurück', '/People/User/Account', new ChevronLeft()));
+        $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
+        if (!$tblUserAccount) {
+            $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
+                .new Redirect('/People/User/Account', Redirect::TIMEOUT_ERROR));
+            return $Stage;
+        }
+        $tblPerson = $tblUserAccount->getServiceTblPerson();
+        if (!$tblPerson) {
+            $Stage->setContent(new WarningMessage('Person nicht gefunden')
+                .new Redirect('/People/User/Account', Redirect::TIMEOUT_ERROR));
+            return $Stage;
+        }
+
+        $tblToPersonAddress = $tblUserAccount->getServiceTblToPersonAddress();
+        $tblAddress = null;
+        $AddressString = '';
+        $ActiveType = 'Keine Adresse';
+        if ($tblToPersonAddress) {
+            $tblType = $tblToPersonAddress->getTblType();
+            if ($tblType) {
+                $ActiveType = $tblType->getName();
+            }
+            $tblAddress = $tblToPersonAddress->getTblAddress();
+            if ($tblAddress) {
+                $AddressString = $tblAddress->getGuiTwoRowString();
+            }
+        }
+
+        $LayoutAddress = $this->layoutPanelAddress($tblUserAccount, $tblPerson, $tblAddress);
+        $formAddress = Address::useFrontend()->formAddress();
+
+        $firstPanel = new Panel('Person', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS);
+        $secondPanel = new Panel('Ausgwählte Adresse ('.$ActiveType.')', $AddressString, Panel::PANEL_TYPE_SUCCESS);
+
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $firstPanel, 3
+                        ),
+                        new LayoutColumn(
+                            $secondPanel, 3
+                        ),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new TitleLayout(new Check().' Auswahl einer verfügbaren Adresse'),
+                            new Well(
+                                $LayoutAddress
+                            )
+                        )),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new TitleLayout(new Plus().' Hinzufügen einer neuen Adresse'),
+                            new Well(Address::useService()->createAddressToPerson(
+                                $formAddress
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblPerson, $Street, $City, $State, $Type, $County, $Nation, '/People/User/Account/Address',
+                                array('Id' => $tblUserAccount->getId())
+                            ))
+                        ))
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblUserAccount  $tblUserAccount
+     * @param TblPerson       $tblPerson
+     * @param TblAddress|null $tblActiveAddress
+     *
+     * @return Layout
+     */
+    public function layoutPanelAddress(TblUserAccount $tblUserAccount, TblPerson $tblPerson, TblAddress $tblActiveAddress = null)
+    {
+        $LayoutColumnList = array();
+        $tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson);
+        if ($tblToPersonAddressList) {
+            foreach ($tblToPersonAddressList as $tblToAddress) {
+                // get typeName for Panel title
+                $TypeString = '';
+                if (( $tblType = $tblToAddress->getTblType() )) {
+                    $TypeString = $tblType->getName();
+                    // get bold front for MainAddress
+                    if ($TypeString == 'Hauptadresse') {
+                        $TypeString = new Bold($TypeString);
+                    }
+                }
+                // get Address for Panel content
+                $tblAddress = $tblToAddress->getTblAddress();
+                if ($tblAddress) {
+                    // set LayoutColumn
+                    $LayoutColumnList[] = new LayoutColumn(
+                        new Panel($TypeString, $tblAddress->getGuiTwoRowString(),
+                            ( $tblAddress->getId() == $tblActiveAddress ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_INFO ),
+                            new Standard('', '/People/User/Account/Address/Select', new Ok(),
+                                array('Id'         => $tblUserAccount->getId(),
+                                      'toPersonId' => $tblToAddress->getId()), 'Adresse auswählen'
+                            )
+                        )
+                        , 3);
+                }
+            }
+        }
+
+        // build clean view
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $LayoutColumn
+         */
+        if (empty($LayoutColumnList)) {
+            $LayoutColumnList[] = new LAyoutColumn(
+                new WarningMessage('Die Person "'.$tblPerson->getFullName().'" besitzt keine Adresse!')
+                , 6);
+        }
+        foreach ($LayoutColumnList as $LayoutColumn) {
+            // new line after 4 Columns
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($LayoutColumn);
+            $LayoutRowCount++;
+        }
+
+        return new Layout(new LayoutGroup($LayoutRowList));
+    }
+
+    /**
+     * @param null $Id
+     * @param null $toPersonId
+     *
+     * @return Stage
+     */
+    public function frontendAddressSelect($Id = null, $toPersonId = null)
+    {
+        $Stage = new Stage('Adresse'.'Zuweisen');
+        // check to continue
+        $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
+        if (!$tblUserAccount) {
+            $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
+                .new Redirect('/People/User/Account', Redirect::TIMEOUT_ERROR));
+            return $Stage;
+        }
+        $tblToPersonAddress = ( $toPersonId === null ? false : Address::useService()->getAddressToPersonById($toPersonId) );
+        if (!$tblToPersonAddress) {
+            $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
+                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR, array('Id' => $tblUserAccount->getId()))
+            );
+            return $Stage;
+        }
+
+        // update TblToPersonAddress for TblUserAccount
+        if (Account::useService()->updateUserAccountByToPersonAddress($tblUserAccount, $tblToPersonAddress)) {
+            // success
+            $Stage->setContent(new Success('Adresse erfolgreich übernommen')
+                .new Redirect('/People/User/Account', Redirect::TIMEOUT_SUCCESS));
+        } else {
+            // error
+            $Stage->setContent(new WarningMessage('Adresse konnte nicht übernommen werden')
+                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR, array('Id' => $tblUserAccount->getId())));
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Address
+     * @param null $Type
+     *
+     * @return Stage
+     */
+    public function frontendMail(
+        $Id = null,
+        $Address = null,
+        $Type = null
+    ) {
+
+        $Stage = new Stage('E-Mail', 'Auswählen');
+        $Stage->addButton(new Standard('Zurück', '/People/User/Account', new ChevronLeft()));
+        $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
+        if (!$tblUserAccount) {
+            $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
+                .new Redirect('/People/User/Account', Redirect::TIMEOUT_ERROR));
+            return $Stage;
+        }
+        $tblPerson = $tblUserAccount->getServiceTblPerson();
+        if (!$tblPerson) {
+            $Stage->setContent(new WarningMessage('Person nicht gefunden')
+                .new Redirect('/People/User/Account', Redirect::TIMEOUT_ERROR));
+            return $Stage;
+        }
+        $tblToPersonMail = $tblUserAccount->getServiceTblToPersonMail();
+
+        $tblMail = null;
+        $MailString = '';
+        $ActiveType = 'Keine Adresse';
+        if ($tblToPersonMail) {
+            $tblType = $tblToPersonMail->getTblType();
+            if ($tblType) {
+                $ActiveType = $tblType->getName();
+            }
+            $tblMail = $tblToPersonMail->getTblMail();
+            if ($tblMail) {
+                $MailString = $tblMail->getAddress();
+            }
+        }
+
+        $LayoutMail = $this->layoutPanelMail($tblUserAccount, $tblPerson, $tblMail);
+        $formAddress = Mail::useFrontend()->formAddress();
+
+
+        $firstPanel = new Panel('Person', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS);
+        $secondPanel = new Panel('Ausgwählte Adresse ('.$ActiveType.')', $MailString, Panel::PANEL_TYPE_SUCCESS);
+
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $firstPanel, 3
+                        ),
+                        new LayoutColumn(
+                            $secondPanel, 3
+                        ),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new TitleLayout(new Check().' Auswahl einer verfügbaren E-Mail Adresse'),
+                            new Well(
+                                $LayoutMail
+                            )
+                        )),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new TitleLayout(new Plus().' Hinzufügen einer neuen E-Mail Adresse'),
+                            new Well(Mail::useService()->createMailToPerson(
+                                $formAddress
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblPerson, $Address, $Type, '/People/User/Account/Mail',
+                                array('Id' => $tblUserAccount->getId())
+                            ))
+                        ))
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblUserAccount $tblUserAccount
+     * @param TblPerson      $tblPerson
+     * @param TblMail|null   $tblMailActive
+     *
+     * @return Layout
+     */
+    public function layoutPanelMail(TblUserAccount $tblUserAccount, TblPerson $tblPerson, TblMail $tblMailActive = null)
+    {
+        $LayoutColumnList = array();
+        $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson);
+        if ($tblToPersonMailList) {
+            foreach ($tblToPersonMailList as $tblToMail) {
+                // get typeName for Panel title
+                $TypeString = '';
+                if (( $tblType = $tblToMail->getTblType() )) {
+                    $TypeString = $tblType->getName();
+                }
+                // get Mail for Panel content
+                $tblMail = $tblToMail->getTblMail();
+                if ($tblMail) {
+                    // set LayoutColumn
+                    $LayoutColumnList[] = new LayoutColumn(
+                        new Panel($TypeString, $tblMail->getAddress(),
+                            ( $tblMail->getId() == $tblMailActive->getId() ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_INFO ),
+                            new Standard('', '/People/User/Account/Mail/Select', new Ok(),
+                                array('Id'         => $tblUserAccount->getId(),
+                                      'toPersonId' => $tblToMail->getId()), 'E-Mail Adresse auswählen'
+                            )
+                        )
+                        , 3);
+                }
+            }
+        }
+
+        // build clean view
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $LayoutColumn
+         */
+        if (empty($LayoutColumnList)) {
+            $LayoutColumnList[] = new LAyoutColumn(
+                new WarningMessage('Die Person "'.$tblPerson->getFullName().'" besitzt keine E-Mail Adresse!')
+                , 6);
+        }
+        foreach ($LayoutColumnList as $LayoutColumn) {
+            // new line after 4 Columns
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($LayoutColumn);
+            $LayoutRowCount++;
+        }
+
+        return new Layout(new LayoutGroup($LayoutRowList));
+    }
+
+    /**
+     * @param null $Id
+     * @param null $toPersonId
+     *
+     * @return Stage
+     */
+    public function frontendMailSelect($Id = null, $toPersonId = null)
+    {
+        $Stage = new Stage('Adresse'.'Zuweisen');
+        // check to continue
+        $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
+        if (!$tblUserAccount) {
+            $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
+                .new Redirect('/People/User/Account', Redirect::TIMEOUT_ERROR));
+            return $Stage;
+        }
+        $tblToPersonMail = ( $toPersonId === null ? false : Mail::useService()->getMailToPersonById($toPersonId) );
+        if (!$tblToPersonMail) {
+            $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
+                .new Redirect('/People/User/Account/Mail', Redirect::TIMEOUT_ERROR, array('Id' => $tblUserAccount->getId()))
+            );
+            return $Stage;
+        }
+
+        // update TblToPersonMail for TblUserAccount
+        if (Account::useService()->updateUserAccountByToPersonMail($tblUserAccount, $tblToPersonMail)) {
+            // success
+            $Stage->setContent(new Success('Adresse erfolgreich übernommen')
+                .new Redirect('/People/User/Account', Redirect::TIMEOUT_SUCCESS));
+        } else {
+            // error
+            $Stage->setContent(new WarningMessage('Adresse konnte nicht übernommen werden')
+                .new Redirect('/People/User/Account/Mail', Redirect::TIMEOUT_ERROR, array('Id' => $tblUserAccount->getId())));
+        }
         return $Stage;
     }
 
