@@ -3,8 +3,6 @@ namespace SPHERE\System\Database\Filter\Link\Repository;
 
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\AbstractNode;
-use SPHERE\System\Database\Filter\Link\Pile;
-use SPHERE\System\Database\Filter\Link\Probe;
 
 /**
  * Class Node5

@@ -22,13 +22,13 @@
         </div>
     {% endif %}
 </div>
+{% if Filter is not empty %}
 <script type="text/javascript">
     //noinspection JSUnresolvedFunction
     executeScript(function()
     {
         Client.Use('ModAlways', function()
         {
-            {% if Filter is not empty %}
             var Option = {
                 listClass: "list-group",
                 indexAsync: true,
@@ -39,7 +39,7 @@
             };
             var PanelList = new List("{{ Hash }}", Option);
             PanelList.search({{ FilterValue }});
-            {% endif %}
         });
     });
 </script>
+{% endif %}

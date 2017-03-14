@@ -171,6 +171,7 @@ class DataCacheHandler extends AbstractHandler
     public function clearCache()
     {
         $this->clearData();
+        return $this;
     }
 
     /**

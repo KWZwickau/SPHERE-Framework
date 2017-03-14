@@ -16,6 +16,7 @@ use SPHERE\System\Extension\Extension;
  * - Id (bigint)
  * - EntityCreate (datetime)
  * - EntityUpdate (datetime)
+ * - EntityRemove (datetime)
  *
  * @package SPHERE\System\Database\Fitting
  * @MappedSuperclass
@@ -25,9 +26,9 @@ abstract class Element extends Extension
 {
 
     const ENTITY_ID = 'Id';
-    const ENTITY_REMOVE = 'EntityRemove';
-    const ENTITY_UPDATE = 'EntityUpdate';
     const ENTITY_CREATE = 'EntityCreate';
+    const ENTITY_UPDATE = 'EntityUpdate';
+    const ENTITY_REMOVE = 'EntityRemove';
 
     /**
      * @Id
