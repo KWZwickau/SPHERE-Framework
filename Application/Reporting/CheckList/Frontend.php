@@ -1585,6 +1585,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             }
                                         } else {
                                             $list[$count]['Field'.$tblListElementList->getId()] = $tblListObjectElementList->getValue();
+                                            // show string 0 in Datatable
+                                            if ($tblListObjectElementList->getValue() === "0") {
+                                                $list[$count]['Field'.$tblListElementList->getId()] = ' '.$tblListObjectElementList->getValue();
+                                            }
                                         }
                                     }
                                 }
