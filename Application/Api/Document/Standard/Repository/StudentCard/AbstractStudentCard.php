@@ -165,7 +165,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 4: $text = 'Signums des Lehrers'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '4px'))
+                ->setContent($this->setRotatedContend($text, '6px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines)
@@ -368,7 +368,7 @@ abstract class AbstractStudentCard extends AbstractDocument
     protected function setLetterRow($textSize = '18px')
     {
 
-        $countCharacters = 27;
+        $countCharacters = 26;
         $width = (100/$countCharacters) . '%';
         $section = new Section();
         for ($i = 1; $i <= $countCharacters; $i++)
@@ -393,14 +393,13 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 17: $character = 'Q'; break;
                 case 18: $character = 'R'; break;
                 case 19: $character = 'S'; break;
-                case 20: $character = 'Sch'; break;
-                case 21: $character = 'St'; break;
-                case 22: $character = 'T'; break;
-                case 23: $character = 'U'; break;
-                case 24: $character = 'V'; break;
-                case 25: $character = 'W'; break;
-                case 26: $character = 'XY'; break;
-                case 27: $character = 'Z'; break;
+                case 20: $character = 'T'; break;
+                case 21: $character = 'U'; break;
+                case 22: $character = 'V'; break;
+                case 23: $character = 'W'; break;
+                case 24: $character = 'X'; break;
+                case 25: $character = 'Y'; break;
+                case 26: $character = 'Z'; break;
                 default: $character ='';
             }
             $section
@@ -408,6 +407,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                     ->setContent($character)
                     ->styleTextSize($textSize)
                     ->styleTextBold()
+                    ->styleBorderRight($i == $countCharacters ? '0px': '0.5px')
                     ->styleAlignCenter()
                     , $width);
         }

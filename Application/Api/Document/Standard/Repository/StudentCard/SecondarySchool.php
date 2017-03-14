@@ -1,0 +1,154 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 14.03.2017
+ * Time: 14:52
+ */
+
+namespace SPHERE\Application\Api\Document\Standard\Repository\StudentCard;
+
+use SPHERE\Application\Document\Generator\Repository\Document;
+use SPHERE\Application\Document\Generator\Repository\Element;
+use SPHERE\Application\Document\Generator\Repository\Frame;
+use SPHERE\Application\Document\Generator\Repository\Page;
+use SPHERE\Application\Document\Generator\Repository\Section;
+use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
+
+class SecondarySchool extends AbstractStudentCard
+{
+
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+
+        return 'Schülerkartei - Mittelschule';
+    }
+
+    /**
+     * @return Frame
+     */
+    public function buildDocument()
+    {
+
+        $SmallTextSize = '7px';
+        $InputText = '12px';
+        $thicknessOutLines = '1.2px';
+        $thicknessInnerLines = '0.5px';
+
+        $subjectPosition = array();
+
+        return (new Frame())->addDocument((new Document())
+            ->addPage((new Page())
+                ->addSlice($this->setLetterRow())
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Mittelschule')
+                            ->styleHeight('32px')
+                            ->styleTextSize('18px')
+                            ->styleTextBold()
+                            ->stylePaddingTop('8px')
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderLeft($thicknessOutLines)
+                            ->styleBorderTop($thicknessOutLines)
+                            ->styleBorderRight($thicknessInnerLines)
+                            , '18%')
+                        ->addSliceColumn((new Slice())
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Name')
+                                    ->stylePaddingLeft('4px')
+                                    ->styleTextSize($SmallTextSize)
+                                    ->styleBorderTop($thicknessOutLines)
+                                    , '40%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('Vorname')
+                                    ->stylePaddingLeft('4px')
+                                    ->styleTextSize($SmallTextSize)
+                                    ->styleBorderTop($thicknessOutLines)
+                                    ->styleBorderRight($thicknessOutLines)
+                                    , '40%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                                {% if( Content.Person.Data.Name.Last is not empty) %}
+                                                    {{ Content.Person.Data.Name.Last }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}')
+                                    ->stylePaddingLeft('4px')
+                                    ->stylePaddingTop('4px')
+                                    ->styleTextSize($InputText)
+                                    ->styleHeight('27.5px')
+                                    , '40%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                                {% if( Content.Person.Data.Name.First is not empty) %}
+                                                    {{ Content.Person.Data.Name.First }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}')
+                                    ->stylePaddingLeft('4px')
+                                    ->stylePaddingTop('4px')
+                                    ->styleTextSize($InputText)
+                                    ->styleBorderRight($thicknessOutLines)
+                                    ->styleHeight('27.5px')
+                                    , '40%')
+                            )
+                        )
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            // Todo Checkboxen
+                            ->setContent('&nbsp;' . new Unchecked())
+                            ->styleHeight('20px')
+                            ->stylePaddingTop('4px')
+                            ->styleBorderLeft($thicknessOutLines)
+                            ->styleBorderTop($thicknessInnerLines)
+                            ->styleBorderBottom($thicknessOutLines)
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            ->setContent('Hauptschulabschluss')
+                            ->styleHeight('20px')
+                            ->stylePaddingTop('4px')
+                            ->styleBorderTop($thicknessInnerLines)
+                            ->styleBorderBottom($thicknessOutLines)
+                            , '15%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;' . (new Unchecked())->getContent())
+                            ->styleHeight('20px')
+                            ->stylePaddingTop('4px')
+                            ->styleBorderTop($thicknessInnerLines)
+                            ->styleBorderBottom($thicknessOutLines)
+                            , '5%')
+                        ->addElementColumn((new Element())
+                            ->setContent('Realschulabschluss')
+                            ->styleHeight('20px')
+                            ->stylePaddingTop('4px')
+                            ->styleBorderTop($thicknessInnerLines)
+                            ->styleBorderBottom($thicknessOutLines)
+                            ->styleBorderRight($thicknessOutLines)
+                        )
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight('20px')
+                    )
+                )
+                ->addSliceArray($this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '150px'))
+                ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 15))
+            )
+        );
+    }
+}

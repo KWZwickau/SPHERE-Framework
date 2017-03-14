@@ -64,6 +64,34 @@ class Data extends AbstractData
                 $this->setDocumentSubject($tblDocument, 'PRO', $i, false);
             }
         }
+
+        // Schülerkartei - Mittelschule
+        if (($tblSchoolType = Type::useService()->getTypeByName('Mittelschule / Oberschule'))) {
+            $tblDocument = $this->createDocument('Schülerkartei - Mittelschule',
+                'Standard\Repository\StudentCard\SecondarySchool', $tblSchoolType);
+            if ($tblDocument && !$this->getDocumentSubjectListByDocument($tblDocument)) {
+                $i = 1;
+                $this->setDocumentSubject($tblDocument, 'DE', $i++);
+                $this->setDocumentSubject($tblDocument, 'EN', $i++);
+                $this->setDocumentSubject($tblDocument, 'FRZ', $i++, false);
+                $this->setDocumentSubject($tblDocument, 'KU', $i++);
+                $this->setDocumentSubject($tblDocument, 'MU', $i++);
+                $this->setDocumentSubject($tblDocument, 'GE', $i++);
+                $this->setDocumentSubject($tblDocument, 'GR', $i++);
+                $this->setDocumentSubject($tblDocument, 'GEO', $i++);
+                $i++;
+                $this->setDocumentSubject($tblDocument, 'MA', $i++);
+                $this->setDocumentSubject($tblDocument, 'BIO', $i++);
+                $this->setDocumentSubject($tblDocument, 'CH', $i++);
+                $this->setDocumentSubject($tblDocument, 'PH', $i++);
+                $this->setDocumentSubject($tblDocument, 'REV', $i++, false);
+                $this->setDocumentSubject($tblDocument, 'SPO', $i++);
+                $this->setDocumentSubject($tblDocument, 'TC', $i++);
+                $this->setDocumentSubject($tblDocument, 'IN', $i++);
+                $this->setDocumentSubject($tblDocument, 'WTH', $i++);
+                $this->setDocumentSubject($tblDocument, 'NK', $i, false);
+            }
+        }
     }
 
     /**
