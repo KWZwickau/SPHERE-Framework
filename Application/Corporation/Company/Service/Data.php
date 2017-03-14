@@ -42,8 +42,9 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCompany')->findOneBy(array(
-            TblCompany::ATTR_NAME => $Name,
-            'EntityRemove' => null
+            TblCompany::ATTR_NAME          => $Name,
+            TblCompany::ATTR_EXTENDED_NAME => $ExtendedName,
+            'EntityRemove'                 => null
         ));
         if (null === $Entity) {
             $Entity = new TblCompany();
@@ -133,6 +134,22 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param $Name
+     * @param $ExtendedName
+     *
+     * @return false|TblCompany
+     */
+    public function getCompanyByName($Name, $ExtendedName)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany',
+            array(
+                TblCompany::ATTR_NAME          => $Name,
+                TblCompany::ATTR_EXTENDED_NAME => $ExtendedName
+            ));
     }
 
     /**

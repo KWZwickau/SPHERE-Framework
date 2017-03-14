@@ -50,6 +50,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -126,6 +127,13 @@ class Frontend extends Extension implements IFrontendInterface
         )));
 
         $tblCompany = Company::useService()->getCompanyById($Id);
+
+        if (!$tblCompany) {
+            $Stage->setContent(new WarningMessage('Die Firma ist nicht Hinterlegt')
+                .new Redirect('/Corporation', Redirect::TIMEOUT_ERROR));
+            return $Stage;
+        }
+
         $tblGroup = PeopleGroup::useService()->getGroupByMetaTable(
             \SPHERE\Application\People\Group\Service\Entity\TblGroup::META_TABLE_COMPANY_CONTACT
         );
