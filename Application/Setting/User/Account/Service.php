@@ -45,6 +45,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $UserName
+     *
+     * @return false|TblUserAccount
+     */
+    public function getUserAccountByUserName($UserName = '')
+    {
+
+        return ( new Data($this->getBinding()) )->getUserAccountByUserName($UserName);
+    }
+
+    /**
      * @param $IsSend
      * @param $IsExport
      *
@@ -185,16 +196,25 @@ class Service extends AbstractService
      * @param TblPerson               $tblPerson
      * @param TblToPersonAddress|null $tblToPersonAddress
      * @param TblToPersonMail|null    $tblToPersonMail
+     * @param string                  $UserName
+     * @param string                  $UserPass
      *
      * @return bool|TblUserAccount
      */
     public function createUserAccount(
         TblPerson $tblPerson,
         TblToPersonAddress $tblToPersonAddress = null,
-        TblToPersonMail $tblToPersonMail = null
+        TblToPersonMail $tblToPersonMail = null,
+        $UserName,
+        $UserPass
     ) {
 
-        return ( new Data($this->getBinding()) )->createUserAccount($tblPerson, $tblToPersonAddress, $tblToPersonMail);
+        return ( new Data($this->getBinding()) )->createUserAccount(
+            $tblPerson,
+            $tblToPersonAddress,
+            $tblToPersonMail,
+            $UserName,
+            $UserPass);
     }
 
     /**

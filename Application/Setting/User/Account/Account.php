@@ -17,7 +17,7 @@ class Account implements IModuleInterface
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('/People/User/Account'), new Link\Name('Benutzerzugänge'))
+            new Link(new Link\Route('/People/User/Account'), new Link\Name('Benutzer anlegen'))
         );
 
         Main::getDispatcher()->registerRoute(

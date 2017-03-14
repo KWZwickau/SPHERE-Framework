@@ -34,6 +34,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $UserName
+     *
+     * @return false|TblUserAccount
+     */
+    public function getUserAccountByUserName($UserName = '')
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblUserAccount', array(
+                TblUserAccount::ATTR_USER_NAME => $UserName
+            ));
+    }
+
+    /**
      * @param $IsSend
      * @param $IsExport
      *
@@ -63,13 +77,17 @@ class Data extends AbstractData
      * @param TblPerson               $tblPerson
      * @param TblToPersonAddress|null $tblToPersonAddress
      * @param TblToPersonMail|null    $tblToPersonMail
+     * @param string                  $UserName
+     * @param string                  $UserPass
      *
      * @return bool|TblUserAccount
      */
     public function createUserAccount(
         TblPerson $tblPerson,
         TblToPersonAddress $tblToPersonAddress = null,
-        TblToPersonMail $tblToPersonMail = null
+        TblToPersonMail $tblToPersonMail = null,
+        $UserName,
+        $UserPass
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -82,8 +100,8 @@ class Data extends AbstractData
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblToPersonAddress($tblToPersonAddress);
             $Entity->setServiceTblToPersonMail($tblToPersonMail);
-            $Entity->setUserName('');
-            $Entity->setUserPass('');
+            $Entity->setUserName($UserName);
+            $Entity->setUserPass($UserPass);
             $Entity->setIsSend(false);
             $Entity->setIsExport(false);
             $Manager->saveEntity($Entity);

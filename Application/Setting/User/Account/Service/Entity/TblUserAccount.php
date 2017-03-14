@@ -88,7 +88,7 @@ class TblUserAccount extends Element
     {
 
         $tblToPersonAddress = ( $this->serviceTblToPersonAddress != null
-            ? Address::useService()->getAddressToPersonById($this->serviceTblPerson)
+            ? Address::useService()->getAddressToPersonById($this->serviceTblToPersonAddress)
             : false );
         if ($tblToPersonAddress) {
             return $tblToPersonAddress;
@@ -112,7 +112,7 @@ class TblUserAccount extends Element
     {
 
         $tblToPersonMail = ( $this->serviceTblToPersonMail != null
-            ? Mail::useService()->getMailToPersonById($this->serviceTblPerson)
+            ? Mail::useService()->getMailToPersonById($this->serviceTblToPersonMail)
             : false );
         if ($tblToPersonMail) {
             return $tblToPersonMail;

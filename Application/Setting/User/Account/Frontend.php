@@ -52,7 +52,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Übersicht', 'Vorbereitung der Accounts');
         $Stage->addButton(new Standard('Zurück', '/People/User', new ChevronLeft()));
-        $Stage->addButton(new Standard('Personenzuweisung', '/People/User/Account/Person', new Listing()));
+        $Stage->addButton(new Standard('Personenzuweisung', '/People/User/Account/Person', new Listing(), array()
+            , 'Auswahl der Personen'));
 
         $IsSend = $IsExport = false;
         $tblUserAccountList = Account::useService()->getUserAccountByIsSendAndIsExport($IsSend, $IsExport);
@@ -62,9 +63,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Salutation'] = new Muted('-NA-');
                 $Item['Name'] = '';
+                $Item['UserName'] = '';
+                $Item['UserPass'] = '';
                 $Item['Address'] = new WarningMessage('Keine Adresse gewählt');
-                $Item['Year'] = '';
-                $Item['Division'] = '';
+                $Item['Mail'] = new WarningMessage('Keine E-Mail gewählt');
                 $Item['PersonList'] = '';
 
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
@@ -102,11 +104,23 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
+
+                $Item['UserName'] = $tblUserAccount->getUserName();
+                $Item['UserPass'] = $tblUserAccount->getUserPass();
+
                 $tblToPersonAddress = $tblUserAccount->getServiceTblToPersonAddress();
                 if ($tblToPersonAddress) {
                     $tblAddress = $tblToPersonAddress->getTblAddress();
                     if ($tblAddress) {
                         $Item['Address'] = $tblAddress->getGuiString();
+                    }
+                }
+
+                $tblToPersonMail = $tblUserAccount->getServiceTblToPersonMail();
+                if ($tblToPersonMail) {
+                    $tblMail = $tblToPersonMail->getTblMail();
+                    if ($tblMail) {
+                        $Item['Mail'] = $tblMail->getAddress();
                     }
                 }
 
@@ -122,12 +136,13 @@ class Frontend extends Extension implements IFrontendInterface
                             ( !empty($TableContent)
                                 ? new TableData($TableContent, new Title('Übersicht', 'Aller zu erstellenden Accounts'),
                                     array(
-                                        'Salutation'   => 'Anrede',
-                                        'Name'         => 'Name',
-                                        'Address'      => 'Adresse',
-                                        'DivisionYear' => 'Jahr',
-                                        'Division'     => 'Klasse',
-                                        'PersonList'   => 'Beziehungs Person(en)'
+                                        'Salutation' => 'Anrede',
+                                        'Name'       => 'Name',
+                                        'UserName'   => 'Account',
+                                        'UserPass'   => 'Passwort',
+                                        'Address'    => 'Adresse',
+                                        'Mail'       => 'E-Mail',
+                                        'PersonList' => 'Beziehungs Person(en)'
                                     ))
                                 : new WarningMessage('Keine Personen vorhanden denen ein Account erstellt werden soll.
                                 Bitte klicken Sie auf die '.new Standard('Personenzuweisung', '/People/User/Account/Person', new Listing()))

@@ -7,6 +7,8 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountPlatform;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
 use SPHERE\Common\Frontend\Icon\Repository\Success;
@@ -79,6 +81,7 @@ class UserAccount implements IModuleInterface
             } elseif (isset($PersonId)) {
                 $tblPerson = Person::useService()->getPersonById($PersonId);
                 if ($tblPerson) {
+
 //                    // added tblUserAccount
                     $tblToPersonAddress = Address::useService()->getAddressToPersonByPerson($tblPerson);
                     if (!$tblToPersonAddress) {
@@ -87,10 +90,52 @@ class UserAccount implements IModuleInterface
                     $tblToPersonMail = null;
                     $tblMailList = Mail::useService()->getMailAllByPerson($tblPerson);
                     if ($tblMailList) {
+
                         $tblToPersonMail = current($tblMailList);
+
+                    }
+                    $Mod = 1;
+                    $UserName = '';
+                    if ($tblToPersonMail != null) {
+                        if (( $tblMail = $tblToPersonMail->getTblMail() )) {
+                            $UserName = $tblToPersonMail->getTblMail()->getAddress();
+                        }
                     }
 
-                    Account::useService()->createUserAccount($tblPerson, $tblToPersonAddress, $tblToPersonMail);
+                    // use Name for non existing E-Mail
+                    if ($UserName === '') {
+                        $Consumer = Consumer::useService()->getConsumerBySession();
+                        if ($Consumer) {
+                            $UserName = $Consumer->getAcronym().'-'.$tblPerson->getLastName(); //.substr($tblPerson->getFirstName(), 0, 3);
+                        }
+                    }
+
+                    // find existing UserName?
+                    $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserName);
+                    $tblAccountPrepare = Account::useService()->getUserAccountByUserName($UserName);
+                    if ($tblAccount || $tblAccountPrepare) {
+
+                        while ($tblAccount || $tblAccountPrepare) {
+                            $UserNameMod = $UserName.$Mod;
+                            $Mod++;
+                            $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserNameMod);
+                            $tblAccountPrepare = Account::useService()->getUserAccountByUserName($UserNameMod);
+                            if (!$tblAccount && !$tblAccountPrepare) {
+                                $UserName = $UserNameMod;
+//                                break;
+                            }
+                        }
+                    }
+
+                    $UserPass = $this->generatePassword(8, 1, 2, true);
+
+
+                    Account::useService()->createUserAccount(
+                        $tblPerson,
+                        $tblToPersonAddress,
+                        $tblToPersonMail,
+                        $UserName,
+                        $UserPass);
                 }
                 return ( new Response() )->addData(new Success().' Die Zuweisung der Person wurde erfolgreich aktualisiert.');
             }
@@ -99,5 +144,48 @@ class UserAccount implements IModuleInterface
         }
         return ( new Response() )->addError('Fehler!',
             new HazardSign().' Die Zuweisung der Person konnte nicht aktualisiert werden.', 0);
+    }
+
+    /**
+     * @param int  $completeLength number all filled up with (abcdefghjkmnpqrstuvwxyz)
+     * @param int  $specialLength number of (!$%&=?*-:;.,+_)
+     * @param int  $numberLength number of (123456789)
+     * @param bool $isCapitalLetter true = add (ABCDEFGHJKMNPQRSTUVWXYZ)
+     *
+     * @return string
+     */
+    private function generatePassword($completeLength = 8, $specialLength = 0, $numberLength = 0, $isCapitalLetter = false)
+    {
+
+        $numberChars = '123456789';
+        $specialChars = '!$%&=?*-:;.,+_';
+        $secureChars = 'abcdefghjkmnpqrstuvwxyz';
+        $return = '';
+
+        if ($isCapitalLetter == true) // Add CapitalLetter
+        {
+            $secureChars .= strtoupper($secureChars);
+        }
+
+        $count = $completeLength - $specialLength - $numberLength;
+        if ($count > 0) {
+            // get normal characters
+            $temp = str_shuffle($secureChars);
+            $return = substr($temp, 0, $count);
+        }
+        if ($specialLength > 0) {
+            // get special characters
+            $temp = str_shuffle($specialChars);
+            $return .= substr($temp, 0, $specialLength);
+        }
+        if ($numberLength > 0) {
+            // get numbers
+            $temp = str_shuffle($numberChars);
+            $return .= substr($temp, 0, $numberLength);
+        }
+        // Random
+        $return = str_shuffle($return);
+
+        return $return;
     }
 }
