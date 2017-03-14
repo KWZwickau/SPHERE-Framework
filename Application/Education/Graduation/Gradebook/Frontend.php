@@ -842,7 +842,7 @@ class Frontend extends FrontendScoreRule
                                     . ($tblTest->getServiceTblGradeType()->isHighlighted()
                                         ? $tblTest->getServiceTblGradeType()->getCode()
                                         : new Muted($tblTest->getServiceTblGradeType()->getCode()))
-                                    . ($tblTest->getDescription() ? new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),$tblTest->getDescription()) : false);
+                                    . ($tblTest->getDescription() ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),$tblTest->getDescription()) : false);
 
                                 // für Schüler, welche nicht mehr in der Klasse sind
                                 $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);

@@ -1,13 +1,13 @@
-<div id="{{ ElementHash }}"
+<span id="{{ ElementHash }}"
      data-trigger="hover" data-toggle="popover" data-content="{{ ElementToolTip }}" data-original-title title
->{{ ElementName }}</div>
+>{{ ElementName }}</span>
 <script language=javascript>
     //noinspection JSUnresolvedFunction
     executeScript(function()
     {
         Client.Use("ModAlways", function ()
         {
-            $('div#{{ ElementHash }}[data-toggle="popover"]').popover({
+            $('span#{{ ElementHash }}[data-toggle="popover"]').popover({
                 placement: 'auto top'
             });
         });
