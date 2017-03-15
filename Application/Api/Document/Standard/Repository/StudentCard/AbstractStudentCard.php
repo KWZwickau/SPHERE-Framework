@@ -11,6 +11,7 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\StudentCard;
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Generator\Repository\Element;
+use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocument;
@@ -474,5 +475,104 @@ abstract class AbstractStudentCard extends AbstractDocument
         }
 
         return false;
+    }
+
+    /**
+     * @return Page
+     */
+    protected function getRemarkPage()
+    {
+        $textSize = '11px';
+        $height = '15px';
+        $thicknessOuterLines = '1.2px';
+        $thicknessInnerLines = '0.5px';
+        $widthFirstColumn = '15%';
+
+        // Todo unterer Teil
+
+        return (new Page())
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight($height)
+                        ->styleBorderLeft($thicknessOuterLines)
+                        ->styleBorderTop($thicknessOuterLines)
+                        , '1%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Klasse')
+                        ->styleTextSize($textSize)
+                        ->styleHeight($height)
+                        ->styleBorderTop($thicknessOuterLines)
+                        , $widthFirstColumn)
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight($height)
+                        ->styleBorderTop($thicknessOuterLines)
+                        , '1%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Bemerkungen')
+                        ->styleTextSize($textSize)
+                        ->styleHeight($height)
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft($thicknessOuterLines)
+                        ->styleBorderTop($thicknessOuterLines)
+                        ->styleBorderRight($thicknessOuterLines)
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight($height)
+                        ->styleBorderLeft($thicknessOuterLines)
+                        ->styleBorderTop($thicknessInnerLines)
+                        , '1%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Schuljahr')
+                        ->styleTextSize($textSize)
+                        ->styleHeight($height)
+                        , $widthFirstColumn)
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight($height)
+                        ->styleBorderTop($thicknessInnerLines)
+                        , '1%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleTextSize($textSize)
+                        ->styleHeight('15.5px')
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft($thicknessOuterLines)
+                        ->styleBorderRight($thicknessOuterLines)
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight($height)
+                        ->styleBorderLeft($thicknessOuterLines)
+                        ->styleBorderTop($thicknessInnerLines)
+                        , '1%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Unterschrift')
+                        ->styleTextSize($textSize)
+                        ->styleHeight($height)
+                        , $widthFirstColumn)
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight($height)
+                        ->styleBorderTop($thicknessInnerLines)
+                        , '1%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleTextSize($textSize)
+                        ->styleHeight('15.5px')
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft($thicknessOuterLines)
+                        ->styleBorderRight($thicknessOuterLines)
+                    )
+                )
+                ->styleBackgroundColor('#EEE')
+            );
     }
 }
