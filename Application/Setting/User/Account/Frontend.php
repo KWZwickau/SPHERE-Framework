@@ -256,7 +256,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(array(
                             new TitleLayout(new Plus().' Hinzufügen einer neuen Adresse'),
-                            new Well(Address::useService()->createAddressToPerson(
+                            new Well(Address::useService()->createAddressToPersonByRoute(
                                 $formAddress
                                     ->appendFormButton(new Primary('Speichern', new Save()))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
@@ -446,7 +446,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(array(
                             new TitleLayout(new Plus().' Hinzufügen einer neuen E-Mail Adresse'),
-                            new Well(Mail::useService()->createMailToPerson(
+                            new Well(Mail::useService()->createMailToPersonByRoute(
                                 $formAddress
                                     ->appendFormButton(new Primary('Speichern', new Save()))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')

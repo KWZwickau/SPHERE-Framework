@@ -114,6 +114,78 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
+     * @param                $Address
+     * @param                $Type
+     *
+     * @return bool
+     */
+    public function checkFormMailToPerson(
+        IFormInterface &$Form,
+        $Address,
+        $Type
+    ) {
+
+        $Error = false;
+
+        $Address = $this->validateMailAddress($Address);
+
+        if (isset($Address) && empty($Address)) {
+            $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Address');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))) {
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
+        return $Error;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblPerson      $tblPerson
+     * @param string         $Address
+     * @param array          $Type
+     *
+     * @return IFormInterface|string
+     */
+    public function createMailToPerson(
+        IFormInterface $Form,
+        TblPerson $tblPerson,
+        $Address,
+        $Type
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Address) {
+            return $Form;
+        }
+
+        $Error = $this->checkFormMailToPerson($Form, $Address, $Type);
+        $tblType = $this->getTypeById($Type['Type']);
+
+        if (!$Error && $tblType) {
+            $tblMail = (new Data($this->getBinding()))->createMail($Address);
+
+            if ((new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
+            ) {
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
+                    .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
+            } else {
+                return new Danger(new Ban().' Die E-Mail Adresse konnte nicht hinzugefügt werden')
+                    .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param string         $Address
      * @param array          $Type
@@ -122,12 +194,12 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function createMailToPerson(
+    public function createMailToPersonByRoute(
         IFormInterface $Form,
         TblPerson $tblPerson,
         $Address,
         $Type,
-        $Route = '',
+        $Route,
         $RouteData = array()
     ) {
 
@@ -138,52 +210,29 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $Error = false;
+        $Error = $this->checkFormMailToPerson($Form, $Address, $Type);
+        $tblType = $this->getTypeById($Type['Type']);
 
-        $Address = $this->validateMailAddress($Address);
-
-        if (isset( $Address ) && empty( $Address )) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Number');
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
+        if (!$Error && $tblType) {
             $tblMail = (new Data($this->getBinding()))->createMail($Address);
 
-            if ($Route != '') {
-                if (( $tblToPerson = ( new Data($this->getBinding()) )->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark']) )) {
-                    // add TblToPerson to TblUserAccount
-                    if ($Route == '/People/User/Account/Mail') {
-                        if (isset($RouteData['Id'])) {
-                            $tblUserAccount = Account::useService()->getUserAccountById($RouteData['Id']);
-                            if ($tblUserAccount) {
-                                Account::useService()->updateUserAccountByToPersonMail($tblUserAccount, $tblToPerson);
-                            }
+            if (($tblToPerson = (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType,
+                $Type['Remark']))
+            ) {
+                // add TblToPerson to TblUserAccount
+                if ($Route == '/People/User/Account/Mail') {
+                    if (isset($RouteData['Id'])) {
+                        $tblUserAccount = Account::useService()->getUserAccountById($RouteData['Id']);
+                        if ($tblUserAccount) {
+                            Account::useService()->updateUserAccountByToPersonMail($tblUserAccount, $tblToPerson);
                         }
                     }
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
-                        .new Redirect($Route, Redirect::TIMEOUT_SUCCESS, $RouteData);
-                } else {
-                    return new Danger(new Ban().' Die E-Mail Adresse konnte nicht hinzugefügt werden')
-                        .new Redirect($Route, Redirect::TIMEOUT_SUCCESS, $RouteData);
                 }
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
+                    .new Redirect($Route, Redirect::TIMEOUT_SUCCESS, $RouteData);
             } else {
-                if (( new Data($this->getBinding()) )->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
-                ) {
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
-                        .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
-                } else {
-                    return new Danger(new Ban().' Die E-Mail Adresse konnte nicht hinzugefügt werden')
-                        .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
-                }
+                return new Danger(new Ban().' Die E-Mail Adresse konnte nicht hinzugefügt werden')
+                    .new Redirect($Route, Redirect::TIMEOUT_ERROR, $RouteData);
             }
         }
         return $Form;
