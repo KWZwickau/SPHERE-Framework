@@ -14,7 +14,6 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 
 class SecondarySchool extends AbstractStudentCard
@@ -50,10 +49,10 @@ class SecondarySchool extends AbstractStudentCard
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Mittelschule')
-                            ->styleHeight('32px')
+                            ->styleHeight('30px')
                             ->styleTextSize('18px')
                             ->styleTextBold()
-                            ->stylePaddingTop('8px')
+                            ->stylePaddingTop('7px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderLeft($thicknessOutLines)
                             ->styleBorderTop($thicknessOutLines)
@@ -86,7 +85,7 @@ class SecondarySchool extends AbstractStudentCard
                                     ->stylePaddingLeft('4px')
                                     ->stylePaddingTop('4px')
                                     ->styleTextSize($InputText)
-                                    ->styleHeight('27.5px')
+                                    ->styleHeight('24.5px')
                                     , '40%')
                                 ->addElementColumn((new Element())
                                     ->setContent('
@@ -99,7 +98,7 @@ class SecondarySchool extends AbstractStudentCard
                                     ->stylePaddingTop('4px')
                                     ->styleTextSize($InputText)
                                     ->styleBorderRight($thicknessOutLines)
-                                    ->styleHeight('27.5px')
+                                    ->styleHeight('24.5px')
                                     , '40%')
                             )
                         )
@@ -146,8 +145,8 @@ class SecondarySchool extends AbstractStudentCard
                         ->styleHeight('20px')
                     )
                 )
-                ->addSliceArray($this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '150px'))
-                ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 15))
+                ->addSliceArray($this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '190px', '-180px'))
+                ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 28, 9))
             )
         );
     }
