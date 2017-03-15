@@ -9,6 +9,8 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountPlatform;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Service\Data;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Setup;
@@ -218,6 +220,63 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson            $tblPerson
+     * @param TblToPersonMail|null $tblToPersonMail
+     *
+     * @return string
+     */
+    public function generateUserName(TblPerson $tblPerson, TblToPersonMail $tblToPersonMail = null)
+    {
+        $UserName = '';
+        //use E-Mail if exist
+        if ($tblToPersonMail != null) {
+            if (($tblMail = $tblToPersonMail->getTblMail())) {
+                $UserName = $tblToPersonMail->getTblMail()->getAddress();
+            }
+        }
+
+        // use Name for non existing E-Mail
+        if ($UserName === '') {
+            $Consumer = Consumer::useService()->getConsumerBySession();
+            if ($Consumer) {
+                $UserName = $Consumer->getAcronym().'-'.$tblPerson->getLastName().substr($tblPerson->getFirstName(), 0,
+                        3);
+            }
+        }
+
+        // find existing UserName?
+        $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserName);
+        $tblAccountPrepare = Account::useService()->getUserAccountByUserName($UserName);
+        if ($tblAccount || $tblAccountPrepare) {
+            $Mod = 1;
+            while ($tblAccount || $tblAccountPrepare) {
+                $UserNameMod = $UserName.$Mod;
+                $Mod++;
+                $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserNameMod);
+                $tblAccountPrepare = Account::useService()->getUserAccountByUserName($UserNameMod);
+                if (!$tblAccount && !$tblAccountPrepare) {
+                    $UserName = $UserNameMod;
+//                                break;
+                }
+            }
+        }
+
+        return $UserName;
+    }
+
+    /**
+     * @param TblUserAccount $tblUserAccount
+     * @param                $UserName
+     *
+     * @return bool
+     */
+    public function updateUserAccountByUserName(TblUserAccount $tblUserAccount, $UserName)
+    {
+
+        return (new Data($this->getBinding()))->updateUserAccountByUserName($tblUserAccount, $UserName);
+    }
+
+    /**
      * @param TblUserAccount     $tblUserAccount
      * @param TblToPersonAddress $tblToPersonAddress
      *
@@ -238,6 +297,11 @@ class Service extends AbstractService
     public function updateUserAccountByToPersonMail(TblUserAccount $tblUserAccount, TblToPersonMail $tblToPersonMail)
     {
 
+        $tblPerson = $tblToPersonMail->getServiceTblPerson();
+        if ($tblPerson) {
+            $UserName = Account::useService()->generateUserName($tblPerson, $tblToPersonMail);
+            Account::useService()->updateUserAccountByUserName($tblUserAccount, $UserName);
+        }
         return ( new Data($this->getBinding()) )->updateUserAccountByToPersonMail($tblUserAccount, $tblToPersonMail);
     }
 

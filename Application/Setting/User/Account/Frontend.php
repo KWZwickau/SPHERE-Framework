@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStude
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Listing as ListingLayout;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title as TitleLayout;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -621,7 +623,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Address'] = new WarningMessage('Keine Adresse gewählt');
                 $Item['Year'] = '';
                 $Item['Division'] = '';
-                $Item['PersonList'] = '';
+                $Item['PersonListCustody'] = '';
+                $Item['PersonListStudent'] = '';
 
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
@@ -636,31 +639,44 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $Item['Name'] = $tblPerson->getLastFirstName();
 
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                    if ($tblStudent) {
+                        $tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
+                        $DivisionList = array();
+                        $tblYear = false;
+                        foreach ($tblDivisionList as $tblDivision) {
+                            $DivisionList[] = $tblDivision->getDisplayName();
+                            if (!$tblYear) {
+                                $tblYear = $tblDivision->getServiceTblYear();
+                                if ($tblYear) {
+                                    $Item['Year'] = $tblYear->getDisplayName();
+                                }
+                            }
+                        }
+                        $Item['Division'] = implode(", ", $DivisionList);
+                    }
+
                     $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                     if ($tblRelationshipList) {
+                        $CustodyList = array();
+                        $StudentList = array();
                         foreach ($tblRelationshipList as $tblRelationship) {
                             if ($tblRelationship->getTblType()->getName() == 'Sorgeberechtigt') {
 
                                 $tblPersonCustody = $tblRelationship->getServiceTblPersonFrom();
                                 if ($tblPersonCustody && $tblPersonCustody->getId() != $tblPerson->getId()) {
-                                    if ($Item['PersonList'] == '') {
-                                        $Item['PersonList'] = $tblPersonCustody->getLastFirstName();
-                                    } else {
-                                        $Item['PersonList'] .= '; '.$tblPersonCustody->getLastFirstName();
-                                    }
+                                    $CustodyList[] = $tblPersonCustody->getLastFirstName();
                                     continue;
                                 }
                                 $tblPersonStudent = $tblRelationship->getServiceTblPersonTo();
                                 if ($tblPersonStudent && $tblPersonStudent->getId() != $tblPerson->getId()) {
-                                    if ($Item['PersonList'] == '') {
-                                        $Item['PersonList'] = $tblPersonStudent->getLastFirstName();
-                                    } else {
-                                        $Item['PersonList'] .= '; '.$tblPersonStudent->getLastFirstName();
-                                    }
+                                    $StudentList[] = $tblPersonStudent->getLastFirstName();
                                     continue;
                                 }
                             }
                         }
+                        $Item['PersonListCustody'] = new ListingLayout($CustodyList);
+                        $Item['PersonListStudent'] = new ListingLayout($StudentList);
                     }
                 }
                 $tblToPersonAddress = $tblUserAccount->getServiceTblToPersonAddress();
@@ -743,9 +759,10 @@ class Frontend extends Extension implements IFrontendInterface
                                           'Salutation' => 'Anrede',
                                           'Name'       => 'Name',
                                           'Address'    => 'Adresse',
-                                          'Year'       => 'Jahr',
-                                          'Division'   => 'Klasse',
-                                          'PersonList' => 'Beziehungs Person(en) '
+//                                          'Year'       => 'Jahr',
+//                                          'Division'   => 'Klasse',
+                                          'PersonListCustody' => 'Sorgeberechtigte',
+                                          'PersonListStudent' => 'Schüler'
                                     ), array(
                                         'order'                => array(array(2, 'asc')),
                                         'columnDefs'           => array(
@@ -782,9 +799,10 @@ class Frontend extends Extension implements IFrontendInterface
                                                           'Salutation'   => 'Anrede',
                                                           'Name'         => 'Name',
                                                           'Address'      => 'Adresse',
-                                                          'DivisionYear' => 'Jahr',
-                                                          'Division'     => 'Klasse',
-                                                          'PersonList'   => 'Beziehungs Person(en)'
+//                                                          'DivisionYear' => 'Jahr',
+//                                                          'Division'     => 'Klasse',
+                                                          'PersonListCustody' => 'Sorgeberechtigte',
+                                                          'PersonListStudent' => 'Schüler '
                                                     ),
                                                     array(
                                                         'order'                => array(array(2, 'asc')),
@@ -854,12 +872,13 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @noinspection PhpUndefinedFieldInspection */
                 $DataPerson['Name'] = false;
                 $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-                $DataPerson['PersonList'] = '';
+                $DataPerson['PersonListCustody'] = '';
+                $DataPerson['PersonListStudent'] = '';
+
+                $CustodyList = array();
 
                 if ($tblPerson) {
                     if ($IsCustody) {
-
-//                        if($tblPerson->getLastName() == 'Beimler'){
                         // Add Custody to List
                         $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                         if ($tblToPersonList) {
@@ -886,9 +905,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     /** @noinspection PhpUndefinedFieldInspection */
                                     $DataPerson['Address'] = $tblAddress->getGuiString();
                                 }
-                                $DataPerson['PersonList'] = new Small(new Muted('-NA-'));
-
-                                $DataPerson['PersonList'] = $tblPerson->getLastFirstName();
+                                $DataPerson['PersonListStudent'] = new ListingLayout(array(
+                                    new Muted(new Small('Gefiltert durch:')).
+                                    new Container($tblPerson->getLastFirstName())
+                                ));
 
 
                                 if (isset($tblPersonCustody)) {
@@ -903,8 +923,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
                         }
-//                        }
-
                         continue;
                     } else {
 
@@ -933,20 +951,14 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblToPersonList) {
                     foreach ($tblToPersonList as $tblToPerson) {
                         if ($tblToPerson->getTblType()->getName() == 'Sorgeberechtigt') {
-                            if ($DataPerson['PersonList'] == '') {
-                                $tblPersonCustody = $tblToPerson->getServiceTblPersonFrom();
-                                if ($tblPersonCustody) {
-                                    $DataPerson['PersonList'] = $tblPersonCustody->getLastFirstName();
-                                }
-                            } else {
-                                $tblPersonCustody = $tblToPerson->getServiceTblPersonFrom();
-                                if ($tblPersonCustody) {
-                                    $DataPerson['PersonList'] .= '; '.$tblPersonCustody->getLastFirstName();
-                                }
+                            $tblPersonCustody = $tblToPerson->getServiceTblPersonFrom();
+                            if ($tblPersonCustody) {
+                                $CustodyList[] = $tblPersonCustody->getLastFirstName();
                             }
                         }
                     }
                 }
+                $DataPerson['PersonListCustody'] = new ListingLayout($CustodyList);
 
                 // ignore duplicated Person
                 if ($DataPerson['Name']) {

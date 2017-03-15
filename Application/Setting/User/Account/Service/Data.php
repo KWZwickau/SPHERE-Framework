@@ -112,13 +112,37 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblUserAccount     $tblUserAccount
+     * @param TblUserAccount $tblUserAccount
+     * @param string         $UserName
+     *
+     * @return bool
+     */
+    public function updateUserAccountByUserName(TblUserAccount $tblUserAccount, $UserName)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblUserAccount $Entity */
+        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setUserName($UserName);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblUserAccount $tblUserAccount
      * @param TblToPersonAddress $tblToPersonAddress
      *
      * @return bool
      */
-    public function updateUserAccountByToPersonAddress(TblUserAccount $tblUserAccount, TblToPersonAddress $tblToPersonAddress)
-    {
+    public function updateUserAccountByToPersonAddress(
+        TblUserAccount $tblUserAccount,
+        TblToPersonAddress $tblToPersonAddress
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblUserAccount $Entity */

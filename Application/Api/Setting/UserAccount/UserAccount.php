@@ -7,8 +7,6 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountPlatform;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
 use SPHERE\Common\Frontend\Icon\Repository\Success;
@@ -94,39 +92,8 @@ class UserAccount implements IModuleInterface
                         $tblToPersonMail = current($tblMailList);
 
                     }
-                    $Mod = 1;
-                    $UserName = '';
-                    if ($tblToPersonMail != null) {
-                        if (( $tblMail = $tblToPersonMail->getTblMail() )) {
-                            $UserName = $tblToPersonMail->getTblMail()->getAddress();
-                        }
-                    }
 
-                    // use Name for non existing E-Mail
-                    if ($UserName === '') {
-                        $Consumer = Consumer::useService()->getConsumerBySession();
-                        if ($Consumer) {
-                            $UserName = $Consumer->getAcronym().'-'.$tblPerson->getLastName(); //.substr($tblPerson->getFirstName(), 0, 3);
-                        }
-                    }
-
-                    // find existing UserName?
-                    $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserName);
-                    $tblAccountPrepare = Account::useService()->getUserAccountByUserName($UserName);
-                    if ($tblAccount || $tblAccountPrepare) {
-
-                        while ($tblAccount || $tblAccountPrepare) {
-                            $UserNameMod = $UserName.$Mod;
-                            $Mod++;
-                            $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserNameMod);
-                            $tblAccountPrepare = Account::useService()->getUserAccountByUserName($UserNameMod);
-                            if (!$tblAccount && !$tblAccountPrepare) {
-                                $UserName = $UserNameMod;
-//                                break;
-                            }
-                        }
-                    }
-
+                    $UserName = Account::useService()->generateUserName($tblPerson, $tblToPersonMail);
                     $UserPass = $this->generatePassword(8, 1, 2, true);
 
 
