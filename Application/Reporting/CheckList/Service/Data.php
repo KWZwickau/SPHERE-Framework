@@ -25,24 +25,9 @@ class Data extends AbstractData
     {
 
         $this->createObjectType('Einzel-Person', 'PERSON');
-        if (( $tblObjectType = $this->getObjectTypeByIdentifier('COMPANY') )) {
-            if ($tblObjectType && $tblObjectType->getName() !== 'Einzel-Institution') {
-                $this->updateObjectType($tblObjectType, 'Einzel-Institution');
-            }
-        } else {
-            $this->createObjectType('Einzel-Institution', 'COMPANY');
-        }
-//        $this->createObjectType('Einzel-Firma', 'COMPANY');
+        $this->createObjectType('Einzel-Institution', 'COMPANY');
         $this->createObjectType('Personengruppe', 'PERSONGROUP');
-
-        if (( $tblObjectType = $this->getObjectTypeByIdentifier('COMPANYGROUP') )) {
-            if ($tblObjectType && $tblObjectType->getName() !== 'Institutionengruppe') {
-                $this->updateObjectType($tblObjectType, 'Institutionengruppe');
-            }
-        } else {
-            $this->createObjectType('Institutionengruppe', 'COMPANYGROUP');
-        }
-//        $this->createObjectType('Firmengruppe', 'COMPANYGROUP');
+        $this->createObjectType('Institutionengruppe', 'COMPANYGROUP');
         $this->createObjectType('Klassen', 'DIVISIONGROUP');
 
         $this->createElementType('CheckBox', 'CHECKBOX');

@@ -444,11 +444,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Info('Keine weiteren Zeiträume verfügbar')
                                 : new TableData($tblPeriodAvailable, null,
                                     array(
-                                        'Name' => 'Name',
-                                        'FromDate' => 'Von',
-                                        'ToDate' => 'Bis',
+                                        'Name'        => 'Name',
+                                        'FromDate'    => 'Von',
+                                        'ToDate'      => 'Bis',
                                         'Description' => 'Beschreibung',
-                                        'Option' => ''
+                                        'Option'      => ' '
                                     ),
                                     array(
                                         'order' => array(
@@ -488,7 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $PeriodId
      * @param null $Id
      *
-     * @return \SPHERE\Common\Frontend\Message\Repository\Success
+     * @return Stage|string
      */
     public function frontendRemovePeriod($PeriodId = null, $Id = null)
     {
@@ -506,7 +506,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $Year
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendEditYear($Id = null, $Year = null)
     {
@@ -569,7 +569,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $Period
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendEditPeriod($Id = null, $Period = null)
     {
