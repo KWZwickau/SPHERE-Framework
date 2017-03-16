@@ -832,17 +832,15 @@ class Frontend extends FrontendScoreRule
                                 if (strlen($date) > 6) {
                                     $date = substr($date, 0, 6);
                                 }
-//                                $columnDefinition['Test' . $tblTest->getId()] = new ToolTip(new Small(new Muted($date)) . '<br>'
-//                                    . ($tblTest->getServiceTblGradeType()->isHighlighted()
-//                                        ? $tblTest->getServiceTblGradeType()->getCode()
-//                                        : new Muted($tblTest->getServiceTblGradeType()->getCode())),
-//                                    $tblTest->getDescription() ? $tblTest->getDescription() : false);
 
-                                $columnDefinition['Test' . $tblTest->getId()] = new Small(new Muted($date)) . '<br>'
+                                $text = new Small(new Muted($date)) . '<br>'
                                     . ($tblTest->getServiceTblGradeType()->isHighlighted()
                                         ? $tblTest->getServiceTblGradeType()->getCode()
-                                        : new Muted($tblTest->getServiceTblGradeType()->getCode()))
-                                    . ($tblTest->getDescription() ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),$tblTest->getDescription()) : false);
+                                        : new Muted($tblTest->getServiceTblGradeType()->getCode()));
+
+                                $columnDefinition['Test' . $tblTest->getId()] = $tblTest->getDescription()
+                                    ? new ToolTip($text, $tblTest->getDescription())
+                                    : $text;
 
                                 // für Schüler, welche nicht mehr in der Klasse sind
                                 $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
