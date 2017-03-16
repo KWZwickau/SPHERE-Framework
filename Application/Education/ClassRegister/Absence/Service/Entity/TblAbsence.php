@@ -264,4 +264,20 @@ class TblAbsence extends Element
         return $countDays;
     }
 
+    /**
+     * @return bool
+     */
+    public function isSingleDay()
+    {
+
+        if ($this->getFromDate() && $this->getToDate()) {
+            if ($this->getFromDate() == $this->getToDate()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
 }

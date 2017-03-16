@@ -14,7 +14,7 @@ use SPHERE\System\Debugger\Logger\QueryLogger;
 class Parser extends Connection
 {
 
-    private $YouTrackFilter = 'Sichtbar für: {Alle Benutzer} Beheben in: -{Nicht definiert}';
+    private $YouTrackFilter = 'Sichtbar für: {Alle Benutzer} Beheben in: -{Nicht geplant}';
     /** @var bool $Authenticated */
     private $Authenticated = false;
 

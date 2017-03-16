@@ -735,7 +735,7 @@ class Frontend extends Extension implements IFrontendInterface
                         1),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 2),
+                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3),
                     $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll,
                         3),
                 ), 3),

@@ -66,9 +66,9 @@
 //            $('[data-toggle="tooltip"]').tooltip({
 //                placement: 'auto top'
 //            });
-            $('[data-toggle="popover"]').popover({
-                placement: 'auto top'
-            })
+//             $('[data-toggle="popover"]').popover({
+//                 placement: 'auto top'
+//             });
             /**
              * Activate: External Link
              */

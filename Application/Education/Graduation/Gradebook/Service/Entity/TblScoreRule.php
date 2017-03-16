@@ -29,6 +29,11 @@ class TblScoreRule extends Element
     protected $Description;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsActive;
+
+    /**
      * @return string
      */
     public function getName()
@@ -65,9 +70,27 @@ class TblScoreRule extends Element
     }
 
     /**
+     * @return boolean
+     */
+    public function isActive()
+    {
+        return $this->IsActive;
+    }
+
+    /**
+     * @param boolean $IsActive
+     */
+    public function setIsActive($IsActive)
+    {
+        $this->IsActive = (boolean) $IsActive;
+    }
+
+    /**
+     * @param bool $IsActive
+     *
      * @return false|TblGradeType[]
      */
-    public function getGradeTypesAll()
+    public function getGradeTypesAll($IsActive = true)
     {
 
         $resultList = array();
@@ -80,7 +103,7 @@ class TblScoreRule extends Element
                         $tblScoreGroupGradeTypeListByGroup = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($group->getTblScoreGroup());
                         if ($tblScoreGroupGradeTypeListByGroup){
                             foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeType){
-                                if ($tblScoreGroupGradeType->getTblGradeType()) {
+                                if ($tblScoreGroupGradeType->getTblGradeType() && $tblScoreGroupGradeType->getTblGradeType()->isActive() == $IsActive) {
                                     $resultList[$tblScoreGroupGradeType->getTblGradeType()->getId()] = $tblScoreGroupGradeType->getTblGradeType();
                                 }
                             }
@@ -91,5 +114,14 @@ class TblScoreRule extends Element
         }
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUsed()
+    {
+
+        return Gradebook::useService()->isScoreRuleUsed($this);
     }
 }

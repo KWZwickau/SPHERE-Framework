@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
@@ -152,7 +154,8 @@ class Service extends ServiceScoreRule
                 $GradeType['Code'],
                 $GradeType['Description'],
                 isset($GradeType['IsHighlighted']) ? true : false,
-                Evaluation::useService()->getTestTypeById($GradeType['Type'])
+                Evaluation::useService()->getTestTypeById($GradeType['Type']),
+                $tblGradeType->isActive()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_SUCCESS);
@@ -224,35 +227,26 @@ class Service extends ServiceScoreRule
     }
 
     /**
+     * @param TblTestType $tblTestType
+     * @param bool $IsActive
+     *
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAllWhereTestOrBehavior()
+    public function getGradeTypeAllByTestType(TblTestType $tblTestType, $IsActive = true)
     {
 
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        if (!$tblTestType || !($tblGradeTypeAllTest = $this->getGradeTypeAllByTestType($tblTestType))) {
-            $tblGradeTypeAllTest = array();
-        }
-
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-        if (!$tblTestType || !($tblGradeTypeAllBehavior = $this->getGradeTypeAllByTestType($tblTestType))) {
-            $tblGradeTypeAllBehavior = array();
-        }
-
-        $tblGradeTypeAll = array_merge($tblGradeTypeAllTest, $tblGradeTypeAllBehavior);
-
-        return (empty($tblGradeTypeAll) ? false : $tblGradeTypeAll);
+        return (new Data($this->getBinding()))->getGradeTypeAllByTestType($tblTestType, $IsActive);
     }
 
     /**
-     * @param TblTestType $tblTestType
-     * @return bool|TblGradeType[]
+     * @return false|TblGradeType[]
      */
-    public function getGradeTypeAllByTestType(TblTestType $tblTestType)
+    public function getGradeTypeAll()
     {
 
-        return (new Data($this->getBinding()))->getGradeTypeAllByTestType($tblTestType);
+        return (new Data($this->getBinding()))->getGradeTypeAll();
     }
+
 
     /**
      * @param $Id
@@ -322,6 +316,7 @@ class Service extends ServiceScoreRule
      * @param $BasicRoute
      * @param TblScoreType|null $tblScoreType
      * @param null $studentTestList
+     * @param TblTest $tblNextTest
      *
      * @return IFormInterface|string
      */
@@ -331,7 +326,8 @@ class Service extends ServiceScoreRule
         $Grade = null,
         $BasicRoute,
         TblScoreType $tblScoreType = null,
-        $studentTestList = null
+        $studentTestList = null,
+        TblTest $tblNextTest = null
     ) {
 
         /**
@@ -393,7 +389,8 @@ class Service extends ServiceScoreRule
                         $errorNoGrade[] = new Container(new Bold($tblPerson->getLastFirstName()));
                     }
                 }
-                if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue && empty($value['Date'])) {
+                if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue
+                    && empty($value['Date']) && !$tblTest->getFinishDate()) {
                     $errorNoDate[] = new Container(new Bold($tblPerson->getLastFirstName()));
                 }
             }
@@ -464,7 +461,9 @@ class Service extends ServiceScoreRule
                     if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestByPerson,
                         $tblPerson))
                     ) {
+                        $hasCreatedGrade = false;
                         if (isset($value['Attendance'])) {
+                            $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
                                 $tblPersonTeacher ? $tblPersonTeacher : null,
@@ -483,6 +482,7 @@ class Service extends ServiceScoreRule
                                     ? $tblGradeText : null
                             );
                         } elseif (trim($value['Grade']) !== '') {
+                            $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
                                 $tblPersonTeacher ? $tblPersonTeacher : null,
@@ -501,6 +501,7 @@ class Service extends ServiceScoreRule
                                     ? $tblGradeText : null
                             );
                         } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))){
+                            $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
                                 $tblPersonTeacher ? $tblPersonTeacher : null,
@@ -517,6 +518,12 @@ class Service extends ServiceScoreRule
                                 isset($value['Date']) ? $value['Date'] : null,
                                 $tblGradeText
                             );
+                        }
+
+                        if ($hasCreatedGrade) {
+                            if (($tblTask = $tblTest->getTblTask()) && !$tblTask->isLocked()) {
+                                Evaluation::useService()->setTaskLocked($tblTask);
+                            }
                         }
                     } elseif ($tblGrade) {
 
@@ -548,9 +555,11 @@ class Service extends ServiceScoreRule
             }
         }
 
-        return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        return new Success('Erfolgreich gespeichert.'
+                . ($tblNextTest ? ' Sie werden zum nächsten Kopfnoten-Typ weitergeleitet.' : '')
+                , new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
-                array('Id' => $tblTest->getId()));
+                array('Id' => $tblNextTest ? $tblNextTest->getId() : $tblTest->getId()));
     }
 
     /**
@@ -616,6 +625,13 @@ class Service extends ServiceScoreRule
                     // Zensuren-Datum
                     if ($item->getServiceTblTest()->isContinues() && $item->getDate()) {
                         $gradeDate = new \DateTime($item->getDate());
+                        // Noten nur vom vor dem Stichtag
+                        if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
+                            $tempGradeList[] = $item;
+                        }
+                    } // Enddatum des Tests, falls vorhanden
+                    elseif ($item->getServiceTblTest()->isContinues() && $item->getServiceTblTest()->getFinishDate()) {
+                        $gradeDate = new \DateTime($item->getServiceTblTest()->getFinishDate());
                         // Noten nur vom vor dem Stichtag
                         if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
                             $tempGradeList[] = $item;
@@ -1253,5 +1269,57 @@ class Service extends ServiceScoreRule
     {
 
         return (new Data($this->getBinding()))->getGradeTextByName($Name);
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    {
+
+        if((new Data($this->getBinding()))->isGradeTypeUsedInGradebook($tblGradeType)) {
+            return true;
+        }
+
+        if (Generator::useService()->isGradeTypeUsed($tblGradeType)) {
+            return true;
+        }
+
+        if (Prepare::useService()->isGradeTypeUsed($tblGradeType)) {
+            return true;
+        }
+
+        if (Evaluation::useService()->isGradeTypeUsed($tblGradeType)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param bool $IsActive
+     *
+     * @return string
+     */
+    public function setGradeTypeActive(TblGradeType $tblGradeType, $IsActive = true)
+    {
+
+        return (new Data($this->getBinding()))->updateGradeType($tblGradeType, $tblGradeType->getName(),
+            $tblGradeType->getCode(), $tblGradeType->getDescription(), $tblGradeType->isHighlighted(),
+            $tblGradeType->getServiceTblTestType() ? $tblGradeType->getServiceTblTestType() : null, $IsActive);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function existsGradeByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->existsGradeByDivisionSubject($tblDivisionSubject);
     }
 }

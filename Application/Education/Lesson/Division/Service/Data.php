@@ -155,12 +155,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Name
-     * @param $Description
+     * @param        $Name
+     * @param string $Description
      *
      * @return TblSubjectGroup
      */
-    public function createSubjectGroup($Name, $Description)
+    public function createSubjectGroup($Name, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -190,11 +190,11 @@ class Data extends AbstractData
      *
      * @return false|TblLevel[]
      */
-    public function getAllLevelByName($Name)
+    public function getLevelAllByName($Name)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel'
-            , array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel',
+            array(
                 TblLevel::ATTR_NAME => $Name
             ));
     }
@@ -213,6 +213,15 @@ class Data extends AbstractData
         } else {
             return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision', $Id);
         }
+    }
+
+    /**
+     * @return false|TblSubjectGroup[]
+     */
+    public function getSubjectGroupAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectGroup');
     }
 
     /**
@@ -510,31 +519,58 @@ class Data extends AbstractData
     }
 
     /**
-     * @param               $Name
-     * @param TblLevel|null $tblLevel
-     * @param TblYear $tblYear
+     * @param string   $Name
+     * @param TblLevel $tblLevel
+     * @param TblYear  $tblYear
      *
-     * @return bool|false|Element
+     * @return false|TblDivision
      */
-    public function getDivisionByGroupAndLevelAndYear($Name, TblLevel $tblLevel = null, TblYear $tblYear)
+    public function getDivisionByDivisionNameAndLevelAndYear($Name, TblLevel $tblLevel, TblYear $tblYear)
     {
 
-        if ($tblLevel === null) {
-            $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
-                array(
-                    TblDivision::ATTR_NAME => $Name,
-                    TblDivision::ATTR_YEAR => $tblYear->getId(),
-                ));
-        } else {
-            $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
-                array(
-                    TblDivision::ATTR_NAME => $Name,
-                    TblDivision::ATTR_LEVEL => $tblLevel->getId(),
-                    TblDivision::ATTR_YEAR => $tblYear->getId(),
-                ));
-        }
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_NAME  => $Name,
+                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+                TblDivision::ATTR_YEAR  => $tblYear->getId(),
+            ));
 
-        return ($Entity ? $Entity : false);
+        return $Entity;
+    }
+
+    /**
+     * @param string  $Name
+     * @param TblYear $tblYear
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionByDivisionNameAndYear($Name, TblYear $tblYear)
+    {
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_NAME => $Name,
+                TblDivision::ATTR_YEAR => $tblYear->getId(),
+            ));
+
+        return $EntityList;
+    }
+
+    /**
+     * @param TblLevel $tblLevel
+     * @param TblYear  $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionByLevelAndYear(TblLevel $tblLevel, TblYear $tblYear)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+                TblDivision::ATTR_YEAR  => $tblYear->getId(),
+            ));
+
+        return $EntityList;
     }
 
     /**
@@ -1045,6 +1081,43 @@ class Data extends AbstractData
     }
 
     /**
+     * @param array $SubjectTeacherList
+     *
+     * @return bool
+     */
+    public function addSubjectTeacherList($SubjectTeacherList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if ($SubjectTeacherList) {
+            foreach ($SubjectTeacherList as $Content) {
+                /** @var TblDivisionSubject $tblDivisionSubject */
+                $tblDivisionSubject = $Content['tblDivisionSubject'];
+                /** @var TblPerson $tblPerson */
+                $tblPerson = $Content['tblPerson'];
+                $Entity = $Manager->getEntity('TblSubjectTeacher')
+                    ->findOneBy(array(
+                        TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                        TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                    ));
+
+                if (null === $Entity) {
+                    $Entity = new TblSubjectTeacher();
+                    $Entity->setServiceTblPerson($tblPerson);
+                    $Entity->setTblDivisionSubject($tblDivisionSubject);
+                    $Manager->bulkSaveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param TblPerson $tblPerson
      * @param bool $IsSoftRemove
@@ -1264,6 +1337,31 @@ class Data extends AbstractData
                 $Manager->killEntity($Entity);
             }
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubjectTeacher[] $tblSubjectTeacherList
+     *
+     * @return bool
+     */
+    public function removeSubjectTeacherList($tblSubjectTeacherList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if ($tblSubjectTeacherList) {
+            foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
+                $Entity = $Manager->getEntityById('TblSubjectTeacher', $tblSubjectTeacher->getId());
+                if (null !== $Entity) {
+                    /** @var TblSubjectTeacher $Entity */
+                    $Manager->bulkKillEntity($Entity);
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;
@@ -2016,5 +2114,43 @@ class Data extends AbstractData
                 TblLevel::ATTR_NAME => $Name
             ));
         return ($Entity ? $Entity : false);
+    }
+
+    /**
+     * Bei Gruppen, ohne Ohne-Gruppe
+     *
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectListByDivision(TblDivision $tblDivision)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
+            'TblDivisionSubject',
+            array(
+                TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
+
+        $resultList = array();
+        if ($EntityList) {
+            /** @var TblDivisionSubject $item */
+            foreach ($EntityList as $item) {
+                if ($item->getTblDivision() && $item->getServiceTblSubject()) {
+                    if ($item->getTblSubjectGroup()) {
+                        $resultList[] = $item;
+                    } else {
+                        if (!$this->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                            $item->getTblDivision(), $item->getServiceTblSubject()
+                        )
+                        ) {
+                            $resultList[] = $item;
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 }

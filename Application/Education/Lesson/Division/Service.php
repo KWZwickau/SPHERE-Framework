@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
@@ -276,22 +278,31 @@ class Service extends AbstractService
     }
 
     /**
-     * @param      $Name
-     * @param null $Level
-     * @param      $Year
+     * @param string        $Name
+     * @param TblLevel|null $tblLevel
+     * @param TblYear       $tblYear
      *
-     * @return bool|false|\SPHERE\System\Database\Fitting\Element
+     * @return false|TblDivision[]
      */
-    public function getDivisionByGroupAndLevelAndYear($Name, $Level = null, $Year)
+    public function getDivisionByDivisionNameAndLevelAndYear($Name, TblLevel $tblLevel = null, TblYear $tblYear)
     {
 
-        if ($Level !== null) {
-            $tblLevel = $this->getLevelById($Level);
+        if ($tblYear && $tblLevel && $Name != '') {
+            $tblDivisionList = array();
+            if (( $tblDivision = ( new Data($this->getBinding()) )->getDivisionByDivisionNameAndLevelAndYear($Name, $tblLevel, $tblYear) )) {
+                $tblDivisionList[] = $tblDivision;
+                return $tblDivisionList;
+            } else {
+                return false;
+            }
+
+        } elseif ($tblYear && ( $tblLevel === null ) && $Name != '') {
+            return ( new Data($this->getBinding()) )->getDivisionByDivisionNameAndYear($Name, $tblYear);
+        } elseif ($tblYear && $tblLevel) {
+            return ( new Data($this->getBinding()) )->getDivisionByLevelAndYear($tblLevel, $tblYear);
         } else {
-            $tblLevel = null;
+            return false;
         }
-        $tblYear = Term::useService()->getYearById($Year);
-        return (new Data($this->getBinding()))->getDivisionByGroupAndLevelAndYear($Name, $tblLevel, $tblYear);
     }
 
     /**
@@ -313,7 +324,7 @@ class Service extends AbstractService
     public function getLevelAllByName($Name)
     {
 
-        return ( new Data($this->getBinding()) )->getAllLevelByName($Name);
+        return ( new Data($this->getBinding()) )->getLevelAllByName($Name);
     }
 
     /**
@@ -708,6 +719,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject  $tblSubject
+     * @param             $SubjectGroup
+     *
+     * @return bool|null|object|TblDivisionSubject
+     */
+    public function addSubjectToDivisionWithGroupImport(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        $SubjectGroup
+    ) {
+
+        $tblSubjectGroup = ( new Data($this->getBinding()) )->createSubjectGroup($SubjectGroup);
+        if ($tblSubjectGroup) {
+            return ( new Data($this->getBinding()) )->addDivisionSubject($tblDivision, $tblSubject, $tblSubjectGroup);
+        }
+        return false;
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param int $DivisionSubject
      * @param array $Student
@@ -880,6 +911,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $SubjectTeacherList
+     *
+     * @return bool
+     */
+    public function addSubjectTeacherList($SubjectTeacherList)
+    {
+
+        return ( new Data($this->getBinding()) )->addSubjectTeacherList($SubjectTeacherList);
+    }
+
+    /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
      * @return bool|TblSubjectTeacher[]
@@ -904,6 +946,17 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->removeSubjectTeacher($tblSubjectTeacher, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblSubjectTeacher[] $tblSubjectTeacherList
+     *
+     * @return bool
+     */
+    public function removeSubjectTeacherList($tblSubjectTeacherList)
+    {
+
+        return ( new Data($this->getBinding()) )->removeSubjectTeacherList($tblSubjectTeacherList);
     }
 
     /**
@@ -1107,6 +1160,38 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->getSubjectGroupById($Id);
+    }
+
+    /**
+     * @return false|TblSubjectGroup[]
+     */
+    public function getSubjectGroupAll()
+    {
+
+        return ( new Data($this->getBinding()) )->getSubjectGroupAll();
+    }
+
+    /**
+     * @param             $Name
+     * @param TblDivision $tblDivision
+     * @param TblSubject  $tblSubject
+     *
+     * @return bool|TblSubjectGroup
+     */
+    public function getSubjectGroupByNameAndDivisionAndSubject($Name, TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject($tblDivision, $tblSubject);
+        if ($tblDivisionSubjectList) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
+                if ($tblSubjectGroup && $tblSubjectGroup->getName() === $Name) {
+                    return $tblSubjectGroup;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -2134,5 +2219,35 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getLevelBy($serviceTblType, $Name);
+    }
+
+    /**
+     * Bei Gruppen, ohne Ohne-Gruppe
+     *
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectListByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectListByDivision($tblDivision);
+    }
+
+    /**
+     * Kann nur gelöscht werden wenn noch keine Tests und Noten existieren
+     *
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function canRemoveSubjectGroup(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        if (Evaluation::useService()->existsTestByDivisionSubject($tblDivisionSubject)) {
+            return false;
+        }
+
+        return !Gradebook::useService()->existsGradeByDivisionSubject($tblDivisionSubject);
     }
 }

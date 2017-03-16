@@ -88,6 +88,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblYear')) {
             $Table->addColumn('serviceTblYear', 'bigint', array('notnull' => false));
         }
+        if (!$Table->hasColumn('IsLocked')){
+            $Table->addColumn('IsLocked', 'boolean', array('default' => true));
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
 
@@ -135,9 +138,12 @@ class Setup extends AbstractSetup
         if (!$Table->hasColumn('IsContinues')){
             $Table->addColumn('IsContinues', 'boolean');
         }
+        $this->createColumn($Table, 'FinishDate', self::FIELD_TYPE_DATETIME, true);
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
         $this->getConnection()->addForeignKey($Table, $tblTask, true);
+
+        $this->createIndex($Table, array('serviceTblGradeType'), false);
 
         return $Table;
     }
