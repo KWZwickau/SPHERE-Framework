@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Education\Certificate\Generate\Service;
 
-use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblCertificateSetting;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
@@ -27,9 +26,6 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        if (!$this->getCertificateSetting()) {
-            $this->createCertificateSetting();
-        }
     }
 
     /**
@@ -58,16 +54,6 @@ class Data extends AbstractData
                 TblGenerateCertificate::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
             )
         );
-    }
-
-    /**
-     * @return false|TblCertificateSetting
-     */
-    public function getCertificateSetting()
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateSetting',
-            array());
     }
 
     /**
@@ -143,25 +129,5 @@ class Data extends AbstractData
         }
 
         return false;
-    }
-
-    /**
-     * @param bool $UseCourseForCertificateChoosing
-     *
-     * @return TblCertificateSetting
-     */
-    public function createCertificateSetting(
-        $UseCourseForCertificateChoosing = true
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = new TblCertificateSetting();
-        $Entity->setUseCourseForCertificateChoosing($UseCourseForCertificateChoosing);
-
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-
-        return $Entity;
     }
 }

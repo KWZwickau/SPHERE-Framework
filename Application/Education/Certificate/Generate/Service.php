@@ -9,7 +9,6 @@
 namespace SPHERE\Application\Education\Certificate\Generate;
 
 use SPHERE\Application\Education\Certificate\Generate\Service\Data;
-use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblCertificateSetting;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Setup;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -326,7 +325,7 @@ class Service extends AbstractService
             $tblCourse = false;
             // Bildungsgang nur hier relevant sonst klappt es bei den anderen nicht korrekt
             // #SSW-1064 Automatische Zuordnung von Zeugnissen ist nicht korrekt in Coswig
-            if (($tblCertificateSetting = $this->getCertificateSetting()) && $tblCertificateSetting->getUseCourseForCertificateChoosing()) {
+            if ($this->getUseCourseForCertificateChoosing()) {
                 if (preg_match('!(Mittelschule|Oberschule)!is', $tblSchoolType->getName())
                     && preg_match('!(0?(7|8|9)|10)!is', $tblLevel->getName())
                 ) {
@@ -492,11 +491,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @return false|TblCertificateSetting
+     * @return bool
      */
-    public function getCertificateSetting()
+    public function getUseCourseForCertificateChoosing()
     {
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'UseCourseForCertificateChoosing'))
+        ) {
+            return (boolean)$tblSetting->getValue();
+        }
 
-        return (new Data($this->getBinding()))->getCertificateSetting();
+        return false;
     }
 }
