@@ -40,7 +40,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle('EZGH Auswertung');
+        $Stage->setTitle('EZSH Auswertung');
         $Stage->setDescription('Bitte wählen Sie eine Liste zur Auswertung');
 
         return $Stage;
@@ -53,7 +53,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendProfileList($DivisionId = null)
     {
-        $Stage = new Stage('EZGH Auswertung', 'Klassenliste Profile');
+        $Stage = new Stage('EZSH Auswertung', 'Klassenliste Profile');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Herrnhut/Person/ProfileList', new ChevronLeft()));
         }
@@ -209,7 +209,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSignList($DivisionId = null)
     {
-        $Stage = new Stage('EZGH Auswertung', 'Unterschriften Liste');
+        $Stage = new Stage('EZSH Auswertung', 'Unterschriften Liste');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Herrnhut/Person/SignList', new ChevronLeft()));
         }
@@ -365,7 +365,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendLanguageList($DivisionId = null)
     {
-        $Stage = new Stage('EZGH Auswertung', 'Klassenliste Fremdsprachen');
+        $Stage = new Stage('EZSH Auswertung', 'Klassenliste Fremdsprachen');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Herrnhut/Person/LanguageList', new ChevronLeft()));
         }
@@ -532,7 +532,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList($DivisionId = null)
     {
 
-        $Stage = new Stage('EZGH Auswertung', 'Klassenliste');
+        $Stage = new Stage('EZSH Auswertung', 'Klassenliste');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Herrnhut/Person/ClassList', new ChevronLeft()));
         }
@@ -695,7 +695,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendExtendedClassList($DivisionId = null)
     {
 
-        $Stage = new Stage('EZGH Auswertung', 'Erweiterte Klassenliste');
+        $Stage = new Stage('EZSH Auswertung', 'Erweiterte Klassenliste');
         if (null !== $DivisionId) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Herrnhut/Person/ExtendedClassList', new ChevronLeft()));
         }
