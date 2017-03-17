@@ -98,6 +98,16 @@ class Service extends AbstractService
             $Error = true;
         }
 
+        // company name with extend have to be unique
+        if (isset($Company['Name']) && !empty($Company['Name'])) {
+            $tblCompanyCatch = $this->getCompanyByName($Company['Name'], $Company['ExtendedName']);
+            if ($tblCompanyCatch) {
+                $Form->setError('Company[Name]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
+                $Form->setError('Company[ExtendedName]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
+                $Error = true;
+            }
+        }
+
         if (!$Error) {
 
             if (($tblCompany = (new Data($this->getBinding()))->createCompany($Company['Name'],
@@ -173,6 +183,16 @@ class Service extends AbstractService
             $Error = true;
         }
 
+        // company name with extend have to be unique
+        if (isset($Company['Name']) && !empty($Company['Name'])) {
+            $tblCompanyCatch = $this->getCompanyByName($Company['Name'], $Company['ExtendedName']);
+            if ($tblCompanyCatch && $tblCompanyCatch->getId() != $tblCompany->getId()) {
+                $Form->setError('Company[Name]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
+                $Form->setError('Company[ExtendedName]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
+                $Error = true;
+            }
+        }
+
         if (!$Error) {
 
             if ((new Data($this->getBinding()))->updateCompany($tblCompany, $Company['Name'],
@@ -218,6 +238,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCompanyByDescription($Description);
+    }
+
+    /**
+     * @param string $Name
+     * @param string $ExtendedName
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyByName($Name, $ExtendedName)
+    {
+
+        return ( new Data($this->getBinding()) )->getCompanyByName($Name, $ExtendedName);
     }
 
     /**

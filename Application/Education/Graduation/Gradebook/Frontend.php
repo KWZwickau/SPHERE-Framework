@@ -69,6 +69,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
@@ -750,7 +751,7 @@ class Frontend extends FrontendScoreRule
         $BasicRoute
     ) {
 
-        $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft(), array(), 'Zurück zur Klassenauswahl'));
 
         $tblDivision = $tblDivisionSubject->getTblDivision();
         $tblSubject = $tblDivisionSubject->getServiceTblSubject();
@@ -841,10 +842,17 @@ class Frontend extends FrontendScoreRule
                                 if (strlen($date) > 6) {
                                     $date = substr($date, 0, 6);
                                 }
+//                                $columnDefinition['Test' . $tblTest->getId()] = new ToolTip(new Small(new Muted($date)) . '<br>'
+//                                    . ($tblTest->getServiceTblGradeType()->isHighlighted()
+//                                        ? $tblTest->getServiceTblGradeType()->getCode()
+//                                        : new Muted($tblTest->getServiceTblGradeType()->getCode())),
+//                                    $tblTest->getDescription() ? $tblTest->getDescription() : false);
+
                                 $columnDefinition['Test' . $tblTest->getId()] = new Small(new Muted($date)) . '<br>'
                                     . ($tblTest->getServiceTblGradeType()->isHighlighted()
                                         ? $tblTest->getServiceTblGradeType()->getCode()
-                                        : new Muted($tblTest->getServiceTblGradeType()->getCode()));
+                                        : new Muted($tblTest->getServiceTblGradeType()->getCode()))
+                                    . ($tblTest->getDescription() ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),$tblTest->getDescription()) : false);
 
                                 // für Schüler, welche nicht mehr in der Klasse sind
                                 $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
@@ -2472,7 +2480,6 @@ class Frontend extends FrontendScoreRule
                             'Count' => 'Anzahl',
                         ),
                         array(
-
                             "columnDefs" => array(
                                 array(
                                     "orderable" => false,
@@ -2482,7 +2489,8 @@ class Frontend extends FrontendScoreRule
                             'pageLength' => -1,
                             'paging' => false,
                             'info' => false,
-                            'searching' => false
+                            'searching' => false,
+                            'responsive' => false
                         )
                     ),
                     Panel::PANEL_TYPE_INFO
