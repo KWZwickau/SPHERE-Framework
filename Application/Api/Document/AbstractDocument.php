@@ -21,6 +21,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class AbstractDocument
@@ -206,18 +207,15 @@ abstract class AbstractDocument
                     if (( $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                         $tblTransferType) )
                     ) {
-                        if ($tblTransfer->getServiceTblType()) {
-                            $Data['Student']['School']['Attendance']['Date'] = $tblTransfer->getTransferDate();
-                            $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
-                            $YearShort = ( new \DateTime($tblTransfer->getTransferDate()) )->format('y');
-                            $YearString = $Year.'/'.( $YearShort + 1 );
-                            $Data['Student']['School']['Attendance']['Year'] = $YearString;
-                        }
+                        Debugger::screenDump($tblTransfer);
+                        $Data['Student']['School']['Enrollment']['Date'] = $tblTransfer->getTransferDate();
+                        $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
+                        $YearShort = ( new \DateTime($tblTransfer->getTransferDate()) )->format('y');
+                        $YearString = $Year.'/'.( $YearShort + 1 );
+                        $Data['Student']['School']['Enrollment']['Year'] = $YearString;
                     }
                 }
-                if (!isset( $Data['Student']['School']['Attendance']['Date'] )
-                    && ( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate() )
-                ) {
+                if (( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate())) {
                     $Data['Student']['School']['Attendance']['Date'] = $AttendanceDate;
                     $Year = ( new \DateTime($AttendanceDate) )->format('Y');
                     $YearShort = ( new \DateTime($AttendanceDate) )->format('y');
@@ -555,7 +553,7 @@ abstract class AbstractDocument
      * @return Slice
      */
     protected function setCheckBox(
-        $content,
+        $content = '&nbsp;',
         $thicknessInnerLines = '0.5px'
     )
     {

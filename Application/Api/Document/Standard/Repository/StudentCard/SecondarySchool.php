@@ -154,7 +154,7 @@ class SecondarySchool extends AbstractStudentCard
                 ->addSliceArray($this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '190px', '-180px'))
                 ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 28, 9))
             )
-            ->addPage($this->getRemarkPage())
+//            ->addPage($this->getRemarkPage())
         );
     }
 }

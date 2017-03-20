@@ -1,9 +1,11 @@
 <?php
 namespace SPHERE\Application\Document\Standard\StudentCard;
 
+use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchool;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Reporting\AbstractModule;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -15,6 +17,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class EnrollmentDocument
@@ -50,6 +53,9 @@ class StudentCard extends AbstractModule implements IModuleInterface
     {
 
         $Stage = new Stage('Schülerkartei', 'Schüler auswählen');
+
+//        $Data['Person']['Id'] = 85;
+//        Debugger::screenDump((new PrimarySchool())->createDocument($Data));
 
         $dataList = array();
         if (( $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT') )) {
