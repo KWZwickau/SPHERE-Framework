@@ -35,7 +35,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function frontendTeacherImport($File = null)
+    public function frontendStuffImport($File = null)
     {
 
         $Stage = new Stage('Import Tharandt', 'Lehrer-Daten Gymnasium');
@@ -52,7 +52,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(array(
                             new Well(
-                                Tharandt::useService()->createTeacherFromFile(new Form(
+                                Tharandt::useService()->createStaffFromFile(new Form(
                                     new FormGroup(
                                         new FormRow(
                                             new FormColumn(

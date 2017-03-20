@@ -14,7 +14,7 @@ class Tharandt implements IModuleInterface
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Teacher', __NAMESPACE__.'\Frontend::frontendTeacherImport'
+            __NAMESPACE__.'/Stuff', __NAMESPACE__.'\Frontend::frontendStuffImport'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Student', __NAMESPACE__.'\Frontend::frontendStudentImport'
@@ -35,10 +35,10 @@ class Tharandt implements IModuleInterface
 
         $DataList[] = array(
             'Consumer' => $consumer,
-            'Name'     => 'Lehrer',
+            'Name'     => 'Mitarbeiter',
             'Option'   => new Standard(
                 '',
-                __NAMESPACE__.'/Teacher',
+                __NAMESPACE__.'/Stuff',
                 new Select()
             )
         );
