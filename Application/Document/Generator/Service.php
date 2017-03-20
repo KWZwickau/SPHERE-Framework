@@ -128,6 +128,25 @@ class Service extends AbstractService
             }
         }
 
+        // Bildungsgang
+        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+            && $tblStudent
+        ) {
+            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblTransferType);
+            if ($tblStudentTransfer) {
+                // Abschluss (Bildungsgang)
+                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                if ($tblCourse) {
+                    if ($tblCourse->getName() == 'Hauptschule') {
+                        $Data['Student']['Course']['Degree']['Main'] = 'X';
+                    } elseif ($tblCourse->getName() == 'Realschule') {
+                        $Data['Student']['Course']['Degree']['Real'] = 'X';
+                    }
+                }
+            }
+        }
+
         $list = array();
         if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {

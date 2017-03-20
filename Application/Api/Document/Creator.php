@@ -68,6 +68,8 @@ class Creator extends Extension
     private static function buildDummyFile($DocumentClass, $Data = array())
     {
 
+        ini_set('memory_limit', '1G');
+
         // Create Tmp
         $File = Storage::createFilePointer('pdf');
         /** @var DomPdf $Document */

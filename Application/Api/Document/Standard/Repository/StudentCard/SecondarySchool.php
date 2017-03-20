@@ -14,7 +14,6 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 
 class SecondarySchool extends AbstractStudentCard
 {
@@ -106,15 +105,18 @@ class SecondarySchool extends AbstractStudentCard
                 )
                 ->addSlice((new Slice())
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            // Todo Checkboxen
-                            ->setContent('&nbsp;' . new Unchecked())
-                            ->styleHeight('20px')
-                            ->stylePaddingTop('4px')
-                            ->styleBorderLeft($thicknessOutLines)
-                            ->styleBorderTop($thicknessInnerLines)
-                            ->styleBorderBottom($thicknessOutLines)
-                            , '5%')
+                        ->addSliceColumn(
+                            $this->setCheckBox(
+                                '{% if( Content.Student.Course.Degree.Main is not empty) %}
+                                        {{ Content.Student.Course.Degree.Main }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}'
+                            )
+                                ->styleBorderLeft($thicknessOutLines)
+                                ->styleBorderTop($thicknessInnerLines)
+                                ->styleBorderBottom($thicknessOutLines)
+                            , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('Hauptschulabschluss')
                             ->styleHeight('20px')
@@ -122,13 +124,17 @@ class SecondarySchool extends AbstractStudentCard
                             ->styleBorderTop($thicknessInnerLines)
                             ->styleBorderBottom($thicknessOutLines)
                             , '15%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;' . (new Unchecked())->getContent())
-                            ->styleHeight('20px')
-                            ->stylePaddingTop('4px')
-                            ->styleBorderTop($thicknessInnerLines)
-                            ->styleBorderBottom($thicknessOutLines)
-                            , '5%')
+                        ->addSliceColumn(
+                            $this->setCheckBox(
+                                '{% if( Content.Student.Course.Degree.Real is not empty) %}
+                                        {{ Content.Student.Course.Degree.Real }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}'
+                            )
+                                ->styleBorderTop($thicknessInnerLines)
+                                ->styleBorderBottom($thicknessOutLines)
+                            , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('Realschulabschluss')
                             ->styleHeight('20px')
@@ -146,7 +152,7 @@ class SecondarySchool extends AbstractStudentCard
                     )
                 )
                 ->addSliceArray($this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '190px', '-180px'))
-//                ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 28, 9))
+                ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 28, 9))
             )
             ->addPage($this->getRemarkPage())
         );

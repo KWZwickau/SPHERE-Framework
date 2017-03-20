@@ -547,4 +547,44 @@ abstract class AbstractDocument
 
         return $slice;
     }
+
+    /**
+     * @param string $content
+     * @param string $thicknessInnerLines
+     *
+     * @return Slice
+     */
+    protected function setCheckBox(
+        $content,
+        $thicknessInnerLines = '0.5px'
+    )
+    {
+        return (new Slice())
+        ->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleHeight('7px')
+            )
+        )
+        ->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleHeight('10px')
+                , '1.2%')
+            ->addElementColumn((new Element())
+                ->setContent($content)
+                ->styleHeight('14px')
+                ->styleTextSize('8.5')
+                ->stylePaddingLeft('1.2px')
+                ->stylePaddingTop('-2px')
+                ->stylePaddingBottom('-2px')
+                ->styleBorderAll($thicknessInnerLines)
+                , '1.6%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleHeight('10px')
+                , '1.2%')
+        )
+        ->styleHeight('24px');
+    }
 }
