@@ -209,7 +209,7 @@ abstract class AbstractDocument
                         if ($tblTransfer->getServiceTblType()) {
                             $Data['Student']['School']['Attendance']['Date'] = $tblTransfer->getTransferDate();
                             $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
-                            $YearShort = ( new \DateTime($tblTransfer->getTransferDate()) )->format('y');
+                            $YearShort = (integer)(new \DateTime($tblTransfer->getTransferDate()))->format('y');
                             $YearString = $Year.'/'.( $YearShort + 1 );
                             $Data['Student']['School']['Attendance']['Year'] = $YearString;
                         }
@@ -220,7 +220,7 @@ abstract class AbstractDocument
                 ) {
                     $Data['Student']['School']['Attendance']['Date'] = $AttendanceDate;
                     $Year = ( new \DateTime($AttendanceDate) )->format('Y');
-                    $YearShort = ( new \DateTime($AttendanceDate) )->format('y');
+                    $YearShort = (integer)(new \DateTime($AttendanceDate))->format('y');
                     $YearString = $Year.'/'.( $YearShort + 1 );
                     $Data['Student']['School']['Attendance']['Year'] = $YearString;
                 }
@@ -237,6 +237,7 @@ abstract class AbstractDocument
                             if (($tblAddress = $tblCompany->fetchMainAddress())) {
                                 $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
                                     . date('d.m.Y');
+                                $Data['Student']['CompanyAddress'] = $tblAddress->getGuiTwoRowString();
                             }
                             $Data['Student']['Company'] = $tblCompany->getName();
                             $Data['Student']['Company2'] = $tblCompany->getExtendedName();
