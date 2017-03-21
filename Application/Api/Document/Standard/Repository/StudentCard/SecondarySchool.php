@@ -14,10 +14,10 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Type;
 
 class SecondarySchool extends AbstractStudentCard
 {
-
 
     /**
      * @return string
@@ -29,11 +29,23 @@ class SecondarySchool extends AbstractStudentCard
     }
 
     /**
-     * @return Frame
+     * @return int
      */
-    public function buildDocument()
+    public function getTypeId()
     {
 
+        if (($tblType = Type::useService()->getTypeByName('Mittelschule / Oberschule'))) {
+            return $tblType->getId();
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @return Page
+     */
+    public function buildPage()
+    {
         $SmallTextSize = '7px';
         $InputText = '12px';
         $thicknessOutLines = '1.2px';
@@ -41,118 +53,130 @@ class SecondarySchool extends AbstractStudentCard
 
         $subjectPosition = array();
 
-        return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
-                ->addSlice($this->setLetterRow())
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Mittelschule')
-                            ->styleHeight('30px')
-                            ->styleTextSize('18px')
-                            ->styleTextBold()
-                            ->stylePaddingTop('7px')
-                            ->stylePaddingLeft('5px')
-                            ->styleBorderLeft($thicknessOutLines)
-                            ->styleBorderTop($thicknessOutLines)
-                            ->styleBorderRight($thicknessInnerLines)
-                            , '18%')
-                        ->addSliceColumn((new Slice())
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('Name')
-                                    ->stylePaddingLeft('4px')
-                                    ->styleTextSize($SmallTextSize)
-                                    ->styleBorderTop($thicknessOutLines)
-                                    , '40%')
-                                ->addElementColumn((new Element())
-                                    ->setContent('Vorname')
-                                    ->stylePaddingLeft('4px')
-                                    ->styleTextSize($SmallTextSize)
-                                    ->styleBorderTop($thicknessOutLines)
-                                    ->styleBorderRight($thicknessOutLines)
-                                    , '40%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('
+        return (new Page())
+            ->addSlice($this->setLetterRow())
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Mittelschule')
+                        ->styleHeight('30px')
+                        ->styleTextSize('18px')
+                        ->styleTextBold()
+                        ->stylePaddingTop('7px')
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft($thicknessOutLines)
+                        ->styleBorderTop($thicknessOutLines)
+                        ->styleBorderRight($thicknessInnerLines)
+                        , '18%')
+                    ->addSliceColumn((new Slice())
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('Name')
+                                ->stylePaddingLeft('4px')
+                                ->styleTextSize($SmallTextSize)
+                                ->styleBorderTop($thicknessOutLines)
+                                , '40%')
+                            ->addElementColumn((new Element())
+                                ->setContent('Vorname')
+                                ->stylePaddingLeft('4px')
+                                ->styleTextSize($SmallTextSize)
+                                ->styleBorderTop($thicknessOutLines)
+                                ->styleBorderRight($thicknessOutLines)
+                                , '40%')
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('
                                                 {% if( Content.Person.Data.Name.Last is not empty) %}
                                                     {{ Content.Person.Data.Name.Last }}
                                                 {% else %}
                                                     &nbsp;
                                                 {% endif %}')
-                                    ->stylePaddingLeft('4px')
-                                    ->stylePaddingTop('4px')
-                                    ->styleTextSize($InputText)
-                                    ->styleHeight('24.5px')
-                                    , '40%')
-                                ->addElementColumn((new Element())
-                                    ->setContent('
+                                ->stylePaddingLeft('4px')
+                                ->stylePaddingTop('4px')
+                                ->styleTextSize($InputText)
+                                ->styleHeight('24.5px')
+                                , '40%')
+                            ->addElementColumn((new Element())
+                                ->setContent('
                                                 {% if( Content.Person.Data.Name.First is not empty) %}
                                                     {{ Content.Person.Data.Name.First }}
                                                 {% else %}
                                                     &nbsp;
                                                 {% endif %}')
-                                    ->stylePaddingLeft('4px')
-                                    ->stylePaddingTop('4px')
-                                    ->styleTextSize($InputText)
-                                    ->styleBorderRight($thicknessOutLines)
-                                    ->styleHeight('24.5px')
-                                    , '40%')
-                            )
+                                ->stylePaddingLeft('4px')
+                                ->stylePaddingTop('4px')
+                                ->styleTextSize($InputText)
+                                ->styleBorderRight($thicknessOutLines)
+                                ->styleHeight('24.5px')
+                                , '40%')
                         )
                     )
                 )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addSliceColumn(
-                            $this->setCheckBox(
-                                '{% if( Content.Student.Course.Degree.Main is not empty) %}
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if( Content.Student.Course.Degree.Main is not empty) %}
                                         {{ Content.Student.Course.Degree.Main }}
                                     {% else %}
                                         &nbsp;
                                     {% endif %}'
-                            )
-                                ->styleBorderLeft($thicknessOutLines)
-                                ->styleBorderTop($thicknessInnerLines)
-                                ->styleBorderBottom($thicknessOutLines)
-                            , '4%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Hauptschulabschluss')
-                            ->styleHeight('20px')
-                            ->stylePaddingTop('4px')
+                        )
+                            ->styleBorderLeft($thicknessOutLines)
                             ->styleBorderTop($thicknessInnerLines)
                             ->styleBorderBottom($thicknessOutLines)
-                            , '15%')
-                        ->addSliceColumn(
-                            $this->setCheckBox(
-                                '{% if( Content.Student.Course.Degree.Real is not empty) %}
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Hauptschulabschluss')
+                        ->styleHeight('20px')
+                        ->stylePaddingTop('4px')
+                        ->styleBorderTop($thicknessInnerLines)
+                        ->styleBorderBottom($thicknessOutLines)
+                        , '15%')
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if( Content.Student.Course.Degree.Real is not empty) %}
                                         {{ Content.Student.Course.Degree.Real }}
                                     {% else %}
                                         &nbsp;
                                     {% endif %}'
-                            )
-                                ->styleBorderTop($thicknessInnerLines)
-                                ->styleBorderBottom($thicknessOutLines)
-                            , '4%')
-                        ->addElementColumn((new Element())
-                            ->setContent('Realschulabschluss')
-                            ->styleHeight('20px')
-                            ->stylePaddingTop('4px')
+                        )
                             ->styleBorderTop($thicknessInnerLines)
                             ->styleBorderBottom($thicknessOutLines)
-                            ->styleBorderRight($thicknessOutLines)
-                        )
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('&nbsp;')
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Realschulabschluss')
                         ->styleHeight('20px')
+                        ->stylePaddingTop('4px')
+                        ->styleBorderTop($thicknessInnerLines)
+                        ->styleBorderBottom($thicknessOutLines)
+                        ->styleBorderRight($thicknessOutLines)
                     )
                 )
-                ->addSliceArray($this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '190px', '-180px'))
-                ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 28, 9))
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight('20px')
+                )
+            )
+            ->addSliceArray($this->setGradeLayoutHeader($subjectPosition, 19, 6, 5, '190px', '-180px'))
+            ->addSliceArray($this->setGradeLayoutBody($subjectPosition, $this->getTypeId(), 19, 28, 9));
+    }
+
+        /**
+     * @param array $pageList
+     *
+     * @return Frame
+     */
+    public function buildDocument($pageList = array())
+    {
+
+        return (new Frame())->addDocument((new Document())
+            ->addPage(
+                $this->buildPage()
             )
 //            ->addPage($this->getRemarkPage())
         );

@@ -66,16 +66,19 @@ abstract class AbstractDocument
     abstract public function getName();
 
     /**
+     * @param array $pageList
+     *
      * @return Frame
      */
-    abstract public function buildDocument();
+    abstract public function buildDocument($pageList = array());
 
     /**
      * @param array $Data
+     * @param array $pageList
      *
      * @return IBridgeInterface
      */
-    public function createDocument($Data = array())
+    public function createDocument($Data = array(), $pageList = array())
     {
 
         if (isset($Data['Person']['Id'])) {
@@ -97,7 +100,7 @@ abstract class AbstractDocument
             }
         }
 
-        $this->Document = $this->buildDocument();
+        $this->Document = $this->buildDocument($pageList);
 
         if (!empty($Data)) {
             $this->Document->setData($Data);

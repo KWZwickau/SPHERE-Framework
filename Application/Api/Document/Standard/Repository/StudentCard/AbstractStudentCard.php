@@ -28,6 +28,11 @@ abstract class AbstractStudentCard extends AbstractDocument
 {
 
     /**
+     * @return int
+     */
+    abstract public function getTypeId();
+
+    /**
      * @param array $subjectPosition
      * @param int $countSubjectColumns
      * @param int $widthFirstColumns
@@ -184,21 +189,23 @@ abstract class AbstractStudentCard extends AbstractDocument
 
     /**
      * @param array $subjectPosition
+     * @param int $typeId
+     *
      * @param int $countSubjectColumns
      * @param int $countRows
+     * @param bool|integer $breakRow
      * @param int $widthFirstColumns
      * @param int $widthLastColumns
-     * @param bool|integer $breakRow
      * @param string $heightRow
      * @param string $thicknessOutLines
      * @param string $thicknessInnerLines
      * @param string $textSizeSmall
      * @param string $textSizeNormal
-     *
      * @return array
      */
     protected function setGradeLayoutBody(
         $subjectPosition = array(),
+        $typeId = 0,
         $countSubjectColumns = 18,
         $countRows = 12,
         $breakRow = false,
@@ -248,24 +255,24 @@ abstract class AbstractStudentCard extends AbstractDocument
                 if ($i  == 1) {
                     $thicknessLeft = $thicknessOutLines;
                     $widthColumn = $widthFirstColumnsString;
-                    $content = '{% if(Content.Certificate.Data' . $j . '.Division is not empty) %}
-                                {{ Content.Certificate.Data' . $j . '.Division }}
+                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.Division is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.Division }}
                             {% else %}
                                 &nbsp;
                             {% endif %}';
                 } elseif ($i == 2) {
                     $thicknessLeft = $thicknessInnerLines;
                     $widthColumn = $widthFirstColumnsString;
-                    $content = '{% if(Content.Certificate.Data' . $j . '.Year is not empty) %}
-                                {{ Content.Certificate.Data' . $j . '.Year }}
+                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.Year is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.Year }}
                             {% else %}
                                  &nbsp;
                             {% endif %}';
                 } elseif ($i == 3) {
                     $thicknessLeft = $thicknessInnerLines;
                     $widthColumn = $widthFirstColumnsString;
-                    $content = '{% if(Content.Certificate.Data' . $j . '.HalfYear is not empty) %}
-                                {{ Content.Certificate.Data' . $j . '.HalfYear }}
+                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.HalfYear is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.HalfYear }}
                             {% else %}
                                  &nbsp;
                             {% endif %}';
@@ -278,8 +285,8 @@ abstract class AbstractStudentCard extends AbstractDocument
                     }
                     $thicknessLeft = $i == 4 ? $thicknessOutLines : $thicknessInnerLines;
                     $widthColumn = $widthString;
-                    $content = '{% if(Content.Certificate.Data' . $j . '.BehaviorGrade.' . $acronym . ' is not empty) %}
-                                {{ Content.Certificate.Data' . $j . '.BehaviorGrade.' . $acronym . ' }}
+                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.BehaviorGrade.' . $acronym . ' is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.BehaviorGrade.' . $acronym . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}';
@@ -290,8 +297,8 @@ abstract class AbstractStudentCard extends AbstractDocument
 //                        && ($tblDocumentSubject = Generator::useService()->getDocumentSubjectByDocumentAndRanking($tblDocument, $i - 7))
 //                        && ($tblSubject = $tblDocumentSubject->getServiceTblSubject())
 //                    ) {
-//                        $content = '{% if(Content.Certificate.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' is not empty) %}
-//                                {{ Content.Certificate.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' }}
+//                        $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' is not empty) %}
+//                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' }}
 //                            {% else %}
 //                                 &nbsp;
 //                            {% endif %}';
@@ -300,8 +307,8 @@ abstract class AbstractStudentCard extends AbstractDocument
 //                    }
                     if (isset($subjectPosition[$i - 7])) {
                         $tblSubject = $subjectPosition[$i - 7];
-                        $content = '{% if(Content.Certificate.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                {{ Content.Certificate.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' }}
+                        $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}';
@@ -315,24 +322,24 @@ abstract class AbstractStudentCard extends AbstractDocument
                     $paddingLeft = '1px';
                     $paddingTop = '7px';
                     $height = '15px';
-                    $content = '{% if(Content.Certificate.Data' . $j . '.CertificateDate is not empty) %}
-                                {{ Content.Certificate.Data' . $j . '.CertificateDate }}
+                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.CertificateDate is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.CertificateDate }}
                             {% else %}
                                 &nbsp;
                             {% endif %}';
                 } elseif ($i == $countGradesTotal + 5) {
                     $thicknessLeft = $thicknessInnerLines;
                     $widthColumn = $widthLastColumnsString;
-                    $content = '{% if(Content.Certificate.Data' . $j . '.TransferRemark is not empty) %}
-                                {{ Content.Certificate.Data' . $j . '.TransferRemark }}
+                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.TransferRemark is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.TransferRemark }}
                             {% else %}
                                 &nbsp;
                             {% endif %}';
                 } elseif ($i == $countGradesTotal + 6) {
                     $thicknessLeft = $thicknessInnerLines;
                     $widthColumn = $widthLastColumnsString;
-                    $content = '{% if(Content.Certificate.Data' . $j . '.Absence is not empty) %}
-                                {{ Content.Certificate.Data' . $j . '.Absence }}
+                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.Absence is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.Absence }}
                             {% else %}
                                 &nbsp;
                             {% endif %}';
