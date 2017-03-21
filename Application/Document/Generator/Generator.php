@@ -38,7 +38,7 @@ class Generator implements IApplicationInterface, IModuleInterface
     {
 
         return new Service(
-            new Identifier('Document', 'Generator', null, null, Consumer::useService()->getConsumerBySession()),
+            new Identifier('Setting', 'Consumer', null, null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

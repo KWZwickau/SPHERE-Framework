@@ -45,8 +45,8 @@ abstract class AbstractStudentCard extends AbstractDocument
         $countSubjectColumns = 18,
         $widthFirstColumns = 6,
         $widthLastColumns = 5,
-        $heightHeader = '100px',
-        $paddingLeftHeader = '-90px',
+        $heightHeader = '150px',
+        $paddingLeftHeader = '-140px',
         $thicknessOutLines = '1.2px',
         $thicknessInnerLines = '0.5px',
         $textSizeSmall = '9px'
@@ -207,7 +207,7 @@ abstract class AbstractStudentCard extends AbstractDocument
         $heightRow = '18px',
         $thicknessOutLines = '1.2px',
         $thicknessInnerLines = '0.5px',
-        $textSizeSmall = '9px',
+        $textSizeSmall = '8px',
         $textSizeNormal = '11px'
     ) {
 
