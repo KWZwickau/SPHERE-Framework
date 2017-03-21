@@ -55,7 +55,7 @@ class Standard extends Extension implements IModuleInterface
     public static function createStudentCardPdf($PersonId = null)
     {
 
-        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\StudentCard\PrimarySchool');
+        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\StudentCard\GrammarSchool');
     }
 
     /**

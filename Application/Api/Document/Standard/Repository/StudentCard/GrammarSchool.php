@@ -40,79 +40,111 @@ class GrammarSchool  extends AbstractStudentCard
 
         $SmallTextSize = '7px';
         $InputText = '12px';
-        $OutLines = '1.2px';
+        $thicknessOutLines = '1.2px';
+        $thicknessInnerLines = '0.5px';
 
         $subjectPosition = array();
 
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
                 ->addSlice($this->setLetterRow())
-                ->addSlice(( new Slice() )
-                    ->addElement(( new Element() )
-                        ->setContent('&nbsp;')
-                        ->styleHeight('20px')
-                    )
-                )
-                ->addSlice(( new Slice() )
-                    ->addSection(( new Section() )
-                        ->addSliceColumn(( new Slice() )
-                            ->addSectionList(array(
-                                ( new Section() )
-                                    ->addElementColumn(( new Element() )
-                                        ->setContent('Familienname/Vorname')
-                                        ->stylePaddingLeft('4px')
-                                        ->styleTextSize($SmallTextSize)
-                                        ->styleBorderTop($OutLines)
-                                        ->styleBorderLeft($OutLines)
-                                        ->styleBorderRight($OutLines)
-                                    ),
-                                ( new Section() )
-                                    ->addElementColumn(( new Element() )
-                                        ->setContent('
-                                            {% if( Content.Person.Data.Name.First is not empty) %}
-                                                {{ Content.Person.Data.Name.Last }} {{ Content.Person.Data.Name.First }}
-                                            {% else %}
-                                                &nbsp;
-                                            {% endif %}')
-                                        ->stylePaddingLeft('4px')
-                                        ->stylePaddingTop('1px')
-                                        ->styleTextSize($InputText)
-                                        ->styleBorderBottom($OutLines)
-                                        ->styleBorderLeft($OutLines)
-                                        ->styleBorderRight($OutLines)
-                                        ->styleHeight('18px')
-                                    )
-                            ))
+                ->addSlice((new Slice())
+                    ->styleBorderLeft($thicknessOutLines)
+                    ->styleBorderTop($thicknessOutLines)
+                    ->styleBorderRight($thicknessOutLines)
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Gymnasium')
+                            ->styleHeight('30px')
+                            ->styleTextSize('18px')
+                            ->styleTextBold()
+                            ->stylePaddingTop('7px')
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight($thicknessInnerLines)
+                            , '18%')
+                        ->addSliceColumn((new Slice())
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Name')
+                                    ->stylePaddingLeft('4px')
+                                    ->styleTextSize($SmallTextSize)
+                                    , '40%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('Vorname')
+                                    ->stylePaddingLeft('4px')
+                                    ->styleTextSize($SmallTextSize)
+                                    , '40%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                                {% if( Content.Person.Data.Name.Last is not empty) %}
+                                                    {{ Content.Person.Data.Name.Last }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}')
+                                    ->stylePaddingLeft('4px')
+                                    ->stylePaddingTop('4px')
+                                    ->styleTextSize($InputText)
+                                    ->styleHeight('24.5px')
+                                    , '40%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                                {% if( Content.Person.Data.Name.First is not empty) %}
+                                                    {{ Content.Person.Data.Name.First }}
+                                                {% else %}
+                                                    &nbsp;
+                                                {% endif %}')
+                                    ->stylePaddingLeft('4px')
+                                    ->stylePaddingTop('4px')
+                                    ->styleTextSize($InputText)
+                                    ->styleHeight('24.5px')
+                                    , '40%')
+                            )
                         )
                     )
                 )
                 ->addSlice(( new Slice() )
-                    ->addElement(( new Element() )
-                        ->setContent('Gymnasium')
-                        ->styleMarginTop('10px')
-                        ->styleTextSize('18px')
-                        ->styleTextBold()
+                    ->styleBorderLeft($thicknessOutLines)
+                    ->styleBorderTop($thicknessInnerLines)
+                    ->styleBorderRight($thicknessOutLines)
+                    ->styleBorderBottom($thicknessOutLines)
+                    ->addSection((new Section())
+                        ->addElementColumn(( new Element() )
+                            ->setContent('Sekundarstufe I')
+                            ->styleTextSize('12px')
+                            ->styleHeight('16.5px')
+                            ->stylePaddingTop('4px')
+                            ->stylePaddingBottom('4px')
+                            ->stylePaddingLeft('4px')
+                            ->styleTextBold()
+                            , '18%')
+                        ->addElementColumn(( new Element() )
+                            ->setContent(
+                                'Besuchtes Profil:'
+                                . '{% if(Content.Student.Profile is not empty) %}
+                                    {{ Content.Student.Profile }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            )
+                            ->styleTextSize('12px')
+                            ->styleHeight('16.5px')
+                            ->stylePaddingTop('4px')
+                            ->stylePaddingBottom('4px')
+                            ->stylePaddingLeft('4px')
+                        )
                     )
                 )
-                ->addSlice(( new Slice() )
-                    ->addElement(( new Element() )
-                        ->setContent('Sekundarstufe I / besuchtes Profil: '
-                        . '{% if(Content.Student.Profile is not empty) %}
-                                {{ Content.Student.Profile }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}')
-                        ->styleMarginTop('10px')
-                        ->styleTextSize('12px')
-                        ->styleHeight('16.5px')
-                        ->stylePaddingLeft('4px')
-                        ->styleBorderLeft($OutLines)
-                        ->styleBorderTop($OutLines)
-                        ->styleBorderRight($OutLines)
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->styleHeight('8px')
                     )
                 )
                 ->addSliceArray($this->setGradeLayoutHeader($subjectPosition, 19))
-                ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 15))
+                ->addSliceArray($this->setGradeLayoutBody($subjectPosition, 19, 16))
+
+                // Todo Sek II
             )
         );
     }
