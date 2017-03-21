@@ -224,9 +224,9 @@ class Service extends AbstractService
                     if (isset($RouteData['Id'])) {
                         $tblUserAccount = Account::useService()->getUserAccountById($RouteData['Id']);
                         if ($tblUserAccount) {
-                            $UserName = Account::useService()->generateUserName($tblPerson, $tblToPerson);
-                            Account::useService()->updateUserAccountByUserName($tblUserAccount, $UserName);
+                            $UserName = Account::useService()->generateUserName($tblToPerson);
                             Account::useService()->updateUserAccountByToPersonMail($tblUserAccount, $tblToPerson);
+                            Account::useService()->updateUserAccountByUserName($tblUserAccount, $UserName);
                         }
                     }
                 }

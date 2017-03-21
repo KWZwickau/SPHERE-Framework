@@ -93,7 +93,7 @@ class UserAccount implements IModuleInterface
 
                     }
 
-                    $UserName = Account::useService()->generateUserName($tblPerson, $tblToPersonMail);
+                    $UserName = Account::useService()->generateUserName($tblToPersonMail);
                     $UserPass = $this->generatePassword(8, 1, 2, true);
 
 

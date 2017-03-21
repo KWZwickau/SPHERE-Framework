@@ -37,6 +37,12 @@ class Account implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Mail/Select', __NAMESPACE__.'\Frontend::frontendMailSelect')
         );
+        //remove from prepare
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyPrepare')
+        );
+
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Person', __NAMESPACE__.'\Frontend::frontendPreparePersonList')
         );

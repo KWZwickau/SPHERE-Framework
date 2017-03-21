@@ -28,7 +28,8 @@ class User implements IApplicationInterface
         Account::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route('/People/User'), new Link\Name('Benutzer Zugänge'), new Link\Icon(new Family()))
+            new Link(new Link\Route('/People/User'), new Link\Name('Eltern und Schülerzugänge'),
+                new Link\Icon(new Family()))
         );
 
         Main::getDispatcher()->registerRoute(
@@ -50,7 +51,7 @@ class User implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Benutzerzugänge', 'Übersicht');
+        $Stage = new Stage('Eltern und Schülerzugänge', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/People', new ChevronLeft()));
         $IsSend = $IsExport = true;
         $tblUserAccountList = Account::useService()->getUserAccountByIsSendAndIsExport($IsSend, $IsExport);
@@ -62,7 +63,7 @@ class User implements IApplicationInterface
                         new LayoutColumn(
                             ( $tblUserAccountList
                                 ? new TableData($tblUserAccountList, new Title('Hier könnten die Accounts stehen. (mit Zusatzinfos und der möglichkeit diese zu löschen)'))
-                                : new Warning('Keine Accounts vorhanden')
+                                : new Warning('Keine Benutzer vorhanden')
                             )
                         )
                     )
