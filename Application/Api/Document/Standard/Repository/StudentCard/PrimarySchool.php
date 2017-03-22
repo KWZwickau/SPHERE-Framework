@@ -14,6 +14,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 
 /**
@@ -44,6 +45,15 @@ class PrimarySchool extends AbstractStudentCard
         } else {
             return 0;
         }
+    }
+
+    /**
+     * @return false|TblType
+     */
+    public function getType()
+    {
+
+        return Type::useService()->getTypeByName('Grundschule');
     }
 
     /**
@@ -813,8 +823,8 @@ class PrimarySchool extends AbstractStudentCard
     public function buildDocument($pageList = array())
     {
         return (new Frame())->addDocument((new Document())
-            ->addPage($this->buildPage()
-            )
+            ->addPage($this->buildPage())
+            ->addPage($this->buildRemarkPage($this->getType() ? $this->getType() : null))
         );
     }
 }

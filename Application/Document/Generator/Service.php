@@ -165,7 +165,7 @@ class Service extends AbstractService
                             if (($tblType
                                     && ($tblLevel = $tblDivision->getTblLevel())
                                     && $tblLevel->getServiceTblType()
-                                    && $tblType->getId() == $tblLevel->getServiceTblType())
+                                    && $tblType->getId() == $tblLevel->getServiceTblType()->getId())
                                 || $tblType === null
                             ) {
                                 $list[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
@@ -206,6 +206,7 @@ class Service extends AbstractService
                     $Data['Certificate'][$typeId]['Data' . $count]['Year'] = '&ndash;';
                     $Data['Certificate'][$typeId]['Data' . $count]['HalfYear'] = $year;
                 }
+                $Data['Certificate'][$typeId]['Data' . $count]['YearForRemark'] = $year;
 
                 // Kopfnoten
                 if (($tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
@@ -249,6 +250,20 @@ class Service extends AbstractService
                         }
                     }
                 }
+
+                $remark = '';
+                // Arbeitsgemeinschaften und Bemerkungen
+                if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
+                    $tblPrepare, $tblPerson, 'Team'))
+                ){
+                    $remark = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue() . "\n";
+                }
+                if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
+                    $tblPrepare, $tblPerson, 'Remark'))
+                ){
+                    $remark .= $tblPrepareInformation->getValue();
+                }
+                $Data['Certificate'][$typeId]['Data' . $count]['Remark'] = $remark;
 
                 $date = new \DateTime($tblPrepare->getDate());
                 $Data['Certificate'][$typeId]['Data' . $count]['CertificateDate'] = $date->format('d.m.y');
@@ -359,6 +374,48 @@ class Service extends AbstractService
                 }
             }
         }
+
+        return empty($list) ? false : $list;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType $tblType
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentListForStudentCard(TblPerson $tblPerson, TblType $tblType = null)
+    {
+
+        $list = array();
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
+                ) {
+                    foreach ($tblPrepareList as $tblPrepare) {
+                        if($tblPrepare->getServiceTblGenerateCertificate()
+                            && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
+                            && ($tblCertificateType->getIdentifier() == 'HALF_YEAR' || $tblCertificateType->getIdentifier() == 'YEAR')
+                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && $tblPrepareStudent->isApproved()
+                            && $tblPrepareStudent->isPrinted()
+                        ) {
+                            if (($tblType
+                                    && ($tblLevel = $tblDivision->getTblLevel())
+                                    && $tblLevel->getServiceTblType()
+                                    && $tblType->getId() == $tblLevel->getServiceTblType()->getId())
+                                || $tblType === null
+                            ) {
+                                $list[(new \DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        ksort($list);
 
         return empty($list) ? false : $list;
     }

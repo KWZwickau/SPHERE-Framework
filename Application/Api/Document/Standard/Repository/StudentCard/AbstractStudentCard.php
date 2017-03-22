@@ -18,6 +18,7 @@ use SPHERE\Application\Document\Generator\Service\Entity\TblDocument;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 
 /**
  * Class AbstractStudentCard
@@ -485,53 +486,109 @@ abstract class AbstractStudentCard extends AbstractDocument
     }
 
     /**
+     * @param TblType $tblType
+     *
      * @return Page
      */
-    protected function getRemarkPage()
+    public function buildRemarkPage(TblType $tblType = null)
     {
         $textSize = '11px';
+        $textSizeSmall = '9px';
         $height = '15px';
         $thicknessOuterLines = '1.2px';
         $thicknessInnerLines = '0.5px';
         $widthFirstColumn = '15%';
 
+        $tblType ? $typeId = $tblType->getId() : $typeId = 0;
+
         // Todo unterer Teil
+        $sliceList = array();
+        if (($tblPrepareStudentList = Generator::useService()->getPrepareStudentListForStudentCard($this->getTblPerson(), $tblType))){
+            $count = 0;
+            $countList = count($tblPrepareStudentList);
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                $count++;
+                $sliceList[] = (new Slice())
+                    ->styleBorderLeft($thicknessOuterLines)
+                    ->styleBorderRight($thicknessOuterLines)
+                    ->styleBorderBottom($count == $countList ? $thicknessOuterLines : $thicknessInnerLines)
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent(
+                                '{% if(Content.Certificate.' . $typeId . '.Data' . $count . '.Division is not empty) %}
+                                    {{ Content.Certificate.' . $typeId . '.Data' . $count . '.Division }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            )
+                            ->stylePaddingLeft()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleTextSize($textSizeSmall)
+                            , '4%')
+                        ->addElementColumn((new Element())
+                            ->setContent(
+                                '{% if(Content.Certificate.' . $typeId . '.Data' . $count . '.YearForRemark is not empty) %}
+                                    {{ Content.Certificate.' . $typeId . '.Data' . $count . '.YearForRemark }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            )
+                            ->stylePaddingLeft()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleTextSize($textSizeSmall)
+                            , '13%')
+                        ->addElementColumn((new Element())
+                            ->setContent(
+                                '{% if(Content.Certificate.' . $typeId . '.Data' . $count . '.Remark is not empty) %}
+                                    {{ Content.Certificate.' . $typeId . '.Data' . $count . '.Remark|nl2br }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            )
+                            ->styleBorderLeft($thicknessInnerLines)
+                            ->stylePaddingLeft()
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom()
+                            ->styleTextSize($textSizeSmall)
+                        )
+                    );
+            }
+        }
 
         return (new Page())
             ->addSlice((new Slice())
+                ->styleBorderLeft($thicknessOuterLines)
+                ->styleBorderTop($thicknessOuterLines)
+                ->styleBorderRight($thicknessOuterLines)
+                ->styleBorderBottom($thicknessOuterLines)
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleHeight($height)
-                        ->styleBorderLeft($thicknessOuterLines)
-                        ->styleBorderTop($thicknessOuterLines)
                         , '1%')
                     ->addElementColumn((new Element())
                         ->setContent('Klasse')
                         ->styleTextSize($textSize)
                         ->styleHeight($height)
-                        ->styleBorderTop($thicknessOuterLines)
                         , $widthFirstColumn)
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleHeight($height)
-                        ->styleBorderTop($thicknessOuterLines)
                         , '1%')
                     ->addElementColumn((new Element())
                         ->setContent('Bemerkungen')
                         ->styleTextSize($textSize)
                         ->styleHeight($height)
                         ->stylePaddingLeft('5px')
-                        ->styleBorderLeft($thicknessOuterLines)
-                        ->styleBorderTop($thicknessOuterLines)
-                        ->styleBorderRight($thicknessOuterLines)
+                        ->styleBorderLeft($thicknessInnerLines)
                     )
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleHeight($height)
-                        ->styleBorderLeft($thicknessOuterLines)
                         ->styleBorderTop($thicknessInnerLines)
                         , '1%')
                     ->addElementColumn((new Element())
@@ -549,15 +606,13 @@ abstract class AbstractStudentCard extends AbstractDocument
                         ->styleTextSize($textSize)
                         ->styleHeight('15.5px')
                         ->stylePaddingLeft('5px')
-                        ->styleBorderLeft($thicknessOuterLines)
-                        ->styleBorderRight($thicknessOuterLines)
+                        ->styleBorderLeft($thicknessInnerLines)
                     )
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleHeight($height)
-                        ->styleBorderLeft($thicknessOuterLines)
                         ->styleBorderTop($thicknessInnerLines)
                         , '1%')
                     ->addElementColumn((new Element())
@@ -575,11 +630,11 @@ abstract class AbstractStudentCard extends AbstractDocument
                         ->styleTextSize($textSize)
                         ->styleHeight('15.5px')
                         ->stylePaddingLeft('5px')
-                        ->styleBorderLeft($thicknessOuterLines)
-                        ->styleBorderRight($thicknessOuterLines)
+                        ->styleBorderLeft($thicknessInnerLines)
                     )
                 )
                 ->styleBackgroundColor('#EEE')
-            );
+            )
+            ->addSliceArray($sliceList);
     }
 }

@@ -125,18 +125,16 @@ class Creator extends Extension
 
             if ($DocumentItem) {
                 $Data = Generator::useService()->setStudentCardContent($Data, $tblPerson, $DocumentItem, $tblType);
+                $DocumentItem->setTblPerson($tblPerson);
                 $pageList[] = $DocumentItem->buildPage();
+                $pageList[] = $DocumentItem->buildRemarkPage($tblType);
             }
         }
 
         if (!empty($pageList))
         {
             $Document = new MultiStudentCard();
-
-//            return (new Stage())->setContent(json_encode($Data));
-
             $File = self::buildDummyFile($Document, $Data, $pageList);
-
             $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
 
             return self::buildDownloadFile($File, $FileName);

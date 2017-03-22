@@ -14,6 +14,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 
 class SecondarySchool extends AbstractStudentCard
@@ -39,6 +40,15 @@ class SecondarySchool extends AbstractStudentCard
         } else {
             return 0;
         }
+    }
+
+    /**
+     * @return false|TblType
+     */
+    public function getType()
+    {
+
+        return Type::useService()->getTypeByName('Mittelschule / Oberschule');
     }
 
     /**
@@ -175,10 +185,8 @@ class SecondarySchool extends AbstractStudentCard
     {
 
         return (new Frame())->addDocument((new Document())
-            ->addPage(
-                $this->buildPage()
-            )
-//            ->addPage($this->getRemarkPage())
+            ->addPage($this->buildPage())
+            ->addPage($this->buildRemarkPage($this->getType() ? $this->getType() : null))
         );
     }
 }
