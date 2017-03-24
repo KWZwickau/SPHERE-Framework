@@ -324,16 +324,19 @@ class Service extends AbstractService
 
             $tblCourse = false;
             // Bildungsgang nur hier relevant sonst klappt es bei den anderen nicht korrekt
-            if (preg_match('!(Mittelschule|Oberschule)!is', $tblSchoolType->getName())
-                && preg_match('!(0?(7|8|9)|10)!is', $tblLevel->getName())
-            ) {
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                    && ($tblStudent = $tblPerson->getStudent())
+            // #SSW-1064 Automatische Zuordnung von Zeugnissen ist nicht korrekt in Coswig
+            if ($this->getUseCourseForCertificateChoosing()) {
+                if (preg_match('!(Mittelschule|Oberschule)!is', $tblSchoolType->getName())
+                    && preg_match('!(0?(7|8|9)|10)!is', $tblLevel->getName())
                 ) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                        && ($tblStudent = $tblPerson->getStudent())
+                    ) {
+                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblTransferType);
+                        if ($tblStudentTransfer) {
+                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                        }
                     }
                 }
             }
@@ -485,5 +488,19 @@ class Service extends AbstractService
             return new Danger('Die Zeugniserstellung konnte nicht geändert werden', new Exclamation())
                 . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS);
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function getUseCourseForCertificateChoosing()
+    {
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'UseCourseForCertificateChoosing'))
+        ) {
+            return (boolean)$tblSetting->getValue();
+        }
+
+        return false;
     }
 }
