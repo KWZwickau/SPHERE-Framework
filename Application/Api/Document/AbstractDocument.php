@@ -21,7 +21,6 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class AbstractDocument
@@ -221,7 +220,7 @@ abstract class AbstractDocument
                 if (( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate())) {
                     $Data['Student']['School']['Attendance']['Date'] = $AttendanceDate;
                     $Year = ( new \DateTime($AttendanceDate) )->format('Y');
-                    $YearShort = ( new \DateTime($AttendanceDate) )->format('y');
+                    $YearShort = (integer)(new \DateTime($AttendanceDate))->format('y');
                     $YearString = $Year.'/'.( $YearShort + 1 );
                     $Data['Student']['School']['Attendance']['Year'] = $YearString;
                 }
@@ -238,6 +237,7 @@ abstract class AbstractDocument
                             if (($tblAddress = $tblCompany->fetchMainAddress())) {
                                 $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
                                     . date('d.m.Y');
+                                $Data['Student']['CompanyAddress'] = $tblAddress->getGuiTwoRowString();
                             }
                             $Data['Student']['Company'] = $tblCompany->getName();
                             $Data['Student']['Company2'] = $tblCompany->getExtendedName();

@@ -45,8 +45,43 @@ class EnrollmentDocument extends AbstractDocument
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('Schule')
+                            ->stylePaddingTop('50px')
+                            ->styleHeight('15px')
+                            ->stylePaddingLeft('5px')
+                            ->styleTextSize('9pt')
+                        )
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Student.Company is not empty) %}
+                                    {{ Content.Student.Company }} 
+                                    {% if(Content.Student.Company2 is not empty) %}
+                                        <br/> {{ Content.Student.Company2 }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                                {% if(Content.Student.CompanyAddress is not empty) %}
+                                    <br/> {{ Content.Student.CompanyAddress }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %} 
+                                ')
+                            ->styleHeight('118px')
+                            ->stylePaddingLeft('5px')
+                        )
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
                             ->setContent('Schulbescheinigung')
-                            ->stylePaddingTop('180px')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('25px')
                             ->styleTextBold()
