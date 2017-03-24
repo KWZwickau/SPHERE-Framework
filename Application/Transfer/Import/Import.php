@@ -15,6 +15,7 @@ use SPHERE\Application\Transfer\Import\Radebeul\Radebeul;
 use SPHERE\Application\Transfer\Import\Schneeberg\Schneeberg;
 use SPHERE\Application\Transfer\Import\Schulstiftung\Schulstiftung;
 use SPHERE\Application\Transfer\Import\Seelitz\Seelitz;
+use SPHERE\Application\Transfer\Import\Tharandt\Tharandt;
 use SPHERE\Application\Transfer\Import\Zwickau\Zwickau;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -40,35 +41,38 @@ class Import implements IApplicationInterface
         Schulstiftung::registerModule();
 
         $consumerAcronym = (Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '');
+        if ($consumerAcronym === 'EGE' || $consumerAcronym == 'DEMO') {
+            Annaberg::registerModule();
+        }
         if ($consumerAcronym == 'ESZC' || $consumerAcronym == 'DEMO') {
             Chemnitz::registerModule();
-        }
-        if ($consumerAcronym === 'EVSR' || $consumerAcronym == 'DEMO') {
-            Radebeul::registerModule();
-        }
-        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
-            Hormersdorf::registerModule();
         }
         if ($consumerAcronym === 'EVSC' || $consumerAcronym == 'DEMO') {
             Coswig::registerModule();
         }
-        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym == 'DEMO') {
-            Muldental::registerModule();
-        }
         if ($consumerAcronym === 'EZGH' || $consumerAcronym == 'DEMO') {
             Herrnhut::registerModule();
         }
-        if ($consumerAcronym === 'LWSZ' || $consumerAcronym == 'DEMO') {
-            Zwenkau::registerModule();
+        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
+            Hormersdorf::registerModule();
+        }
+        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym == 'DEMO') {
+            Muldental::registerModule();
+        }
+        if ($consumerAcronym === 'EVSR' || $consumerAcronym == 'DEMO') {
+            Radebeul::registerModule();
         }
         if ($consumerAcronym === 'ESS' || $consumerAcronym == 'DEMO') {
             Schneeberg::registerModule();
         }
-        if ($consumerAcronym === 'EGE' || $consumerAcronym == 'DEMO') {
-            Annaberg::registerModule();
-        }
         if ($consumerAcronym === 'ESRL' || $consumerAcronym == 'DEMO') {
             Seelitz::registerModule();
+        }
+        if ($consumerAcronym === 'CSW' || $consumerAcronym == 'DEMO') {
+            Tharandt::registerModule();
+        }
+        if ($consumerAcronym === 'LWSZ' || $consumerAcronym == 'DEMO') {
+            Zwenkau::registerModule();
         }
         if ($consumerAcronym === 'CMS' || $consumerAcronym == 'DEMO') {
             Zwickau::registerModule();
@@ -95,6 +99,9 @@ class Import implements IApplicationInterface
         $consumerAcronym = (Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '');
         if ($consumerAcronym === 'CMS' || $consumerAcronym == 'DEMO') {
             $dataList = Zwickau::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'CSW' || $consumerAcronym == 'DEMO') {
+            $dataList = Tharandt::setLinks($dataList);
         }
 
         $table = new TableData(
