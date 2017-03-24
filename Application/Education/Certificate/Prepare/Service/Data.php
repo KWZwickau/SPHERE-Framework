@@ -497,7 +497,7 @@ class Data extends AbstractData
         ));
         if ($Entity === null) {
             $Entity = new TblPrepareInformation();
-            $Entity->settblPrepareCertificate($tblPrepare);
+            $Entity->setTblPrepareCertificate($tblPrepare);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setField($Field);
             $Entity->setValue($Value);

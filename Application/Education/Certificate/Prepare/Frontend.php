@@ -1183,7 +1183,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                         /** @var TextArea $Field */
                                                         $studentTable[$tblPerson->getId()][$key]
                                                             = (new TextArea($dataFieldName, '', ''))->setMaxLengthValue(
-                                                            $CharCount
+                                                            $CharCount, true
                                                         );
                                                     } else {
                                                         $studentTable[$tblPerson->getId()][$key]
