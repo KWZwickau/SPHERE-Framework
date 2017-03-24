@@ -43,6 +43,9 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblUserAccount');
+        if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblAccount')) {
+            $Table->addColumn('serviceTblAccount', 'bigint');
+        }
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint');
         }
@@ -52,11 +55,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblToPersonMail')) {
             $Table->addColumn('serviceTblToPersonMail', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblUserAccount', 'UserName')) {
-            $Table->addColumn('UserName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblUserAccount', 'UserPass')) {
-            $Table->addColumn('UserPass', 'string');
+//        if (!$this->getConnection()->hasColumn('tblUserAccount', 'UserName')) {
+//            $Table->addColumn('UserName', 'string');
+//        }
+        if (!$this->getConnection()->hasColumn('tblUserAccount', 'UserPassword')) {
+            $Table->addColumn('UserPassword', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'IsSend')) {
             $Table->addColumn('IsSend', 'boolean');

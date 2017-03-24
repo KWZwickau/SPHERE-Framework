@@ -11,6 +11,8 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblToPersonMail;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -21,15 +23,19 @@ use SPHERE\System\Database\Fitting\Element;
 class TblUserAccount extends Element
 {
 
+    const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_TO_PERSON_ADDRESS = 'serviceTblToPersonAddress';
     const ATTR_SERVICE_TBL_TO_PERSON_MAIL = 'serviceTblToPersonMail';
-    const ATTR_USER_NAME = 'userName';
-    const ATTR_USER_PASS = 'userPass';
+//    const ATTR_USER_NAME = 'userName';
+    const ATTR_USER_PASSWORD = 'userPassword';
     const ATTR_IS_SEND = 'IsSend';
     const ATTR_IS_EXPORT = 'IsExport';
 
-
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblAccount;
     /**
      * @Column(type="bigint")
      */
@@ -42,14 +48,14 @@ class TblUserAccount extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblToPersonMail;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $userName;
     /**
      * @Column(type="string")
      */
-    protected $userName;
-    /**
-     * @Column(type="string")
-     */
-    protected $userPass;
+    protected $userPassword;
     /**
      * @Column(type="boolean")
      */
@@ -65,7 +71,9 @@ class TblUserAccount extends Element
     public function getServiceTblPerson()
     {
 
-        $tblPerson = ( $this->serviceTblPerson != null ? Person::useService()->getPersonById($this->serviceTblPerson) : false );
+        $tblPerson = ($this->serviceTblPerson != null
+            ? Person::useService()->getPersonById($this->serviceTblPerson)
+            : false);
         if ($tblPerson) {
             return $tblPerson;
         }
@@ -79,6 +87,30 @@ class TblUserAccount extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return false|TblAccount
+     */
+    public function getServiceTblAccount()
+    {
+
+        $tblAccount = ($this->serviceTblAccount != null
+            ? Account::useService()->getAccountById($this->serviceTblAccount)
+            : false);
+        if ($tblAccount) {
+            return $tblAccount;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblAccount|null $tblAccount
+     */
+    public function setServiceTblAccount(TblAccount $tblAccount = null)
+    {
+
+        $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
     }
 
     /**
@@ -129,36 +161,36 @@ class TblUserAccount extends Element
         $this->serviceTblToPersonMail = ( null === $tblToPersonMail ? null : $tblToPersonMail->getId() );
     }
 
+//    /**
+//     * @return string
+//     */
+//    public function getUserName()
+//    {
+//        return $this->userName;
+//    }
+//
+//    /**
+//     * @param string $userName
+//     */
+//    public function setUserName($userName = '')
+//    {
+//        $this->userName = $userName;
+//    }
+
     /**
      * @return string
      */
-    public function getUserName()
+    public function getUserPassword()
     {
-        return $this->userName;
+        return $this->userPassword;
     }
 
     /**
-     * @param string $userName
+     * @param string $userPassword
      */
-    public function setUserName($userName = '')
+    public function setUserPassword($userPassword = '')
     {
-        $this->userName = $userName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUserPass()
-    {
-        return $this->userPass;
-    }
-
-    /**
-     * @param string $userPass
-     */
-    public function setUserPass($userPass = '')
-    {
-        $this->userPass = $userPass;
+        $this->userPassword = $userPassword;
     }
 
     /**

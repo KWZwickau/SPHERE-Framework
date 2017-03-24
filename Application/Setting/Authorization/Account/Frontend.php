@@ -94,7 +94,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if (
                     ( $tblAccount->getServiceTblIdentification()
-                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId() )
+                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId()
+                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('UserCredential')->getId()
+                    )
                     && $tblAccount->getServiceTblConsumer()
                     && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {

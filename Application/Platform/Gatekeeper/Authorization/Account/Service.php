@@ -207,7 +207,7 @@ class Service extends AbstractService
      * @param string $CredentialLock
      * @param TblIdentification $tblIdentification
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function createSessionCredential(
         IFormInterface &$Form,
@@ -331,7 +331,7 @@ class Service extends AbstractService
      * @param string $CredentialKey
      * @param TblIdentification $tblIdentification
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function createSessionCredentialToken(
         IFormInterface &$Form,
@@ -695,8 +695,19 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPersonAllByAccount($tblAccount);
-
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountAllByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson);
+    }
+
 
     /**
      * @param TblAccount $tblAccount

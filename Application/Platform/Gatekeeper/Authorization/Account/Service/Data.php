@@ -38,6 +38,7 @@ class Data extends AbstractData
         $this->createIdentification('System', 'Benutzername / Passwort & Hardware-Schlüssel', true);
         $this->createIdentification('Token', 'Benutzername / Passwort & Hardware-Schlüssel', true);
         $this->createIdentification('Credential', 'Benutzername / Passwort', true);
+        $this->createIdentification('UserCredential', 'Benutzername / Passwort', true);
 
 //        $tblConsumer = Consumer::useService()->getConsumerById(1);
 //        // Choose the right Identification for Authentication
@@ -465,6 +466,7 @@ class Data extends AbstractData
     public function getAccountByUsername($Username)
     {
 
+        /** @var TblAccount $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblAccount')
             ->findOneBy(array(TblAccount::ATTR_USERNAME => $Username));
         return ( null === $Entity ? false : $Entity );
@@ -574,6 +576,7 @@ class Data extends AbstractData
     public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
     {
 
+        /** @var TblAccount $tblAccount */
         $tblAccount = $this->getConnection()->getEntityManager()->getEntity('TblAccount')
             ->findOneBy(array(
                 TblAccount::ATTR_USERNAME => $Username,
@@ -796,6 +799,9 @@ class Data extends AbstractData
                     case 'CREDENTIAL':
                         $Timeout = ( 60 * 15 );
                         break;
+                    case 'USERCREDENTIAL':
+                        $Timeout = (60 * 15);
+                        break;
                     default:
                         $Timeout = ( 60 * 10 );
                 }
@@ -984,6 +990,19 @@ class Data extends AbstractData
             $EntityList = null;
         }
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountAllByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUser', array(
+            TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
     }
 
     /**

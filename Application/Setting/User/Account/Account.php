@@ -17,7 +17,13 @@ class Account implements IModuleInterface
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('/People/User/Account'), new Link\Name('Benutzer anlegen'))
+            new Link(new Link\Route('/People/User/Account/Person'), new Link\Name('Benutzer verwalten'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('/People/User/Account/Address'), new Link\Name('Serienbrief'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('/People/User/Account/Mail'), new Link\Name('E-Mail'))
         );
 
         Main::getDispatcher()->registerRoute(
@@ -28,11 +34,19 @@ class Account implements IModuleInterface
             Main::getDispatcher()->createRoute('/People/User/Account/Address', __NAMESPACE__.'\Frontend::frontendAddress')
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Address/Edit',
+                __NAMESPACE__.'\Frontend::frontendAddressEdit')
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Address/Select', __NAMESPACE__.'\Frontend::frontendAddressSelect')
         );
         //FrontendMail
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Mail', __NAMESPACE__.'\Frontend::frontendMail')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Mail/Edit',
+                __NAMESPACE__.'\Frontend::frontendMailEdit')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Mail/Select', __NAMESPACE__.'\Frontend::frontendMailSelect')

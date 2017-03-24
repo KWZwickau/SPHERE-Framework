@@ -10,6 +10,8 @@ use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountPlatform;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Service\Data;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Setup;
@@ -46,17 +48,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $UserName
-     *
-     * @return false|TblUserAccount
-     */
-    public function getUserAccountByUserName($UserName = '')
-    {
-
-        return ( new Data($this->getBinding()) )->getUserAccountByUserName($UserName);
-    }
-
-    /**
      * @param $IsSend
      * @param $IsExport
      *
@@ -80,16 +71,15 @@ class Service extends AbstractService
     /**
      * @param null $FilterGroup
      * @param null $FilterStudent
-     * @param null $FilterPerson
      * @param null $FilterYear
      * @param bool $IsTimeout (if search reach timeout)
      *
      * @return array|bool
      */
-    public function getStudentFilterResultListBySerialLetter(
+    public function getStudentFilterResultList(
         $FilterGroup = null,
         $FilterStudent = null,
-        $FilterPerson = null,
+//        $FilterPerson = null,
         $FilterYear = null,
         &$IsTimeout = false
     ) {
@@ -130,23 +120,23 @@ class Service extends AbstractService
             $FilterGroup = array();
         }
         // Preparation FilterPerson
-        if ($FilterPerson) {
-            // Preparation FilterPerson
-            array_walk($FilterPerson, function (&$Input) {
-
-                if (!is_array($Input)) {
-                    if (!empty($Input)) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
-                    }
-                }
-            });
-            $FilterPerson = array_filter($FilterPerson);
-        } else {
+//        if ($FilterPerson) {
+//            // Preparation FilterPerson
+//            array_walk($FilterPerson, function (&$Input) {
+//
+//                if (!is_array($Input)) {
+//                    if (!empty($Input)) {
+//                        $Input = explode(' ', $Input);
+//                        $Input = array_filter($Input);
+//                    } else {
+//                        $Input = false;
+//                    }
+//                }
+//            });
+//            $FilterPerson = array_filter($FilterPerson);
+//        } else {
             $FilterPerson = array();
-        }
+//        }
 
         // Preparation $FilterStudent
         if (isset($FilterStudent)) {
@@ -194,36 +184,104 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson               $tblPerson
-     * @param TblToPersonAddress|null $tblToPersonAddress
-     * @param TblToPersonMail|null    $tblToPersonMail
-     * @param string                  $UserName
-     * @param string                  $UserPass
+     * @param null $FilterGroup
+     * @param null $FilterPerson
+     * @param bool $IsTimeout (if search reach timeout)
      *
-     * @return bool|TblUserAccount
+     * @return array|bool
      */
-    public function createUserAccount(
-        TblPerson $tblPerson,
-        TblToPersonAddress $tblToPersonAddress = null,
-        TblToPersonMail $tblToPersonMail = null,
-        $UserName,
-        $UserPass
+    public function getPersonFilterResultList(
+        $FilterGroup = null,
+        $FilterPerson = null,
+        &$IsTimeout = false
     ) {
 
-        return ( new Data($this->getBinding()) )->createUserAccount(
-            $tblPerson,
-            $tblToPersonAddress,
-            $tblToPersonMail,
-            $UserName,
-            $UserPass);
+        // Database Join with foreign Key
+        $Pile = new Pile(Pile::JOIN_TYPE_OUTER);
+        $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
+            null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
+        );
+        $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(),
+            ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
+        );
+
+        if ($FilterGroup) {
+            // Preparation FilterGroup
+            array_walk($FilterGroup, function (&$Input) {
+
+                if (!is_array($Input)) {
+                    if (!empty($Input)) {
+                        $Input = explode(' ', $Input);
+                        $Input = array_filter($Input);
+                    } else {
+                        $Input = false;
+                    }
+                }
+            });
+            $FilterGroup = array_filter($FilterGroup);
+        } else {
+            $FilterGroup = array();
+        }
+        // Preparation FilterPerson
+        if ($FilterPerson) {
+            array_walk($FilterPerson, function (&$Input) {
+
+                if (!is_array($Input)) {
+                    if (!empty($Input)) {
+                        $Input = explode(' ', $Input);
+                        $Input = array_filter($Input);
+                    } else {
+                        $Input = false;
+                    }
+                }
+            });
+            $FilterPerson = array_filter($FilterPerson);
+        } else {
+            $FilterPerson = array();
+        }
+
+        $Result = $Pile->searchPile(array(
+            0 => $FilterGroup,
+            1 => $FilterPerson
+        ));
+        // get Timeout status
+        $IsTimeout = $Pile->isTimeout();
+
+        return (!empty($Result) ? $Result : false);
     }
 
     /**
+     * @param TblAccount              $tblAccount
+     * @param TblPerson               $tblPerson
+     * @param TblToPersonAddress|null $tblToPersonAddress
+     * @param TblToPersonMail|null    $tblToPersonMail
+     * @param string                  $UserPassword
+     *
+     * @return false|TblUserAccount
+     */
+    public function createUserAccount(
+        TblAccount $tblAccount,
+        TblPerson $tblPerson,
+        TblToPersonAddress $tblToPersonAddress = null,
+        TblToPersonMail $tblToPersonMail = null,
+        $UserPassword
+    ) {
+
+        return ( new Data($this->getBinding()) )->createUserAccount(
+            $tblAccount,
+            $tblPerson,
+            $tblToPersonAddress,
+            $tblToPersonMail,
+            $UserPassword);
+    }
+
+    /**
+     * @param TblPerson|null       $tblPerson
      * @param TblToPersonMail|null $tblToPersonMail
      *
      * @return string
      */
-    public function generateUserName(TblToPersonMail $tblToPersonMail = null)
+    public function generateUserName(TblPerson $tblPerson = null, TblToPersonMail $tblToPersonMail = null)
     {
         $UserName = '';
         //use E-Mail if exist
@@ -231,36 +289,30 @@ class Service extends AbstractService
             if (($tblMail = $tblToPersonMail->getTblMail())) {
                 $UserName = $tblToPersonMail->getTblMail()->getAddress();
             }
-            // find existing UserName?
-            $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserName);
-            $tblAccountPrepare = Account::useService()->getUserAccountByUserName($UserName);
-            if ($tblAccount || $tblAccountPrepare) {
-                $Mod = 1;
-                while ($tblAccount || $tblAccountPrepare) {
-                    $UserNameMod = $UserName.$Mod;
-                    $Mod++;
-                    $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserNameMod);
-                    $tblAccountPrepare = Account::useService()->getUserAccountByUserName($UserNameMod);
-                    if (!$tblAccount && !$tblAccountPrepare) {
-                        $UserName = $UserNameMod;
-                    }
+        }
+        //try to force a AccountName    //ToDO need decision how Accountsname have to look like!
+        if ($UserName == '' && $tblPerson) {
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            if ($tblConsumer) {
+                $UserName = $tblConsumer->getAcronym().'-'.$tblPerson->getLastName().$tblPerson->getFirstName();
+            }
+        }
+
+        // find existing UserName?
+        $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserName);
+        if ($tblAccount) {
+            $Mod = 1;
+            while ($tblAccount) {
+                $UserNameMod = $UserName.$Mod;
+                $Mod++;
+                $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserNameMod);
+                if (!$tblAccount) {
+                    $UserName = $UserNameMod;
                 }
             }
         }
 
         return $UserName;
-    }
-
-    /**
-     * @param TblUserAccount $tblUserAccount
-     * @param                $UserName
-     *
-     * @return bool
-     */
-    public function updateUserAccountByUserName(TblUserAccount $tblUserAccount, $UserName)
-    {
-
-        return (new Data($this->getBinding()))->updateUserAccountByUserName($tblUserAccount, $UserName);
     }
 
     /**
@@ -284,11 +336,11 @@ class Service extends AbstractService
     public function updateUserAccountByToPersonMail(TblUserAccount $tblUserAccount, TblToPersonMail $tblToPersonMail)
     {
 
-        $tblPerson = $tblToPersonMail->getServiceTblPerson();
-        if ($tblPerson) {
-            $UserName = Account::useService()->generateUserName($tblToPersonMail);
-            Account::useService()->updateUserAccountByUserName($tblUserAccount, $UserName);
-        }
+//        $tblPerson = $tblToPersonMail->getServiceTblPerson();
+//        if ($tblPerson) {
+//            $UserName = Account::useService()->generateUserName($tblPerson, $tblToPersonMail);
+//            Account::useService()->updateUserAccountByUserName($tblUserAccount, $UserName); //ToDO update UserName from TblAccount or not?
+//        }
         return ( new Data($this->getBinding()) )->updateUserAccountByToPersonMail($tblUserAccount, $tblToPersonMail);
     }
 

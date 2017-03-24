@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\User\Account\Service;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblToPersonAddress;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblToPersonMail;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -34,20 +35,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $UserName
-     *
-     * @return false|TblUserAccount
-     */
-    public function getUserAccountByUserName($UserName = '')
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblUserAccount', array(
-                TblUserAccount::ATTR_USER_NAME => $UserName
-            ));
-    }
-
-    /**
      * @param $IsSend
      * @param $IsExport
      *
@@ -74,63 +61,43 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblAccount              $tblAccount
      * @param TblPerson               $tblPerson
      * @param TblToPersonAddress|null $tblToPersonAddress
      * @param TblToPersonMail|null    $tblToPersonMail
-     * @param string                  $UserName
-     * @param string                  $UserPass
+     * @param string                  $UserPassword
      *
-     * @return bool|TblUserAccount
+     * @return TblUserAccount
      */
     public function createUserAccount(
+        TblAccount $tblAccount,
         TblPerson $tblPerson,
         TblToPersonAddress $tblToPersonAddress = null,
         TblToPersonMail $tblToPersonMail = null,
-        $UserName,
-        $UserPass
+        $UserPassword
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblUserAccount $Entity */
         $Entity = $Manager->getEntity('TblUserAccount')
             ->findOneBy(array(
-                TblUserAccount::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblUserAccount::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
             ));
+
         if (null === $Entity) {
             $Entity = new TblUserAccount();
+            $Entity->setServiceTblAccount($tblAccount);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblToPersonAddress($tblToPersonAddress);
             $Entity->setServiceTblToPersonMail($tblToPersonMail);
-            $Entity->setUserName($UserName);
-            $Entity->setUserPass($UserPass);
+            $Entity->setUserPassword($UserPassword);
             $Entity->setIsSend(false);
             $Entity->setIsExport(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
         }
-        return false;
-    }
-
-    /**
-     * @param TblUserAccount $tblUserAccount
-     * @param string         $UserName
-     *
-     * @return bool
-     */
-    public function updateUserAccountByUserName(TblUserAccount $tblUserAccount, $UserName)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblUserAccount $Entity */
-        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setUserName($UserName);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
-        }
-        return false;
+        return $Entity;
     }
 
     /**
