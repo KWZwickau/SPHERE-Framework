@@ -34,9 +34,11 @@ class EnrollmentDocument extends AbstractDocument
     }
 
     /**
+     * @param array $pageList
+     *
      * @return Frame
      */
-    public function buildDocument()
+    public function buildDocument($pageList = array())
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())

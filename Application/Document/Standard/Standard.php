@@ -46,8 +46,6 @@ class Standard implements IApplicationInterface
 
         $Stage = new Stage('Standard', 'Dashboard');
 
-//        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Auswertung'));
-
         return $Stage;
     }
 }
