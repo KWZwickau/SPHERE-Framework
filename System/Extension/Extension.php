@@ -54,7 +54,7 @@ class Extension
     {
         return Packer::getPacker($Location);
     }
-    
+
     /**
      * @param LoggerInterface $Logger
      * @return LoggerInterface
@@ -121,7 +121,7 @@ class Extension
     public function getGlobal()
     {
 
-        return new SuperGlobal($_GET, $_POST, $_SESSION);
+        return new SuperGlobal($_GET, $_POST, $_REQUEST, $_SESSION);
     }
 
     /**

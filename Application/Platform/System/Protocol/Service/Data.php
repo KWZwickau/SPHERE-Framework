@@ -247,6 +247,9 @@ class Data extends AbstractData
             ->setMaxResults(1)
             ->getQuery();
 
+        $Query->useQueryCache(true);
+        $Query->useResultCache(true, 300, __METHOD__);
+
         $EntityList = $Query->getResult();
         return ( empty( $EntityList ) ? false : $EntityList );
     }

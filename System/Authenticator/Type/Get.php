@@ -85,6 +85,9 @@ class Get extends Extension implements ITypeInterface
     public function createSignature($Data, $Location = null)
     {
 
+        array_walk_recursive($Data, array($this, 'preventXSS'));
+        array_walk_recursive($Data, array($this, 'trimInput'));
+
         if (null === $Location) {
             $Location = $this->getRequest()->getPathInfo();
         }

@@ -5,16 +5,17 @@
 // Settings
 
         var settings = $.extend(true, {
+            Sync: true,
             Receiver: [],
             Notify: {
                 Hash: 'default',
                 onLoad: {
                     Title: '',
-                    Message: '',
+                    Message: ''
                 },
                 onSuccess: {
                     Title: '',
-                    Message: '',
+                    Message: ''
                 }
             }
         }, options);
@@ -30,7 +31,7 @@
                 Script();
             };
             // Block new Execution Request
-            if (document.ModAjax.Running) {
+            if (settings.Sync && document.ModAjax.Running) {
                 $.notify({
                     title: 'Die Anfrage kann nicht verarbeitet werden',
                     message: 'Bitte warten Sie bis alle Aktionen abgeschlossen sind'
@@ -45,7 +46,9 @@
                 });
                 return false;
             } else {
-                document.ModAjax.Running = true;
+                if(settings.Sync) {
+                    document.ModAjax.Running = true;
+                }
                 return true;
             }
         };
@@ -53,7 +56,9 @@
          * Listen for Requests if Pipeline not "busy"
          */
         var freePipeline = function () {
-            document.ModAjax.Running = false;
+            if(settings.Sync) {
+                document.ModAjax.Running = false;
+            }
         };
 
 // Init Notify
@@ -91,18 +96,18 @@
                     delete document.ModAjax.NotifyTimeout[settings.Notify.Hash];
                 }, Timeout);
             }
-        }
+        };
         var parseAjaxError = function (request, status, error) {
             // Parse Error
             var ErrorMessage = '';
             if (request.status === 0) {
                 ErrorMessage = ('Not connected.\nPlease verify your network connection.');
             } else if (request.status == 400) {
-                ErrorMessage = ('Bad Request. [400]');
+                ErrorMessage = ('Bad Request [400]');
             } else if (request.status == 403) {
-                ErrorMessage = ('Forbidden. [403]');
+                ErrorMessage = ('Forbidden [403]');
             } else if (request.status == 404) {
-                ErrorMessage = ('The requested page not found. [404]');
+                ErrorMessage = ('The requested page not found [404]');
             } else if (request.status == 500) {
                 ErrorMessage = ('Internal Server Error [500]');
             } else if (request.status == 511) {
@@ -110,14 +115,14 @@
             } else if (status === 'parsererror') {
                 ErrorMessage = ('Requested JSON parse failed');
             } else if (status === 'timeout') {
-                ErrorMessage = ('Time out error.');
+                ErrorMessage = ('Time out error');
             } else if (status === 'abort') {
-                ErrorMessage = ('Ajax request aborted.');
+                ErrorMessage = ('Ajax request aborted');
             } else {
-                ErrorMessage = ('Uncaught Error. ' + request.status + '\n' + request.responseText);
+                ErrorMessage = ('Uncaught Error: ' + request.status + '\n' + request.responseText);
             }
             return ErrorMessage;
-        }
+        };
         var domLoadTemplate = '<div data-notify="container" class="col-xs-11 col-sm-4 alert alert-{0}" role="alert">' +
             '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
             '<span data-notify="icon"></span>&nbsp;' +
@@ -152,7 +157,7 @@
             min = Math.ceil(min);
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
+        };
 
 // Event Handler
 
@@ -188,24 +193,31 @@
         var isErrorEvent = false;
         var onErrorEvent = function (request, status, error) {
             isErrorEvent = true;
-            var ErrorMessage = parseAjaxError(request, status, error);
-            if (console && console.log) {
-                console.log(request.responseText);
+            var Notify = getNotifyObject();
+            if (Notify) {
+                Notify.update({progress: getRandomInt(50, 80)});
             }
-            document.ModAjax.NotifyHandler[settings.Notify.Hash + '-Error'] = $.notify({
-                title: ErrorMessage,
-                message: '<span class="text-muted"><small><small>' + this.url + '</small></small></span><hr/>' + request.responseText
-            }, {
-                z_index: 32768,
-                newest_on_top: true,
-                showProgressbar: false,
-                placement: {from: "top", align: "right"},
-                type: 'danger',
-                delay: 0,
-                animate: {enter: 'animated fadeInRight', exit: 'animated fadeOutRight'},
-                template: domErrorTemplate
-            });
             freePipeline();
+            for (var Index in settings.Receiver) {
+                var callReceiver;
+                if (settings.Receiver.hasOwnProperty(Index)) {
+                     try {
+                        callReceiver = new Function('Response', settings.Receiver[Index]);
+                        callReceiver(
+                            '<div class="panel panel-danger">'+
+                                '<div class="panel-heading">'+
+                                    '<h6 class="panel-title">API-Error <small>'+ request.status +'</small></h6>'+
+                                '</div>'+
+                                '<div class="panel-body">'+
+                                    error +
+                                '</div>'+
+                            '</div>'
+                        );
+                     } catch (Exception) {
+                         console.log( 'Script Error', Exception );
+                     }
+                }
+            }
         };
 
         var onSuccessEvent = function (Response) {
@@ -226,7 +238,8 @@
                         }
                         document.ModAjax.NotifyHandler[settings.Notify.Hash + '-Error'] = $.notify({
                             title: 'Script-Error',
-                            message: '<span class="text-muted"><small><small>' + ErrorMessage + '</small></small></span><hr/>' + Response
+                            message: '<span><small><small>' + ErrorMessage + '</small></small></span>'
+                            + ( Response.length > 2 ? '<hr/>' + Response : '' )
                         }, {
                             z_index: 32768,
                             newest_on_top: true,
@@ -315,7 +328,7 @@
                 }
             }
             Callback();
-        }
+        };
 
         return {
             'loadAjax': callAjax,

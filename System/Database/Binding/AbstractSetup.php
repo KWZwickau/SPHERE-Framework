@@ -67,7 +67,7 @@ abstract class AbstractSetup
     final protected function saveSchema(Schema $Schema, $Simulate = true)
     {
 
-        $this->getConnection()->addProtocol(debug_backtrace()[1]['class'].' > '.$Schema->getName());
+        $this->getConnection()->addProtocol(debug_backtrace()[1]['class'].' @'.$Schema->getName());
         $this->getConnection()->setMigration($Schema, $Simulate);
         return $this->getConnection()->getProtocol($Simulate);
     }
@@ -93,27 +93,34 @@ abstract class AbstractSetup
     /**
      * Create / Update: Column
      *
-     * @param Table  $Table
-     * @param        $Name
+     * @param Table $Table
+     * @param string $Name
      * @param string $Type
-     * @param bool   $IsNull
+     * @param bool $IsNull
+     * @param null $Default
      *
      * @return Table
      */
-    final protected function createColumn(Table $Table, $Name, $Type = self::FIELD_TYPE_STRING, $IsNull = false)
+    final protected function createColumn(Table $Table, $Name, $Type = self::FIELD_TYPE_STRING, $IsNull = false, $Default = null)
     {
 
         if (!$this->getConnection()->hasColumn($Table->getName(), $Name)) {
-            $Table->addColumn($Name, $Type, array('notnull' => $IsNull ? false : true));
+            if( $Default === null ) {
+                $Table->addColumn($Name, $Type, array('notnull' => $IsNull ? false : true));
+            } else {
+                $Table->addColumn($Name, $Type, array('notnull' => $IsNull ? false : true, 'default' => $Default));
+            }
         } else {
             $Column = $Table->getColumn($Name);
             // Definition has changed?
             if ($Column->getNotnull() == $IsNull
                 || $Column->getType()->getName() != $Type
+                || $Column->getDefault() != $Default
             ) {
                 $Table->changeColumn($Name, array(
                     'notnull' => $IsNull ? false : true,
-                    'type'    => Type::getType($Type)
+                    'type'    => Type::getType($Type),
+                    'default'    => $Default
                 ));
             }
         }
@@ -186,6 +193,31 @@ abstract class AbstractSetup
     {
 
         $this->getConnection()->addForeignKey($Table, $ForeignTable, $IsNull);
+        return $Table;
+    }
+
+    /**
+     * Create: Service-Key
+     *
+     * [Table] Insert new Column (Column-Name equals ForeignTable-Name, Replacing "tbl[..]" -> "serviceTbl[..]")
+     *
+     * [ServiceTable] Index to Table on Column: "Id", Without Foreign-Key Constrain, Null
+     *
+     * @param Table $Table
+     * @param string|Table $ServiceTable
+     *
+     * @return Table
+     */
+    final protected function createServiceKey(Table $Table, $ServiceTable)
+    {
+
+        if( $ServiceTable instanceof Table ) {
+            $Name = $ServiceTable->getName();
+        } else {
+            $Name = $ServiceTable;
+        }
+        $Name = preg_replace( '!^tbl!is', 'serviceTbl', $Name );
+        $this->createColumn( $Table, $Name, self::FIELD_TYPE_BIGINT, true );
         return $Table;
     }
 }

@@ -38,6 +38,8 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     protected $Path;
     /** @var string $Link */
     protected $Link;
+    /** @var array $Data */
+    protected $Data;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
 
@@ -70,6 +72,12 @@ abstract class AbstractLink extends Extension implements ILinkInterface
             $this->setName($Name.' '.new Link() );
         } else {
             $this->setName($Name);
+        }
+
+        if( !empty( $Data ) ) {
+            $this->Data = $Data;
+        } else {
+            $this->Data = array();
         }
 
         if (false !== strpos($Path, '\\')) {
@@ -223,13 +231,21 @@ abstract class AbstractLink extends Extension implements ILinkInterface
         $Script = '';
         if( is_array( $Pipeline ) ) {
             foreach( $Pipeline as $Element ) {
-                $Script .= $Element->parseScript();
+                $Script .= $Element->parseScript($this);
             }
         } else {
-            $Script = $Pipeline->parseScript();
+            $Script = $Pipeline->parseScript($this);
         }
 
         $this->Template->setVariable('AjaxEventClick', $Script);
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->Data;
     }
 }

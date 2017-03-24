@@ -21,8 +21,15 @@ class QueryLogger extends AbstractLogger implements LoggerInterface
     public function addLog($Content)
     {
 
+        if( preg_match( '!Result: Ok$!s', $Content ) ) {
+            $Content = new Label('Ok',Label::LABEL_TYPE_SUCCESS).' '.preg_replace('!Result: Ok$!s', '', $Content);
+        }
+        if( preg_match( '!Result: Error$!s', $Content ) ) {
+            $Content = new Label('Fail',Label::LABEL_TYPE_DANGER).' '.preg_replace('!Result: Error$!s', '', $Content);
+        }
+
         (new DebuggerFactory())->createLogger(new BenchmarkLogger())
-            ->addLog(new Label('Query', Label::LABEL_TYPE_WARNING).' '.new Muted($Content));
+            ->addLog(new Label('Query', Label::LABEL_TYPE_WARNING).' '.new Muted( $Content ));
         return parent::addLog($Content);
     }
 }

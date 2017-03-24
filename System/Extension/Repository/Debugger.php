@@ -155,7 +155,7 @@ class Debugger
             self::addProtocol('ScreenDump: '.$Dump);
             if (self::$Enabled) {
                 print '<pre style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
-                    . '<div style="border-bottom: 1px dotted silver;">' . self::getCallingFunctionName() . '</div>'
+                    . '<span style="border-bottom: 1px dotted silver;">' . self::getCallingFunctionName() . '</span><br/>'
                     . $Dump
                     . '</pre>';
             }

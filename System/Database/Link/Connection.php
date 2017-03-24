@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Database\Link;
 
+use MOC\V\Component\Database\Component\IBridgeInterface;
 use MOC\V\Component\Database\Database;
 use SPHERE\System\Database\ITypeInterface;
 
@@ -12,7 +13,7 @@ use SPHERE\System\Database\ITypeInterface;
 class Connection
 {
 
-    /** @var null|Database $Connection */
+    /** @var null|IBridgeInterface $Connection */
     private $Connection = null;
 
     /**
@@ -49,7 +50,7 @@ class Connection
     }
 
     /**
-     * @return null|Database
+     * @return null|IBridgeInterface
      */
     public function getConnection()
     {
