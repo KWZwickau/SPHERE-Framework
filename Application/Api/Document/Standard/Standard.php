@@ -9,9 +9,9 @@
 namespace SPHERE\Application\Api\Document\Standard;
 
 use SPHERE\Application\Api\Document\Creator;
+use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Main;
 use SPHERE\System\Extension\Extension;
 
@@ -57,22 +57,29 @@ class Standard extends Extension implements IModuleInterface
     public static function createStudentCardPdf($PersonId = null)
     {
 
-        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\StudentCard');
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblSchoolTypeList = Generator::useService()->getSchoolTypeListForStudentCard($tblPerson))
+        ) {
+
+            return Creator::createMultiPdf($tblPerson, $tblSchoolTypeList);
+        } else {
+            return ('Keine Schülerkartei vorhanden');
+        }
     }
 
     /**
-     * @return IServiceInterface
+     *
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
     }
 
     /**
-     * @return IFrontendInterface
+     *
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 }

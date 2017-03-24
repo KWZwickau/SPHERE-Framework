@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Consumer;
 
 use SPHERE\Application\IApplicationInterface;
+use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -25,13 +26,14 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Consumer
  *
  * @package SPHERE\Application\Setting\Consumer
  */
-class Consumer implements IApplicationInterface
+class Consumer implements IApplicationInterface, IModuleInterface
 {
 
     public static function registerApplication()
@@ -189,5 +191,27 @@ class Consumer implements IApplicationInterface
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('Consumer'));
 
         return $Stage;
+    }
+
+    public static function registerModule()
+    {
+
+    }
+
+    /**
+     * @return Service
+     */
+    public static function useService()
+    {
+        return new Service(
+            new Identifier('Setting', 'Consumer', null, null,
+                \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession()),
+            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+        );
+    }
+
+    public static function useFrontend()
+    {
+
     }
 }

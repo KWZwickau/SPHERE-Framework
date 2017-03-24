@@ -35,7 +35,7 @@ class Custom implements IApplicationInterface
             CoswigPerson::registerModule();
         }
         // Herrnhut
-        if ($consumerAcronym === 'EZGH' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EZSH' || $consumerAcronym === 'DEMO') {
             HerrnhutPerson::registerModule();
         }
         // Hormersdorf

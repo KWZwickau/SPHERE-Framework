@@ -73,7 +73,7 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface
     /**
      * @return string
      */
-    protected function getContent()
+    public function getContent()
     {
         return $this->Content;
     }

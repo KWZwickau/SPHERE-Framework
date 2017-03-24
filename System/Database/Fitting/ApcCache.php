@@ -3,6 +3,14 @@ namespace SPHERE\System\Database\Fitting;
 
 use Doctrine\Common\Cache\Cache;
 
+/**
+ * Class ApcCache
+ *
+ * Fixed APC vs APCu
+ * Override Doctrine ApcCache to allow seamless Fallback to APCu
+ *
+ * @package SPHERE\System\Database\Fitting
+ */
 class ApcCache extends \Doctrine\Common\Cache\ApcCache
 {
 

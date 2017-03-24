@@ -72,7 +72,7 @@ class Custom implements IModuleInterface
         /*
          * Herrnhut
          */
-        if ($consumerAcronym === 'EZGH' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EZSH' || $consumerAcronym === 'DEMO') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Herrnhut/Common/ProfileList/Download',
                 __NAMESPACE__.'\Herrnhut\Common::downloadProfileList'

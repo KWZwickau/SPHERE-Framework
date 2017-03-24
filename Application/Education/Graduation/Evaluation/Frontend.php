@@ -74,6 +74,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
@@ -1851,17 +1852,25 @@ class Frontend extends Extension implements IFrontendInterface
                                                 if (strlen($date) > 6) {
                                                     $date = substr($date, 0, 6);
                                                 }
-                                                $columnDefinition['Test' . $tblTestTemp->getId()] = new Small(new Muted($date)) . '<br>'
+                                                $text = new Small(new Muted($date)) . '<br>'
                                                     . ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
                                                         ? $tblTestTemp->getServiceTblGradeType()->getCode()
                                                         : new Muted($tblTestTemp->getServiceTblGradeType()->getCode()));
+                                                $columnDefinition['Test' . $tblTestTemp->getId()]
+                                                    = $tblTestTemp->getDescription()
+                                                        ? new ToolTip($text, $tblTestTemp->getDescription())
+                                                        : $text;
                                             }
                                         } elseif ($tblTestTemp->isContinues()) {
                                             $count++;
-                                            $columnDefinition['Test' . $tblTestTemp->getId()] = new Small('&nbsp;') . '<br>'
+                                            $text = new Small('&nbsp;') . '<br>'
                                                 . ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
                                                     ? $tblTestTemp->getServiceTblGradeType()->getCode()
                                                     : new Muted($tblTestTemp->getServiceTblGradeType()->getCode()));
+                                            $columnDefinition['Test' . $tblTestTemp->getId()]
+                                                = $tblTestTemp->getDescription()
+                                                    ? new ToolTip($text, $tblTestTemp->getDescription())
+                                                    : $text;
                                         }
                                     }
                                 }

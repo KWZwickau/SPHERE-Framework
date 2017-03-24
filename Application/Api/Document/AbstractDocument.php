@@ -65,16 +65,19 @@ abstract class AbstractDocument
     abstract public function getName();
 
     /**
+     * @param array $pageList
+     *
      * @return Frame
      */
-    abstract public function buildDocument();
+    abstract public function buildDocument($pageList = array());
 
     /**
      * @param array $Data
+     * @param array $pageList
      *
      * @return IBridgeInterface
      */
-    public function createDocument($Data = array())
+    public function createDocument($Data = array(), $pageList = array())
     {
 
         if (isset($Data['Person']['Id'])) {
@@ -96,7 +99,7 @@ abstract class AbstractDocument
             }
         }
 
-        $this->Document = $this->buildDocument();
+        $this->Document = $this->buildDocument($pageList);
 
         if (!empty($Data)) {
             $this->Document->setData($Data);
@@ -206,21 +209,18 @@ abstract class AbstractDocument
                     if (( $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                         $tblTransferType) )
                     ) {
-                        if ($tblTransfer->getServiceTblType()) {
-                            $Data['Student']['School']['Attendance']['Date'] = $tblTransfer->getTransferDate();
-                            $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
-                            $YearShort = ( new \DateTime($tblTransfer->getTransferDate()) )->format('y');
-                            $YearString = $Year.'/'.( $YearShort + 1 );
-                            $Data['Student']['School']['Attendance']['Year'] = $YearString;
-                        }
+                        Debugger::screenDump($tblTransfer);
+                        $Data['Student']['School']['Enrollment']['Date'] = $tblTransfer->getTransferDate();
+                        $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
+                        $YearShort = ( new \DateTime($tblTransfer->getTransferDate()) )->format('y');
+                        $YearString = $Year.'/'.( $YearShort + 1 );
+                        $Data['Student']['School']['Enrollment']['Year'] = $YearString;
                     }
                 }
-                if (!isset( $Data['Student']['School']['Attendance']['Date'] )
-                    && ( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate() )
-                ) {
+                if (( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate())) {
                     $Data['Student']['School']['Attendance']['Date'] = $AttendanceDate;
                     $Year = ( new \DateTime($AttendanceDate) )->format('Y');
-                    $YearShort = ( new \DateTime($AttendanceDate) )->format('y');
+                    $YearShort = (integer)(new \DateTime($AttendanceDate))->format('y');
                     $YearString = $Year.'/'.( $YearShort + 1 );
                     $Data['Student']['School']['Attendance']['Year'] = $YearString;
                 }
@@ -237,6 +237,7 @@ abstract class AbstractDocument
                             if (($tblAddress = $tblCompany->fetchMainAddress())) {
                                 $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
                                     . date('d.m.Y');
+                                $Data['Student']['CompanyAddress'] = $tblAddress->getGuiTwoRowString();
                             }
                             $Data['Student']['Company'] = $tblCompany->getName();
                             $Data['Student']['Company2'] = $tblCompany->getExtendedName();
@@ -546,5 +547,45 @@ abstract class AbstractDocument
         }
 
         return $slice;
+    }
+
+    /**
+     * @param string $content
+     * @param string $thicknessInnerLines
+     *
+     * @return Slice
+     */
+    protected function setCheckBox(
+        $content = '&nbsp;',
+        $thicknessInnerLines = '0.5px'
+    )
+    {
+        return (new Slice())
+        ->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleHeight('7px')
+            )
+        )
+        ->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleHeight('10px')
+                , '1.2%')
+            ->addElementColumn((new Element())
+                ->setContent($content)
+                ->styleHeight('14px')
+                ->styleTextSize('8.5')
+                ->stylePaddingLeft('1.2px')
+                ->stylePaddingTop('-2px')
+                ->stylePaddingBottom('-2px')
+                ->styleBorderAll($thicknessInnerLines)
+                , '1.6%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleHeight('10px')
+                , '1.2%')
+        )
+        ->styleHeight('24px');
     }
 }

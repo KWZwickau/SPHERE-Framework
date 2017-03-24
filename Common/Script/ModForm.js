@@ -105,8 +105,8 @@
         /**
          * Enable: Form-Validator
          */
-        $.fn.validator.Constructor.INPUT_SELECTOR = ':input:not([type="hidden"], [type="submit"], [type="reset"], select, button)'
-        this.validator();
+//         $.fn.validator.Constructor.INPUT_SELECTOR = ':input:not([type="hidden"], [type="submit"], [type="reset"], select, button)'
+//         this.validator();
 
         return this;
     };
