@@ -84,6 +84,9 @@ class ClassRegister implements IApplicationInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Sort', __NAMESPACE__ . '\Sort\Frontend::frontendSortDivision')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'\Sort\Gender', __NAMESPACE__.'\Sort\Frontend::frontendSortDivisionGender')
+        );
 
     }
 
@@ -344,7 +347,14 @@ class ClassRegister implements IApplicationInterface
 
             if (!$isTeacher) {
                 $buttonList[] = new Standard(
-                    'Klasse nach Nachname->Vorname sortieren', '/Education/ClassRegister/Sort', new ResizeVertical(),
+                    'Sortierung alphabetisch', '/Education/ClassRegister/Sort', new ResizeVertical(),
+                    array(
+                        'DivisionId' => $tblDivision->getId()
+                    )
+                );
+                $buttonList[] = new Standard(
+                    'Sortierung Geschlecht (alphabetisch)', '/Education/ClassRegister/Sort/Gender',
+                    new ResizeVertical(),
                     array(
                         'DivisionId' => $tblDivision->getId()
                     )

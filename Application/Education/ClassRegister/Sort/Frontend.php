@@ -60,8 +60,50 @@ class Frontend
         } else {
 
             return $Stage
-            . new Danger('Klassen nicht vorhanden.', new Ban())
-            . new Redirect('/Education/ClassRegister/All', Redirect::TIMEOUT_ERROR);
+                .new Danger('Klassen nicht vorhanden.', new Ban())
+                .new Redirect('/Education/ClassRegister/All', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return string
+     */
+    public function frontendSortDivisionGender($DivisionId = null)
+    {
+
+        $Stage = new Stage('Klassenbuch', 'Schüler sortieren');
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            if (Division::useService()->sortDivisionStudentWithGenderByProperty($tblDivision, 'LastFirstName',
+                new StringGermanOrderSorter())
+            ) {
+                return $Stage.new Success(
+                        'Die Schüler der Klasse wurden erfolgreich sortiert.',
+                        new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                    )
+                    .new Redirect('/Education/ClassRegister/All/Selected', Redirect::TIMEOUT_SUCCESS,
+                        array(
+                            'DivisionId' => $tblDivision->getId()
+                        )
+                    );
+            } else {
+                return $Stage.new Danger(
+                        'Die Schüler der Klasse konnten nicht sortiert werden.',
+                        new Exclamation()
+                    )
+                    .new Redirect('/Education/ClassRegister/All/Selected', Redirect::TIMEOUT_ERROR,
+                        array(
+                            'DivisionId' => $tblDivision->getId()
+                        )
+                    );
+            }
+        } else {
+
+            return $Stage
+                .new Danger('Klassen nicht vorhanden.', new Ban())
+                .new Redirect('/Education/ClassRegister/All', Redirect::TIMEOUT_ERROR);
         }
     }
 }

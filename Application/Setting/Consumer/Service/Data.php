@@ -23,6 +23,14 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN,
             '1'
         );
+        $this->createSetting(
+            'Education',
+            'ClassRegister',
+            'Sort',
+            'SortMaleFirst',
+            TblSetting::TYPE_BOOLEAN,
+            '1'
+        );
     }
 
     /**
