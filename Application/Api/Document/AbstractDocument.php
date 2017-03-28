@@ -209,10 +209,9 @@ abstract class AbstractDocument
                     if (( $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                         $tblTransferType) )
                     ) {
-                        Debugger::screenDump($tblTransfer);
                         $Data['Student']['School']['Enrollment']['Date'] = $tblTransfer->getTransferDate();
                         $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
-                        $YearShort = ( new \DateTime($tblTransfer->getTransferDate()) )->format('y');
+                        $YearShort = (integer)(new \DateTime($tblTransfer->getTransferDate()))->format('y');
                         $YearString = $Year.'/'.( $YearShort + 1 );
                         $Data['Student']['School']['Enrollment']['Year'] = $YearString;
                     }
