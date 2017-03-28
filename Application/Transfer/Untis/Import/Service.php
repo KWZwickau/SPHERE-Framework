@@ -269,6 +269,7 @@ class Service extends AbstractService
             }
 
             $createSubjectTeacherList = array();
+            $IsTeacherList = array();
             foreach ($tblUntisImportLectureshipList as $Key => $tblUntisImportLectureship) {
                 $ImportError = 0;
                 if (!( $tblDivision = $tblUntisImportLectureship->getServiceTblDivision() )) {
@@ -288,21 +289,13 @@ class Service extends AbstractService
                 if ($ImportError >= 1 || !$tblTeacher->getServiceTblPerson()) {
                     continue;
                 }
-
                 $tblPerson = $tblTeacher->getServiceTblPerson();
-                $InfoList[$tblDivision->getId()]['DivisionName'] = $tblDivision->getDisplayName();
-                $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] = $tblSubject->getAcronym().' - '.$tblSubject->getName()
-                    .new PullRight($tblPerson->getFullName());
-                $InfoList[$tblDivision->getId()]['PanelColor'][$tblSubject->getId()] = Panel::PANEL_TYPE_WARNING;
 
                 // get Subject
                 $tblDivisionSubject = Division::useService()->getDivisionSubjectBySubjectAndDivisionWithoutGroup($tblSubject, $tblDivision);
                 if (!$tblDivisionSubject) {
                     // add Subject
                     $tblDivisionSubject = Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
-//                    $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] =
-//                        new SuccessText($tblSubject->getAcronym().' - '.$tblSubject->getName().' (neu)')
-//                        .new PullRight($tblPerson->getFullName());
                 }
 
                 if ($SubjectGroup) {
@@ -319,13 +312,23 @@ class Service extends AbstractService
                     }
                 }
                 if ($tblDivisionSubject) {
-                    // add Subject Teacher
 
-                    $createSubjectTeacherList[] = array('tblDivisionSubject' => $tblDivisionSubject,
-                                                        'tblPerson'          => $tblPerson);
-//                    $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] =
-//                        $tblSubject->getAcronym().' - '.$tblSubject->getName()
-//                        .new SuccessText(new PullRight($tblPerson->getFullName().' (neu)'));
+                    $IsTeacherId = $tblDivisionSubject->getId().'.'.$tblPerson->getId();
+                    if (!array_key_exists($IsTeacherId, $IsTeacherList)) {
+                        $IsTeacherList[$IsTeacherId] = true;
+
+                        // addInfoList (only success no doubled)
+                        $InfoList[$tblDivision->getId()]['DivisionName'] = $tblDivision->getDisplayName();
+                        $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] = $tblSubject->getAcronym().' - '.$tblSubject->getName()
+                            .new PullRight($tblPerson->getFullName());
+                        $InfoList[$tblDivision->getId()]['PanelColor'][$tblSubject->getId()] = Panel::PANEL_TYPE_WARNING;
+
+                        // add Subject Teacher
+                        $createSubjectTeacherList[] = array(
+                            'tblDivisionSubject' => $tblDivisionSubject,
+                            'tblPerson'          => $tblPerson
+                        );
+                    }
                 }
 
             }
