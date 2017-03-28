@@ -17,9 +17,6 @@ use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Entity\TblSponsorAssociation;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\SponsorAssociation;
-use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
-use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -50,7 +47,6 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -72,62 +68,40 @@ class Frontend extends Extension implements IFrontendInterface
     public static function frontendChangePassword($CredentialLock = null, $CredentialLockSafety = null)
     {
 
-        $FormUpdatePasswordReceiver = new BlockReceiver();
-        $ComparePasswordReceiver = new BlockReceiver();
-        $FormUpdatePasswordPipeline = new Pipeline();
-        $FormUpdatePasswordEmitter = new ServerEmitter($FormUpdatePasswordReceiver, ApiMyAccount::getRoute());
-        $FormUpdatePasswordEmitter->setGetPayload(array(
-            ApiMyAccount::API_DISPATCHER => 'FormUpdatePassword'
-        ));
-        $FormUpdatePasswordEmitter->setPostPayload(array(
-            'Receiver' => array(
-                'FormUpdatePassword' => $FormUpdatePasswordReceiver->getIdentifier(),
-                'ComparePassword'    => $ComparePasswordReceiver->getIdentifier()
-            )
-        ));
-        $FormUpdatePasswordPipeline->appendEmitter($FormUpdatePasswordEmitter);
-        $FormUpdatePasswordReceiver->initContent($FormUpdatePasswordPipeline);
-
-        $ComparePasswordReceiver = new BlockReceiver();
-        $ComparePasswordPipeline = new Pipeline(false);
-        $ComparePasswordEmitter = new ServerEmitter($ComparePasswordReceiver, ApiMyAccount::getRoute());
-        $ComparePasswordEmitter->setGetPayload(array(
-            ApiMyAccount::API_DISPATCHER => 'ComparePassword'
-        ));
-
-        $ComparePasswordPipeline->appendEmitter($ComparePasswordEmitter);
-        $ComparePasswordReceiver->initContent($ComparePasswordPipeline);
-
         $tblAccount = Account::useService()->getAccountBySession();
         $Stage = new Stage('Mein Benutzerkonto', 'Passwort ändern');
         $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
+        $Receiver = ApiMyAccount::receiverComparePassword();
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Well(
-                            $FormUpdatePasswordReceiver
-//                    MyAccount::useService()->updatePassword(
-//                        new Form(
-//                            new FormGroup(
-//                                new FormRow(array(
-//                                    new FormColumn(
-//                                        new Panel('Passwort', array(
-//                                            new PasswordField('CredentialLock', 'Neues Passwort',
-//                                                'Neues Passwort &nbsp;&nbsp;'
-//                                                . new Small(new Warning('(Das Passwort muss mindestens 8 Zeichen lang sein.)')),
-//                                                new Lock()),
-//                                            new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
-//                                                'Passwort wiederholen',
-//                                                new Repeat())
-//                                        ), Panel::PANEL_TYPE_INFO)
-//                                    ),
-//                                ))
-//                            ), new Primary('Speichern', new Save())
-//                        ), $tblAccount, $CredentialLock, $CredentialLockSafety
-//                    )
+                            MyAccount::useService()->updatePassword(
+                                new Form(
+                                    new FormGroup(
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new Panel('Passwort', array(
+                                                    (new PasswordField('CredentialLock', 'Neues Passwort',
+                                                        'Neues Passwort'
+//                                                    . new Small(new Warning('(Das Passwort muss mindestens 8 Zeichen lang sein.)'))
+                                                        ,
+                                                        new Lock()))->setRequired()
+                                                        ->setAutoFocus()
+                                                        ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver)),
+                                                    (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
+                                                        'Passwort wiederholen',
+                                                        new Repeat()))->setRequired()
+                                                        ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+                                                ), Panel::PANEL_TYPE_INFO)
+                                            ),
+                                        ))
+                                    ), new Primary('Speichern', new Save())
+                                ), $tblAccount, $CredentialLock, $CredentialLockSafety
+                            )
                         )
                         , 8),
-                    new LayoutColumn($ComparePasswordReceiver, 4)
+                    new LayoutColumn($Receiver.ApiMyAccount::pipelineComparePassword($Receiver), 4)
                 )
             ), new Title('Neues Passwort'))));
         return $Stage;

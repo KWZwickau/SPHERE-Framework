@@ -23,7 +23,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
      * @param string         $CredentialLock
      * @param string         $CredentialLockSafety
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function updatePassword(
         IFormInterface $Form,
@@ -48,6 +48,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 $Form->setSuccess('CredentialLock', '');
             } else {
                 $Form->setError('CredentialLock', 'Das Passwort muss mindestens 8 Zeichen lang sein');
+                $Form->setError('CredentialLockSafety', '');
                 $Error = true;
             }
         }
@@ -56,15 +57,40 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $Form->setError('CredentialLockSafety', 'Bitte geben Sie ein Passwort an');
             $Error = true;
         }
-        if ($CredentialLock != $CredentialLockSafety) {
+        if ($CredentialLock != $CredentialLockSafety && !$Error) {
             $Form->setError('CredentialLock', '');
             $Form->setError('CredentialLockSafety', 'Die beiden Passworte stimmen nicht überein');
             $Error = true;
-        } else {
+        } elseif (!$Error) {
             if (!empty( $CredentialLock ) && !empty( $CredentialLockSafety )) {
+                $Form->setSuccess('CredentialLock', '');
                 $Form->setSuccess('CredentialLockSafety', '');
             } else {
+                $Form->setError('CredentialLock', '');
                 $Form->setError('CredentialLockSafety', '');
+            }
+        }
+
+        // are enough criteria matched?
+        $Step = 0;
+        if ($CredentialLock && !$Error) {
+            if (preg_match('![a-z]!s', $CredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![A-Z]!s', $CredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![0-9]!s', $CredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![^\w\d]!s', $CredentialLock)) {
+                $Step++;
+            }
+            // min 3 criteria
+            if ($Step < 3) {
+                $Form->setError('CredentialLock', 'Nicht genügend Sicherheitskriterien erfüllt');
+                $Form->setError('CredentialLockSafety', '');
+                $Error = true;
             }
         }
 
@@ -102,7 +128,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
      * @param TblAccount     $tblAccount
      * @param array          $Setting
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function updateSetting(
         IFormInterface $Form,

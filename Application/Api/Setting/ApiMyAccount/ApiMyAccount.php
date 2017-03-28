@@ -6,19 +6,12 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
-use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
-use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Lock;
-use SPHERE\Common\Frontend\Icon\Repository\Repeat;
-use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Extension\Extension;
@@ -44,8 +37,6 @@ class ApiMyAccount extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('FormUpdatePassword');
-//        $Dispatcher->registerMethod('ServiceUpdatePassword');
         $Dispatcher->registerMethod('ComparePassword');
 
         return $Dispatcher->callMethod($MethodName);
@@ -59,102 +50,111 @@ class ApiMyAccount extends Extension implements IApiInterface
         return new Route(__CLASS__);
     }
 
+    public static function receiverComparePassword()
+    {
+        return new BlockReceiver();
+    }
+
     /**
-     * @param null|array $Receiver
+     * @param AbstractReceiver $Receiver
      *
-     * @return string
+     * @return Pipeline
      */
-    public function FormUpdatePassword($Receiver = null)
+    public static function pipelineComparePassword(AbstractReceiver $Receiver)
     {
+        $ComparePasswordPipeline = new Pipeline(false);
+        $ComparePasswordEmitter = new ServerEmitter($Receiver, ApiMyAccount::getRoute());
+        $ComparePasswordEmitter->setGetPayload(array(
+            ApiMyAccount::API_DISPATCHER => 'ComparePassword'
+        ));
 
-        return (string)$this->pipelineFormUpdatePassword($Receiver);
+        $ComparePasswordPipeline->appendEmitter($ComparePasswordEmitter);
+
+        return $ComparePasswordPipeline;
     }
 
     /**
-     * @param null|array $Receiver
+     * @param string $CredentialLock
+     * @param string $CredentialLockSafety
      *
-     * @return Form
-     */
-    private function pipelineFormUpdatePassword($Receiver)
-    {
-        $CreatePersonReceiver = new BlockReceiver();
-        $CreatePersonReceiver->setIdentifier($Receiver['FormUpdatePassword']);
-
-        $CreatePersonPipeline = new Pipeline();
-
-        $CreatePersonEmitter = new ServerEmitter($CreatePersonReceiver, ApiMyAccount::getRoute());
-        $CreatePersonEmitter->setGetPayload(array(
-            ApiMyAccount::API_DISPATCHER => 'ServiceUpdatePassword'
-        ));
-        $CreatePersonEmitter->setPostPayload(array(
-            'Receiver' => $Receiver
-        ));
-        $CreatePersonPipeline->appendEmitter($CreatePersonEmitter);
-
-        $Form = $this->formPassword($Receiver);
-        $Form->appendFormButton(new Primary('Speichern', new Save()));
-//        $Form->ajaxPipelineOnSubmit($CreatePersonPipeline);
-
-        return $Form;
-    }
-
-    /**
-     * @return Form
-     */
-    private function formPassword($Receiver)
-    {
-
-        $ValidatePasswordReceiver = new BlockReceiver();
-        $ValidatePasswordReceiver->setIdentifier($Receiver['ComparePassword']);
-        $ValidatePasswordPipeline = new Pipeline();
-//        $ValidatePasswordPipeline->setLoadingMessage('Suche ähnliche Personen');
-        $ValidatePasswordEmitter = new ServerEmitter($ValidatePasswordReceiver, ApiMyAccount::getRoute());
-        $ValidatePasswordEmitter->setGetPayload(array(
-            ApiMyAccount::API_DISPATCHER => 'TableSimilarPerson'
-        ));
-        $ValidatePasswordEmitter->setPostPayload(array(
-            'Receiver' => $Receiver
-        ));
-        $ValidatePasswordPipeline->appendEmitter($ValidatePasswordEmitter);
-
-        return new Form(
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Passwort', array(
-                            new PasswordField('CredentialLock', 'Neues Passwort',
-                                'Neues Passwort &nbsp;&nbsp;'
-                                .new Small(new Warning('(Das Passwort muss mindestens 8 Zeichen lang sein.)')),
-                                new Lock()),
-                            new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
-                                'Passwort wiederholen',
-                                new Repeat())
-                        ), Panel::PANEL_TYPE_INFO)
-                    ),
-                ))
-            )
-        );
-    }
-
-//    private function ServiceUpdatePassword()
-//    {
-//
-//        return false;
-//    }
-
-    /**
      * @return Panel
      */
-    public function ComparePassword()
+    public function ComparePassword($CredentialLock = '', $CredentialLockSafety = '')
     {
+
+        $Step = 0;
+        if (preg_match('![a-z]!s', $CredentialLock)) {
+            $Step++;
+        }
+        if (preg_match('![A-Z]!s', $CredentialLock)) {
+            $Step++;
+        }
+        if (preg_match('![0-9]!s', $CredentialLock)) {
+            $Step++;
+        }
+        if (preg_match('![^\w\d]!s', $CredentialLock)) {
+            $Step++;
+        }
+
+//        $countCriteria = '';
+//        if($Step >= 1){
+//            $countCriteria = '('.new Warning($Step).')';
+//            if($Step >= 3){
+//                $countCriteria = '('.new Success($Step.' '.new SuccessIcon()).')';
+//            }
+//        }
+//        $countLength = '';
+
+        $D = 100 / 4 * ($Step);
+
+        $W = 100 / 4 * (3 - $Step);
+        $W = $W < 0 ? 0 : $W;
+
+        $P = 100 / 4 * 1;
+        $P = $Step == 4 ? 0 : $P;
+
+        $L = strlen($CredentialLock);
+//        if($L >= 1){
+//            $countLength = '('.new Warning($L).')';
+//            if($L >= 8){
+//                $countLength = '('.new Success($L.' '.new SuccessIcon()).')';
+//            }
+//        }
+
+        $DL = 100 / 8 * $L;
+        $WL = 100 / 8 * (8 - $L);
+        $DL = $L > 8 ? 100 : $DL;
+        $WL = $WL < 0 ? 0 : $WL;
+
+        //warning if both exist
+        if ($CredentialLock != '' && $CredentialLockSafety != '') {
+            $DC = $PC = 0;
+            $WC = 100;
+            $Compare = new ProgressBar($DC, $WC, $PC, 10);
+        } else {
+            $DC = $WC = 0;
+            $PC = 100;
+            $Compare = new ProgressBar($DC, $WC, $PC, 10);
+        }
+        // if identical set done
+        if ($CredentialLock === $CredentialLockSafety && $CredentialLock != '' && $CredentialLockSafety != '') {
+            $WC = $PC = 0;
+            $DC = 100;
+            $Compare = new ProgressBar($DC, $WC, $PC, 10);
+        }
 
         return new Panel('Passwort Richtlinien',
             array(
-                'Das Passwort muss 3 von 4 Kriterien erfüllen und mindestens 8 Zeichen lang sein.',
-                '1. mindestens ein kleinbuchstabe',
+                new Bold('Das Passwort muss mindestens 8 Zeichen lang sein '). // $countLength).
+                new Container((new ProgressBar($DL, $WL, 0, 10))),
+                new Bold('Das Passwort muss 3 von 4 Kriterien erfüllen '). // $countCriteria).
+                new Container(new ProgressBar($D, $W, $P, 10)),
+                '1. mindestens ein Kleinbuchstabe',
                 '2. mindestens ein Großbuchstabe',
                 '3. mindestens ein Sonderzeichen',
                 '4. mindestens eine Zahl',
+                new Bold('Passwort Übereinstimmung ').
+                new Container($Compare)
             ),
             Panel::PANEL_TYPE_SUCCESS);
     }

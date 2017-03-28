@@ -57,7 +57,7 @@
                 jQuery('input[type="text"][name="{{ ElementName }}"]').on('change',function(Event){
                     Event.preventDefault();
                     {{ AjaxEventChange }}
-                })
+                });
                 {% endif %}
                 {% if( AjaxEventKeyUp is not empty ) %}
                 jQuery('input[type="text"][name="{{ ElementName }}"]').on('keyup',function(Event){
@@ -66,7 +66,7 @@
                         Event.preventDefault();
                         {{ AjaxEventKeyUp }}
                     }, 500);
-                })
+                });
                 {% endif %}
             });
         });
