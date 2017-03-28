@@ -1321,7 +1321,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
                     ),
                     new FormColumn(
-                        new DatePicker('Test[ReturnDate]', '', 'R&uuml;ckgabedatum', new Calendar()), 4
+                        new DatePicker('Test[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)', new Calendar()), 4
                     ),
                 ))
             )));
