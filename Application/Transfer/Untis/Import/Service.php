@@ -285,7 +285,7 @@ class Service extends AbstractService
                     $ImportError++;
                 }
                 $SubjectGroup = $tblUntisImportLectureship->getSubjectGroup();
-                // go to next Data if missing critical information / IsIgnore
+                // go to next Data if missing critical information / IsIgnore / missing TblPerson
                 if ($ImportError >= 1 || !$tblTeacher->getServiceTblPerson()) {
                     continue;
                 }
