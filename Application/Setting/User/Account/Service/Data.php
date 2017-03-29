@@ -148,6 +148,50 @@ class Data extends AbstractData
 
     /**
      * @param TblUserAccount $tblUserAccount
+     * @param bool           $IsExport
+     *
+     * @return bool
+     */
+    public function updateUserAccountByIsExport(TblUserAccount $tblUserAccount, $IsExport)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblUserAccount $Entity */
+        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsExport($IsExport);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblUserAccount $tblUserAccount
+     * @param bool           $IsSend
+     *
+     * @return bool
+     */
+    public function updateUserAccountByIsSend(TblUserAccount $tblUserAccount, $IsSend)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblUserAccount $Entity */
+        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsSend($IsSend);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblUserAccount $tblUserAccount
      *
      * @return bool
      */

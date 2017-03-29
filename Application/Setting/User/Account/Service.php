@@ -346,6 +346,30 @@ class Service extends AbstractService
 
     /**
      * @param TblUserAccount $tblUserAccount
+     * @param bool           $IsExport
+     *
+     * @return bool
+     */
+    public function updateUserAccountByIsExport(TblUserAccount $tblUserAccount, $IsExport)
+    {
+
+        return (new Data($this->getBinding()))->updateUserAccountByIsExport($tblUserAccount, $IsExport);
+    }
+
+    /**
+     * @param TblUserAccount $tblUserAccount
+     * @param bool           $IsExport
+     *
+     * @return bool
+     */
+    public function updateUserAccountByIsSend(TblUserAccount $tblUserAccount, $IsExport)
+    {
+
+        return (new Data($this->getBinding()))->updateUserAccountByIsSend($tblUserAccount, $IsExport);
+    }
+
+    /**
+     * @param TblUserAccount $tblUserAccount
      *
      * @return bool
      */

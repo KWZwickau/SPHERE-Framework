@@ -10,7 +10,6 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStude
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -103,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                    .new Standard('', '/People/User/Account/Mail/Edit', new MailIcon(),
 //                        array('Id' => $tblUserAccount->getId()), 'E-Mail ändern/anlegen')
                     new Standard('', '/People/User/Account/Destroy', new Remove(),
-                        array('Id' => $tblUserAccount->getId()), 'Daten entfernen');
+                        array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
                     $Item['UserName'] = $tblAccount->getUsername();
@@ -139,14 +138,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Salutation'] = $tblPerson->getSalutation();
                     }
                     $Item['Name'] = $tblPerson->getLastFirstName();
-
-                    if ($tblToPersonMail) {
-                        $tblMailList = Mail::useService()->getMailAllByPerson($tblPerson);
-                        $MailCount = count($tblMailList);
-                        if ($MailCount > 1) {
-                            $Item['Mail'] .= new Container(new Warning('Es stehen ('.$MailCount.') E-Mails zur Auswahl'));
-                        }
-                    }
 
                     $CustodyList = array();
                     $StudentList = array();
@@ -236,22 +227,30 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblAccount) {
                     $Item['UserName'] = $tblAccount->getUsername();
                 }
+                $IsAddress = false;
                 $tblToPersonAddress = $tblUserAccount->getServiceTblToPersonAddress();
                 if ($tblToPersonAddress) {
                     $tblAddress = $tblToPersonAddress->getTblAddress();
                     if ($tblAddress) {
+                        $IsAddress = true;
                         $Item['Address'] = $tblAddress->getGuiTwoRowString();
                         // show send status
-                        if ($tblUserAccount->getIsSend()) {
-                            $Item['IsAddress'] = new Center(new Warning(new Disable()));
-                            $Item['Option'] .= new Standard('', '', new SuccessIcon(), array(), 'Adresse benutzen');
+                        if ($tblUserAccount->getIsExport()) {
+                            $Item['IsAddress'] = ''; //new Center(new Warning(new Disable()));
+                            $Item['Option'] .= new Standard('', '/People/User/Account/Address/IsExport',
+                                new SuccessIcon(),
+                                array('Id' => $tblUserAccount->getId(), 'IsExport' => false), 'Adresse benutzen');
                         } else {
-                            $Item['IsAddress'] = new Center(new Success(new SuccessIcon()));
-                            $Item['Option'] .= new Standard('', '', new Disable(), array(), 'Adresse nicht benutzen');
+                            // extra layout for sorting
+                            $Item['IsAddress'] = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                                new Center(new Success(new SuccessIcon()))
+                            ))));
+                            $Item['Option'] .= new Standard('', '/People/User/Account/Address/IsExport', new Disable(),
+                                array('Id' => $tblUserAccount->getId(), 'IsExport' => true), 'Adresse nicht benutzen');
                         }
                     }
                 }
-                if ($Item['IsAddress'] == '') {
+                if (!$IsAddress) {
                     $Item['IsAddress'] = new Center(new Warning(new WarningIcon().new Container('Keine Adresse')));
                 }
 
@@ -262,13 +261,20 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Salutation'] = $tblPerson->getSalutation();
                     }
                     $Item['Name'] = $tblPerson->getLastFirstName();
-
                     if ($tblToPersonAddress) {
-                        $tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson);
-                        $AddressCount = count($tblAddressList);
-                        if ($AddressCount > 1) {
-                            $Item['Address'] .= new Container(new Warning('Es stehen ('.$AddressCount.') Adressen zur Auswahl'));
-                        }
+//                        $tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson);
+//                        $AddressCount = count($tblAddressList);
+//                        if ($AddressCount > 1) {
+//                            $Item['Address'] .= new Container(new Warning('Es stehen ('.$AddressCount.') Adressen zur Auswahl'));
+//                        }
+                    } else {
+//                        $tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson);
+//                        $AddressCount = count($tblAddressList);
+//                        if ($AddressCount == 1) {
+//                            $Item['Address'] .= new Container(new Warning('Es steht eine Adresse zur Auswahl'));
+//                        } elseif($AddressCount > 1){
+//                            $Item['Address'] .= new Container(new Warning('Es stehen ('.$AddressCount.') Adressen zur Auswahl'));
+//                        }
                     }
                 }
 
@@ -293,10 +299,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'IsAddress'  => 'Wird exportiert',
                                         'Option'     => ''
                                     ), array(
-                                        'order'      => array(array(1, 'asc')),
+                                        'order'      => array(array(4, 'desc'), array(1, 'asc')),
                                         'columnDefs' => array(
                                             array('orderable' => false, 'width' => '60px', 'targets' => -1),
-                                            array('orderable' => false, 'width' => '95px', 'targets' => -2)
+                                            array('width' => '95px', 'targets' => -2)
                                         )
                                     ))
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.
@@ -335,17 +341,17 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Adresse', 'Auswählen');
-        $Stage->addButton(new Standard('Zurück', '/People/User', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/People/User/Account/Address', new ChevronLeft()));
         $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
         if (!$tblUserAccount) {
             $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
-                .new Redirect('/People/User', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
         $tblPerson = $tblUserAccount->getServiceTblPerson();
         if (!$tblPerson) {
             $Stage->setContent(new WarningMessage('Person nicht gefunden')
-                .new Redirect('/People/User', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
 
@@ -501,7 +507,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
         if (!$tblUserAccount) {
             $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
-                .new Redirect('/People/User', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
         $tblToPersonAddress = ( $toPersonId === null ? false : Address::useService()->getAddressToPersonById($toPersonId) );
@@ -517,13 +523,53 @@ class Frontend extends Extension implements IFrontendInterface
         if (Account::useService()->updateUserAccountByToPersonAddress($tblUserAccount, $tblToPersonAddress)) {
             // success
             $Stage->setContent(new SuccessMessage('Adresse erfolgreich übernommen')
-                .new Redirect('/People/User', Redirect::TIMEOUT_SUCCESS));
+                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_SUCCESS));
         } else {
             // error
             $Stage->setContent(new WarningMessage('Adresse konnte nicht übernommen werden')
                 .new Redirect('/People/User/Account/Address/Edit', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblUserAccount->getId())));
         }
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param bool $IsExport
+     *
+     * @return Stage
+     */
+    public function frontendSendAddressIsExport($Id = null, $IsExport = false)
+    {
+        $Stage = new Stage('Adresse', 'Exporteinstellung');
+        $tblUserAccount = ($Id == null ? false : Account::useService()->getUserAccountById($Id));
+        if (!$tblUserAccount) {
+            return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                new Warning('Acountzuweisung nicht gefunden.'),
+                new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR)
+            ))))));
+        }
+        if ($IsExport) {
+            $Success = new SuccessMessage('Adresse wird nicht mehr für den Export verwendet');
+        } else {
+            $Success = new SuccessMessage('Adresse wird für den Export verwendet');
+        }
+        $Error = new WarningMessage('Einstellung konnte nicht vorgenommen werden');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            (Account::useService()->updateUserAccountByIsExport($tblUserAccount, $IsExport)
+                                ? $Success.new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_SUCCESS)
+                                : $Error.new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR))
+                        )
+                    )
+                )
+            )
+        );
+
         return $Stage;
     }
 
@@ -551,22 +597,29 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblAccount) {
                     $Item['UserName'] = $tblAccount->getUsername();
                 }
+
+                $IsMail = false;
                 $tblToPersonMail = $tblUserAccount->getServiceTblToPersonMail();
                 if ($tblToPersonMail) {
                     $tblMail = $tblToPersonMail->getTblMail();
                     if ($tblMail) {
+                        $IsMail = true;
                         $Item['Mail'] = $tblMail->getAddress();
                         // show send status
                         if ($tblUserAccount->getIsSend()) {
-                            $Item['IsMail'] = new Center(new Warning(new Disable()));
-                            $Item['Option'] .= new Standard('', '', new SuccessIcon(), array(), 'E-Mail verschicken');
+//                            $Item['IsMail'] = new Center(new Warning(new Disable()));
+                            $Item['Option'] .= new Standard('', '/People/User/Account/Mail/IsSend', new SuccessIcon(),
+                                array('Id' => $tblUserAccount->getId(), 'IsSend' => false), 'E-Mail verschicken');
                         } else {
-                            $Item['IsMail'] = new Center(new Success(new SuccessIcon()));
-                            $Item['Option'] .= new Standard('', '', new Disable(), array(), 'keine E-Mail verschicken');
+                            $Item['IsMail'] = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                                new Center(new Success(new SuccessIcon()))
+                            ))));
+                            $Item['Option'] .= new Standard('', '/People/User/Account/Mail/IsSend', new Disable(),
+                                array('Id' => $tblUserAccount->getId(), 'IsSend' => true), 'keine E-Mail verschicken');
                         }
                     }
                 }
-                if ($Item['IsMail'] == '') {
+                if (!$IsMail) {
                     $Item['IsMail'] = new Center(new Warning(new WarningIcon().new Container('Keine E-Mail')));
                 }
 
@@ -608,10 +661,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'IsMail'     => 'Wird versendet',
                                         'Option'     => ''
                                     ), array(
-                                        'order'      => array(array(1, 'asc')),
+                                        'order'      => array(array(4, 'desc'), array(1, 'asc')),
                                         'columnDefs' => array(
                                             array('orderable' => false, 'width' => '60px', 'targets' => -1),
-                                            array('orderable' => false, 'width' => '95px', 'targets' => -2)
+                                            array('width' => '95px', 'targets' => -2)
                                         )
                                     ))
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.
@@ -839,6 +892,46 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $Id
+     * @param bool $IsSend
+     *
+     * @return Stage
+     */
+    public function frontendMailIsSend($Id = null, $IsSend = false)
+    {
+        $Stage = new Stage('E-Mail', 'Sende Einstellung');
+        $tblUserAccount = ($Id == null ? false : Account::useService()->getUserAccountById($Id));
+        if (!$tblUserAccount) {
+            return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                new Warning('Acountzuweisung nicht gefunden.'),
+                new Redirect('/People/User/Account/Mail', Redirect::TIMEOUT_ERROR)
+            ))))));
+        }
+        if ($IsSend) {
+            $Success = new SuccessMessage('E-Mail wird nicht mehr verschickt');
+        } else {
+            $Success = new SuccessMessage('E-Mail wird verschickt');
+        }
+        $Error = new WarningMessage('Einstellung konnte nicht vorgenommen werden');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            (Account::useService()->updateUserAccountByIsSend($tblUserAccount, $IsSend)
+                                ? $Success.new Redirect('/People/User/Account/Mail', Redirect::TIMEOUT_SUCCESS)
+                                : $Error.new Redirect('/People/User/Account/Mail', Redirect::TIMEOUT_ERROR))
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
      * @param null   $FilterGroup
      * @param null   $FilterStudent
      * @param null   $FilterPerson
@@ -880,12 +973,19 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $LayoutTabs[] = new LayoutTab('Personenbezogener Filter', 'PERSONFILTER');
 
+        $InfoMessage[] = new InfoMessage('Hinzufügen aller Personen die ein Benutzerzugang erhalten sollen.');
         $Timeout = false;
         $SearchTable = false;
         $IsCustody = false;
         $FormFilter = '';
         switch ($TabActive) {
             case 'STUDENTFILTER':
+                $InfoMessage[] = new InfoMessage('Diese Filterung basiert auf den Schüler.'
+                    .new Container('Dadurch können Schüler oder Sorgeberechtigte nach Schülerkriterien
+                                    gesucht werden (Schuljahr/Klassen).')
+                    .new Container('Ob Sorgeberechtigte oder Schüler dargestellt werden bestimmt man mit der
+                                    Auswahl der '.new Bold('"Gruppe"').'.'));
+
                 $FormFilter = $this->formFilterStudent();
                 $FormFilter
                     ->appendFormButton(new Primary('Filtern', new Filter()))
@@ -948,23 +1048,6 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $Item['Name'] = $tblPerson->getLastFirstName();
 
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-                        $tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
-                        $DivisionList = array();
-                        $tblYear = false;
-                        foreach ($tblDivisionList as $tblDivision) {
-                            $DivisionList[] = $tblDivision->getDisplayName();
-                            if (!$tblYear) {
-                                $tblYear = $tblDivision->getServiceTblYear();
-                                if ($tblYear) {
-                                    $Item['Year'] = $tblYear->getDisplayName();
-                                }
-                            }
-                        }
-                        $Item['Division'] = implode(", ", $DivisionList);
-                    }
-
                     $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                     if ($tblRelationshipList) {
                         $CustodyList = array();
@@ -996,7 +1079,9 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                array_push($TableLeftContent, $Item);
+                if (!$tblUserAccount->getIsExport() || $tblUserAccount->getIsSend()) {
+                    array_push($TableLeftContent, $Item);
+                }
             });
         }
 
@@ -1026,26 +1111,20 @@ class Frontend extends Extension implements IFrontendInterface
             $SearchTable = array_filter($SearchTable);
         }
 
+        $InfoPanel = new Panel('Info',
+            $InfoMessage,
+            Panel::PANEL_TYPE_SUCCESS);
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Info',
-                                new InfoMessage('Hinzufügen aller Personen die ein Benutzerzugang erhalten sollen.')
-                                .new InfoMessage('Die Filterung basiert immer auf den Schüler.'
-//                                 Der anzulegende Account (Personengebunden)
-//                                wird durch Ihre Auswahl bestimmt (Schüler / Sorgeberechtigt).'
-                                    .new Container('Dadurch können die Schüler oder die Sorgeberechtigten nach Schülerkriterien
-                                    gesucht werden (Schuljahr/Klassen).')
-                                    .new Container('Ob Sorgeberechtigte oder Schüler dargestellt werden bestimmt man mit der
-                                    Auswahl der '.new Bold('"Gruppe"'))
-                                ),
-                                Panel::PANEL_TYPE_SUCCESS)
+                            $InfoPanel
                             , 6),
                         new LayoutColumn(array(
                             new LayoutTabs($LayoutTabs),
-                            new Well(new Panel('Personensuche'.new Bold('Test')
+                            new Well(new Panel('Filter'
                                 , $FormFilter
                                 , Panel::PANEL_TYPE_INFO))
                         ), 6)

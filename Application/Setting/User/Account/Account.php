@@ -40,6 +40,10 @@ class Account implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Address/Select', __NAMESPACE__.'\Frontend::frontendAddressSelect')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Address/IsExport',
+                __NAMESPACE__.'\Frontend::frontendSendAddressIsExport')
+        );
         //FrontendMail
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Mail', __NAMESPACE__.'\Frontend::frontendMail')
@@ -50,6 +54,10 @@ class Account implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Mail/Select', __NAMESPACE__.'\Frontend::frontendMailSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Mail/IsSend',
+                __NAMESPACE__.'\Frontend::frontendMailIsSend')
         );
         //remove from prepare
         Main::getDispatcher()->registerRoute(

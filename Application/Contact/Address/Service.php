@@ -315,7 +315,7 @@ class Service extends AbstractService
                 $Type['Remark']))
             ) {
                 // add TblToPerson to TblUserAccount
-                if ($Route == '/People/User/Account/Address') {
+                if ($Route == '/People/User/Account/Address/Edit') {
                     if (isset($RouteData['Id'])) {
                         $tblUserAccount = Account::useService()->getUserAccountById($RouteData['Id']);
                         if ($tblUserAccount) {
