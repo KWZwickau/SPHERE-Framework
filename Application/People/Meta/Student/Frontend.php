@@ -321,6 +321,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()
                                         === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
                                     )
+                                    && $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getName() != ''
                                 ) {
                                     $RepeatedLevels[] = $tblYear->getDisplayName().' Klasse '.$tblLevel->getName();
                                 }
