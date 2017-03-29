@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerate
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -66,6 +67,7 @@ class Data extends AbstractData
      * @param string $HeadmasterName
      * @param bool $IsDivisionTeacherAvailable
      *
+     * @param TblCommonGender $tblCommonGender
      * @return TblGenerateCertificate
      */
     public function createGenerateCertificate(
@@ -76,7 +78,8 @@ class Data extends AbstractData
         TblTask $tblAppointedDateTask = null,
         TblTask $tblBehaviorTask = null,
         $HeadmasterName = '',
-        $IsDivisionTeacherAvailable = false
+        $IsDivisionTeacherAvailable = false,
+        TblCommonGender $tblCommonGender = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -86,10 +89,11 @@ class Data extends AbstractData
         $Entity->setDate($Date ? new \DateTime($Date) : null);
         $Entity->setName($Name);
         $Entity->setServiceTblCertificateType($tblCertificateType);
-        $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask ? $tblAppointedDateTask : null);
-        $Entity->setServiceTblBehaviorTask($tblBehaviorTask ? $tblBehaviorTask : null);
+        $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
+        $Entity->setServiceTblBehaviorTask($tblBehaviorTask);
         $Entity->setHeadmasterName($HeadmasterName);
         $Entity->setIsDivisionTeacherAvailable($IsDivisionTeacherAvailable);
+        $Entity->setServiceTblCommonGenderHeadmaster($tblCommonGender);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -102,6 +106,7 @@ class Data extends AbstractData
      * @param $Date
      * @param $IsDivisionTeacherAvailable
      * @param $HeadmasterName
+     ** @param TblCommonGender $tblCommonGender
      *
      * @return bool
      */
@@ -109,7 +114,8 @@ class Data extends AbstractData
         TblGenerateCertificate $tblGenerateCertificate,
         $Date,
         $IsDivisionTeacherAvailable,
-        $HeadmasterName
+        $HeadmasterName,
+        TblCommonGender $tblCommonGender = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -121,6 +127,7 @@ class Data extends AbstractData
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setIsDivisionTeacherAvailable($IsDivisionTeacherAvailable);
             $Entity->setHeadmasterName($HeadmasterName);
+            $Entity->setServiceTblCommonGenderHeadmaster($tblCommonGender);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
