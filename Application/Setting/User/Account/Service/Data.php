@@ -35,8 +35,8 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $IsSend
-     * @param $IsExport
+     * @param bool $IsSend
+     * @param bool $IsExport
      *
      * @return false|TblUserAccount[]
      */
@@ -47,6 +47,20 @@ class Data extends AbstractData
             array(
                 TblUserAccount::ATTR_IS_SEND   => $IsSend,
                 TblUserAccount::ATTR_IS_EXPORT => $IsExport
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblUserAccount
+     */
+    public function getUserAccountByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
     }
 

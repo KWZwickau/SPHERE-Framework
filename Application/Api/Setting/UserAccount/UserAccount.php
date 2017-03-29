@@ -55,14 +55,12 @@ class UserAccount implements IModuleInterface
     {
 
         if ($Data && $Direction) {
-            if (!isset($Data['Id']) && !isset($Data['PersonId'])) {
+            if (!isset($Data['PersonId'])) {
                 return ( new Response() )->addError('Fehler!',
                     new HazardSign().' Die Zuweisung der Person konnte nicht aktualisiert werden.', 0);
             }
-            if (isset($Data['Id'])) {
-                $Id = $Data['Id'];
-            }
-            if (isset($Data['PersonId'])) {
+            $PersonId = false;
+            if ($Data['PersonId']) {
                 $PersonId = $Data['PersonId'];
             }
 
@@ -72,73 +70,69 @@ class UserAccount implements IModuleInterface
                 $Remove = true;
             }
 
-//            return ( new Response() )->addData($Data['Id'].' - '.$Data['PersonId'] );
+            $tblPerson = ($PersonId ? Person::useService()->getPersonById($PersonId) : false);
 
-            if ($Remove && isset($Id)) {
-                $tblUserAccount = AccountUser::useService()->getUserAccountById($Id);
+            if ($Remove && $tblPerson) {
+                $tblUserAccount = AccountUser::useService()->getUserAccountByPerson($tblPerson);
                 if ($tblUserAccount) {
                     $tblAccount = $tblUserAccount->getServiceTblAccount();
-                    if ($tblUserAccount && $tblAccount) {
+                    if ($tblAccount) {
                         // remove tblAccount
                         AccountAuthorization::useService()->destroyAccount($tblAccount);
-
-                        // remove tblUserAccount
-                        AccountUser::useService()->removeUserAccount($tblUserAccount);
-                        return (new Response())->addData(new Success().' Die Zuweisung der Person wurde erfolgreich aktualisiert.');
                     }
+                    // remove tblUserAccount
+                    AccountUser::useService()->removeUserAccount($tblUserAccount);
+                    return (new Response())->addData(new Success().' Die Zuweisung der Person wurde erfolgreich aktualisiert.');
                 }
-            } elseif (isset($PersonId)) {
-                $tblPerson = Person::useService()->getPersonById($PersonId);
-                if ($tblPerson) {
-                    //check existing Account
-                    if (AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)) {
-                        return (new Response())->addError('Fehler!',
-                            new HazardSign().' Person besitzt bereits einen Account.', 0);
-                    }
-                    // prepare information
-                    $tblToPersonAddress = Address::useService()->getAddressToPersonByPerson($tblPerson);
-                    if (!$tblToPersonAddress) {
-                        $tblToPersonAddress = null;
-                    }
-                    $tblToPersonMail = null;
-                    $tblMailList = Mail::useService()->getMailAllByPerson($tblPerson);
-                    if ($tblMailList) {
-                        $tblToPersonMail = current($tblMailList);
-                    }
-                    $userName = AccountUser::useService()->generateUserName($tblPerson, $tblToPersonMail);
-                    $userPassword = $this->generatePassword(8, 1, 2, 2);
-                    $tblToken = null;
-                    $tblConsumer = Consumer::useService()->getConsumerBySession();
-                    if ($userName != '' && $tblConsumer) {
-                        // add Account
-                        $tblAccount = AccountAuthorization::useService()->insertAccount($userName, $userPassword,
-                            $tblToken, $tblConsumer);
-                        if ($tblAccount) {
-                            $tblIdentification = AccountAuthorization::useService()->getIdentificationByName('UserCredential');
-                            AccountAuthorization::useService()->addAccountAuthentication($tblAccount,
-                                $tblIdentification);
-                            $tblRole = Access::useService()->getRoleByName('Einstellungen: Benutzer');
-                            if ($tblRole && !$tblRole->isSecure()) {
-                                AccountAuthorization::useService()->addAccountAuthorization($tblAccount, $tblRole);
-                            }
-                            $tblRole = Access::useService()->getRoleByName('Bildung: Zensurenübersicht (Schüler/Eltern)');
-                            if ($tblRole && !$tblRole->isSecure()) {
-                                AccountAuthorization::useService()->addAccountAuthorization($tblAccount, $tblRole);
-                            }
-                            if ($tblPerson) {
-                                AccountAuthorization::useService()->addAccountPerson($tblAccount, $tblPerson);
-                            }
+            } elseif ($tblPerson) {
+                //check existing Account
+                if (AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)) {
+                    return (new Response())->addError('Fehler!',
+                        new HazardSign().' Person besitzt bereits einen Account.', 0);
+                }
+                // prepare information
+                $tblToPersonAddress = Address::useService()->getAddressToPersonByPerson($tblPerson);
+                if (!$tblToPersonAddress) {
+                    $tblToPersonAddress = null;
+                }
+                $tblToPersonMail = null;
+                $tblMailList = Mail::useService()->getMailAllByPerson($tblPerson);
+                if ($tblMailList) {
+                    $tblToPersonMail = current($tblMailList);
+                }
+                $userName = AccountUser::useService()->generateUserName($tblPerson, $tblToPersonMail);
+                $userPassword = $this->generatePassword(8, 1, 2, 2);
+                $tblToken = null;
+                $tblConsumer = Consumer::useService()->getConsumerBySession();
+                if ($userName != '' && $tblConsumer) {
+                    // add Account
+                    $tblAccount = AccountAuthorization::useService()->insertAccount($userName, $userPassword,
+                        $tblToken, $tblConsumer);
+                    if ($tblAccount) {
+                        $tblIdentification = AccountAuthorization::useService()->getIdentificationByName('UserCredential');
+                        AccountAuthorization::useService()->addAccountAuthentication($tblAccount,
+                            $tblIdentification);
+                        $tblRole = Access::useService()->getRoleByName('Einstellungen: Benutzer');
+                        if ($tblRole && !$tblRole->isSecure()) {
+                            AccountAuthorization::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        }
+                        $tblRole = Access::useService()->getRoleByName('Bildung: Zensurenübersicht (Schüler/Eltern)');
+                        if ($tblRole && !$tblRole->isSecure()) {
+                            AccountAuthorization::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        }
+                        if ($tblPerson) {
+                            AccountAuthorization::useService()->addAccountPerson($tblAccount, $tblPerson);
+                        }
 
-                            // add tblUserAccount
-                            if (AccountUser::useService()->createUserAccount(
-                                $tblAccount,
-                                $tblPerson,
-                                $tblToPersonAddress,
-                                $tblToPersonMail,
-                                $userPassword)
-                            ) {
-                                return (new Response())->addData(new Success().' Die Zuweisung der Person wurde erfolgreich aktualisiert.');
-                            }
+                        // add tblUserAccount
+                        if (AccountUser::useService()->createUserAccount(
+                            $tblAccount,
+                            $tblPerson,
+                            $tblToPersonAddress,
+                            $tblToPersonMail,
+                            $userPassword)
+                        ) {
+                            return (new Response())->addData(new Success().' Die Zuweisung der Person wurde erfolgreich aktualisiert.');
                         }
                     }
                 }
