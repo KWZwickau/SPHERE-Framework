@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
@@ -101,7 +102,9 @@ class Frontend extends Extension implements IFrontendInterface
 //                        array('Id' => $tblUserAccount->getId()), 'Adresse ändern/anlegen')
 //                    .new Standard('', '/People/User/Account/Mail/Edit', new MailIcon(),
 //                        array('Id' => $tblUserAccount->getId()), 'E-Mail ändern/anlegen')
-                    new Standard('', '/People/User/Account/Destroy', new Remove(),
+                    new Standard('', '/People/User/Account/Reset', new Repeat(), array('Id' => $tblUserAccount->getId())
+                        , 'Passwort Zurücksetzten')
+                    .new Standard('', '/People/User/Account/Destroy', new Remove(),
                         array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
@@ -1569,10 +1572,107 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
+    public function frontendResetAccount($Id = null, $Confirm = false)
+    {
+
+        $Stage = new Stage('Benutzer Passwort', 'Zurücksetzen');
+        if ($Id) {
+            $tblUserAccount = Account::useService()->getUserAccountById($Id);
+            if (!$tblUserAccount) {
+                return $Stage.new DangerMessage('Benutzeraccount nicht gefunden', new Ban())
+                    .new Redirect('/People/User', Redirect::TIMEOUT_ERROR);
+            }
+            $tblAccount = $tblUserAccount->getServiceTblAccount();
+            if (!$tblAccount) {
+                return $Stage->setContent(new WarningMessage('Account nicht vorhanden')
+                    .new Redirect('/People/User', Redirect::TIMEOUT_ERROR));
+            }
+            $tblPerson = $tblUserAccount->getServiceTblPerson();
+            if (!$tblPerson) {
+                return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Person', new WarningMessage('Person wurde nicht gefunden')),
+                        new Panel(new Question().' Diesen Benutzer wirklich Zurücksetzen?', '',
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/People/User/Account/Reset', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            .new Standard('Nein', '/People/User', new Disable())
+                        )
+                    )
+                )))));
+            }
+
+            $Stage->addButton(
+                new Standard('Zurück', '/People/User', new ChevronLeft())
+            );
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new PersonIcon().' Benutzerdaten',
+                            array(
+                                'Person: '.new Bold($tblPerson->getFullName())
+                            ,
+                                'Benutzer: '.new Bold($tblAccount->getUserName())
+                            ),
+                            Panel::PANEL_TYPE_SUCCESS
+                        ),
+                        new Panel(new Question().' Diesen Benutzer wirklich Zurücksetzen?', '',
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/People/User/Account/Reset', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            .new Standard('Nein', '/People/User', new Disable())
+                        )
+                    )))))
+                );
+            } else {
+                $IsChanged = false;
+                $Password = $tblUserAccount->getUserPassword();
+                // remove tblAccount
+                if ($tblAccount && $Password) {
+                    if (AccountAuthorization::useService()->changePassword($Password, $tblAccount)) {
+                        $IsChanged = true;
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            ($IsChanged
+                                ? new SuccessMessage(new SuccessIcon().' Der Benutzer wurde Zurückgesetzt')
+                                : new DangerMessage(new Ban().' Der Benutzer konnte nicht Zurückgesetzt werden')
+                            ),
+                            new Redirect('/People/User', Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new DangerMessage(new Ban().' Der Benutzer konnte nicht gefunden werden'),
+                        new Redirect('/People/User', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param bool $Confirm
+     *
+     * @return Stage|string
+     */
     public function frontendDestroyPrepare($Id = null, $Confirm = false)
     {
 
-        $Stage = new Stage('Benutzer Vorbereitung', 'Löschen');
+        $Stage = new Stage('Benutzer', 'Löschen');
         if ($Id) {
             $tblUserAccount = Account::useService()->getUserAccountById($Id);
             if (!$tblUserAccount) {

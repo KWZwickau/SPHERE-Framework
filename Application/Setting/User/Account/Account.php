@@ -59,6 +59,11 @@ class Account implements IModuleInterface
             Main::getDispatcher()->createRoute('/People/User/Account/Mail/IsSend',
                 __NAMESPACE__.'\Frontend::frontendMailIsSend')
         );
+        //remove from Reset Password
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/People/User/Account/Reset',
+                __NAMESPACE__.'\Frontend::frontendResetAccount')
+        );
         //remove from prepare
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/People/User/Account/Destroy',
