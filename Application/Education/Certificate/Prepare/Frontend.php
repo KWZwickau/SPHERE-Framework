@@ -132,7 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Teacher',
-            $IsAllYears, $YearId, $tblYear);
+            $IsAllYears, $YearId, $tblYear, false);
 
         $divisionTable = array();
         if ($tblDivisionList) {
