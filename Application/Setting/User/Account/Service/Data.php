@@ -65,6 +65,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblAccount $tblAccount
+     *
+     * @return false|TblUserAccount
+     */
+    public function getUserAccountByAccount(TblAccount $tblAccount)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()
+            ));
+    }
+
+    /**
      * @return bool|TblUserAccount[]
      */
     public function getUserAccountAll()

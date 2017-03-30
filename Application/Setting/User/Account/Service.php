@@ -71,6 +71,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblAccount $tblAccount
+     *
+     * @return false|TblUserAccount
+     */
+    public function getUserAccountByAccount(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->getBinding()))->getUserAccountByAccount($tblAccount);
+    }
+
+    /**
      * @return bool|TblUserAccount[]
      */
     public function getUserAccountAll()
