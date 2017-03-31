@@ -1151,14 +1151,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        // Tests verknüpfen
-        if ($tblDivisionSubjectSelected) {
-            $panel = Evaluation::useService()->getTestLinkPanel($tblYear, $tblDivisionSubjectSelected);
-        } else {
-            $panel = false;
-        }
-
-        return new Form(new FormGroup(array(
+        $arrayFormRows = array(
             new FormRow(array(
                 new FormColumn(
                     new SelectBox('Test[Period]', 'Zeitraum', array('DisplayName' => $tblPeriodList)), 6
@@ -1195,15 +1188,17 @@ class Frontend extends Extension implements IFrontendInterface
                     new DatePicker('Test[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)',
                         new Calendar()), 3
                 ),
-            )),
-            $panel
-                ? new FormRow(array(
-                new FormColumn(
-                    $panel
-                )
             ))
-                : null
-        )));
+        );
+
+        // Tests verknüpfen
+        if ($tblDivisionSubjectSelected && ($panel = Evaluation::useService()->getTestLinkPanel($tblYear, $tblDivisionSubjectSelected))) {
+            $arrayFormRows[] = new FormRow(new FormColumn(
+                $panel
+                ));
+        }
+
+        return new Form(new FormGroup($arrayFormRows));
     }
 
     /**
@@ -1326,7 +1321,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
                     ),
                     new FormColumn(
-                        new DatePicker('Test[ReturnDate]', '', 'R&uuml;ckgabedatum', new Calendar()), 4
+                        new DatePicker('Test[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)', new Calendar()), 4
                     ),
                 ))
             )));
