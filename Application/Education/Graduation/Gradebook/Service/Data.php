@@ -43,6 +43,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
         $this->createScoreType('Noten (1-6) mit Komma', 'GRADES_COMMA', '^(6((\.|,)0+)?|[1-5]{1}((\.|,)[0-9]+)?)$');
 
+        $this->createScoreType('Noten (1-5) mit Tendenz', 'GRADES_BEHAVIOR_TASK', '^[1-5]{1}$');
+
         $TestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
         if ($TestType) {
             $this->createGradeType('Betragen', 'KBE', 'Kopfnote Betragen', 0, $TestType);

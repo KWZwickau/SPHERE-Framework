@@ -2012,7 +2012,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList = $dataList;
 
                 $columnDefinition['Grade'] = 'Zensur';
-                if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+                if ($tblScoreType
+                    && ($tblScoreType->getIdentifier() == 'GRADES'
+                        || ($tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK'))
+                ) {
                     if (!(!$IsEdit && $tblTask->isAfterEditPeriod())) {
                         $columnDefinition['Trend'] = 'Tendenz';
                     }
@@ -2042,7 +2045,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
             $tableColumns['Grade'] = 'Zensur';
-            if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+            if ($tblScoreType
+                && ($tblScoreType->getIdentifier() == 'GRADES'
+                    || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
+            ) {
                 $tableColumns['Trend'] = 'Tendenz';
             }
             if ($tblTest->isContinues()) {
@@ -3408,7 +3414,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $minRange = 0;
                     $maxRange = 15;
                     $description = 'Punkte ';
-                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
+                    || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
                     $minRange = 1;
                     $maxRange = 5;
                     $description = 'Note ';
@@ -3681,7 +3688,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
         $tableColumns['Grade'] = 'Zensur';
-        if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+        if ($tblScoreType
+            && ($tblScoreType->getIdentifier() == 'GRADES'
+                || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
+        ) {
             $tableColumns['Trend'] = 'Tendenz';
         }
         $tableColumns['Comment'] = 'Vermerk Notenänderung';
