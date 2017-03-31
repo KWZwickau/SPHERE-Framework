@@ -347,7 +347,7 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      *
-     * @return TblType[]|false
+     * @return false|TblType[]
      */
     public function getSchoolTypeListForStudentCard(TblPerson $tblPerson)
     {
@@ -356,21 +356,10 @@ class Service extends AbstractService
         if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                 if (($tblDivision = $tblDivisionStudent->getTblDivision())
-                    && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && ($tblType = $tblLevel->getServiceTblType())
                 ) {
-                    foreach ($tblPrepareList as $tblPrepare) {
-                        if($tblPrepare->getServiceTblGenerateCertificate()
-                            && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
-                            && ($tblCertificateType->getIdentifier() == 'HALF_YEAR' || $tblCertificateType->getIdentifier() == 'YEAR')
-                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                            && $tblPrepareStudent->isApproved()
-                            && $tblPrepareStudent->isPrinted()
-                            && ($tblLevel = $tblDivision->getTblLevel())
-                            && ($tblType = $tblLevel->getServiceTblType())
-                        ) {
-                            $list[$tblType->getId()] = $tblType;
-                        }
-                    }
+                    $list[$tblType->getId()] = $tblType;
                 }
             }
         }
