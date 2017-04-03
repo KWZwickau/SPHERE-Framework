@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\System\Cache\Handler;
 
 use SPHERE\System\Cache\CacheFactory;
@@ -32,14 +33,14 @@ class APCuHandler extends AbstractHandler implements HandlerInterface
             return $this;
         }
         (new DebuggerFactory())->createLogger(new ErrorLogger())
-            ->addLog(__METHOD__.' Error: APCu not available -> Fallback');
+            ->addLog(__METHOD__ . ' Error: APCu not available -> Fallback');
         return (new CacheFactory())->createHandler(new DefaultHandler());
     }
 
     /**
      * @param string $Key
-     * @param mixed  $Value
-     * @param int    $Timeout
+     * @param mixed $Value
+     * @param int $Timeout
      * @param string $Region
      *
      * @return APCuHandler
@@ -47,9 +48,13 @@ class APCuHandler extends AbstractHandler implements HandlerInterface
     public function setValue($Key, $Value, $Timeout = 0, $Region = 'Default')
     {
 
-        // MUST NOT USE
-        (new DebuggerFactory())->createLogger(new ErrorLogger())
-            ->addLog(__METHOD__.' Error: SET - MUST NOT BE USED!');
+        if (function_exists('apcu_store')) {
+            apcu_store((string)crc32($Region . $Key), $Value, $Timeout);
+        } else {
+            // MUST NOT USE
+            (new DebuggerFactory())->createLogger(new ErrorLogger())
+                ->addLog(__METHOD__ . ' Error: SET - MUST NOT BE USED!');
+        }
         return $this;
     }
 
@@ -62,10 +67,19 @@ class APCuHandler extends AbstractHandler implements HandlerInterface
     public function getValue($Key, $Region = 'Default')
     {
 
-        // MUST NOT USE
-        (new DebuggerFactory())->createLogger(new ErrorLogger())
-            ->addLog(__METHOD__.' Error: GET - MUST NOT BE USED!');
-        return null;
+        if (function_exists('apcu_fetch')) {
+            $Value = apcu_fetch(crc32($Region . $Key), $Success);
+            if ($Success) {
+                return $Value;
+            } else {
+                return null;
+            }
+        } else {
+            // MUST NOT USE
+            (new DebuggerFactory())->createLogger(new ErrorLogger())
+                ->addLog(__METHOD__ . ' Error: GET - MUST NOT BE USED!');
+            return null;
+        }
     }
 
     /**
@@ -108,8 +122,8 @@ class APCuHandler extends AbstractHandler implements HandlerInterface
             $Status += apcu_cache_info(true);
         }
         return new CacheStatus(
-            ( isset( $Status['nhits'] ) ? $Status['nhits'] : $Status['num_hits'] ),
-            ( isset( $Status['nmisses'] ) ? $Status['nmisses'] : $Status['num_misses'] ),
+            (isset($Status['nhits']) ? $Status['nhits'] : $Status['num_hits']),
+            (isset($Status['nmisses']) ? $Status['nmisses'] : $Status['num_misses']),
             $Status['seg_size'],
             $Status['seg_size'] - $Status['avail_mem'], $Status['avail_mem'], 0
         );
