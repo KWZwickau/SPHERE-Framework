@@ -32,6 +32,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/StudentCard/Create', __CLASS__.'::createStudentCardPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
+        ));
 
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__.'/StudentCard/Download', __NAMESPACE__.'\Repository\StudentCardTwig::downloadStudentCard')
@@ -65,6 +68,17 @@ class Standard extends Extension implements IModuleInterface
         } else {
             return ('Keine Schülerkartei vorhanden');
         }
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createAccidentReportPdf($PersonId = null)
+    {
+
+        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\AccidentReport');
     }
 
     /**
