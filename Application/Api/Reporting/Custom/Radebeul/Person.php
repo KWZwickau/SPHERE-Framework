@@ -157,4 +157,26 @@ class Person
 
         return false;
     }
+
+    /**
+     * @param string $PLZ
+     *
+     * @return bool|string
+     */
+    public function downloadNursery($PLZ = '')
+    {
+
+        if (($tblGroup = Group::useService()->getGroupByName('Hort'))) {
+            $PersonList = RadebeulPerson::useService()->createNursery($tblGroup, $PLZ);
+            if ($PersonList) {
+                $fileLocation = RadebeulPerson::useService()->createNurseryExcel($PersonList, $PLZ);
+
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Radebeul Allergieliste ".$tblGroup->getName()
+                    ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+            }
+        }
+
+        return false;
+    }
 }
