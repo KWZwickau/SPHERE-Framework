@@ -19,6 +19,9 @@ class Radebeul extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/StudentCard/Create', __CLASS__.'::createStudentCardPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/StudentList/Create', __CLASS__.'::createStudentListPdf'
+        ));
     }
 
     /**
@@ -30,6 +33,15 @@ class Radebeul extends Extension implements IModuleInterface
     {
 
         return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\StudentCard');
+    }
+
+    /**
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createStudentListPdf()
+    {
+
+        return Creator::createPdf(null, __NAMESPACE__.'\Repository\StudentList');
     }
 
     /**
