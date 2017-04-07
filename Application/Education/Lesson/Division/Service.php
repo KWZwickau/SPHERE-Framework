@@ -1104,10 +1104,10 @@ class Service extends AbstractService
 
         $tblSubjectGroup = Division::useService()->getSubjectGroupById($Id);
 
-        if (isset($SubjectGroup['Name']) && empty($SubjectGroup['Name'])) {
+        if (isset($Group['Name']) && empty($Group['Name'])) {
             $Form->setError('Group[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
-        } else {
+//        } else {
 //            $SubjectGroupTest = Division::useService()->checkSubjectGroupExists($Group['Name'], $Group['Description']);   // Test auf doppelte Namen sinnvoll?
 //            if ($SubjectGroupTest) {
 //                if ($SubjectGroupTest->getId() !== $tblSubjectGroup->getId()) {
@@ -1116,7 +1116,6 @@ class Service extends AbstractService
 //                    $Error = true;
 //                }
 //            }
-
         }
 
         if (!$Error) {
