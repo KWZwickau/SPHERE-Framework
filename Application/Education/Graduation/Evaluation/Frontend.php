@@ -2785,6 +2785,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tableList
     ) {
 
+        $gradeList = array();
         foreach ($divisionList as $divisionId => $testList) {
             $tblDivision = Division::useService()->getDivisionById($divisionId);
             if ($tblDivision) {
@@ -2813,7 +2814,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             if ($tblPerson) {
                                                 $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
-                                                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null);
+                                                    $tblDivisionSubject->getTblSubjectGroup()
+                                                        ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                    $gradeList
+                                                );
                                             }
                                         }
                                     }
@@ -2824,7 +2828,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         foreach ($tblDivisionStudentAll as $tblPerson) {
                                             $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList);
+                                                $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList);
                                         }
                                     }
                                 }
@@ -2853,6 +2857,20 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    // Gesamtdurchschnitt
+                    $tableHeaderList[$tblDivision->getId()]['Average'] = '&#216;';
+                    if (!empty($gradeList)) {
+                        foreach ($gradeList as $personId => $gradeArray) {
+                            $sum = 0;
+                            foreach ($gradeArray as $grade) {
+                                $sum += $grade;
+                            }
+                            $count = count($gradeArray);
+                            $studentList[$divisionId][$personId]['Average'] = $count  > 0
+                                ? round($sum / $count, 2 ) : '';
                         }
                     }
 
@@ -2944,7 +2962,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         isset($studentList[$tblDivision->getId()]) ? $studentList[$tblDivision->getId()] : array(),
                                         null,
                                         $tableHeader,
-                                        null
+                                        array(
+                                            "paging"         => false, // Deaktivieren Blättern
+                                            "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                            "searching"      => false, // Deaktivieren Suchen
+                                            "info"           => false,  // Deaktivieren Such-Info
+                                            "responsive"   => false
+                                        )
                                     )
                                 ))
                             )
@@ -2963,6 +2987,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param TblSubjectGroup $tblSubjectGroup
+     * @param array $gradeList
      *
      * @return  $studentList
      */
@@ -2972,7 +2997,8 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubject $tblSubject,
         TblPerson $tblPerson,
         $studentList,
-        TblSubjectGroup $tblSubjectGroup = null
+        TblSubjectGroup $tblSubjectGroup = null,
+        &$gradeList = array()
     ) {
         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
             $tblPerson->getLastFirstName();
@@ -3019,6 +3045,10 @@ class Frontend extends Extension implements IFrontendInterface
 
             $gradeValue = $tblGrade->getGrade();
             $trend = $tblGrade->getTrend();
+
+            if ($gradeValue) {
+                $gradeList[$tblPerson->getId()][] = $gradeValue;
+            }
 
             $isGradeInRange = true;
             if ($average !== ' ' && $average && $gradeValue !== null) {
