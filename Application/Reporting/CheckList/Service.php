@@ -613,7 +613,6 @@ class Service extends AbstractService
                 }
             }
         }
-
         if (!empty( $Data ) && $tblObjectType) {
             foreach ($Data as $ElementId => $Element) {
                 $tblListElementList = $this->getListElementListById($ElementId);
@@ -625,11 +624,10 @@ class Service extends AbstractService
                     $tblObject,
                     $Element
                 );
-
             }
         }
 
-        return $Stage
+        return new Success('Die Informationen wurden gespeichert')
             .new Redirect('/Reporting/CheckList/Object/Element/Show', Redirect::TIMEOUT_SUCCESS,
                 array('Id'              => $tblList->getId(),
                       'YearPersonId'    => $YearPersonId,
