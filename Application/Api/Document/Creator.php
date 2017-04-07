@@ -59,6 +59,14 @@ class Creator extends Extension
             $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
 
             return self::buildDownloadFile($File, $FileName);
+        } elseif (class_exists($DocumentClass)) {
+            // create PDF without Data and PersonId
+            /** @var AbstractDocument $Document */
+            $Document = new $DocumentClass();
+            $File = self::buildDummyFile($Document);
+            $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
         }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');

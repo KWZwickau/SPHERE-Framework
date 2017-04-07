@@ -339,7 +339,22 @@ abstract class AbstractDocument
     private function allocatePersonParentsContact(&$Data)
     {
 
+        $Data['Person']['Contact']['All']['Mail'] = '';
+        $Data['Person']['Contact']['All']['Person']['Mail'] = '';
         if ($this->getTblPerson()) {
+            $tblToPersonMailList = Mail::useService()->getMailAllByPerson($this->getTblPerson());
+            if ($tblToPersonMailList) {
+                $Data['Person']['Contact']['All']['Mail'] = $this->getTblPerson()->getLastFirstName().': ';
+                foreach ($tblToPersonMailList as $tblToPersonMail) {
+                    if (($tblMail = $tblToPersonMail->getTblMail())) {
+                        $Data['Person']['Contact']['All']['Person']['Mail'] .= $this->getTblPerson()->getLastFirstName().': '
+                            .$tblMail->getAddress().';<br/>';
+                        $Data['Person']['Contact']['All']['Mail'] .= $tblToPersonMail->getTblType()->getName()
+                            .' > '.$tblMail->getAddress().'; ';
+                    }
+                }
+                $Data['Person']['Contact']['All']['Mail'] .= '<br/>';
+            }
             if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
                 foreach ($tblRelationshipList as $tblToPerson) {
                     if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
@@ -347,12 +362,28 @@ abstract class AbstractDocument
                         && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
                         && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
                     ) {
+                        $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblFromPerson);
+                        if ($tblToPersonMailList) {
+                            $Data['Person']['Contact']['All']['Mail'] .= $tblFromPerson->getLastFirstName().': ';
+                            foreach ($tblToPersonMailList as $tblToPersonMail) {
+                                if (($tblMail = $tblToPersonMail->getTblMail())) {
+                                    $Data['Person']['Contact']['All']['Person']['Mail'] .= $tblFromPerson->getLastFirstName().': '
+                                        .$tblMail->getAddress().';<br/>';
+                                    $Data['Person']['Contact']['All']['Mail'] .= $tblToPersonMail->getTblType()->getName()
+                                        .' > '.$tblMail->getAddress().'; ';
+                                }
+                            }
+                            $Data['Person']['Contact']['All']['Mail'] .= '<br/>';
+                        }
                         if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblFromPerson))) {
                             if ($tblPhoneList) {
                                 $list = array();
                                 foreach ($tblPhoneList as $tblPhoneToPerson) {
                                     $list[] = $tblPhoneToPerson->getTblType()->getName() . ': '
                                         . $tblPhoneToPerson->getTblPhone()->getNumber();
+                                }
+                                if (!empty($list)) {
+                                    sort($list);
                                 }
                                 if (!empty($list)) {
                                     if (!isset($Data['Person']['Parent']['Mother']['Contact']['Phone'])) {
