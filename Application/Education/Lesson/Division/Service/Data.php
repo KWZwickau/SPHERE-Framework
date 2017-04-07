@@ -746,7 +746,7 @@ class Data extends AbstractData
             'TblDivisionTeacher',
             array(
                 TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
-            ));
+            ), array('EntityCreate' => self::ORDER_ASC));
 
         $EntityList = array();
         if (!empty ($TempList)) {
