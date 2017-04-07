@@ -141,7 +141,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Teacher', $IsAllYears, $YearId, $tblYear);
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Teacher', $IsAllYears, $YearId, $tblYear, false);
 
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
@@ -3525,10 +3525,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $IsAllYears
      * @param $YearId
      * @param $tblYear
+     * @param bool $HasAllYears
      *
      * @return array
      */
-    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear)
+    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear, $HasAllYears = true)
     {
 
         $tblYear = false;
@@ -3553,12 +3554,16 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if ($IsAllYears) {
-                $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
-                    $Route, new Edit(), array('IsAllYears' => true)));
-            } else {
-                $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
-                    array('IsAllYears' => true)));
+            // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
+            // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
+            if ($HasAllYears) {
+                if ($IsAllYears) {
+                    $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                        $Route, new Edit(), array('IsAllYears' => true)));
+                } else {
+                    $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                        array('IsAllYears' => true)));
+                }
             }
 
             // Abstandszeile

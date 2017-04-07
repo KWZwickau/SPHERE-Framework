@@ -138,7 +138,7 @@ class ClassRegister implements IApplicationInterface
         }
 
         $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/ClassRegister/Teacher',
-            $IsAllYears, $YearId, $tblYear);
+            $IsAllYears, $YearId, $tblYear, false);
 
         if ($tblPerson) {
             $tblDivisionList = Division::useService()->getDivisionAllByTeacher($tblPerson);
