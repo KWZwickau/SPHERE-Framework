@@ -440,7 +440,13 @@ class RadebeulBildungsempfehlung extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schulleiter/in')
+                            ->setContent(
+                                '{% if(Content.Headmaster.Name is not empty) %}
+                                    {{ Content.Headmaster.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            )
                             ->styleTextSize('11px')
                             ->stylePaddingTop('5px')
                             ->styleAlignCenter()
@@ -448,7 +454,13 @@ class RadebeulBildungsempfehlung extends Certificate
                         ->addElementColumn((new Element())
                             , '30%')
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenlehrer/in')
+                            ->setContent(
+                                '{% if(Content.DivisionTeacher.Name is not empty) %}
+                                    {{ Content.DivisionTeacher.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            )
                             ->styleTextSize('11px')
                             ->stylePaddingTop('5px')
                             ->styleAlignCenter()

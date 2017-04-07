@@ -18,7 +18,10 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\System\Database\Fitting\Element;
+
 
 /**
  * @Entity()
@@ -70,6 +73,11 @@ class TblGenerateCertificate extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblYear;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblCommonGenderHeadmaster;
 
     /**
      * @return string
@@ -232,5 +240,27 @@ class TblGenerateCertificate extends Element
     {
 
         $this->serviceTblCertificateType = (null === $tblCertificateType ? null : $tblCertificateType->getId());
+    }
+
+    /**
+     * @return bool|TblCommonGender
+     */
+    public function getServiceTblCommonGenderHeadmaster()
+    {
+
+        if (null === $this->serviceTblCommonGenderHeadmaster) {
+            return false;
+        } else {
+            return Common::useService()->getCommonGenderById($this->serviceTblCommonGenderHeadmaster);
+        }
+    }
+
+    /**
+     * @param TblCommonGender|null $tblGender
+     */
+    public function setServiceTblCommonGenderHeadmaster(TblCommonGender $tblGender = null)
+    {
+
+        $this->serviceTblCommonGenderHeadmaster = (null === $tblGender ? null : $tblGender->getId());
     }
 }

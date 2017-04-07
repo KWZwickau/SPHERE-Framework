@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -671,7 +672,10 @@ class Service extends AbstractService
             }
 
             // Klassenlehrer
+            // Todo als Mandanteneinstellung umbauen
             if ($tblPrepare->getServiceTblPersonSigner()) {
+                $divisionTeacherDescription = 'Klassenlehrer';
+
                 if (($tblConsumer = Consumer::useService()->getConsumerBySession())
                     && $tblConsumer->getAcronym() == 'EVSR'
                 ) {
@@ -691,16 +695,45 @@ class Service extends AbstractService
                 ) {
                     $Content['DivisionTeacher']['Name'] = trim($tblPrepare->getServiceTblPersonSigner()->getFirstName()
                         . " " . $tblPrepare->getServiceTblPersonSigner()->getLastName());
+                    $divisionTeacherDescription = 'Klassenleiter';
                 } else {
                     $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
+                }
+
+                if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())) {
+                    if(($tblCommon = $tblPersonSigner->getCommon())
+                        && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                        && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
+                    ) {
+                        if ($tblCommonGender->getName() == 'Männlich') {
+                            $Content['DivisionTeacher']['Description'] = $divisionTeacherDescription;
+                        } elseif ($tblCommonGender->getName() == 'Weiblich') {
+                            $Content['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
+                        }
+                    } else {
+                        if (($tblSalutation = $tblPersonSigner->getTblSalutation())) {
+                            if ($tblSalutation->getSalutation() == 'Herr') {
+                                $Content['DivisionTeacher']['Description'] = $divisionTeacherDescription;
+                            } elseif ($tblSalutation->getSalutation() == 'Frau') {
+                                $Content['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
+                            }
+                        }
+                    }
                 }
             }
 
             // Schulleitung
-            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-                && $tblGenerateCertificate->getHeadmasterName()
-            ) {
-                $Content['Headmaster']['Name'] = $tblGenerateCertificate->getHeadmasterName();
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())) {
+                if ($tblGenerateCertificate->getHeadmasterName()) {
+                    $Content['Headmaster']['Name'] = $tblGenerateCertificate->getHeadmasterName();
+                }
+                if (($tblCommonGender = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster())) {
+                    if ($tblCommonGender->getName() == 'Männlich') {
+                        $Content['Headmaster']['Description'] = 'Schulleiter';
+                    } elseif ($tblCommonGender->getName() == 'Weiblich') {
+                        $Content['Headmaster']['Description'] = 'Schulleiterin';
+                    }
+                }
             }
 
             // Kopfnoten

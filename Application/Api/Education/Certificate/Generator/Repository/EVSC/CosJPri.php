@@ -259,7 +259,13 @@ class CosJPri extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schulleiter/in')
+                            ->setContent('
+                                {% if(Content.Headmaster.Description is not empty) %}
+                                    {{ Content.Headmaster.Description }}
+                                {% else %}
+                                    Schulleiter/in
+                                {% endif %}
+                            ')
                             ->styleTextSize('11px')
                             , '35%'
                         )
@@ -267,12 +273,27 @@ class CosJPri extends Certificate
                             , '30%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenleiter/in')
+                            ->setContent('
+                                {% if(Content.DivisionTeacher.Description is not empty) %}
+                                    {{ Content.DivisionTeacher.Description }}
+                                {% else %}
+                                    Klassenleiter/in
+                                {% endif %}
+                            ')
                             ->styleTextSize('11px')
                             , '35%')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Headmaster.Name is not empty) %}
+                                    {{ Content.Headmaster.Name }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleTextSize('11px')
+                            ->stylePaddingTop('2px')
                             , '35%')
                         ->addElementColumn((new Element())
                             , '30%')

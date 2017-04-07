@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -125,8 +126,11 @@ class Service extends AbstractService
             $tblCertificateType,
             $tblAppointedDateTask ? $tblAppointedDateTask : null,
             $tblBehaviorTask ? $tblBehaviorTask : null,
-            $Data['HeadmasterName'],
-            isset($Data['IsTeacherAvailable'])
+            isset($Data['HeadmasterName']) ? $Data['HeadmasterName'] : '',
+            isset($Data['IsTeacherAvailable']),
+            isset($Data['GenderHeadmaster'])
+            && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
+                ? $tblCommonGender : null
         )
         ) {
             return new Success('Die Zeugniserstellung ist angelegt worden',
@@ -462,7 +466,10 @@ class Service extends AbstractService
             $tblGenerateCertificate,
             $Data['Date'],
             isset($Data['IsTeacherAvailable']),
-            $Data['HeadmasterName'])
+            isset($Data['HeadmasterName']) ? $Data['HeadmasterName'] : '',
+            isset($Data['GenderHeadmaster'])
+            && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
+                ? $tblCommonGender : null)
         ) {
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
                 foreach ($tblPrepareList as $tblPrepare) {
