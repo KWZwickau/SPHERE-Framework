@@ -693,7 +693,12 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblGroup = Group::useService()->getGroupByName('Hort'))) {
             $personList = Person::useService()->createNursery($tblGroup, $PLZ);
             if ($personList) {
-                $Stage->addButton(new Primary('Herunterladen', '/Api/Reporting/Custom/Radebeul/Person/Nursery/Download',
+                $Stage->addButton(new Primary('Deckblatt Herunterladen',
+                    '/Api/Reporting/Custom/Radebeul/Person/Nursery/Download',
+                    new Save(),
+                    array('PLZ' => $PLZ)));
+                $Stage->addButton(new Primary('Hortliste Herunterladen',
+                    '/Api/Reporting/Custom/Radebeul/Person/NurseryList/Download',
                     new Save(),
                     array('PLZ' => $PLZ)));
                 $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
