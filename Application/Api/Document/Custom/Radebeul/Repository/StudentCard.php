@@ -67,7 +67,7 @@ class StudentCard extends AbstractDocument
                         ->stylePaddingTop()
                         ->styleAlignCenter()
                         ->styleTextSize('23px')
-                        ->styleHeight('40px')
+                        ->styleHeight('100px')
                     )
                 )
                 ->addSlice((new Slice())
@@ -446,7 +446,7 @@ class StudentCard extends AbstractDocument
                             ->styleMarginTop('10px')
                             ->stylePaddingLeft('10px')
                             ->stylePaddingRight('10px')
-                            ->styleHeight('143px')
+                            ->styleHeight('135px')
                             ->styleBorderAll('1px', '#000', 'dotted')
                             , '65%'
                         )
