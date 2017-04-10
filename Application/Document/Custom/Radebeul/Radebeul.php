@@ -185,14 +185,14 @@ class Radebeul extends AbstractModule implements IModuleInterface
 
         $Stage = new Stage('SchülerListe');
 
-        $Stage->addbutton(new External('Herunterladen',
-            'SPHERE\Application\Api\Document\Custom\Radebeul\StudentList\Create',
-            new Download(), array(), 'Schülerliste Herungerladen'));
-
         $StudentList = $this->getPersonListByRadebeul();
 //        Debugger::screenDump($StudentList);
         $columnList = array();
         if ($StudentList) {
+            $Stage->addbutton(new External('Herunterladen',
+                'SPHERE\Application\Api\Document\Custom\Radebeul\StudentList\Create',
+                new Download(), array(), 'Schülerliste Herungerladen'));
+
             foreach ($StudentList as $LevelName => $GroupList) {
                 $GroupSpring = array();
                 $GroupSummer = array();

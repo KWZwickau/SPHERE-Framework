@@ -38,22 +38,36 @@ class StudentCard extends AbstractDocument
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
                 ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Evangelische Grundschule Radebeul Staatlich genehmigt')
-                        ->styleFontFamily($fontFamily)
-                        ->stylePaddingTop('20px')
-                        ->styleAlignCenter()
-                        ->styleTextSize('23px')
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            , '20%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Evangelische Grundschule Radebeul')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextBold()
+                            ->stylePaddingTop('10px')
+                            ->styleAlignCenter()
+                            ->styleTextSize('23px')
+                            , '60%'
+                        )
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/RadebeulLogo.jpg',
+                            '120px', '120px'))
+                            ->stylePaddingTop('10px')
+                            ->styleHeight('10px')
+                            , '20%'
+                        )
                     )
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('Schülerbogen')
                         ->styleFontFamily($fontFamily)
+                        ->styleTextBold()
                         ->stylePaddingTop()
                         ->styleAlignCenter()
                         ->styleTextSize('23px')
-                        ->styleHeight('100px')
+                        ->styleHeight('40px')
                     )
                 )
                 ->addSlice((new Slice())
@@ -61,6 +75,7 @@ class StudentCard extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent('Name:')
                             ->styleFontFamily($fontFamily)
+                            ->styleTextBold()
                             ->styleTextSize($textSize)
                             ->stylePaddingBottom($PaddingBottom)
                             , '15%'
@@ -87,6 +102,7 @@ class StudentCard extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent('Vorname:')
                             ->styleFontFamily($fontFamily)
+                            ->styleTextBold()
                             ->styleTextSize($textSize)
                             ->stylePaddingBottom($PaddingBottom)
                             , '15%'
@@ -113,6 +129,7 @@ class StudentCard extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent('geboren am:')
                             ->styleFontFamily($fontFamily)
+                            ->styleTextBold()
                             ->styleTextSize($textSize)
                             ->stylePaddingBottom($PaddingBottom)
                             , '15%'
@@ -133,8 +150,9 @@ class StudentCard extends AbstractDocument
                         )
                         ->addElementColumn((new Element())
                             ->setContent('in:&nbsp;')
-                            ->styleAlignRight()
                             ->styleFontFamily($fontFamily)
+                            ->styleTextBold()
+                            ->styleAlignRight()
                             ->styleTextSize($textSize)
                             , '4%'
                         )
@@ -160,6 +178,7 @@ class StudentCard extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent('Anschrift:')
                             ->styleFontFamily($fontFamily)
+                            ->styleTextBold()
                             ->styleTextSize($textSize)
                             ->stylePaddingBottom($PaddingBottom)
                             , '15%'
@@ -215,6 +234,7 @@ class StudentCard extends AbstractDocument
                     ->addElement((new Element())
                         ->setContent('Mail-Adresse für Elternbriefe:')
                         ->styleFontFamily($fontFamily)
+                        ->styleTextBold()
                         ->styleTextSize($textSize)
                     )
                     ->addElement((new Element())
@@ -232,42 +252,160 @@ class StudentCard extends AbstractDocument
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Telefonnummer')
+                        ->setContent('Telefonnummer Sorgeberechtigte')
                         ->styleFontFamily($fontFamily)
+                        ->styleTextBold()
                         ->styleTextSize($textSize)
                         ->stylePaddingTop($PaddingBottom)
                     )
                 )
                 ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Sorgeb. 1')
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextSize('11px')
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleTextSize('11px')
+                            , '31%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Privat')
+                            ->styleTextSize('11px')
+                            , '23%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Geschäftlich')
+                            ->styleTextSize('11px')
+                            , '23%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Mobil')
+                            ->styleTextSize('11px')
+                            , '23%'
+                        )
                     )
-                    ->addElement((new Element())
-                        ->setContent('
-                                {% if(Content.Person.Parent.Mother.Contact.Phone) %}
-                                    {{ Content.Person.Parent.Mother.Contact.Phone }}
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Person.Parent.Father.Name.LastFirst is not empty) %}
+                                    {{ Content.Person.Parent.Father.Name.LastFirst }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}
                             ')
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextSize($textSize)
-                        ->styleBorderBottom('1px', '#000', 'dotted')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextSize($textSize)
+                            ->styleBorderBottom('1px', '#000', 'dotted')
+                            , '31%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Person.Parent.Father.Phone.Private is not empty) %}
+                                    {{ Content.Person.Parent.Father.Phone.Private }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextSize($textSize)
+                            ->styleBorderBottom('1px', '#000', 'dotted')
+                            , '23%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Person.Parent.Father.Phone.Business is not empty) %}
+                                    {{ Content.Person.Parent.Father.Phone.Business }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextSize($textSize)
+                            ->styleBorderBottom('1px', '#000', 'dotted')
+                            , '23%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Person.Parent.Father.Phone.Mobil is not empty) %}
+                                    {{ Content.Person.Parent.Father.Phone.Mobil }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextSize($textSize)
+                            ->styleBorderBottom('1px', '#000', 'dotted')
+                            , '23%')
                     )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Person.Parent.Mother.Name.LastFirst is not empty) %}
+                                    {{ Content.Person.Parent.Mother.Name.LastFirst }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextSize($textSize)
+                            ->styleBorderBottom('1px', '#000', 'dotted')
+                            , '31%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Person.Parent.Mother.Phone.Private is not empty) %}
+                                    {{ Content.Person.Parent.Mother.Phone.Private }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextSize($textSize)
+                            ->styleBorderBottom('1px', '#000', 'dotted')
+                            , '23%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Person.Parent.Mother.Phone.Business is not empty) %}
+                                    {{ Content.Person.Parent.Mother.Phone.Business }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextSize($textSize)
+                            ->styleBorderBottom('1px', '#000', 'dotted')
+                            , '23%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if(Content.Person.Parent.Mother.Phone.Mobil is not empty) %}
+                                    {{ Content.Person.Parent.Mother.Phone.Mobil }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleFontFamily($fontFamily)
+                            ->styleTextSize($textSize)
+                            ->styleBorderBottom('1px', '#000', 'dotted')
+                            , '23%')
+                    )
+
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Sorgeb. 2')
+                        ->setContent('In Norfall zu benachrichtigen:')
                         ->styleFontFamily($fontFamily)
-                        ->styleMarginTop($PaddingBottom)
-                        ->styleTextSize('11px')
+                        ->styleTextBold()
+                        ->styleTextSize($textSize)
+                        ->stylePaddingTop($PaddingBottom)
                     )
                     ->addElement((new Element())
                         ->setContent('
-                                {% if(Content.Person.Parent.Father.Contact.Phone) %}
-                                    {{ Content.Person.Parent.Father.Contact.Phone }}
+                                {% if(Content.Person.Contact.Phone.Emergency1) %}
+                                    {{ Content.Person.Contact.Phone.Emergency1 }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                                {% if(Content.Person.Contact.Phone.Emergency2) %}
+                                    ; {{ Content.Person.Contact.Phone.Emergency2 }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}
+                                {% if(Content.Person.Contact.Phone.Emergency3) %}
+                                    ; {{ Content.Person.Contact.Phone.Emergency3 }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}
@@ -287,6 +425,7 @@ class StudentCard extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent('Besonderheiten / <br/> Wichtiges:')
                             ->styleFontFamily($fontFamily)
+                            ->styleTextBold()
                             ->styleTextSize($textSize)
                             , '20%'
                         )
