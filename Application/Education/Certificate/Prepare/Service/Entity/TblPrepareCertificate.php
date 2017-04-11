@@ -14,7 +14,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
-use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -244,6 +243,9 @@ class TblPrepareCertificate extends Element
         $this->serviceTblGenerateCertificate = (null === $tblGenerateCertificate ? null : $tblGenerateCertificate->getId());
     }
 
+    /**
+     * @return string
+     */
     public function getDisplayTypeName()
     {
 

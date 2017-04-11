@@ -701,6 +701,28 @@ class Service
                         ''
                     );
                 }
+
+                // E-Mail
+                $motherMail = trim($Document->getValue($Document->getCell($Location['Mail_1'], $RunY)));
+                $fatherMail = trim($Document->getValue($Document->getCell($Location['Mail_2'], $RunY)));
+                if ($motherMail != '' && $tblPersonMother) {
+                    $tblType = Mail::useService()->getTypeById(1);
+                    Mail::useService()->insertMailToPerson(
+                        $tblPersonMother,
+                        $motherMail,
+                        $tblType,
+                        ''
+                    );
+                }
+                if ($fatherMail != '' && $tblPersonFather) {
+                    $tblType = Mail::useService()->getTypeById(1);
+                    Mail::useService()->insertMailToPerson(
+                        $tblPersonFather,
+                        $fatherMail,
+                        $tblType,
+                        ''
+                    );
+                }
             }
 
 //            Debugger::screenDump($error);
@@ -789,6 +811,8 @@ class Service
                     'Name Vater'            => null,
                     'Vorname Vater'         => null,
                     'Telefon'               => null,
+                    'Mail_1'                => null,
+                    'Mail_2'                => null,
                     'Konf.'                 => null,
                     'Anm.-dat.'             => null,
                     'Grundschule'           => null,
@@ -953,6 +977,19 @@ class Service
                                             )
                                         );
 
+                                        // E-Mail
+                                        $motherMail = trim($Document->getValue($Document->getCell($Location['Mail_1'],
+                                            $RunY)));
+                                        if ($motherMail != '' && $tblPersonCustody1) {
+                                            $tblType = Mail::useService()->getTypeById(1);
+                                            Mail::useService()->insertMailToPerson(
+                                                $tblPersonCustody1,
+                                                $motherMail,
+                                                $tblType,
+                                                ''
+                                            );
+                                        }
+
                                         Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonCustody1,
                                             $tblPerson,
@@ -1013,6 +1050,19 @@ class Service
                                                 1 => Group::useService()->getGroupByMetaTable('CUSTODY')
                                             )
                                         );
+
+                                        // E-Mail
+                                        $fatherMail = trim($Document->getValue($Document->getCell($Location['Mail_2'],
+                                            $RunY)));
+                                        if ($fatherMail != '' && $firstNameCustody2) {
+                                            $tblType = Mail::useService()->getTypeById(1);
+                                            Mail::useService()->insertMailToPerson(
+                                                $tblPersonCustody2,
+                                                $fatherMail,
+                                                $tblType,
+                                                ''
+                                            );
+                                        }
 
                                         Relationship::useService()->insertRelationshipToPerson(
                                             $tblPersonCustody2,
@@ -1081,8 +1131,6 @@ class Service
                             $error[] = 'Zeile: '.($RunY + 1).' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
                         }
                     }
-
-//                    Debugger::screenDump($error);
 
                     return
                         new Success('Es wurden '.$countInterestedPerson.' Intessenten erfolgreich angelegt.').

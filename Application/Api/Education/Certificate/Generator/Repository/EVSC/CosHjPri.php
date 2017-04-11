@@ -296,7 +296,13 @@ class CosHjPri extends Certificate
                                     )
                                     ->addSection(( new Section() )
                                         ->addElementColumn(( new Element() )
-                                            ->setContent('Schulleiter/in')
+                                            ->setContent('
+                                                {% if(Content.Headmaster.Description is not empty) %}
+                                                    {{ Content.Headmaster.Description }}
+                                                {% else %}
+                                                    Schulleiter/in
+                                                {% endif %}
+                                            ')
                                             ->styleFontFamily('Trebuchet MS')
                                             ->styleTextSize('11px')
                                             , '35%'
@@ -305,7 +311,13 @@ class CosHjPri extends Certificate
                                             , '30%'
                                         )
                                         ->addElementColumn(( new Element() )
-                                            ->setContent('Klassenleiter/in')
+                                            ->setContent('
+                                                {% if(Content.DivisionTeacher.Description is not empty) %}
+                                                    {{ Content.DivisionTeacher.Description }}
+                                                {% else %}
+                                                    Klassenleiter/in
+                                                {% endif %}
+                                            ')
                                             ->styleFontFamily('Trebuchet MS')
                                             ->styleTextSize('11px')
                                             , '35%')

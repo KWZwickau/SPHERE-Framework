@@ -1179,7 +1179,13 @@ abstract class Certificate extends Extension
                 ->styleMarginTop($MarginTop)
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Schulleiter(in)')
+                        ->setContent('
+                            {% if(Content.Headmaster.Description is not empty) %}
+                                {{ Content.Headmaster.Description }}
+                            {% else %}
+                                Schulleiter(in)
+                            {% endif %}'
+                        )
                         ->styleAlignCenter()
                         ->styleTextSize('11px')
                         , '30%')
@@ -1193,7 +1199,13 @@ abstract class Certificate extends Extension
                     ->addElementColumn((new Element())
                         , '5%')
                     ->addElementColumn((new Element())
-                        ->setContent('Klassenlehrer(in)')
+                        ->setContent('
+                            {% if(Content.DivisionTeacher.Description is not empty) %}
+                                {{ Content.DivisionTeacher.Description }}
+                            {% else %}
+                                Klassenlehrer(in)
+                            {% endif %}'
+                        )
                         ->styleAlignCenter()
                         ->styleTextSize('11px')
                         , '30%')
@@ -1241,7 +1253,13 @@ abstract class Certificate extends Extension
                     ->addElementColumn((new Element())
                         , '70%')
                     ->addElementColumn((new Element())
-                        ->setContent('Klassenlehrer(in)')
+                        ->setContent('
+                        {% if(Content.DivisionTeacher.Description is not empty) %}
+                                {{ Content.DivisionTeacher.Description }}
+                            {% else %}
+                                Klassenlehrer(in)
+                            {% endif %}
+                        ')
                         ->styleAlignCenter()
                         ->styleTextSize('11px')
                         , '30%')

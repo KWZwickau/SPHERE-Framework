@@ -141,7 +141,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Teacher', $IsAllYears, $YearId, $tblYear);
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Teacher', $IsAllYears, $YearId, $tblYear, false);
 
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
@@ -2007,7 +2007,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList = $dataList;
 
                 $columnDefinition['Grade'] = 'Zensur';
-                if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+                if ($tblScoreType
+                    && ($tblScoreType->getIdentifier() == 'GRADES'
+                        || ($tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK'))
+                ) {
                     if (!(!$IsEdit && $tblTask->isAfterEditPeriod())) {
                         $columnDefinition['Trend'] = 'Tendenz';
                     }
@@ -2037,7 +2040,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
             $tableColumns['Grade'] = 'Zensur';
-            if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+            if ($tblScoreType
+                && ($tblScoreType->getIdentifier() == 'GRADES'
+                    || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
+            ) {
                 $tableColumns['Trend'] = 'Tendenz';
             }
             if ($tblTest->isContinues()) {
@@ -2779,6 +2785,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tableList
     ) {
 
+        $gradeList = array();
         foreach ($divisionList as $divisionId => $testList) {
             $tblDivision = Division::useService()->getDivisionById($divisionId);
             if ($tblDivision) {
@@ -2807,7 +2814,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             if ($tblPerson) {
                                                 $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
-                                                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null);
+                                                    $tblDivisionSubject->getTblSubjectGroup()
+                                                        ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                    $gradeList
+                                                );
                                             }
                                         }
                                     }
@@ -2818,7 +2828,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         foreach ($tblDivisionStudentAll as $tblPerson) {
                                             $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList);
+                                                $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList);
                                         }
                                     }
                                 }
@@ -2847,6 +2857,20 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    // Gesamtdurchschnitt
+                    $tableHeaderList[$tblDivision->getId()]['Average'] = '&#216;';
+                    if (!empty($gradeList)) {
+                        foreach ($gradeList as $personId => $gradeArray) {
+                            $sum = 0;
+                            foreach ($gradeArray as $grade) {
+                                $sum += $grade;
+                            }
+                            $count = count($gradeArray);
+                            $studentList[$divisionId][$personId]['Average'] = $count  > 0
+                                ? round($sum / $count, 2 ) : '';
                         }
                     }
 
@@ -2938,7 +2962,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         isset($studentList[$tblDivision->getId()]) ? $studentList[$tblDivision->getId()] : array(),
                                         null,
                                         $tableHeader,
-                                        null
+                                        array(
+                                            "paging"         => false, // Deaktivieren Blättern
+                                            "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                            "searching"      => false, // Deaktivieren Suchen
+                                            "info"           => false,  // Deaktivieren Such-Info
+                                            "responsive"   => false
+                                        )
                                     )
                                 ))
                             )
@@ -2957,6 +2987,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param TblSubjectGroup $tblSubjectGroup
+     * @param array $gradeList
      *
      * @return  $studentList
      */
@@ -2966,7 +2997,8 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubject $tblSubject,
         TblPerson $tblPerson,
         $studentList,
-        TblSubjectGroup $tblSubjectGroup = null
+        TblSubjectGroup $tblSubjectGroup = null,
+        &$gradeList = array()
     ) {
         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
             $tblPerson->getLastFirstName();
@@ -3013,6 +3045,10 @@ class Frontend extends Extension implements IFrontendInterface
 
             $gradeValue = $tblGrade->getGrade();
             $trend = $tblGrade->getTrend();
+
+            if ($gradeValue) {
+                $gradeList[$tblPerson->getId()][] = $gradeValue;
+            }
 
             $isGradeInRange = true;
             if ($average !== ' ' && $average && $gradeValue !== null) {
@@ -3403,7 +3439,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $minRange = 0;
                     $maxRange = 15;
                     $description = 'Punkte ';
-                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
+                    || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
                     $minRange = 1;
                     $maxRange = 5;
                     $description = 'Note ';
@@ -3525,10 +3562,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $IsAllYears
      * @param $YearId
      * @param $tblYear
+     * @param bool $HasAllYears
      *
      * @return array
      */
-    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear)
+    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear, $HasAllYears = true)
     {
 
         $tblYear = false;
@@ -3553,12 +3591,16 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if ($IsAllYears) {
-                $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
-                    $Route, new Edit(), array('IsAllYears' => true)));
-            } else {
-                $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
-                    array('IsAllYears' => true)));
+            // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
+            // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
+            if ($HasAllYears) {
+                if ($IsAllYears) {
+                    $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                        $Route, new Edit(), array('IsAllYears' => true)));
+                } else {
+                    $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                        array('IsAllYears' => true)));
+                }
             }
 
             // Abstandszeile
@@ -3676,7 +3718,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
         $tableColumns['Grade'] = 'Zensur';
-        if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+        if ($tblScoreType
+            && ($tblScoreType->getIdentifier() == 'GRADES'
+                || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
+        ) {
             $tableColumns['Trend'] = 'Tendenz';
         }
         $tableColumns['Comment'] = 'Vermerk Notenänderung';

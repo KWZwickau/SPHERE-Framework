@@ -384,7 +384,13 @@ class RadebeulHalbjahresinformation extends Certificate
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Schulleiter/in')
+                                    ->setContent(
+                                        '{% if(Content.Headmaster.Name is not empty) %}
+                                            {{ Content.Headmaster.Name }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}'
+                                    )
                                     ->styleMarginTop('-3px')
                                     ->styleTextColor($textColorBlue)
                                     ->styleTextSize('10px')
@@ -393,7 +399,13 @@ class RadebeulHalbjahresinformation extends Certificate
                                 ->addElementColumn((new Element())
                                     , '40%')
                                 ->addElementColumn((new Element())
-                                    ->setContent('Klassenlehrer/in')
+                                    ->setContent(
+                                        '{% if(Content.DivisionTeacher.Name is not empty) %}
+                                            {{ Content.DivisionTeacher.Name }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}'
+                                    )
                                     ->styleMarginTop('-3px')
                                     ->styleTextColor($textColorBlue)
                                     ->styleTextSize('10px')

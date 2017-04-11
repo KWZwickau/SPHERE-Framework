@@ -258,7 +258,13 @@ class CheHjInfoGs extends Certificate
                         ->addElementColumn((new Element())
                             , '70%')
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenlehrer(in)')
+                            ->setContent('
+                                {% if(Content.DivisionTeacher.Description is not empty) %}
+                                    {{ Content.DivisionTeacher.Description }}
+                                {% else %}
+                                    Klassenlehrer(in)
+                                {% endif %}'
+                            )
                             ->styleAlignCenter()
                             ->styleTextSize('11px')
                             , '30%')
