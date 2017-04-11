@@ -1347,8 +1347,8 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($objectList as $objectTypeId => $objects) {
                         if (!empty( $objects )) {
                             $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
-                            foreach ($objects as $objectId => $value) {
-                                if ($tblObjectType->getIdentifier() === 'PERSON') {
+                            if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                foreach ($objects as $objectId => $value) {
                                     $countTotalPerson++;
                                     $tblPerson = Person::useService()->getPersonById($objectId);
                                     if ($tblPerson) {
@@ -1375,20 +1375,19 @@ class Frontend extends Extension implements IFrontendInterface
                     $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
                     foreach ($objectList as $objectTypeId => $objects) {
                         $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
-
-                        if (!empty( $objects )) {
-                            foreach ($objects as $objectId => $value) {
-                                if ($tblObjectType->getIdentifier() == 'PERSON') {
+                        if ($tblObjectType->getIdentifier() == 'PERSON') {
+                            if (!empty( $objects )) {
+                                foreach ($objects as $objectId => $value) {
                                     $tblPerson = Person::useService()->getPersonById($objectId);
-                                    if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup,
-                                            $tblPerson)
-                                    ) {
+                                    if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup,$tblPerson)) {
                                         $isProspectList = false;
+                                        break 2;
                                     }
-                                } else {
-                                    $isProspectList = false;
                                 }
                             }
+                        } else {
+                            $isProspectList = false;
+                            break;
                         }
                     }
                 }
