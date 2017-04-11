@@ -349,17 +349,18 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson)
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null)
     {
 
-        $From = $this->getPersonRelationshipFromByPerson($tblPerson);
+        $From = $this->getPersonRelationshipFromByPerson($tblPerson, $tblType);
         if (!$From) {
             $From = array();
         }
-        $To = $this->getPersonRelationshipToByPerson($tblPerson);
+        $To = $this->getPersonRelationshipToByPerson($tblPerson, $tblType);
         if (!$To) {
             $To = array();
         }
@@ -373,30 +374,40 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipFromByPerson(TblPerson $tblPerson)
+    public function getPersonRelationshipFromByPerson(TblPerson $tblPerson, TblType $tblType = null)
     {
+        $Parameter = array(
+            TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
+        );
+        if( $tblType ) {
+            $Parameter[TblToPerson::ATTR_TBL_TYPE] = $tblType->getId();
+        }
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-            array(
-                TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
-            ));
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblToPerson', $Parameter);
     }
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipToByPerson(TblPerson $tblPerson)
+    public function getPersonRelationshipToByPerson(TblPerson $tblPerson, TblType $tblType = null)
     {
+        $Parameter = array(
+            TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
+        );
+        if( $tblType ) {
+            $Parameter[TblToPerson::ATTR_TBL_TYPE] = $tblType->getId();
+        }
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-            array(
-                TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
-            ));
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblToPerson', $Parameter );
     }
 
     /**

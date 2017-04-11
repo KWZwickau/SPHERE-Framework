@@ -1171,41 +1171,42 @@ class Service extends AbstractService
     {
         if ($tblListObjectListByList) {
             /** @var TblListObjectElementList $tblListObjectList */
-            foreach ($tblListObjectListByList as &$tblListObjectList) {
+            foreach ($tblListObjectListByList as $tblListObjectList) {
                 if (($tblObject = $tblListObjectList->getServiceTblObject())) {
-                    if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
+                    $TblObjectType = $tblListObjectList->getTblObjectType();
+                    $Identifier = $TblObjectType->getIdentifier();
+
+                    if ($Identifier == 'PERSON') {
                         /** @var TblPerson $tblObject */
-                        $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()]
-                            = $tblObject->getLastFirstName();
-                    } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
+                        $objectList[$TblObjectType->getId()][$tblObject->getId()] = $tblObject->getLastFirstName();
+                    } elseif ($Identifier == 'COMPANY') {
                         /** @var TblCompany $tblObject */
-                        $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()]
-                            = $tblObject->getName();
-                    } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
+                        $objectList[$TblObjectType->getId()][$tblObject->getId()] = $tblObject->getName();
+                    } elseif ($Identifier == 'PERSONGROUP') {
                         /** @var PersonGroupEntity $tblObject */
                         $tblPersonAllByGroup = PersonGroup::useService()->getPersonAllByGroup($tblObject);
                         if ($tblPersonAllByGroup) {
+                            $GroupIdentifer = $this->getObjectTypeByIdentifier('PERSON');
                             foreach ($tblPersonAllByGroup as $tblPerson) {
-                                $objectList[$this->getObjectTypeByIdentifier('PERSON')->getId()]
-                                [$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                                $objectList[$GroupIdentifer->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
                             }
                         }
-                    } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
+                    } elseif ($Identifier == 'COMPANYGROUP') {
                         /** @var CompanyGroupEntity $tblObject */
                         $tblCompanyAllByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblObject);
                         if ($tblCompanyAllByGroup) {
+                            $GroupIdentifer = $this->getObjectTypeByIdentifier('COMPANY');
                             foreach ($tblCompanyAllByGroup as $tblCompany) {
-                                $objectList[$this->getObjectTypeByIdentifier('COMPANY')->getId()]
-                                [$tblCompany->getId()] = $tblCompany->getName();
+                                $objectList[$GroupIdentifer->getId()][$tblCompany->getId()] = $tblCompany->getName();
                             }
                         }
-                    } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
+                    } elseif ($Identifier == 'DIVISIONGROUP') {
                         /** @var TblDivision $tblObject */
                         $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblObject);
                         if ($tblStudentAllByDivision) {
+                            $GroupIdentifer = $this->getObjectTypeByIdentifier('PERSON');
                             foreach ($tblStudentAllByDivision as $tblPerson) {
-                                $objectList[$this->getObjectTypeByIdentifier('PERSON')->getId()]
-                                [$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                                $objectList[$GroupIdentifer->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
                             }
                         }
                     }
@@ -1359,7 +1360,7 @@ class Service extends AbstractService
     {
 
         if (!empty( $objectList )) {
-            foreach ($objectList as $objectTypeId => &$objects) {
+            foreach ($objectList as $objectTypeId => $objects) {
                 if (!empty( $objects )) {
                     asort($objects);
                 }
