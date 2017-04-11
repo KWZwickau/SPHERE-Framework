@@ -107,6 +107,30 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface    $Form
+     * @param TblResponsibility $tblResponsibility
+     * @param                   $CompanyNumber
+     *
+     * @return IFormInterface|string
+     */
+    public function updateResponsibility(IFormInterface $Form, TblResponsibility $tblResponsibility, $CompanyNumber)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button'])) {
+            return $Form;
+        }
+
+        (new Data($this->getBinding()))->updateResponsibility($tblResponsibility, $CompanyNumber);
+
+        return new Success('Der Unternehmensnummer wurde erfolgreich gespeichert')
+            .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
      * @param TblResponsibility $tblResponsibility
      *
      * @return bool

@@ -80,19 +80,19 @@ class AccidentReport extends AbstractDocument
                                 ->stylePaddingBottom('5px')
                             )
                             ->addElement((new Element())
-                                ->setContent('Unfallskasse Sachsen')
+                                ->setContent('Unfallkasse Sachsen')
                                 ->stylePaddingBottom('10px')
                                 ->styleTextBold()
                                 ->stylePaddingLeft('20px')
                             )
                             ->addElement((new Element())
-                                ->setContent('Postdach 55')
+                                ->setContent('Postfach 42')
                                 ->stylePaddingBottom('10px')
                                 ->styleTextBold()
                                 ->stylePaddingLeft('20px')
                             )
                             ->addElement((new Element())
-                                ->setContent('08251 Meißern')
+                                ->setContent('01651 Meißen')
                                 ->stylePaddingBottom()
                                 ->styleTextBold()
                                 ->stylePaddingLeft('20px')
@@ -116,7 +116,7 @@ class AccidentReport extends AbstractDocument
                                 ->styleTextSize('11px')
                             )
                             ->addElement((new Element())
-                                ->setContent('Evangelischer Schulverein Anderswo e.V.')
+                                ->setContent('Evangelischer Schulverein Anderswo e.V.')//ToDO
                                 ->styleTextSize('12px')
                                 ->styleHeight('29px')
                             )
@@ -125,7 +125,7 @@ class AccidentReport extends AbstractDocument
                                 ->styleTextSize('11px')
                             )
                             ->addElement((new Element())
-                                ->setContent('2-53-077-13')
+                                ->setContent('2-53-077-13')//ToDO
                                 ->styleTextSize('12px')
                             )
                             , '40%'
@@ -377,9 +377,17 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '18%'
                         )
-                        ->addElementColumn((new Element())
+                        ->addElementColumn((new Element())//ToDO
                             ->setContent('
-                                Marcel und Elvira Beimler 
+                                {% if(Content.Person.Parent.Father.Name.First) %}
+                                    {{ Content.Person.Parent.Father.Name.First }}
+                                    {{ Content.Person.Parent.Father.Name.Last }}
+                                {% endif %}
+                                {% if(Content.Person.Parent.Mother.Name.First) %}
+                                    {{ Content.Person.Parent.Mother.Name.First }}
+                                    {{ Content.Person.Parent.Mother.Name.Last }}
+                                {% endif %}
+                                
                                 {% if(Content.Person.Address.Street.Name) %}
                                     {{ Content.Person.Address.Street.Name }},
                                     {{ Content.Person.Address.Street.Number }}
@@ -394,6 +402,7 @@ class AccidentReport extends AbstractDocument
                                 {% endif %}
                             ')
                             ->stylePaddingLeft('5px')
+                            ->styleTextSize('8px')
                             ->stylePaddingTop()
                             ->styleBorderBottom()
                             ->styleHeight('23px')
@@ -445,7 +454,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addSliceColumn(
-                            $this->setCheckBox('X')
+                            $this->setCheckBox()
                                 ->styleBorderBottom()
                                 ->stylePaddingTop('3px')
                                 ->styleHeight('29px')
@@ -466,7 +475,7 @@ class AccidentReport extends AbstractDocument
                             , '2%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Tag <br/> 03')
+                            ->setContent('Tag <br/> ')//ToD
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -477,7 +486,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Monat <br/> 04')
+                            ->setContent('Monat <br/> ')//ToD
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -488,7 +497,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Jahr <br/> 2017')
+                            ->setContent('Jahr <br/> ')//ToD
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -499,7 +508,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Stunde <br/> 12')
+                            ->setContent('Stunde <br/> ')//ToD
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -510,7 +519,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Minute <br/> 30')
+                            ->setContent('Minute <br/> ')//ToD
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -520,9 +529,9 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '7%'
                         )
-                        ->addElementColumn((new Element())
+                        ->addElementColumn((new Element())//ToD
                             ->setContent('
-                                Schulhof An den Eigen 13 01234 Musterhausen
+                                &nbsp;
                             ')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('12px')
@@ -542,20 +551,10 @@ class AccidentReport extends AbstractDocument
                         )
                     )
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
+                        ->addElementColumn((new Element())//ToD
                             ->setContent('
-                            Zeile 1 <br/>
-                            Zeile 2 <br/>
-                            Zeile 3 <br/>
-                            Zeile 4 <br/>
-                            Zeile 5 <br/>
-                            Zeile 6 <br/>
-                            Zeile 7 <br/>
-                            Zeile 8 <br/>
-                            Zeile 9 <br/>
-                            Zeile 10 <br/>
-                            Zeile 11 <br/>
-                            Zeile 12 ')
+                                &nbsp;
+                            ')
                             ->styleHeight('200px')
                             ->stylePaddingLeft('20px')
                         )
@@ -570,7 +569,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '35%'
                         )
-                        ->addSliceColumn($this->setCheckBox('X')
+                        ->addSliceColumn($this->setCheckBox()
                             ->styleHeight('20px')
                             ->styleBorderBottom()
                             , '4%'
@@ -621,14 +620,14 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Bein')
+                            ->setContent('&nbsp;')//ToD
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             ->styleBorderBottom()
                             , '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Bruch')
+                            ->setContent('&nbsp;')//ToD
                             ->stylePaddingLeft('5px')
                             ->styleBorderBottom()
                             , '50%'
@@ -644,7 +643,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '35%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox()//ToD
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -656,7 +655,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '11%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox()//ToD
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -668,7 +667,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '11%'
                         )
-                        ->addSliceColumn($this->setCheckBox('X')
+                        ->addSliceColumn($this->setCheckBox()//ToD
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -682,7 +681,7 @@ class AccidentReport extends AbstractDocument
                             , '11%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Tag <br/> 03')
+                            ->setContent('Tag <br/> ')//ToD
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -691,7 +690,7 @@ class AccidentReport extends AbstractDocument
                             , '6%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Monat <br/> 04')
+                            ->setContent('Monat <br/> ')//ToD
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -700,7 +699,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Stunde <br/> 4')
+                            ->setContent('Stunde <br/> ')//ToD
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -718,7 +717,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '50%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox()//ToD
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -730,7 +729,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '11%'
                         )
-                        ->addSliceColumn($this->setCheckBox('X')
+                        ->addSliceColumn($this->setCheckBox()//ToD
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -744,7 +743,7 @@ class AccidentReport extends AbstractDocument
                             , '11%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Tag <br/> 03')
+                            ->setContent('Tag <br/> ')//ToD
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -753,7 +752,7 @@ class AccidentReport extends AbstractDocument
                             , '6%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Monat <br/> 04')
+                            ->setContent('Monat <br/> ')//ToD
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -762,7 +761,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Jahr <br/> 2017')
+                            ->setContent('Jahr <br/> ')//ToD
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -787,14 +786,14 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Herr Gido Bustermann, 00012 Auerbach')
+                            ->setContent('&nbsp;')//ToD
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('3px')
                             ->styleHeight('22px')
                             ->styleBorderBottom()
                             , '70%'
                         )
-                        ->addSliceColumn($this->setCheckBox('X')
+                        ->addSliceColumn($this->setCheckBox()//ToD
                             ->styleHeight('25px')
                             ->styleBorderBottom()
                             , '4%'
@@ -839,7 +838,7 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Name und Anschrift des zu Behandelnden Arztes <br/> über 2 Zeilen da der Platz ausreicht')
+                            ->setContent('&nbsp;')//ToD
                             ->stylePaddingLeft('5px')
                             ->styleHeight('42.3px')
                             ->styleBorderRight()
@@ -868,7 +867,7 @@ class AccidentReport extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Stunde <br/> &nbsp;')
+                                    ->setContent('Stunde <br/> &nbsp;')//ToD
                                     ->styleTextSize('11px')
                                     ->styleAlignCenter()
                                     ->stylePaddingLeft('5px')
@@ -877,7 +876,7 @@ class AccidentReport extends AbstractDocument
                                     , '25%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('Minute <br/> &nbsp;')
+                                    ->setContent('Minute <br/> &nbsp;')//ToD
                                     ->styleTextSize('11px')
                                     ->styleAlignCenter()
                                     ->stylePaddingLeft('5px')
@@ -886,7 +885,7 @@ class AccidentReport extends AbstractDocument
                                     , '25%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('Stunde <br/> 12')
+                                    ->setContent('Stunde <br/> &nbsp;')//ToD
                                     ->styleTextSize('11px')
                                     ->styleAlignCenter()
                                     ->stylePaddingLeft('5px')
@@ -895,7 +894,7 @@ class AccidentReport extends AbstractDocument
                                     , '25%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('Minute <br/> 5')
+                                    ->setContent('Minute <br/> &nbsp;')//ToD
                                     ->styleTextSize('11px')
                                     ->styleAlignCenter()
                                     ->stylePaddingLeft('5px')
@@ -907,7 +906,7 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('03.04.2017')
+                            ->setContent('&nbsp;')
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('22px')
                             ->styleHeight('18px')
@@ -915,7 +914,7 @@ class AccidentReport extends AbstractDocument
                             , '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Herr Großbauer')
+                            ->setContent('&nbsp;')
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('22px')
                             ->styleHeight('18px')
@@ -923,7 +922,7 @@ class AccidentReport extends AbstractDocument
                             , '40%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('0123/12345678')
+                            ->setContent('&nbsp;')
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('22px')
                             ->styleHeight('18px')
