@@ -239,6 +239,7 @@ abstract class AbstractDocument
                             if (($tblAddress = $tblCompany->fetchMainAddress())) {
                                 $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
                                     . date('d.m.Y');
+                                $Data['Document']['Date']['Now'] = date('d.m.Y');
                                 $Data['Student']['CompanyAddress'] = $tblAddress->getGuiTwoRowString();
                             }
                             $Data['Student']['Company'] = $tblCompany->getName();

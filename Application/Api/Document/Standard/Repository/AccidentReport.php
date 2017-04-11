@@ -914,7 +914,13 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('
+                                {% if( Content.Document.Date.Now) %}
+                                    {{ Content.Document.Date.Now }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('22px')
                             ->styleHeight('18px')
