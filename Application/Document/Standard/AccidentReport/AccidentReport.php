@@ -30,7 +30,7 @@ class AccidentReport extends AbstractModule implements IModuleInterface
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unfallbericht'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unfallanzeige'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -60,7 +60,7 @@ class AccidentReport extends AbstractModule implements IModuleInterface
     public static function frontendSelectPerson()
     {
 
-        $Stage = new Stage('Schulbescheinigung', 'Schüler auswählen');
+        $Stage = new Stage('Unfallanzeige', 'Schüler auswählen');
 
         $dataList = array();
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {

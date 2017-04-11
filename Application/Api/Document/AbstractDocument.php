@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Document;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
@@ -21,6 +22,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 
 /**
  * Class AbstractDocument
@@ -87,6 +89,7 @@ abstract class AbstractDocument
                 $this->allocatePersonAddress($Data);
                 $this->allocatePersonCommon($Data);
                 $this->allocateStudent($Data);
+                $this->allocateResponsibility($Data);
 
                 $this->allocatePersonParents($Data);
                 $this->allocatePersonMail($Data);
@@ -280,6 +283,28 @@ abstract class AbstractDocument
      *
      * @return array $Data
      */
+    private function allocateResponsibility(&$Data)
+    {
+        $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
+        if ($tblResponsibilityList) {
+            $tblResponsibility = $tblResponsibilityList[0];
+            if ($tblResponsibility) {
+                $tblCompany = $tblResponsibility->getServiceTblCompany();
+                if ($tblCompany) {
+                    $Data['Responsibility']['Company']['Display'] = $tblCompany->getDisplayName();
+                }
+                $Data['Responsibility']['Company']['Number'] = $tblResponsibility->getCompanyNumber();
+            }
+        }
+
+        return $Data;
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return array $Data
+     */
     private function allocatePersonParents(&$Data)
     {
 
@@ -295,10 +320,18 @@ abstract class AbstractDocument
                             $Data['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Mother']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
+                            $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
+                            if ($tblAddress) {
+                                $Data['Person']['Parent']['Mother']['Address'] = $tblAddress->getGuiString();
+                            }
                         } elseif (!isset($Data['Person']['Parent']['Father']['Name'])) {
                             $Data['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Father']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
+                            $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
+                            if ($tblAddress) {
+                                $Data['Person']['Parent']['Father']['Address'] = $tblAddress->getGuiString();
+                            }
                         }
                     }
                 }
