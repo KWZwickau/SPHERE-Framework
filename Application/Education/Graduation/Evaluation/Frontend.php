@@ -633,18 +633,20 @@ class Frontend extends Extension implements IFrontendInterface
         $contentTable = array();
         if ($tblTaskAll) {
             foreach ($tblTaskAll as $tblTask) {
-                $hasEdit = false;
-                $nowDate = (new \DateTime('now'))->format("Y-m-d");
-                $toDate = $tblTask->getToDate();
-                if ($toDate) {
-                    $toDate = new \DateTime($toDate);
-                    $toDate = $toDate->format('Y-m-d');
-                }
-                if ($nowDate && $toDate) {
-                    if ($nowDate < $toDate) {
-                        $hasEdit = true;
-                    }
-                }
+                // Ticket #SSW-1225 Bearbeitungszeitraum Notenaufträge
+//                $hasEdit = false;
+//                $nowDate = (new \DateTime('now'))->format("Y-m-d");
+//                $toDate = $tblTask->getToDate();
+//                if ($toDate) {
+//                    $toDate = new \DateTime($toDate);
+//                    $toDate = $toDate->format('Y-m-d');
+//                }
+//                if ($nowDate && $toDate) {
+//                    if ($nowDate < $toDate) {
+//                        $hasEdit = true;
+//                    }
+//                }
+                $hasEdit = true;
 
                 $contentTable[] = array(
                     'Date' => $tblTask->getDate(),
