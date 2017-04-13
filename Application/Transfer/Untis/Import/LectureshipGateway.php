@@ -220,7 +220,7 @@ class LectureshipGateway extends AbstractConverter
             }
         }
         // search without Level
-        if ($tblLevel === null && $tblYear) {
+        if ($tblLevel === null && $tblYear && $LevelName == '') {
             if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
                 if ($tblDivisionArray) {
                     foreach ($tblDivisionArray as $tblDivision) {
@@ -242,8 +242,10 @@ class LectureshipGateway extends AbstractConverter
         if (!$tblYear) {
             $this->IsError = true;
             return new Danger(new Ban().' Schuljahr nicht gefunden!');
+        } else {
+            $this->IsError = true;
+            return new Danger(new Ban().' Klasse nicht gefunden!');
         }
-        return null;
     }
 
     /**
@@ -281,7 +283,7 @@ class LectureshipGateway extends AbstractConverter
                 }
             }
             // search without Level
-            if ($tblLevel === null && $tblYear) {
+            if ($tblLevel === null && $tblYear && $LevelName == '') {
                 if (($tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName,
                     $tblLevel, $tblYear))
                 ) {
