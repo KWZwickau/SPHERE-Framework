@@ -249,6 +249,13 @@ class MsAbsRs extends Certificate
                         )
                     )->styleMarginTop('60px')
                 )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('Leistungen in den einzelnen Fächern:')
+                        ->styleMarginTop('15px')
+                        ->styleTextBold()
+                    )
+                )
                 ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
                 /////////////////////////
                 ->addSlice((new Slice())
@@ -401,7 +408,7 @@ class MsAbsRs extends Certificate
                             , '30%')
                     )
                 )
-                ->addSlice($this->getInfo('150px',
+                ->addSlice($this->getInfo('120px',
                     'Notenerläuterung:',
                     '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend'))
             )
