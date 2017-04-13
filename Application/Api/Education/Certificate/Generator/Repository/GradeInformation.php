@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
  * Class GradeInformation
@@ -30,110 +31,130 @@ class GradeInformation extends Certificate
 {
 
     /**
+     * @param TblPerson|null $tblPerson
      * @param bool $IsSample
      *
-     * @return Frame
+     * @return Page
      */
-    public function buildCertificate($IsSample = true)
-    {
+    public function buildPage(TblPerson $tblPerson = null, $IsSample = true){
 
-        return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
-                ->addSlice((new Slice())
-                    ->styleHeight('70px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Noteninformation für ')
-                            ->styleTextItalic()
-                            ->styleTextSize('15px')
-                            ->styleTextBold()
-                            , '22%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Person.Data.Name is not empty) %}
-                                    {{ Content.Person.Data.Name.First }}
-                                    {{ Content.Person.Data.Name.Last }}
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        return (new Page())
+            ->addSlice((new Slice())
+                ->styleHeight('70px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Noteninformation für ')
+                        ->styleTextItalic()
+                        ->styleTextSize('15px')
+                        ->styleTextBold()
+                        , '22%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Person.Data.Name is not empty) %}
+                                    {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                    {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->styleTextSize('13px')
-                            ->styleAlignCenter()
-                            ->styleBorderBottom()
-                            , '45%')
-                        ->addElementColumn((new Element())
-                            ->setContent(', Klasse {{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}, {{ Content.Input.Date }}')
-                            ->styleTextItalic()
-                            ->styleTextSize('15px')
-                            ->stylePaddingLeft('4px')
-                            ->styleTextBold()
-                            , '33%')
-                    )
-                )
-                ->addSlice($this->getGradeLanesForGradeInformation())
-                ->addSlice($this->getSubjectLanesForGradeInformation())
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Bemerkungen:')
-                        )
-                    )
-                    ->styleMarginTop('25px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Remark is not empty) %}
-                                    {{ Content.Input.Remark|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                            ->styleHeight('100px')
-                        )
-                    )
-                    ->styleMarginTop('5px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Unterschrift des Klassenlehrers:')
-                            , '30%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom()
-                            , '50%')
-                        ->addElementColumn((new Element())
-                            , '20%')
-                    )->styleMarginTop('40px')
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Unterschrift der Eltern:')
-                            , '30%')
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom()
-                            , '50%')
-                        ->addElementColumn((new Element())
-                            , '20%')
-                    )->styleMarginTop('40px')
+                        ->styleTextSize('13px')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        , '45%')
+                    ->addElementColumn((new Element())
+                        ->setContent(', Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}
+                        {{ Content.P' . $personId . '.Division.Data.Name }}, {{ Content.P' . $personId . '.Input.Date }}')
+                        ->styleTextItalic()
+                        ->styleTextSize('15px')
+                        ->stylePaddingLeft('4px')
+                        ->styleTextBold()
+                        , '33%')
                 )
             )
-        );
+            ->addSlice($this->getGradeLanesForGradeInformation($tblPerson))
+            ->addSlice($this->getSubjectLanesForGradeInformation($tblPerson))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Bemerkungen:')
+                    )
+                )
+                ->styleMarginTop('25px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                        ->styleHeight('100px')
+                    )
+                )
+                ->styleMarginTop('5px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Unterschrift des Klassenlehrers:')
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBorderBottom()
+                        , '50%')
+                    ->addElementColumn((new Element())
+                        , '20%')
+                )->styleMarginTop('40px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Unterschrift der Eltern:')
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBorderBottom()
+                        , '50%')
+                    ->addElementColumn((new Element())
+                        , '20%')
+                )->styleMarginTop('40px')
+            );
     }
 
     /**
-     * @return Slice
+     * @param bool $IsSample
+     * @param array $PageList
      *
-     * @throws \Exception
+     * @return Frame
      */
-    protected function getGradeLanesForGradeInformation()
+    public function buildCertificate($IsSample = true, $PageList = array())
     {
+
+        $document = new Document();
+
+        foreach ($PageList as $page) {
+            $document->addPage($page);
+        }
+
+        return (new Frame())->addDocument($document);
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return Slice
+     */
+    protected function getGradeLanesForGradeInformation(TblPerson $tblPerson = null)
+    {
+
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $slice = (new Slice());
 
-        $subjectList = $this->getSubjectList();
+        $subjectList = $this->getSubjectList($tblPerson);
 
         if (!empty($subjectList)) {
             ksort($subjectList);
@@ -237,8 +258,8 @@ class GradeInformation extends Certificate
                         , $leftWidth . '%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if(Content.Input["'.$gradeType->getCode().'"] is not empty) %}
-                                 {{ Content.Input["'.$gradeType->getCode().'"] }}
+                            {% if(Content.P' . $personId . '.Input["'.$gradeType->getCode().'"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Input["'.$gradeType->getCode().'"] }}
                             {% else %}
                                  &nbsp;
                             {% endif %}
@@ -251,8 +272,8 @@ class GradeInformation extends Certificate
                 $index = 0;
                 foreach ($subjectList as $tblSubject) {
                     $index++;
-                    $content = '{% if(Content.Input.BehaviorTeacher["'.$tblSubject->getAcronym().'"]["'.$gradeType->getCode().'"] is not empty) %}
-                                    {{ Content.Input.BehaviorTeacher["'.$tblSubject->getAcronym().'"]["'.$gradeType->getCode().'"] }}
+                    $content = '{% if(Content.P' . $personId . '.Input.BehaviorTeacher["'.$tblSubject->getAcronym().'"]["'.$gradeType->getCode().'"] is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.BehaviorTeacher["'.$tblSubject->getAcronym().'"]["'.$gradeType->getCode().'"] }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}';
@@ -285,15 +306,18 @@ class GradeInformation extends Certificate
     }
 
     /**
+     * @param TblPerson|null $tblPerson
+     *
      * @return Slice
-     * @throws \Exception
      */
-    protected function getSubjectLanesForGradeInformation()
+    protected function getSubjectLanesForGradeInformation(TblPerson $tblPerson = null)
     {
+
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $slice = (new Slice());
 
-        $subjectList = $this->getSubjectList();
+        $subjectList = $this->getSubjectList($tblPerson);
         if (!empty($subjectList)) {
             ksort($subjectList);
         }
@@ -361,8 +385,8 @@ class GradeInformation extends Certificate
                     , '50%')
                 ->addElementColumn((new Element())
                     ->setContent('
-                        {% if(Content.Grade.Data["'.$subject->getAcronym().'"] is not empty) %}
-                            {{ Content.Grade.Data["'.$subject->getAcronym().'"] }}
+                        {% if(Content.P' . $personId . '.Grade.Data["'.$subject->getAcronym().'"] is not empty) %}
+                            {{ Content.P' . $personId . '.Grade.Data["'.$subject->getAcronym().'"] }}
                         {% else %}
                             &nbsp;
                         {% endif %}
@@ -389,9 +413,11 @@ class GradeInformation extends Certificate
     }
 
     /**
+     * @param TblPerson|null $tblPerson
+     *
      * @return array
      */
-    private function getSubjectList()
+    private function getSubjectList(TblPerson $tblPerson = null)
     {
         $subjectList = array();
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
@@ -403,7 +429,7 @@ class GradeInformation extends Certificate
                         $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
 
                         // Überprüfen ob der Schüler dieses Fach im Unterricht hat --> dann anzeigen
-                    } elseif (($tblPerson = $this->getTblPerson()) && ($tblDivision = $this->getTblDivision())) {
+                    } elseif ($tblPerson && ($tblDivision = $this->getTblDivision())) {
                         // in Gruppe
                         if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                             $tblDivision, $tblSubject

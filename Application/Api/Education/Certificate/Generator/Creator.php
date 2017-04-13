@@ -5,11 +5,13 @@ use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\MultiCertificate;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -46,7 +48,7 @@ class Creator extends Extension
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
 
-                        $File = $this->buildDummyFile($Certificate, $Content);
+                        $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
                         $FileName = "Zeugnis " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s") . ".pdf";
 
@@ -71,11 +73,11 @@ class Creator extends Extension
 
     /**
      * @param Certificate $Certificate
+     * @param TblPerson $tblPerson
      * @param array $Data
-     *
      * @return FilePointer
      */
-    private function buildDummyFile(Certificate $Certificate, $Data = array())
+    private function buildDummyFile(Certificate $Certificate, TblPerson $tblPerson, $Data = array())
     {
 
         $tblYear = isset($Data['Division']['Data']['Year']) ? $Data['Division']['Data']['Year'] : '';
@@ -89,7 +91,9 @@ class Creator extends Extension
         $File = Storage::createFilePointer('pdf', $Prefix);
         /** @var DomPdf $Document */
         $Document = Document::getPdfDocument($File->getFileLocation());
-        $Document->setContent($Certificate->createCertificate($Data));
+        $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson);
+        $bridge = $Certificate->createCertificate($Data, $pageList);
+        $Document->setContent($bridge);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
         return $File;
@@ -101,7 +105,7 @@ class Creator extends Extension
      *
      * @return string
      */
-    private function buildDownloadFile(FilePointer $File, $FileName = '')
+    private static function buildDownloadFile(FilePointer $File, $FileName = '')
     {
 
         return FileSystem::getDownload(
@@ -135,7 +139,7 @@ class Creator extends Extension
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
 
-                        $File = $this->buildDummyFile($Certificate, $Content);
+                        $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
                         $FileName = $Name . " " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s") . ".pdf";
 
@@ -387,5 +391,68 @@ class Creator extends Extension
         }
 
         return new Stage($Name, 'Nicht gefunden');
+    }
+
+
+    private static function buildMultiDummyFile($Data = array(), $pageList = array())
+    {
+
+        ini_set('memory_limit', '1G');
+
+        $MultiCertificate = new MultiCertificate();
+
+        // Create Tmp
+        $File = Storage::createFilePointer('pdf');
+        /** @var DomPdf $Document */
+        $Document = Document::getPdfDocument($File->getFileLocation());
+        $Content = $MultiCertificate->createCertificate($Data, $pageList);
+        $Document->setContent($Content);
+        $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+        return $File;
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param string $Name
+     *
+     * @return string
+     */
+    public static function previewMultiPdf($PrepareId = null, $Name = 'Zeugnis')
+    {
+
+        $pageList = array();
+        $tblDivision = false;
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
+                        $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                        if (class_exists($CertificateClass)) {
+
+                            /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                            $Certificate = new $CertificateClass();
+
+                            $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson, false);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($pageList) && $tblPrepare)
+        {
+            $Data = Prepare::useService()->getCertificateMultiContent($tblPrepare);
+            $File = self::buildMultiDummyFile($Data, $pageList);
+            $FileName = $Name . ' ' . ($tblDivision ? $tblDivision->getDisplayName() : '-')  . ' ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return "Keine Zeugnisse vorhanden!";
     }
 }

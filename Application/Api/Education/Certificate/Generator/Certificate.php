@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\Api\Education\Certificate\Generator;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
@@ -6,6 +7,7 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
@@ -37,10 +39,10 @@ abstract class Certificate extends Extension
      */
     private $Grade;
 
-    /**
-     * @var TblPerson|null
-     */
-    private $tblPerson = null;
+//    /**
+//     * @var TblPerson|null
+//     */
+//    private $tblPerson = null;
 
     /**
      * @var TblDivision|null
@@ -62,44 +64,43 @@ abstract class Certificate extends Extension
 
     /**
      * @param array $Data
+     * @param array $PageList
      *
      * @return IBridgeInterface
      */
-    public function createCertificate($Data = array())
+    public function createCertificate($Data = array(), $PageList = array())
     {
 
-        if (isset($Data['Grade'])) {
-            $this->setGrade($Data['Grade']);
-        }
-        if (isset($Data['Person']['Id'])) {
-            if (($person = Person::useService()->getPersonById($Data['Person']['Id']))) {
-                $this->setTblPerson($person);
-                $this->allocatePersonData($Data);
-                $this->allocatePersonAddress($Data);
-                $this->allocatePersonCommon($Data);
-                $this->allocatePersonParents($Data);
-            } else {
-                $this->setTblPerson(null);
+        foreach ($PageList as $personId => $page) {
+            if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                $this->allocatePersonData($tblPerson, $Data);
+                $this->allocatePersonAddress($tblPerson, $Data);
+                $this->allocatePersonCommon($tblPerson, $Data);
+                $this->allocatePersonParents($tblPerson, $Data);
+            }
+
+            if (isset($Data['P' . $personId]['Grade'])) {
+                $this->setGrade($Data['P' . $personId]['Grade']);
+            }
+            if (isset($Data['P' . $personId]['Company']['Id'])
+                && ($tblCompany = Company::useService()->getCompanyById($Data['P' . $personId]['Company']['Id']))
+            ) {
+                $this->allocateCompanyData($tblPerson, $Data);
+                $this->allocateCompanyAddress($tblPerson, $Data);
+            }
+            if (isset($Data['P' . $personId]['Division']['Id'])
+                && ($tblDivision = Division::useService()->getDivisionById($Data['P' . $personId]['Division']['Id']))
+            ) {
+                $this->setTblDivision($tblDivision);
+            }
+
+            // für Befreiung
+            if (isset($Data['P' . $personId]['Grade'])) {
+                $Data['P' . $personId]['Grade'] = $this->getGrade();
             }
         }
-        if (isset($Data['Company']['Id'])
-            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
-        ) {
-            $this->allocateCompanyData($Data);
-            $this->allocateCompanyAddress($Data);
-        }
-        if (isset($Data['Division']['Id'])
-            && ($tblDivision = Division::useService()->getDivisionById($Data['Division']['Id']))
-        ) {
-            $this->setTblDivision($tblDivision);
-        }
 
-        $this->Certificate = $this->buildCertificate($this->IsSample);
-
-        // für Befreiung
-        if (isset($Data['Grade'])) {
-            $Data['Grade'] = $this->getGrade();
-        }
+        $this->Certificate = $this->buildCertificate($this->IsSample, $PageList);
 
         if (!empty($Data)) {
             $this->Certificate->setData($Data);
@@ -110,10 +111,19 @@ abstract class Certificate extends Extension
 
     /**
      * @param bool $IsSample
+     * @param array $PageList
      *
      * @return Frame
      */
-    abstract public function buildCertificate($IsSample = true);
+    abstract public function buildCertificate($IsSample = true, $PageList = array());
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param bool $IsSample
+     *
+     * @return Page
+     */
+    abstract public function buildPage(TblPerson $tblPerson = null, $IsSample = true);
 
     /**
      * @param $Grade
@@ -132,26 +142,26 @@ abstract class Certificate extends Extension
         return $this->Grade;
     }
 
-    /**
-     * @return false|TblPerson
-     */
-    public function getTblPerson()
-    {
-        if (null === $this->tblPerson) {
-            return false;
-        } else {
-            return $this->tblPerson;
-        }
-    }
-
-    /**
-     * @param false|TblPerson $tblPerson
-     */
-    public function setTblPerson(TblPerson $tblPerson = null)
-    {
-
-        $this->tblPerson = $tblPerson;
-    }
+//    /**
+//     * @return false|TblPerson
+//     */
+//    public function getTblPerson()
+//    {
+//        if (null === $this->tblPerson) {
+//            return false;
+//        } else {
+//            return $this->tblPerson;
+//        }
+//    }
+//
+//    /**
+//     * @param false|TblPerson $tblPerson
+//     */
+//    public function setTblPerson(TblPerson $tblPerson = null)
+//    {
+//
+//        $this->tblPerson = $tblPerson;
+//    }
 
     /**
      * @return false|TblDivision
@@ -188,9 +198,9 @@ abstract class Certificate extends Extension
         $tblCertificate = Generator::useService()->getCertificateByCertificateClassName($Certificate);
         if ($tblCertificate) {
             return $tblCertificate->getName() . ($tblCertificate->getDescription()
-                ? ' (' . $tblCertificate->getDescription() . ')'
-                : ''
-            );
+                    ? ' (' . $tblCertificate->getDescription() . ')'
+                    : ''
+                );
         }
         throw new \Exception('Certificate Missing: ' . $Certificate);
     }
@@ -241,132 +251,112 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param array $Data
-     *
-     * @return array $Data
+     * @param TblPerson $tblPerson
+     * @param $Data
      */
-    private function allocatePersonData(&$Data)
+    private function allocatePersonData(TblPerson $tblPerson, &$Data)
     {
 
-        if ($this->getTblPerson()) {
-            $Data['Person']['Data']['Name']['Salutation'] = $this->getTblPerson()->getSalutation();
-            $Data['Person']['Data']['Name']['First'] = $this->getTblPerson()->getFirstSecondName();
-            $Data['Person']['Data']['Name']['Last'] = $this->getTblPerson()->getLastName();
-        }
-
-        return $Data;
+        $personId = $tblPerson->getId();
+        $Data['P' . $personId]['Person']['Data']['Name']['Salutation'] = $tblPerson->getSalutation();
+        $Data['P' . $personId]['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
+        $Data['P' . $personId]['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
     }
 
     /**
-     * @param array $Data
-     *
-     * @return array $Data
+     * @param TblPerson $tblPerson
+     * @param $Data
      */
-    private function allocatePersonAddress(&$Data)
+    private function allocatePersonAddress(TblPerson $tblPerson, &$Data)
     {
 
-        if ($this->getTblPerson()) {
-            if (($tblAddress = $this->getTblPerson()->fetchMainAddress())) {
-                $Data['Person']['Address']['Street']['Name'] = $tblAddress->getStreetName();
-                $Data['Person']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
-                $Data['Person']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
-                $Data['Person']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
-            }
+        if (($tblAddress = $tblPerson->fetchMainAddress())) {
+            $personId = $tblPerson->getId();
+            $Data['P' . $personId]['Person']['Address']['Street']['Name'] = $tblAddress->getStreetName();
+            $Data['P' . $personId]['Person']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
+            $Data['P' . $personId]['Person']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
+            $Data['P' . $personId]['Person']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
         }
-
-        return $Data;
     }
 
     /**
-     * @param array $Data
-     *
-     * @return array $Data
+     * @param TblPerson $tblPerson
+     * @param $Data
      */
-    private function allocatePersonCommon(&$Data)
+    private function allocatePersonCommon(TblPerson $tblPerson, &$Data)
     {
 
-        if ($this->getTblPerson()) {
-            if (($tblCommon = Common::useService()->getCommonByPerson($this->getTblPerson()))
-                && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
-            ) {
-                $Data['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
-                $Data['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
-                $Data['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
-                    ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
-            }
+        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
+            && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
+        ) {
+            $personId = $tblPerson->getId();
+            $Data['P' . $personId]['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
+            $Data['P' . $personId]['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
+            $Data['P' . $personId]['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
+                ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
         }
-
-        return $Data;
     }
 
     /**
-     * @param array $Data
-     *
-     * @return array $Data
+     * @param TblPerson $tblPerson
+     * @param $Data
      */
-    private function allocatePersonParents(&$Data)
+    private function allocatePersonParents(TblPerson $tblPerson, &$Data)
     {
 
-        if ($this->getTblPerson()) {
-            if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
-                foreach ($tblRelationshipList as $tblToPerson) {
-                    if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
-                        && $tblToPerson->getServiceTblPersonTo()
-                        && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
-                        && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
-                    ) {
-                        if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
-                            $Data['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
-                            $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
-                        } elseif (!isset($Data['Person']['Parent']['Father']['Name'])) {
-                            $Data['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
-                            $Data['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
-                        }
+        if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+            $personId = $tblPerson->getId();
+            foreach ($tblRelationshipList as $tblToPerson) {
+                if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
+                    && $tblToPerson->getServiceTblPersonTo()
+                    && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
+                    && $tblToPerson->getServiceTblPersonTo()->getId() == $tblPerson->getId()
+                ) {
+                    if (!isset($Data['P' . $personId]['Person']['Parent']['Mother']['Name'])) {
+                        $Data['P' . $personId]['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
+                        $Data['P' . $personId]['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
+                    } elseif (!isset($Data['P' . $personId]['Person']['Parent']['Father']['Name'])) {
+                        $Data['P' . $personId]['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
+                        $Data['P' . $personId]['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
                     }
                 }
             }
         }
-
-        return $Data;
     }
 
     /**
-     * @param array $Data
-     *
-     * @return array $Data
+     * @param TblPerson $tblPerson
+     * @param $Data
      */
-    private function allocateCompanyData(&$Data)
+    private function allocateCompanyData(TblPerson $tblPerson, &$Data)
     {
 
-        if (isset($Data['Company']['Id'])
-            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
+        $personId = $tblPerson->getId();
+        if (isset($Data['P' . $personId]['Company']['Id'])
+            && ($tblCompany = Company::useService()->getCompanyById($Data['P' . $personId]['Company']['Id']))
         ) {
-            $Data['Company']['Data']['Name'] = $tblCompany->getName();
+            $Data['P' . $personId]['Company']['Data']['Name'] = $tblCompany->getName();
         }
-
-        return $Data;
     }
 
     /**
-     * @param array $Data
-     *
-     * @return array $Data
+     * @param TblPerson $tblPerson
+     * @param $Data
      */
-    private function allocateCompanyAddress(&$Data)
+    private function allocateCompanyAddress(TblPerson $tblPerson, &$Data)
     {
 
-        if (isset($Data['Company']['Id'])
-            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
+        $personId = $tblPerson->getId();
+        if (isset($Data['P' . $personId]['Company']['Id'])
+            && ($tblCompany = Company::useService()->getCompanyById($Data['P' . $personId]['Company']['Id']))
         ) {
             if (($tblAddress = $tblCompany->fetchMainAddress())) {
-                $Data['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
-                $Data['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
-                $Data['Company']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
-                $Data['Company']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
+                $Data['P' . $personId]['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
+                $Data['P' . $personId]['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
+                $Data['P' . $personId]['Company']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                $Data['P' . $personId]['Company']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
             }
         }
-
-        return $Data;
     }
 
     /**
@@ -473,9 +463,9 @@ abstract class Certificate extends Extension
 
     /**
      * @param bool|true $isSlice
-     * @param array     $languagesWithStartLevel
-     * @param string    $TextSize
-     * @param bool      $IsGradeUnderlined
+     * @param array $languagesWithStartLevel
+     * @param string $TextSize
+     * @param bool $IsGradeUnderlined
      *
      * @return Section[]|Slice
      */
@@ -741,9 +731,9 @@ abstract class Certificate extends Extension
 
     /**
      * @param bool|true $isSlice
-     * @param array     $languagesWithStartLevel
-     * @param string    $TextSize
-     * @param bool      $IsGradeUnderlined
+     * @param array $languagesWithStartLevel
+     * @param string $TextSize
+     * @param bool $IsGradeUnderlined
      *
      * @return Section[]|Slice
      */
@@ -754,7 +744,7 @@ abstract class Certificate extends Extension
         $IsGradeUnderlined = false
     ) {
 
-        $SubjectSlice = ( new Slice() );
+        $SubjectSlice = (new Slice());
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
@@ -812,17 +802,17 @@ abstract class Certificate extends Extension
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
                     [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
                     if ($this->getTblPerson()
-                        && ( $tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()) )
+                        && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
                     ) {
-                        if (( $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE') )
-                            && ( $tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                                $tblStudentSubjectType) )
+                        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                                $tblStudentSubjectType))
                         ) {
                             /** @var TblStudentSubject $tblStudentSubject */
                             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                                 if ($tblStudentSubject->getTblStudentSubjectRanking()
                                     && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                                    && ( $tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject() )
+                                    && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
                                 ) {
                                     $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
                                     $SubjectStructure[$languagesWithStartLevel['Rank']]
@@ -858,10 +848,10 @@ abstract class Certificate extends Extension
                 // Sort Lane-Ranking (1,2...)
                 ksort($SubjectList);
 
-                $SubjectSection = ( new Section() );
+                $SubjectSection = (new Section());
 
                 if (count($SubjectList) == 1 && isset($SubjectList[2])) {
-                    $SubjectSection->addElementColumn(( new Element() ), 'auto');
+                    $SubjectSection->addElementColumn((new Element()), 'auto');
                 }
 
                 foreach ($SubjectList as $Lane => $Subject) {
@@ -876,11 +866,11 @@ abstract class Certificate extends Extension
                     }
 
                     if ($Lane > 1) {
-                        $SubjectSection->addElementColumn(( new Element() )
+                        $SubjectSection->addElementColumn((new Element())
                             , '4%');
                     }
                     if ($hasAdditionalLine && $Lane == $hasAdditionalLine['Lane']) {
-                        $SubjectSection->addElementColumn(( new Element() )
+                        $SubjectSection->addElementColumn((new Element())
                             ->setContent($Subject['SubjectName'])
                             ->styleFontFamily('Trebuchet MS')
                             ->styleLineHeight('85%')
@@ -891,9 +881,9 @@ abstract class Certificate extends Extension
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
                             , '37%');
-                        $SubjectSection->addElementColumn(( new Element() ), '2%');
+                        $SubjectSection->addElementColumn((new Element()), '2%');
                     } elseif ($isShrinkMarginTop) {
-                        $SubjectSection->addElementColumn(( new Element() )
+                        $SubjectSection->addElementColumn((new Element())
                             ->setContent($Subject['SubjectName'])
                             ->styleFontFamily('Trebuchet MS')
                             ->styleLineHeight('85%')
@@ -903,9 +893,9 @@ abstract class Certificate extends Extension
                             , '39%');
                         // ToDo Dynamisch für alle zu langen Fächer
                     } elseif ($Subject['SubjectName'] == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
-                        $SubjectSection->addElementColumn(( new Element() )
+                        $SubjectSection->addElementColumn((new Element())
                             ->setContent(new Container('Gemeinschaftskunde/')
-                                .new Container('Rechtserziehung/Wirtschaft'))
+                                . new Container('Rechtserziehung/Wirtschaft'))
                             ->styleFontFamily('Trebuchet MS')
                             ->styleLineHeight('85%')
                             ->stylePaddingTop()
@@ -913,7 +903,7 @@ abstract class Certificate extends Extension
                             ->styleTextSize($TextSize)
                             , '39%');
                     } else {
-                        $SubjectSection->addElementColumn(( new Element() )
+                        $SubjectSection->addElementColumn((new Element())
                             ->setContent($Subject['SubjectName'])
                             ->styleFontFamily('Trebuchet MS')
                             ->styleLineHeight('85%')
@@ -925,9 +915,9 @@ abstract class Certificate extends Extension
 
                     $TextSizeSmall = '8px';
 
-                    $SubjectSection->addElementColumn(( new Element() )
-                        ->setContent('{% if(Content.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                             {{ Content.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent('{% if(Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                             {{ Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
                                          {% else %}
                                              &ndash;
                                          {% endif %}')
@@ -937,14 +927,14 @@ abstract class Certificate extends Extension
                         ->styleBackgroundColor('#E9E9E9')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
-                            '{% if(Content.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  4px
                              {% else %}
                                  2px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
-                            '{% if(Content.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  5px
                              {% else %}
                                  2px
@@ -952,10 +942,10 @@ abstract class Certificate extends Extension
                         )
                         ->styleMarginTop($isShrinkMarginTop ? '0px' : '10px')
                         ->styleTextSize(
-                            '{% if(Content.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                 '.$TextSizeSmall.'
+                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
                              {% else %}
-                                 '.$TextSize.'
+                                 ' . $TextSize . '
                              {% endif %}'
                         )
                         , '9%');
@@ -966,7 +956,7 @@ abstract class Certificate extends Extension
                 }
 
                 if (count($SubjectList) == 1 && isset($SubjectList[1])) {
-                    $SubjectSection->addElementColumn(( new Element() ), '52%');
+                    $SubjectSection->addElementColumn((new Element()), '52%');
                     $isShrinkMarginTop = false;
                 }
 
@@ -974,19 +964,19 @@ abstract class Certificate extends Extension
                 $SectionList[] = $SubjectSection;
 
                 if ($hasAdditionalLine) {
-                    $SubjectSection = ( new Section() );
+                    $SubjectSection = (new Section());
 
                     if ($hasAdditionalLine['Lane'] == 2) {
-                        $SubjectSection->addElementColumn(( new Element() ), '52%');
+                        $SubjectSection->addElementColumn((new Element()), '52%');
                     }
-                    $SubjectSection->addElementColumn(( new Element() )
-                        ->setContent($hasAdditionalLine['Ranking'].'. Fremdsprache (ab Klassenstufe '.
-                            '{% if(Content.Subject.Level["'.$hasAdditionalLine['SubjectAcronym'].'"] is not empty) %}
-                                     {{ Content.Subject.Level["'.$hasAdditionalLine['SubjectAcronym'].'"] }}
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
+                            '{% if(Content.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
+                                     {{ Content.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
                                  {% else %}
                                     &nbsp;
                                  {% endif %}'
-                            .')')
+                            . ')')
                         ->styleFontFamily('Trebuchet MS')
                         ->styleLineHeight('85%')
                         ->stylePaddingTop('0px')
@@ -997,7 +987,7 @@ abstract class Certificate extends Extension
                         , '39%');
 
                     if ($hasAdditionalLine['Lane'] == 1) {
-                        $SubjectSection->addElementColumn(( new Element() ), '52%');
+                        $SubjectSection->addElementColumn((new Element()), '52%');
                     }
 
                     $hasAdditionalLine = false;
@@ -1085,7 +1075,7 @@ abstract class Certificate extends Extension
     public function getDescriptionContent($Height = '150px', $MarginTop = '0px')
     {
         $DescriptionSlice = (new Slice());
-        $DescriptionSlice->addElement(( new Element() )
+        $DescriptionSlice->addElement((new Element())
             ->setContent('{% if(Content.Input.Remark is not empty) %}
                         {{ Content.Input.Remark|nl2br }}
                     {% else %}
@@ -1468,7 +1458,7 @@ abstract class Certificate extends Extension
                 }
 
                 if (count($GradeList) == 1 && isset($GradeList[1])) {
-                    $GradeSection->addElementColumn(( new Element() ), '52%');
+                    $GradeSection->addElementColumn((new Element()), '52%');
                 }
 
                 $GradeSlice->addSection($GradeSection)->styleMarginTop($MarginTop);
@@ -1480,7 +1470,7 @@ abstract class Certificate extends Extension
 
     /**
      * @param string $TextSize
-     * @param bool   $IsGradeUnderlined
+     * @param bool $IsGradeUnderlined
      * @param string $MarginTop
      *
      * @return Slice
@@ -1488,7 +1478,7 @@ abstract class Certificate extends Extension
     protected function getGradeLanesCoswig($TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px')
     {
 
-        $GradeSlice = ( new Slice() );
+        $GradeSlice = (new Slice());
 
         $tblCertificateGradeAll = Generator::useService()->getCertificateGradeAll($this->getCertificateEntity());
         $GradeStructure = array();
@@ -1522,19 +1512,19 @@ abstract class Certificate extends Extension
                 // Sort Lane-Ranking (1,2...)
                 ksort($GradeList);
 
-                $GradeSection = ( new Section() );
+                $GradeSection = (new Section());
 
                 if (count($GradeList) == 1 && isset($GradeList[2])) {
-                    $GradeSection->addElementColumn(( new Element() ), 'auto');
+                    $GradeSection->addElementColumn((new Element()), 'auto');
                 }
 
                 foreach ($GradeList as $Lane => $Grade) {
 
                     if ($Lane > 1) {
-                        $GradeSection->addElementColumn(( new Element() )
+                        $GradeSection->addElementColumn((new Element())
                             , '4%');
                     }
-                    $GradeSection->addElementColumn(( new Element() )
+                    $GradeSection->addElementColumn((new Element())
                         ->setContent($Grade['GradeName'])
                         ->styleFontFamily('Trebuchet MS')
                         ->styleLineHeight('85%')
@@ -1542,9 +1532,9 @@ abstract class Certificate extends Extension
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
                         , '39%');
-                    $GradeSection->addElementColumn(( new Element() )
-                        ->setContent('{% if(Content.Input["'.$Grade['GradeAcronym'].'"] is not empty) %}
-                                         {{ Content.Input["'.$Grade['GradeAcronym'].'"] }}
+                    $GradeSection->addElementColumn((new Element())
+                        ->setContent('{% if(Content.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                                         {{ Content.Input["' . $Grade['GradeAcronym'] . '"] }}
                                      {% else %}
                                          &ndash;
                                      {% endif %}')
@@ -1787,7 +1777,8 @@ abstract class Certificate extends Extension
                     $elementOrientationName
                         ->setContent('
                             {% if(Content.Student.Orientation.' . str_replace(' ', '', $tblSubject->getAcronym()) . ' is not empty) %}
-                                 {{ Content.Student.Orientation.' . str_replace(' ', '', $tblSubject->getAcronym()) . '.Name' . ' }}
+                                 {{ Content.Student.Orientation.' . str_replace(' ', '',
+                                $tblSubject->getAcronym()) . '.Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
@@ -2203,8 +2194,11 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    protected function getGradeLanesCustomForChemnitz($TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px')
-    {
+    protected function getGradeLanesCustomForChemnitz(
+        $TextSize = '14px',
+        $IsGradeUnderlined = false,
+        $MarginTop = '15px'
+    ) {
 
         $GradeFieldWidth = 16;
         $space = 7;
@@ -2283,7 +2277,7 @@ abstract class Certificate extends Extension
                 }
 
                 if (count($GradeList) == 1 && isset($GradeList[1])) {
-                    $GradeSection->addElementColumn(( new Element() ), (50 + $space) . '%');
+                    $GradeSection->addElementColumn((new Element()), (50 + $space) . '%');
                 }
 
                 $GradeSlice->addSection($GradeSection)->styleMarginTop($MarginTop);
@@ -2330,7 +2324,7 @@ abstract class Certificate extends Extension
             ->styleHeight('15px')
         );
         $SubjectSlice->addSection($marginTopSection);
-        $SectionList[] =  $marginTopSection;
+        $SectionList[] = $marginTopSection;
 
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
@@ -2759,7 +2753,7 @@ abstract class Certificate extends Extension
         }
 
         return empty($sectionList)
-            ? $slice->addElement(( new Element() )
+            ? $slice->addElement((new Element())
                 ->setContent('&nbsp;')
             )->styleHeight('76px')
             : $slice->addSectionList($sectionList);

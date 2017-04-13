@@ -594,7 +594,10 @@ class Frontend extends Extension implements IFrontendInterface
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
 
-                        $ContentLayout = $Template->createCertificate($Content)->getContent();
+                        $pageList[$tblPerson->getId()] = $Template->buildPage($tblPerson);
+                        $bridge = $Template->createCertificate($Content, $pageList);
+
+                        $ContentLayout = $bridge->getContent();
                     }
                 }
             }
@@ -764,7 +767,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new External(
                                     'Alle Noteninformationen herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewZip',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
