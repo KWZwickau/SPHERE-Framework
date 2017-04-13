@@ -1538,15 +1538,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                         new FormColumn(
                             new Panel('Gruppe',
-                                new TextField('Group[Name]', '', 'Gruppenname'),
-                                Panel::PANEL_TYPE_INFO
-                            )
+                                array(new TextField('Group[Name]', '', 'Gruppenname')),
+                                Panel::PANEL_TYPE_INFO)
                             , 6),
                         new FormColumn(
                             new Panel('Sonstiges',
-                                new TextField('Group[Description]', '', 'Beschreibung'),
-                                Panel::PANEL_TYPE_INFO
-                            )
+                                array(new TextField('Group[Description]', '', 'Beschreibung')),
+                                Panel::PANEL_TYPE_INFO)
                             , 6),
                     )
                 )

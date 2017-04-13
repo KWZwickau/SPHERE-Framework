@@ -15,11 +15,13 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -49,6 +51,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
@@ -276,31 +279,51 @@ class Frontend extends Extension
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 6
+                    new Panel(
+                        'Zeugnis',
+                        array(
+                            new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()),
+                            new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList))
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
                 new FormColumn(
-                    new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList)), 6
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag',
-                        array('{{ Date }} {{ Name }}' => $tblAppointedDateTaskListByYear)), 6
-                ),
-                new FormColumn(
-                    new SelectBox('Data[BehaviorTask]', 'Kopfnotenauftrag',
-                        array('{{ Date }} {{ Name }}' => $tblBehaviorTaskListByYear)), 6
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new CheckBox('Data[IsTeacherAvailable]',
-                        'Name des Klassenlehrers und Name des Schulleiters (falls vorhanden) auf dem Zeugnis anzeigen',
-                        1
-                    ), 12
+                    new Panel(
+                        'Notenaufträge',
+                        array(
+                            new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag',
+                                array('{{ Date }} {{ Name }}' => $tblAppointedDateTaskListByYear)),
+                            new SelectBox('Data[BehaviorTask]', 'Kopfnotenauftrag',
+                                array('{{ Date }} {{ Name }}' => $tblBehaviorTaskListByYear))
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
                 new FormColumn(
-                    new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiter/in'), 12
+                    new Panel(
+                        'Unterzeichner',
+                        array(
+                            (new CheckBox('Data[IsTeacherAvailable]',
+                                'Name des Klassenlehrers und Name des/der Schulleiters/in (falls vorhanden) auf dem Zeugnis anzeigen',
+                                1
+                            )),
+                            new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiters/in'),
+                            new Panel(
+                                new Small(new Bold('Geschlecht des/der Schulleiters/in')),
+                                array(
+                                    (new RadioBox('Data[GenderHeadmaster]', 'Männlich',
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                                            ? $tblCommonGender->getId() : 0 )),
+                                    (new RadioBox('Data[GenderHeadmaster]', 'Weiblich',
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                                            ? $tblCommonGender->getId() : 0 ))
+                                ),
+                                Panel::PANEL_TYPE_DEFAULT
+                            )
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
             )),
         )));
@@ -782,6 +805,8 @@ class Frontend extends Extension
                 $Global->POST['Data']['Date'] = $tblGenerateCertificate->getDate();
                 $Global->POST['Data']['IsTeacherAvailable'] = $tblGenerateCertificate->isDivisionTeacherAvailable();
                 $Global->POST['Data']['HeadmasterName'] = $tblGenerateCertificate->getHeadmasterName();
+                $Global->POST['Data']['GenderHeadmaster'] = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster()
+                    ? $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster()->getId() : 0;
 
                 $Global->savePost();
             }
@@ -829,24 +854,41 @@ class Frontend extends Extension
     private function formEditGenerate()
     {
 
-        return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 6
-                ),
-
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new CheckBox('Data[IsTeacherAvailable]',
-                        'Name des Klassenlehrers und Name des Schulleiters (falls vorhanden) auf dem Zeugnis anzeigen',
-                        1
-                    ), 12
-                ),
-                new FormColumn(
-                    new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiter/in'), 12
-                ),
-            )),
-        )));
+        return new Form(new FormGroup(array(new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    'Zeugnis',
+                    array(
+                        new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar())
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                ), 6
+            ),
+            new FormColumn(
+                new Panel(
+                    'Unterzeichner',
+                    array(
+                        new CheckBox('Data[IsTeacherAvailable]',
+                            'Name des Klassenlehrers und Name des/der Schulleiters/in (falls vorhanden) auf dem Zeugnis anzeigen',
+                            1
+                        ),
+                        new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiters/in'),
+                        new Panel(
+                            new Small(new Bold('Geschlecht des/der Schulleiters/in')),
+                            array(
+                                (new RadioBox('Data[GenderHeadmaster]', 'Männlich',
+                                    ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                                        ? $tblCommonGender->getId() : 0 )),
+                                (new RadioBox('Data[GenderHeadmaster]', 'Weiblich',
+                                    ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                                        ? $tblCommonGender->getId() : 0 ))
+                            ),
+                            Panel::PANEL_TYPE_DEFAULT
+                        )
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                ), 6
+            ),
+        )))));
     }
 }

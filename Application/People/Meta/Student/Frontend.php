@@ -18,6 +18,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCa
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
@@ -280,12 +281,38 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
             if ($tblDivisionStudentAllByPerson) {
                 foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudent) {
+                    $TeacherString = ' | ';
                     $tblDivision = $tblDivisionStudent->getTblDivision();
                     if ($tblDivision) {
+                        $tblTeacherPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
+                        if ($tblTeacherPersonList) {
+                            foreach ($tblTeacherPersonList as $tblTeacherPerson) {
+                                if ($TeacherString !== ' | ') {
+                                    $TeacherString .= ', ';
+                                }
+                                $tblTeacher = Teacher::useService()->getTeacherByPerson($tblTeacherPerson);
+                                if ($tblTeacher) {
+                                    $TeacherString .= new Bold($tblTeacher->getAcronym().' ');
+                                }
+                                $TeacherString .= ($tblTeacherPerson->getTitle() != ''
+                                        ? $tblTeacherPerson->getTitle().' '
+                                        : '').
+                                    $tblTeacherPerson->getFirstName().' '.$tblTeacherPerson->getLastName();
+                                $tblDivisionTeacher = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision,
+                                    $tblTeacherPerson);
+                                if ($tblDivisionTeacher && $tblDivisionTeacher->getDescription() != '') {
+                                    $TeacherString .= ' ('.$tblDivisionTeacher->getDescription().')';
+                                }
+                            }
+                        }
+                        if ($TeacherString === ' | ') {
+                            $TeacherString = '';
+                        }
                         $tblLevel = $tblDivision->getTblLevel();
                         $tblYear = $tblDivision->getServiceTblYear();
                         if ($tblLevel && $tblYear) {
-                            $VisitedDivisions[] = $tblYear->getDisplayName() . ' Klasse ' . $tblDivision->getDisplayName();;
+                            $VisitedDivisions[] = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
+                                .$TeacherString;
                             foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
                                 if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
                                     && $tblDivisionStudentTemp->getTblDivision()
@@ -294,6 +321,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()
                                         === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
                                     )
+                                    && $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getName() != ''
                                 ) {
                                     $RepeatedLevels[] = $tblYear->getDisplayName().' Klasse '.$tblLevel->getName();
                                 }
@@ -427,7 +455,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
                         )
                     ),
-                ), 3),
+                ), 6),
                 new FormColumn(array(
                     new Panel('Aktuelle Schuljahrwiederholungen',
                         $RepeatedLevels,

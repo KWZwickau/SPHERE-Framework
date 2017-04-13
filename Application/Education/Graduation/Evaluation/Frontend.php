@@ -141,7 +141,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Teacher', $IsAllYears, $YearId, $tblYear);
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Teacher', $IsAllYears, $YearId, $tblYear, false);
 
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
@@ -1151,14 +1151,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        // Tests verknüpfen
-        if ($tblDivisionSubjectSelected) {
-            $panel = Evaluation::useService()->getTestLinkPanel($tblYear, $tblDivisionSubjectSelected);
-        } else {
-            $panel = false;
-        }
-
-        return new Form(new FormGroup(array(
+        $arrayFormRows = array(
             new FormRow(array(
                 new FormColumn(
                     new SelectBox('Test[Period]', 'Zeitraum', array('DisplayName' => $tblPeriodList)), 6
@@ -1195,15 +1188,17 @@ class Frontend extends Extension implements IFrontendInterface
                     new DatePicker('Test[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)',
                         new Calendar()), 3
                 ),
-            )),
-            $panel
-                ? new FormRow(array(
-                new FormColumn(
-                    $panel
-                )
             ))
-                : null
-        )));
+        );
+
+        // Tests verknüpfen
+        if ($tblDivisionSubjectSelected && ($panel = Evaluation::useService()->getTestLinkPanel($tblYear, $tblDivisionSubjectSelected))) {
+            $arrayFormRows[] = new FormRow(new FormColumn(
+                $panel
+                ));
+        }
+
+        return new Form(new FormGroup($arrayFormRows));
     }
 
     /**
@@ -1326,7 +1321,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
                     ),
                     new FormColumn(
-                        new DatePicker('Test[ReturnDate]', '', 'R&uuml;ckgabedatum', new Calendar()), 4
+                        new DatePicker('Test[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)', new Calendar()), 4
                     ),
                 ))
             )));
@@ -2012,7 +2007,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList = $dataList;
 
                 $columnDefinition['Grade'] = 'Zensur';
-                if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+                if ($tblScoreType
+                    && ($tblScoreType->getIdentifier() == 'GRADES'
+                        || ($tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK'))
+                ) {
                     if (!(!$IsEdit && $tblTask->isAfterEditPeriod())) {
                         $columnDefinition['Trend'] = 'Tendenz';
                     }
@@ -2042,7 +2040,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
             $tableColumns['Grade'] = 'Zensur';
-            if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+            if ($tblScoreType
+                && ($tblScoreType->getIdentifier() == 'GRADES'
+                    || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
+            ) {
                 $tableColumns['Trend'] = 'Tendenz';
             }
             if ($tblTest->isContinues()) {
@@ -3438,7 +3439,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $minRange = 0;
                     $maxRange = 15;
                     $description = 'Punkte ';
-                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
+                    || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
                     $minRange = 1;
                     $maxRange = 5;
                     $description = 'Note ';
@@ -3560,10 +3562,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $IsAllYears
      * @param $YearId
      * @param $tblYear
+     * @param bool $HasAllYears
      *
      * @return array
      */
-    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear)
+    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear, $HasAllYears = true)
     {
 
         $tblYear = false;
@@ -3588,12 +3591,16 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if ($IsAllYears) {
-                $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
-                    $Route, new Edit(), array('IsAllYears' => true)));
-            } else {
-                $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
-                    array('IsAllYears' => true)));
+            // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
+            // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
+            if ($HasAllYears) {
+                if ($IsAllYears) {
+                    $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                        $Route, new Edit(), array('IsAllYears' => true)));
+                } else {
+                    $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                        array('IsAllYears' => true)));
+                }
             }
 
             // Abstandszeile
@@ -3711,7 +3718,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
         $tableColumns['Grade'] = 'Zensur';
-        if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
+        if ($tblScoreType
+            && ($tblScoreType->getIdentifier() == 'GRADES'
+                || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
+        ) {
             $tableColumns['Trend'] = 'Tendenz';
         }
         $tableColumns['Comment'] = 'Vermerk Notenänderung';

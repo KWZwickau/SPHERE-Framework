@@ -58,7 +58,7 @@ class TblPerson extends Element
 
         return $this->getSalutation()
         .( $this->getTitle() ? ' '.$this->getTitle() : '' )
-        .( $this->getFirstName() ? ' '.$this->getFirstName() : '' )
+            .(preg_match('![a-zA-Z]!s', $this->FirstName) ? ' '.$this->getFirstName() : '')
         .( $this->getSecondName() ? ' '.$this->getSecondName() : '' )
         .( $this->getLastName() ? ' '.$this->getLastName() : '' );
     }
@@ -203,7 +203,10 @@ class TblPerson extends Element
     public function getLastFirstName()
     {
 
-        return trim($this->LastName . ', ' . $this->FirstName . ' ' . $this->SecondName);
+        if (preg_match('![a-zA-Z]!s', $this->FirstName)) {
+            return trim($this->LastName.', '.$this->FirstName.' '.$this->SecondName);
+        }
+        return trim($this->LastName);
     }
 
     /**
@@ -212,7 +215,10 @@ class TblPerson extends Element
     public function getFirstSecondName()
     {
 
-        return trim($this->FirstName . ' ' . $this->SecondName);
+        if (preg_match('![a-zA-Z]!s', $this->FirstName)) {
+            return trim($this->FirstName.' '.$this->SecondName);
+        }
+        return '';
     }
 
     /**

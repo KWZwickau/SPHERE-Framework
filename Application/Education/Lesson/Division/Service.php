@@ -26,6 +26,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -493,6 +494,78 @@ class Service extends AbstractService
 
             $tblStudentAll = $this->getSorter($tblStudentAll)->sortObjectBy($Property, $Sorter,
                 $Order);
+            $count = 1;
+            foreach ($tblStudentAll as $tblPerson) {
+                if (($tblDivisionStudent = $this->getDivisionStudentByDivisionAndPerson(
+                    $tblDivision, $tblPerson))
+                ) {
+                    Division::useService()->updateDivisionStudentSortOrder($tblDivisionStudent, $count++);
+                }
+            }
+
+            return $count;
+        }
+
+        return 0;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param string      $Property
+     * @param null        $Sorter
+     * @param int         $Order
+     *
+     * @return int
+     */
+    public function sortDivisionStudentWithGenderByProperty(
+        TblDivision $tblDivision,
+        $Property = 'LastFirstName',
+        $Sorter = null,
+        $Order = Sorter::ORDER_ASC
+    ) {
+        $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
+        if ($tblStudentAll) {
+            $maleList = array();
+            $femaleList = array();
+            $otherList = array();
+            foreach ($tblStudentAll as $tblStudent) {
+                if (($tblCommon = $tblStudent->getCommon())) {
+                    if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                        if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
+                            if ($tblGender->getName() == 'Männlich') {
+                                $maleList[] = $tblStudent;
+                                continue;
+                            } elseif ($tblGender->getName() == 'Weiblich') {
+                                $femaleList[] = $tblStudent;
+                                continue;
+                            }
+                        }
+                    }
+                }
+                $otherList[] = $tblStudent;
+            }
+            if (!empty($maleList)) {
+                $maleList = $this->getSorter($maleList)->sortObjectBy($Property, $Sorter, $Order);
+            }
+            if (!empty($femaleList)) {
+                $femaleList = $this->getSorter($femaleList)->sortObjectBy($Property, $Sorter, $Order);
+            }
+            if (!empty($otherList)) {
+                $otherList = $this->getSorter($otherList)->sortObjectBy($Property, $Sorter, $Order);
+            }
+
+            $IsMaleSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Sort', 'SortMaleFirst');
+            if ($IsMaleSetting) {
+                if ($IsMaleSetting->getValue() == true) {
+                    $tblStudentAll = array_merge($maleList, $femaleList, $otherList);
+                } else {
+                    $tblStudentAll = array_merge($femaleList, $maleList, $otherList);
+                }
+            } else {
+                // sort order as default
+                $tblStudentAll = array_merge($maleList, $femaleList, $otherList);
+            }
+
             $count = 1;
             foreach ($tblStudentAll as $tblPerson) {
                 if (($tblDivisionStudent = $this->getDivisionStudentByDivisionAndPerson(
@@ -1104,10 +1177,10 @@ class Service extends AbstractService
 
         $tblSubjectGroup = Division::useService()->getSubjectGroupById($Id);
 
-        if (isset($SubjectGroup['Name']) && empty($SubjectGroup['Name'])) {
+        if (isset($Group['Name']) && empty($Group['Name'])) {
             $Form->setError('Group[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
-        } else {
+//        } else {
 //            $SubjectGroupTest = Division::useService()->checkSubjectGroupExists($Group['Name'], $Group['Description']);   // Test auf doppelte Namen sinnvoll?
 //            if ($SubjectGroupTest) {
 //                if ($SubjectGroupTest->getId() !== $tblSubjectGroup->getId()) {
@@ -1116,7 +1189,6 @@ class Service extends AbstractService
 //                    $Error = true;
 //                }
 //            }
-
         }
 
         if (!$Error) {

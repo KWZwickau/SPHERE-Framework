@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Document\Custom;
 
 use SPHERE\Application\Document\Custom\Lebenswelt\Lebenswelt;
+use SPHERE\Application\Document\Custom\Radebeul\Radebeul;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
@@ -30,6 +31,9 @@ class Custom implements IApplicationInterface
         // Lebenswelt
         if ($consumerAcronym === 'LWSZ' || $consumerAcronym === 'DEMO') {
             Lebenswelt::registerModule();
+        }
+        if ($consumerAcronym === 'EVSR' || $consumerAcronym === 'DEMO') {
+            Radebeul::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

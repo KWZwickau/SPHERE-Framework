@@ -58,6 +58,7 @@ class Setup extends AbstractSetup
         $this->createColumn( $Table, 'HeadmasterName', self::FIELD_TYPE_STRING );
         $this->createColumn( $Table, 'IsDivisionTeacherAvailable', self::FIELD_TYPE_BOOLEAN );
         $this->createColumn( $Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT );
+        $this->createColumn( $Table, 'serviceTblCommonGenderHeadmaster', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }
