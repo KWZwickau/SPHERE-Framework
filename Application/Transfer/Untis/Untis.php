@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Transfer\Untis;
 
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Application\Transfer\Untis\Export\Lectureship as ExportLectureship;
+//use SPHERE\Application\Transfer\Untis\Export\Lectureship as ExportLectureship;
 use SPHERE\Application\Transfer\Untis\Import\Lectureship as ImportLectureship;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -17,7 +17,7 @@ class Untis implements IApplicationInterface
     public static function registerApplication()
     {
         ImportLectureship::registerModule();
-        ExportLectureship::registerModule();
+//        ExportLectureship::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Untis'))
