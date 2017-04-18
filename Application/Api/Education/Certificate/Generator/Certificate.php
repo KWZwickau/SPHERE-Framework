@@ -11,7 +11,6 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -38,11 +37,6 @@ abstract class Certificate extends Extension
      * @var array|false
      */
     private $Grade;
-
-//    /**
-//     * @var TblPerson|null
-//     */
-//    private $tblPerson = null;
 
     /**
      * @var TblDivision|null
@@ -88,11 +82,11 @@ abstract class Certificate extends Extension
                 $this->allocateCompanyData($tblPerson, $Data);
                 $this->allocateCompanyAddress($tblPerson, $Data);
             }
-            if (isset($Data['P' . $personId]['Division']['Id'])
-                && ($tblDivision = Division::useService()->getDivisionById($Data['P' . $personId]['Division']['Id']))
-            ) {
-                $this->setTblDivision($tblDivision);
-            }
+//            if (isset($Data['P' . $personId]['Division']['Id'])
+//                && ($tblDivision = Division::useService()->getDivisionById($Data['P' . $personId]['Division']['Id']))
+//            ) {
+//                $this->setTblDivision($tblDivision);
+//            }
 
             // für Befreiung
             if (isset($Data['P' . $personId]['Grade'])) {

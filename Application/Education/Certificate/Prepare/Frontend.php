@@ -1861,6 +1861,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        if ($tblDivision = $tblPrepare->getServiceTblDivision()){
+                            $Template->setTblDivision($tblDivision);
+                        }
 
                         $ContentLayout = $Template->createCertificate($Content)->getContent();
                     }

@@ -47,6 +47,9 @@ class Creator extends Extension
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        if (($tblDivision = $tblPrepare->getServiceTblDivision())){
+                            $Certificate->setTblDivision($tblDivision);
+                        }
 
                         $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
@@ -138,6 +141,9 @@ class Creator extends Extension
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        if (($tblDivision = $tblPrepare->getServiceTblDivision())){
+                            $Certificate->setTblDivision($tblDivision);
+                        }
 
                         $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
@@ -204,6 +210,9 @@ class Creator extends Extension
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                            if ($tblDivision) {
+                                $Certificate->setTblDivision($tblDivision);
+                            }
                             $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                             $personLastName = str_replace('ü', 'ue', $personLastName);
                             $personLastName = str_replace('ö', 'oe', $personLastName);
@@ -275,6 +284,9 @@ class Creator extends Extension
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                            if ($tblDivision) {
+                                $Certificate->setTblDivision($tblDivision);
+                            }
                             $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                             $personLastName = str_replace('ü', 'ue', $personLastName);
                             $personLastName = str_replace('ö', 'oe', $personLastName);
@@ -436,6 +448,7 @@ class Creator extends Extension
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
                             $Certificate = new $CertificateClass();
+                            $Certificate->setTblDivision($tblDivision);
 
                             $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson, false);
                         }
