@@ -571,7 +571,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblPrepareGrade) {
                                     $gradeValue = $tblPrepareGrade->getGrade();
                                     if (strpos($gradeValue, '+') !== false) {
-//                                        $this->getDebugger()->screenDump($gradeValue, $tblPerson->getId(), $tblPerson->getLastFirstName());
                                         $Global->POST['Trend'][$tblPerson->getId()] = TblGrade::VALUE_TREND_PLUS;
                                         $gradeValue = str_replace('+', '', $gradeValue);
                                     } elseif (strpos($gradeValue, '-') !== false) {
@@ -880,6 +879,15 @@ class Frontend extends Extension implements IFrontendInterface
                          */
                         $this->getTemplateInformation($tblPrepare, $tblPerson, $studentTable, $columnTable, $Data,
                             $CertificateList);
+
+                        // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
+                        foreach ($columnTable as $columnKey => $columnName) {
+                            foreach ($studentTable as $personId => $value) {
+                                if (!isset($studentTable[$personId][$columnKey])) {
+                                    $studentTable[$personId][$columnKey] = '';
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -1018,7 +1026,11 @@ class Frontend extends Extension implements IFrontendInterface
                 if (class_exists($CertificateClass)) {
 
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = new $CertificateClass($tblPerson, $tblDivision);
+                    $Certificate = new $CertificateClass();
+
+                    // create Certificate with Placeholders
+                    $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson);
+                    $Certificate->createCertificate($Data, $pageList);
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
@@ -1112,40 +1124,49 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $PlaceholderList = explode('.', $Placeholder);
                                 $Identifier = array_slice($PlaceholderList, 1);
+                                if (isset($Identifier[0])){
+                                    unset($Identifier[0]);
+                                }
+
 
                                 $FieldName = $PlaceholderList[0] . '[' . implode('][', $Identifier) . ']';
+
+//                                Debugger::screenDump($Identifier, $FieldName);
+
 
                                 $dataFieldName = str_replace('Content[Input]', 'Data[' . $tblPerson->getId() . ']',
                                     $FieldName);
 
+                                $PlaceholderName = str_replace('.P' . $tblPerson->getId(), '', $Placeholder);
+
                                 $Type = array_shift($Identifier);
                                 if (!method_exists($Certificate, 'get' . $Type)) {
-                                    if (isset($FormField[$Placeholder])) {
-                                        if (isset($FormLabel[$Placeholder])) {
-                                            $Label = $FormLabel[$Placeholder];
+                                    if (isset($FormField[$PlaceholderName])) {
+                                        if (isset($FormLabel[$PlaceholderName])) {
+                                            $Label = $FormLabel[$PlaceholderName];
                                         } else {
-                                            $Label = $Placeholder;
+                                            $Label = $PlaceholderName;
                                         }
 
-                                        $key = str_replace('Content.Input.', '', $Placeholder);
+                                        $key = str_replace('Content.Input.', '', $PlaceholderName);
 
                                         if ($key == 'TeamExtra' || isset($columnTable['TeamExtra'])){
                                             $hasTeamExtra = true;
                                         }
 
-                                        if (isset($FormField[$Placeholder])) {
-                                            $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$Placeholder];
+                                        if (isset($FormField[$PlaceholderName])) {
+                                            $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$PlaceholderName];
                                             if ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\SelectBox') {
                                                 $selectBoxData = array();
-                                                if ($Placeholder == 'Content.Input.SchoolType'
+                                                if ($PlaceholderName == 'Content.Input.SchoolType'
                                                     && method_exists($Certificate, 'selectValuesSchoolType')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesSchoolType();
-                                                } elseif ($Placeholder == 'Content.Input.Type'
+                                                } elseif ($PlaceholderName == 'Content.Input.Type'
                                                     && method_exists($Certificate, 'selectValuesType')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesType();
-                                                } elseif ($Placeholder == 'Content.Input.Transfer'
+                                                } elseif ($PlaceholderName == 'Content.Input.Transfer'
                                                     && method_exists($Certificate, 'selectValuesTransfer')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesTransfer();
@@ -1175,7 +1196,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     }
 
                                                     // TextArea Zeichen begrenzen
-                                                    if ($FormField[$Placeholder] == 'TextArea'
+                                                    if ($FormField[$PlaceholderName] == 'TextArea'
                                                         && (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
                                                             $tblCertificate, $key, !$hasTeamExtra
                                                         )))
@@ -1455,7 +1476,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ) : null,
                                 new External(
                                     'Alle Zeugnisse als Muster herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewZip',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
@@ -1835,7 +1856,7 @@ class Frontend extends Extension implements IFrontendInterface
         $PrepareId = null,
         $PersonId = null
     ) {
-        $Stage = new Stage('Zeugnisvorlage', 'Auswählen');
+        $Stage = new Stage('Zeugnisvorschau', 'Anzeigen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId
@@ -1865,7 +1886,10 @@ class Frontend extends Extension implements IFrontendInterface
                             $Template->setTblDivision($tblDivision);
                         }
 
-                        $ContentLayout = $Template->createCertificate($Content)->getContent();
+                        $pageList[$tblPerson->getId()] = $Template->buildPage($tblPerson);
+                        $bridge = $Template->createCertificate($Content, $pageList);
+
+                        $ContentLayout = $bridge->getContent();
                     }
                 }
             }

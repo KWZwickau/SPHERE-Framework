@@ -18,11 +18,12 @@ class GymAbgRs extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -296,7 +297,7 @@ class GymAbgRs extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
+                ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -391,9 +392,9 @@ class GymAbgRs extends Certificate
                     )->styleMarginTop('15px')
                 )
                 ->addSlice($this->getDescriptionHead())
-                ->addSlice($this->getDescriptionContent('135px', '15px'))
-                ->addSlice($this->getDateLine())
-                ->addSlice($this->getSignPart())
+                ->addSlice($this->getDescriptionContent($personId, '135px', '15px'))
+                ->addSlice($this->getDateLine($personId))
+                ->addSlice($this->getSignPart($personId))
                 ->addSlice($this->getParentSign())
                 ->addSlice($this->getInfo('70px',
                     'Notenerläuterung:',

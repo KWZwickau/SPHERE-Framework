@@ -21,11 +21,12 @@ class CheHj extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -136,7 +137,7 @@ class CheHj extends Certificate
                         ->styleMarginTop('7px')
                     )->styleMarginTop('5px')
                 )
-                ->addSlice($this->getGradeLanes('14px', false))
+                ->addSlice($this->getGradeLanes($personId, '14px', false))
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('Leistungen in den einzelnen Fächern:')
@@ -144,7 +145,7 @@ class CheHj extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes(true, array(), '14px', false))
+                ->addSlice($this->getSubjectLanes($personId, true, array(), '14px', false))
                 ->addSlice($this->getObligationToVotePart('14px', false))
                 ->addSlice((new Slice())
                     ->addSection((new Section())

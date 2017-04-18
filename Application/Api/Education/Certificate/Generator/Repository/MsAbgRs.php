@@ -19,11 +19,12 @@ class MsAbgRs extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -264,11 +265,11 @@ class MsAbgRs extends Certificate
                     )
                 )
                 ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
-                ->addSlice($this->getOrientationStandard())
-                ->addSlice($this->getDescriptionHead())
-                ->addSlice($this->getDescriptionContent('235px', '15px'))
-                ->addSlice($this->getDateLine())
-                ->addSlice($this->getSignPart())
+                ->addSlice($this->getOrientationStandard($personId))
+                ->addSlice($this->getDescriptionHead($personId))
+                ->addSlice($this->getDescriptionContent($personId, '235px', '15px'))
+                ->addSlice($this->getDateLine($personId))
+                ->addSlice($this->getSignPart($personId))
                 ->addSlice($this->getInfo('150px',
                     'Notenerläuterung:',
                     '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend'))

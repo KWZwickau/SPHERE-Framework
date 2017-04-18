@@ -19,11 +19,12 @@ class CheBeMi extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         return (new Frame())->addDocument((new Document())
@@ -225,7 +226,7 @@ class CheBeMi extends Certificate
                             ->setContent('&nbsp;')
                         )
                     )
-                    ->addSectionList($this->getSubjectLanes(false))
+                    ->addSectionList($this->getSubjectLanes($personId, false))
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Durchschnitt der Noten aus den angegebenen Fächern')

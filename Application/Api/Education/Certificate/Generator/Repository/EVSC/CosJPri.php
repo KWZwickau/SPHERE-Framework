@@ -20,11 +20,12 @@ class CosJPri extends Certificate
     const TEXT_SIZE = '13px';
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -155,7 +156,7 @@ class CosJPri extends Certificate
                             , '100%')
                     )->styleMarginTop('12px')
                 )
-                ->addSlice($this->getGradeLanes(self::TEXT_SIZE, false))
+                ->addSlice($this->getGradeLanes($personId, self::TEXT_SIZE, false))
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('Leistung in den einzelnen Fächern')
@@ -165,7 +166,7 @@ class CosJPri extends Certificate
                         ->styleTextSize(self::TEXT_SIZE)
                     )
                 )
-                ->addSlice($this->getSubjectLanes(true, array(), self::TEXT_SIZE, false)
+                ->addSlice($this->getSubjectLanes($personId, true, array(), self::TEXT_SIZE, false)
                     ->styleHeight('210px'))
                 ->addSlice((new Slice())
                     ->addElement(( new Element() )

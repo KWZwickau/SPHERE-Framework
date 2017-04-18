@@ -18,11 +18,12 @@ class GsHjInformation extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -56,11 +57,11 @@ class GsHjInformation extends Certificate
                 ->addSlice(
                     $Header
                 )
-                ->addSlice($this->getSchoolName())
+                ->addSlice($this->getSchoolName($personId))
                 ->addSlice($this->getCertificateHead('Halbjahresinformation der Grundschule'))
-                ->addSlice($this->getDivisionAndYear('20px', '1. Schulhalbjahr'))
+                ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
                 ->addSlice($this->getStudentName())
-                ->addSlice($this->getGradeLanes())
+                ->addSlice($this->getGradeLanes($personId))
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('Leistungen in den einzelnen Fächern:')
@@ -68,12 +69,12 @@ class GsHjInformation extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes()
+                ->addSlice($this->getSubjectLanes($personId)
                     ->styleHeight('165px'))
-                ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('200px', '5px'))
-                ->addSlice($this->getDateLine())
-                ->addSlice($this->getSignPart(false))
+                ->addSlice($this->getDescriptionHead($personId, true))
+                ->addSlice($this->getDescriptionContent($personId, '200px', '5px'))
+                ->addSlice($this->getDateLine($personId))
+                ->addSlice($this->getSignPart($personId, false))
                 ->addSlice($this->getParentSign())
                 ->addSlice($this->getInfo('90px',
                     'Notenerläuterung:',

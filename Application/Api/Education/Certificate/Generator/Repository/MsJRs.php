@@ -29,11 +29,12 @@ class MsJRs extends Certificate
     }
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -67,10 +68,10 @@ class MsJRs extends Certificate
                 ->addSlice(
                     $Header
                 )
-                ->addSlice($this->getSchoolName())
+                ->addSlice($this->getSchoolName($personId))
                 ->addSlice($this->getCertificateHead('Jahreszeugnis'))
-                ->addSlice($this->getDivisionAndYear('20px'))
-                ->addSlice($this->getStudentName())
+                ->addSlice($this->getDivisionAndYear($personId, '20px'))
+                ->addSlice($this->getStudentName($personId))
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.')
@@ -78,7 +79,7 @@ class MsJRs extends Certificate
                         ->styleMarginTop('8px')
                     )
                 )
-                ->addSlice($this->getGradeLanes())
+                ->addSlice($this->getGradeLanes($personId))
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -106,12 +107,12 @@ class MsJRs extends Certificate
                 )
                 ->addSlice($this->getSubjectLanes()
                     ->styleHeight('270px'))
-                ->addSlice($this->getOrientationStandard())
-                ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('45px', '15px'))
-                ->addSlice($this->getTransfer())
-                ->addSlice($this->getDateLine('10px'))
-                ->addSlice($this->getSignPart(true, '15px'))
+                ->addSlice($this->getOrientationStandard($personId))
+                ->addSlice($this->getDescriptionHead($personId, true))
+                ->addSlice($this->getDescriptionContent($personId, '45px', '15px'))
+                ->addSlice($this->getTransfer($personId))
+                ->addSlice($this->getDateLine($personId, '10px'))
+                ->addSlice($this->getSignPart($personId, true, '15px'))
                 ->addSlice($this->getParentSign('15px'))
                 ->addSlice($this->getInfo('5px',
                     'Notenerläuterung:',

@@ -18,11 +18,12 @@ class MsAbsHsQ extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -254,11 +255,11 @@ class MsAbsHsQ extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
-                ->addSlice($this->getOrientationStandard())
-                ->addSlice($this->getDescriptionHead())
-                ->addSlice($this->getDescriptionContent('215px', '15px'))
-                ->addSlice($this->getDateLine())
+                ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+                ->addSlice($this->getOrientationStandard($personId))
+                ->addSlice($this->getDescriptionHead($personId))
+                ->addSlice($this->getDescriptionContent($personId, '215px', '15px'))
+                ->addSlice($this->getDateLine($personId))
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())

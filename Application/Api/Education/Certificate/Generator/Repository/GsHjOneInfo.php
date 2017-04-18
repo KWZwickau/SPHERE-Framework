@@ -18,11 +18,12 @@ class GsHjOneInfo extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -56,13 +57,13 @@ class GsHjOneInfo extends Certificate
                 ->addSlice(
                     $Header
                 )
-                ->addSlice($this->getSchoolName())
+                ->addSlice($this->getSchoolName($personId))
                 ->addSlice($this->getCertificateHead('Halbjahresinformation der Grundschule'))
-                ->addSlice($this->getDivisionAndYear())
-                ->addSlice($this->getStudentName())
-                ->addSlice($this->getDescriptionContent('620px', '20px'))
-                ->addSlice($this->getDateLine())
-                ->addSlice($this->getSignPart(false))
+                ->addSlice($this->getDivisionAndYear($personId))
+                ->addSlice($this->getStudentName($personId))
+                ->addSlice($this->getDescriptionContent($personId, '620px', '20px'))
+                ->addSlice($this->getDateLine($personId))
+                ->addSlice($this->getSignPart($personId, false))
                 ->addSlice($this->getParentSign())
             )
         );

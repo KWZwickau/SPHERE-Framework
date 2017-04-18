@@ -18,11 +18,12 @@ class HorJ extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         $TextSize = '12px';
@@ -167,7 +168,7 @@ class HorJ extends Certificate
                         )
                     )
                     ->addSection(( new Section() )
-                        ->addSliceColumn($this->getGradeLanes($TextSize, false, '25px')
+                        ->addSliceColumn($this->getGradeLanes($personId, $TextSize, false, '25px')
                             ->stylePaddingLeft('15px')
                             ->stylePaddingRight('15px')
                         )
@@ -194,7 +195,7 @@ class HorJ extends Certificate
                         )
                     )
                     ->addSection(( new Section() )
-                        ->addSliceColumn($this->getSubjectLanes(true, array(), $TextSize, false)
+                        ->addSliceColumn($this->getSubjectLanes($personId, true, array(), $TextSize, false)
                             ->stylePaddingLeft('15px')
                             ->stylePaddingRight('15px')
                         )

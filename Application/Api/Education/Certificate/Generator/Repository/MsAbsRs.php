@@ -18,11 +18,12 @@ class MsAbsRs extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -249,7 +250,7 @@ class MsAbsRs extends Certificate
                         )
                     )->styleMarginTop('60px')
                 )
-                ->addSlice($this->getSubjectLanes()->styleHeight('270px'))
+                ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
                 /////////////////////////
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -324,9 +325,9 @@ class MsAbsRs extends Certificate
                     ->styleMarginTop('10px')
                 )
                 /////////////////////////
-                ->addSlice($this->getDescriptionHead())
-                ->addSlice($this->getDescriptionContent('215px', '15px'))
-                ->addSlice($this->getDateLine())
+                ->addSlice($this->getDescriptionHead($personId))
+                ->addSlice($this->getDescriptionContent($personId, '215px', '15px'))
+                ->addSlice($this->getDateLine($personId))
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())

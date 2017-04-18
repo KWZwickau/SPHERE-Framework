@@ -10,9 +10,7 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
@@ -122,24 +120,6 @@ class GradeInformation extends Certificate
                         , '20%')
                 )->styleMarginTop('40px')
             );
-    }
-
-    /**
-     * @param bool $IsSample
-     * @param array $PageList
-     *
-     * @return Frame
-     */
-    public function buildCertificate($IsSample = true, $PageList = array())
-    {
-
-        $document = new Document();
-
-        foreach ($PageList as $page) {
-            $document->addPage($page);
-        }
-
-        return (new Frame())->addDocument($document);
     }
 
     /**

@@ -20,11 +20,12 @@ class CheJGs extends Certificate
     const TEXT_SIZE = '12pt';
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -139,7 +140,7 @@ class CheJGs extends Certificate
                         ->styleHeight('10px')
                     )
                 )
-                ->addSlice($this->getGradeLanesCustomForChemnitz(self::TEXT_SIZE, false))
+                ->addSlice($this->getGradeLanesCustomForChemnitz($personId, self::TEXT_SIZE, false))
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -166,7 +167,7 @@ class CheJGs extends Certificate
                         ->styleTextSize(self::TEXT_SIZE)
                     )
                 )
-                ->addSlice($this->getSubjectLanesCustomForChemnitz(true, array(), self::TEXT_SIZE, false))
+                ->addSlice($this->getSubjectLanesCustomForChemnitz($personId, true, array(), self::TEXT_SIZE, false))
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('&nbsp;')

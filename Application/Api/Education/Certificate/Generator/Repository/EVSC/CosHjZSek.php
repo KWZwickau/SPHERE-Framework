@@ -20,11 +20,12 @@ class CosHjZSek extends Certificate
     const TEXT_SIZE = '13px';
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
         if ($IsSample) {
             $Header = array(( new Section() )
@@ -196,7 +197,7 @@ class CosHjZSek extends Certificate
                                 )
                             )
                             ->addSection(( new Section() )
-                                ->addSliceColumn($this->getGradeLanesCoswig(self::TEXT_SIZE, false, '10px'))
+                                ->addSliceColumn($this->getGradeLanesCoswig($personId, self::TEXT_SIZE, false, '10px'))
                             )
                             ->addSection(( new Section() )
                                 ->addSliceColumn(( new Slice() )
@@ -211,11 +212,13 @@ class CosHjZSek extends Certificate
                                 )
                             )
                             ->addSection(( new Section() )
-                                ->addSliceColumn($this->getSubjectLanesCoswig(true, array(), self::TEXT_SIZE, false)
+                                ->addSliceColumn($this->getSubjectLanesCoswig($personId, true, array(), self::TEXT_SIZE,
+                                    false)
                                     ->styleHeight('248px'))
                             )
                             ->addSection(( new Section() )
-                                ->addSliceColumn($this->getObligationToVotePartCustomForCoswig(self::TEXT_SIZE))
+                                ->addSliceColumn($this->getObligationToVotePartCustomForCoswig($personId,
+                                    self::TEXT_SIZE))
                             )
                             ->addSection(( new Section() )
                                 ->addSliceColumn(( new Slice() )

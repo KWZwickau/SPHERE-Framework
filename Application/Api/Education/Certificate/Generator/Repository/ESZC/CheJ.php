@@ -21,11 +21,12 @@ class CheJ extends Certificate
 {
 
     /**
-     * @param bool $IsSample
-     *
+     * @param array $PageList
      * @return Frame
+     * @internal param bool $IsSample
+     *
      */
-    public function buildCertificate($IsSample = true)
+    public function buildCertificate($PageList = array())
     {
 
         if ($IsSample) {
@@ -155,7 +156,7 @@ class CheJ extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes(true, array(), '14px', false))
+                ->addSlice($this->getSubjectLanes($personId, true, array(), '14px', false))
                 ->addSlice($this->getObligationToVotePart('14px', false))
                 ->addSlice((new Slice())
                     ->addSection((new Section())

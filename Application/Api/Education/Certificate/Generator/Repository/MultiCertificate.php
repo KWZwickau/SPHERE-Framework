@@ -19,12 +19,11 @@ class MultiCertificate extends Certificate
 {
 
     /**
-     * @param bool $IsSample
      * @param array $PageList
-     *
      * @return Frame
+     * @internal param bool $IsSample
      */
-    public function buildCertificate($IsSample = true, $PageList = array())
+    public function buildCertificate($PageList = array())
     {
         $buildDocument = new Document();
         foreach ($PageList as $page)
