@@ -1030,7 +1030,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
 
                     // create Certificate with Placeholders
-                    $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson);
+                    $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
                     $Certificate->createCertificate($Data, $pageList);
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
@@ -1885,7 +1885,7 @@ class Frontend extends Extension implements IFrontendInterface
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
 
-                        $pageList[$tblPerson->getId()] = $Template->buildPage($tblPerson);
+                        $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
                         $bridge = $Template->createCertificate($Content, $pageList);
 
                         $ContentLayout = $bridge->getContent();

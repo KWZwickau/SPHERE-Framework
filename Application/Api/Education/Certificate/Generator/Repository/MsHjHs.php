@@ -22,7 +22,7 @@ class MsHjHs extends Certificate
      * @internal param bool $IsSample
      *
      */
-    public function buildPage(TblPerson $tblPerson = null)
+    public function buildPages(TblPerson $tblPerson = null)
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;

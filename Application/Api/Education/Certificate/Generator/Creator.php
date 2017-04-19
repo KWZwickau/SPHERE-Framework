@@ -92,7 +92,7 @@ class Creator extends Extension
         $File = Storage::createFilePointer('pdf', $Prefix);
         /** @var DomPdf $Document */
         $Document = Document::getPdfDocument($File->getFileLocation());
-        $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson);
+        $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
         $bridge = $Certificate->createCertificate($Data, $pageList);
         $Document->setContent($bridge);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
@@ -441,7 +441,7 @@ class Creator extends Extension
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
                             $Certificate = new $CertificateClass($tblDivision);
 
-                            $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson);
+                            $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
                         }
                     }
                 }
@@ -489,7 +489,7 @@ class Creator extends Extension
                             // get Content
                             $Data = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
 
-                            $page = $Certificate->buildPage($tblPerson);
+                            $page = $Certificate->buildPages($tblPerson);
                             $pageList[$tblPerson->getId()] = $page;
 
                             $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());

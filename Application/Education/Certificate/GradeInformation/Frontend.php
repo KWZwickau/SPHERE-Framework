@@ -594,7 +594,7 @@ class Frontend extends Extension implements IFrontendInterface
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
 
-                        $pageList[$tblPerson->getId()] = $Template->buildPage($tblPerson);
+                        $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
                         $bridge = $Template->createCertificate($Content, $pageList);
 
                         $ContentLayout = $bridge->getContent();

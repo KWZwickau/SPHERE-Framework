@@ -60,11 +60,11 @@ abstract class Certificate extends Extension
 
     /**
      * @param TblPerson|null $tblPerson
-     * @return Page
+     * @return Page|Page[]
      * @internal param bool $IsSample
      *
      */
-    abstract public function buildPage(TblPerson $tblPerson = null);
+    abstract public function buildPages(TblPerson $tblPerson = null);
 
     /**
      * @param array $Data
@@ -103,13 +103,18 @@ abstract class Certificate extends Extension
 
         $document = new Document();
 
-        foreach ($PageList as $page) {
-            $document->addPage($page);
+        foreach ($PageList as $personPages) {
+            if (is_array($personPages)) {
+                foreach ($personPages as $page) {
+                    $document->addPage($page);
+                }
+            } else {
+                $document->addPage($personPages);
+            }
         }
 
         return (new Frame())->addDocument($document);
     }
-
 
 
     /**
