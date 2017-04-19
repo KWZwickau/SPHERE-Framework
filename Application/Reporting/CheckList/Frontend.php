@@ -18,6 +18,7 @@ use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
@@ -1336,20 +1337,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefinition['Field'] = $EditHead;
             }
 
-//            // set Post
-//            $tblListObjectElementList = CheckList::useService()->getListObjectElementListByList($tblList);
-//            if ($tblListObjectElementList) {
-//                $Global = $this->getGlobal();
-//                foreach ($tblListObjectElementList as $item) {
-//                    if ($item->getServiceTblObject()) {
-//                        $Global->POST['Data'][$item->getTblObjectType()->getId()][$item->getServiceTblObject()->getId()]
-//                        [$item->getTblListElementList()->getId()] = $item->getValue();
-//                    }
-//                }
-//
-//                $Global->savePost();
-//            }
-
             $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
 
             // get Objects
@@ -1358,10 +1345,10 @@ class Frontend extends Extension implements IFrontendInterface
                 // build filter selectBox content from all
                 if (!empty( $objectList )) {
                     foreach ($objectList as $objectTypeId => $objects) {
-                        $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
                         if (!empty( $objects )) {
-                            foreach ($objects as $objectId => $value) {
-                                if ($tblObjectType->getIdentifier() === 'PERSON') {
+                            $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                            if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                foreach ($objects as $objectId => $value) {
                                     $countTotalPerson++;
                                     $tblPerson = Person::useService()->getPersonById($objectId);
                                     if ($tblPerson) {
@@ -1378,36 +1365,35 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             // sort $objectList
-            $objectList = CheckList::useService()->sortObjectList($objectList);
+//            $objectList = CheckList::useService()->sortObjectList($objectList);
 
             if (!empty( $objectList )) {
 
                 // prospectList
                 $isProspectList = true;
                 if (!$hasFilter) {
+                    $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
                     foreach ($objectList as $objectTypeId => $objects) {
                         $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
-
-                        if (!empty( $objects )) {
-                            foreach ($objects as $objectId => $value) {
-                                if ($tblObjectType->getIdentifier() === 'PERSON') {
+                        if ($tblObjectType->getIdentifier() == 'PERSON') {
+                            if (!empty( $objects )) {
+                                foreach ($objects as $objectId => $value) {
                                     $tblPerson = Person::useService()->getPersonById($objectId);
-                                    $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-                                    if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup,
-                                            $tblPerson)
-                                    ) {
+                                    if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup,$tblPerson)) {
                                         $isProspectList = false;
+                                        break 2;
                                     }
-                                } else {
-                                    $isProspectList = false;
                                 }
                             }
+                        } else {
+                            $isProspectList = false;
+                            break;
                         }
                     }
                 }
                 if ($isProspectList) {
                     $columnDefinition = array(
-                        'Name'            => 'Interessentenname&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+                        'Name'            => 'Interessentenname'.str_repeat('&nbsp;', 18 ),
                         'Year'            => 'Schul&shy;jahr',
                         'Level'           => 'Kl. - Stufe',
                         'SchoolOption'    => 'Schulart',
@@ -1434,7 +1420,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $tblObject = CheckList::useService()->getObjectAllByListAndObjectType($tblList, $tblObjectType);
                     if (!empty( $objects )) {
                         foreach ($objects as $objectId => $value) {
-                            if ($tblObjectType->getIdentifier() === 'PERSON') {
+                            if ($tblObjectType->getIdentifier() == 'PERSON') {
                                 $countPerson++;
                                 $tblPerson = Person::useService()->getPersonById($objectId);
                                 if ($tblPerson) {
@@ -1459,59 +1445,40 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
                                         if ($tblProspect) {
                                             // display PhoneNumber
-                                            $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
-                                            if ($tblToPhoneList) {
+                                            if(($tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
+                                                $ProspectPhoneList = array();
                                                 foreach ($tblToPhoneList as $tblToPhone) {
-                                                    $tblPhone = $tblToPhone->getTblPhone();
-                                                    if ($tblPhone) {
-                                                        if (!$Phone) {
-                                                            $Phone = $tblPerson->getFirstName().' '.$tblPerson->getLastName()
-                                                                .' ('.$tblPhone->getNumber().' '.
-                                                                str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
-                                                        } else {
-                                                            $Phone .= ', '.$tblPhone->getNumber().' '.
-                                                                str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
-                                                        }
+                                                    if (($tblPhone = $tblToPhone->getTblPhone())) {
+                                                        $ProspectPhoneList[] = $tblPhone->getNumber()
+                                                            .' '.Phone::useService()->getPhoneTypeShort($tblToPhone)[0];
                                                     }
                                                 }
-                                                if ($Phone) {
-                                                    $Phone .= ')';
-                                                }
+                                                $Phone = $tblPerson->getFirstName().' '.$tblPerson->getLastName()
+                                                    .' ('.implode( ', ', $ProspectPhoneList ).')';
                                             }
                                             // fill phoneGuardian
-                                            $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                                            $TblTypeGuardian = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
+                                            $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $TblTypeGuardian);
                                             if ($guardianList) {
                                                 foreach ($guardianList as $guardian) {
-                                                    if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
+                                                    $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
+                                                    if ($tblPersonGuardian && $guardian->getTblType()->getId() == 1) {
                                                         // get PhoneNumber by Guardian
-                                                        $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
-                                                        if ($tblPersonGuardian) {
-                                                            $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
-                                                            if ($tblToPhoneList) {
-                                                                foreach ($tblToPhoneList as $tblToPhone) {
-                                                                    if (( $tblPhone = $tblToPhone->getTblPhone() )) {
-                                                                        if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                                            $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
-                                                                                $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
-                                                                                ' ('.$tblPhone->getNumber().' '.
-                                                                                // modify TypeShort
-                                                                                str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
-                                                                        } else {
-                                                                            $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
-                                                                                // modify TypeShort
-                                                                                str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
-                                                                        }
-                                                                    }
+                                                        $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
+                                                        if ($tblToPhoneList) {
+                                                            $GuardianPhoneList = array();
+                                                            foreach ($tblToPhoneList as $tblToPhone) {
+                                                                if (( $tblPhone = $tblToPhone->getTblPhone() )) {
+                                                                    $GuardianPhoneList[] = $tblPhone->getNumber().' '.Phone::useService()->getPhoneTypeShort($tblToPhone)[0];
                                                                 }
                                                             }
-                                                            if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
-                                                            }
-                                                            if (!$PhoneGuardian && isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                                $PhoneGuardian = $Item['PhoneGuardian'][$tblPersonGuardian->getId()];
-                                                            } elseif ($PhoneGuardian && isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                                $PhoneGuardian .= ', <br/>'.$Item['PhoneGuardian'][$tblPersonGuardian->getId()];
-                                                            }
+                                                            $Item[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName()
+                                                                .' ('.implode(', ', $GuardianPhoneList).')';
+                                                        }
+                                                        if (!$PhoneGuardian && isset($Item[$tblPersonGuardian->getId()])) {
+                                                            $PhoneGuardian = $Item[$tblPersonGuardian->getId()];
+                                                        } elseif ($PhoneGuardian && isset($Item[$tblPersonGuardian->getId()])) {
+                                                            $PhoneGuardian .= ', <br/>'.$Item[$tblPersonGuardian->getId()];
                                                         }
                                                     }
                                                 }
@@ -1554,7 +1521,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $list[$count]['Address'] = $Address;
                                     }
                                 }
-                            } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                            } elseif ($tblObjectType->getIdentifier() == 'COMPANY') {
                                 $tblCompany = Company::useService()->getCompanyById($objectId);
                                 if ($tblCompany) {
                                     $countCompany++;
