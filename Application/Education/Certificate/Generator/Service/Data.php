@@ -1690,6 +1690,68 @@ class Data extends AbstractData
 //                    }
                 }
             }
+
+            if ($tblConsumer->getAcronym() == 'ESS' || $tblConsumer->getAcronym() == 'DEMO') {
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESS');
+                if ($tblConsumerCertificate) {
+                    $tblCertificate = $this->createCertificate(
+                        'Halbjahresinformation', '1. Klasse', 'ESS\EssGsHjOne', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
+                                $tblSchoolTypePrimary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
+                    $tblCertificate = $this->createCertificate(
+                        'Jahreszeugnis', '1. Klasse', 'ESS\EssGsJOne', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
+                                $tblSchoolTypePrimary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
+                    $tblCertificate = $this->createCertificate(
+                        'Halbjahresinformation', '2. Klasse', 'ESS\EssGsHjTwo', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
+                                $tblSchoolTypePrimary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                    }
+//                    // Kopfnoten setzen
+//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                        $this->setCertificateGradeAllStandard($tblCertificate);
+//                    }
+//                    //Fächer setzen
+//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+//                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+//
+//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+//                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
+//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+//                    }
+                }
+            }
         }
     }
 
