@@ -589,11 +589,10 @@ class Frontend extends Extension implements IFrontendInterface
                     if (class_exists($CertificateClass)) {
 
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                        $Template = new $CertificateClass();
+                        $Template = new $CertificateClass($tblDivision);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                        $Template->setTblDivision($tblDivision);
 
                         $pageList[$tblPerson->getId()] = $Template->buildPage($tblPerson);
                         $bridge = $Template->createCertificate($Content, $pageList);

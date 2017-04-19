@@ -31,10 +31,12 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -558,6 +560,49 @@ class Service extends AbstractService
         $tblDivision = $tblPrepare->getServiceTblDivision();
         $personId = $tblPerson->getId();
 
+        // Person data
+        $Content['P' . $personId]['Person']['Id'] = $tblPerson->getId();
+        $Content['P' . $personId]['Person']['Data']['Name']['Salutation'] = $tblPerson->getSalutation();
+        $Content['P' . $personId]['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
+        $Content['P' . $personId]['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
+
+        // Person address
+        if (($tblAddress = $tblPerson->fetchMainAddress())) {
+            $Content['P' . $personId]['Person']['Address']['Street']['Name'] = $tblAddress->getStreetName();
+            $Content['P' . $personId]['Person']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
+            $Content['P' . $personId]['Person']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
+            $Content['P' . $personId]['Person']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
+        }
+
+        // Person Common
+        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
+            && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
+        ) {
+            $Content['P' . $personId]['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
+            $Content['P' . $personId]['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
+            $Content['P' . $personId]['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
+                ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
+        }
+
+        // Person Parents
+        if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+            foreach ($tblRelationshipList as $tblToPerson) {
+                if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
+                    && $tblToPerson->getServiceTblPersonTo()
+                    && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
+                    && $tblToPerson->getServiceTblPersonTo()->getId() == $tblPerson->getId()
+                ) {
+                    if (!isset($Content['P' . $personId]['Person']['Parent']['Mother']['Name'])) {
+                        $Content['P' . $personId]['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
+                        $Content['P' . $personId]['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
+                    } elseif (!isset($Content['P' . $personId]['Person']['Parent']['Father']['Name'])) {
+                        $Content['P' . $personId]['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
+                        $Content['P' . $personId]['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
+                    }
+                }
+            }
+        }
+
         // Company
         $tblCompany = false;
         if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
@@ -581,6 +626,13 @@ class Service extends AbstractService
         }
         if ($tblCompany) {
             $Content['P' . $personId]['Company']['Id'] = $tblCompany->getId();
+            $Content['P' . $personId]['Company']['Data']['Name'] = $tblCompany->getName();
+            if (($tblAddress = $tblCompany->fetchMainAddress())) {
+                $Content['P' . $personId]['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
+                $Content['P' . $personId]['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
+                $Content['P' . $personId]['Company']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                $Content['P' . $personId]['Company']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
+            }
         }
 
         // Arbeitsgemeinschaften
@@ -631,9 +683,6 @@ class Service extends AbstractService
         if ($tblPrepare->getServiceTblPersonSigner()) {
             $Content['P' . $personId]['Division']['Data']['Teacher'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
         }
-
-        // Person
-        $Content['P' . $personId]['Person']['Id'] = $tblPerson->getId();
 
         // zusätzliche Informationen
         $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,

@@ -1025,8 +1025,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                 if (class_exists($CertificateClass)) {
 
+                    $tblDivision = $tblPrepareCertificate->getServiceTblDivision();
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = new $CertificateClass();
+                    $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
 
                     // create Certificate with Placeholders
                     $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson);
@@ -1541,7 +1542,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (class_exists($CertificateClass)) {
 
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = new $CertificateClass($tblPerson, $tblDivision);
+                    $Certificate = new $CertificateClass($tblDivision);
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
@@ -1877,14 +1878,12 @@ class Frontend extends Extension implements IFrontendInterface
                         . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
 
+                        $tblDivision = $tblPrepare->getServiceTblDivision();
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                        $Template = new $CertificateClass();
+                        $Template = new $CertificateClass($tblDivision ? $tblDivision : null);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                        if ($tblDivision = $tblPrepare->getServiceTblDivision()){
-                            $Template->setTblDivision($tblDivision);
-                        }
 
                         $pageList[$tblPerson->getId()] = $Template->buildPage($tblPerson);
                         $bridge = $Template->createCertificate($Content, $pageList);

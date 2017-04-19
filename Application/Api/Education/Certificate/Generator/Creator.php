@@ -42,14 +42,12 @@ class Creator extends Extension
                     $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
 
+                        $tblDivision = $tblPrepare->getServiceTblDivision();
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                        $Certificate = new $CertificateClass(false);
+                        $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null, false);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                        if (($tblDivision = $tblPrepare->getServiceTblDivision())){
-                            $Certificate->setTblDivision($tblDivision);
-                        }
 
                         $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
@@ -136,14 +134,12 @@ class Creator extends Extension
                     $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
 
+                        $tblDivision = $tblPrepare->getServiceTblDivision();
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                        $Certificate = new $CertificateClass();
+                        $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                        if (($tblDivision = $tblPrepare->getServiceTblDivision())){
-                            $Certificate->setTblDivision($tblDivision);
-                        }
 
                         $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
@@ -206,13 +202,11 @@ class Creator extends Extension
                         if (class_exists($CertificateClass)) {
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                            $Certificate = new $CertificateClass();
+                            $Certificate = new $CertificateClass($tblDivision);
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                            if ($tblDivision) {
-                                $Certificate->setTblDivision($tblDivision);
-                            }
+
                             $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                             $personLastName = str_replace('ü', 'ue', $personLastName);
                             $personLastName = str_replace('ö', 'oe', $personLastName);
@@ -280,13 +274,11 @@ class Creator extends Extension
                         if (class_exists($CertificateClass)) {
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                            $Certificate = new $CertificateClass(false);
+                            $Certificate = new $CertificateClass($tblDivision, false);
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                            if ($tblDivision) {
-                                $Certificate->setTblDivision($tblDivision);
-                            }
+
                             $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                             $personLastName = str_replace('ü', 'ue', $personLastName);
                             $personLastName = str_replace('ö', 'oe', $personLastName);
@@ -334,7 +326,7 @@ class Creator extends Extension
                 )->__toString();
             } else {
                 return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
-                . new Redirect('/Education/Certificate/PrintCertificate');
+                    . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
 
@@ -447,25 +439,99 @@ class Creator extends Extension
                         if (class_exists($CertificateClass)) {
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                            $Certificate = new $CertificateClass();
-                            $Certificate->setTblDivision($tblDivision);
+                            $Certificate = new $CertificateClass($tblDivision);
 
-                            $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson, false);
+                            $pageList[$tblPerson->getId()] = $Certificate->buildPage($tblPerson);
                         }
                     }
                 }
             }
         }
 
-        if (!empty($pageList) && $tblPrepare)
-        {
+        if (!empty($pageList) && $tblPrepare) {
             $Data = Prepare::useService()->getCertificateMultiContent($tblPrepare);
             $File = self::buildMultiDummyFile($Data, $pageList);
-            $FileName = $Name . ' ' . ($tblDivision ? $tblDivision->getDisplayName() : '-')  . ' ' . date("Y-m-d") . ".pdf";
+            $FileName = $Name . ' ' . ($tblDivision ? $tblDivision->getDisplayName() : '-') . ' ' . date("Y-m-d") . ".pdf";
 
             return self::buildDownloadFile($File, $FileName);
         }
 
         return "Keine Zeugnisse vorhanden!";
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param string $Name
+     *
+     * @return string
+     */
+    public static function downloadMultiPdf($PrepareId = null, $Name = 'Zeugnis')
+    {
+
+        $pageList = array();
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                    && $tblPrepareStudent->isApproved()
+                    && !$tblPrepareStudent->isPrinted()
+                ) {
+                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
+                        $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                        if (class_exists($CertificateClass)) {
+
+                            /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                            $Certificate = new $CertificateClass($tblDivision, false);
+
+                            // get Content
+                            $Data = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+
+                            $page = $Certificate->buildPage($tblPerson);
+                            $pageList[$tblPerson->getId()] = $page;
+
+                            $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
+                            $personLastName = str_replace('ü', 'ue', $personLastName);
+                            $personLastName = str_replace('ö', 'oe', $personLastName);
+                            $personLastName = str_replace('ß', 'ss', $personLastName);
+                            $File = Storage::createFilePointer('pdf', $Name . '-' . $personLastName
+                                . '-' . date('Y-m-d') . '--');
+                            /** @var DomPdf $Document */
+                            $Document = Document::getPdfDocument($File->getFileLocation());
+                            $Content = $Certificate->createCertificate($Data, array(0 => $page));
+                            $Document->setContent($Content);
+                            $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+                            // Revisionssicher speichern
+                            if (($tblDivision = $tblPrepare->getServiceTblDivision()) && !$tblPrepareStudent->isPrinted()) {
+                                if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision,
+                                    $Certificate,
+                                    $File, $tblPrepare)
+                                ) {
+                                    Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!empty($pageList) && $tblPrepare) {
+                $Data = Prepare::useService()->getCertificateMultiContent($tblPrepare);
+                $File = self::buildMultiDummyFile($Data, $pageList);
+                $FileName = $Name . ' ' . ($tblDivision ? $tblDivision->getDisplayName() : '-') . ' ' . date("Y-m-d") . ".pdf";
+
+                return self::buildDownloadFile($File, $FileName);
+
+            } else {
+
+                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                    . new Redirect('/Education/Certificate/PrintCertificate');
+            }
+        }
+
+        return new Stage($Name, 'Nicht gefunden');
     }
 }

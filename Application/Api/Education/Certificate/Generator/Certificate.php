@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
@@ -13,12 +12,10 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
@@ -45,18 +42,29 @@ abstract class Certificate extends Extension
     private $tblDivision = null;
 
     /**
+     * @param TblDivision $tblDivision
      * @param bool|true $IsSample
      * @param array $pageList
      */
-    public function __construct($IsSample = true, $pageList = array())
+    public function __construct(TblDivision $tblDivision = null, $IsSample = true, $pageList = array())
     {
 
         $this->getCache(new TwigHandler())->clearCache();
 
         $this->setGrade(false);
+        $this->tblDivision = $tblDivision;
         $this->IsSample = (bool)$IsSample;
         $this->Certificate = $this->buildCertificate($pageList);
+        $this->tblDivision = $tblDivision;
     }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @return Page
+     * @internal param bool $IsSample
+     *
+     */
+    abstract public function buildPage(TblPerson $tblPerson = null);
 
     /**
      * @param array $Data
@@ -68,25 +76,10 @@ abstract class Certificate extends Extension
     {
 
         foreach ($PageList as $personId => $page) {
-            if (($tblPerson = Person::useService()->getPersonById($personId))) {
-                $this->allocatePersonData($tblPerson, $Data);
-                $this->allocatePersonAddress($tblPerson, $Data);
-                $this->allocatePersonCommon($tblPerson, $Data);
-                $this->allocatePersonParents($tblPerson, $Data);
-            }
-
+            // ToDo Prüfung ob noch benötigt
             if (isset($Data['P' . $personId]['Grade'])) {
+                // für Befreiung
                 $this->setGrade($Data['P' . $personId]['Grade']);
-            }
-            if (isset($Data['P' . $personId]['Company']['Id'])
-                && ($tblCompany = Company::useService()->getCompanyById($Data['P' . $personId]['Company']['Id']))
-            ) {
-                $this->allocateCompanyData($tblPerson, $Data);
-                $this->allocateCompanyAddress($tblPerson, $Data);
-            }
-
-            // für Befreiung
-            if (isset($Data['P' . $personId]['Grade'])) {
                 $Data['P' . $personId]['Grade'] = $this->getGrade();
             }
         }
@@ -117,13 +110,7 @@ abstract class Certificate extends Extension
         return (new Frame())->addDocument($document);
     }
 
-    /**
-     * @param TblPerson|null $tblPerson
-     * @param bool $IsSample
-     *
-     * @return Page
-     */
-    abstract public function buildPage(TblPerson $tblPerson = null, $IsSample = true);
+
 
     /**
      * @param $Grade
@@ -142,27 +129,6 @@ abstract class Certificate extends Extension
         return $this->Grade;
     }
 
-//    /**
-//     * @return false|TblPerson
-//     */
-//    public function getTblPerson()
-//    {
-//        if (null === $this->tblPerson) {
-//            return false;
-//        } else {
-//            return $this->tblPerson;
-//        }
-//    }
-//
-//    /**
-//     * @param false|TblPerson $tblPerson
-//     */
-//    public function setTblPerson(TblPerson $tblPerson = null)
-//    {
-//
-//        $this->tblPerson = $tblPerson;
-//    }
-
     /**
      * @return false|TblDivision
      */
@@ -173,15 +139,6 @@ abstract class Certificate extends Extension
         } else {
             return $this->tblDivision;
         }
-    }
-
-    /**
-     * @param false|TblDivision $tblDivision
-     */
-    public function setTblDivision(TblDivision $tblDivision = null)
-    {
-
-        $this->tblDivision = $tblDivision;
     }
 
     /**
@@ -203,6 +160,14 @@ abstract class Certificate extends Extension
                 );
         }
         throw new \Exception('Certificate Missing: ' . $Certificate);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSample()
+    {
+        return $this->IsSample;
     }
 
     /**
@@ -248,115 +213,6 @@ abstract class Certificate extends Extension
     {
 
         return $this->Certificate;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param $Data
-     */
-    private function allocatePersonData(TblPerson $tblPerson, &$Data)
-    {
-
-        $personId = $tblPerson->getId();
-        $Data['P' . $personId]['Person']['Data']['Name']['Salutation'] = $tblPerson->getSalutation();
-        $Data['P' . $personId]['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
-        $Data['P' . $personId]['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param $Data
-     */
-    private function allocatePersonAddress(TblPerson $tblPerson, &$Data)
-    {
-
-        if (($tblAddress = $tblPerson->fetchMainAddress())) {
-            $personId = $tblPerson->getId();
-            $Data['P' . $personId]['Person']['Address']['Street']['Name'] = $tblAddress->getStreetName();
-            $Data['P' . $personId]['Person']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
-            $Data['P' . $personId]['Person']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
-            $Data['P' . $personId]['Person']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
-        }
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param $Data
-     */
-    private function allocatePersonCommon(TblPerson $tblPerson, &$Data)
-    {
-
-        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
-            && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
-        ) {
-            $personId = $tblPerson->getId();
-            $Data['P' . $personId]['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
-            $Data['P' . $personId]['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
-            $Data['P' . $personId]['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
-                ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
-        }
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param $Data
-     */
-    private function allocatePersonParents(TblPerson $tblPerson, &$Data)
-    {
-
-        if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
-            $personId = $tblPerson->getId();
-            foreach ($tblRelationshipList as $tblToPerson) {
-                if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
-                    && $tblToPerson->getServiceTblPersonTo()
-                    && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
-                    && $tblToPerson->getServiceTblPersonTo()->getId() == $tblPerson->getId()
-                ) {
-                    if (!isset($Data['P' . $personId]['Person']['Parent']['Mother']['Name'])) {
-                        $Data['P' . $personId]['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
-                        $Data['P' . $personId]['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
-                    } elseif (!isset($Data['P' . $personId]['Person']['Parent']['Father']['Name'])) {
-                        $Data['P' . $personId]['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
-                        $Data['P' . $personId]['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param $Data
-     */
-    private function allocateCompanyData(TblPerson $tblPerson, &$Data)
-    {
-
-        $personId = $tblPerson->getId();
-        if (isset($Data['P' . $personId]['Company']['Id'])
-            && ($tblCompany = Company::useService()->getCompanyById($Data['P' . $personId]['Company']['Id']))
-        ) {
-            $Data['P' . $personId]['Company']['Data']['Name'] = $tblCompany->getName();
-        }
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param $Data
-     */
-    private function allocateCompanyAddress(TblPerson $tblPerson, &$Data)
-    {
-
-        $personId = $tblPerson->getId();
-        if (isset($Data['P' . $personId]['Company']['Id'])
-            && ($tblCompany = Company::useService()->getCompanyById($Data['P' . $personId]['Company']['Id']))
-        ) {
-            if (($tblAddress = $tblCompany->fetchMainAddress())) {
-                $Data['P' . $personId]['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
-                $Data['P' . $personId]['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
-                $Data['P' . $personId]['Company']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
-                $Data['P' . $personId]['Company']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
-            }
-        }
     }
 
     /**

@@ -18,11 +18,11 @@ class BeSOFS extends Certificate
 
     /**
      * @param TblPerson|null $tblPerson
-     * @param bool $IsSample
-     *
      * @return Page
+     * @internal param bool $IsSample
+     *
      */
-    public function buildPage(TblPerson $tblPerson = null, $IsSample = true)
+    public function buildPage(TblPerson $tblPerson = null)
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;

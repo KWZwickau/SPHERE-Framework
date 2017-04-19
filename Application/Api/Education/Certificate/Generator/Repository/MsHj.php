@@ -2,12 +2,11 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
  * Class MsHj
@@ -18,15 +17,17 @@ class MsHj extends Certificate
 {
 
     /**
-     * @param array $PageList
-     * @return Frame
+     * @param TblPerson|null $tblPerson
+     * @return Page
      * @internal param bool $IsSample
      *
      */
-    public function buildCertificate($PageList = array())
+    public function buildPage(TblPerson $tblPerson = null)
     {
 
-        if ($IsSample) {
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        if ($this->isSample()) {
             $Header = ( new Slice() )
                 ->addSection(( new Section() )
                     ->addElementColumn(( new Element() )
@@ -52,8 +53,7 @@ class MsHj extends Certificate
                 );
         }
 
-        return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
+        return (new Page())
                 ->addSlice(
                     $Header
                 )
@@ -87,8 +87,7 @@ class MsHj extends Certificate
                 ->addSlice($this->getInfo('25px',
                     'Notenerläuterung:',
                     '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
-                    (6 = ungenügend nur bei der Bewertung der Leistungen)'))
-            )
+                    (6 = ungenügend nur bei der Bewertung der Leistungen)')
         );
     }
 }
