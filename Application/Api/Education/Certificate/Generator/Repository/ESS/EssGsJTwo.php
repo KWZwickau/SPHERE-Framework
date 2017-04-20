@@ -11,11 +11,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 
 /**
- * Class EssGsHjTwo
+ * Class EssGsJTwo
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository
  */
-class EssGsHjTwo extends Certificate
+class EssGsJTwo extends Certificate
 {
 
     const TEXT_SIZE = '11pt';
@@ -34,7 +34,7 @@ class EssGsHjTwo extends Certificate
             ->addPage((new Page())
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('HALBJAHRESINFORMATION')
+                        ->setContent('Jahreszeugnis der Grundschule')
                         ->styleTextSize('24px')
                         ->styleAlignCenter()
                         ->styleMarginTop('60px')
@@ -53,7 +53,7 @@ class EssGsHjTwo extends Certificate
                         ->addElementColumn((new Element())
                             , '3%')
                         ->addElementColumn((new Element())
-                            ->setContent('1. Schulhalbjahr')
+                            ->setContent('2. Schulhalbjahr')
                             ->styleTextSize(self::TEXT_SIZE)
                             , '20%')
                         ->addElementColumn((new Element())
