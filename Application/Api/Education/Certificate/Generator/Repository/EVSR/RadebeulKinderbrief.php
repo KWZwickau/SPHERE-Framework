@@ -33,6 +33,7 @@ class RadebeulKinderbrief  extends Certificate
     {
 
         $fontFamily = 'MetaPro';
+        $fontSize = '12pt';
 
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
@@ -96,8 +97,11 @@ class RadebeulKinderbrief  extends Certificate
                                 {% endif %}
                             ')
                         ->styleFontFamily($fontFamily)
+                        ->styleTextSize($fontSize)
                         ->styleLineHeight('80%')
                         ->styleMarginTop('30px')
+                        ->stylePaddingLeft('30px')
+                        ->stylePaddingRight('30px')
                     )
                 )
             )

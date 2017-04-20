@@ -77,7 +77,7 @@ class RadebeulBildungsempfehlung extends Certificate
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent(
-                                        '- staatlich anerkannte Ersatzschule -'
+                                        '- Staatlich anerkannte Ersatzschule in freier Trägerschaft -'
                                     )
                                     ->styleAlignCenter()
                                 )
@@ -112,7 +112,7 @@ class RadebeulBildungsempfehlung extends Certificate
                         ->addElementColumn((new Element())
                             , '2%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}')
+                            ->setContent('{{ Content.Division.Data.Level.Name }}')
                             ->stylePaddingTop()
                             ->stylePaddingLeft()
                             ->styleBorderBottom()
@@ -265,17 +265,17 @@ class RadebeulBildungsempfehlung extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent('
                             {% if Content.Person.Common.BirthDates.Gender == 2 %}
-                                                Die Schülerin
-                                            {% else %}
-                                              {% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                                    Der Schüler
-                                                {% else %}
-                                                  Die Schülerin/Der Schüler¹
-                                                {% endif %}
-                                            {% endif %}
-                             {% if Content.Input.Type is not empty %}
+                                    Die Schülerin
+                                {% else %}
+                                    {% if Content.Person.Common.BirthDates.Gender == 1 %}
+                                        Der Schüler
+                                    {% else %}
+                                      Die Schülerin/Der Schüler¹
+                                    {% endif %}
+                                {% endif %}
+                            {% if Content.Input.Type is not empty %}
                                   hat ausweislich {{ Content.Input.Type }}
-                             {% else %}
+                            {% else %}
                                 hat ausweislich der Halbjahresinformation /
                                 der für das Jahreszeugnis vorgesehenen Noten gemäß Beschluss der Klassenkonferenz¹
                             {% endif %}
@@ -466,48 +466,26 @@ class RadebeulBildungsempfehlung extends Certificate
                             ->styleAlignCenter()
                             , '35%')
                     )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                        {% if(Content.Headmaster.Name is not empty) %}
-                                            {{ Content.Headmaster.Name }}
-                                        {% else %}
-                                            &nbsp;
-                                        {% endif %}
-                                    ')
-                            ->styleTextSize('11px')
-                            ->stylePaddingTop('2px')
-                            ->styleAlignCenter()
-                            , '35%')
-                        ->addElementColumn((new Element())
-                            , '30%')
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.DivisionTeacher.Name is not empty) %}
-                                    {{ Content.DivisionTeacher.Name }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                            ->styleTextSize('11px')
-                            ->stylePaddingTop('2px')
-                            ->styleAlignCenter()
-                            , '35%')
-                    )
                     ->stylePaddingTop()
                     ->stylePaddingBottom()
                     ->styleMarginTop('13px')
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('¹ Nichtzutreffendes streichen.'
-//                            .new Container('² An sorbische Schulen, an denen Sorbisch je nach Unterrichtsfach und Klassenstufe
-//                            Unterrichtssprache ist, kann nach Entscheidung ')
-//                            .new Container('&nbsp;&nbsp;der Schulkonferenz gem. § 21 Abs. 5 SOGS das
-//                            Fach Deutsch durch das Fach Sorbisch ersetzt werden.')
-//                            .new Container('³ Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
+                        ->setContent('
+                            {% if(Content.Input.SchoolType is empty) %}
+                                ¹ Nichtzutreffendes streichen.
+                            {% else %}
+                                {% if(Content.Person.Common.BirthDates.Gender is empty) %}
+                                    ¹ Nichtzutreffendes streichen.
+                                {% else %}
+                                    
+                                {% endif %}
+                            {% endif %}'
                             . new Container('² Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
                         )
                         ->styleTextSize('9px')
-                        ->styleMarginTop('5px')
+                        ->styleMarginTop('20px')
                     )
                 )
             )
