@@ -370,26 +370,6 @@ abstract class Certificate extends Extension
                             = $tblSubject->getAcronym();
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
-
-                        // es steht nur befreit auf dem Zeugnis -> jetzt auswählbar am Stichtagsnotenauftrag
-//                        // Liberation?
-//                        if (
-//                            $tblPerson
-//                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-//                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
-//                        ) {
-//                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-//                            if ($tblStudentLiberationAll) {
-//                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-//                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
-//                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
-//                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-//                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
                     }
                 }
             }
@@ -643,25 +623,6 @@ abstract class Certificate extends Extension
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
 
-                        // es steht nur befreit auf dem Zeugnis -> jetzt auswählbar am Stichtagsnotenauftrag
-//                        // Liberation?
-//                        if (
-//                            $tblPerson
-//                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-//                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
-//                        ) {
-//                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-//                            if ($tblStudentLiberationAll) {
-//                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-//                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
-//                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
-//                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-//                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
                     }
                 }
             }
