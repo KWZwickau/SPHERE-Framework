@@ -730,4 +730,33 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
         return false;
     }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param $tblGradeList
+     */
+    public function updateGradesGradeType(
+        TblGradeType $tblGradeType,
+        $tblGradeList
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGrade $tblGrade */
+        foreach ($tblGradeList as $tblGrade) {
+            /** @var TblGrade $Entity */
+            $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setTblGradeType($tblGradeType);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+    }
 }
