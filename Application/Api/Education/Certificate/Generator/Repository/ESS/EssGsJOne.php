@@ -40,9 +40,26 @@ class EssGsJOne extends Certificate
     public function buildPages(TblPerson $tblPerson = null)
     {
 
+        if ($this->isSample()) {
+            $Header = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '25%')
+                    ->addElementColumn((new Element\Sample())
+                        ->styleTextSize('30px')
+                        ->styleHeight('1px')
+                    )
+                    ->addElementColumn((new Element())
+                        , '25%')
+                );
+        } else {
+            $Header = (new Slice());
+        }
+
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
+            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
