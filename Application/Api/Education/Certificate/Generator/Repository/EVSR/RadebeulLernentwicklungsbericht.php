@@ -9,12 +9,11 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\EVSR;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
@@ -26,22 +25,22 @@ class RadebeulLernentwicklungsbericht extends Certificate
 {
 
     /**
-     * @param bool $IsSample
+     * @param TblPerson|null $tblPerson
      *
-     * @return Frame
+     * @return Page
      */
-    public function buildCertificate($IsSample = true)
+    public function buildPages(TblPerson $tblPerson = null)
     {
 
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
         $fontFamily = 'MetaPro';
         $textSize = '12pt';
 
-        return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
+        return (new Page())
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn(
-                            $IsSample
+                            $this->isSample()
                                 ? (new Element())
                                 ->setContent('MUSTER')
                                 ->styleAlignCenter()
@@ -82,7 +81,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->addElementColumn((new Element())
                             ->setContent(
                                 new Container('zum') .
-                                new Container('Schuljahr {{ Content.Division.Data.Year }}')
+                                new Container('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                             )
                             ->styleFontFamily($fontFamily)
                             ->styleLineHeight('80%')
@@ -101,7 +100,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             ->styleMarginTop('25px')
                             , '20%')
                         ->addElementColumn((new Element())
-                            ->setContent('{{ Content.Person.Data.Name.Last }}, {{ Content.Person.Data.Name.First }}')
+                            ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.Last }}, {{ Content.P' . $personId . '.Person.Data.Name.First }}')
                             ->styleMarginTop('25px')
                             ->styleFontFamily($fontFamily)
                             ->styleTextSize($textSize)
@@ -120,8 +119,8 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '20%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {% if(Content.Person.Common.BirthDates.Birthday is not empty) %}
-                                    {{ Content.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                                {% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}
@@ -145,7 +144,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '20%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {{ Content.Division.Data.Level.Name }}
+                                {{ Content.P' . $personId . '.Division.Data.Level.Name }}
                             ')
                             ->styleFontFamily($fontFamily)
                             ->styleTextSize($textSize)
@@ -174,8 +173,8 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                            {% if(Content.Input.Rating is not empty) %}
-                                {{ Content.Input.Rating|nl2br }}
+                            {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                                {{ Content.P' . $personId . '.Input.Rating|nl2br }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -202,8 +201,8 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '22%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                                        {% if(Content.Input.Total.Missing is not empty) %}
-                                            {{ Content.Input.Total.Missing }}
+                                        {% if(Content.P' . $personId . '.Input.Total.Missing is not empty) %}
+                                            {{ Content.P' . $personId . '.Input.Total.Missing }}
                                         {% else %}
                                             0
                                         {% endif %}'
@@ -220,8 +219,8 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '25%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                                        {% if(Content.Input.Bad.Missing is not empty) %}
-                                            {{ Content.Input.Bad.Missing }}
+                                        {% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
+                                            {{ Content.P' . $personId . '.Input.Bad.Missing }}
                                         {% else %}
                                             0
                                         {% endif %}'
@@ -238,7 +237,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                                Radebeul, {{ Content.Input.Date }}
+                                Radebeul, {{ Content.P' . $personId . '.Input.Date }}
                             ')
                             ->styleFontFamily($fontFamily)
                             ->styleTextSize($textSize)
@@ -283,8 +282,8 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '4%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {% if(Content.Headmaster.Description is not empty) %}
-                                    {{ Content.Headmaster.Description }}
+                                {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.Headmaster.Description }}
                                 {% else %}
                                     Schulleiter(in)
                                 {% endif %}'
@@ -296,8 +295,8 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '32%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {% if(Content.DivisionTeacher.Description is not empty) %}
-                                    {{ Content.DivisionTeacher.Description }}
+                                {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacher.Description }}
                                 {% else %}
                                     Klassenlehrer(in)
                                 {% endif %}'
@@ -313,8 +312,8 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '4%')
                         ->addElementColumn((new Element())
                             ->setContent(
-                                '{% if(Content.Headmaster.Name is not empty) %}
-                                {{ Content.Headmaster.Name }}
+                                '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Name }}
                             {% else %}
                                 &nbsp;
                             {% endif %}'
@@ -327,8 +326,8 @@ class RadebeulLernentwicklungsbericht extends Certificate
                             , '32%')
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {% if(Content.DivisionTeacher.Name is not empty) %}
-                                    {{ Content.DivisionTeacher.Name }}
+                                {% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacher.Name }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}
@@ -369,8 +368,6 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->addElementColumn((new Element())
                             , '16%')
                     )
-                )
-            )
         );
     }
 }

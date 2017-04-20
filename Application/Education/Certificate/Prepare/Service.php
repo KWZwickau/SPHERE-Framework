@@ -722,51 +722,39 @@ class Service extends AbstractService
 
         // Klassenlehrer
         // Todo als Mandanteneinstellung umbauen
-        if ($tblPrepare->getServiceTblPersonSigner()) {
+        if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())) {
             $divisionTeacherDescription = 'Klassenlehrer';
 
             if (($tblConsumer = Consumer::useService()->getConsumerBySession())
                 && $tblConsumer->getAcronym() == 'EVSR'
             ) {
-                $firstName = $tblPrepare->getServiceTblPersonSigner()->getFirstName();
+                $firstName = $tblPersonSigner->getFirstName();
                 if (strlen($firstName) > 1) {
                     $firstName = substr($firstName, 0, 1) . '.';
                 }
                 $Content['P' . $personId]['DivisionTeacher']['Name'] = $firstName . ' '
-                    . $tblPrepare->getServiceTblPersonSigner()->getLastName();
+                    . $tblPersonSigner->getLastName();
             } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
                 && $tblConsumer->getAcronym() == 'ESZC'
             ) {
-                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPrepare->getServiceTblPersonSigner()->getSalutation()
-                    . " " . $tblPrepare->getServiceTblPersonSigner()->getLastName());
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation()
+                    . " " . $tblPersonSigner->getLastName());
             } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
                 && $tblConsumer->getAcronym() == 'EVSC'
             ) {
-                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPrepare->getServiceTblPersonSigner()->getFirstName()
-                    . " " . $tblPrepare->getServiceTblPersonSigner()->getLastName());
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
+                    . " " . $tblPersonSigner->getLastName());
                 $divisionTeacherDescription = 'Klassenleiter';
             } else {
-                $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
             }
 
-            if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())) {
-                if(($tblCommon = $tblPersonSigner->getCommon())
-                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
-                    && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
-                ) {
-                    if ($tblCommonGender->getName() == 'Männlich') {
-                        $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
-                    } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                        $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
-                    }
-                } else {
-                    if (($tblSalutation = $tblPersonSigner->getTblSalutation())) {
-                        if ($tblSalutation->getSalutation() == 'Herr') {
-                            $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
-                        } elseif ($tblSalutation->getSalutation() == 'Frau') {
-                            $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
-                        }
-                    }
+            if (($genderValue = $this->getGenderByPerson($tblPersonSigner))) {
+                $Content['P' . $personId]['DivisionTeacher']['Gender'] = $genderValue;
+                if ($genderValue == 'M') {
+                    $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
+                } elseif ($genderValue == 'W') {
+                    $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
                 }
             }
         }
@@ -1531,5 +1519,37 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return null|string
+     * male -> M | female -> F | nothing -> false
+     */
+    private function getGenderByPerson(TblPerson $tblPerson)
+    {
+
+        $return = false;
+        if (($tblCommonTeacher = $tblPerson->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommonTeacher->getTblCommonBirthDates())) {
+                if (($tblCommonGenderTeacher = $tblCommonBirthDates->getTblCommonGender())) {
+                    if ($tblCommonGenderTeacher->getName() == 'Männlich') {
+                        $return = 'M';
+                    } else {
+                        $return = 'F';
+                    }
+                }
+            }
+        }
+        if ($return == false) {
+            if ($tblPerson->getSalutation() == 'Herr') {
+                $return = 'M';
+            } elseif ($tblPerson->getSalutation() == 'Frau') {
+                $return = 'F';
+            }
+        }
+
+        return $return;
     }
 }

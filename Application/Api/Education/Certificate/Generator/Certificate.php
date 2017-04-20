@@ -2049,22 +2049,41 @@ abstract class Certificate extends Extension
                         ->styleFontFamily($fontFamily)
                         , $widthText);
 
-                    $SubjectSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                    if (strlen($Subject['SubjectName']) > 20 && preg_match('!\s!', $Subject['SubjectName'])) {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent('{% if(Content.P' . $personId . '.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                                             {{ Content.P' . $personId . '.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
+                                         {% else %}
+                                             &ndash;
+                                         {% endif %}')
+                            ->styleTextColor($TextColor)
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor($GradeFieldBackgroundColor)
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
+                            ->stylePaddingTop('-4px')
+                            ->stylePaddingBottom('2px')
+                            ->styleMarginTop($count == 1 ? '25px' : '19px')
+                            ->styleTextSize($TextSize)
+                            ->styleFontFamily($fontFamily)
+                            , $widthGrade);
+                    } else {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent('{% if(Content.P' . $personId . '.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
                                              {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
                                          {% else %}
                                              &ndash;
                                          {% endif %}')
-                        ->styleTextColor($TextColor)
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor($GradeFieldBackgroundColor)
-                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
-                        ->stylePaddingTop('-4px')
-                        ->stylePaddingBottom('2px')
-                        ->styleMarginTop($count == 1 ? '14px' : '8px')
-                        ->styleTextSize($TextSize)
-                        ->styleFontFamily($fontFamily)
-                        , $widthGrade);
+                            ->styleTextColor($TextColor)
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor($GradeFieldBackgroundColor)
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
+                            ->stylePaddingTop('-4px')
+                            ->stylePaddingBottom('2px')
+                            ->styleMarginTop($count == 1 ? '14px' : '8px')
+                            ->styleTextSize($TextSize)
+                            ->styleFontFamily($fontFamily)
+                            , $widthGrade);
+                    }
                 }
 
                 if (count($SubjectList) == 1 && isset($SubjectList[1])) {
