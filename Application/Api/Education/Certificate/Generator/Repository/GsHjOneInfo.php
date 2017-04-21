@@ -2,12 +2,11 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
  * Class GsHjOneInfo
@@ -18,14 +17,16 @@ class GsHjOneInfo extends Certificate
 {
 
     /**
-     * @param bool $IsSample
+     * @param TblPerson|null $tblPerson
+     * @return Page
+     * @internal param bool $IsSample
      *
-     * @return Frame
      */
-    public function buildCertificate($IsSample = true)
-    {
+    public function buildPages(TblPerson $tblPerson = null){
 
-        if ($IsSample) {
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        if ($this->isSample()) {
             $Header = ( new Slice() )
                 ->addSection(( new Section() )
                     ->addElementColumn(( new Element() )
@@ -51,20 +52,18 @@ class GsHjOneInfo extends Certificate
                 );
         }
 
-        return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
+        return (new Page())
                 ->addSlice(
                     $Header
                 )
-                ->addSlice($this->getSchoolName())
+                ->addSlice($this->getSchoolName($personId))
                 ->addSlice($this->getCertificateHead('Halbjahresinformation der Grundschule'))
-                ->addSlice($this->getDivisionAndYear())
-                ->addSlice($this->getStudentName())
-                ->addSlice($this->getDescriptionContent('620px', '20px'))
-                ->addSlice($this->getDateLine())
-                ->addSlice($this->getSignPart(false))
-                ->addSlice($this->getParentSign())
-            )
+                ->addSlice($this->getDivisionAndYear($personId))
+                ->addSlice($this->getStudentName($personId))
+                ->addSlice($this->getDescriptionContent($personId, '620px', '20px'))
+                ->addSlice($this->getDateLine($personId))
+                ->addSlice($this->getSignPart($personId, false))
+                ->addSlice($this->getParentSign()
         );
     }
 }

@@ -293,10 +293,13 @@ class Service
                     }
                 }
 
+
+
                 if ($Remarks) {
                     foreach ($Remarks as $personId => $remark) {
                         if (($tblPerson = Person::useService()->getPersonById($personId))) {
-                            $Content['Input']['Remark'] = $remark;
+                            $Content['P' . $personId]['Input']['Remark'] = $remark;
+
                             Prepare::useService()->updatePrepareInformationDataList($tblPrepare, $tblPerson,
                                 $Content, null);
                         }

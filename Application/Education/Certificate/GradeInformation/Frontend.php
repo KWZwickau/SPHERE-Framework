@@ -589,12 +589,15 @@ class Frontend extends Extension implements IFrontendInterface
                     if (class_exists($CertificateClass)) {
 
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                        $Template = new $CertificateClass();
+                        $Template = new $CertificateClass($tblDivision);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
 
-                        $ContentLayout = $Template->createCertificate($Content)->getContent();
+                        $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
+                        $bridge = $Template->createCertificate($Content, $pageList);
+
+                        $ContentLayout = $bridge->getContent();
                     }
                 }
             }
@@ -764,7 +767,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new External(
                                     'Alle Noteninformationen herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewZip',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),

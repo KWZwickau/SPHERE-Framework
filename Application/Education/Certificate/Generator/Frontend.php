@@ -313,7 +313,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if (class_exists($CertificateClass)) {
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                            $Template = new $CertificateClass($tblPerson, $tblDivision);
+                            $Template = new $CertificateClass($tblDivision);
 
                             $GradeList = $Template->getGrade();
                             $HeaderBehavior = array();
@@ -547,9 +547,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     $CertificateClass = '\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Load->getCertificate();
                                     if (class_exists($CertificateClass)) {
                                         $tblDivision = Division::useService()->getDivisionById($Load->getDivision());
-                                        $tblPerson = Person::useService()->getPersonById($Load->getPerson());
                                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                                        $Template = new $CertificateClass($tblPerson, $tblDivision);
+                                        $Template = new $CertificateClass($tblDivision);
                                     }
                                     $Content = $Template->createCertificate($Load->getData())->getContent();
                                     break;
