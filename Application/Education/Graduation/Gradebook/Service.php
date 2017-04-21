@@ -1322,4 +1322,14 @@ class Service extends ServiceScoreRule
 
         return (new Data($this->getBinding()))->existsGradeByDivisionSubject($tblDivisionSubject);
     }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblGradeType $tblGradeType
+     */
+    public function updateGradesGradeTypeByTest(TblTest $tblTest, TblGradeType $tblGradeType) {
+        if (($tblGradeList = $this->getGradeAllByTest($tblTest))) {
+            (new Data($this->getBinding()))->updateGradesGradeType($tblGradeType, $tblGradeList);
+        }
+    }
 }
