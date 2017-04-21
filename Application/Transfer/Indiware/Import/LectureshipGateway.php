@@ -1,61 +1,20 @@
 <?php
 /**
- * Export Unterricht (GPU002.TXT) Reihenfolge der Felder in der DIF-Datei GPU002.TXT
- * GPU002.TXT DIF-Datei Unterricht:
- * Nummer        Feld                Art
- * 1        Unt-Nummer        Num
- * 2        Wochenstunden        Num
- * 3        Wochenstd. Kla.        Num *1)
- * 4        Wochenstd. Le.        Num *1)
- * 5        Klasse
- * 6        Lehrer
- * 7        Fach
- * 8        Fachraum
- * 9        Statistik 1 Unt.
- * 10       Studentenzahl        Num
- * 11       Wochenwert        Num *2)
- * 12       Gruppe
- * 13       Zeilentext 1
- * 14       Zeilenwert (in Tausendstel) *3)
- * 15       Datum von        Datum
- * 16       Datum bis        Datum
- * 17       Jahreswert Num *4)
- * 18       Text (früher U-ID)
- * 19       Teilungs-Nummer
- * 20       Stammraum
- * 21       Beschreibung
- * 22       Farbe Vg.        Farbe
- * 23       Farbe Hg.        Farbe
- * 24       Kennzeichen
- * 25       Fachfolge Klassen
- * 26       Fachfolge Lehrer
- * 27       Klassen-Kollisions-Kennz.
- * 28       Doppelstd. min.        Num
- * 29       Doppelstd. max.        Num
- * 30       Blockgröße        Num
- * 31       Std. im Raum        Num
- * 32       Priorität
- * 33       Statistik 1 Lehrer
- * 34       Studenten männl.        Num
- * 35       Studenten weibl.        Num
- * 36       Wert bzw. Faktor
- * 37       2. Block
- * 38       3. Block
- * 39       Zeilentext-2
- * 40       Eigenwert (ohne Faktoren - ausser Faktor Unterricht)
- * 41       Eigenwert (in 1/100000)
- * 42       Schülergruppe
- * 43       Wochenstunden in Jahres-Perioden-Planung (z.B. '2,4,0,2,3')
- * 44       Jahresstunden
- * 45       Zeilen-Unterrichtsgruppe
+ * Export Unterricht (SpUnterricht.csv) Reihenfolge der Felder in der CSV-Datei SpUnterricht.csv
+ * SpUnterricht.csv CSV-Datei Unterricht:
+ * Nummer        Feld       Art
+ * 1        Nummer          Num
+ * 2        Fach            Str
+ * 3        Lehrer          Str
+ * 4        Lehrer2         Str
+ * 5        Lehrer3         Str
+ * 6        Klasse1         Str
+ * 7        Klasse2         Str
+ * 8        Gruppe          Str
  *
- *
- * *1) Wochenstunden Klassen/Lehrer: Erscheint eine Klasse in mehreren Zeilen des selben Unterrichtes (mehrere Lehrer in dieser Klasse), so ist nur in der ersten Zeile diese Anzahl ungleich null.
- * *2) Wochenwert: Aus den Faktoren gerechneter Wochenwert für den Lehrer dieser Zeile.
- * *3) Zeilenwert: Nicht umgeschlüsselte Eintragung im Feld Zeilenwert.
- * *4) Jahreswert: Ohne Stundenplan gemittelte Jahreswertstunden (Wochenwert mal Jahreswochen).
  */
-namespace SPHERE\Application\Transfer\Untis\Import;
+
+namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -75,7 +34,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 /**
  * Class LectureshipGateway
- * @package SPHERE\Application\Transfer\Untis\Import
+ * @package SPHERE\Application\Transfer\Indiware\Import
  */
 class LectureshipGateway extends AbstractConverter
 {
@@ -90,7 +49,7 @@ class LectureshipGateway extends AbstractConverter
     /**
      * LectureshipGateway constructor.
      *
-     * @param string  $File GPU002.TXT
+     * @param string  $File SpUnterricht.csv
      * @param TblYear $tblYear
      */
     public function __construct($File, TblYear $tblYear)
@@ -100,29 +59,47 @@ class LectureshipGateway extends AbstractConverter
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
-        $this->setPointer(new FieldPointer('E', 'FileDivision'));
-        $this->setPointer(new FieldPointer('E', 'AppDivision'));
-        $this->setPointer(new FieldPointer('E', 'DivisionId'));
-        $this->setSanitizer(new FieldSanitizer('E', 'AppDivision', array($this, 'sanitizeDivision')));
-        $this->setSanitizer(new FieldSanitizer('E', 'DivisionId', array($this, 'fetchDivision')));
+        $this->setPointer(new FieldPointer('B', 'FileSubject'));
+        $this->setPointer(new FieldPointer('B', 'AppSubject'));
+        $this->setPointer(new FieldPointer('B', 'SubjectId'));
+        $this->setSanitizer(new FieldSanitizer('B', 'AppSubject', array($this, 'sanitizeSubject')));
+        $this->setSanitizer(new FieldSanitizer('B', 'SubjectId', array($this, 'fetchSubject')));
 
-        $this->setPointer(new FieldPointer('F', 'FileTeacher'));
-        $this->setPointer(new FieldPointer('F', 'AppTeacher'));
-        $this->setPointer(new FieldPointer('F', 'TeacherId'));
-        $this->setSanitizer(new FieldSanitizer('F', 'AppTeacher', array($this, 'sanitizeTeacher')));
-        $this->setSanitizer(new FieldSanitizer('F', 'TeacherId', array($this, 'fetchTeacher')));
+        $this->setPointer(new FieldPointer('C', 'FileTeacher1'));
+        $this->setPointer(new FieldPointer('C', 'AppTeacher1'));
+        $this->setPointer(new FieldPointer('C', 'TeacherId1'));
+        $this->setSanitizer(new FieldSanitizer('C', 'AppTeacher1', array($this, 'sanitizeTeacher')));
+        $this->setSanitizer(new FieldSanitizer('C', 'TeacherId1', array($this, 'fetchTeacher')));
 
-        $this->setPointer(new FieldPointer('G', 'FileSubject'));
-        $this->setPointer(new FieldPointer('G', 'AppSubject'));
-        $this->setPointer(new FieldPointer('G', 'SubjectId'));
-        $this->setSanitizer(new FieldSanitizer('G', 'AppSubject', array($this, 'sanitizeSubject')));
-        $this->setSanitizer(new FieldSanitizer('G', 'SubjectId', array($this, 'fetchSubject')));
+        $this->setPointer(new FieldPointer('D', 'FileTeacher2'));
+        $this->setPointer(new FieldPointer('D', 'AppTeacher2'));
+        $this->setPointer(new FieldPointer('D', 'TeacherId2'));
+        $this->setSanitizer(new FieldSanitizer('D', 'AppTeacher2', array($this, 'sanitizeTeacher')));
+        $this->setSanitizer(new FieldSanitizer('D', 'TeacherId2', array($this, 'fetchTeacher')));
 
-        $this->setPointer(new FieldPointer('L', 'FileSubjectGroup'));
-        $this->setPointer(new FieldPointer('L', 'AppSubjectGroup'));
-        $this->setSanitizer(new FieldSanitizer('L', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
+        $this->setPointer(new FieldPointer('E', 'FileTeacher3'));
+        $this->setPointer(new FieldPointer('E', 'AppTeacher3'));
+        $this->setPointer(new FieldPointer('E', 'TeacherId3'));
+        $this->setSanitizer(new FieldSanitizer('E', 'AppTeacher3', array($this, 'sanitizeTeacher')));
+        $this->setSanitizer(new FieldSanitizer('E', 'TeacherId3', array($this, 'fetchTeacher')));
 
-        $this->scanFile(0);
+        $this->setPointer(new FieldPointer('F', 'FileDivision1'));
+        $this->setPointer(new FieldPointer('F', 'AppDivision1'));
+        $this->setPointer(new FieldPointer('F', 'DivisionId1'));
+        $this->setSanitizer(new FieldSanitizer('F', 'AppDivision1', array($this, 'sanitizeDivision')));
+        $this->setSanitizer(new FieldSanitizer('F', 'DivisionId1', array($this, 'fetchDivision')));
+
+        $this->setPointer(new FieldPointer('G', 'FileDivision2'));
+        $this->setPointer(new FieldPointer('G', 'AppDivision2'));
+        $this->setPointer(new FieldPointer('G', 'DivisionId2'));
+        $this->setSanitizer(new FieldSanitizer('G', 'AppDivision2', array($this, 'sanitizeDivision2')));
+        $this->setSanitizer(new FieldSanitizer('G', 'DivisionId2', array($this, 'fetchDivision')));
+
+        $this->setPointer(new FieldPointer('H', 'FileSubjectGroup'));
+        $this->setPointer(new FieldPointer('H', 'AppSubjectGroup'));
+        $this->setSanitizer(new FieldSanitizer('H', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
+
+        $this->scanFile(1);
     }
 
     /**
@@ -152,24 +129,39 @@ class LectureshipGateway extends AbstractConverter
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
         }
+
         if (!$this->IsError) {
-            $tblDivision = ( isset($Result['DivisionId']) && $Result['DivisionId'] !== null ? Division::useService()->getDivisionById($Result['DivisionId']) : null );
-            $tblTeacher = ( isset($Result['TeacherId']) && $Result['TeacherId'] !== null ? Teacher::useService()->getTeacherById($Result['TeacherId']) : null );
-            $tblSubject = ( isset($Result['SubjectId']) && $Result['SubjectId'] !== null ? Subject::useService()->getSubjectById($Result['SubjectId']) : null );
-            $FileDivision = $Result['FileDivision'];
-            $FileTeacher = $Result['FileTeacher'];
+            $tblDivision1 = (isset($Result['DivisionId1']) && $Result['DivisionId1'] !== null ? Division::useService()->getDivisionById($Result['DivisionId1']) : null);
+            $tblDivision2 = (isset($Result['DivisionId2']) && $Result['DivisionId2'] !== null ? Division::useService()->getDivisionById($Result['DivisionId2']) : null);
+            $tblTeacher1 = (isset($Result['TeacherId1']) && $Result['TeacherId1'] !== null ? Teacher::useService()->getTeacherById($Result['TeacherId1']) : null);
+            $tblTeacher2 = (isset($Result['TeacherId2']) && $Result['TeacherId2'] !== null ? Teacher::useService()->getTeacherById($Result['TeacherId2']) : null);
+            $tblTeacher3 = (isset($Result['TeacherId3']) && $Result['TeacherId3'] !== null ? Teacher::useService()->getTeacherById($Result['TeacherId3']) : null);
+            $tblSubject = (isset($Result['SubjectId']) && $Result['SubjectId'] !== null ? Subject::useService()->getSubjectById($Result['SubjectId']) : null);
+            $FileDivision1 = $Result['FileDivision1'];
+            $FileDivision2 = $Result['FileDivision2'];
+            $FileTeacher1 = $Result['FileTeacher1'];
+            $FileTeacher2 = $Result['FileTeacher2'];
+            $FileTeacher3 = $Result['FileTeacher3'];
             $FileSubject = $Result['FileSubject'];
             $FileSubjectGroup = $Result['FileSubjectGroup'];
             $AppSubjectGroup = $Result['AppSubjectGroup'];
 
-            $ImportRow = array('tblDivision'      => $tblDivision,
-                               'tblTeacher'       => $tblTeacher,
-                               'tblSubject'       => $tblSubject,
-                               'FileDivision'     => $FileDivision,
-                               'FileTeacher'      => $FileTeacher,
-                               'FileSubject'      => $FileSubject,
-                               'FileSubjectGroup' => $FileSubjectGroup,
-                               'AppSubjectGroup'  => $AppSubjectGroup);
+            $ImportRow = array(
+                'tblDivision1'     => $tblDivision1,
+                'tblDivision2'     => $tblDivision2,
+                'tblTeacher1'      => $tblTeacher1,
+                'tblTeacher2'      => $tblTeacher2,
+                'tblTeacher3'      => $tblTeacher3,
+                'tblSubject'       => $tblSubject,
+                'FileDivision1'    => $FileDivision1,
+                'FileDivision2'    => $FileDivision2,
+                'FileTeacher1'     => $FileTeacher1,
+                'FileTeacher2'     => $FileTeacher2,
+                'FileTeacher3'     => $FileTeacher3,
+                'FileSubject'      => $FileSubject,
+                'FileSubjectGroup' => $FileSubjectGroup,
+                'AppSubjectGroup'  => $AppSubjectGroup
+            );
             $this->ImportList[] = $ImportRow;
         } else {
             $this->IsError = false;
@@ -197,9 +189,11 @@ class LectureshipGateway extends AbstractConverter
 
         $tblDivisionList = array();
         // search with Level
-        if (( $tblLevelList = Division::useService()->getLevelAllByName($LevelName) ) && $tblYear) {
+        if (($tblLevelList = Division::useService()->getLevelAllByName($LevelName)) && $tblYear) {
             foreach ($tblLevelList as $tblLevel) {
-                if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
+                if (($tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName,
+                    $tblLevel, $tblYear))
+                ) {
                     if ($tblDivisionArray) {
                         foreach ($tblDivisionArray as $tblDivision) {
                             $tblDivisionList[] = $tblDivision;
@@ -221,7 +215,9 @@ class LectureshipGateway extends AbstractConverter
         }
         // search without Level
         if ($tblLevel === null && $tblYear && $LevelName == '') {
-            if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
+            if (($tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName,
+                $tblLevel, $tblYear))
+            ) {
                 if ($tblDivisionArray) {
                     foreach ($tblDivisionArray as $tblDivision) {
                         $tblDivisionList[] = $tblDivision;
@@ -253,8 +249,57 @@ class LectureshipGateway extends AbstractConverter
      *
      * @return null|Danger|int
      */
+    protected function sanitizeDivision2($Value)
+    {
+        $LevelName = null;
+        $DivisionName = null;
+        if ($Value === '') {
+            return null;
+        }
+        $this->MatchDivision($Value, $LevelName, $DivisionName);
+        $tblLevel = null;
+        $tblYear = Term::useService()->getYearById($this->Year);
+
+        $tblDivisionList = array();
+        // search with Level
+        if (($tblLevelList = Division::useService()->getLevelAllByName($LevelName)) && $tblYear) {
+            foreach ($tblLevelList as $tblLevel) {
+                if (($tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName,
+                    $tblLevel, $tblYear))
+                ) {
+                    if ($tblDivisionArray) {
+                        foreach ($tblDivisionArray as $tblDivision) {
+                            $tblDivisionList[] = $tblDivision;
+                        }
+                    }
+                }
+            }
+            if (empty($tblDivisionList)) {
+                return null;
+            } elseif (count($tblDivisionList) == 1) {
+                /** @var TblDivision $tblDivision */
+                $tblDivision = $tblDivisionList[0];
+                return $tblDivision->getDisplayName();
+            } else {
+                return null;
+            }
+        }
+
+        if (!$tblYear) {
+            $this->IsError = true;
+            return new Danger(new Ban().' Schuljahr nicht gefunden!');
+        }
+        return null;
+    }
+
+    /**
+     * @param $Value
+     *
+     * @return null|int
+     */
     protected function fetchDivision($Value)
     {
+
         if ($Value != '') {
             $LevelName = null;
             $DivisionName = null;
@@ -310,7 +355,11 @@ class LectureshipGateway extends AbstractConverter
      */
     protected function MatchDivision($Value, &$LevelName, &$DivisionName)
     {
-        if (preg_match('!^(.*?)\s([a-zA-Z]*?)$!is', $Value, $Match)) {
+
+        if (preg_match('!^(\d+)([a-zA-Z]*?)$!is', $Value, $Match)) {
+            $LevelName = $Match[1];
+            $DivisionName = $Match[2];
+        } elseif (preg_match('!^(.*?)\s([a-zA-Z]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
         } elseif (preg_match('!^([a-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
@@ -323,7 +372,6 @@ class LectureshipGateway extends AbstractConverter
             $DivisionName = $Match[1];
             $LevelName = null;
         }
-
     }
 
     /**
@@ -334,44 +382,10 @@ class LectureshipGateway extends AbstractConverter
     protected function sanitizeSubjectGroup($Value)
     {
         if (preg_match('!^(.+?)$!is', $Value, $Match)) {
-//            $GroupName = $Match[1];
-//            $tblDivision = Division::useService()->getDivisionById($this->Division);
-//            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
-//            if ($tblDivision && $tblSubject) {
-//                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
-//                if ($tblSubjectGroup) {
-//                    return $tblSubjectGroup->getName().', '.$tblSubjectGroup->getDescription();
-//                }
-//                return new Warning(new WarningIcon().' Gruppe nicht gefunden');
-//            }
-//            return new Warning(new WarningIcon().' Klasse/Fach fehlt');
             return $Match[1];
         }
         return '';
     }
-
-//    /**
-//     * @param $Value
-//     *
-//     * @return int|null
-//     */
-//    protected function fetchSubjectGroup($Value)
-//    {
-//        if (preg_match('!^(.+?)$!is', $Value, $Match)) {
-//            $GroupName = $Match[1];
-//            $tblDivision = Division::useService()->getDivisionById($this->Division);
-//            $tblSubject = Subject::useService()->getSubjectById($this->Subject);
-//            if ($tblDivision && $tblSubject) {
-//                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($GroupName, $tblDivision, $tblSubject);
-//                if ($tblSubjectGroup) {
-//                    return $tblSubjectGroup->getId();
-//                }
-//                return null;
-//            }
-//            return null;
-//        }
-//        return null;
-//    }
 
     /**
      * @param $Value
@@ -384,7 +398,7 @@ class LectureshipGateway extends AbstractConverter
             return new Warning(new WarningIcon().' Lehrer wurde nicht angegeben');
         }
 
-        if (!( $tblTeacher = Teacher::useService()->getTeacherByAcronym($Value) )) {
+        if (!($tblTeacher = Teacher::useService()->getTeacherByAcronym($Value))) {
             return new Warning(new WarningIcon().' Das Lehrer-Kürzel '.$Value.' ist in der Schulsoftware nicht vorhanden');
         } else {
             return $tblTeacher->getAcronym().' - '.$tblTeacher->getServiceTblPerson()->getFullName();
@@ -398,12 +412,13 @@ class LectureshipGateway extends AbstractConverter
      */
     protected function fetchTeacher($Value)
     {
+
         $tblTeacher = false;
         if ($Value != '') {
             $tblTeacher = Teacher::useService()->getTeacherByAcronym($Value);
         }
 
-        return ( $tblTeacher ? $tblTeacher->getId() : null );
+        return ($tblTeacher ? $tblTeacher->getId() : null);
     }
 
     /**
@@ -417,7 +432,7 @@ class LectureshipGateway extends AbstractConverter
             return new Warning(new WarningIcon().' Fach wurde nicht angegeben');
         }
 
-        if (!( $tblSubject = Subject::useService()->getSubjectByAcronym($Value) )) {
+        if (!($tblSubject = Subject::useService()->getSubjectByAcronym($Value))) {
             return new Warning(new WarningIcon().' Das Fach '.$Value.' ist in der Schulsoftware nicht vorhanden');
         } else {
             return $tblSubject->getAcronym().' - '.$tblSubject->getName();
@@ -435,6 +450,6 @@ class LectureshipGateway extends AbstractConverter
         if ($tblSubject) {
             $this->Subject = $tblSubject->getId();
         }
-        return ( $tblSubject ? $tblSubject->getId() : null );
+        return ($tblSubject ? $tblSubject->getId() : null);
     }
 }
