@@ -48,6 +48,13 @@ class Creator extends Extension
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        $personId = $tblPerson->getId();
+                        if (isset($Content['P' . $personId]['Grade'])) {
+                            $Certificate->setGrade($Content['P' . $personId]['Grade']);
+                        }
+                        if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                            $Certificate->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                        }
 
                         $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
@@ -140,6 +147,13 @@ class Creator extends Extension
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        $personId = $tblPerson->getId();
+                        if (isset($Content['P' . $personId]['Grade'])) {
+                            $Certificate->setGrade($Content['P' . $personId]['Grade']);
+                        }
+                        if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                            $Certificate->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                        }
 
                         $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
@@ -206,6 +220,13 @@ class Creator extends Extension
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                            $personId = $tblPerson->getId();
+                            if (isset($Content['P' . $personId]['Grade'])) {
+                                $Certificate->setGrade($Content['P' . $personId]['Grade']);
+                            }
+                            if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                                $Certificate->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                            }
 
                             $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                             $personLastName = str_replace('ü', 'ue', $personLastName);
@@ -278,6 +299,13 @@ class Creator extends Extension
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                            $personId = $tblPerson->getId();
+                            if (isset($Content['P' . $personId]['Grade'])) {
+                                $Certificate->setGrade($Content['P' . $personId]['Grade']);
+                            }
+                            if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                                $Certificate->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                            }
 
                             $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                             $personLastName = str_replace('ü', 'ue', $personLastName);
@@ -441,6 +469,16 @@ class Creator extends Extension
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
                             $Certificate = new $CertificateClass($tblDivision);
 
+                            // get Content
+                            $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                            $personId = $tblPerson->getId();
+                            if (isset($Content['P' . $personId]['Grade'])) {
+                                $Certificate->setGrade($Content['P' . $personId]['Grade']);
+                            }
+                            if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                                $Certificate->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                            }
+
                             $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
                         }
                     }
@@ -450,6 +488,7 @@ class Creator extends Extension
 
         if (!empty($pageList) && $tblPrepare) {
             $Data = Prepare::useService()->getCertificateMultiContent($tblPrepare);
+
             $File = self::buildMultiDummyFile($Data, $pageList);
             $FileName = $Name . ' ' . ($tblDivision ? $tblDivision->getDisplayName() : '-') . ' ' . date("Y-m-d") . ".pdf";
 
@@ -488,6 +527,13 @@ class Creator extends Extension
 
                             // get Content
                             $Data = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                            $personId = $tblPerson->getId();
+                            if (isset($Data['P' . $personId]['Grade'])) {
+                                $Certificate->setGrade($Data['P' . $personId]['Grade']);
+                            }
+                            if (isset($Data['P' . $personId]['AdditionalGrade'])) {
+                                $Certificate->setAdditionalGrade($Data['P' . $personId]['AdditionalGrade']);
+                            }
 
                             $page = $Certificate->buildPages($tblPerson);
                             $pageList[$tblPerson->getId()] = $page;

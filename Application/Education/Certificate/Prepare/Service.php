@@ -851,6 +851,16 @@ class Service extends AbstractService
             }
         }
 
+        // Fachnoten von abgewählten Fächern vom Vorjahr
+        if (($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson))) {
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                    $Content['P' . $personId]['AdditionalGrade']['Data'][$tblSubject->getAcronym()]
+                        = $tblPrepareAdditionalGrade->getGrade();
+                }
+            }
+        }
+
         // Fehlzeiten
         $excusedDays = $tblPrepareStudent->getExcusedDays();
         $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
@@ -1641,7 +1651,7 @@ class Service extends AbstractService
             $diffList = array();
             foreach ($tblLastSubjectList as $tblLastSubject) {
                 if (!isset($tblCurrentSubjectList[$tblLastSubject->getId()])) {
-                    $diffList[$tblLastSubject->getId()] = $tblLastSubject;
+                    $diffList[$tblLastSubject->getAcronym()] = $tblLastSubject;
                 }
             }
 
@@ -1660,9 +1670,9 @@ class Service extends AbstractService
             if (empty($diffList)) {
                 return false;
             } else {
-                // ToDo Sortierung nach Acronym
                 /** @var TblSubject $item */
                 $count = 1;
+                ksort($diffList);
                 foreach ($diffList as $item) {
                     $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
                     $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblLastPrepare, $tblPerson,

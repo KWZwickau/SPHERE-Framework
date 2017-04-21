@@ -37,6 +37,11 @@ abstract class Certificate extends Extension
     private $Grade;
 
     /**
+     * @var array|false
+     */
+    private $AdditionalGrade;
+
+    /**
      * @var TblDivision|null
      */
     private $tblDivision = null;
@@ -52,6 +57,7 @@ abstract class Certificate extends Extension
         $this->getCache(new TwigHandler())->clearCache();
 
         $this->setGrade(false);
+        $this->setAdditionalGrade(false);
         $this->tblDivision = $tblDivision;
         $this->IsSample = (bool)$IsSample;
         $this->Certificate = $this->buildCertificate($pageList);
@@ -74,15 +80,6 @@ abstract class Certificate extends Extension
      */
     public function createCertificate($Data = array(), $PageList = array())
     {
-
-        foreach ($PageList as $personId => $page) {
-            // ToDo Prüfung ob noch benötigt
-            if (isset($Data['P' . $personId]['Grade'])) {
-                // für Befreiung
-                $this->setGrade($Data['P' . $personId]['Grade']);
-                $Data['P' . $personId]['Grade'] = $this->getGrade();
-            }
-        }
 
         $this->Certificate = $this->buildCertificate($PageList);
 
@@ -173,6 +170,22 @@ abstract class Certificate extends Extension
     public function isSample()
     {
         return $this->IsSample;
+    }
+
+    /**
+     * @return array|false
+     */
+    public function getAdditionalGrade()
+    {
+        return $this->AdditionalGrade;
+    }
+
+    /**
+     * @param array|false $AdditionalGrade
+     */
+    public function setAdditionalGrade($AdditionalGrade)
+    {
+        $this->AdditionalGrade = $AdditionalGrade;
     }
 
     /**

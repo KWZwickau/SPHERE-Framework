@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
@@ -266,71 +267,7 @@ class MsAbsRs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Kunst/Musik')
-                        ->stylePaddingTop()
-                        , '39%')
-                    ->addElementColumn((new Element())
-                        //ToDO Noten aus vorhergehendem Jahr
-                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.P' . $personId . '.Grade.Data.ToDO }}
-                                {% else %}
-                                    ---
-                                {% endif %}')
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
-                        ->styleBorderBottom('1px', '#000')
-                        ->stylePaddingTop()
-                        ->stylePaddingBottom()
-                        , '9%')
-                    ->addElementColumn((new Element())
-                        , '4%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Geschichte/Geographie')
-                        ->stylePaddingTop()
-                        , '39%')
-                    ->addElementColumn((new Element())
-                        //ToDO Noten aus vorhergehendem Jahr
-                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.P' . $personId . '.Grade.Data.ToDO }}
-                                {% else %}
-                                    ---
-                                {% endif %}')
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
-                        ->styleBorderBottom('1px', '#000')
-                        ->stylePaddingTop()
-                        ->stylePaddingBottom()
-                        , '9%')
-                )
-                ->styleMarginTop('10px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Wirtschaft-Technik-Haushalt/Soziales')
-                        ->stylePaddingTop()
-                        ->stylePaddingBottom()
-                        , '39%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data.ToDO is not empty) %}
-                                    {{ Content.P' . $personId . '.Grade.Data.ToDO }}
-                                {% else %}
-                                    ---
-                                {% endif %}')//ToDO Wirtschaft-Technik-Haushalt/Soziales
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
-                        ->styleBorderBottom('1px', '#000')
-                        ->stylePaddingTop()
-                        ->stylePaddingBottom()
-                        , '9%')
-                    ->addElementColumn((new Element())
-                        , '52%')
-                )
-                ->styleMarginTop('10px')
-            )
+            ->addSlice($this->getAdditionalSubjectLanes($personId))
             /////////////////////////
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '215px', '15px'))
@@ -418,5 +355,67 @@ class MsAbsRs extends Certificate
         $pageList[] = new Page();
 
         return $pageList;
+    }
+
+    /**
+     * @param $personId
+     * @param string $TextSize
+     * @param bool $IsGradeUnderlined
+     *
+     * @return Slice
+     */
+    private function getAdditionalSubjectLanes(
+        $personId,
+        $TextSize = '14px',
+        $IsGradeUnderlined = false
+    ) {
+
+        $slice = new Slice();
+        if (($tblGradeList = $this->getAdditionalGrade())) {
+            $count = 0;
+            $section = new Section();
+            foreach ($tblGradeList['Data'] as $subjectAcronym => $grade) {
+                if (($tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym))) {
+                    $count++;
+                    if ($count % 2 == 1) {
+                        $section = new Section();
+                        $slice->addSection($section);
+                    } else {
+                        $section->addElementColumn((new Element())
+                            , '4%');
+                    }
+
+                    $section->addElementColumn((new Element())
+                        ->setContent($tblSubject->getName())
+                        ->stylePaddingTop()
+                        ->styleMarginTop('10px')
+                        ->styleTextSize($TextSize)
+                        , '39%');
+
+
+
+                    $section->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                             {{ Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] }}
+                                         {% else %}
+                                             &ndash;
+                                         {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor('#BBB')
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                        ->stylePaddingTop('2px')
+                        ->stylePaddingBottom('2px')
+                        ->styleMarginTop('10px')
+                        ->styleTextSize($TextSize)
+                        , '9%');
+                }
+            }
+
+            if ($count % 2 == 1) {
+                $section->addElementColumn(new Element(), '52%');
+            }
+        }
+
+        return $slice;
     }
 }

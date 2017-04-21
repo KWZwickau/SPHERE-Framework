@@ -593,6 +593,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        $personId = $tblPerson->getId();
+                        if (isset($Content['P' . $personId]['Grade'])) {
+                            $Template->setGrade($Content['P' . $personId]['Grade']);
+                        }
+                        if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                            $Template->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                        }
 
                         $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
                         $bridge = $Template->createCertificate($Content, $pageList);

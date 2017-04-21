@@ -1133,9 +1133,6 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $FieldName = $PlaceholderList[0] . '[' . implode('][', $Identifier) . ']';
 
-//                                Debugger::screenDump($Identifier, $FieldName);
-
-
                                 $dataFieldName = str_replace('Content[Input]', 'Data[' . $tblPerson->getId() . ']',
                                     $FieldName);
 
@@ -1903,6 +1900,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        $personId = $tblPerson->getId();
+                        if (isset($Content['P' . $personId]['Grade'])) {
+                            $Template->setGrade($Content['P' . $personId]['Grade']);
+                        }
+                        if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                            $Template->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                        }
 
                         $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
                         $bridge = $Template->createCertificate($Content, $pageList);
@@ -2067,6 +2071,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                     if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
                         $contentList[] = array(
+                            'Ranking' => $tblPrepareAdditionalGrade->getRanking(),
                             'Acronym' => $tblSubject->getAcronym(),
                             'Name' => $tblSubject->getName(),
                             'Grade' => $tblPrepareAdditionalGrade->getGrade(),
@@ -2085,6 +2090,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $contentList,
                                     null,
                                     array(
+                                        'Ranking' => '#',
                                         'Acronym' => 'Kürzel',
                                         'Name' => 'Name',
                                         'Grade' => 'Zensur',
