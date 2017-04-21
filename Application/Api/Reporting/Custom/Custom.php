@@ -143,6 +143,15 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'/Radebeul/Person/DiseaseList/Download',
                 __NAMESPACE__.'\Radebeul\Person::downloadDiseaseList'
             ));
+
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Radebeul/Person/Nursery/Download',
+                __NAMESPACE__.'\Radebeul\Person::downloadNursery'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Radebeul/Person/NurseryList/Download',
+                __NAMESPACE__.'\Radebeul\Person::downloadNurseryList'
+            ));
         }
 
         // Muldental

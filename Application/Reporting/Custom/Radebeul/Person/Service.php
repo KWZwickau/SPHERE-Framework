@@ -12,6 +12,7 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
@@ -22,6 +23,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -805,6 +807,331 @@ class Service extends Extension
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(60);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param string   $PLZ
+     *
+     * @return array
+     */
+    public function createNursery(TblGroup $tblGroup, $PLZ = '')
+    {
+
+        $TableContent = array();
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if ($tblPersonList) {
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+            $RowCount = 1;
+            /** @var TblPerson $tblPerson */
+            foreach ($tblPersonList as $tblPerson) {
+                $Item['Count'] = $Item['CountExcel'] = $RowCount++;
+                $Item['Division'] = $Item['DivisionExcel'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson,
+                    ' ');
+                $Item['LastName'] = $Item['LastNameExcel'] = $tblPerson->getLastName();
+                $Item['FirstName'] = $Item['FirstNameExcel'] = $tblPerson->getFirstSecondName();
+                $Item['Birthday'] = $Item['BirthdayExcel'] = '';
+                $Item['City'] = $Item['CityExcel'] = '';
+                $Item['PLZ'] = $Item['PLZExcel'] = '';
+                $Item['Street'] = $Item['StreetExcel'] = '';
+                $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                if ($tblAddress) {
+                    $Item['Street'] = $Item['StreetExcel'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+                    $tblCity = $tblAddress->getTblCity();
+                    if ($tblCity) {
+                        $Item['City'] = $Item['CityExcel'] = $tblCity->getDisplayName();
+                        $Item['PLZ'] = $Item['PLZExcel'] = $tblCity->getCode();
+                    }
+                }
+                if ($tblPerson->getCommon()
+                    && ($tblCommonBirthDates = $tblPerson->getCommon()->getTblCommonBirthDates())
+                ) {
+                    $Item['Birthday'] = $Item['BirthdayExcel'] = $tblCommonBirthDates->getBirthday();
+                }
+
+                // mark the unmatched
+                if ($Item['PLZ'] != $PLZ) {
+                    $Item['Count'] = new Bold($Item['Count']);
+                    $Item['Division'] = new Bold($Item['Division']);
+                    $Item['LastName'] = new Bold($Item['LastName']);
+                    $Item['FirstName'] = new Bold($Item['FirstName']);
+                    $Item['Birthday'] = new Bold($Item['Birthday']);
+                    $Item['City'] = new Bold($Item['City']);
+                    $Item['PLZ'] = new Bold($Item['PLZ']);
+                    $Item['Street'] = new Bold($Item['Street']);
+                }
+                array_push($TableContent, $Item);
+            }
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param array  $TableContent
+     * @param string $PLZ
+     *
+     * @return int
+     */
+    public function getMismatchedPLZ($TableContent = array(), $PLZ = '')
+    {
+
+        $mismatchedPLZ = 0;
+        foreach ($TableContent as $tblPersonContent) {
+            if (isset($tblPersonContent['PLZ']) && $tblPersonContent['PLZ'] != $PLZ) {
+                $mismatchedPLZ++;
+            }
+        }
+
+        return $mismatchedPLZ;
+    }
+
+    /**
+     * @param array  $PersonList
+     * @param string $PLZ
+     *
+     * @return bool|FilePointer
+     * @throws DocumentTypeException
+     * @throws \MOC\V\Component\Document\Component\Exception\ComponentException
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     */
+    public function createNurseryExcel($PersonList, $PLZ = '')
+    {
+
+        if (!empty($PersonList)) {
+
+//            foreach ($PersonList as $key => $row) {
+//                $division[$key] = strtoupper($row['Division']);
+//                $lastName[$key] = strtoupper($row['LastName']);
+//                $firstName[$key] = strtoupper($row['FirstName']);
+//            }
+//            array_multisort($division, SORT_ASC, $lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
+            $countPerson = count($PersonList);
+            $countMisMatched = $this->getMismatchedPLZ($PersonList, $PLZ);
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+
+            $now = (new \DateTime());
+            $nowString = $now->format('d.m.Y');
+            $toDateString = '01.'.$now->add(new \DateInterval('P1M'))->format('m.Y');
+
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $export->setValue($export->getCell(1, 0), 'Anzahl der aufgenommenen Kinder zum 1. eines Monats');
+            $export->setStyle($export->getCell(1, 0), $export->getCell(4, 0))
+                ->mergeCells()
+                ->setFontBold()
+                ->setBorderAll();
+
+            $export->setStyle($export->getCell(1, 1), $export->getCell(1, 1))
+                ->setBorderAll();
+            $export->setStyle($export->getCell(2, 1), $export->getCell(4, 1))
+                ->mergeCells()
+                ->setBorderAll();
+
+            $export->setValue($export->getCell(1, 2), 'Einrichtung:');
+            $export->setStyle($export->getCell(1, 2), $export->getCell(1, 5))
+                ->setFontBold()
+                ->setAlignmentTop()
+                ->mergeCells()
+                ->setBorderAll();
+            $export->setValue($export->getCell(2, 2), 'Hort der Ev. Grundschule Radebeul');
+            $export->setValue($export->getCell(2, 3), 'Wilhelm-Eichler-Straße 13');
+            $export->setValue($export->getCell(2, 4), '01445 Radebeul');
+            $export->setStyle($export->getCell(2, 2), $export->getCell(4, 2))
+                ->mergeCells()
+                ->setBorderLeft()
+                ->setBorderTop()
+                ->setBorderRight();
+            $export->setStyle($export->getCell(2, 3), $export->getCell(4, 3))
+                ->mergeCells()
+                ->setBorderLeft()
+                ->setBorderRight();
+            $export->setStyle($export->getCell(2, 4), $export->getCell(4, 4))
+                ->mergeCells()
+                ->setBorderLeft()
+                ->setBorderRight();
+            $export->setStyle($export->getCell(2, 5), $export->getCell(4, 5))
+                ->mergeCells()
+                ->setBorderLeft()
+                ->setBorderBottom()
+                ->setBorderRight();
+
+            $export->setValue($export->getCell(1, 6), 'Stichtag:');
+            $export->setStyle($export->getCell(1, 6), $export->getCell(1, 9))
+                ->setFontBold()
+                ->setAlignmentTop()
+                ->mergeCells()
+                ->setBorderAll();
+            $export->setValue($export->getCell(2, 6), $toDateString);
+            $export->setStyle($export->getCell(2, 6), $export->getCell(4, 9))
+                ->setAlignmentCenter()
+                ->setAlignmentMiddle()
+                ->mergeCells()
+                ->setBorderAll();
+
+
+            $export->setValue($export->getCell(2, 10), 'gesamt');
+            $export->setValue($export->getCell(3, 10), 'davon');
+            $export->setValue($export->getCell(4, 10), 'tatsächl.');
+            $export->setStyle($export->getCell(2, 10), $export->getCell(4, 10))
+                ->setFontBold();
+            $export->setStyle($export->getCell(1, 10), $export->getCell(1, 13))
+                ->setBorderOutline();
+            $export->setStyle($export->getCell(2, 10), $export->getCell(2, 13))
+                ->setBorderOutline();
+            $export->setStyle($export->getCell(3, 10), $export->getCell(3, 13))
+                ->setBorderOutline();
+            $export->setStyle($export->getCell(4, 10), $export->getCell(4, 13))
+                ->setBorderOutline();
+            $export->setValue($export->getCell(2, 11), 'Hortkinder');
+            $export->setValue($export->getCell(3, 11), 'ld- anderer');
+            $export->setValue($export->getCell(4, 11), 'besch. päd.');
+            $export->setValue($export->getCell(3, 12), 'Kommunen');
+            $export->setValue($export->getCell(4, 12), 'Fachkräfte');
+            $export->setValue($export->getCell(4, 13), 'in Vzä');
+
+            $export->setValue($export->getCell(1, 15), '6 Stunden:');
+            $export->setValue($export->getCell(2, 15), $countPerson);
+            $export->setValue($export->getCell(3, 15), $countMisMatched);
+            $export->setStyle($export->getCell(2, 15), $export->getCell(3, 15))
+                ->setAlignmentCenter();
+
+            $export->setValue($export->getCell(1, 17), '5 Stunden:');
+
+            $export->setValue($export->getCell(2, 19), $countPerson);
+            $export->setValue($export->getCell(3, 19), $countMisMatched);
+            $export->setStyle($export->getCell(2, 19), $export->getCell(3, 19))
+                ->setAlignmentCenter();
+
+            $export->setValue($export->getCell(1, 21), 'freie Plätze:');
+
+            $export->setValue($export->getCell(1, 23), 'vorraus. Fr. Plätze zum');
+            $export->setValue($export->getCell(1, 24), 'Schuljahresanfang:');
+
+            $export->setStyle($export->getCell(1, 23), $export->getCell(1, 24))
+                ->setBorderOutline();
+            $export->setStyle($export->getCell(2, 23), $export->getCell(4, 24))
+                ->setBorderOutline()
+                ->setAlignmentCenter();
+            $export->setStyle($export->getCell(3, 23), $export->getCell(3, 24))
+                ->setBorderLeft()
+                ->setBorderRight();
+            $export->setStyle($export->getCell(1, 14), $export->getCell(4, 22))
+                ->setBorderAll();
+            $export->setStyle($export->getCell(2, 14), $export->getCell(4, 22))
+                ->setAlignmentCenter();
+
+            $export->setValue($export->getCell(1, 27), 'Datum');
+            $export->setValue($export->getCell(2, 27), $nowString);
+
+            $export->setValue($export->getCell(1, 29), 'Stepel / Unterschrift');
+
+            $export->setValue($export->getCell(2, 33), 'Ev. GS Radebeul Daniel Röhrich');
+
+            $export->setStyle($export->getCell(1, 25), $export->getCell(1, 33))
+                ->setBorderOutline();
+            $export->setStyle($export->getCell(2, 25), $export->getCell(4, 33))
+                ->setBorderOutline();
+            $export->setStyle($export->getCell(2, 33), $export->getCell(4, 33))
+                ->mergeCells();
+
+            $column = 0;
+            // Spaltenbreite
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, 33))->setColumnWidth(5);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, 33))->setColumnWidth(22);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, 33))->setColumnWidth(12);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, 33))->setColumnWidth(12);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column, 33))->setColumnWidth(12);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array  $PersonList
+     * @param string $PLZ
+     *
+     * @return bool|FilePointer
+     * @throws DocumentTypeException
+     * @throws \MOC\V\Component\Document\Component\Exception\ComponentException
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     */
+    public function createNurseryListExcel($PersonList, $PLZ = '')
+    {
+
+        if (!empty($PersonList)) {
+
+//            foreach ($PersonList as $key => $row) {
+//                $division[$key] = strtoupper($row['Division']);
+//                $lastName[$key] = strtoupper($row['LastName']);
+//                $firstName[$key] = strtoupper($row['FirstName']);
+//            }
+//            array_multisort($division, SORT_ASC, $lastName, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $row = 0;
+            $column = 0;
+
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+
+            $export->setValue($export->getCell($column++, $row), '#');
+            $export->setValue($export->getCell($column++, $row), 'Name');
+            $export->setValue($export->getCell($column++, $row), 'Vorname');
+            $export->setValue($export->getCell($column++, $row), 'Geb.-datum');
+            $export->setValue($export->getCell($column++, $row), 'Wohnort');
+            $export->setValue($export->getCell($column++, $row), 'PLZ');
+            $export->setValue($export->getCell($column, $row), 'Straße');
+
+            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))
+                ->setBorderAll()
+                ->setFontBold();
+
+            foreach ($PersonList as $PersonData) {
+                $row++;
+
+                if ($PersonData['PLZExcel'] != $PLZ) {
+                    // mark person with other PLZ
+                    $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
+                }
+
+                $column = 0;
+                $export->setValue($export->getCell($column++, $row), $PersonData['CountExcel']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastNameExcel']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstNameExcel']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['BirthdayExcel']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['CityExcel']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['PLZExcel']);
+                $export->setValue($export->getCell($column, $row), $PersonData['StreetExcel']);
+
+                $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setBorderAll();
+            }
+
+            $column = 0;
+            // Spaltenbreite
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(4);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(18);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(21);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(11);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(27);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(7);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(32);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -674,6 +675,87 @@ class Frontend extends Extension implements IFrontendInterface
                     ))
                 );
             }
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendNursery()
+    {
+
+        $Stage = new Stage('Individuelle Auswertung', 'Stichtagsmeldung Hort');
+        // mark persons without this city code
+        $PLZ = '01445';
+
+        if (($tblGroup = Group::useService()->getGroupByName('Hort'))) {
+            $personList = Person::useService()->createNursery($tblGroup, $PLZ);
+            if ($personList) {
+                $Stage->addButton(new Primary('Deckblatt Herunterladen',
+                    '/Api/Reporting/Custom/Radebeul/Person/Nursery/Download',
+                    new Save(),
+                    array('PLZ' => $PLZ)));
+                $Stage->addButton(new Primary('Hortliste Herunterladen',
+                    '/Api/Reporting/Custom/Radebeul/Person/NurseryList/Download',
+                    new Save(),
+                    array('PLZ' => $PLZ)));
+                $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Gruppe', $tblGroup->getName(),
+                                    Panel::PANEL_TYPE_SUCCESS)
+                            )
+                        ))
+                    ),
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                ($personList ?
+                                    new TableData($personList, null,
+                                        array(
+                                            'Count'     => '#',
+//                                        'Division'  => 'Klasse',
+                                            'LastName'  => 'Name',
+                                            'FirstName' => 'Vorname',
+                                            'Birthday'  => 'Geb.-datum',
+                                            'City'      => 'Wohnort',
+                                            'PLZ'       => 'PLZ',
+                                            'Street'    => 'Straße',
+                                        ),
+                                        array(
+//                                        "pageLength" => -1,
+                                            "responsive" => false,
+                                            'order'      => array(
+                                                array(0, 'asc')
+                                            )
+                                        )
+                                    )
+                                    : new Warning('Keine Schüler in der Gruppe "Hort" vorhanden'))
+                            )
+                        )
+                    )
+                ))
+            );
+        } else {
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Warning('Keine Gruppe "Hort" vorhanden')
+                            )
+                        )
+                    )
+                )
+            );
         }
 
         return $Stage;
