@@ -60,17 +60,12 @@ class EssGsHjTwo extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        , '3%')
-                    ->addElementColumn((new Element())
                         ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleTextBold()
-
                     )
                 )
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '3%')
                     ->addElementColumn((new Element())
                         ->setContent('1. Schulhalbjahr')
                         ->styleTextSize(self::TEXT_SIZE)
@@ -81,15 +76,12 @@ class EssGsHjTwo extends Certificate
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                         ->styleTextSize('15pt')
                         ->styleTextBold()
-                        , '54%')
+                        , '57%')
                     ->addElementColumn((new Element())
                         ->setContent('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
-                        ->styleAlignCenter()
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleTextBold()
-                        , '20%')
-                    ->addElementColumn((new Element())
-                        , '3%')
+                        , '23%')
                 )->styleMarginTop('55px')
             )
             ->addSlice((new Slice())
@@ -98,8 +90,8 @@ class EssGsHjTwo extends Certificate
                     ->styleTextBold()
                 )
                 ->addElement((new Element())
-                    ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                                {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                    ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
+                                {{ Content.P'.$personId.'.Input.Rating|nl2br }}
                             {% else %}
                                 &nbsp;
                             {% endif %}')
@@ -109,7 +101,7 @@ class EssGsHjTwo extends Certificate
                     ->stylePaddingRight('20px')
                 )
                 ->styleMarginTop('15px')
-                ->styleHeight('300px')
+                ->styleHeight('316px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -117,8 +109,8 @@ class EssGsHjTwo extends Certificate
                     ->styleTextBold()
                 )
                 ->addElement((new Element())
-                    ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
-                                {{ Content.P' . $personId . '.Input.Rating|nl2br }}
+                    ->setContent('{% if(Content.P'.$personId.'.Input.TechnicalRating is not empty) %}
+                                {{ Content.P'.$personId.'.Input.TechnicalRating|nl2br }}
                             {% else %}
                                 &nbsp;
                             {% endif %}')
@@ -128,7 +120,7 @@ class EssGsHjTwo extends Certificate
                     ->stylePaddingRight('20px')
                 )
                 ->styleMarginTop('15px')
-                ->styleHeight('300px')
+                ->styleHeight('316px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())

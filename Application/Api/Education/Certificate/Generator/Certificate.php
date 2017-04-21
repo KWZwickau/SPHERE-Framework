@@ -17,7 +17,6 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 abstract class Certificate extends Extension
@@ -49,13 +48,15 @@ abstract class Certificate extends Extension
     public function __construct(TblDivision $tblDivision = null, $IsSample = true, $pageList = array())
     {
 
-        $this->getCache(new TwigHandler())->clearCache();
+        // Twig as string wouldn't be cached (used function getTwigTemplateString)
+//        $this->getCache(new TwigHandler())->clearCache();
 
         $this->setGrade(false);
         $this->tblDivision = $tblDivision;
         $this->IsSample = (bool)$IsSample;
+
+        // need for Preview frontend (getTemplateInformationForPreview)
         $this->Certificate = $this->buildCertificate($pageList);
-        $this->tblDivision = $tblDivision;
     }
 
     /**
