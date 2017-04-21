@@ -273,8 +273,11 @@ class Service extends AbstractService
         }
 
         $tblTest = $this->getTestById($Id);
-
         $Error = false;
+        if (!($tblGradeType = Gradebook::useService()->getGradeTypeById($Test['GradeType']))) {
+            $Stage->setError('Test[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
+            $Error = true;
+        }
         if (isset($Test['Date']) && empty($Test['Date'])) {
             $Stage->setError('Test[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
@@ -288,23 +291,38 @@ class Service extends AbstractService
         }
 
         if ($tblTest) {
+            // Change GradeType of Grades
+            if ($tblTest->getServiceTblGradeType()
+                && $tblGradeType
+                && $tblGradeType->getId() != $tblTest->getServiceTblGradeType()->getId()
+            ) {
+                $isChangeGradesGradeType = true;
+                Gradebook::useService()->updateGradesGradeTypeByTest($tblTest, $tblGradeType);
+            } else {
+                $isChangeGradesGradeType = false;
+            }
             (new Data($this->getBinding()))->updateTest(
                 $tblTest,
                 $Test['Description'],
                 isset($Test['Date']) ?  $Test['Date'] : null,
                 isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
                 isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null,
-                isset($Test['FinishDate']) ? $Test['FinishDate'] : null
+                isset($Test['FinishDate']) ? $Test['FinishDate'] : null,
+                $tblGradeType ? $tblGradeType : null
             );
             if (($tblTestLinkList = $tblTest->getLinkedTestAll())){
                 foreach ($tblTestLinkList as $tblTestItem){
+                    if ($isChangeGradesGradeType) {
+                        Gradebook::useService()->updateGradesGradeTypeByTest($tblTestItem, $tblGradeType);
+                    }
                     (new Data($this->getBinding()))->updateTest(
                         $tblTestItem,
                         $Test['Description'],
                         isset($Test['Date']) ?  $Test['Date'] : null,
                         isset($Test['CorrectionDate']) ? $Test['CorrectionDate'] : null,
                         isset($Test['ReturnDate']) ? $Test['ReturnDate'] : null,
-                        isset($Test['FinishDate']) ? $Test['FinishDate'] : null
+                        isset($Test['FinishDate']) ? $Test['FinishDate'] : null,
+                        $tblGradeType ? $tblGradeType : null
                     );
                 }
             }

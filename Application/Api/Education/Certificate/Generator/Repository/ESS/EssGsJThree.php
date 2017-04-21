@@ -10,11 +10,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class EssGsHjTwo
+ * Class EssGsHjThree
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository
  */
-class EssGsHjTwo extends Certificate
+class EssGsJThree extends Certificate
 {
 
     const TEXT_SIZE = '11pt';
@@ -51,7 +51,7 @@ class EssGsHjTwo extends Certificate
             ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('HALBJAHRESINFORMATION')
+                    ->setContent('JAHRESZEUGNIS')
                     ->styleTextSize('24px')
                     ->styleAlignCenter()
                     ->styleMarginTop('60px')
@@ -60,27 +60,27 @@ class EssGsHjTwo extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
-                        ->styleTextSize(self::TEXT_SIZE)
+                        ->setContent('Klasse {{ Content.P'.$personId.'.Division.Data.Level.Name }}')
                         ->styleTextBold()
+                        ->styleTextSize(self::TEXT_SIZE)
                     )
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('1. Schulhalbjahr')
-                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleTextBold()
+                        ->styleTextSize(self::TEXT_SIZE)
                         , '20%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
-                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-                        ->styleTextSize('15pt')
+                        ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
+                                          {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
                         ->styleTextBold()
+                        ->styleTextSize('15pt')
                         , '57%')
                     ->addElementColumn((new Element())
-                        ->setContent('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
-                        ->styleTextSize(self::TEXT_SIZE)
+                        ->setContent('Schuljahr {{ Content.P'.$personId.'.Division.Data.Year }}')
                         ->styleTextBold()
+                        ->styleTextSize(self::TEXT_SIZE)
                         , '23%')
                 )->styleMarginTop('55px')
             )
@@ -101,12 +101,38 @@ class EssGsHjTwo extends Certificate
                     ->stylePaddingRight('20px')
                 )
                 ->styleMarginTop('15px')
-                ->styleHeight('316px')
+                ->styleHeight('179px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('Fachliche <br/> Einschätzung:')
+                    ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleTextBold()
+                    ->stylePaddingBottom('10px')
+                )
+            )
+            ->addSlice($this->getSubjectLanes($personId))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '15%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Notenstufen:')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->stylePaddingTop('15px')
+                        , '85%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '15%')
+                    ->addElementColumn((new Element())
+                        ->setContent('1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft, 6 = ungenügend')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        , '85%')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Fachliche <br/> Einschätzung')
                 )
                 ->addElement((new Element())
                     ->setContent('{% if(Content.P'.$personId.'.Input.TechnicalRating is not empty) %}
@@ -120,17 +146,18 @@ class EssGsHjTwo extends Certificate
                     ->stylePaddingRight('20px')
                 )
                 ->styleMarginTop('15px')
-                ->styleHeight('316px')
+                ->styleHeight('180px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Datum:
-                            {% if(Content.P' . $personId . '.Input.Date is not empty) %}
-                                {{ Content.P' . $personId . '.Input.Date }}
+                            {% if(Content.P'.$personId.'.Input.Date is not empty) %}
+                                {{ Content.P'.$personId.'.Input.Date }}
                             {% else %}
                                 &nbsp;
                             {% endif %}')
                     ->styleTextSize(self::TEXT_SIZE_SMALL)
+                    ->stylePaddingTop('50px')
                     ->stylePaddingBottom('25px')
                 )
             )
@@ -140,8 +167,8 @@ class EssGsHjTwo extends Certificate
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                                {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
-                                    {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                                {% if(Content.P'.$personId.'.DivisionTeacher.Description is not empty) %}
+                                    {{ Content.P'.$personId.'.DivisionTeacher.Description }}
                                 {% else %}
                                     Klassenlehrer(in)
                                 {% endif %}

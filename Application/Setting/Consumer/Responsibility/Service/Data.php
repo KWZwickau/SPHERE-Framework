@@ -32,6 +32,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return false|TblResponsibility
+     */
+    public function getResponsibilityByCompany(TblCompany $tblCompany)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblResponsibility',
+            array(
+                TblResponsibility::SERVICE_TBL_COMPANY => $tblCompany->getId()
+            ));
+    }
+
+    /**
      * @return bool|TblResponsibility[]
      */
     public function getResponsibilityAll()
@@ -42,10 +56,11 @@ class Data extends AbstractData
 
     /**
      * @param TblCompany $tblCompany
+     * @param string     $CompanyNumber
      *
-     * @return TblResponsibility|bool
+     * @return bool|TblResponsibility
      */
-    public function addResponsibility(TblCompany $tblCompany)
+    public function addResponsibility(TblCompany $tblCompany, $CompanyNumber = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -56,6 +71,7 @@ class Data extends AbstractData
         if (null === $Entity) {
             $Entity = new TblResponsibility();
             $Entity->setServiceTblCompany($tblCompany);
+            $Entity->setCompanyNumber($CompanyNumber);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -63,6 +79,24 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblResponsibility $tblResponsibility
+     * @param string            $CompanyNumber
+     *
+     * @return TblResponsibility
+     */
+    public function updateResponsibility(TblResponsibility $tblResponsibility, $CompanyNumber = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $tblResponsibility->setCompanyNumber($CompanyNumber);
+        $Manager->saveEntity($tblResponsibility);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblResponsibility);
+
+        return $tblResponsibility;
     }
 
     /**
