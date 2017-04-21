@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
@@ -949,5 +950,69 @@ class Data extends AbstractData
                 TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()
             )
         ) ? true : false;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param $ranking
+     * @param $grade
+     *
+     * @return TblPrepareAdditionalGrade
+     */
+    public function createPrepareAdditionalGrade(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        $ranking,
+        $grade
+    ) {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblPrepareAdditionalGrade $Entity */
+        $Entity = $Manager->getEntity('TblPrepareAdditionalGrade')->findOneBy(array(
+            TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+            TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblPrepareAdditionalGrade();
+            $Entity->setTblPrepareCertificate($tblPrepareCertificate);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setRanking($ranking);
+            $Entity->setGrade($grade);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareAdditionalGrade[]
+     */
+    public function getPrepareAdditionalGradesBy(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson
+    ) {
+
+        return $this->getCachedEntityListBy(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblPrepareAdditionalGrade',
+            array(
+                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ),
+            array('Ranking' => self::ORDER_ASC)
+        );
     }
 }

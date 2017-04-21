@@ -38,6 +38,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
@@ -1125,7 +1126,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $PlaceholderList = explode('.', $Placeholder);
                                 $Identifier = array_slice($PlaceholderList, 1);
-                                if (isset($Identifier[0])){
+                                if (isset($Identifier[0])) {
                                     unset($Identifier[0]);
                                 }
 
@@ -1151,7 +1152,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                         $key = str_replace('Content.Input.', '', $PlaceholderName);
 
-                                        if ($key == 'TeamExtra' || isset($columnTable['TeamExtra'])){
+                                        if ($key == 'TeamExtra' || isset($columnTable['TeamExtra'])) {
                                             $hasTeamExtra = true;
                                         }
 
@@ -1413,11 +1414,29 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Name' => 'Zeugnismuster'
                                         ),
                                         'Zeugnis als Muster herunterladen'))
+                                    // Mittelschule Abschlusszeugnis Realschule
+                                    . (($tblCertificate->getCertificate() == 'MsAbsRs')
+                                        ? new Standard(
+                                            '', '/Education/Certificate/Prepare/DroppedSubjects', new CommodityItem(),
+                                            array(
+                                                'PrepareId' => $tblPrepare->getId(),
+                                                'PersonId' => $tblPerson->getId()
+                                            ),
+                                            'Abgewählte Fächer verwalten')
+                                        : '')
                                     : '')
                         );
 
                         // Vorlagen informationen
                         $this->getTemplateInformationForPreview($tblPrepare, $tblPerson, $studentTable, $columnTable);
+
+                        // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
+                        // Mittelschule Abschlusszeugnis Realschule
+                        if ($tblCertificate->getCertificate() == 'MsAbsRs'
+                            && !Prepare::useService()->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson)
+                        ) {
+                            Prepare::useService()->setAutoDroppedSubjects($tblPrepare, $tblPerson);
+                        }
                     }
                 }
             }
@@ -2018,6 +2037,68 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             return $Stage;
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     *
+     * @return Stage|string
+     */
+    public function frontendDroppedSubjects($PrepareId = null, $PersonId = null)
+    {
+        $Stage = new Stage('Abgewählte Fächer', 'Verwalten');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+
+            $contentList = array();
+            if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson))) {
+                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                    if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                        $contentList[] = array(
+                            'Acronym' => $tblSubject->getAcronym(),
+                            'Name' => $tblSubject->getName(),
+                            'Grade' => $tblPrepareAdditionalGrade->getGrade(),
+                            'Option' => ''
+                        );
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new TableData(
+                                    $contentList,
+                                    null,
+                                    array(
+                                        'Acronym' => 'Kürzel',
+                                        'Name' => 'Name',
+                                        'Grade' => 'Zensur',
+                                        'Option' => ''
+                                    )
+                                )
+                            ))
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+
         } else {
 
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());

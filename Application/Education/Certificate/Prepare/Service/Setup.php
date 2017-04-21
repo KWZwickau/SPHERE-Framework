@@ -36,6 +36,7 @@ class Setup extends AbstractSetup
         $this->setTablePrepareGrade($Schema, $tblPrepare);
         $this->setTablePrepareStudent($Schema, $tblPrepare);
         $this->setTablePrepareInformation($Schema, $tblPrepare);
+        $this->setTablePrepareAdditionalGrade($Schema, $tblPrepare);
 
         /**
          * Migration & Protocol
@@ -174,6 +175,27 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPrepareInformation', 'Field')) {
             $Table->addColumn('Field', 'string');
         }
+
+        $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblPrepare
+     *
+     * @return Table
+     */
+    private function setTablePrepareAdditionalGrade(Schema &$Schema, Table $tblPrepare)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblPrepareAdditionalGrade');
+
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER);
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
 

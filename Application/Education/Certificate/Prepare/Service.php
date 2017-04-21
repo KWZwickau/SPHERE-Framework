@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerate
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
@@ -553,8 +554,7 @@ class Service extends AbstractService
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         $Content = array()
-    )
-    {
+    ) {
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
         $tblDivision = $tblPrepare->getServiceTblDivision();
@@ -942,7 +942,8 @@ class Service extends AbstractService
                 /** @var TblStudentSubject $tblStudentSubject */
                 $tblStudentSubject = current($tblStudentSubjectList);
                 if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                    $Content['P' . $personId]['Student']['Profile'][str_replace(' ', '', $tblSubjectProfile->getAcronym())]['Name']
+                    $Content['P' . $personId]['Student']['Profile'][str_replace(' ', '',
+                        $tblSubjectProfile->getAcronym())]['Name']
                         = str_replace('Profil', '', $tblSubjectProfile->getName());
                 }
             }
@@ -1093,7 +1094,8 @@ class Service extends AbstractService
                 }
             } elseif ($tblPrepare->getServiceTblAppointedDateTask()) {
                 // Zensur aus dem Stichtagsnotenauftrag
-                $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblAppointedDateTask(), $tblDivision);
+                $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblAppointedDateTask(),
+                    $tblDivision);
                 if ($tblTestList) {
                     foreach ($tblTestList as $tblTest) {
                         if (($tblSubject = $tblTest->getServiceTblSubject())) {
@@ -1551,5 +1553,128 @@ class Service extends AbstractService
         }
 
         return $return;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param $ranking
+     * @param $grade
+     *
+     * @return TblPrepareAdditionalGrade
+     */
+    public function createPrepareAdditionalGrade(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        $ranking,
+        $grade
+    ) {
+
+        return (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate,
+            $tblPerson, $tblSubject, $ranking, $grade);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareAdditionalGrade[]
+     */
+    public function getPrepareAdditionalGradesBy(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson
+    ) {
+
+        return (new Data($this->getBinding()))->getPrepareAdditionalGradesBy($tblPrepareCertificate,
+            $tblPerson);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function setAutoDroppedSubjects(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
+    {
+
+        $tblLastDivision = false;
+        $tblCurrentDivision = $tblPrepare->getServiceTblDivision();
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && (!$tblLevel->getIsChecked())
+                    && ($tblLevel->getName() == '9' || $tblLevel->getName() == '09')
+                ) {
+                    $tblLastDivision = $tblDivision;
+                    break;
+                }
+            }
+        }
+
+        if ($tblLastDivision
+            && $tblCurrentDivision
+            && ($tblLastYear = $tblLastDivision->getServiceTblYear())
+            && ($tblCurrentYear = $tblCurrentDivision->getServiceTblYear())
+            && ($tblLastDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                $tblLastYear))
+            && ($tblCurrentDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                $tblCurrentYear))
+        ) {
+            $tblLastSubjectList = array();
+            foreach ($tblLastDivisionSubjectList as $tblLastDivisionSubject) {
+                if (($tblSubject = $tblLastDivisionSubject->getServiceTblSubject())) {
+                    $tblLastSubjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            $tblCurrentSubjectList = array();
+            foreach ($tblCurrentDivisionSubjectList as $tblCurrentDivisionSubject) {
+                if (($tblSubject = $tblCurrentDivisionSubject->getServiceTblSubject())) {
+                    $tblCurrentSubjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            $diffList = array();
+            foreach ($tblLastSubjectList as $tblLastSubject) {
+                if (!isset($tblCurrentSubjectList[$tblLastSubject->getId()])) {
+                    $diffList[$tblLastSubject->getId()] = $tblLastSubject;
+                }
+            }
+
+            $tblLastPrepare = false;
+            if (($tblLastPrepareList = Prepare::useService()->getPrepareAllByDivision($tblLastDivision))) {
+                foreach ($tblLastPrepareList as $tblPrepareCertificate) {
+                    if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())
+                        && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                        && $tblCertificateType->getIdentifier() == 'YEAR'
+                    ) {
+                        $tblLastPrepare = $tblPrepareCertificate;
+                    }
+                }
+            }
+
+            if (empty($diffList)) {
+                return false;
+            } else {
+                // ToDo Sortierung nach Acronym
+                /** @var TblSubject $item */
+                $count = 1;
+                foreach ($diffList as $item) {
+                    $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+                    $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblLastPrepare, $tblPerson,
+                        $tblLastDivision, $item, $tblTestType);
+                    if ($tblTestType && $tblPrepareGrade) {
+                        Prepare::useService()->createPrepareAdditionalGrade($tblPrepare, $tblPerson, $item, $count++,
+                            $tblPrepareGrade->getGrade());
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }
