@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Document;
 
 use MOC\V\Component\Document\Document as PdfDocument;
+use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchool;
@@ -86,9 +87,13 @@ class Creator extends Extension
 
         // Create Tmp
         $File = Storage::createFilePointer('pdf');
+
+        // build before const is set (picture)
+        /** @var IBridgeInterface $Content */
+        $Content = $DocumentClass->createDocument($Data, $pageList);
         /** @var DomPdf $Document */
         $Document = PdfDocument::getPdfDocument($File->getFileLocation());
-        $Document->setContent($DocumentClass->createDocument($Data, $pageList));
+        $Document->setContent($Content);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
         return $File;
