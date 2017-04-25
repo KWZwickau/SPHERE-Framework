@@ -1936,27 +1936,91 @@ class Frontend extends FrontendScoreRule
         ));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tableHeaderList = array();
         if ($tblDivision) {
+            $isWithSubjectGroup = false;
+            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision,
+                $isWithSubjectGroup);
+            if ($tblDivisionSubjectList) {
+                $tableHeaderList['Number'] = 'Nummer';
+                $tableHeaderList['Name'] = 'Name';
+                array_walk($tblDivisionSubjectList,
+                    function (TblDivisionSubject &$tblDivisionSubject) use (&$tableHeaderList, $tblDivision) {
+                        $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                        if ($tblSubject && !$tblDivisionSubject->getTblSubjectGroup()) {
+                            $tableHeaderList[$tblSubject->getId().'Id'] = $tblSubject->getAcronym();
+                        }
+                    });
+                $tableHeaderList['Option'] = '';
+            }
+
             $studentTable = array();
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblStudentList) {
                 $count = 1;
                 /** @var TblPerson $tblPerson */
                 foreach ($tblStudentList as $tblPerson) {
-                    $studentTable[] = array(
-                        'Number' => $count++,
-                        'Name' => $tblPerson->getLastFirstName(),
-                        'Option' => new Standard(
-                            '',
-                            '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student/Overview',
-                            new EyeOpen(),
-                            array(
-                                'DivisionId' => $tblDivision->getId(),
-                                'PersonId' => $tblPerson->getId()
-                            ),
-                            'Schülerübersicht anzeigen'
-                        )
+                    $data = array();
+                    $data['Number'] = $count++;
+                    $data['Name'] = $tblPerson->getLastFirstName();
+                    $data['Option'] = new Standard(
+                        '',
+                        '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student/Overview',
+                        new EyeOpen(),
+                        array(
+                            'DivisionId' => $tblDivision->getId(),
+                            'PersonId'   => $tblPerson->getId()
+                        ),
+                        'Schülerübersicht anzeigen'
                     );
+
+                    if ($tblDivisionSubjectList) {
+                        $tblSubjectStudentList = Division::useService()->getSubjectStudentByPersonAndDivision($tblPerson,
+                            $tblDivision);
+                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                            $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                            if ($tblSubject) {
+                                $data[$tblSubject->getId().'Id'] = '';
+                                $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                                    $tblDivision,
+                                    $tblSubject
+                                );
+                                /*
+                                * Calc Average
+                                */
+                                $average = Gradebook::useService()->calcStudentGrade(
+                                    $tblPerson,
+                                    $tblDivision,
+                                    $tblSubject,
+                                    Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+                                    $tblScoreRule ? $tblScoreRule : null
+                                );
+                                if (is_string($average) && strpos($average, '(')) {
+                                    $average = substr($average, 0, strpos($average, '('));
+                                }
+
+                                $data[$tblSubject->getId().'Id'] = ($average != '' ? '&empty; '.$average : '');
+                                // add ToolTip if Student is in Group
+                                if ($tblSubjectStudentList) {
+                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                        if ($tblSubjectStudent) {
+                                            if (($tblDivisionSubjectStudent = $tblSubjectStudent->getTblDivisionSubject())) {
+                                                if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
+                                                    if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
+                                                        if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
+                                                            $data[$tblSubject->getId().'Id'] = new ToolTip(($average != '' ? '&empty; '.$average : '')
+                                                                , $tblSubjectGroup->getName());
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        $studentTable[] = $data;
+                    }
                 }
             }
 
@@ -1972,11 +2036,7 @@ class Frontend extends FrontendScoreRule
                                 ),
                             )),
                             new LayoutColumn(array(
-                                new TableData($studentTable, null, array(
-                                    'Number' => '#',
-                                    'Name' => 'Name',
-                                    'Option' => ''
-                                ),
+                                new TableData($studentTable, null, $tableHeaderList,
                                     array(
                                         'pageLength' => -1
                                     )
