@@ -1794,6 +1794,51 @@ abstract class Certificate extends Extension
                         , '50%');
                 $sectionList[] = $section;
             }
+        } else {
+
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('Wahlpflichtbereich:')
+                    ->styleTextBold()
+                    ->styleMarginTop('10px')
+                    ->styleTextSize($TextSize)
+                );
+            $sectionList[] = $section;
+
+            $elementName = (new Element())
+                ->setContent('---')
+                ->styleBorderBottom()
+                ->styleMarginTop($marginTop)
+                ->styleTextSize($TextSize);
+
+            $elementGrade = (new Element())
+                ->setContent('&ndash;')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->stylePaddingTop('0px')
+                ->stylePaddingBottom('0px')
+                ->styleMarginTop($marginTop)
+                ->styleTextSize($TextSize);
+
+            $section = new Section();
+            $section
+                ->addElementColumn($elementName
+                    , '90%')
+                ->addElementColumn((new Element())
+                    , '1%')
+                ->addElementColumn($elementGrade
+                    , '9%');
+            $sectionList[] = $section;
+
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)')
+                    ->styleTextSize('11px')
+                    , '50%');
+            $sectionList[] = $section;
         }
 
         return empty($sectionList) ? (new Slice())->styleHeight('60px') : $slice->addSectionList($sectionList);
