@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -1869,26 +1870,140 @@ class Frontend extends FrontendScoreRule
             return $Stage.new Danger('Klasse nicht gefunden.', new Ban());
         }
 
+        $tblYear = $tblDivision->getServiceTblYear();
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblDivisionList = array();
+        $tableHeaderList = array();
+        $isWithSubjectGroup = false;
+
+        // Jahre ermitteln, in denen Schüler in einer Klasse ist
+        if ($tblPersonList) {
+            foreach ($tblPersonList as $tblPerson) {
+                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                if ($tblDivisionStudentList) {
+
+                    /** @var TblDivisionStudent $tblDivisionStudent */
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        $tblDivisionSearch = $tblDivisionStudent->getTblDivision();
+                        if ($tblDivision && ($tblYearDivision = $tblDivisionSearch->getServiceTblYear())) {
+                            if ($tblYear
+                                && $tblYearDivision
+                                && $tblDivisionSearch
+                                && $tblYearDivision->getId() == $tblYear->getId()
+                            ) {
+                                $tblDivisionList[$tblDivisionSearch->getId()] = $tblDivisionSearch;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $tableHeaderList['Number'] = 'Nummer';
+            $tableHeaderList['Name'] = 'Name';
+
+
+            $SubjectList = array();
+            // definition of dynamic SubjectTableHead
+            if (!empty($tblDivisionList)) {
+                /** @var TblDivision $tblDivision */
+                foreach ($tblDivisionList as $tblDivisionLoop) {
+                    $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivisionLoop,
+                        $isWithSubjectGroup);
+                    if ($tblDivisionSubjectList) {
+                        /** @var TblDivisionSubject $tblDivisionSubject */
+                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                            if (($tblSubjectHeader = $tblDivisionSubject->getServiceTblSubject())) {
+                                $SubjectList[$tblSubjectHeader->getAcronym()] = $tblSubjectHeader->getId();
+                            }
+                        }
+                    }
+                }
+            }
+            // sort by SubjectAcronym
+            ksort($SubjectList);
+            if (!empty($SubjectList)) {
+                foreach ($SubjectList as $Acronym => $SubjectId) {
+                    $tableHeaderList[$SubjectId.'Id'] = $Acronym;
+                }
+            }
+
+            $tableHeaderList['Option'] = '';
+        }
+
         $studentTable = array();
         $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
         if ($tblStudentList) {
             $count = 1;
             /** @var TblPerson $tblPerson */
             foreach ($tblStudentList as $tblPerson) {
-                $studentTable[] = array(
-                    'Number' => $count++,
-                    'Name'   => $tblPerson->getLastFirstName(),
-                    'Option' => new Standard(
-                        '',
-                        '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division/Student/Overview',
-                        new EyeOpen(),
-                        array(
-                            'DivisionId' => $tblDivision->getId(),
-                            'PersonId'   => $tblPerson->getId()
-                        ),
-                        'Schülerübersicht anzeigen'
-                    )
+                $data = array();
+                $data['Number'] = $count++;
+                $data['Name'] = $tblPerson->getLastFirstName();
+                $data['Option'] = new Standard(
+                    '',
+                    '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student/Overview',
+                    new EyeOpen(),
+                    array(
+                        'DivisionId' => $tblDivision->getId(),
+                        'PersonId'   => $tblPerson->getId()
+                    ),
+                    'Schülerübersicht anzeigen'
                 );
+
+                if (!empty($tblDivisionList)) {
+                    foreach ($tblDivisionList as $tblDivisionLoop) {
+                        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivisionLoop,
+                            $isWithSubjectGroup);
+                        if ($tblDivisionSubjectList) {
+                            $tblSubjectStudentList = Division::useService()->getSubjectStudentByPersonAndDivision($tblPerson,
+                                $tblDivisionLoop);
+                            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                                if ($tblSubject) {
+                                    $data[$tblSubject->getId().'Id'] = '';
+                                    $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                                        $tblDivisionLoop,
+                                        $tblSubject
+                                    );
+                                    /*
+                                    * Calc Average
+                                    */
+                                    $average = Gradebook::useService()->calcStudentGrade(
+                                        $tblPerson,
+                                        $tblDivisionLoop,
+                                        $tblSubject,
+                                        Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+                                        $tblScoreRule ? $tblScoreRule : null
+                                    );
+                                    if (is_string($average) && strpos($average, '(')) {
+                                        $average = substr($average, 0, strpos($average, '('));
+                                    }
+
+                                    $data[$tblSubject->getId().'Id'] = ($average != '' ? '&empty; '.$average : '');
+                                    // add ToolTip if Student is in Group
+                                    if ($tblSubjectStudentList) {
+                                        /** @var TblSubjectStudent $tblSubjectStudent */
+                                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                            if ($tblSubjectStudent) {
+                                                if (($tblDivisionSubjectStudent = $tblSubjectStudent->getTblDivisionSubject())) {
+                                                    if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
+                                                        if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
+                                                            if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
+                                                                $data[$tblSubject->getId().'Id'] = new ToolTip(($average != '' ? '&empty; '.$average : '')
+                                                                    , $tblSubjectGroup->getName());
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                $studentTable[] = $data;
             }
         }
 
@@ -1904,11 +2019,7 @@ class Frontend extends FrontendScoreRule
                             ),
                         )),
                         new LayoutColumn(array(
-                            new TableData($studentTable, null, array(
-                                'Number' => '#',
-                                'Name'   => 'Name',
-                                'Option' => ''
-                            ),
+                            new TableData($studentTable, null, $tableHeaderList,
                                 array(
                                     'pageLength' => -1
                                 )
@@ -1936,21 +2047,63 @@ class Frontend extends FrontendScoreRule
         ));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tableHeaderList = array();
         if ($tblDivision) {
+            $tblYear = $tblDivision->getServiceTblYear();
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $tblDivisionList = array();
+            $tableHeaderList = array();
             $isWithSubjectGroup = false;
-            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision,
-                $isWithSubjectGroup);
-            if ($tblDivisionSubjectList) {
+
+            // Jahre ermitteln, in denen Schüler in einer Klasse ist
+            if ($tblPersonList) {
+                foreach ($tblPersonList as $tblPerson) {
+                    $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                    if ($tblDivisionStudentList) {
+
+                        /** @var TblDivisionStudent $tblDivisionStudent */
+                        foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                            $tblDivisionSearch = $tblDivisionStudent->getTblDivision();
+                            if ($tblDivision && ($tblYearDivision = $tblDivisionSearch->getServiceTblYear())) {
+                                if ($tblYear
+                                    && $tblYearDivision
+                                    && $tblDivisionSearch
+                                    && $tblYearDivision->getId() == $tblYear->getId()
+                                ) {
+                                    $tblDivisionList[$tblDivisionSearch->getId()] = $tblDivisionSearch;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $tableHeaderList['Number'] = 'Nummer';
                 $tableHeaderList['Name'] = 'Name';
-                array_walk($tblDivisionSubjectList,
-                    function (TblDivisionSubject &$tblDivisionSubject) use (&$tableHeaderList, $tblDivision) {
-                        $tblSubject = $tblDivisionSubject->getServiceTblSubject();
-                        if ($tblSubject && !$tblDivisionSubject->getTblSubjectGroup()) {
-                            $tableHeaderList[$tblSubject->getId().'Id'] = $tblSubject->getAcronym();
+
+
+                $SubjectList = array();
+                // definition of dynamic SubjectTableHead
+                if (!empty($tblDivisionList)) {
+                    /** @var TblDivision $tblDivision */
+                    foreach ($tblDivisionList as $tblDivisionLoop) {
+                        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivisionLoop,
+                            $isWithSubjectGroup);
+                        if ($tblDivisionSubjectList) {
+                            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                if (($tblSubjectHeader = $tblDivisionSubject->getServiceTblSubject())) {
+                                    $SubjectList[$tblSubjectHeader->getAcronym()] = $tblSubjectHeader->getId();
+                                }
+                            }
                         }
-                    });
+                    }
+                }
+                // sort by SubjectAcronym
+                ksort($SubjectList);
+                if (!empty($SubjectList)) {
+                    foreach ($SubjectList as $Acronym => $SubjectId) {
+                        $tableHeaderList[$SubjectId.'Id'] = $Acronym;
+                    }
+                }
+
                 $tableHeaderList['Option'] = '';
             }
 
@@ -1974,42 +2127,49 @@ class Frontend extends FrontendScoreRule
                         'Schülerübersicht anzeigen'
                     );
 
-                    if ($tblDivisionSubjectList) {
-                        $tblSubjectStudentList = Division::useService()->getSubjectStudentByPersonAndDivision($tblPerson,
-                            $tblDivision);
-                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                            $tblSubject = $tblDivisionSubject->getServiceTblSubject();
-                            if ($tblSubject) {
-                                $data[$tblSubject->getId().'Id'] = '';
-                                $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
-                                    $tblDivision,
-                                    $tblSubject
-                                );
-                                /*
-                                * Calc Average
-                                */
-                                $average = Gradebook::useService()->calcStudentGrade(
-                                    $tblPerson,
-                                    $tblDivision,
-                                    $tblSubject,
-                                    Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                                    $tblScoreRule ? $tblScoreRule : null
-                                );
-                                if (is_string($average) && strpos($average, '(')) {
-                                    $average = substr($average, 0, strpos($average, '('));
-                                }
+                    if (!empty($tblDivisionList)) {
+                        foreach ($tblDivisionList as $tblDivisionLoop) {
+                            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivisionLoop,
+                                $isWithSubjectGroup);
+                            if ($tblDivisionSubjectList) {
+                                $tblSubjectStudentList = Division::useService()->getSubjectStudentByPersonAndDivision($tblPerson,
+                                    $tblDivisionLoop);
+                                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                    $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                                    if ($tblSubject) {
+                                        $data[$tblSubject->getId().'Id'] = '';
+                                        $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                                            $tblDivisionLoop,
+                                            $tblSubject
+                                        );
+                                        /*
+                                        * Calc Average
+                                        */
+                                        $average = Gradebook::useService()->calcStudentGrade(
+                                            $tblPerson,
+                                            $tblDivisionLoop,
+                                            $tblSubject,
+                                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+                                            $tblScoreRule ? $tblScoreRule : null
+                                        );
+                                        if (is_string($average) && strpos($average, '(')) {
+                                            $average = substr($average, 0, strpos($average, '('));
+                                        }
 
-                                $data[$tblSubject->getId().'Id'] = ($average != '' ? '&empty; '.$average : '');
-                                // add ToolTip if Student is in Group
-                                if ($tblSubjectStudentList) {
-                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                        if ($tblSubjectStudent) {
-                                            if (($tblDivisionSubjectStudent = $tblSubjectStudent->getTblDivisionSubject())) {
-                                                if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
-                                                    if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
-                                                        if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
-                                                            $data[$tblSubject->getId().'Id'] = new ToolTip(($average != '' ? '&empty; '.$average : '')
-                                                                , $tblSubjectGroup->getName());
+                                        $data[$tblSubject->getId().'Id'] = ($average != '' ? '&empty; '.$average : '');
+                                        // add ToolTip if Student is in Group
+                                        if ($tblSubjectStudentList) {
+                                            /** @var TblSubjectStudent $tblSubjectStudent */
+                                            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                                if ($tblSubjectStudent) {
+                                                    if (($tblDivisionSubjectStudent = $tblSubjectStudent->getTblDivisionSubject())) {
+                                                        if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
+                                                            if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
+                                                                if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
+                                                                    $data[$tblSubject->getId().'Id'] = new ToolTip(($average != '' ? '&empty; '.$average : '')
+                                                                        , $tblSubjectGroup->getName());
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -2019,8 +2179,8 @@ class Frontend extends FrontendScoreRule
                                 }
                             }
                         }
-                        $studentTable[] = $data;
                     }
+                    $studentTable[] = $data;
                 }
             }
 
