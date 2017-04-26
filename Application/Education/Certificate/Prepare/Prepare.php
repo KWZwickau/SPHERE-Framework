@@ -66,6 +66,9 @@ class Prepare implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\DroppedSubjects', __NAMESPACE__ . '\Frontend::frontendDroppedSubjects')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\DroppedSubjects\Destroy', __NAMESPACE__ . '\Frontend::frontendDestroyDroppedSubjects')
+        );
     }
 
     /**

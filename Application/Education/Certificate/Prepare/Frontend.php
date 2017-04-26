@@ -39,18 +39,25 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -67,6 +74,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -2050,10 +2058,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $PrepareId
      * @param null $PersonId
+     * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendDroppedSubjects($PrepareId = null, $PersonId = null)
+    public function frontendDroppedSubjects($PrepareId = null, $PersonId = null, $Data = null)
     {
         $Stage = new Stage('Abgewählte Fächer', 'Verwalten');
         $Stage->addButton(new Standard(
@@ -2067,24 +2076,54 @@ class Frontend extends Extension implements IFrontendInterface
         ) {
 
             $contentList = array();
-            if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson))) {
+            if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradesBy($tblPrepare,
+                $tblPerson))
+            ) {
+                $count = 1;
                 foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                     if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
                         $contentList[] = array(
-                            'Ranking' => $tblPrepareAdditionalGrade->getRanking(),
-                            'Acronym' => $tblSubject->getAcronym(),
+                            'Ranking' => $count++,
+                            'Acronym' => new PullClear(
+                                new PullLeft(new ResizeVertical().' '.$tblSubject->getAcronym())
+                            ),
                             'Name' => $tblSubject->getName(),
                             'Grade' => $tblPrepareAdditionalGrade->getGrade(),
-                            'Option' => ''
+                            'Option' => (new Standard('', '/Education/Certificate/Prepare/DroppedSubjects/Destroy', new Remove(),
+                                array('Id' => $tblPrepareAdditionalGrade->getId()), 'Löschen'))
                         );
                     }
                 }
             }
 
+            $form = $this->formCreatePrepareAdditionalGrade($tblPrepare, $tblPerson);
+            $form->appendFormButton(
+                new Primary('Speichern', new Save()));
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnisvorbereitung',
+                                    array(
+                                        $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                        'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                            ? $tblDivision->getDisplayName() : '')
+                                    ),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    array(
+                                        $tblPerson->getLastFirstName()
+                                    ),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
                             new LayoutColumn(array(
                                 new TableData(
                                     $contentList,
@@ -2095,11 +2134,35 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Name' => 'Name',
                                         'Grade' => 'Zensur',
                                         'Option' => ''
+                                    ),
+                                    array(
+                                        'ExtensionRowReorder' => array(
+                                            'Enabled' => true,
+                                            'Url' => '/Api/Education/Prepare/Reorder',
+                                            'Data' => array(
+                                                'PrepareId' => $tblPrepare->getId(),
+                                                'PersonId' => $tblPerson->getId()
+                                            )
+                                        ),
+                                        'paging' => false,
+                                        'sorting' => false
                                     )
                                 )
                             ))
                         ))
-                    ))
+                    ), new Title(new ListingTable() . ' Übersicht')),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Prepare::useService()->createPrepareAdditionalGradeForm(
+                                    $form,
+                                    $Data,
+                                    $tblPrepare,
+                                    $tblPerson
+                                ))
+                            )
+                        ))
+                    ), new Title(new PlusSign() . ' Hinzufügen'))
                 ))
             );
 
@@ -2109,5 +2172,158 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
         }
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return Form
+     */
+    private function formCreatePrepareAdditionalGrade(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson
+    ) {
+
+        $availableSubjectList = array();
+        $tblSubjectAll = Subject::useService()->getSubjectAll();
+        $tempList = Prepare::useService()->getPrepareAdditionalGradesBy(
+            $tblPrepareCertificate,
+            $tblPerson
+        );
+        if ($tempList && $tblSubjectAll) {
+            $usedSubjectList = array();
+            foreach ($tempList as $item) {
+                if ($item->getServiceTblSubject()) {
+                    $usedSubjectList[$item->getServiceTblSubject()->getId()] = $item;
+                }
+            }
+
+            foreach ($tblSubjectAll as $tblSubject) {
+                if (!isset($usedSubjectList[$tblSubject->getId()])) {
+                    $availableSubjectList[] = $tblSubject;
+                }
+            }
+        }
+
+        return new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Data[Subject]', 'Fach', array('Name' => $availableSubjectList)), 6
+                    ),
+                    new FormColumn(
+                        new TextField('Data[Grade]', '', 'Zensur'), 6
+                    )
+                ))
+            ))
+        ));
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyDroppedSubjects(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Stage = new Stage('Abgewähltes Fach', 'Löschen');
+
+        $tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeById($Id);
+        $tblPrepare = $tblPrepareAdditionalGrade->getTblPrepareCertificate();
+        $tblPerson = $tblPrepareAdditionalGrade->getServiceTblPerson();
+        if ($tblPrepareAdditionalGrade) {
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Certificate/Prepare/DroppedSubjects', new ChevronLeft(),
+                    array(
+                        'PrepareId' => $tblPrepare ? $tblPrepare->getId() : 0,
+                        'PersonId' => $tblPerson ? $tblPerson->getId() : 0
+                    )
+                )
+            );
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Panel(
+                                'Zeugnisvorbereitung',
+                                array(
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                        ? $tblDivision->getDisplayName() : '')
+                                ),
+                                Panel::PANEL_TYPE_INFO
+                            ),
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Panel(
+                                'Schüler',
+                                array(
+                                    $tblPerson->getLastFirstName()
+                                ),
+                                Panel::PANEL_TYPE_INFO
+                            ),
+                        ), 6),
+                        new LayoutColumn(array(
+                                new Panel(
+                                    'Abgewähltes Fach',
+                                    ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                                        ? $tblSubject->getName() : '',
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                                new Panel(new Question() . ' Dieses abgewählte Fach wirklich löschen?',
+                                    array(
+                                        $tblSubject ? 'Fach-Kürzel: ' . $tblSubject->getAcronym() : null,
+                                        $tblSubject ? 'Fach-Name: ' . $tblSubject->getName() : null,
+                                        'Zensur: ' . $tblPrepareAdditionalGrade->getGrade()
+                                    ),
+                                    Panel::PANEL_TYPE_DANGER,
+                                    new Standard(
+                                        'Ja', '/Education/Certificate/Prepare/DroppedSubjects/Destroy', new Ok(),
+                                        array('Id' => $Id, 'Confirm' => true)
+                                    )
+                                    . new Standard(
+                                        'Nein', '/Education/Certificate/Prepare/DroppedSubjects', new Disable(),  array(
+                                        'PrepareId' => $tblPrepare ? $tblPrepare->getId() : 0,
+                                        'PersonId' => $tblPerson ? $tblPerson->getId() : 0
+                                    ))
+                                )
+                            )
+                        )
+                    ))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Prepare::useService()->destroyPrepareAdditionalGrade($tblPrepareAdditionalGrade)
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Das abgewählte Fach wurde gelöscht')
+                                : new Danger(new Ban() . ' Das abgewählte Fach konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Education/Certificate/Prepare/DroppedSubjects', Redirect::TIMEOUT_SUCCESS,  array(
+                                'PrepareId' => $tblPrepare ? $tblPrepare->getId() : 0,
+                                'PersonId' => $tblPerson ? $tblPerson->getId() : 0
+                            ))
+                        )))
+                    )))
+                );
+            }
+        } else {
+            return $Stage . new Danger('Abgewähltes Fach nicht gefunden.', new Ban())
+                . new Redirect('/Education/Certificate/Prepare/DroppedSubjects', Redirect::TIMEOUT_ERROR,
+                    array(
+                        'PrepareId' => $tblPrepare ? $tblPrepare->getId() : 0,
+                        'PersonId' => $tblPerson ? $tblPerson->getId() : 0
+                    )
+                );
+        }
+
+        return $Stage;
     }
 }

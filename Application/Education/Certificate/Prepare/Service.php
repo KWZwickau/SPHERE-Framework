@@ -31,6 +31,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeTyp
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -40,6 +41,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -1587,6 +1589,75 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param $Data
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return IFormInterface|string
+     */
+    public function createPrepareAdditionalGradeForm(
+        IFormInterface $Form,
+        $Data,
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson
+    ) {
+
+        /**
+         * Service
+         */
+        if ($Data === null) {
+            return $Form;
+        }
+
+        $Error = false;
+        $tblSubject = false;
+
+        if (!isset($Data['Subject']) || !(($tblSubject = Subject::useService()->getSubjectById($Data['Subject'])))) {
+            $Form->setError('Data[Subject]', 'Bitte wählen Sie ein Fach aus');
+            $Error = true;
+        }
+        if (!isset($Data['Grade']) || empty($Data['Grade'])) {
+            // Todo Zenuren Wertebereich
+            $Form->setError('Data[Grade]', 'Bitte geben Sie eine Zensur ein');
+            $Error = true;
+        }
+
+        if ($Error) {
+            return $Form . new Notify(
+                    'Fach konnte nicht angelegt werden',
+                    'Bitte füllen Sie die benötigten Felder korrekt aus',
+                    Notify::TYPE_WARNING,
+                    5000
+                );
+        } else {
+
+            if ($tblSubject) {
+                // ToDo Ranking
+                if ($this->createPrepareAdditionalGrade(
+                    $tblPrepareCertificate,
+                    $tblPerson,
+                    $tblSubject,
+                    $this->getMaxRanking(
+                        $tblPrepareCertificate, $tblPerson
+                    ),
+                    $Data['Grade'])
+                ) {
+                    return new Success('Das Fach wurde erfolgreich angelegt',
+                            new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                        . new Redirect('/Education/Certificate/Prepare/DroppedSubjects', Redirect::TIMEOUT_SUCCESS,
+                            array(
+                                'PrepareId' => $tblPrepareCertificate->getId(),
+                                'PersonId' => $tblPerson->getId()
+                            ));
+                }
+            }
+        }
+
+        return new Danger('Das Fach konnte nicht angelegt werden');
+    }
+
+    /**
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
      *
@@ -1686,5 +1757,62 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return int
+     */
+    private function getMaxRanking(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson
+    ) {
+
+        if ($list = (new Data($this->getBinding()))->getPrepareAdditionalGradesBy($tblPrepareCertificate,
+            $tblPerson)
+        ) {
+
+            $item = end($list);
+
+            return $item->getRanking() + 1;
+        }
+
+        return 1;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblPrepareAdditionalGrade
+     */
+    public function getPrepareAdditionalGradeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareAdditionalGradeById($Id);
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     *
+     * @return bool
+     */
+    public function destroyPrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade)
+    {
+
+        return (new Data($this->getBinding()))->destroyPrepareAdditionalGrade($tblPrepareAdditionalGrade);
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     * @param $Ranking
+     *
+     * @return bool
+     */
+    public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking)
+    {
+
+        return (new Data($this->getBinding()))->updatePrepareAdditionalGradeRanking($tblPrepareAdditionalGrade, $Ranking);
     }
 }

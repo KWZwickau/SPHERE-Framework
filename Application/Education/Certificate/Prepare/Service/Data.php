@@ -1015,4 +1015,64 @@ class Data extends AbstractData
             array('Ranking' => self::ORDER_ASC)
         );
     }
+
+    /**
+     * @param $Id
+     * @return false|TblPrepareAdditionalGrade
+     */
+    public function getPrepareAdditionalGradeById($Id)
+    {
+
+        return $this->getCachedEntityById(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblPrepareAdditionalGrade',
+            $Id
+        );
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     *
+     * @return bool
+     */
+    public function destroyPrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblPrepareAdditionalGrade $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     * @param $Ranking
+     *
+     * @return bool
+     */
+    public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblPrepareAdditionalGrade $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setRanking($Ranking);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
 }
