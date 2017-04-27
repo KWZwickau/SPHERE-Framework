@@ -17,6 +17,7 @@ class Data extends AbstractData
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
+        // Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok])
         if ($tblAccount->getServiceTblConsumer()->getAcronym() == 'ESS') {
             $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING,
                 '/Common/Style/Resource/Logo/ESS-Oberschule.png');
