@@ -19,10 +19,14 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -58,6 +62,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDocumentById($id);
+    }
+
+    /**
+     * @return false|TblDocument[]
+     */
+    public function getDocumentAll()
+    {
+
+        return (new Data($this->getBinding()))->getDocumentAll();
     }
 
     /**
@@ -112,12 +125,16 @@ class Service extends AbstractService
      *
      * @return array
      */
-    public function setStudentCardContent($Data, TblPerson $tblPerson, AbstractDocument $documentClass, TblType $tblType = null)
-    {
+    public function setStudentCardContent(
+        $Data,
+        TblPerson $tblPerson,
+        AbstractDocument $documentClass,
+        TblType $tblType = null
+    ) {
 
         // Profil
         if (($tblStudent = $tblPerson->getStudent())
-            &&($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
                 $tblStudentSubjectType))
         ) {
@@ -148,7 +165,7 @@ class Service extends AbstractService
         }
 
         $list = array();
-        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                 if (($tblDivision = $tblDivisionStudent->getTblDivision())
                     && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
@@ -214,7 +231,8 @@ class Service extends AbstractService
                 ) {
                     foreach ($tblGradeTypeList as $tblGradeType) {
                         if (($tblPrepareGrade = Prepare::useService()->getPrepareGradeByGradeType($tblPrepare,
-                            $tblPerson, $tblDivision, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'), $tblGradeType))
+                            $tblPerson, $tblDivision,
+                            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'), $tblGradeType))
                         ) {
                             $Data['Certificate'][$typeId]['Data' . $count]['BehaviorGrade'][$tblGradeType->getCode()] = $tblPrepareGrade->getGrade();
                         } else {
@@ -225,7 +243,8 @@ class Service extends AbstractService
 
                 // Fachnoten
                 if (($tblDocument = $this->getDocumentByName($documentClass->getName()))
-                    && ($tblDocumentSubjectList = $this->getDocumentSubjectListByDocument($tblDocument))) {
+                    && ($tblDocumentSubjectList = $this->getDocumentSubjectListByDocument($tblDocument))
+                ) {
                     foreach ($tblDocumentSubjectList as $tblDocumentSubject) {
                         if (($tblSubject = $tblDocumentSubject->getServiceTblSubject())
                             && ($tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblPrepare,
@@ -255,12 +274,12 @@ class Service extends AbstractService
                 // Arbeitsgemeinschaften und Bemerkungen
                 if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
                     $tblPrepare, $tblPerson, 'Team'))
-                ){
+                ) {
                     $remark = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue() . "\n";
                 }
                 if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
                     $tblPrepare, $tblPerson, 'Remark'))
-                ){
+                ) {
                     $remark .= $tblPrepareInformation->getValue();
                 }
                 $Data['Certificate'][$typeId]['Data' . $count]['Remark'] = $remark;
@@ -269,7 +288,9 @@ class Service extends AbstractService
                 $Data['Certificate'][$typeId]['Data' . $count]['CertificateDate'] = $date->format('d.m.y');
                 // ToDo weitere Versetzungsvermerke
                 $transferRemark = '&ndash;';
-                if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Transfer'))) {
+                if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson,
+                    'Transfer'))
+                ) {
                     if ($tblPrepareInformation->getValue() == 'wird nicht versetzt') {
                         $transferRemark = 'n.v.';
                     }
@@ -293,16 +314,17 @@ class Service extends AbstractService
 
         $resultList = array();
         $list = array();
-        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                 if (($tblDivision = $tblDivisionStudent->getTblDivision())
                     && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
                 ) {
                     foreach ($tblPrepareList as $tblPrepare) {
-                        if($tblPrepare->getServiceTblGenerateCertificate()
+                        if ($tblPrepare->getServiceTblGenerateCertificate()
                             && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
                             && ($tblCertificateType->getIdentifier() == 'HALF_YEAR' || $tblCertificateType->getIdentifier() == 'YEAR')
-                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                $tblPerson))
                             && $tblPrepareStudent->isApproved()
                             && $tblPrepareStudent->isPrinted()
                         ) {
@@ -353,7 +375,7 @@ class Service extends AbstractService
     {
 
         $list = array();
-        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                 if (($tblDivision = $tblDivisionStudent->getTblDivision())
                     && ($tblLevel = $tblDivision->getTblLevel())
@@ -377,16 +399,17 @@ class Service extends AbstractService
     {
 
         $list = array();
-        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))){
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                 if (($tblDivision = $tblDivisionStudent->getTblDivision())
                     && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
                 ) {
                     foreach ($tblPrepareList as $tblPrepare) {
-                        if($tblPrepare->getServiceTblGenerateCertificate()
+                        if ($tblPrepare->getServiceTblGenerateCertificate()
                             && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
                             && ($tblCertificateType->getIdentifier() == 'HALF_YEAR' || $tblCertificateType->getIdentifier() == 'YEAR')
-                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                $tblPerson))
                             && $tblPrepareStudent->isApproved()
                             && $tblPrepareStudent->isPrinted()
                         ) {
@@ -407,5 +430,51 @@ class Service extends AbstractService
         ksort($list);
 
         return empty($list) ? false : $list;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblDocument $tblDocument
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function createDocumentSubjects(
+        IFormInterface $Form,
+        TblDocument $tblDocument,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (empty($Data)) {
+            return $Form;
+        }
+
+        foreach ($Data as $ranking => $item) {
+            $isEssential = isset($item['IsEssential']);
+            $tblSubject = Subject::useService()->getSubjectById($item['Subject']);
+            if (($tblDocumentSubject = $this->getDocumentSubjectByDocumentAndRanking($tblDocument, $ranking))) {
+                if ($tblSubject) {
+                    (new Data($this->getBinding()))->updateDocumentSubject(
+                        $tblDocumentSubject, $tblSubject, $isEssential
+                    );
+                } else {
+                    (new Data($this->getBinding()))->destroyDocumentSubject(
+                        $tblDocumentSubject
+                    );
+                }
+            } else {
+                if ($tblSubject) {
+                    (new Data($this->getBinding()))->createDocumentSubject($tblDocument, $ranking, $tblSubject,
+                        $isEssential);
+                }
+            }
+        }
+
+        return new Success('Die Fächer wurden der Schülerkartei erfolgreich zugewiesen.',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Document/Standard/StudentCard/Setting', Redirect::TIMEOUT_SUCCESS);
     }
 }
