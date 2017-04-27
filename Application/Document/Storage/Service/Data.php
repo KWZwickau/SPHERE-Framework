@@ -228,7 +228,7 @@ class Data extends AbstractData
     public function getBinaryById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBinary', $Id);
+        return $this->getForceEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBinary', $Id);
     }
 
     /**
