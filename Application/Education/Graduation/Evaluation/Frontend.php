@@ -633,18 +633,20 @@ class Frontend extends Extension implements IFrontendInterface
         $contentTable = array();
         if ($tblTaskAll) {
             foreach ($tblTaskAll as $tblTask) {
-                $hasEdit = false;
-                $nowDate = (new \DateTime('now'))->format("Y-m-d");
-                $toDate = $tblTask->getToDate();
-                if ($toDate) {
-                    $toDate = new \DateTime($toDate);
-                    $toDate = $toDate->format('Y-m-d');
-                }
-                if ($nowDate && $toDate) {
-                    if ($nowDate < $toDate) {
-                        $hasEdit = true;
-                    }
-                }
+                // Ticket #SSW-1225 Bearbeitungszeitraum Notenaufträge
+//                $hasEdit = false;
+//                $nowDate = (new \DateTime('now'))->format("Y-m-d");
+//                $toDate = $tblTask->getToDate();
+//                if ($toDate) {
+//                    $toDate = new \DateTime($toDate);
+//                    $toDate = $toDate->format('Y-m-d');
+//                }
+//                if ($nowDate && $toDate) {
+//                    if ($nowDate < $toDate) {
+//                        $hasEdit = true;
+//                    }
+//                }
+                $hasEdit = true;
 
                 $contentTable[] = array(
                     'Date' => $tblTask->getDate(),
@@ -1273,6 +1275,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTest) {
             $Global = $this->getGlobal();
             if (!$Global->POST) {
+                $Global->POST['Test']['GradeType'] = ($tblGradeType = $tblTest->getServiceTblGradeType())
+                    ? $tblGradeType->getId() : 0;
                 $Global->POST['Test']['Description'] = $tblTest->getDescription();
                 $Global->POST['Test']['Date'] = $tblTest->getDate();
                 $Global->POST['Test']['CorrectionDate'] = $tblTest->getCorrectionDate();
@@ -1301,8 +1305,29 @@ class Frontend extends Extension implements IFrontendInterface
                     , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
             );
 
+            // nur Zensuren-Typen, welche bei der hinterlegten Berechnungsvorschrift hinterlegt sind
+            $tblScoreRule = false;
+            $tblGradeTypeList = array();
+            if (($tblDivision = $tblTest->getServiceTblDivision())) {
+                $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                    $tblDivision,
+                    $tblDivisionSubject->getServiceTblSubject(),
+                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                );
+            }
+            if ($tblScoreRule) {
+                $tblGradeTypeList = $tblScoreRule->getGradeTypesAll();
+            } else {
+                if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))) {
+                    $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+                }
+            }
+
             $Form = new Form(new FormGroup(array(
                 new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('Name' => $tblGradeTypeList)), 12
+                    ),
                     new FormColumn(
                         new TextField('Test[Description]', '', 'Thema'), 12
                     ),
@@ -1328,8 +1353,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Form
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-            $tblDivision = $tblTest->getServiceTblDivision();
 
             $panel = false;
             if (($tblTestLinkList = $tblTest->getLinkedTestAll())) {

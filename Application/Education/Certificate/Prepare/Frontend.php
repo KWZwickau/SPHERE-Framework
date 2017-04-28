@@ -38,6 +38,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
@@ -571,7 +572,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblPrepareGrade) {
                                     $gradeValue = $tblPrepareGrade->getGrade();
                                     if (strpos($gradeValue, '+') !== false) {
-//                                        $this->getDebugger()->screenDump($gradeValue, $tblPerson->getId(), $tblPerson->getLastFirstName());
                                         $Global->POST['Trend'][$tblPerson->getId()] = TblGrade::VALUE_TREND_PLUS;
                                         $gradeValue = str_replace('+', '', $gradeValue);
                                     } elseif (strpos($gradeValue, '-') !== false) {
@@ -880,6 +880,15 @@ class Frontend extends Extension implements IFrontendInterface
                          */
                         $this->getTemplateInformation($tblPrepare, $tblPerson, $studentTable, $columnTable, $Data,
                             $CertificateList);
+
+                        // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
+                        foreach ($columnTable as $columnKey => $columnName) {
+                            foreach ($studentTable as $personId => $value) {
+                                if (!isset($studentTable[$personId][$columnKey])) {
+                                    $studentTable[$personId][$columnKey] = '';
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -1017,8 +1026,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                 if (class_exists($CertificateClass)) {
 
+                    $tblDivision = $tblPrepareCertificate->getServiceTblDivision();
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = new $CertificateClass($tblPerson, $tblDivision);
+                    $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
+
+                    // create Certificate with Placeholders
+                    $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
+                    $Certificate->createCertificate($Data, $pageList);
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
@@ -1112,40 +1126,46 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $PlaceholderList = explode('.', $Placeholder);
                                 $Identifier = array_slice($PlaceholderList, 1);
+                                if (isset($Identifier[0])) {
+                                    unset($Identifier[0]);
+                                }
+
 
                                 $FieldName = $PlaceholderList[0] . '[' . implode('][', $Identifier) . ']';
 
                                 $dataFieldName = str_replace('Content[Input]', 'Data[' . $tblPerson->getId() . ']',
                                     $FieldName);
 
+                                $PlaceholderName = str_replace('.P' . $tblPerson->getId(), '', $Placeholder);
+
                                 $Type = array_shift($Identifier);
                                 if (!method_exists($Certificate, 'get' . $Type)) {
-                                    if (isset($FormField[$Placeholder])) {
-                                        if (isset($FormLabel[$Placeholder])) {
-                                            $Label = $FormLabel[$Placeholder];
+                                    if (isset($FormField[$PlaceholderName])) {
+                                        if (isset($FormLabel[$PlaceholderName])) {
+                                            $Label = $FormLabel[$PlaceholderName];
                                         } else {
-                                            $Label = $Placeholder;
+                                            $Label = $PlaceholderName;
                                         }
 
-                                        $key = str_replace('Content.Input.', '', $Placeholder);
+                                        $key = str_replace('Content.Input.', '', $PlaceholderName);
 
-                                        if ($key == 'TeamExtra' || isset($columnTable['TeamExtra'])){
+                                        if ($key == 'TeamExtra' || isset($columnTable['TeamExtra'])) {
                                             $hasTeamExtra = true;
                                         }
 
-                                        if (isset($FormField[$Placeholder])) {
-                                            $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$Placeholder];
+                                        if (isset($FormField[$PlaceholderName])) {
+                                            $Field = '\SPHERE\Common\Frontend\Form\Repository\Field\\' . $FormField[$PlaceholderName];
                                             if ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\SelectBox') {
                                                 $selectBoxData = array();
-                                                if ($Placeholder == 'Content.Input.SchoolType'
+                                                if ($PlaceholderName == 'Content.Input.SchoolType'
                                                     && method_exists($Certificate, 'selectValuesSchoolType')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesSchoolType();
-                                                } elseif ($Placeholder == 'Content.Input.Type'
+                                                } elseif ($PlaceholderName == 'Content.Input.Type'
                                                     && method_exists($Certificate, 'selectValuesType')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesType();
-                                                } elseif ($Placeholder == 'Content.Input.Transfer'
+                                                } elseif ($PlaceholderName == 'Content.Input.Transfer'
                                                     && method_exists($Certificate, 'selectValuesTransfer')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesTransfer();
@@ -1175,7 +1195,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     }
 
                                                     // TextArea Zeichen begrenzen
-                                                    if ($FormField[$Placeholder] == 'TextArea'
+                                                    if ($FormField[$PlaceholderName] == 'TextArea'
                                                         && (($CharCount = Generator::useService()->getCharCountByCertificateAndField(
                                                             $tblCertificate, $key, !$hasTeamExtra
                                                         )))
@@ -1391,11 +1411,29 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Name' => 'Zeugnismuster'
                                         ),
                                         'Zeugnis als Muster herunterladen'))
+                                    // Mittelschule Abschlusszeugnis Realschule
+                                    . (($tblCertificate->getCertificate() == 'MsAbsRs')
+                                        ? new Standard(
+                                            '', '/Education/Certificate/Prepare/DroppedSubjects', new CommodityItem(),
+                                            array(
+                                                'PrepareId' => $tblPrepare->getId(),
+                                                'PersonId' => $tblPerson->getId()
+                                            ),
+                                            'Abgewählte Fächer verwalten')
+                                        : '')
                                     : '')
                         );
 
                         // Vorlagen informationen
                         $this->getTemplateInformationForPreview($tblPrepare, $tblPerson, $studentTable, $columnTable);
+
+                        // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
+                        // Mittelschule Abschlusszeugnis Realschule
+                        if ($tblCertificate->getCertificate() == 'MsAbsRs'
+                            && !Prepare::useService()->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson)
+                        ) {
+                            Prepare::useService()->setAutoDroppedSubjects($tblPrepare, $tblPerson);
+                        }
                     }
                 }
             }
@@ -1455,7 +1493,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ) : null,
                                 new External(
                                     'Alle Zeugnisse als Muster herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewZip',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
@@ -1520,7 +1558,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (class_exists($CertificateClass)) {
 
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = new $CertificateClass($tblPerson, $tblDivision);
+                    $Certificate = new $CertificateClass($tblDivision);
 
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
@@ -1835,7 +1873,7 @@ class Frontend extends Extension implements IFrontendInterface
         $PrepareId = null,
         $PersonId = null
     ) {
-        $Stage = new Stage('Zeugnisvorlage', 'Auswählen');
+        $Stage = new Stage('Zeugnisvorschau', 'Anzeigen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId
@@ -1856,13 +1894,24 @@ class Frontend extends Extension implements IFrontendInterface
                         . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
 
+                        $tblDivision = $tblPrepare->getServiceTblDivision();
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                        $Template = new $CertificateClass();
+                        $Template = new $CertificateClass($tblDivision ? $tblDivision : null);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        $personId = $tblPerson->getId();
+                        if (isset($Content['P' . $personId]['Grade'])) {
+                            $Template->setGrade($Content['P' . $personId]['Grade']);
+                        }
+                        if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                            $Template->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                        }
 
-                        $ContentLayout = $Template->createCertificate($Content)->getContent();
+                        $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
+                        $bridge = $Template->createCertificate($Content, $pageList);
+
+                        $ContentLayout = $bridge->getContent();
                     }
                 }
             }
@@ -1992,6 +2041,70 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             return $Stage;
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     *
+     * @return Stage|string
+     */
+    public function frontendDroppedSubjects($PrepareId = null, $PersonId = null)
+    {
+        $Stage = new Stage('Abgewählte Fächer', 'Verwalten');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId
+            )
+        ));
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+
+            $contentList = array();
+            if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson))) {
+                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                    if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                        $contentList[] = array(
+                            'Ranking' => $tblPrepareAdditionalGrade->getRanking(),
+                            'Acronym' => $tblSubject->getAcronym(),
+                            'Name' => $tblSubject->getName(),
+                            'Grade' => $tblPrepareAdditionalGrade->getGrade(),
+                            'Option' => ''
+                        );
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new TableData(
+                                    $contentList,
+                                    null,
+                                    array(
+                                        'Ranking' => '#',
+                                        'Acronym' => 'Kürzel',
+                                        'Name' => 'Name',
+                                        'Grade' => 'Zensur',
+                                        'Option' => ''
+                                    )
+                                )
+                            ))
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+
         } else {
 
             return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());

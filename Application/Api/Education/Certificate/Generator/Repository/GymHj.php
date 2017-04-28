@@ -2,12 +2,11 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
  * Class GymHj
@@ -18,14 +17,16 @@ class GymHj extends Certificate
 {
 
     /**
-     * @param bool $IsSample
+     * @param TblPerson|null $tblPerson
+     * @return Page
+     * @internal param bool $IsSample
      *
-     * @return Frame
      */
-    public function buildCertificate($IsSample = true)
-    {
+    public function buildPages(TblPerson $tblPerson = null){
 
-        if ($IsSample) {
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        if ($this->isSample()) {
             $Header = ( new Slice() )
                 ->addSection(( new Section() )
                     ->addElementColumn(( new Element() )
@@ -51,16 +52,15 @@ class GymHj extends Certificate
                 );
         }
 
-        return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
+        return (new Page())
                 ->addSlice(
                     $Header
                 )
-                ->addSlice($this->getSchoolName())
+                ->addSlice($this->getSchoolName($personId))
                 ->addSlice($this->getCertificateHead('Halbjahreszeugnis des Gymnasiums'))
-                ->addSlice($this->getDivisionAndYear('20px', '1. Schulhalbjahr'))
-                ->addSlice($this->getStudentName())
-                ->addSlice( $this->getGradeLanes() )
+                ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
+                ->addSlice($this->getStudentName($personId))
+                ->addSlice( $this->getGradeLanes($personId) )
                 ->addSlice((new Slice())
                     ->addElement(( new Element() )
                         ->setContent('Leistungen in den einzelnen Fächern:')
@@ -69,11 +69,11 @@ class GymHj extends Certificate
                     )
                 )
                 ->addSlice($this->getSubjectLanes(true, array('Lane' => 1, 'Rank' => 3)))
-                ->addSlice($this->getProfileStandard())
-                ->addSlice($this->getDescriptionHead(true))
+                ->addSlice($this->getProfileStandard($personId))
+                ->addSlice($this->getDescriptionHead($personId, true))
                 ->addSlice($this->getDescriptionContent('80px', '15px'))
-                ->addSlice($this->getDateLine())
-                ->addSlice($this->getSignPart(true))
+                ->addSlice($this->getDateLine($personId))
+                ->addSlice($this->getSignPart($personId, true))
                 ->addSlice($this->getParentSign())
                 ->addSlice($this->getInfo('10px',
                     'Notenerläuterung:',
@@ -83,8 +83,7 @@ class GymHj extends Certificate
 //                    '¹ Zutreffendes ist zu unterstreichen.',
 //                    '² In Klassenstufe 8 ist der Zusatz „mit informatischer Bildung“ zu streichen. Beim sprachlichen
 //                    Profil ist der Zusatz „mit informatischer Bildung“ zu streichen und die Fremdsprache anzugeben.'
-                ))
-            )
+                )
         );
     }
 }

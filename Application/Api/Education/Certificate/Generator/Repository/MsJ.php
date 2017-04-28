@@ -2,12 +2,11 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
  * Class MsJ
@@ -29,14 +28,17 @@ class MsJ extends Certificate
     }
 
     /**
-     * @param bool $IsSample
+     * @param TblPerson|null $tblPerson
+     * @return Page
+     * @internal param bool $IsSample
      *
-     * @return Frame
      */
-    public function buildCertificate($IsSample = true)
+    public function buildPages(TblPerson $tblPerson = null)
     {
 
-        if ($IsSample) {
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        if ($this->isSample()) {
             $Header = ( new Slice() )
                 ->addSection(( new Section() )
                     ->addElementColumn(( new Element() )
@@ -62,15 +64,14 @@ class MsJ extends Certificate
                 );
         }
 
-        return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
+        return (new Page())
                 ->addSlice(
                     $Header
                 )
-                ->addSlice($this->getSchoolName())
+                ->addSlice($this->getSchoolName($personId))
                 ->addSlice($this->getCertificateHead('Jahreszeugnis'))
-                ->addSlice($this->getDivisionAndYear('20px'))
-                ->addSlice($this->getStudentName())
+                ->addSlice($this->getDivisionAndYear($personId, '20px'))
+                ->addSlice($this->getStudentName($personId))
                 // für selbe Höhe wie bei Varianten mit Bildungsgang
                 ->addSlice((new Slice())
                     ->addElement((new Element())
@@ -79,7 +80,7 @@ class MsJ extends Certificate
                         ->styleMarginTop('8px')
                     )
                 )
-                ->addSlice($this->getGradeLanes())
+                ->addSlice($this->getGradeLanes($personId))
                 ->addSlice((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -88,8 +89,8 @@ class MsJ extends Certificate
                     )
                     ->addSection(( new Section() )
                         ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.Input.Rating is not empty) %}
-                                    {{ Content.Input.Rating|nl2br }}
+                            ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Rating|nl2br }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
@@ -105,20 +106,19 @@ class MsJ extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanes()
+                ->addSlice($this->getSubjectLanes($personId)
                     ->styleHeight('270px'))
-                ->addSlice($this->getOrientationStandard())
-                ->addSlice($this->getDescriptionHead(true))
-                ->addSlice($this->getDescriptionContent('45px', '15px'))
-                ->addSlice($this->getTransfer())
-                ->addSlice($this->getDateLine('10px'))
-                ->addSlice($this->getSignPart(true, '15px'))
+                ->addSlice($this->getOrientationStandard($personId))
+                ->addSlice($this->getDescriptionHead($personId, true))
+                ->addSlice($this->getDescriptionContent($personId, '45px', '15px'))
+                ->addSlice($this->getTransfer($personId))
+                ->addSlice($this->getDateLine($personId, '10px'))
+                ->addSlice($this->getSignPart($personId, true, '15px'))
                 ->addSlice($this->getParentSign('15px'))
                 ->addSlice($this->getInfo('5px',
                     'Notenerläuterung:',
                     '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
-                    (6 = ungenügend nur bei der Bewertung der Leistungen)'))
-            )
+                    (6 = ungenügend nur bei der Bewertung der Leistungen)')
         );
     }
 }

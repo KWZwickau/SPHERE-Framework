@@ -168,7 +168,7 @@ class Frontend extends Extension implements IFrontendInterface
                         Panel::PANEL_TYPE_DANGER,
                         (new External(
                             'Ja',
-                            '/Api/Education/Certificate/Generator/DownloadZip',
+                            '/Api/Education/Certificate/Generator/DownLoadMultiPdf',
                             new Ok(),
                             array(
                                 'PrepareId' => $tblPrepare->getId(),

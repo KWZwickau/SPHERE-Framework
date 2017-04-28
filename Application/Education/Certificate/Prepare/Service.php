@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerate
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
@@ -31,10 +32,12 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -46,7 +49,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -545,371 +547,453 @@ class Service extends AbstractService
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      *
+     * @param array $Content
+     * @return array
+     */
+    private function createCertificateContent(
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        $Content = array()
+    ) {
+        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
+        $tblDivision = $tblPrepare->getServiceTblDivision();
+        $personId = $tblPerson->getId();
+
+        // Person data
+        $Content['P' . $personId]['Person']['Id'] = $tblPerson->getId();
+        $Content['P' . $personId]['Person']['Data']['Name']['Salutation'] = $tblPerson->getSalutation();
+        $Content['P' . $personId]['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
+        $Content['P' . $personId]['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
+
+        // Person address
+        if (($tblAddress = $tblPerson->fetchMainAddress())) {
+            $Content['P' . $personId]['Person']['Address']['Street']['Name'] = $tblAddress->getStreetName();
+            $Content['P' . $personId]['Person']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
+            $Content['P' . $personId]['Person']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
+            $Content['P' . $personId]['Person']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
+        }
+
+        // Person Common
+        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
+            && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
+        ) {
+            $Content['P' . $personId]['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
+            $Content['P' . $personId]['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
+            $Content['P' . $personId]['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
+                ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
+        }
+
+        // Person Parents
+        if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+            foreach ($tblRelationshipList as $tblToPerson) {
+                if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
+                    && $tblToPerson->getServiceTblPersonTo()
+                    && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
+                    && $tblToPerson->getServiceTblPersonTo()->getId() == $tblPerson->getId()
+                ) {
+                    if (!isset($Content['P' . $personId]['Person']['Parent']['Mother']['Name'])) {
+                        $Content['P' . $personId]['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
+                        $Content['P' . $personId]['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
+                    } elseif (!isset($Content['P' . $personId]['Person']['Parent']['Father']['Name'])) {
+                        $Content['P' . $personId]['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
+                        $Content['P' . $personId]['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
+                    }
+                }
+            }
+        }
+
+        // Company
+        $tblCompany = false;
+        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+            && $tblStudent
+        ) {
+            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblTransferType);
+            if ($tblStudentTransfer) {
+                $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+
+                // Abschluss (Bildungsgang)
+                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                if ($tblCourse) {
+                    if ($tblCourse->getName() == 'Hauptschule') {
+                        $Content['P' . $personId]['Student']['Course']['Degree'] = 'Hauptschulabschlusses';
+                    } elseif ($tblCourse->getName() == 'Realschule') {
+                        $Content['P' . $personId]['Student']['Course']['Degree'] = 'Realschulabschlusses';
+                    }
+                }
+            }
+        }
+        if ($tblCompany) {
+            $Content['P' . $personId]['Company']['Id'] = $tblCompany->getId();
+            $Content['P' . $personId]['Company']['Data']['Name'] = $tblCompany->getName();
+            if (($tblAddress = $tblCompany->fetchMainAddress())) {
+                $Content['P' . $personId]['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
+                $Content['P' . $personId]['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
+                $Content['P' . $personId]['Company']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                $Content['P' . $personId]['Company']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
+            }
+        }
+
+        // Arbeitsgemeinschaften
+        if ($tblStudent
+            && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                $tblStudent, $tblSubjectType
+            ))
+        ) {
+            $tempList = array();
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if ($tblStudentSubject->getServiceTblSubject()) {
+                    $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
+                }
+            }
+            if (!empty($tempList)) {
+                $Content['P' . $personId]['Subject']['Team'] = implode(', ', $tempList);
+            }
+        }
+
+        // Fremdsprache ab Klassenstufe
+        if ($tblStudent
+            && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                $tblStudent, $tblSubjectType
+            ))
+        ) {
+            if ($tblStudentSubjectList) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                        && ($level = $tblStudentSubject->getServiceTblLevelFrom())
+                    ) {
+                        $Content['P' . $personId]['Subject']['Level'][$tblSubject->getAcronym()] = $level->getName();
+                    }
+                }
+            }
+        }
+
+        // Division
+        if ($tblDivision && ($tblLevel = $tblDivision->getTblLevel())) {
+            $Content['P' . $personId]['Division']['Id'] = $tblDivision->getId();
+            $Content['P' . $personId]['Division']['Data']['Level']['Name'] = $tblLevel->getName();
+            $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
+        }
+        if (($tblYear = $tblDivision->getServiceTblYear())) {
+            $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
+        }
+        if ($tblPrepare->getServiceTblPersonSigner()) {
+            $Content['P' . $personId]['Division']['Data']['Teacher'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
+        }
+
+        // zusätzliche Informationen
+        $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
+            $tblPerson);
+        if ($tblPrepareInformationList) {
+            // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
+            $team = '';
+            $remark = '';
+
+            foreach ($tblPrepareInformationList as $tblPrepareInformation) {
+                if ($tblPrepareInformation->getField() == 'Team') {
+                    $team = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue();
+                } elseif ($tblPrepareInformation->getField() == 'Remark') {
+                    $remark = $tblPrepareInformation->getValue();
+                } elseif ($tblPrepareInformation->getField() == 'Transfer') {
+                    $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
+                        . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
+                } else {
+                    $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
+                }
+            }
+
+            // Streichung leeres Bemerkungsfeld
+            if ($remark == '') {
+                $remark = '---';
+            }
+
+            if ($team || $remark) {
+                if ($team) {
+                    $remark = $team . " \n\n " . $remark;
+                }
+            }
+            $Content['P' . $personId]['Input']['Remark'] = $remark;
+        } else {
+            $Content['P' . $personId]['Input']['Remark'] = '---';
+        }
+
+        // Klassenlehrer
+        // Todo als Mandanteneinstellung umbauen
+        if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())) {
+            $divisionTeacherDescription = 'Klassenlehrer';
+
+            if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                && $tblConsumer->getAcronym() == 'EVSR'
+            ) {
+                $firstName = $tblPersonSigner->getFirstName();
+                if (strlen($firstName) > 1) {
+                    $firstName = substr($firstName, 0, 1) . '.';
+                }
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = $firstName . ' '
+                    . $tblPersonSigner->getLastName();
+            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                && $tblConsumer->getAcronym() == 'ESZC'
+            ) {
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation()
+                    . " " . $tblPersonSigner->getLastName());
+            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                && $tblConsumer->getAcronym() == 'EVSC'
+            ) {
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
+                    . " " . $tblPersonSigner->getLastName());
+                $divisionTeacherDescription = 'Klassenleiter';
+            } else {
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+            }
+
+            if (($genderValue = $this->getGenderByPerson($tblPersonSigner))) {
+                $Content['P' . $personId]['DivisionTeacher']['Gender'] = $genderValue;
+                if ($genderValue == 'M') {
+                    $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
+                } elseif ($genderValue == 'W') {
+                    $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
+                }
+            }
+        }
+
+        // Schulleitung
+        if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())) {
+            if ($tblGenerateCertificate->getHeadmasterName()) {
+                $Content['P' . $personId]['Headmaster']['Name'] = $tblGenerateCertificate->getHeadmasterName();
+            }
+            if (($tblCommonGender = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster())) {
+                if ($tblCommonGender->getName() == 'Männlich') {
+                    $Content['P' . $personId]['Headmaster']['Description'] = 'Schulleiter';
+                } elseif ($tblCommonGender->getName() == 'Weiblich') {
+                    $Content['P' . $personId]['Headmaster']['Description'] = 'Schulleiterin';
+                }
+            }
+        }
+
+        // Kopfnoten
+        $tblPrepareGradeBehaviorList = Prepare::useService()->getPrepareGradeAllByPerson(
+            $tblPrepare,
+            $tblPerson,
+            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK')
+        );
+        if ($tblPrepareGradeBehaviorList) {
+            foreach ($tblPrepareGradeBehaviorList as $tblPrepareGrade) {
+                if ($tblPrepareGrade->getServiceTblGradeType()) {
+                    $Content['P' . $personId]['Input'][$tblPrepareGrade->getServiceTblGradeType()->getCode()] = $tblPrepareGrade->getGrade();
+                }
+            }
+        }
+        // Kopfnoten von Fachlehrern für Noteninformation
+        if ($tblPrepare->isGradeInformation() && ($tblBehaviorTask = $tblPrepare->getServiceTblBehaviorTask())) {
+            if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblBehaviorTask))) {
+                /** @var TblTest $testItem */
+                foreach ($tblTestAllByTask as $testItem) {
+                    if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($testItem, $tblPerson))
+                        && $testItem->getServiceTblGradeType()
+                        && $testItem->getServiceTblSubject()
+                    ) {
+                        $Content['P' . $personId]['Input']['BehaviorTeacher'][$testItem->getServiceTblSubject()->getAcronym()]
+                        [$testItem->getServiceTblGradeType()->getCode()] = $tblGrade->getDisplayGrade();
+                    }
+                }
+            }
+        }
+
+        // Fachnoten
+        if ($tblPrepare->isGradeInformation() || ($tblPrepareStudent && !$tblPrepareStudent->isApproved())) {
+            if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+                && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))
+            ) {
+                foreach ($tblTestList as $tblTest) {
+                    if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
+                        && $tblTest->getServiceTblSubject()
+                    ) {
+                        // keine Tendenzen auf Zeugnissen
+                        $withTrend = true;
+                        if ($tblPrepareStudent
+                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                            && !$tblCertificate->isInformation()
+                        ) {
+                            $withTrend = false;
+                        }
+
+                        $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
+                            = $tblGradeItem->getDisplayGrade($withTrend);
+
+                        // bei Zeugnistext als Note Schriftgröße verkleinern
+                        if ($tblGradeItem->getTblGradeText()) {
+                            $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblTest->getServiceTblSubject()->getAcronym()] = true;
+                        }
+                    }
+                }
+            }
+        } else {
+            $tblPrepareGradeSubjectList = Prepare::useService()->getPrepareGradeAllByPerson(
+                $tblPrepare,
+                $tblPerson,
+                Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+            );
+            if ($tblPrepareGradeSubjectList) {
+                foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
+                    if ($tblPrepareGrade->getServiceTblSubject()) {
+                        $Content['P' . $personId]['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()]
+                            = $tblPrepareGrade->getGrade();
+
+                        // bei Zeugnistext als Note Schriftgröße verkleinern
+                        if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())) {
+                            $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fachnoten von abgewählten Fächern vom Vorjahr
+        if (($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson))) {
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                    $Content['P' . $personId]['AdditionalGrade']['Data'][$tblSubject->getAcronym()]
+                        = $tblPrepareAdditionalGrade->getGrade();
+                }
+            }
+        }
+
+        // Fehlzeiten
+        $excusedDays = $tblPrepareStudent->getExcusedDays();
+        $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
+        if ($excusedDays === null) {
+            $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                new \DateTime($tblPrepare->getDate()));
+        }
+        if ($unexcusedDays === null) {
+            $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
+                new \DateTime($tblPrepare->getDate()));
+        }
+        $Content['P' . $personId]['Input']['Missing'] = $excusedDays;
+        $Content['P' . $personId]['Input']['Bad']['Missing'] = $unexcusedDays;
+        $Content['P' . $personId]['Input']['Total']['Missing'] = $excusedDays + $unexcusedDays;
+
+        // Zeugnisdatum
+        $Content['P' . $personId]['Input']['Date'] = $tblPrepare->getDate();
+
+        // Notendurchschnitt der angegebenen Fächer für Bildungsempfehlung
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && $tblCertificate->getName() == 'Bildungsempfehlung'
+        ) {
+            $average = $this->calcSubjectGradesAverage($tblPrepareStudent);
+            if ($average) {
+                $Content['P' . $personId]['Grade']['Data']['Average'] = str_replace('.', ',', $average);
+            }
+        }
+
+        // Notendurchschnitt aller anderen Fächer für Bildungsempfehlung
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && $tblCertificate->getName() == 'Bildungsempfehlung'
+        ) {
+            $average = $this->calcSubjectGradesAverageOthers($tblPrepareStudent);
+            if ($average) {
+                $Content['P' . $personId]['Grade']['Data']['AverageOthers'] = str_replace('.', ',', $average);
+            }
+        }
+
+        // Wahlpflichtbereich
+        if ($tblStudent) {
+
+            // Vertiefungskurs
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ADVANCED'))
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                $tblStudentSubject = current($tblStudentSubjectList);
+                if (($tblSubjectAdvanced = $tblStudentSubject->getServiceTblSubject())) {
+                    $Content['P' . $personId]['Student']['Advanced'][$tblSubjectAdvanced->getAcronym()]['Name'] = $tblSubjectAdvanced->getName();
+                }
+            }
+
+            // Neigungskurs
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                $tblStudentSubject = current($tblStudentSubjectList);
+                if (($tblSubjectOrientation = $tblStudentSubject->getServiceTblSubject())) {
+                    $Content['P' . $personId]['Student']['Orientation'][str_replace(' ', '',
+                        $tblSubjectOrientation->getAcronym())]['Name'] = $tblSubjectOrientation->getName();
+                }
+            }
+
+            // 2. Fremdsprache
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if ($tblStudentSubject->getTblStudentSubjectRanking()
+                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                        && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
+                    ) {
+                        $Content['P' . $personId]['Student']['ForeignLanguage'][str_replace(' ', '',
+                            $tblSubjectForeignLanguage->getAcronym())]['Name'] = $tblSubjectForeignLanguage->getName();
+                    }
+                }
+            }
+
+            // Profil
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                $tblStudentSubject = current($tblStudentSubjectList);
+                if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
+                    $Content['P' . $personId]['Student']['Profile'][str_replace(' ', '',
+                        $tblSubjectProfile->getAcronym())]['Name']
+                        = str_replace('Profil', '', $tblSubjectProfile->getName());
+                }
+            }
+        }
+
+        return $Content;
+    }
+
+    public function getCertificateMultiContent(TblPrepareCertificate $tblPrepare)
+    {
+
+        $Content = array();
+        if ($tblPrepare
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                    $Content = $this->createCertificateContent($tblPrepare, $tblPerson, $Content);
+                }
+            }
+        }
+
+        return $Content;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     *
      * @return array
      */
     public function getCertificateContent(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
 
         $Content = array();
-
         if (($tblDivision = $tblPrepare->getServiceTblDivision())
             && ($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
         ) {
-
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-
-            // Company
-            $tblCompany = false;
-            if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                && $tblStudent
-            ) {
-                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                    $tblTransferType);
-                if ($tblStudentTransfer) {
-                    $tblCompany = $tblStudentTransfer->getServiceTblCompany();
-
-                    // Abschluss (Bildungsgang)
-                    $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                    if ($tblCourse) {
-                        if ($tblCourse->getName() == 'Hauptschule') {
-                            $Content['Student']['Course']['Degree'] = 'Hauptschulabschlusses';
-                        } elseif ($tblCourse->getName() == 'Realschule') {
-                            $Content['Student']['Course']['Degree'] = 'Realschulabschlusses';
-                        }
-                    }
-                }
-            }
-            if ($tblCompany) {
-                $Content['Company']['Id'] = $tblCompany->getId();
-            }
-
-            // Arbeitsgemeinschaften
-            if ($tblStudent
-                && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                    $tblStudent, $tblSubjectType
-                ))
-            ) {
-                $tempList = array();
-                foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                    if ($tblStudentSubject->getServiceTblSubject()) {
-                        $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
-                    }
-                }
-                if (!empty($tempList)) {
-                    $Content['Subject']['Team'] = implode(', ', $tempList);
-                }
-            }
-
-            // Fremdsprache ab Klassenstufe
-            if ($tblStudent
-                && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                    $tblStudent, $tblSubjectType
-                ))
-            ) {
-                if ($tblStudentSubjectList) {
-                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                        if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
-                            && ($level = $tblStudentSubject->getServiceTblLevelFrom())
-                        ) {
-                            $Content['Subject']['Level'][$tblSubject->getAcronym()] = $level->getName();
-                        }
-                    }
-                }
-            }
-
-            // Division
-            if (($tblLevel = $tblDivision->getTblLevel())) {
-                $Content['Division']['Id'] = $tblDivision->getId();
-                $Content['Division']['Data']['Level']['Name'] = $tblLevel->getName();
-                $Content['Division']['Data']['Name'] = $tblDivision->getName();
-            }
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
-                $Content['Division']['Data']['Year'] = $tblYear->getName();
-            }
-            if ($tblPrepare->getServiceTblPersonSigner()) {
-                $Content['Division']['Data']['Teacher'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
-            }
-
-            // Person
-            $Content['Person']['Id'] = $tblPerson->getId();
-
-            // zusätzliche Informationen
-            $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
-                $tblPerson);
-            if ($tblPrepareInformationList) {
-                // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
-                $team = '';
-                $remark = '';
-
-                foreach ($tblPrepareInformationList as $tblPrepareInformation) {
-                    if ($tblPrepareInformation->getField() == 'Team') {
-                        $team = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue();
-                    } elseif ($tblPrepareInformation->getField() == 'Remark') {
-                        $remark = $tblPrepareInformation->getValue();
-                    } elseif ($tblPrepareInformation->getField() == 'Transfer') {
-                        $Content['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
-                            . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
-                    } else {
-                        $Content['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
-                    }
-                }
-
-                // Streichung leeres Bemerkungsfeld
-                if ($remark == '') {
-                    $remark = '---';
-                }
-
-                if ($team || $remark) {
-                    if ($team) {
-                        $remark = $team . " \n\n " . $remark;
-                    }
-                }
-                $Content['Input']['Remark'] = $remark;
-            } else {
-                $Content['Input']['Remark'] = '---';
-            }
-
-            // Klassenlehrer
-            // Todo als Mandanteneinstellung umbauen
-            if ($tblPrepare->getServiceTblPersonSigner()) {
-                $divisionTeacherDescription = 'Klassenlehrer';
-
-                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                    && $tblConsumer->getAcronym() == 'EVSR'
-                ) {
-                    $firstName = $tblPrepare->getServiceTblPersonSigner()->getFirstName();
-                    if (strlen($firstName) > 1) {
-                        $firstName = substr($firstName, 0, 1) . '.';
-                    }
-                    $Content['DivisionTeacher']['Name'] = $firstName . ' '
-                        . $tblPrepare->getServiceTblPersonSigner()->getLastName();
-                } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                    && $tblConsumer->getAcronym() == 'ESZC'
-                ) {
-                    $Content['DivisionTeacher']['Name'] = trim($tblPrepare->getServiceTblPersonSigner()->getSalutation()
-                        . " " . $tblPrepare->getServiceTblPersonSigner()->getLastName());
-                } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                    && $tblConsumer->getAcronym() == 'EVSC'
-                ) {
-                    $Content['DivisionTeacher']['Name'] = trim($tblPrepare->getServiceTblPersonSigner()->getFirstName()
-                        . " " . $tblPrepare->getServiceTblPersonSigner()->getLastName());
-                    $divisionTeacherDescription = 'Klassenleiter';
-                } else {
-                    $Content['DivisionTeacher']['Name'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
-                }
-
-                if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())) {
-                    if(($tblCommon = $tblPersonSigner->getCommon())
-                        && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
-                        && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
-                    ) {
-                        if ($tblCommonGender->getName() == 'Männlich') {
-                            $Content['DivisionTeacher']['Description'] = $divisionTeacherDescription;
-                        } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                            $Content['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
-                        }
-                    } else {
-                        if (($tblSalutation = $tblPersonSigner->getTblSalutation())) {
-                            if ($tblSalutation->getSalutation() == 'Herr') {
-                                $Content['DivisionTeacher']['Description'] = $divisionTeacherDescription;
-                            } elseif ($tblSalutation->getSalutation() == 'Frau') {
-                                $Content['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Schulleitung
-            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())) {
-                if ($tblGenerateCertificate->getHeadmasterName()) {
-                    $Content['Headmaster']['Name'] = $tblGenerateCertificate->getHeadmasterName();
-                }
-                if (($tblCommonGender = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster())) {
-                    if ($tblCommonGender->getName() == 'Männlich') {
-                        $Content['Headmaster']['Description'] = 'Schulleiter';
-                    } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                        $Content['Headmaster']['Description'] = 'Schulleiterin';
-                    }
-                }
-            }
-
-            // Kopfnoten
-            $tblPrepareGradeBehaviorList = Prepare::useService()->getPrepareGradeAllByPerson(
-                $tblPrepare,
-                $tblPerson,
-                Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK')
-            );
-            if ($tblPrepareGradeBehaviorList) {
-                foreach ($tblPrepareGradeBehaviorList as $tblPrepareGrade) {
-                    if ($tblPrepareGrade->getServiceTblGradeType()) {
-                        $Content['Input'][$tblPrepareGrade->getServiceTblGradeType()->getCode()] = $tblPrepareGrade->getGrade();
-                    }
-                }
-            }
-            // Kopfnoten von Fachlehrern für Noteninformation
-            if ($tblPrepare->isGradeInformation() && ($tblBehaviorTask = $tblPrepare->getServiceTblBehaviorTask())) {
-                if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblBehaviorTask))) {
-                    /** @var TblTest $testItem */
-                    foreach ($tblTestAllByTask as $testItem) {
-                        if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($testItem, $tblPerson))
-                            && $testItem->getServiceTblGradeType()
-                            && $testItem->getServiceTblSubject()
-                        ) {
-                            $Content['Input']['BehaviorTeacher'][$testItem->getServiceTblSubject()->getAcronym()]
-                            [$testItem->getServiceTblGradeType()->getCode()] = $tblGrade->getDisplayGrade();
-                        }
-                    }
-                }
-            }
-
-            // Fachnoten
-            if ($tblPrepare->isGradeInformation() || ($tblPrepareStudent && !$tblPrepareStudent->isApproved())) {
-                if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
-                    && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))
-                ) {
-                    foreach ($tblTestList as $tblTest) {
-                        if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
-                            && $tblTest->getServiceTblSubject()
-                        ) {
-                            // keine Tendenzen auf Zeugnissen
-                            $withTrend = true;
-                            if ($tblPrepareStudent
-                                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                && !$tblCertificate->isInformation()
-                            ) {
-                                $withTrend = false;
-                            }
-
-                            $Content['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
-                                = $tblGradeItem->getDisplayGrade($withTrend);
-
-                            // bei Zeugnistext als Note Schriftgröße verkleinern
-                            if ($tblGradeItem->getTblGradeText()) {
-                                $Content['Grade']['Data']['IsShrinkSize'][$tblTest->getServiceTblSubject()->getAcronym()] = true;
-                            }
-                        }
-                    }
-                }
-            } else {
-                $tblPrepareGradeSubjectList = Prepare::useService()->getPrepareGradeAllByPerson(
-                    $tblPrepare,
-                    $tblPerson,
-                    Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
-                );
-                if ($tblPrepareGradeSubjectList) {
-                    foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
-                        if ($tblPrepareGrade->getServiceTblSubject()) {
-                            $Content['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()]
-                                = $tblPrepareGrade->getGrade();
-
-                            // bei Zeugnistext als Note Schriftgröße verkleinern
-                            if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())) {
-                                $Content['Grade']['Data']['IsShrinkSize'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Fehlzeiten
-            $excusedDays = $tblPrepareStudent->getExcusedDays();
-            $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
-            if ($excusedDays === null) {
-                $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
-                    new \DateTime($tblPrepare->getDate()));
-            }
-            if ($unexcusedDays === null) {
-                $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
-                    new \DateTime($tblPrepare->getDate()));
-            }
-            $Content['Input']['Missing'] = $excusedDays;
-            $Content['Input']['Bad']['Missing'] = $unexcusedDays;
-            $Content['Input']['Total']['Missing'] = $excusedDays + $unexcusedDays;
-
-            // Zeugnisdatum
-            $Content['Input']['Date'] = $tblPrepare->getDate();
-
-            // Notendurchschnitt der angegebenen Fächer für Bildungsempfehlung
-            if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                && $tblCertificate->getName() == 'Bildungsempfehlung'
-            ) {
-                $average = $this->calcSubjectGradesAverage($tblPrepareStudent);
-                if ($average) {
-                    $Content['Grade']['Data']['Average'] = str_replace('.', ',', $average);
-                }
-            }
-
-            // Notendurchschnitt aller anderen Fächer für Bildungsempfehlung
-            if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                && $tblCertificate->getName() == 'Bildungsempfehlung'
-            ) {
-                $average = $this->calcSubjectGradesAverageOthers($tblPrepareStudent);
-                if ($average) {
-                    $Content['Grade']['Data']['AverageOthers'] = str_replace('.', ',', $average);
-                }
-            }
-
-            // Wahlpflichtbereich
-            if ($tblStudent) {
-
-                // Vertiefungskurs
-                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ADVANCED'))
-                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                        $tblStudentSubjectType))
-                ) {
-                    /** @var TblStudentSubject $tblStudentSubject */
-                    $tblStudentSubject = current($tblStudentSubjectList);
-                    if (($tblSubjectAdvanced = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Advanced'][$tblSubjectAdvanced->getAcronym()]['Name'] = $tblSubjectAdvanced->getName();
-                    }
-                }
-
-                // Neigungskurs
-                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
-                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                        $tblStudentSubjectType))
-                ) {
-                    /** @var TblStudentSubject $tblStudentSubject */
-                    $tblStudentSubject = current($tblStudentSubjectList);
-                    if (($tblSubjectOrientation = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Orientation'][str_replace(' ', '',
-                            $tblSubjectOrientation->getAcronym())]['Name'] = $tblSubjectOrientation->getName();
-                    }
-                }
-
-                // 2. Fremdsprache
-                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                        $tblStudentSubjectType))
-                ) {
-                    /** @var TblStudentSubject $tblStudentSubject */
-                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                        if ($tblStudentSubject->getTblStudentSubjectRanking()
-                            && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                            && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
-                        ) {
-                            $Content['Student']['ForeignLanguage'][str_replace(' ', '',
-                                $tblSubjectForeignLanguage->getAcronym())]['Name'] = $tblSubjectForeignLanguage->getName();
-                        }
-                    }
-                }
-
-                // Profil
-                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                        $tblStudentSubjectType))
-                ) {
-                    /** @var TblStudentSubject $tblStudentSubject */
-                    $tblStudentSubject = current($tblStudentSubjectList);
-                    if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                        $Content['Student']['Profile'][str_replace(' ', '', $tblSubjectProfile->getAcronym())]['Name']
-                            = str_replace('Profil', '', $tblSubjectProfile->getName());
-                    }
-                }
-            }
+            $Content = $this->createCertificateContent($tblPrepare, $tblPerson, $Content);
         }
 
         return $Content;
@@ -1020,7 +1104,8 @@ class Service extends AbstractService
                 }
             } elseif ($tblPrepare->getServiceTblAppointedDateTask()) {
                 // Zensur aus dem Stichtagsnotenauftrag
-                $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblAppointedDateTask(), $tblDivision);
+                $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblAppointedDateTask(),
+                    $tblDivision);
                 if ($tblTestList) {
                     foreach ($tblTestList as $tblTest) {
                         if (($tblSubject = $tblTest->getServiceTblSubject())) {
@@ -1169,8 +1254,10 @@ class Service extends AbstractService
         Certificate $Certificate = null
     ) {
 
-        if (isset($Content['Input']) && is_array($Content['Input'])) {
-            foreach ($Content['Input'] as $field => $value) {
+        $personId = $tblPerson->getId();
+
+        if (isset($Content['P' . $personId]['Input']) && is_array($Content['P' . $personId]['Input'])) {
+            foreach ($Content['P' . $personId]['Input'] as $field => $value) {
                 if ($field == 'SchoolType'
                     && method_exists($Certificate, 'selectValuesSchoolType')
                 ) {
@@ -1444,5 +1531,160 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return null|string
+     * male -> M | female -> F | nothing -> false
+     */
+    private function getGenderByPerson(TblPerson $tblPerson)
+    {
+
+        $return = false;
+        if (($tblCommonTeacher = $tblPerson->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommonTeacher->getTblCommonBirthDates())) {
+                if (($tblCommonGenderTeacher = $tblCommonBirthDates->getTblCommonGender())) {
+                    if ($tblCommonGenderTeacher->getName() == 'Männlich') {
+                        $return = 'M';
+                    } else {
+                        $return = 'F';
+                    }
+                }
+            }
+        }
+        if ($return == false) {
+            if ($tblPerson->getSalutation() == 'Herr') {
+                $return = 'M';
+            } elseif ($tblPerson->getSalutation() == 'Frau') {
+                $return = 'F';
+            }
+        }
+
+        return $return;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param $ranking
+     * @param $grade
+     *
+     * @return TblPrepareAdditionalGrade
+     */
+    public function createPrepareAdditionalGrade(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        $ranking,
+        $grade
+    ) {
+
+        return (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate,
+            $tblPerson, $tblSubject, $ranking, $grade);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareAdditionalGrade[]
+     */
+    public function getPrepareAdditionalGradesBy(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson
+    ) {
+
+        return (new Data($this->getBinding()))->getPrepareAdditionalGradesBy($tblPrepareCertificate,
+            $tblPerson);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function setAutoDroppedSubjects(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
+    {
+
+        $tblLastDivision = false;
+        $tblCurrentDivision = $tblPrepare->getServiceTblDivision();
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && (!$tblLevel->getIsChecked())
+                    && ($tblLevel->getName() == '9' || $tblLevel->getName() == '09')
+                ) {
+                    $tblLastDivision = $tblDivision;
+                    break;
+                }
+            }
+        }
+
+        if ($tblLastDivision
+            && $tblCurrentDivision
+            && ($tblLastYear = $tblLastDivision->getServiceTblYear())
+            && ($tblCurrentYear = $tblCurrentDivision->getServiceTblYear())
+            && ($tblLastDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                $tblLastYear))
+            && ($tblCurrentDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
+                $tblCurrentYear))
+        ) {
+            $tblLastSubjectList = array();
+            foreach ($tblLastDivisionSubjectList as $tblLastDivisionSubject) {
+                if (($tblSubject = $tblLastDivisionSubject->getServiceTblSubject())) {
+                    $tblLastSubjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            $tblCurrentSubjectList = array();
+            foreach ($tblCurrentDivisionSubjectList as $tblCurrentDivisionSubject) {
+                if (($tblSubject = $tblCurrentDivisionSubject->getServiceTblSubject())) {
+                    $tblCurrentSubjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            $diffList = array();
+            foreach ($tblLastSubjectList as $tblLastSubject) {
+                if (!isset($tblCurrentSubjectList[$tblLastSubject->getId()])) {
+                    $diffList[$tblLastSubject->getAcronym()] = $tblLastSubject;
+                }
+            }
+
+            $tblLastPrepare = false;
+            if (($tblLastPrepareList = Prepare::useService()->getPrepareAllByDivision($tblLastDivision))) {
+                foreach ($tblLastPrepareList as $tblPrepareCertificate) {
+                    if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())
+                        && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                        && $tblCertificateType->getIdentifier() == 'YEAR'
+                    ) {
+                        $tblLastPrepare = $tblPrepareCertificate;
+                    }
+                }
+            }
+
+            if (empty($diffList)) {
+                return false;
+            } else {
+                /** @var TblSubject $item */
+                $count = 1;
+                ksort($diffList);
+                foreach ($diffList as $item) {
+                    $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+                    $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblLastPrepare, $tblPerson,
+                        $tblLastDivision, $item, $tblTestType);
+                    if ($tblTestType && $tblPrepareGrade) {
+                        Prepare::useService()->createPrepareAdditionalGrade($tblPrepare, $tblPerson, $item, $count++,
+                            $tblPrepareGrade->getGrade());
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

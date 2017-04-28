@@ -337,6 +337,7 @@ class Lectureship extends Import implements IFrontendInterface
 //                    $Item['AppSubjectGroup'] = $tblSubjectGroup->getName().' '.new Small(new Muted($tblSubjectGroup->getDescription()));
 //                    $ImportError--;
 //                }
+                $showIgnoreButton = false;
                 // no import by Warning
                 if ($ImportError >= 1) {
                     $Item['Ignore'] = new Center(new Danger(new Ban()));
@@ -347,9 +348,10 @@ class Lectureship extends Import implements IFrontendInterface
                         $ImportError++;
                     } else {
                         $Item['Ignore'] = new Center(new Success(new SuccessIcon()));
+                        $showIgnoreButton = true;
                     }
                 }
-                if ($Item['Ignore'] == new Center(new Success(new SuccessIcon()))) {
+                if ($showIgnoreButton) {
                     $Item['Option'] .= new Standard('', '/Transfer/Untis/Import/Lectureship/Ignore', new Remove(),
                         array('Id' => $tblUntisImportLectureship->getId()), 'Manuell sperren');
                 }
