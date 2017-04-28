@@ -286,6 +286,89 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param bool   $IsSample
+     * @param bool   $extendByOwnPicture
+     * @param string $with
+     * @param string $height
+     *
+     * @return Slice
+     */
+    protected function getHead($IsSample, $extendByOwnPicture = false, $with = 'auto', $height = '50px')
+    {
+
+        if ($extendByOwnPicture) {
+            $PicturePath = $this->getUsedPicture();
+            $Header = $this->getHeadSlice($IsSample, $PicturePath, $with, $height);
+        } else {
+            $Header = $this->getHeadSlice($IsSample, '', $with, $height);
+        }
+        return $Header;
+    }
+
+    /**
+     * @param bool   $IsSample
+     * @param string $picturePath
+     * @param string $with
+     * @param string $height
+     *
+     * @return Slice
+     */
+    protected function getHeadSlice($IsSample, $picturePath = '', $with = '100%', $height = '100%')
+    {
+        if ($picturePath != '') {
+            if ($IsSample) {
+                $Header = (new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element\Image($picturePath, $with, $height))
+                            ->styleAlignCenter()
+                            , '25%')
+                        ->addElementColumn((new Element\Sample())
+                            ->styleTextSize('30px')
+                        )
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px'))
+                            , '25%')
+                    );
+            } else {
+                $Header = (new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element\Image($picturePath, $with, $height))
+                            ->styleAlignCenter()
+                            , '25%')
+                        ->addElementColumn((new Element()), '50%')
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px'))
+                            , '25%')
+                    );
+            }
+        } else {
+            if ($IsSample) {
+                $Header = (new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            , '25%'
+                        )
+                        ->addElementColumn((new Element\Sample())
+                            ->styleTextSize('30px')
+                        )
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px'))
+                            , '25%')
+                    );
+            } else {
+                $Header = (new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element()), '75%')
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px'))
+                            , '25%')
+                    );
+            }
+        }
+        return $Header;
+    }
+
+    /**
      * @param $personId
      * @param string $MarginTop
      * @param string $YearString
@@ -2651,5 +2734,18 @@ abstract class Certificate extends Extension
                 ->setContent('&nbsp;')
             )->styleHeight('76px')
             : $slice->addSectionList($sectionList);
+    }
+
+    /**
+     * @return string
+     */
+    public function getUsedPicture()
+    {
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'PictureAddress'))
+        ) {
+            return (string)$tblSetting->getValue();
+        }
+        return '';
     }
 }
