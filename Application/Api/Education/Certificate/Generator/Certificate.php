@@ -453,20 +453,21 @@ abstract class Certificate extends Extension
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
-
-                // Grade Exists? => Add Subject to Certificate
-                if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
-                        = $tblSubject->getAcronym();
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
-                        = $tblSubject->getName();
-                } else {
-                    // Grade Missing, But Subject Essential => Add Subject to Certificate
-                    if ($tblCertificateSubject->isEssential()) {
+                if ($tblSubject) {
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
                             = $tblSubject->getAcronym();
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
                     }
                 }
             }
