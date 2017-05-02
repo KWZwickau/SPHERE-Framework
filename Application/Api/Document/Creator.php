@@ -108,7 +108,7 @@ class Creator extends Extension
     private static function buildDownloadFile(FilePointer $File, $FileName = '')
     {
 
-        return FileSystem::getDownload(
+        return FileSystem::getStream(
             $File->getRealPath(),
             $FileName ? $FileName : "Dokument " . date("Y-m-d") . ".pdf"
         )->__toString();
