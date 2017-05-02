@@ -1437,7 +1437,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                         // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
                         // Mittelschule Abschlusszeugnis Realschule
-                        if ($tblCertificate->getCertificate() == 'MsAbsRs'
+                        if ($tblCertificate && $tblCertificate->getCertificate() == 'MsAbsRs'
                             && !Prepare::useService()->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson)
                         ) {
                             Prepare::useService()->setAutoDroppedSubjects($tblPrepare, $tblPerson);

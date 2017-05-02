@@ -26,31 +26,7 @@ class MsAbsHs extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        if ($this->isSample()) {
-            $Header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleTextSize('12px')
-                        ->styleTextColor('#CCC')
-                        ->styleAlignCenter()
-                        , '25%')
-                    ->addElementColumn((new Element\Sample())
-                        ->styleTextSize('30px')
-                    )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '165px', '50px'))
-                        , '25%')
-                );
-        } else {
-            $Header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element()), '75%')
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '165px', '50px'))
-                        , '25%')
-                );
-        }
+        $Header = $this->getHead($this->isSample(), false, 'auto', '50px');
 
         $pageList[] = (new Page())
             ->addSlice($Header)

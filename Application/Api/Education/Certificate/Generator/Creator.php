@@ -97,10 +97,10 @@ class Creator extends Extension
 
         // Create Tmp
         $File = Storage::createFilePointer('pdf', $Prefix);
-        /** @var DomPdf $Document */
-        $Document = Document::getPdfDocument($File->getFileLocation());
         $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
         $bridge = $Certificate->createCertificate($Data, $pageList);
+        /** @var DomPdf $Document */
+        $Document = Document::getPdfDocument($File->getFileLocation());
         $Document->setContent($bridge);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
