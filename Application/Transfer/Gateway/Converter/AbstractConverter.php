@@ -139,14 +139,23 @@ abstract class AbstractConverter extends Sanitizer
 
     /**
      * @param string $File
+     * @param null|int|string $Worksheet
      *
-     * @return self
+     * @return AbstractConverter
      * @throws DocumentTypeException
      */
-    final protected function loadFile($File)
+    final protected function loadFile($File, $Worksheet = null)
     {
 
         $this->Document = Document::getDocument($File);
+
+        if( is_integer( $Worksheet ) ) {
+            $this->Document->selectWorksheetByIndex( $Worksheet );
+        }
+        if( is_string( $Worksheet ) ) {
+            $this->Document->selectWorksheetByName( $Worksheet );
+        }
+
         $this->SizeHeight = $this->Document->getSheetRowCount();
         $this->SizeWidth = $this->Document->getSheetColumnCount();
         return $this;
