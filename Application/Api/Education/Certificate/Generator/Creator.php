@@ -116,7 +116,7 @@ class Creator extends Extension
     private static function buildDownloadFile(FilePointer $File, $FileName = '')
     {
 
-        return FileSystem::getDownload(
+        return FileSystem::getStream(
             $File->getRealPath(),
             $FileName ? $FileName : "Zeugnis-Test-" . date("Y-m-d H:i:s") . ".pdf"
         )->__toString();
@@ -185,7 +185,7 @@ class Creator extends Extension
             $File->setFileContent(stream_get_contents($tblFile->getTblBinary()->getBinaryBlob()));
             $File->saveFile();
 
-            return FileSystem::getDownload($File->getFileLocation(),
+            return FileSystem::getStream($File->getFileLocation(),
                 $tblFile->getName()
                 . " " . date("Y-m-d H:i:s") . ".pdf")->__toString();
 
