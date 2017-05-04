@@ -81,8 +81,12 @@ class MsAbsHs extends Certificate
                         , '5%')
                     ->addElementColumn((new Element())
                         ->setContent('
+                            {% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
                                 {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
-                                                ')
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleBorderBottom()
                     )
                 )->styleMarginTop('10px')
