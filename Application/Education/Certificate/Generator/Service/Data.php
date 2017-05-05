@@ -37,10 +37,16 @@ class Data extends AbstractData
 
         $tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis',
             'HALF_YEAR');
-        $tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis/Abschlusszeugnis', 'YEAR');
+        if (($tblCertificateTypeYear = $this->getCertificateTypeByIdentifier('YEAR'))) {
+            $this->updateCertificateType($tblCertificateTypeYear, $tblCertificateTypeYear->getIdentifier(), 'Jahreszeugnis');
+            $tblCertificateTypeYear = $this->getCertificateTypeByIdentifier('YEAR');
+        } else {
+            $tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis', 'YEAR');
+        }
         $tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
         $tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
         $tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
+        $tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
 
         $tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
         $tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
@@ -423,7 +429,7 @@ class Data extends AbstractData
         }
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeDiploma, $tblSchoolTypeSecondary,
                     $tblCourseMain);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
@@ -453,7 +459,7 @@ class Data extends AbstractData
         }
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeDiploma, $tblSchoolTypeSecondary,
                     $tblCourseMain);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
@@ -482,7 +488,7 @@ class Data extends AbstractData
         }
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary && $tblCourseReal) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeDiploma, $tblSchoolTypeSecondary,
                     $tblCourseReal);
                 if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
                     $this->createCertificateLevel($tblCertificate, $tblLevel);
@@ -2868,5 +2874,34 @@ class Data extends AbstractData
                 TblCertificateGrade::SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()
             )
         ) ? true : false;
+    }
+
+    /**
+     * @param TblCertificateType $tblCertificateType
+     * @param $Identifier
+     * @param $Name
+     *
+     * @return bool
+     */
+    public function updateCertificateType(
+        TblCertificateType $tblCertificateType,
+        $Identifier,
+        $Name
+    ) {
+
+        $Manager = $this->getEntityManager();
+        /** @var TblCertificateType $Entity */
+        $Entity = $Manager->getEntityById('TblCertificateType', $tblCertificateType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }

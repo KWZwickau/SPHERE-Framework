@@ -1815,4 +1815,22 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->updatePrepareAdditionalGradeRanking($tblPrepareAdditionalGrade, $Ranking);
     }
+
+    public function hasDiplomaCertificate(TblPrepareCertificate $tblPrepare)
+    {
+
+        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
+                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                    && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+                    && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                ) {
+
+                }
+            }
+        }
+    }
 }

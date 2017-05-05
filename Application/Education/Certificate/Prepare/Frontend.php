@@ -93,6 +93,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Headmaster');
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Teacher');
+        $hasDiplomaRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Diploma');
 
         if ($hasHeadmasterRight) {
             if ($hasTeacherRight) {
@@ -100,6 +101,8 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 return $this->frontendHeadmasterSelectDivision();
             }
+        } elseif ($hasDiplomaRight) {
+            return $this->frontendDiplomaSelectDivision();
         } else {
             return $this->frontendTeacherSelectDivision();
         }
@@ -112,18 +115,94 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
+    public function frontendDiplomaSelectDivision($IsAllYears = false, $YearId = null)
+    {
+
+        $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
+        $this->setHeaderButtonList($Stage, View::DIPLOMA);
+
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Teacher',
+            $IsAllYears, $YearId, $tblYear, false);
+
+        $tblDivisionList = Division::useService()->getDivisionAll();
+
+        $divisionTable = array();
+        if ($tblDivisionList) {
+            foreach ($tblDivisionList as $tblDivision) {
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
+                // nur Mittelschule Klasse 9 und 10
+                if (($tblLevel = $tblDivision->getTblLevel())
+                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                    && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                    && ($tblLevel->getName() == '09' || $tblLevel->getName() == '9' || $tblLevel->getName() == '10')
+                ) {
+                    $divisionTable[] = array(
+                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                        'Type' => $tblDivision->getTypeName(),
+                        'Division' => $tblDivision->getDisplayName(),
+                        'Option' => new Standard(
+                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                            array(
+                                'DivisionId' => $tblDivision->getId(),
+                                'Route' => 'Diploma'
+                            ),
+                            'Auswählen'
+                        )
+                    );
+                }
+            }
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
+                        new LayoutColumn(array(
+                            new TableData($divisionTable, null, array(
+                                'Year' => 'Schuljahr',
+                                'Type' => 'Schulart',
+                                'Division' => 'Klasse',
+                                'Option' => ''
+                            ), array(
+                                'order' => array(
+                                    array('0', 'desc'),
+                                    array('1', 'asc'),
+                                    array('2', 'asc'),
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
+                                ),
+                            ))
+                        ))
+                    ))
+                ), new Title(new Select() . ' Auswahl'))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
+     * @return Stage
+     */
     public function frontendTeacherSelectDivision($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
-        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Headmaster');
-        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Teacher');
-        if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')),
-                '/Education/Certificate/Prepare/Teacher', new Edit()));
-            $Stage->addButton(new Standard('Ansicht: Leitung',
-                '/Education/Certificate/Prepare/Headmaster'));
-        }
+        $this->setHeaderButtonList($Stage, View::TEACHER);
 
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
@@ -214,13 +293,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
-        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Headmaster');
-        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Teacher');
-        if ($hasHeadmasterRight && $hasTeacherRight) {
-            $Stage->addButton(new Standard('Ansicht: Lehrer', '/Education/Certificate/Prepare/Teacher'));
-            $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Leitung')),
-                '/Education/Certificate/Prepare/Headmaster', new Edit()));
-        }
+        $this->setHeaderButtonList($Stage, View::HEADMASTER);
 
         $tblDivisionList = Division::useService()->getDivisionAll();
 
@@ -312,6 +385,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Setzen der Zeugnisvorlagen
                     Prepare::useService()->setTemplatesAllByPrepareCertificate($tblPrepareCertificate);
+
 
                     $tableData[] = array(
                         'Date' => $tblPrepareCertificate->getDate(),
@@ -2325,5 +2399,57 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param Stage $Stage
+     * @param int $view
+     */
+    private function setHeaderButtonList(Stage $Stage, $view)
+    {
+        $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Teacher');
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Headmaster');
+        $hasDiplomaRight = Access::useService()->hasAuthorization('/Education/Certificate/Prepare/Diploma');
+
+        $countRights = 0;
+        if ($hasTeacherRight) {
+            $countRights++;
+        }
+        if ($hasHeadmasterRight) {
+            $countRights++;
+        }
+        if ($hasDiplomaRight) {
+            $countRights++;
+        }
+
+        if ($countRights > 1) {
+            if ($hasTeacherRight) {
+                if ($view == View::TEACHER) {
+                    $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Lehrer')),
+                        '/Education/Certificate/Prepare/Teacher', new Edit()));
+                } else {
+                    $Stage->addButton(new Standard('Ansicht: Lehrer',
+                        '/Education/Certificate/Prepare/Teacher'));
+                }
+            }
+            if ($hasHeadmasterRight) {
+                if ($view == View::HEADMASTER) {
+                    $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Leitung')),
+                        '/Education/Certificate/Prepare/Headmaster', new Edit()));
+                } else {
+                    $Stage->addButton(new Standard('Ansicht: Leitung',
+                        '/Education/Certificate/Prepare/Headmaster'));
+                }
+            }
+            if ($hasDiplomaRight) {
+                if ($view == View::DIPLOMA) {
+                    $Stage->addButton(new Standard(new Info(new Bold('Ansicht: Abschlusszeugnisse')),
+                        '/Education/Certificate/Prepare/Diploma', new Edit()));
+                } else {
+                    $Stage->addButton(new Standard('Ansicht: Abschlusszeugnisse',
+                        '/Education/Certificate/Prepare/Diploma'));
+                }
+            }
+        }
     }
 }
