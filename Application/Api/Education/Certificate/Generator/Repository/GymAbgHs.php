@@ -26,7 +26,7 @@ class GymAbgHs extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), false, 'auto', '50px');
+        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
 
         $pageList[] = (new Page())
             ->addSlice(
