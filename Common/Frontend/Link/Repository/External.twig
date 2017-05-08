@@ -7,9 +7,17 @@
     {
         Client.Use("ModAlways", function()
         {
+            /**
+             * Activate: External Link
+             */
+            $('a#{{ Hash }}[rel="external"]').attr('target', '_blank');
+            /**
+             * Activate: Tooltip
+             */
             $('a#{{ Hash }}[data-toggle="popover"]').popover({
                 placement: 'auto top'
             });
+
             {% if RedirectTimeout is not empty %}
             jQuery("a#{{ Hash }}").on("click", function ()
             {
