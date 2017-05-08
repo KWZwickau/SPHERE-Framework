@@ -149,9 +149,11 @@ class Creator extends Extension
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
-                            new ProgressBar(0, 100, 0, 10),
+                            (new ProgressBar(0, 100, 0, 10))->setColor(
+                                ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
+                            ),
                             new Paragraph('Bitte warten ..'),
-                            "<button type=\"button\" class=\"btn btn-danger\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
+                            "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
                         ), 4),
                     )),
                     new LayoutRow(
@@ -498,9 +500,11 @@ class Creator extends Extension
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
-                            new ProgressBar(0, 100, 0, 10),
+                            (new ProgressBar(0, 100, 0, 10))->setColor(
+                                ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
+                            ),
                             new Paragraph('Bitte warten ..'),
-                            "<button type=\"button\" class=\"btn btn-danger\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
+                            "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
                         ), 4),
                     )),
                     new LayoutRow(
