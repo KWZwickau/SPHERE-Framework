@@ -78,12 +78,13 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblResponsibilityAll as $tblResponsibility) {
                 $tblCompany = $tblResponsibility->getServiceTblCompany();
                 $CompanyNumber = $tblResponsibility->getCompanyNumber();
-                $CompanyNumberPanel = new Panel('Unternehmensnummer'
+                $CompanyNumberPanel = new Panel('Unternehmensnr. des Unfallversicherungsträgers'
                     .new PullRight(($CompanyNumber == '' ? '(leer)' : ''))
                     , $CompanyNumber,
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
                     new PullRight(new Standard('', '/Setting/Consumer/Responsibility/Edit', new Edit(),
-                        array('Id' => $tblResponsibility->getId()), 'Bearbeiten der Unternehmensnummer')));
+                        array('Id' => $tblResponsibility->getId()),
+                        'Bearbeiten der Unternehmensnr. des Unfallversicherungsträgers')));
 
                 if ($tblCompany) {
 
@@ -195,7 +196,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendResponsibilityEdit($Id = null, $CompanyNumber = null)
     {
 
-        $Stage = new Stage('Unternehmensnummer', 'Bearbeiten');
+        $Stage = new Stage('Unternehmensnr. des Unfallversicherungsträgers', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/Responsibility', new ChevronLeft()));
         $tblResponsibility = Responsibility::useService()->getResponsibilityById($Id);
         if (!$tblResponsibility) {
@@ -203,14 +204,15 @@ class Frontend extends Extension implements IFrontendInterface
                 .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR));
         }
         $Form = new Form(new FormGroup(new FormRow(new FormColumn(
-            new Panel('Unternehmensnummer', new TextField('CompanyNumber', '', ''), Panel::PANEL_TYPE_SUCCESS)
+            new Panel('Unternehmensnr. des Unfallversicherungsträgers', new TextField('CompanyNumber', '', ''),
+                Panel::PANEL_TYPE_SUCCESS)
         ))));
         $Form->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $tblCompany = $tblResponsibility->getServiceTblCompany();
         if ($tblCompany) {
-            $PanelHead = new Panel('Institution der eine Unternehmensnummer bearbeitet werden soll'
+            $PanelHead = new Panel('Institution der eine Unternehmensnr. des Unfallversicherungsträgers bearbeitet werden soll'
                 , $tblCompany->getDisplayName(), Panel::PANEL_TYPE_INFO);
         } else {
             $PanelHead = new Panel('Institution wird nicht mehr gefunden!', '', Panel::PANEL_TYPE_DANGER);

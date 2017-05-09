@@ -85,18 +85,24 @@ class Data extends AbstractData
      * @param TblResponsibility $tblResponsibility
      * @param string            $CompanyNumber
      *
-     * @return TblResponsibility
+     * @return bool
      */
     public function updateResponsibility(TblResponsibility $tblResponsibility, $CompanyNumber = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $tblResponsibility->setCompanyNumber($CompanyNumber);
-        $Manager->saveEntity($tblResponsibility);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblResponsibility);
+        /** @var TblResponsibility $Entity */
+        $Entity = $Manager->getEntityById('TblResponsibility', $tblResponsibility->getId());
+        if ($Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setCompanyNumber($CompanyNumber);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
 
-        return $tblResponsibility;
+        return false;
     }
 
     /**
