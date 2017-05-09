@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -1802,7 +1803,8 @@ class Frontend extends Extension implements IFrontendInterface
             $period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
             $tableColumns = array(
                 'Number' => '#',
-                'Name' => 'Schüler',
+                'Name'   => 'Schüler',
+                'Course' => 'Bildungsgang',
             );
 
             // Stichtagsnotenauftrag
@@ -1816,6 +1818,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $periodListCount = array();
                 $columnDefinition['Number'] = '#';
                 $columnDefinition['Student'] = "Schüler";
+                $columnDefinition['Course'] = 'Bildungsgang';
 
                 $tblPeriodList = false;
                 // ist Stichtagsnotenauftrag auf eine Periode beschränkt oder wird das gesamte Schuljahr genutzt
@@ -1918,6 +1921,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $data['Number'] = $count % 5 == 0 ? new Bold($count) : $count;
                         $count++;
                         $data['Student'] = $tblPerson->getLastFirstName();
+
+                        $data['Course'] = '';
+                        $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                        if ($tblCourse) {
+                            $data['Course'] = $tblCourse->getName();
+                        }
 
                         // Zensur des Schülers zum Test zuordnen und Durchschnitte berechnen
                         if (!empty($columnDefinition)) {
@@ -2062,6 +2071,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array();
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
+            $tableColumns['Course'] = 'Bildungsgang';
             $tableColumns['Grade'] = 'Zensur';
             if ($tblScoreType
                 && ($tblScoreType->getIdentifier() == 'GRADES'
@@ -2107,7 +2117,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // oberste Tabellen-Kopf-Zeile erstellen
             $headTableColumnList = array();
-            $headTableColumnList[] = new TableColumn('', 2, '20%');
+            $headTableColumnList[] = new TableColumn('', 3, '20%');
             $countHeaderColumns = 2;
             if (!empty($periodListCount)) {
                 foreach ($periodListCount as $periodId => $count) {
@@ -2288,7 +2298,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         /** @var TblGrade $tblGrade */
-
         if (!$IsEdit && !$IsTaskAndInPeriod) {
             /** @var TblGrade $tblGrade */
             $student[$tblPerson->getId()]['Grade'] = $tblGrade ? $tblGrade->getDisplayGrade() : '';
@@ -3341,6 +3350,12 @@ class Frontend extends Extension implements IFrontendInterface
                             . ')')
                         : ''
                     );
+
+                $studentList[$tblPerson->getId()]['Course'] = '';
+                $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                if ($tblCourse) {
+                    $studentList[$tblPerson->getId()]['Course'] = $tblCourse->getName();
+                }
             }
         }
 

@@ -19,6 +19,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -817,6 +818,7 @@ class Frontend extends FrontendScoreRule
         $periodListCount = array();
         $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
+        $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
         // Tabellenkopf mit Test-Code und Datum erstellen
         if ($tblPeriodList) {
             /** @var TblPeriod $tblPeriod */
@@ -904,6 +906,18 @@ class Frontend extends FrontendScoreRule
                 $count++;
                 $data['Student'] = isset($addStudentList[$tblPerson->getId()])
                     ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
+                $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                $CourseName = '';
+                if ($tblCourse) {
+                    if ($tblCourse->getName() == 'Gymnasium') {
+                        $CourseName = 'GYM';
+                    } elseif ($tblCourse->getName() == 'Realschule') {
+                        $CourseName = 'RS';
+                    } elseif ($tblCourse->getName() == 'Hauptschule') {
+                        $CourseName = 'HS';
+                    }
+                }
+                $data['Course'] = $CourseName;
 
                 // Zensur des Schülers zum Test zuordnen und Durchschnitte berechnen
                 if (!empty($columnDefinition)) {
@@ -1038,8 +1052,10 @@ class Frontend extends FrontendScoreRule
                 "columnDefs" => array(
                     array(
                         "orderable" => false,
-                        "targets" => '_all'
+                        "targets"   => '_all',
                     ),
+                    array('width' => '1%', 'targets' => 0),
+                    array('width' => '2%', 'targets' => 2),
                 ),
                 'pageLength' => -1,
                 'paging' => false,
@@ -1050,7 +1066,7 @@ class Frontend extends FrontendScoreRule
 
         // oberste Tabellen-Kopf-Zeile erstellen
         $headTableColumnList = array();
-        $headTableColumnList[] = new TableColumn('', 2, '20%');
+        $headTableColumnList[] = new TableColumn('', 3, '20%');
         if (!empty($periodListCount)) {
             foreach ($periodListCount as $periodId => $count) {
                 $tblPeriod = Term::useService()->getPeriodById($periodId);
@@ -1900,7 +1916,7 @@ class Frontend extends FrontendScoreRule
 
             $tableHeaderList['Number'] = 'Nummer';
             $tableHeaderList['Name'] = 'Name';
-
+            $tableHeaderList['Course'] = 'Bildungsgang';
 
             $SubjectList = array();
             // definition of dynamic SubjectTableHead
@@ -1939,6 +1955,11 @@ class Frontend extends FrontendScoreRule
                 $data = array();
                 $data['Number'] = $count++;
                 $data['Name'] = $tblPerson->getLastFirstName();
+                $data['Course'] = '';
+                $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                if ($tblCourse) {
+                    $data['Course'] = $tblCourse->getName();
+                }
                 $data['Option'] = new Standard(
                     '',
                     '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student/Overview',
@@ -2021,6 +2042,9 @@ class Frontend extends FrontendScoreRule
                         new LayoutColumn(array(
                             new TableData($studentTable, null, $tableHeaderList,
                                 array(
+                                    "columnDefs" => array(
+                                        array('width' => '6%', 'targets' => 2),
+                                    ),
                                     'pageLength' => -1
                                 )
                             )
@@ -2078,6 +2102,7 @@ class Frontend extends FrontendScoreRule
 
                 $tableHeaderList['Number'] = 'Nummer';
                 $tableHeaderList['Name'] = 'Name';
+                $tableHeaderList['Course'] = 'Bildungsgang';
 
 
                 $SubjectList = array();
@@ -2116,6 +2141,11 @@ class Frontend extends FrontendScoreRule
                     $data = array();
                     $data['Number'] = $count++;
                     $data['Name'] = $tblPerson->getLastFirstName();
+                    $data['Course'] = '';
+                    $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                    if ($tblCourse) {
+                        $data['Course'] = $tblCourse->getName();
+                    }
                     $data['Option'] = new Standard(
                         '',
                         '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student/Overview',
@@ -2198,6 +2228,9 @@ class Frontend extends FrontendScoreRule
                             new LayoutColumn(array(
                                 new TableData($studentTable, null, $tableHeaderList,
                                     array(
+                                        "columnDefs" => array(
+                                            array('width' => '6%', 'targets' => 2),
+                                        ),
                                         'pageLength' => -1
                                     )
                                 )
