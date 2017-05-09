@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
@@ -1816,6 +1817,9 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->updatePrepareAdditionalGradeRanking($tblPrepareAdditionalGrade, $Ranking);
     }
 
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     */
     public function hasDiplomaCertificate(TblPrepareCertificate $tblPrepare)
     {
 
@@ -1832,5 +1836,27 @@ class Service extends AbstractService
                 }
             }
         }
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblPrepareAdditionalGradeType
+     */
+    public function getPrepareAdditionalGradeTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareAdditionalGradeTypeByIdentifier($Identifier);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblPrepareAdditionalGradeType
+     */
+    public function getPrepareAdditionalGradeTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareAdditionalGradeTypeById($Id);
     }
 }

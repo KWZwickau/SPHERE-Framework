@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerate
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
@@ -41,6 +42,12 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createPrepareAdditionalGradeType('Vorjahres Note', 'PRIOR_YEAR_GRADE');
+        $this->createPrepareAdditionalGradeType('Jn (Jahresnote)', 'JN');
+        $this->createPrepareAdditionalGradeType( 'Ps (schriftliche Prüfung)', 'PS');
+        $this->createPrepareAdditionalGradeType( 'Pm (mündliche Prüfung)', 'PM');
+        $this->createPrepareAdditionalGradeType( 'Pz (Zusatz-Prüfung)', 'PZ');
+        $this->createPrepareAdditionalGradeType( 'En (Endnote)', 'EN');
     }
 
     /**
@@ -1074,5 +1081,59 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblPrepareAdditionalGradeType
+     */
+    public function getPrepareAdditionalGradeTypeByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareAdditionalGradeType',
+            array(
+                TblPrepareAdditionalGradeType::ATTR_IDENTIFIER => strtoupper($Identifier)
+            )
+        );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblPrepareAdditionalGradeType
+     */
+    public function getPrepareAdditionalGradeTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareAdditionalGradeType',
+            $Id
+        );
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return null|TblPrepareAdditionalGradeType
+     */
+    public function createPrepareAdditionalGradeType($Name, $Identifier)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblPrepareAdditionalGradeType')
+            ->findOneBy(array(TblPrepareAdditionalGradeType::ATTR_IDENTIFIER => $Identifier));
+
+        if (null === $Entity) {
+            $Entity = new TblPrepareAdditionalGradeType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier(strtoupper($Identifier));
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

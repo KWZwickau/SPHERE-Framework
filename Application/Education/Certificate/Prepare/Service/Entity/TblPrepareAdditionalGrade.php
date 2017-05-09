@@ -58,6 +58,11 @@ class TblPrepareAdditionalGrade extends Element
     protected $Ranking;
 
     /**
+     * @Column(type="bigint")
+     */
+    protected $tblPrepareAdditionalGradeType;
+
+    /**
      * @return bool|TblPrepareCertificate
      */
     public function getTblPrepareCertificate()
@@ -155,5 +160,27 @@ class TblPrepareAdditionalGrade extends Element
     {
 
         $this->Ranking = $Ranking;
+    }
+
+    /**
+     * @return bool|TblPrepareAdditionalGradeType
+     */
+    public function getTblPrepareAdditionalGradeType()
+    {
+
+        if (null === $this->tblPrepareAdditionalGradeType) {
+            return false;
+        } else {
+            return Prepare::useService()->getPrepareAdditionalGradeTypeById($this->tblPrepareAdditionalGradeType);
+        }
+    }
+
+    /**
+     * @param TblPrepareAdditionalGradeType|null $tblPrepareAdditionalGradeType
+     */
+    public function setTblPrepareAdditionalGradeType(TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType = null)
+    {
+
+        $this->tblPrepareAdditionalGradeType = (null === $tblPrepareAdditionalGradeType ? null : $tblPrepareAdditionalGradeType->getId());
     }
 }
