@@ -963,6 +963,7 @@ class Data extends AbstractData
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
      * @param $ranking
      * @param $grade
      *
@@ -972,6 +973,7 @@ class Data extends AbstractData
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson,
         TblSubject $tblSubject,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking,
         $grade
     ) {
@@ -982,7 +984,8 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblPrepareAdditionalGrade')->findOneBy(array(
             TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
             TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+            TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+            TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
         ));
 
         if ($Entity === null) {
@@ -990,6 +993,7 @@ class Data extends AbstractData
             $Entity->setTblPrepareCertificate($tblPrepareCertificate);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setTblPrepareAdditionalGradeType($tblPrepareAdditionalGradeType);
             $Entity->setRanking($ranking);
             $Entity->setGrade($grade);
 
@@ -1001,12 +1005,40 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     * @param $grade
+     *
+     * @return bool
+     */
+    public function updatePrepareAdditionalGrade(
+        TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
+        $grade
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareAdditionalGrade $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setGrade($grade);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
      *
      * @return false|TblPrepareAdditionalGrade[]
      */
-    public function getPrepareAdditionalGradesBy(
+    public function getPrepareAdditionalGradeListBy(
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson
     ) {
@@ -1020,6 +1052,34 @@ class Data extends AbstractData
                 TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ),
             array('Ranking' => self::ORDER_ASC)
+        );
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     *
+     * @return false|TblPrepareAdditionalGrade
+     */
+    public function getPrepareAdditionalGradeBy(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+    ) {
+
+        return $this->getCachedEntityBy(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblPrepareAdditionalGrade',
+            array(
+                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+            )
         );
     }
 

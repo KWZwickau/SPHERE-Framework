@@ -855,7 +855,7 @@ class Service extends AbstractService
         }
 
         // Fachnoten von abgewählten Fächern vom Vorjahr
-        if (($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradesBy($tblPrepare, $tblPerson))) {
+        if (($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson))) {
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                 if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
                     $Content['P' . $personId]['AdditionalGrade']['Data'][$tblSubject->getAcronym()]
@@ -1664,12 +1664,12 @@ class Service extends AbstractService
      *
      * @return false|TblPrepareAdditionalGrade[]
      */
-    public function getPrepareAdditionalGradesBy(
+    public function getPrepareAdditionalGradeListBy(
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson
     ) {
 
-        return (new Data($this->getBinding()))->getPrepareAdditionalGradesBy($tblPrepareCertificate,
+        return (new Data($this->getBinding()))->getPrepareAdditionalGradeListBy($tblPrepareCertificate,
             $tblPerson);
     }
 
@@ -1771,7 +1771,7 @@ class Service extends AbstractService
         TblPerson $tblPerson
     ) {
 
-        if ($list = (new Data($this->getBinding()))->getPrepareAdditionalGradesBy($tblPrepareCertificate,
+        if ($list = (new Data($this->getBinding()))->getPrepareAdditionalGradeListBy($tblPrepareCertificate,
             $tblPerson)
         ) {
 
@@ -1795,6 +1795,29 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     *
+     * @return false|TblPrepareAdditionalGrade
+     */
+    public function getPrepareAdditionalGradeBy(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+    ) {
+
+        return (new Data($this->getBinding()))->getPrepareAdditionalGradeBy(
+            $tblPrepareCertificate,
+            $tblPerson,
+            $tblSubject,
+            $tblPrepareAdditionalGradeType
+        );
+    }
+
+    /**
      * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
      *
      * @return bool
@@ -1814,7 +1837,8 @@ class Service extends AbstractService
     public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking)
     {
 
-        return (new Data($this->getBinding()))->updatePrepareAdditionalGradeRanking($tblPrepareAdditionalGrade, $Ranking);
+        return (new Data($this->getBinding()))->updatePrepareAdditionalGradeRanking($tblPrepareAdditionalGrade,
+            $Ranking);
     }
 
     /**
@@ -1858,5 +1882,121 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeTypeById($Id);
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblSubject $tblCurrentSubject
+     * @param TblSubject|null $tblNextSubject
+     * @param null|bool $IsFinalGrade
+     * @param $Route
+     * @param $Data
+     * @return IFormInterface|string
+     */
+    public function updatePrepareExamGrades(
+        IFormInterface $form = null,
+        TblPrepareCertificate $tblPrepare,
+        TblSubject $tblCurrentSubject,
+        TblSubject $tblNextSubject = null,
+        $IsFinalGrade = null,
+        $Route,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $form;
+        }
+
+        $error = false;
+
+        foreach ($Data as $personGrades) {
+            if (is_array($personGrades)) {
+                foreach ($personGrades as $identifier => $value) {
+                    if (trim($value) !== '') {
+                        if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
+                            $error = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->setSignerFromSignedInPerson($tblPrepare);
+
+        if ($error) {
+            $form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-6).
+                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $form;
+        } else {
+            if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+
+                foreach ($Data as $personId => $personGrades) {
+                    if (($tblPerson = Person::useService()->getPersonById($personId))
+                        && is_array($personGrades)
+                    ) {
+                        foreach ($personGrades as $identifier => $value) {
+                            if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
+                                if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
+                                    $tblPrepare, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType
+                                )
+                                ) {
+                                    (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade,
+                                        trim($value));
+                                } elseif (trim($value) != '') {
+                                    (new Data($this->getBinding()))->createPrepareAdditionalGrade(
+                                        $tblPrepare,
+                                        $tblPerson,
+                                        $tblCurrentSubject,
+                                        $tblPrepareAdditionalGradeType,
+                                        0,
+                                        trim($value)
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if ($tblNextSubject) {
+                    if ($IsFinalGrade) {
+                        $parameters = array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'Route' => $Route,
+                            'SubjectId' => $tblNextSubject->getId()
+                        );
+                    } else {
+                        $parameters = array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'Route' => $Route,
+                            'SubjectId' => $tblCurrentSubject->getId(),
+                            'IsFinalGrade' => true
+                        );
+                    }
+                } else {
+                    $parameters = array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'Route' => $Route,
+                        'IsNotSubject' => true
+                    );
+                }
+
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Noten wurden gespeichert.')
+                    . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Setting',
+                        Redirect::TIMEOUT_SUCCESS,
+                        $parameters
+                    );
+            }
+        }
+
+        return $form;
     }
 }

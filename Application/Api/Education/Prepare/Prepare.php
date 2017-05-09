@@ -54,7 +54,7 @@ class Prepare extends Extension implements IModuleInterface
             && ($tblPerson = Person::useService()->getPersonById($Additional['PersonId']))
         ) {
 
-            $list = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareAdditionalGradesBy(
+            $list = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareAdditionalGradeListBy(
                 $tblPrepare,
                 $tblPerson
             );

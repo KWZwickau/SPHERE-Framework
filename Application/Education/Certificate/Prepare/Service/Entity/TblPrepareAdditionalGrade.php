@@ -28,6 +28,7 @@ class TblPrepareAdditionalGrade extends Element
 {
 
     const ATTR_TBL_PREPARE_CERTIFICATE = 'tblPrepareCertificate';
+    const ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE = 'tblPrepareAdditionalGradeType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_RANKING = 'Ranking';
