@@ -12,7 +12,17 @@ use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Layout\Repository\Header;
+use SPHERE\Common\Frontend\Layout\Repository\Headline;
+use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -129,8 +139,38 @@ class Creator extends Extension
      *
      * @return Stage|string
      */
-    public function previewPdf($PrepareId = null, $PersonId = null, $Name = 'Zeugnis Muster')
+    public function previewPdf($PrepareId = null, $PersonId = null, $Name = 'Zeugnis Muster', $Redirect = true)
     {
+
+        if( $Redirect ) {
+            $Display = new Display();
+            $Stage = new Stage('Dokument wird vorbereitet');
+            $Stage->setContent(new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
+                            (new ProgressBar(0, 100, 0, 10))->setColor(
+                                ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
+                            ),
+                            new Paragraph('Bitte warten ..'),
+                            "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
+                        ), 4),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new RedirectScript('/Api/Education/Certificate/Generator/Preview', 0, array(
+                                'PrepareId' => $PrepareId,
+                                'PersonId' => $PersonId,
+                                'Name' => $Name,
+                                'Redirect' => 0
+                            ))
+                        )
+                    ),
+                )))
+            );
+            $Display->setContent($Stage);
+            return $Display;
+        }
 
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblPerson = Person::useService()->getPersonById($PersonId))
@@ -450,8 +490,37 @@ class Creator extends Extension
      *
      * @return string
      */
-    public static function previewMultiPdf($PrepareId = null, $Name = 'Zeugnis')
+    public static function previewMultiPdf($PrepareId = null, $Name = 'Zeugnis', $Redirect = true)
     {
+
+        if( $Redirect ) {
+            $Display = new Display();
+            $Stage = new Stage('Dokument wird vorbereitet');
+            $Stage->setContent(new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
+                            (new ProgressBar(0, 100, 0, 10))->setColor(
+                                ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
+                            ),
+                            new Paragraph('Bitte warten ..'),
+                            "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
+                        ), 4),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new RedirectScript('/Api/Education/Certificate/Generator/PreviewMultiPdf', 0, array(
+                                'PrepareId' => $PrepareId,
+                                'Name' => $Name,
+                                'Redirect' => 0
+                            ))
+                        )
+                    ),
+                )))
+            );
+            $Display->setContent($Stage);
+            return $Display;
+        }
 
         $pageList = array();
         $tblDivision = false;
