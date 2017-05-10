@@ -52,11 +52,14 @@ class Prepare extends Extension implements IModuleInterface
             && isset($Additional['PersonId'])
             && ($tblPrepare = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareById($Additional['PrepareId']))
             && ($tblPerson = Person::useService()->getPersonById($Additional['PersonId']))
+            && ($tblPrepareAdditionalGradeType = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()
+                ->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
         ) {
 
             $list = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareAdditionalGradeListBy(
                 $tblPrepare,
-                $tblPerson
+                $tblPerson,
+                $tblPrepareAdditionalGradeType
             );
             if ($list) {
                 // update Ranking for deleted DroppedSubjects etc.

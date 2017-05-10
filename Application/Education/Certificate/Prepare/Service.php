@@ -855,7 +855,9 @@ class Service extends AbstractService
         }
 
         // Fachnoten von abgewählten Fächern vom Vorjahr
-        if (($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson))) {
+        if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+            && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType))
+        ) {
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                 if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
                     $Content['P' . $personId]['AdditionalGrade']['Data'][$tblSubject->getAcronym()]
@@ -1596,6 +1598,7 @@ class Service extends AbstractService
      * @param $Data
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
+     * @param $Route
      *
      * @return IFormInterface|string
      */
@@ -1603,7 +1606,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         $Data,
         TblPrepareCertificate $tblPrepareCertificate,
-        TblPerson $tblPerson
+        TblPerson $tblPerson,
+        $Route
     ) {
 
         /**
@@ -1654,7 +1658,8 @@ class Service extends AbstractService
                         . new Redirect('/Education/Certificate/Prepare/DroppedSubjects', Redirect::TIMEOUT_SUCCESS,
                             array(
                                 'PrepareId' => $tblPrepareCertificate->getId(),
-                                'PersonId' => $tblPerson->getId()
+                                'PersonId' => $tblPerson->getId(),
+                                'Route' => $Route
                             ));
                 }
             }
@@ -1666,16 +1671,18 @@ class Service extends AbstractService
     /**
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
+     * @param TblPrepareAdditionalGradeType|null $tblPrepareAdditionalGradeType
      *
      * @return false|TblPrepareAdditionalGrade[]
      */
     public function getPrepareAdditionalGradeListBy(
         TblPrepareCertificate $tblPrepareCertificate,
-        TblPerson $tblPerson
+        TblPerson $tblPerson,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType = null
     ) {
 
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeListBy($tblPrepareCertificate,
-            $tblPerson);
+            $tblPerson, $tblPrepareAdditionalGradeType);
     }
 
     /**
@@ -1785,8 +1792,9 @@ class Service extends AbstractService
         TblPerson $tblPerson
     ) {
 
-        if ($list = (new Data($this->getBinding()))->getPrepareAdditionalGradeListBy($tblPrepareCertificate,
-            $tblPerson)
+        if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+            && $list = (new Data($this->getBinding()))->getPrepareAdditionalGradeListBy($tblPrepareCertificate,
+                $tblPerson, $tblPrepareAdditionalGradeType)
         ) {
 
             $item = end($list);

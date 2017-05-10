@@ -1035,22 +1035,34 @@ class Data extends AbstractData
     /**
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
+     * @param TblPrepareAdditionalGradeType|null $tblPrepareAdditionalGradeType
      *
      * @return false|TblPrepareAdditionalGrade[]
      */
     public function getPrepareAdditionalGradeListBy(
         TblPrepareCertificate $tblPrepareCertificate,
-        TblPerson $tblPerson
+        TblPerson $tblPerson,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType = null
     ) {
+
+        if ($tblPrepareAdditionalGradeType) {
+            $parameters =  array(
+                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            );
+        } else {
+            $parameters =  array(
+                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+            );
+        }
 
         return $this->getCachedEntityListBy(
             __METHOD__,
             $this->getEntityManager(),
             'TblPrepareAdditionalGrade',
-            array(
-                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
-                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-            ),
+           $parameters,
             array('Ranking' => self::ORDER_ASC)
         );
     }
