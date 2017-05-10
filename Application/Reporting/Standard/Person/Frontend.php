@@ -10,6 +10,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -781,9 +782,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Birthday'     => 'Geburtsdatum',
                                 'Birthplace'   => 'Geburtsort',
                                 'Address'      => 'Adresse',
-                                'Phone'        => new ToolTip('Telefon',
+                                'Phone'        => new ToolTip('Telefon '.new Info(),
                                     'p.=Privat; g.=Geschäftlich; n.=Notfall; f.=Fax'),
-                                'Mail'         => new ToolTip('E-Mail', 'p.=Privat; g.=Geschäftlich'),
+                                'Mail'         => new ToolTip('E-Mail '.new Info(), 'p.=Privat; g.=Geschäftlich'),
 
                             ),
                             array(
