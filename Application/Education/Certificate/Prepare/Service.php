@@ -266,16 +266,18 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
+     * @param IFormInterface $Stage
      * @param TblPrepareCertificate $tblPrepare
      * @param $Data
+     * @param $Route
      *
      * @return IFormInterface|string
      */
     public function updatePrepareSetSigner(
-        IFormInterface $Stage = null,
+        IFormInterface $Stage,
         TblPrepareCertificate $tblPrepare,
-        $Data
+        $Data,
+        $Route
     ) {
 
         /**
@@ -304,7 +306,8 @@ class Service extends AbstractService
 
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Unterzeichner wurde ausgewählt.')
                 . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
-                    'PrepareId' => $tblPrepare->getId()
+                    'PrepareId' => $tblPrepare->getId(),
+                    'Route' => $Route
                 ));
         }
 
@@ -807,28 +810,46 @@ class Service extends AbstractService
 
         // Fachnoten
         if ($tblPrepare->isGradeInformation() || ($tblPrepareStudent && !$tblPrepareStudent->isApproved())) {
-            if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
-                && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))
+            // Abschlusszeugnisse
+            if ($tblGenerateCertificate
+                && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
             ) {
-                foreach ($tblTestList as $tblTest) {
-                    if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
-                        && $tblTest->getServiceTblSubject()
-                    ) {
-                        // keine Tendenzen auf Zeugnissen
-                        $withTrend = true;
-                        if ($tblPrepareStudent
-                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                            && !$tblCertificate->isInformation()
+                  if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
+                      && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
+                      $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
+                  ))) {
+                      foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                          if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                              $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()]
+                                  = $tblPrepareAdditionalGrade->getGrade();
+                          }
+                      }
+                  }
+            } else {
+                if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+                    && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))
+                ) {
+                    foreach ($tblTestList as $tblTest) {
+                        if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
+                            && $tblTest->getServiceTblSubject()
                         ) {
-                            $withTrend = false;
-                        }
+                            // keine Tendenzen auf Zeugnissen
+                            $withTrend = true;
+                            if ($tblPrepareStudent
+                                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                && !$tblCertificate->isInformation()
+                            ) {
+                                $withTrend = false;
+                            }
 
-                        $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
-                            = $tblGradeItem->getDisplayGrade($withTrend);
+                            $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
+                                = $tblGradeItem->getDisplayGrade($withTrend);
 
-                        // bei Zeugnistext als Note Schriftgröße verkleinern
-                        if ($tblGradeItem->getTblGradeText()) {
-                            $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblTest->getServiceTblSubject()->getAcronym()] = true;
+                            // bei Zeugnistext als Note Schriftgröße verkleinern
+                            if ($tblGradeItem->getTblGradeText()) {
+                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblTest->getServiceTblSubject()->getAcronym()] = true;
+                            }
                         }
                     }
                 }
@@ -1694,6 +1715,7 @@ class Service extends AbstractService
     public function setAutoDroppedSubjects(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
 
+        $gradeString = '';
         $tblLastDivision = false;
         $tblCurrentDivision = $tblPrepare->getServiceTblDivision();
         if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
@@ -1765,7 +1787,7 @@ class Service extends AbstractService
                         && $tblPrepareGrade
                         && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
                     ) {
-                        Prepare::useService()->createPrepareAdditionalGrade(
+                        $tblPrepareAdditionalGrade = Prepare::useService()->createPrepareAdditionalGrade(
                             $tblPrepare,
                             $tblPerson,
                             $item,
@@ -1773,12 +1795,14 @@ class Service extends AbstractService
                             $count++,
                             $tblPrepareGrade->getGrade()
                         );
+
+                        $gradeString .= $item->getAcronym() . ':' . $tblPrepareAdditionalGrade->getGrade() . ' ';
                     }
                 }
             }
         }
 
-        return false;
+        return $gradeString;
     }
 
     /**
@@ -1863,26 +1887,26 @@ class Service extends AbstractService
             $Ranking);
     }
 
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     */
-    public function hasDiplomaCertificate(TblPrepareCertificate $tblPrepare)
-    {
-
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-            foreach ($tblPersonList as $tblPerson) {
-                if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
-                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                    && ($tblCertificateType = $tblCertificate->getTblCertificateType())
-                    && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-                ) {
-
-                }
-            }
-        }
-    }
+//    /**
+//     * @param TblPrepareCertificate $tblPrepare
+//     */
+//    public function hasDiplomaCertificate(TblPrepareCertificate $tblPrepare)
+//    {
+//
+//        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+//            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+//        ) {
+//            foreach ($tblPersonList as $tblPerson) {
+//                if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
+//                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+//                    && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+//                    && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+//                ) {
+//
+//                }
+//            }
+//        }
+//    }
 
     /**
      * @param $Identifier

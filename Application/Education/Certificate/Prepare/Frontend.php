@@ -1413,15 +1413,31 @@ class Frontend extends Extension implements IFrontendInterface
 
                         $countSubjectGrades = 0;
                         // Zensuren zählen
-                        if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
-                            && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivision))
-                        ) {
-                            foreach ($tblTestList as $tblTest) {
-                                if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                                        $tblPerson))
-                                    && $tblTest->getServiceTblSubject() && $tblGradeItem->getGrade()
-                                ) {
-                                    $countSubjectGrades++;
+                        if ($Route == 'Diploma') {
+                            if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
+                                && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                                    $tblPrepare,
+                                    $tblPerson,
+                                    $tblPrepareAdditionalGradeType
+                                ))
+                            ) {
+                                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                                    if ($tblPrepareAdditionalGrade->getGrade()) {
+                                        $countSubjectGrades++;
+                                    }
+                                }
+                            }
+                        } else {
+                            if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+                                && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivision))
+                            ) {
+                                foreach ($tblTestList as $tblTest) {
+                                    if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                            $tblPerson))
+                                        && $tblTest->getServiceTblSubject() && $tblGradeItem->getGrade()
+                                    ) {
+                                        $countSubjectGrades++;
+                                    }
                                 }
                             }
                         }
@@ -1487,7 +1503,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 ($tblCertificate
                                     ? (new Standard(
                                         '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
-                                        array('PrepareId' => $tblPrepare->getId(), 'PersonId' => $tblPerson->getId()),
+                                        array(
+                                            'PrepareId' => $tblPrepare->getId(),
+                                            'PersonId' => $tblPerson->getId(),
+                                            'Route' => $Route
+                                        ),
                                         'Zeugnisvorschau anzeigen'))
                                     . (new External(
                                         '',
@@ -1520,9 +1540,42 @@ class Frontend extends Extension implements IFrontendInterface
                         // Mittelschule Abschlusszeugnis Realschule
                         if ($tblCertificate && $tblCertificate->getCertificate() == 'MsAbsRs'
                             && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
-                            && !Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType)
                         ) {
-                            Prepare::useService()->setAutoDroppedSubjects($tblPrepare, $tblPerson);
+                            if (!isset($columnTable['DroppedSubjects'])) {
+                                $columnTable['DroppedSubjects'] = 'Abgewählte Fächer';
+                            }
+
+                            // automatisch vom letzten Schuljahr setzen
+                            $gradeString = '';
+                            if (!Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson,
+                                $tblPrepareAdditionalGradeType)
+                            ) {
+                                $gradeString = Prepare::useService()->setAutoDroppedSubjects($tblPrepare, $tblPerson);
+                            }
+
+                            if ($gradeString) {
+                                $studentTable[$tblPerson->getId()]['DroppedSubjects'] = $gradeString;
+                            } elseif (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                                $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType))
+                            ) {
+                                $gradeString = '';
+                                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                                    if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                                        $gradeString .= $tblSubject->getAcronym() . ':' . $tblPrepareAdditionalGrade->getGrade() . ' ';
+                                    }
+                                }
+                                $studentTable[$tblPerson->getId()]['DroppedSubjects'] = $gradeString;
+                            } else {
+                                $studentTable[$tblPerson->getId()]['DroppedSubjects'] = new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                    new Exclamation() . ' nicht erledigt'
+                                );
+                            }
+                        }
+
+                        if (isset($columnTable['DroppedSubjects'])
+                            && !isset($studentTable[$tblPerson->getId()]['DroppedSubjects'])
+                        ) {
+                            $studentTable[$tblPerson->getId()]['DroppedSubjects'] = '';
                         }
                     }
                 }
@@ -1536,6 +1589,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Select(),
                 array(
                     'PrepareId' => $tblPrepare->getId(),
+                    'Route' => $Route
                 ),
                 'Unterzeichner auswählen'
             );
@@ -1578,7 +1632,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     '/Education/Certificate/Prepare/Prepare/Preview/SubjectGrades',
                                     null,
                                     array(
-                                        'PrepareId' => $PrepareId
+                                        'PrepareId' => $PrepareId,
+                                        'Route' => $Route
                                     )
                                 ) : null,
                                 new External(
@@ -1728,10 +1783,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $Route
      *
      * @return Stage|string
      */
-    public function frontendPrepareShowSubjectGrades($PrepareId = null)
+    public function frontendPrepareShowSubjectGrades($PrepareId = null, $Route = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Fachnoten-Übersicht');
@@ -1743,7 +1799,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Prepare/Prepare/Preview',
                     new ChevronLeft(),
-                    array('PrepareId' => $PrepareId))
+                    array('PrepareId' => $PrepareId, 'Route' => $Route))
             );
 
             $studentList = array();
@@ -1786,12 +1842,17 @@ class Frontend extends Extension implements IFrontendInterface
 
                                         $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                         if ($tblPerson) {
-                                            $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList,
-                                                $tblDivisionSubject->getTblSubjectGroup()
-                                                    ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                $tblPrepare
-                                            );
+                                            if ($Route == 'Diploma') {
+                                                $studentList = $this->setDiplomaGrade($tblPrepare, $tblPerson,
+                                                    $tblSubject, $studentList);
+                                            } else {
+                                                $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                    $tblTest, $tblSubject, $tblPerson, $studentList,
+                                                    $tblDivisionSubject->getTblSubjectGroup()
+                                                        ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                    $tblPrepare
+                                                );
+                                            }
                                         }
                                     }
 
@@ -1811,8 +1872,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         // nur Schüler der ausgewählten Klasse
                                         if (isset($divisionPersonList[$tblPerson->getId()])) {
                                             $studentList[$tblPerson->getId()]['Number'] = $count++;
-                                            $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList, null, $tblPrepare);
+                                            if ($Route == 'Diploma') {
+                                                $studentList = $this->setDiplomaGrade($tblPrepare, $tblPerson,
+                                                    $tblSubject, $studentList);
+                                            } else {
+                                                $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                    $tblTest, $tblSubject, $tblPerson, $studentList, null, $tblPrepare);
+                                            }
                                         }
                                     }
                                 }
@@ -1967,17 +2033,20 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $PrepareId
      * @param null $PersonId
+     * @param null $Route
      *
      * @return Stage|string
      */
     public function frontendShowCertificate(
         $PrepareId = null,
-        $PersonId = null
+        $PersonId = null,
+        $Route = null
     ) {
         $Stage = new Stage('Zeugnisvorschau', 'Anzeigen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
-                'PrepareId' => $PrepareId
+                'PrepareId' => $PrepareId,
+                'Route' => $Route
             )
         ));
 
@@ -2071,17 +2140,19 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $Route
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendSigner($PrepareId = null, $Data = null)
+    public function frontendSigner($PrepareId = null, $Route = null, $Data = null)
     {
 
         $Stage = new Stage('Unterzeichner', 'Auswählen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
-                'PrepareId' => $PrepareId
+                'PrepareId' => $PrepareId,
+                'Route' => $Route
             )
         ));
 
@@ -2133,7 +2204,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 $tblPersonList
                                     ? new Well(Prepare::useService()->updatePrepareSetSigner($form,
-                                    $tblPrepare, $Data))
+                                    $tblPrepare, $Data, $Route))
                                     : new Warning('Für diese Klasse sind keine Klassenlehrer vorhanden.')
                             )),
                         ))
@@ -2173,7 +2244,7 @@ class Frontend extends Extension implements IFrontendInterface
             $contentList = array();
             if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
                 && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare,
-                $tblPerson, $tblPrepareAdditionalGradeType))
+                    $tblPerson, $tblPrepareAdditionalGradeType))
             ) {
                 $count = 1;
                 foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
@@ -2350,7 +2421,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblPrepareAdditionalGrade) {
             $Stage->addButton(
-                new Standard('Zur&uuml;ck', '/Education/Certificate/Prepare/DroppedSubjects', new ChevronLeft(), $parameters)
+                new Standard('Zur&uuml;ck', '/Education/Certificate/Prepare/DroppedSubjects', new ChevronLeft(),
+                    $parameters)
             );
 
             if (!$Confirm) {
@@ -2395,7 +2467,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('Id' => $Id, 'Confirm' => true, 'Route' => $Route)
                                     )
                                     . new Standard(
-                                        'Nein', '/Education/Certificate/Prepare/DroppedSubjects', new Disable(), $parameters
+                                        'Nein', '/Education/Certificate/Prepare/DroppedSubjects', new Disable(),
+                                        $parameters
                                     )
                                 )
                             )
@@ -2411,7 +2484,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     . ' Das abgewählte Fach wurde gelöscht')
                                 : new Danger(new Ban() . ' Das abgewählte Fach konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/Education/Certificate/Prepare/DroppedSubjects', Redirect::TIMEOUT_SUCCESS, $parameters)
+                            new Redirect('/Education/Certificate/Prepare/DroppedSubjects', Redirect::TIMEOUT_SUCCESS,
+                                $parameters)
                         )))
                     )))
                 );
@@ -3167,5 +3241,36 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         return array($studentTable, $hasPreviewGrades);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param $studentList
+     *
+     * @return array
+     */
+    private function setDiplomaGrade(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, TblSubject $tblSubject, $studentList)
+    {
+
+        $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
+
+        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
+            && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
+                $tblPrepare,
+                $tblPerson,
+                $tblSubject,
+                $tblPrepareAdditionalGradeType
+            ))
+            && $tblPrepareAdditionalGrade->getGrade()
+        ) {
+            $studentList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblPrepareAdditionalGrade->getGrade();
+        } else {
+            $studentList[$tblPerson->getId()][$tblSubject->getAcronym()] =
+                new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt');
+        }
+
+        return $studentList;
     }
 }
