@@ -783,8 +783,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Birthplace'   => 'Geburtsort',
                                 'Address'      => 'Adresse',
                                 'Phone'        => new ToolTip('Telefon '.new Info(),
-                                    'p.=Privat; g.=Geschäftlich; n.=Notfall; f.=Fax'),
-                                'Mail'         => new ToolTip('E-Mail '.new Info(), 'p.=Privat; g.=Geschäftlich'),
+                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax'),
+                                'Mail'         => 'E-Mail',
 
                             ),
                             array(

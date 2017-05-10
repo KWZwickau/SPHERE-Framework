@@ -6,7 +6,6 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
-use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblToPersonMail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
 use SPHERE\Application\Document\Storage\Storage;
@@ -121,7 +120,7 @@ class Service extends Extension
                         $tblPhone = $tblToPersonPhone->getTblPhone();
                         if ($tblPhone) {
                             if (isset($tblPhoneList[$tblPerson->getId()])) {
-                                $tblPhoneList[$tblPerson->getId()] = $tblPhoneList[$tblPerson->getId()].'; '
+                                $tblPhoneList[$tblPerson->getId()] = $tblPhoneList[$tblPerson->getId()].', '
                                     .$tblPhone->getNumber().' '.$this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
                             } else {
                                 $tblPhoneList[$tblPerson->getId()] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('
@@ -142,11 +141,11 @@ class Service extends Extension
                         $tblMail = $tblToPersonMail->getTblMail();
                         if ($tblMail) {
                             if (isset($tblMailList[$tblPerson->getId()])) {
-                                $tblMailList[$tblPerson->getId()] = $tblMailList[$tblPerson->getId()].'; '
-                                    .$tblMail->getAddress().' '.$this->getShortTypeByTblToPersonMail($tblToPersonMail);
+                                $tblMailList[$tblPerson->getId()] = $tblMailList[$tblPerson->getId()].', '
+                                    .$tblMail->getAddress();
                             } else {
                                 $tblMailList[$tblPerson->getId()] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('
-                                    .$tblMail->getAddress().' '.$this->getShortTypeByTblToPersonMail($tblToPersonMail);
+                                    .$tblMail->getAddress();
                             }
                         }
                     }
@@ -171,7 +170,7 @@ class Service extends Extension
                                 $tblPhone = $tblToPersonPhone->getTblPhone();
                                 if ($tblPhone) {
                                     if (isset($tblPhoneList[$tblPersonGuardian->getId()])) {
-                                        $tblPhoneList[$tblPersonGuardian->getId()] = $tblPhoneList[$tblPersonGuardian->getId()].'; '
+                                        $tblPhoneList[$tblPersonGuardian->getId()] = $tblPhoneList[$tblPersonGuardian->getId()].', '
                                             .$tblPhone->getNumber().' '.$this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
                                     } else {
                                         $tblPhoneList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.
@@ -192,12 +191,12 @@ class Service extends Extension
                                 $tblMail = $tblToPersonMail->getTblMail();
                                 if ($tblMail) {
                                     if (isset($tblMailList[$tblPersonGuardian->getId()])) {
-                                        $tblMailList[$tblPersonGuardian->getId()] = $tblMailList[$tblPersonGuardian->getId()].'; '
-                                            .$tblMail->getAddress().' '.$this->getShortTypeByTblToPersonMail($tblToPersonMail);
+                                        $tblMailList[$tblPersonGuardian->getId()] = $tblMailList[$tblPersonGuardian->getId()].', '
+                                            .$tblMail->getAddress();
                                     } else {
                                         $tblMailList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.
                                             $tblPersonGuardian->getLastName().' ('
-                                            .$tblMail->getAddress().' '.$this->getShortTypeByTblToPersonMail($tblToPersonMail);
+                                            .$tblMail->getAddress();
                                     }
                                 }
                             }
@@ -307,6 +306,10 @@ class Service extends Extension
                 }
             }
 
+            //Column width
+            $export->setStyle($export->getCell(10, 0), $export->getCell(10, $Row))->setColumnWidth(35);
+            $export->setStyle($export->getCell(11, 0), $export->getCell(11, $Row))->setColumnWidth(45);
+
             $Row++;
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Weiblich:');
@@ -317,6 +320,18 @@ class Service extends Extension
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            // Legende
+            $Row = $Row - 2;
+            $export->setValue($export->getCell("10", $Row), 'Abkürzungen Telefon:');
+            $Row++;
+            $export->setValue($export->getCell("10", $Row), 'p = Privat');
+            $Row++;
+            $export->setValue($export->getCell("10", $Row), 'g = Geschäftlich');
+            $Row++;
+            $export->setValue($export->getCell("10", $Row), 'n = Notfall');
+            $Row++;
+            $export->setValue($export->getCell("10", $Row), 'f = Fax');
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -1143,39 +1158,16 @@ class Service extends Extension
         if ($tblType) {
             switch ($tblType->getName()) {
                 case 'Privat':
-                    $result = 'p.';
+                    $result = 'p';
                     break;
                 case 'Geschäftlich':
-                    $result = 'g.';
+                    $result = 'g';
                     break;
                 case 'Notfall':
-                    $result = 'n.';
+                    $result = 'n';
                     break;
                 case 'Fax':
-                    $result = 'f.';
-                    break;
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * @param TblToPersonMail $tblToPerson
-     *
-     * @return string
-     */
-    public function getShortTypeByTblToPersonMail(TblToPersonMail $tblToPerson)
-    {
-
-        $result = '';
-        $tblType = $tblToPerson->getTblType();
-        if ($tblType) {
-            switch ($tblType->getName()) {
-                case 'Privat':
-                    $result = 'p.';
-                    break;
-                case 'Geschäftlich':
-                    $result = 'g.';
+                    $result = 'f';
                     break;
             }
         }
