@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -772,14 +773,18 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(new TableData($PersonList, null,
                             array(
-                                'Number' => '#',
-                                'Salutation' => 'Anrede',
-                                'FirstName' => 'Vorname',
-                                'LastName' => 'Name',
+                                'Number'       => '#',
+//                                'Salutation' => 'Anrede',
+                                'FirstName'    => 'Vorname',
+                                'LastName'     => 'Name',
                                 'Denomination' => 'Konfession',
-                                'Birthday' => 'Geburtsdatum',
-                                'Birthplace' => 'Geburtsort',
-                                'Address' => 'Adresse',
+                                'Birthday'     => 'Geburtsdatum',
+                                'Birthplace'   => 'Geburtsort',
+                                'Address'      => 'Adresse',
+                                'Phone'        => new ToolTip('Telefon',
+                                    'p.=Privat; g.=Geschäftlich; n.=Notfall; f.=Fax'),
+                                'Mail'         => new ToolTip('E-Mail', 'p.=Privat; g.=Geschäftlich'),
+
                             ),
                             array(
                                 "pageLength" => -1,
