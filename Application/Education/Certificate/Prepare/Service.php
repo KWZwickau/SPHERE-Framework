@@ -1572,6 +1572,7 @@ class Service extends AbstractService
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
      * @param $ranking
      * @param $grade
      *
@@ -1581,12 +1582,13 @@ class Service extends AbstractService
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson,
         TblSubject $tblSubject,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking,
         $grade
     ) {
 
         return (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate,
-            $tblPerson, $tblSubject, $ranking, $grade);
+            $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, $ranking, $grade);
     }
 
     /**
@@ -1633,12 +1635,15 @@ class Service extends AbstractService
                 );
         } else {
 
-            if ($tblSubject) {
+            if ($tblSubject
+                && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+            ) {
                 // ToDo Ranking
                 if ($this->createPrepareAdditionalGrade(
                     $tblPrepareCertificate,
                     $tblPerson,
                     $tblSubject,
+                    $tblPrepareAdditionalGradeType,
                     $this->getMaxRanking(
                         $tblPrepareCertificate, $tblPerson
                     ),
@@ -1749,9 +1754,18 @@ class Service extends AbstractService
                     $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
                     $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblLastPrepare, $tblPerson,
                         $tblLastDivision, $item, $tblTestType);
-                    if ($tblTestType && $tblPrepareGrade) {
-                        Prepare::useService()->createPrepareAdditionalGrade($tblPrepare, $tblPerson, $item, $count++,
-                            $tblPrepareGrade->getGrade());
+                    if ($tblTestType
+                        && $tblPrepareGrade
+                        && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+                    ) {
+                        Prepare::useService()->createPrepareAdditionalGrade(
+                            $tblPrepare,
+                            $tblPerson,
+                            $item,
+                            $tblPrepareAdditionalGradeType,
+                            $count++,
+                            $tblPrepareGrade->getGrade()
+                        );
                     }
                 }
             }
@@ -1895,7 +1909,7 @@ class Service extends AbstractService
      * @return IFormInterface|string
      */
     public function updatePrepareExamGrades(
-        IFormInterface $form = null,
+        IFormInterface $form,
         TblPrepareCertificate $tblPrepare,
         TblSubject $tblCurrentSubject,
         TblSubject $tblNextSubject = null,
@@ -1982,11 +1996,20 @@ class Service extends AbstractService
                         );
                     }
                 } else {
-                    $parameters = array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'Route' => $Route,
-                        'IsNotSubject' => true
-                    );
+                    if ($IsFinalGrade) {
+                        $parameters = array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'Route' => $Route,
+                            'IsNotSubject' => true
+                        );
+                    } else {
+                        $parameters = array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'Route' => $Route,
+                            'SubjectId' => $tblCurrentSubject->getId(),
+                            'IsFinalGrade' => true
+                        );
+                    }
                 }
 
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Noten wurden gespeichert.')
