@@ -1651,12 +1651,17 @@ class Frontend extends Extension implements IFrontendInterface
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
                     $Certificate = new $CertificateClass($tblDivision);
 
+                    // create Certificate with Placeholders
+                    $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
+                    $Certificate->createCertificate(array(), $pageList);
+
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
                     $FormField = Generator::useService()->getFormField();
                     $FormLabel = Generator::useService()->getFormLabel();
 
                     $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
+
                     if ($PlaceholderList) {
                         array_walk($PlaceholderList,
                             function ($Placeholder) use (
@@ -1671,22 +1676,27 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $PlaceholderList = explode('.', $Placeholder);
                                 $Identifier = array_slice($PlaceholderList, 1);
+                                if (isset($Identifier[0])) {
+                                    unset($Identifier[0]);
+                                }
+
+                                $PlaceholderName = str_replace('.P' . $tblPerson->getId(), '', $Placeholder);
 
                                 $Type = array_shift($Identifier);
                                 if (!method_exists($Certificate, 'get' . $Type)) {
-                                    if (isset($FormField[$Placeholder])) {
-                                        if (isset($FormLabel[$Placeholder])) {
-                                            $Label = $FormLabel[$Placeholder];
+                                    if (isset($FormField[$PlaceholderName])) {
+                                        if (isset($FormLabel[$PlaceholderName])) {
+                                            $Label = $FormLabel[$PlaceholderName];
                                         } else {
-                                            $Label = $Placeholder;
+                                            $Label = $PlaceholderName;
                                         }
 
-                                        $key = str_replace('Content.Input.', '', $Placeholder);
+                                        $key = str_replace('Content.Input.', '', $PlaceholderName);
                                         if (!isset($columnTable[$key])) {
                                             $columnTable[$key] = $Label;
                                         }
 
-                                        if (isset($FormField[$Placeholder]) && $FormField[$Placeholder] == 'TextArea') {
+                                        if (isset($FormField[$PlaceholderName]) && $FormField[$PlaceholderName] == 'TextArea') {
                                             if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
                                                     $tblPrepareStudent->getTblPrepareCertificate(), $tblPerson, $key))
                                                 && !empty(trim($tblPrepareInformation->getValue()))
