@@ -234,7 +234,7 @@ class MsAbsRs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+            ->addSlice($this->getSubjectLanes($personId, true, array(), '14px', false, true)->styleHeight('270px'))
             /////////////////////////
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -381,8 +381,6 @@ class MsAbsRs extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-//                        ->stylePaddingTop('2px')
-//                        ->stylePaddingBottom('2px')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
                                  5px

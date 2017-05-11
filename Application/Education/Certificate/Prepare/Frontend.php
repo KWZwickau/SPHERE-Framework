@@ -1520,7 +1520,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         ),
                                         'Zeugnis als Muster herunterladen'))
                                     // Mittelschule Abschlusszeugnis Realschule
-                                    . (($tblCertificate->getCertificate() == 'MsAbsRs')
+                                    . (($tblCertificate->getCertificate() == 'MsAbsRs'
+                                        && $tblPrepareStudent
+                                        && !$tblPrepareStudent->isApproved())
                                         ? new Standard(
                                             '', '/Education/Certificate/Prepare/DroppedSubjects', new CommodityItem(),
                                             array(
@@ -3302,11 +3304,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblCertificate) {
             $tblTestSortedList = array();
-            $index = 0;
+            $offset = 0;
             /** @var TblTest $tblTest */
             foreach ($tblTestList as $tblTest) {
                 if (($tblSubjectItem = $tblTest->getServiceTblSubject())) {
-                    $index++;
                     if ($tblCertificate
                         && ($tblCertificateSubject = Generator::useService()->getCertificateSubjectBySubject($tblCertificate,
                             $tblSubjectItem))
@@ -3316,6 +3317,9 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             $index = 2 * $tblCertificateSubject->getRanking() + 1;
                         }
+                    } else {
+                        $offset++;
+                        $index = 100 + $offset;
                     }
                     $tblTestSortedList[$index] = $tblTest;
                 }
