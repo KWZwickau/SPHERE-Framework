@@ -2832,6 +2832,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubjectList, $IsNotSubject
         );
 
+        // Todo Realschule
         $studentTable = array();
         $columnTable = array(
             'Number' => '#',
@@ -2965,6 +2966,10 @@ class Frontend extends Extension implements IFrontendInterface
         &$tblSubjectList,
         $IsNotSubject
     ) {
+
+        // Sortierung der Fächer wie auf dem Zeugnis
+        $tblTestList = $this->sortSubjects($tblPrepare, $tblTestList);
+
         /** @var TblTest $tblTest */
         foreach ($tblTestList as $tblTest) {
             if (($tblSubjectItem = $tblTest->getServiceTblSubject())) {
@@ -2990,6 +2995,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $buttonList = array();
+
         foreach ($tblSubjectList as $subjectId => $value) {
             if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
                 if ($tblCurrentSubject && $tblCurrentSubject->getId() == $tblSubject->getId()) {
@@ -3272,5 +3278,52 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $studentList;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param $tblTestList
+     * @return array
+     */
+    private function sortSubjects(TblPrepareCertificate $tblPrepare, $tblTestList)
+    {
+        $tblCertificate = false;
+        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && ($tblSchoolType = $tblLevel->getServiceTblType())
+            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+        ) {
+            if ($tblLevel->getName() == '10') {
+                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbsRs');
+            } elseif ($tblLevel->getName() == '9' || $tblLevel->getName() == '09') {
+                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbsHsQ');
+            }
+        }
+
+        if ($tblCertificate) {
+            $tblTestSortedList = array();
+            $index = 0;
+            /** @var TblTest $tblTest */
+            foreach ($tblTestList as $tblTest) {
+                if (($tblSubjectItem = $tblTest->getServiceTblSubject())) {
+                    $index++;
+                    if ($tblCertificate
+                        && ($tblCertificateSubject = Generator::useService()->getCertificateSubjectBySubject($tblCertificate,
+                            $tblSubjectItem))
+                    ) {
+                        if ($tblCertificateSubject->getLane() == 1) {
+                            $index = 2 * $tblCertificateSubject->getRanking();
+                        } else {
+                            $index = 2 * $tblCertificateSubject->getRanking() + 1;
+                        }
+                    }
+                    $tblTestSortedList[$index] = $tblTest;
+                }
+            }
+            ksort($tblTestSortedList);
+            $tblTestList = $tblTestSortedList;
+        }
+
+        return $tblTestList;
     }
 }
