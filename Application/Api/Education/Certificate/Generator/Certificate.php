@@ -597,14 +597,14 @@ abstract class Certificate extends Extension
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 4px
+                                 5px
                              {% else %}
                                  2px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
                             '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 5px
+                                 6px
                              {% else %}
                                  2px
                              {% endif %}'

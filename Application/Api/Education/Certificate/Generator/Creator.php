@@ -12,8 +12,6 @@ use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Layout\Repository\Header;
-use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -136,6 +134,7 @@ class Creator extends Extension
      * @param null $PrepareId
      * @param null $PersonId
      * @param string $Name
+     * @param bool $Redirect
      *
      * @return Stage|string
      */
@@ -143,33 +142,12 @@ class Creator extends Extension
     {
 
         if( $Redirect ) {
-            $Display = new Display();
-            $Stage = new Stage('Dokument wird vorbereitet');
-            $Stage->setContent(new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
-                            (new ProgressBar(0, 100, 0, 10))->setColor(
-                                ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
-                            ),
-                            new Paragraph('Bitte warten ..'),
-                            "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
-                        ), 4),
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new RedirectScript('/Api/Education/Certificate/Generator/Preview', 0, array(
-                                'PrepareId' => $PrepareId,
-                                'PersonId' => $PersonId,
-                                'Name' => $Name,
-                                'Redirect' => 0
-                            ))
-                        )
-                    ),
-                )))
-            );
-            $Display->setContent($Stage);
-            return $Display;
+            return self::displayWaitingPage('/Api/Education/Certificate/Generator/Preview', array(
+                'PrepareId' => $PrepareId,
+                'PersonId' => $PersonId,
+                'Name' => $Name,
+                'Redirect' => 0
+            ));
         }
 
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
@@ -487,6 +465,7 @@ class Creator extends Extension
     /**
      * @param null $PrepareId
      * @param string $Name
+     * @param bool $Redirect
      *
      * @return string
      */
@@ -494,32 +473,11 @@ class Creator extends Extension
     {
 
         if( $Redirect ) {
-            $Display = new Display();
-            $Stage = new Stage('Dokument wird vorbereitet');
-            $Stage->setContent(new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
-                            (new ProgressBar(0, 100, 0, 10))->setColor(
-                                ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
-                            ),
-                            new Paragraph('Bitte warten ..'),
-                            "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
-                        ), 4),
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new RedirectScript('/Api/Education/Certificate/Generator/PreviewMultiPdf', 0, array(
-                                'PrepareId' => $PrepareId,
-                                'Name' => $Name,
-                                'Redirect' => 0
-                            ))
-                        )
-                    ),
-                )))
-            );
-            $Display->setContent($Stage);
-            return $Display;
+            return self::displayWaitingPage('/Api/Education/Certificate/Generator/PreviewMultiPdf', array(
+                'PrepareId' => $PrepareId,
+                'Name' => $Name,
+                'Redirect' => 0
+            ));
         }
 
         $pageList = array();
@@ -570,11 +528,20 @@ class Creator extends Extension
     /**
      * @param null $PrepareId
      * @param string $Name
+     * @param bool $Redirect
      *
      * @return string
      */
-    public static function downloadMultiPdf($PrepareId = null, $Name = 'Zeugnis')
+    public static function downloadMultiPdf($PrepareId = null, $Name = 'Zeugnis', $Redirect = true)
     {
+
+        if( $Redirect ) {
+            return self::displayWaitingPage('/Api/Education/Certificate/Generator/DownLoadMultiPdf', array(
+                'PrepareId' => $PrepareId,
+                'Name' => $Name,
+                'Redirect' => 0
+            ));
+        }
 
         $pageList = array();
 
@@ -648,5 +615,39 @@ class Creator extends Extension
         }
 
         return new Stage($Name, 'Nicht gefunden');
+    }
+
+    /**
+     * @param string $Route
+     * @param array $parameters
+     *
+     * @return Display
+     */
+    private static function displayWaitingPage($Route, $parameters)
+    {
+
+        $Display = new Display();
+        $Stage = new Stage('Dokument wird vorbereitet');
+        $Stage->setContent(new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(array(
+                        new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
+                        (new ProgressBar(0, 100, 0, 10))->setColor(
+                            ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
+                        ),
+                        new Paragraph('Bitte warten ..'),
+                        "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
+                    ), 4),
+                )),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new RedirectScript($Route, 0, $parameters)
+                    )
+                ),
+            )))
+        );
+        $Display->setContent($Stage);
+
+        return $Display;
     }
 }

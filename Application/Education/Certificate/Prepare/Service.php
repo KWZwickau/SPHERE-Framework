@@ -365,7 +365,15 @@ class Service extends AbstractService
             && ($tblDivision = $tblPrepareStudent->getTblPrepareCertificate()->getServiceTblDivision())
         ) {
 
-            return (new Data($this->getBinding()))->copySubjectGradesByPerson($tblPrepare, $tblPerson);
+            if (($tblCertificateType = $tblCertificate->getTblCertificateType())
+                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+            ) {
+                $isDiploma = true;
+            } else {
+                $isDiploma = false;
+            }
+
+            return (new Data($this->getBinding()))->copySubjectGradesByPerson($tblPrepare, $tblPerson, $isDiploma);
         } else {
             return false;
         }
@@ -821,8 +829,17 @@ class Service extends AbstractService
                   ))) {
                       foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                           if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                              if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                                  'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+                                  && $tblSetting->getValue()
+                              ) {
+                                  $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
+                                  $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                              } else {
+                                  $grade = $tblPrepareAdditionalGrade->getGrade();
+                              }
                               $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()]
-                                  = $tblPrepareAdditionalGrade->getGrade();
+                                  = $grade;
                           }
                       }
                   }
@@ -862,14 +879,23 @@ class Service extends AbstractService
             );
             if ($tblPrepareGradeSubjectList) {
                 foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
-                    if ($tblPrepareGrade->getServiceTblSubject()) {
-                        $Content['P' . $personId]['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()]
-                            = $tblPrepareGrade->getGrade();
-
-                        // bei Zeugnistext als Note Schriftgröße verkleinern
-                        if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())) {
-                            $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = true;
+                    if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
+                        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                                'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+                            && $tblSetting->getValue()
+                        ) {
+                            $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
+                            $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                        } else {
+                            // bei Zeugnistext als Note Schriftgröße verkleinern
+                            if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())) {
+                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = true;
+                            }
+                            $grade = $tblPrepareGrade->getGrade();
                         }
+
+                        $Content['P' . $personId]['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()]
+                            = $grade;
                     }
                 }
             }
@@ -881,8 +907,18 @@ class Service extends AbstractService
         ) {
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                 if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                    if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                            'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+                        && $tblSetting->getValue()
+                    ) {
+                        $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
+                        $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                    } else {
+                        $grade = $tblPrepareAdditionalGrade->getGrade();
+                    }
+
                     $Content['P' . $personId]['AdditionalGrade']['Data'][$tblSubject->getAcronym()]
-                        = $tblPrepareAdditionalGrade->getGrade();
+                        = $grade;
                 }
             }
         }
@@ -1505,7 +1541,16 @@ class Service extends AbstractService
     {
 
         if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-            return (new Data($this->getBinding()))->copySubjectGradesByPrepare($tblPrepare);
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                && ($tblCertificateType =$tblGenerateCertificate->getServiceTblCertificateType())
+                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+            ) {
+                $isDiploma = true;
+            } else {
+                $isDiploma = false;
+            }
+
+            return (new Data($this->getBinding()))->copySubjectGradesByPrepare($tblPrepare, $isDiploma);
         } else {
             return false;
         }
@@ -2053,5 +2098,24 @@ class Service extends AbstractService
         }
 
         return $form;
+    }
+
+    /**
+     * @param $grade
+     *
+     * @return string
+     */
+    private function getVerbalGrade($grade)
+    {
+        switch ($grade) {
+            case 1 : return 'sehr gut'; break;
+            case 2 : return 'gut'; break;
+            case 3 : return 'befriedigend'; break;
+            case 4 : return 'ausreichend'; break;
+            case 5 : return 'mangelhaft'; break;
+            case 6 : return 'ungenügend'; break;
+        }
+
+        return '';
     }
 }

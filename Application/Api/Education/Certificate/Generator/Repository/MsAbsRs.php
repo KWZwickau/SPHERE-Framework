@@ -346,6 +346,8 @@ class MsAbsRs extends Certificate
         $IsGradeUnderlined = false
     ) {
 
+        $TextSizeSmall = '8px';
+
         $slice = new Slice();
         if (($tblGradeList = $this->getAdditionalGrade())) {
             $count = 0;
@@ -379,10 +381,30 @@ class MsAbsRs extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop('2px')
-                        ->stylePaddingBottom('2px')
+//                        ->stylePaddingTop('2px')
+//                        ->stylePaddingBottom('2px')
+                        ->stylePaddingTop(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 5px
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 6px
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
                         ->styleMarginTop('10px')
-                        ->styleTextSize($TextSize)
+                        ->styleTextSize(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
                         , '9%');
                 }
             }

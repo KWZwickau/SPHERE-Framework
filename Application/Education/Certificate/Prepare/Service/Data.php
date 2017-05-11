@@ -565,10 +565,11 @@ class Data extends AbstractData
 
     /**
      * @param TblPrepareCertificate $tblPrepare
+     * @param bool $isDiploma
      *
      * @return bool
      */
-    public function copySubjectGradesByPrepare(TblPrepareCertificate $tblPrepare)
+    public function copySubjectGradesByPrepare(TblPrepareCertificate $tblPrepare, $isDiploma = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -593,9 +594,7 @@ class Data extends AbstractData
 
                     // Freigegebene nicht löschen
                     if (!$isApprovedArray[$tblPerson->getId()]) {
-                        // ToDo GCK Protokoll bulkSave sonst witzlos
                         // nur Freigabe protokollieren
-//                      Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblPrepareGrade);
                         $Manager->bulkKillEntity($tblPrepareGrade);
                     }
                 }
@@ -641,9 +640,8 @@ class Data extends AbstractData
                         $Entity->setPrinted(false);
 
                         $Manager->bulkSaveEntity($Entity);
-                        // ToDo GCK Protokoll bulkSave sonst witzlos
                         Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-                            $Entity);
+                            $Entity, true);
                     }
                 } else {
                     // Create
@@ -680,47 +678,72 @@ class Data extends AbstractData
                         }
 
                         $Manager->bulkSaveEntity($Entity);
-                        // ToDo GCK Protokoll bulkSave sonst witzlos
-                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
                     }
                 }
             }
 
             // kopieren der nicht freigegeben Fachnoten
             foreach ($divisionList as $tblDivisionItem) {
-                if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))) {
-                    foreach ($tblTestAllByTask as $tblTest) {
-                        if (($tblSubject = $tblTest->getServiceTblSubject())
-                            && ($tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem))
-                        ) {
-                            foreach ($tblDivisionPersonList as $tblPersonItem) {
-                                if (isset($divisionPersonList[$tblPersonItem->getId()])
-                                    && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                                        $tblPersonItem))
-                                ) {
-                                    $Entity = new TblPrepareGrade();
-                                    $Entity->settblPrepareCertificate($tblPrepare);
-                                    $Entity->setServiceTblDivision($tblGrade->getServiceTblDivision() ? $tblGrade->getServiceTblDivision() : null);
-                                    $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
-                                    $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
-                                    $Entity->setServiceTblTestType($tblTestType);
-                                    // keine Tendenzen auf Zeugnissen
-                                    $withTrend = true;
-                                    if ($tblGrade->getServiceTblPerson()
-                                        && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                            $tblGrade->getServiceTblPerson()))
-                                        && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                        && !$tblCertificate->isInformation()
-                                    ) {
-                                        $withTrend = false;
-                                    }
-                                    $Entity->setGrade($tblGrade->getDisplayGrade($withTrend));
+                // Abschlusszeugnisse
+                if ($isDiploma) {
+                    if ((($tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
+                        && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
+                    ) {
+                        foreach ($tblDivisionPersonList as $tblPersonItem) {
+                            if (($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
+                                $tblPrepare, $tblPersonItem, $tblPrepareAdditionalGradeType
+                            ))
+                            ) {
+                                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                                    if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                                        $Entity = new TblPrepareGrade();
+                                        $Entity->settblPrepareCertificate($tblPrepare);
+                                        $Entity->setServiceTblDivision($tblDivision);
+                                        $Entity->setServiceTblSubject($tblSubject);
+                                        $Entity->setServiceTblPerson($tblPersonItem);
+                                        $Entity->setServiceTblTestType($tblTestType);
+                                        $Entity->setGrade($tblPrepareAdditionalGrade->getGrade());
 
-                                    $Manager->bulkSaveEntity($Entity);
-                                    // ToDo GCK Protokoll bulkSave sonst witzlos
-                                    // nur Freigabe protokollieren
-//                                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-//                                        $Entity);
+                                        $Manager->bulkSaveEntity($Entity);
+                                        // nur Freigabe protokollieren
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))) {
+                        foreach ($tblTestAllByTask as $tblTest) {
+                            if (($tblSubject = $tblTest->getServiceTblSubject())
+                                && ($tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem))
+                            ) {
+                                foreach ($tblDivisionPersonList as $tblPersonItem) {
+                                    if (isset($divisionPersonList[$tblPersonItem->getId()])
+                                        && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                            $tblPersonItem))
+                                    ) {
+                                        $Entity = new TblPrepareGrade();
+                                        $Entity->settblPrepareCertificate($tblPrepare);
+                                        $Entity->setServiceTblDivision($tblGrade->getServiceTblDivision() ? $tblGrade->getServiceTblDivision() : null);
+                                        $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
+                                        $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
+                                        $Entity->setServiceTblTestType($tblTestType);
+                                        // keine Tendenzen auf Zeugnissen
+                                        $withTrend = true;
+                                        if ($tblGrade->getServiceTblPerson()
+                                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                                $tblGrade->getServiceTblPerson()))
+                                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                            && !$tblCertificate->isInformation()
+                                        ) {
+                                            $withTrend = false;
+                                        }
+                                        $Entity->setGrade($tblGrade->getDisplayGrade($withTrend));
+
+                                        $Manager->bulkSaveEntity($Entity);
+                                        // nur Freigabe protokollieren
+                                    }
                                 }
                             }
                         }
@@ -729,6 +752,7 @@ class Data extends AbstractData
             }
 
             $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
         }
 
         return true;
@@ -759,14 +783,14 @@ class Data extends AbstractData
                         $Entity->setPrinted(false);
 
                         $Manager->bulkSaveEntity($Entity);
-                        // ToDo GCK Protokoll bulkSave sonst witzlos
                         Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-                            $Entity);
+                            $Entity, true);
                     }
                 }
             }
 
             $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
         }
 
         return true;
@@ -775,10 +799,11 @@ class Data extends AbstractData
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
+     * @param bool $isDiploma
      *
      * @return bool
      */
-    public function copySubjectGradesByPerson(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
+    public function copySubjectGradesByPerson(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $isDiploma = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -790,10 +815,7 @@ class Data extends AbstractData
             );
             if ($tblPrepareGradeList) {
                 foreach ($tblPrepareGradeList as $tblPrepareGrade) {
-
-                    // ToDo GCK Protokoll bulkSave sonst witzlos
                     // nur Freigabe protokollieren
-//                      Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblPrepareGrade);
                     $Manager->bulkKillEntity($tblPrepareGrade);
                 }
             }
@@ -801,7 +823,8 @@ class Data extends AbstractData
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        if (($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
+        if ($tblTestType
+            && ($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
@@ -827,9 +850,8 @@ class Data extends AbstractData
                     $Entity->setPrinted(false);
 
                     $Manager->bulkSaveEntity($Entity);
-                    // ToDo GCK Protokoll bulkSave sonst witzlos
                     Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-                        $Entity);
+                        $Entity, true);
                 }
             } else {
                 // Create
@@ -866,38 +888,59 @@ class Data extends AbstractData
                     }
 
                     $Manager->bulkSaveEntity($Entity);
-                    // ToDo GCK Protokoll bulkSave sonst witzlos
-                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
                 }
             }
 
             // kopieren der  Fachnoten
             foreach ($divisionList as $tblDivisionItem) {
-                if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))) {
-                    foreach ($tblTestAllByTask as $tblTest) {
-                        if (($tblSubject = $tblTest->getServiceTblSubject())) {
-                            if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
+                // Abschlusszeugnisse
+                if ($isDiploma) {
+                    if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
+                        && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
+                            $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
+                        ))) {
+                        foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                            if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
                                 $Entity = new TblPrepareGrade();
                                 $Entity->settblPrepareCertificate($tblPrepare);
-                                $Entity->setServiceTblDivision($tblGrade->getServiceTblDivision() ? $tblGrade->getServiceTblDivision() : null);
-                                $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
-                                $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
+                                $Entity->setServiceTblDivision($tblDivision);
+                                $Entity->setServiceTblSubject($tblSubject);
+                                $Entity->setServiceTblPerson($tblPerson);
                                 $Entity->setServiceTblTestType($tblTestType);
-
-                                // keine Tendenzen auf Zeugnissen
-                                $withTrend = true;
-                                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                    && !$tblCertificate->isInformation()
-                                ) {
-                                    $withTrend = false;
-                                }
-                                $Entity->setGrade($tblGrade->getDisplayGrade($withTrend));
+                                $Entity->setGrade($tblPrepareAdditionalGrade->getGrade());
 
                                 $Manager->bulkSaveEntity($Entity);
-                                // ToDo GCK Protokoll bulkSave sonst witzlos
                                 // nur Freigabe protokollieren
-//                                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-//                                        $Entity);
+                            }
+                        }
+                    }
+                } else {
+                    if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))) {
+                        foreach ($tblTestAllByTask as $tblTest) {
+                            if (($tblSubject = $tblTest->getServiceTblSubject())) {
+                                if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                    $tblPerson))
+                                ) {
+                                    $Entity = new TblPrepareGrade();
+                                    $Entity->settblPrepareCertificate($tblPrepare);
+                                    $Entity->setServiceTblDivision($tblGrade->getServiceTblDivision() ? $tblGrade->getServiceTblDivision() : null);
+                                    $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
+                                    $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
+                                    $Entity->setServiceTblTestType($tblTestType);
+
+                                    // keine Tendenzen auf Zeugnissen
+                                    $withTrend = true;
+                                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                        && !$tblCertificate->isInformation()
+                                    ) {
+                                        $withTrend = false;
+                                    }
+                                    $Entity->setGrade($tblGrade->getDisplayGrade($withTrend));
+
+                                    $Manager->bulkSaveEntity($Entity);
+                                    // nur Freigabe protokollieren
+                                }
                             }
                         }
                     }
@@ -905,6 +948,7 @@ class Data extends AbstractData
             }
 
             $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
         }
 
         return true;

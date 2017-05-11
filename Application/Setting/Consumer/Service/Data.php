@@ -38,6 +38,14 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN,
             '1'
         );
+        $this->createSetting(
+            'Education',
+            'Certificate',
+            'Prepare',
+            'IsGradeVerbalOnDiploma',
+            TblSetting::TYPE_BOOLEAN,
+            '1'
+        );
     }
 
     /**
