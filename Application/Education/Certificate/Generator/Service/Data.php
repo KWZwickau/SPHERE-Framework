@@ -476,7 +476,6 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
             $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
             $this->setCertificateSubject($tblCertificate, 'GK', 1, 7);
-            $this->setCertificateSubject($tblCertificate, 'FRZ', 1, 8, false);
 
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
             $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
