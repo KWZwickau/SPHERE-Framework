@@ -1331,11 +1331,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Vorschau');
 
+        $isDiploma = $Route == 'Diploma';
+
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
         if ($tblPrepare) {
             $tblDivision = $tblPrepare->getServiceTblDivision();
 
-            if ($Route == 'Diploma') {
+            if ($isDiploma) {
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
@@ -1380,8 +1382,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $countBehavior = count($tblGradeTypeList);
 
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+                $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
                 if ($tblStudentList) {
                     foreach ($tblStudentList as $tblPerson) {
+                        $isMuted = $isCourseMainDiploma;
                         $course = '';
                         if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                             $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -1392,6 +1396,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblCourse = $tblStudentTransfer->getServiceTblCourse();
                                     if ($tblCourse) {
                                         $course = $tblCourse->getName();
+                                        if ($course == 'Hauptschule') {
+                                            $isMuted = false;
+                                        }
                                     }
                                 }
                             }
@@ -1413,7 +1420,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                         $countSubjectGrades = 0;
                         // Zensuren zählen
-                        if ($Route == 'Diploma') {
+                        if ($isDiploma) {
                             if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                                 && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
                                     $tblPrepare,
@@ -1487,20 +1494,23 @@ class Frontend extends Extension implements IFrontendInterface
                                 new \DateTime($tblPrepare->getDate()));
                         }
 
+                        $number = count($studentTable) + 1;
+                        $name = $tblPerson->getLastFirstName();
+                        $subjectGradesDisplayText = ($countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
+                            ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
+                            : new Success(new Enable() . ' ' . $subjectGradesText));
                         $studentTable[$tblPerson->getId()] = array(
-                            'Number' => count($studentTable) + 1,
-                            'Name' => $tblPerson->getLastFirstName(),
-                            'Course' => $course,
+                            'Number' => $isDiploma && $isMuted ? new Muted($number) : $number,
+                            'Name' => $isDiploma && $isMuted ? new Muted($name) : $name,
+                            'Course' => $isDiploma && $isMuted ? new Muted($course) : $course,
                             'ExcusedAbsence' => $excusedDays . ' ',
                             'UnexcusedAbsence' => $unexcusedDays . ' ',
-                            'SubjectGrades' => ($countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
-                                ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
-                                : new Success(new Enable() . ' ' . $subjectGradesText)),
+                            'SubjectGrades' => $isDiploma && $isMuted ? '' : $subjectGradesDisplayText,
                             'BehaviorGrades' => ($countBehaviorGrades < $countBehavior || !$tblPrepare->getServiceTblBehaviorTask()
                                 ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $behaviorGradesText)
                                 : new Success(new Enable() . ' ' . $behaviorGradesText)),
                             'Option' =>
-                                ($tblCertificate
+                                $isDiploma && $isMuted ? '' :($tblCertificate
                                     ? (new Standard(
                                         '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
                                         array(
@@ -1536,11 +1546,15 @@ class Frontend extends Extension implements IFrontendInterface
                         );
 
                         // Vorlagen informationen
-                        $this->getTemplateInformationForPreview($tblPrepare, $tblPerson, $studentTable, $columnTable);
+                        if (!($isDiploma && $isMuted)) {
+                            $this->getTemplateInformationForPreview($tblPrepare, $tblPerson, $studentTable,
+                                $columnTable);
+                        }
 
                         // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
                         // Mittelschule Abschlusszeugnis Realschule
-                        if ($tblCertificate && $tblCertificate->getCertificate() == 'MsAbsRs'
+                        if (!($isDiploma && $isMuted)
+                            && $tblCertificate && $tblCertificate->getCertificate() == 'MsAbsRs'
                             && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
                         ) {
                             if (!isset($columnTable['DroppedSubjects'])) {
@@ -1594,6 +1608,21 @@ class Frontend extends Extension implements IFrontendInterface
                     'Route' => $Route
                 ),
                 'Unterzeichner auswählen'
+            );
+
+            $columnDef = array(
+                array(
+                    "width" => "7px",
+                    "targets" => 0
+                ),
+                array(
+                    "width" => "200px",
+                    "targets" => 1
+                ),
+                array(
+                    "width" => "80px",
+                    "targets" => 2
+                ),
             );
 
             $Stage->setContent(
@@ -1658,6 +1687,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'order' => array(
                                         array('0', 'asc'),
                                     ),
+                                    'columnDefs' => $columnDef,
                                     "paging" => false, // Deaktivieren Blättern
                                     "iDisplayLength" => -1,    // Alle Einträge zeigen
                                     "responsive" => false
@@ -2628,15 +2658,12 @@ class Frontend extends Extension implements IFrontendInterface
                     'Course' => 'Bildungsgang',
                 );
 
+                $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentList) {
                     /** @var TblPerson $tblPerson */
                     foreach ($tblStudentList as $tblPerson) {
-                        $studentTable[$tblPerson->getId()] = array(
-                            'Number' => count($studentTable) + 1,
-                            'Name' => $tblPerson->getLastFirstName()
-                        );
-
+                        $isMuted = $isCourseMainDiploma;
                         // Bildungsgang
                         $tblCourse = false;
                         if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
@@ -2646,51 +2673,25 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTransferType);
                             if ($tblStudentTransfer) {
                                 $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                                    $isMuted = false;
+                                }
                             }
                         }
-                        $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
+                        $studentTable[$tblPerson->getId()] = array(
+                            'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
+                            'Name' => $isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName()
+                        );
+                        $courseName = $tblCourse ? $tblCourse->getName() : '';
+                        $studentTable[$tblPerson->getId()]['Course'] = $isMuted ? new Muted($courseName) : $courseName;
 
-                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
-
-                        /*
-                         * Fehlzeiten
-                         */
-                        // Post setzen von Fehlzeiten und Fehlzeiten aus dem Klassenbuch voreintragen
-                        if ($Data === null) {
-                            $Global = $this->getGlobal();
-                            if ($Global) {
-                                $Global->POST['Data'][$tblPerson->getId()]['ExcusedDays'] =
-                                    $tblPrepareStudent && $tblPrepareStudent->getExcusedDays() !== null
-                                        ? $tblPrepareStudent->getExcusedDays()
-                                        : Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                        $tblDivision, new \DateTime($tblPrepare->getDate()));
-                                $Global->POST['Data'][$tblPerson->getId()]['UnexcusedDays'] =
-                                    $tblPrepareStudent && $tblPrepareStudent->getUnexcusedDays() !== null
-                                        ? $tblPrepareStudent->getUnexcusedDays()
-                                        : Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                        $tblDivision, new \DateTime($tblPrepare->getDate()));
-                            }
-                            $Global->savePost();
-                        }
-
-                        if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
-                            $studentTable[$tblPerson->getId()]['ExcusedDays'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][ExcusedDays]', '',
-                                    ''))->setDisabled();
-                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][UnexcusedDays]', '',
-                                    ''))->setDisabled();
-                        } else {
-                            $studentTable[$tblPerson->getId()]['ExcusedDays'] =
-                                new NumberField('Data[' . $tblPerson->getId() . '][ExcusedDays]', '', '');
-                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
-                                new NumberField('Data[' . $tblPerson->getId() . '][UnexcusedDays]', '', '');
-                        }
                         /*
                          * Sonstige Informationen der Zeugnisvorlage
                          */
-                        $this->getTemplateInformation($tblPrepare, $tblPerson, $studentTable, $columnTable, $Data,
-                            $CertificateList);
+                        if (!$isMuted) {
+                            $this->getTemplateInformation($tblPrepare, $tblPerson, $studentTable, $columnTable, $Data,
+                                $CertificateList);
+                        }
 
                         // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
                         foreach ($columnTable as $columnKey => $columnName) {
@@ -2834,20 +2835,43 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubjectList, $IsNotSubject
         );
 
-        // Todo Realschule
         $studentTable = array();
-        $columnTable = array(
-            'Number' => '#',
-            'Name' => 'Name',
-            'Course' => 'Bildungsgang',
-            'JN' => 'Jn (Jahresnote)',
-            'PS' => 'Ps (schriftliche Prüfung)',
-            'PM' => 'Pm (mündliche Prüfung)',
-            'PZ' => 'Pz (Zusatz-Prüfung)',
-        );
-        if ($IsFinalGrade) {
-            $columnTable['Average'] = '&#216;';
-            $columnTable['EN'] = 'En (Endnote)';
+        if (Prepare::useService()->isCourseMainDiploma($tblPrepare)) {
+            // Klasse 9 Hauptschule
+            $columnTable = array(
+                'Number' => '#',
+                'Name' => 'Name',
+                'Course' => 'Bildungsgang',
+                'J' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('J'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'J',
+                'LS' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LS'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Ls',
+                'LM' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LM'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Lm',
+            );
+            if ($IsFinalGrade) {
+                $columnTable['Average'] = '&#216;';
+                $columnTable['EN'] = 'Jn (Jahresnote)';
+            }
+        } else {
+            // Klasse 10 Realschule
+            $columnTable = array(
+                'Number' => '#',
+                'Name' => 'Name',
+                'Course' => 'Bildungsgang',
+                'JN' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('JN'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Jn',
+                'PS' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PS'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Ps',
+                'PM' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PM'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Pm',
+                'PZ' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PZ'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Pz',
+            );
+            if ($IsFinalGrade) {
+                $columnTable['Average'] = '&#216;';
+                $columnTable['EN'] = 'En (Endnote)';
+            }
         }
 
         list($studentTable, $hasPreviewGrades) = $this->createExamsContent($tblPrepare, $tblDivision, $tblTestList,
@@ -3061,18 +3085,16 @@ class Frontend extends Extension implements IFrontendInterface
 
         $hasPreviewGrades = false;
         $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
         if ($tblStudentList) {
             $tabIndex = 1;
             /** @var TblPerson $tblPerson */
             foreach ($tblStudentList as $tblPerson) {
                 $hasSubject = false;
-                $studentTable[$tblPerson->getId()] = array(
-                    'Number' => count($studentTable) + 1,
-                    'Name' => $tblPerson->getLastFirstName()
-                );
 
                 // Bildungsgang
                 $tblCourse = false;
+                $isMuted = $isCourseMainDiploma;
                 if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
                     && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
                 ) {
@@ -3080,9 +3102,18 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblTransferType);
                     if ($tblStudentTransfer) {
                         $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                        if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                            $isMuted = false;
+                        }
                     }
                 }
-                $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
+
+                $studentTable[$tblPerson->getId()] = array(
+                    'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
+                    'Name' => $isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName()
+                );
+                $courseName = $tblCourse ? $tblCourse->getName() : '';
+                $studentTable[$tblPerson->getId()]['Course'] = $isMuted ? new Muted($courseName) : $courseName;
 
                 if ($tblCurrentSubject) {
                     /** @var TblSubject $tblCurrentSubject */
@@ -3125,15 +3156,42 @@ class Frontend extends Extension implements IFrontendInterface
                             $Global = $this->getGlobal();
                             $gradeList = array();
                             foreach ($tblSubjectList[$tblCurrentSubject->getId()] as $testId => $value) {
-                                if (($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
-                                    $tblGrade = Gradebook::useService()->getGradeByTestAndStudent(
-                                        $tblTestTemp, $tblPerson
-                                    );
-                                    if ($tblGrade) {
-                                        $gradeValue = $tblGrade->getDisplayGrade();
-                                        $Global->POST['Data'][$tblPerson->getId()]['JN'] = $gradeValue;
-                                        if ($gradeValue && is_numeric($gradeValue)) {
-                                            $gradeList['JN'] = $gradeValue;
+                                if ($isCourseMainDiploma) {
+                                    if (!$isMuted && ($tblTestTemp = Evaluation::useService()->getTestById($testId))
+                                    ) {
+                                        $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                                            $tblDivision,
+                                            $tblCurrentSubject,
+                                            $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null
+                                        );
+                                        $average = Gradebook::useService()->calcStudentGrade(
+                                            $tblPerson,
+                                            $tblDivision,
+                                            $tblCurrentSubject,
+                                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+                                            $tblScoreRule ? $tblScoreRule : null,
+                                            $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+                                            $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null,
+                                            false,
+                                            $tblTask->getDate() ? $tblTask->getDate() : false
+                                        );
+
+                                        if ($average && is_numeric($average)) {
+                                            $Global->POST['Data'][$tblPerson->getId()]['J'] = str_replace('.', ',', $average);
+                                            $gradeList['J'] = $average;
+                                        }
+                                    }
+                                } else {
+                                    if (($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
+                                        $tblGrade = Gradebook::useService()->getGradeByTestAndStudent(
+                                            $tblTestTemp, $tblPerson
+                                        );
+                                        if ($tblGrade) {
+                                            $gradeValue = $tblGrade->getDisplayGrade();
+                                            $Global->POST['Data'][$tblPerson->getId()]['JN'] = $gradeValue;
+                                            if ($gradeValue && is_numeric($gradeValue)) {
+                                                $gradeList['JN'] = $gradeValue;
+                                            }
                                         }
                                     }
                                 }
@@ -3161,41 +3219,75 @@ class Frontend extends Extension implements IFrontendInterface
 
                             // calc average --> finalGrade
                             if ($IsFinalGrade) {
-                                $calcValue = '';
-                                if (isset($gradeList['JN'])) {
-                                    $calc = false;
-                                    if (isset($gradeList['PZ'])) {
-                                        if (isset($gradeList['PS'])) {
-                                            $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PZ']) / 3;
-                                        } elseif (isset($gradeList['PM'])) {
-                                            $calc = ($gradeList['JN'] + $gradeList['PM'] + $gradeList['PZ']) / 3;
+                                if ($isCourseMainDiploma) {
+                                    if (!$isMuted) {
+                                        $calcValue = '';
+                                        if (isset($gradeList['J'])) {
+                                            $calc = false;
+                                            if (isset($gradeList['LS'])) {
+                                                $calc = (2 * $gradeList['J'] + $gradeList['LS']) / 3;
+                                            } elseif (isset($gradeList['LM'])) {
+                                                $calc = (2 * $gradeList['J'] + $gradeList['LM']) / 3;
+                                            }
+                                            if ($calc) {
+                                                $calcValue = round($calc, 2);
+                                            } else {
+                                                $calcValue = $gradeList['J'];
+                                            }
                                         }
-                                    } else {
-                                        if (isset($gradeList['PS'])) {
-                                            $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
-                                        } elseif (isset($gradeList['PM'])) {
-                                            $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
-                                        }
-                                    }
-                                    if ($calc) {
-                                        $calcValue = round($calc, 2);
-                                    } else {
-                                        $calcValue = $gradeList['JN'];
-                                    }
-                                }
-                                $studentTable[$tblPerson->getId()]['Average'] = str_replace('.', ',',
-                                    $calcValue);
 
-                                if (!Prepare::useService()->getPrepareAdditionalGradeBy(
-                                        $tblPrepare,
-                                        $tblPerson,
-                                        $tblCurrentSubject,
-                                        Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
-                                    )
-                                    && $calcValue
-                                ) {
-                                    $hasPreviewGrades = true;
-                                    $Global->POST['Data'][$tblPerson->getId()]['EN'] = round($calcValue, 0);
+                                        $studentTable[$tblPerson->getId()]['Average'] = str_replace('.', ',',
+                                            $calcValue);
+
+                                        if (!Prepare::useService()->getPrepareAdditionalGradeBy(
+                                                $tblPrepare,
+                                                $tblPerson,
+                                                $tblCurrentSubject,
+                                                Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
+                                            )
+                                            && $calcValue
+                                        ) {
+                                            $hasPreviewGrades = true;
+                                            $Global->POST['Data'][$tblPerson->getId()]['EN'] = round($calcValue, 0);
+                                        }
+                                    }
+                                } else {
+                                    $calcValue = '';
+                                    if (isset($gradeList['JN'])) {
+                                        $calc = false;
+                                        if (isset($gradeList['PZ'])) {
+                                            if (isset($gradeList['PS'])) {
+                                                $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PZ']) / 3;
+                                            } elseif (isset($gradeList['PM'])) {
+                                                $calc = ($gradeList['JN'] + $gradeList['PM'] + $gradeList['PZ']) / 3;
+                                            }
+                                        } else {
+                                            if (isset($gradeList['PS'])) {
+                                                $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                            } elseif (isset($gradeList['PM'])) {
+                                                $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
+                                            }
+                                        }
+                                        if ($calc) {
+                                            $calcValue = round($calc, 2);
+                                        } else {
+                                            $calcValue = $gradeList['JN'];
+                                        }
+                                    }
+                                    $studentTable[$tblPerson->getId()]['Average'] = str_replace('.', ',',
+                                        $calcValue);
+
+                                    if (!Prepare::useService()->getPrepareAdditionalGradeBy(
+                                            $tblPrepare,
+                                            $tblPerson,
+                                            $tblCurrentSubject,
+                                            Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
+                                        )
+                                        && $calcValue
+                                    ) {
+                                        $hasPreviewGrades = true;
+                                        $Global->POST['Data'][$tblPerson->getId()]['EN'] = round($calcValue, 0);
+                                    }
                                 }
                             }
 
@@ -3203,47 +3295,89 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    if ($hasSubject) {
-                        $isApproved = ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                $tblPerson))
-                            && $tblPrepareStudent->isApproved();
-                        if ($IsFinalGrade
-                            || $isApproved
-                        ) {
-                            $studentTable[$tblPerson->getId()]['JN'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][JN]'))->setDisabled();
-                            $studentTable[$tblPerson->getId()]['PS'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][PS]'))->setDisabled();
-                            $studentTable[$tblPerson->getId()]['PM'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][PM]'))->setDisabled();
-                            $studentTable[$tblPerson->getId()]['PZ'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][PZ]'))->setDisabled();
-                        } else {
-                            $studentTable[$tblPerson->getId()]['JN'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][JN]'))->setTabIndex($tabIndex++)->setDisabled();
-                            $studentTable[$tblPerson->getId()]['PS'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][PS]'))->setTabIndex($tabIndex++);
-                            $studentTable[$tblPerson->getId()]['PM'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][PM]'))->setTabIndex($tabIndex++);
-                            $studentTable[$tblPerson->getId()]['PZ'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][PZ]'))->setTabIndex($tabIndex++);
-                        }
-
-                        if ($IsFinalGrade) {
-                            if ($isApproved) {
-                                $studentTable[$tblPerson->getId()]['EN'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setDisabled();
+                    if ($isCourseMainDiploma) {
+                        // Klasse 9 Hauptschule
+                        if (!$isMuted && $hasSubject) {
+                            $isApproved = ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                    $tblPerson))
+                                && $tblPrepareStudent->isApproved();
+                            if ($IsFinalGrade
+                                || $isApproved
+                            ) {
+                                $studentTable[$tblPerson->getId()]['J'] =
+                                    (new TextField('Data[' . $tblPerson->getId() . '][J]'))->setDisabled();
+                                $studentTable[$tblPerson->getId()]['LS'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][LS]'))->setDisabled();
+                                $studentTable[$tblPerson->getId()]['LM'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][LM]'))->setDisabled();
                             } else {
-                                $studentTable[$tblPerson->getId()]['EN'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setTabIndex($tabIndex++);
+                                $studentTable[$tblPerson->getId()]['J'] =
+                                    (new TextField('Data[' . $tblPerson->getId() . '][J]'))->setTabIndex($tabIndex++)->setDisabled();
+                                $studentTable[$tblPerson->getId()]['LS'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][LS]'))->setTabIndex($tabIndex++);
+                                $studentTable[$tblPerson->getId()]['LM'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][LM]'))->setTabIndex($tabIndex++);
                             }
+
+                            if ($IsFinalGrade) {
+                                if ($isApproved) {
+                                    $studentTable[$tblPerson->getId()]['EN'] =
+                                        (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setDisabled();
+                                } else {
+                                    $studentTable[$tblPerson->getId()]['EN'] =
+                                        (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setTabIndex($tabIndex++);
+                                }
+                            }
+                        } else {
+                            $studentTable[$tblPerson->getId()]['J']
+                                = $studentTable[$tblPerson->getId()]['LS']
+                                = $studentTable[$tblPerson->getId()]['LM']
+                                = $studentTable[$tblPerson->getId()]['EN'] = '';
                         }
                     } else {
-                        $studentTable[$tblPerson->getId()]['JN']
-                            = $studentTable[$tblPerson->getId()]['PS']
-                            = $studentTable[$tblPerson->getId()]['PM']
-                            = $studentTable[$tblPerson->getId()]['PZ']
-                            = $studentTable[$tblPerson->getId()]['EN'] = '';
+                        // Klasse 10 Realschule
+                        if ($hasSubject) {
+                            $isApproved = ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                    $tblPerson))
+                                && $tblPrepareStudent->isApproved();
+                            if ($IsFinalGrade
+                                || $isApproved
+                            ) {
+                                $studentTable[$tblPerson->getId()]['JN'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][JN]'))->setDisabled();
+                                $studentTable[$tblPerson->getId()]['PS'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][PS]'))->setDisabled();
+                                $studentTable[$tblPerson->getId()]['PM'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][PM]'))->setDisabled();
+                                $studentTable[$tblPerson->getId()]['PZ'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][PZ]'))->setDisabled();
+                            } else {
+                                $studentTable[$tblPerson->getId()]['JN'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][JN]'))->setTabIndex($tabIndex++)->setDisabled();
+                                $studentTable[$tblPerson->getId()]['PS'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][PS]'))->setTabIndex($tabIndex++);
+                                $studentTable[$tblPerson->getId()]['PM'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][PM]'))->setTabIndex($tabIndex++);
+                                $studentTable[$tblPerson->getId()]['PZ'] =
+                                    (new NumberField('Data[' . $tblPerson->getId() . '][PZ]'))->setTabIndex($tabIndex++);
+                            }
+
+                            if ($IsFinalGrade) {
+                                if ($isApproved) {
+                                    $studentTable[$tblPerson->getId()]['EN'] =
+                                        (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setDisabled();
+                                } else {
+                                    $studentTable[$tblPerson->getId()]['EN'] =
+                                        (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setTabIndex($tabIndex++);
+                                }
+                            }
+                        } else {
+                            $studentTable[$tblPerson->getId()]['JN']
+                                = $studentTable[$tblPerson->getId()]['PS']
+                                = $studentTable[$tblPerson->getId()]['PM']
+                                = $studentTable[$tblPerson->getId()]['PZ']
+                                = $studentTable[$tblPerson->getId()]['EN'] = '';
+                        }
                     }
                 }
             }
@@ -3330,4 +3464,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $tblTestList;
     }
+
+
 }

@@ -912,7 +912,7 @@ class Service extends AbstractService
                         && $tblSetting->getValue()
                     ) {
                         $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
-                        $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                        $Content['P' . $personId]['AdditionalGrade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                     } else {
                         $grade = $tblPrepareAdditionalGrade->getGrade();
                     }
@@ -1708,7 +1708,7 @@ class Service extends AbstractService
             if ($tblSubject
                 && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
             ) {
-                // ToDo Ranking
+
                 if ($this->createPrepareAdditionalGrade(
                     $tblPrepareCertificate,
                     $tblPerson,
@@ -2117,5 +2117,26 @@ class Service extends AbstractService
         }
 
         return '';
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return bool
+     */
+    public function isCourseMainDiploma(TblPrepareCertificate $tblPrepare)
+    {
+
+        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && ($tblSchoolType = $tblLevel->getServiceTblType())
+            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+        ) {
+            if ($tblLevel->getName() == '9' || $tblLevel->getName() == '09') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

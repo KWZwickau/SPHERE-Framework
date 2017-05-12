@@ -43,11 +43,20 @@ class Data extends AbstractData
     {
 
         $this->createPrepareAdditionalGradeType('Vorjahres Note', 'PRIOR_YEAR_GRADE');
+
+        // Realschulabschluss
         $this->createPrepareAdditionalGradeType('Jn (Jahresnote)', 'JN');
-        $this->createPrepareAdditionalGradeType( 'Ps (schriftliche Prüfung)', 'PS');
-        $this->createPrepareAdditionalGradeType( 'Pm (mündliche Prüfung)', 'PM');
-        $this->createPrepareAdditionalGradeType( 'Pz (Zusatz-Prüfung)', 'PZ');
-        $this->createPrepareAdditionalGradeType( 'En (Endnote)', 'EN');
+        $this->createPrepareAdditionalGradeType('Ps (schriftliche Prüfung)', 'PS');
+        $this->createPrepareAdditionalGradeType('Pm (mündliche Prüfung)', 'PM');
+        $this->createPrepareAdditionalGradeType('Pz (Zusatz-Prüfung)', 'PZ');
+
+        // Hauptschulabschluss
+        $this->createPrepareAdditionalGradeType('J (vorläufige Jahresleistung [Notendurchschnitt])', 'J');
+        $this->createPrepareAdditionalGradeType('Ls (Leistungsnachweisnote [schriftlich])', 'LS');
+        $this->createPrepareAdditionalGradeType('Lm (Leistungsnachweisnote [mündlich])', 'LM');
+
+        // Real + Hauptschulabschluss
+        $this->createPrepareAdditionalGradeType('En (Endnote)', 'EN');
     }
 
     /**
