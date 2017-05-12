@@ -645,15 +645,28 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool        $isListWithSubjectGroup
      *
      * @return bool|TblDivisionSubject[]
      */
-    public
-    function getDivisionSubjectByDivision(
-        TblDivision $tblDivision
-    ) {
+    public function getDivisionSubjectByDivision(TblDivision $tblDivision, $isListWithSubjectGroup = true)
+    {
 
-        return (new Data($this->getBinding()))->getDivisionSubjectByDivision($tblDivision);
+        if ($isListWithSubjectGroup) {
+            return (new Data($this->getBinding()))->getDivisionSubjectByDivision($tblDivision);
+
+        } else {
+            $resultList = array();
+            $tblDivisionSubjectList = (new Data($this->getBinding()))->getDivisionSubjectByDivision($tblDivision);
+            if ($tblDivisionSubjectList) {
+                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                    if (!$tblDivisionSubject->getTblSubjectGroup()) {
+                        $resultList[] = $tblDivisionSubject;
+                    }
+                }
+            }
+            return (!empty($resultList) ? $resultList : false);
+        }
     }
 
     /**
@@ -1140,12 +1153,36 @@ class Service extends AbstractService
      *
      * @return bool|TblSubjectStudent[]
      */
-    public
-    function getSubjectStudentByPerson(
-        TblPerson $tblPerson
-    ) {
+    public function getSubjectStudentByPerson(TblPerson $tblPerson)
+    {
 
         return (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
+    }
+
+    /**
+     * @param TblPerson   $tblPerson
+     *
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblSubjectStudent[]
+     */
+    public function getSubjectStudentByPersonAndDivision(TblPerson $tblPerson, TblDivision $tblDivision)
+    {
+
+        $resultList = array();
+        $tblSubjectStudentList = (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
+        /** @var TblSubjectStudent $tblSubjectStudent */
+        if ($tblSubjectStudentList) {
+            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                if ($tblDivisionSubject = $tblSubjectStudent->getTblDivisionSubject()) {
+                    if (($tblDivisionCompare = $tblDivisionSubject->getTblDivision()) && $tblDivisionCompare->getId() == $tblDivision->getId()) {
+                        $resultList[] = $tblSubjectStudent;
+                    }
+                }
+            }
+        }
+
+        return (!empty($resultList) ? $resultList : false);
     }
 
     /**
