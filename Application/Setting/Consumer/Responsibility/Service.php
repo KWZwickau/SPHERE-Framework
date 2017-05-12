@@ -124,10 +124,12 @@ class Service extends AbstractService
             return $Form;
         }
 
-        (new Data($this->getBinding()))->updateResponsibility($tblResponsibility, $CompanyNumber);
-
-        return new Success('Der Unternehmensnummer wurde erfolgreich gespeichert')
-            .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS);
+        if ((new Data($this->getBinding()))->updateResponsibility($tblResponsibility, $CompanyNumber)) {
+            return new Success('Die Unternehmensnr. des Unfallversicherungsträgers wurde erfolgreich gespeichert')
+                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS);
+        }
+        return new Danger('Die Unternehmensnr. des Unfallversicherungsträgers konnte nicht gespeichert werden')
+            .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR);
     }
 
     /**
