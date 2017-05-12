@@ -234,7 +234,7 @@ class MsAbsRs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+            ->addSlice($this->getSubjectLanes($personId, true, array(), '14px', false, true)->styleHeight('270px'))
             /////////////////////////
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -346,6 +346,8 @@ class MsAbsRs extends Certificate
         $IsGradeUnderlined = false
     ) {
 
+        $TextSizeSmall = '8px';
+
         $slice = new Slice();
         if (($tblGradeList = $this->getAdditionalGrade())) {
             $count = 0;
@@ -368,8 +370,6 @@ class MsAbsRs extends Certificate
                         ->styleTextSize($TextSize)
                         , '39%');
 
-
-
                     $section->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
                                              {{ Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] }}
@@ -379,10 +379,28 @@ class MsAbsRs extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop('2px')
-                        ->stylePaddingBottom('2px')
+                        ->stylePaddingTop(
+                            '{% if(Content.P' . $personId . '.AdditionalGrade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 5px
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if(Content.P' . $personId . '.AdditionalGrade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 6px
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
                         ->styleMarginTop('10px')
-                        ->styleTextSize($TextSize)
+                        ->styleTextSize(
+                            '{% if(Content.P' . $personId . '.AdditionalGrade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
                         , '9%');
                 }
             }

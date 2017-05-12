@@ -9,10 +9,8 @@
 namespace SPHERE\Application\Education\Certificate\Approve;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Approve
@@ -55,16 +53,9 @@ class Approve implements IModuleInterface
         );
     }
 
-    /**
-     * @return Service
-     */
     public static function useService()
     {
 
-        return new Service(
-            new Identifier('Setting', 'Consumer', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
-        );
     }
 
     /**

@@ -28,6 +28,7 @@ class TblPrepareAdditionalGrade extends Element
 {
 
     const ATTR_TBL_PREPARE_CERTIFICATE = 'tblPrepareCertificate';
+    const ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE = 'tblPrepareAdditionalGradeType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_RANKING = 'Ranking';
@@ -56,6 +57,11 @@ class TblPrepareAdditionalGrade extends Element
      * @Column(type="integer")
      */
     protected $Ranking;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblPrepareAdditionalGradeType;
 
     /**
      * @return bool|TblPrepareCertificate
@@ -155,5 +161,27 @@ class TblPrepareAdditionalGrade extends Element
     {
 
         $this->Ranking = $Ranking;
+    }
+
+    /**
+     * @return bool|TblPrepareAdditionalGradeType
+     */
+    public function getTblPrepareAdditionalGradeType()
+    {
+
+        if (null === $this->tblPrepareAdditionalGradeType) {
+            return false;
+        } else {
+            return Prepare::useService()->getPrepareAdditionalGradeTypeById($this->tblPrepareAdditionalGradeType);
+        }
+    }
+
+    /**
+     * @param TblPrepareAdditionalGradeType|null $tblPrepareAdditionalGradeType
+     */
+    public function setTblPrepareAdditionalGradeType(TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType = null)
+    {
+
+        $this->tblPrepareAdditionalGradeType = (null === $tblPrepareAdditionalGradeType ? null : $tblPrepareAdditionalGradeType->getId());
     }
 }
