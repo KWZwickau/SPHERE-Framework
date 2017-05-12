@@ -243,25 +243,60 @@ abstract class Certificate extends Extension
     protected function getSchoolName($personId, $MarginTop = '20px')
     {
 
+        $isLargeCompanyName = false;
+        // get company name
+        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblTransferType);
+                    if ($tblStudentTransfer) {
+                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
+                            if (strlen($tblCompany->getName()) > 60) {
+                                $isLargeCompanyName = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         $SchoolSlice = (new Slice());
-        $SchoolSlice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('Name der Schule:')
-                , '18%')
-            ->addElementColumn((new Element())
-                ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
+        if ($isLargeCompanyName) {
+            $SchoolSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Name der Schule:')
+                    , '18%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
+                                        {{ Content.P'.$personId.'.Company.Data.Name }}
+                                    {% else %}
+                                          &nbsp;
+                                    {% endif %}')
+                    ->styleBorderBottom()
+                    , '82%')
+            )->styleMarginTop($MarginTop);
+        } else {
+            $SchoolSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Name der Schule:')
+                    , '18%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
                                         {{ Content.P' . $personId . '.Company.Data.Name }}
                                     {% else %}
                                           &nbsp;
                                     {% endif %}')
-                ->styleBorderBottom()
-                ->styleAlignCenter()
-                , '64%')
-            ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
-                ->styleBorderBottom()
-                , '18%')
-        )->styleMarginTop($MarginTop);
+                    ->styleBorderBottom()
+                    ->styleAlignCenter()
+                    , '64%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    , '18%')
+            )->styleMarginTop($MarginTop);
+        }
+
 
         return $SchoolSlice;
     }
