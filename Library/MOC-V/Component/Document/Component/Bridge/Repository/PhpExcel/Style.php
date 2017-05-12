@@ -211,6 +211,15 @@ class Style
     /**
      * @return $this
      */
+    public function setWrapText()
+    {
+        $this->Worksheet->getStyle($this->getRangeName())->getAlignment()->setWrapText(true);
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
     public function setAlignmentLeft()
     {
 
