@@ -1982,8 +1982,8 @@ class Data extends AbstractData
 //                }
 //            }
 
-            if ($tblConsumer->getAcronym() == 'EVSR' || $tblConsumer->getAcronym() == 'DEMO') {
-                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EVSR');
+            if ($tblConsumer->getAcronym() == 'EVAMTL' || $tblConsumer->getAcronym() == 'DEMO') {
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EVAMTL');
                 $tblCertificate = $this->createCertificate('Gymnasium Jahreszeugnis', '', 'EVAMTL\MulGymJ',
                     $tblConsumerCertificate);
                 if ($tblCertificate) {
