@@ -382,15 +382,29 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPrepareAllByDivision = Prepare::useService()->getPrepareAllByDivision($tblDivision);
             if ($tblPrepareAllByDivision) {
                 foreach ($tblPrepareAllByDivision as $tblPrepareCertificate) {
+                    $tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate();
+                    $tblCertificateType = $tblGenerateCertificate ? $tblGenerateCertificate->getServiceTblCertificateType() : false;
+
+                    if ($tblCertificateType) {
+                        if ($Route != 'Diploma') {
+                            // Abschlusszeugnisse überspringen
+                            if ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
+                                continue;
+                            }
+                        } else {
+                            // alle außer Abschlusszeugnisse überspringen
+                            if ($tblCertificateType->getIdentifier() != 'DIPLOMA') {
+                                continue;
+                            }
+                        }
+                    }
 
                     // Setzen der Zeugnisvorlagen
                     Prepare::useService()->setTemplatesAllByPrepareCertificate($tblPrepareCertificate);
 
-
                     $tableData[] = array(
                         'Date' => $tblPrepareCertificate->getDate(),
-                        'Type' => $tblPrepareCertificate->getServiceTblGenerateCertificate()
-                            ? $tblPrepareCertificate->getServiceTblGenerateCertificate()->getServiceTblCertificateType()->getName()
+                        'Type' => $tblCertificateType ? $tblCertificateType->getName()
                             : '',
                         'Name' => $tblPrepareCertificate->getName(),
                         'Option' =>
@@ -687,7 +701,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         (new SelectBox('Trend[' . $tblPerson->getId() . ']', '', $selectBoxContent,
                                             new ResizeVertical()))->setDisabled();
                                 }
-                            } else {
+                            } elseif ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
                                 $studentTable[$tblPerson->getId()]['Data'] =
                                     (new NumberField('Data[' . $tblPerson->getId() . ']'))->setTabIndex($tabIndex++);
 
@@ -700,6 +714,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         (new SelectBox('Trend[' . $tblPerson->getId() . ']', '', $selectBoxContent,
                                             new ResizeVertical()))->setTabIndex($tabIndex++);
                                 }
+                            } else {
+                                // keine Zeugnisvorlage ausgewählt
+                                $studentTable[$tblPerson->getId()]['Data'] = '';
+                                $studentTable[$tblPerson->getId()]['Trend'] = '';
                             }
                         }
                     }
@@ -953,11 +971,15 @@ class Frontend extends Extension implements IFrontendInterface
                             $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
                                 (new NumberField('Data[' . $tblPerson->getId() . '][UnexcusedDays]', '',
                                     ''))->setDisabled();
-                        } else {
+                        } elseif ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
                             $studentTable[$tblPerson->getId()]['ExcusedDays'] =
                                 new NumberField('Data[' . $tblPerson->getId() . '][ExcusedDays]', '', '');
                             $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
                                 new NumberField('Data[' . $tblPerson->getId() . '][UnexcusedDays]', '', '');
+                        } else {
+                            // keine Zeugnisvorlage ausgewählt
+                            $studentTable[$tblPerson->getId()]['ExcusedDays'] = '';
+                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] = '';
                         }
                         /*
                          * Sonstige Informationen der Zeugnisvorlage
@@ -1485,20 +1507,34 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblCertificate = false;
                         }
 
-                        if ($excusedDays === null) {
-                            $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
-                                new \DateTime($tblPrepare->getDate()));
-                        }
-                        if ($unexcusedDays === null) {
-                            $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
-                                new \DateTime($tblPrepare->getDate()));
+                        if ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
+                            if ($excusedDays === null) {
+                                $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
+                                    new \DateTime($tblPrepare->getDate()));
+                            }
+                            if ($unexcusedDays === null) {
+                                $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
+                                    $tblDivision,
+                                    new \DateTime($tblPrepare->getDate()));
+                            }
+                        } else {
+                            $excusedDays = '';
+                            $unexcusedDays = '';
                         }
 
                         $number = count($studentTable) + 1;
                         $name = $tblPerson->getLastFirstName();
-                        $subjectGradesDisplayText = ($countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
-                            ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
-                            : new Success(new Enable() . ' ' . $subjectGradesText));
+                        $subjectGradesDisplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
+                            ? ($countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
+                                ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
+                                : new Success(new Enable() . ' ' . $subjectGradesText))
+                            : '';
+                        $behaviorGradesDiplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
+                            ? ($countBehaviorGrades < $countBehavior || !$tblPrepare->getServiceTblBehaviorTask()
+                                ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $behaviorGradesText)
+                                : new Success(new Enable() . ' ' . $behaviorGradesText))
+                            : '';
+
                         $studentTable[$tblPerson->getId()] = array(
                             'Number' => $isDiploma && $isMuted ? new Muted($number) : $number,
                             'Name' => $isDiploma && $isMuted ? new Muted($name) : $name,
@@ -1506,11 +1542,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'ExcusedAbsence' => $excusedDays . ' ',
                             'UnexcusedAbsence' => $unexcusedDays . ' ',
                             'SubjectGrades' => $isDiploma && $isMuted ? '' : $subjectGradesDisplayText,
-                            'BehaviorGrades' => ($countBehaviorGrades < $countBehavior || !$tblPrepare->getServiceTblBehaviorTask()
-                                ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $behaviorGradesText)
-                                : new Success(new Enable() . ' ' . $behaviorGradesText)),
+                            'BehaviorGrades' => $behaviorGradesDiplayText,
                             'Option' =>
-                                $isDiploma && $isMuted ? '' :($tblCertificate
+                                $isDiploma && $isMuted ? '' : ($tblCertificate
                                     ? (new Standard(
                                         '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
                                         array(
@@ -2993,19 +3027,21 @@ class Frontend extends Extension implements IFrontendInterface
         $IsNotSubject
     ) {
 
-        // Sortierung der Fächer wie auf dem Zeugnis
-        $tblTestList = $this->sortSubjects($tblPrepare, $tblTestList);
+        if ($tblTestList) {
+            // Sortierung der Fächer wie auf dem Zeugnis
+            $tblTestList = $this->sortSubjects($tblPrepare, $tblTestList);
 
-        /** @var TblTest $tblTest */
-        foreach ($tblTestList as $tblTest) {
-            if (($tblSubjectItem = $tblTest->getServiceTblSubject())) {
-                if (!isset($tblSubjectList[$tblSubjectItem->getId()][$tblTest->getId()])) {
-                    $tblSubjectList[$tblSubjectItem->getId()][$tblTest->getId()] = $tblSubjectItem;
-                    if ($tblCurrentSubject && !$tblNextSubject && !$IsNotSubject) {
-                        $tblNextSubject = $tblSubjectItem;
-                    }
-                    if ($SubjectId && $SubjectId == $tblSubjectItem->getId() && !$IsNotSubject) {
-                        $tblCurrentSubject = $tblSubjectItem;
+            /** @var TblTest $tblTest */
+            foreach ($tblTestList as $tblTest) {
+                if (($tblSubjectItem = $tblTest->getServiceTblSubject())) {
+                    if (!isset($tblSubjectList[$tblSubjectItem->getId()][$tblTest->getId()])) {
+                        $tblSubjectList[$tblSubjectItem->getId()][$tblTest->getId()] = $tblSubjectItem;
+                        if ($tblCurrentSubject && !$tblNextSubject && !$IsNotSubject) {
+                            $tblNextSubject = $tblSubjectItem;
+                        }
+                        if ($SubjectId && $SubjectId == $tblSubjectItem->getId() && !$IsNotSubject) {
+                            $tblCurrentSubject = $tblSubjectItem;
+                        }
                     }
                 }
             }
@@ -3177,7 +3213,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         );
 
                                         if ($average && is_numeric($average)) {
-                                            $Global->POST['Data'][$tblPerson->getId()]['J'] = str_replace('.', ',', $average);
+                                            $Global->POST['Data'][$tblPerson->getId()]['J'] = str_replace('.', ',',
+                                                $average);
                                             $gradeList['J'] = $average;
                                         }
                                     }
@@ -3393,8 +3430,12 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return array
      */
-    private function setDiplomaGrade(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, TblSubject $tblSubject, $studentList)
-    {
+    private function setDiplomaGrade(
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        $studentList
+    ) {
 
         $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
 
@@ -3436,7 +3477,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if ($tblCertificate) {
+        if ($tblCertificate && $tblTestList) {
             $tblTestSortedList = array();
             $offset = 0;
             /** @var TblTest $tblTest */

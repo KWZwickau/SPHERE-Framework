@@ -1824,24 +1824,26 @@ class Service extends AbstractService
                 /** @var TblSubject $item */
                 $count = 1;
                 ksort($diffList);
-                foreach ($diffList as $item) {
-                    $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
-                    $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblLastPrepare, $tblPerson,
-                        $tblLastDivision, $item, $tblTestType);
-                    if ($tblTestType
-                        && $tblPrepareGrade
-                        && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
-                    ) {
-                        $tblPrepareAdditionalGrade = Prepare::useService()->createPrepareAdditionalGrade(
-                            $tblPrepare,
-                            $tblPerson,
-                            $item,
-                            $tblPrepareAdditionalGradeType,
-                            $count++,
-                            $tblPrepareGrade->getGrade()
-                        );
+                if ($tblLastPrepare) {
+                    foreach ($diffList as $item) {
+                        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+                        $tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblLastPrepare, $tblPerson,
+                            $tblLastDivision, $item, $tblTestType);
+                        if ($tblTestType
+                            && $tblPrepareGrade
+                            && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+                        ) {
+                            $tblPrepareAdditionalGrade = Prepare::useService()->createPrepareAdditionalGrade(
+                                $tblPrepare,
+                                $tblPerson,
+                                $item,
+                                $tblPrepareAdditionalGradeType,
+                                $count++,
+                                $tblPrepareGrade->getGrade()
+                            );
 
-                        $gradeString .= $item->getAcronym() . ':' . $tblPrepareAdditionalGrade->getGrade() . ' ';
+                            $gradeString .= $item->getAcronym() . ':' . $tblPrepareAdditionalGrade->getGrade() . ' ';
+                        }
                     }
                 }
             }
