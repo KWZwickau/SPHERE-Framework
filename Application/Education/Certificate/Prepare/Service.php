@@ -708,7 +708,9 @@ class Service extends AbstractService
 
             foreach ($tblPrepareInformationList as $tblPrepareInformation) {
                 if ($tblPrepareInformation->getField() == 'Team') {
-                    $team = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue();
+                    if ($tblPrepareInformation->getValue() != '') {
+                        $team = 'Arbeitsgemeinschaften: '.$tblPrepareInformation->getValue();
+                    }
                 } elseif ($tblPrepareInformation->getField() == 'Remark') {
                     $remark = $tblPrepareInformation->getValue();
                 } elseif ($tblPrepareInformation->getField() == 'Transfer') {

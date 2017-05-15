@@ -1255,7 +1255,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                         $key = str_replace('Content.Input.', '', $PlaceholderName);
 
-                                        if ($key == 'TeamExtra' || isset($columnTable['TeamExtra'])) {
+                                        if ($key == 'TeamExtra' /*|| isset($columnTable['TeamExtra'])*/) {
                                             $hasTeamExtra = true;
                                         }
 
@@ -1820,7 +1820,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         if (isset($FormField[$PlaceholderName]) && $FormField[$PlaceholderName] == 'TextArea') {
                                             if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
                                                     $tblPrepareStudent->getTblPrepareCertificate(), $tblPerson, $key))
-                                                && !empty(trim($tblPrepareInformation->getValue()))
+                                                && trim($tblPrepareInformation->getValue())
                                             ) {
                                                 $studentTable[$tblPerson->getId()][$key] =
                                                     new Success(new Enable() . ' ' . 'erledigt');
