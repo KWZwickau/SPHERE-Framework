@@ -18,21 +18,20 @@ class Division extends Extension implements IApiInterface
 {
 
     use ApiTrait;
-    const API_DISPATCHER = 'MethodName';
 
     /**
-     * @param string $MethodName Callable Method
+     * @param string $Method Callable Method
      *
      * @return string
      */
-    public function exportApi($MethodName = '')
+    public function exportApi($Method = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('tableAvailableSubject');
         $Dispatcher->registerMethod('tableUsedSubject');
 
-        return $Dispatcher->callMethod($MethodName);
+        return $Dispatcher->callMethod($Method);
     }
 
     /**
@@ -41,9 +40,24 @@ class Division extends Extension implements IApiInterface
     public static function pipelinePlus()
     {
         $Pipeline = new Pipeline();
+
         $Emitter = new ServerEmitter(self::receiverAvailable(), self::getEndpoint());
         $Emitter->setPostPayload(array(
-            self::API_DISPATCHER => 'tableAvailableSubject',
+            self::API_TARGET => 'servicefügeanSubject',
+            'Type'               => 1
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        $Emitter = new ServerEmitter(self::receiverAvailable(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'tableAvailableSubject',
+            'Type'               => 1
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        $Emitter = new ServerEmitter(self::receiverUsed(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'tableUsedSubject',
             'Type'               => 1
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -59,7 +73,7 @@ class Division extends Extension implements IApiInterface
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverUsed(), self::getEndpoint());
         $Emitter->setPostPayload(array(
-            self::API_DISPATCHER => array('tableUsedSubject'),
+            self::API_TARGET => 'tableUsedSubject',
             'Type'               => 0
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -114,7 +128,7 @@ class Division extends Extension implements IApiInterface
                 'Acronym'     => $Subject['Acronym'],
                 'Name'        => $Subject['Name'],
                 'Description' => $Subject['Description'],
-                'Option'      => (new Standard('', '#', new MinusSign(),
+                'Option'      => (new Standard('', Division::getEndpoint(), new MinusSign(),
                     array('Id' => $Subject['Id'])))->ajaxPipelineOnClick(Division::pipelineMinus())
             );
         }
@@ -162,7 +176,7 @@ class Division extends Extension implements IApiInterface
                 'Acronym'     => $Subject['Acronym'],
                 'Name'        => $Subject['Name'],
                 'Description' => $Subject['Description'],
-                'Option'      => (new Standard('', '#', new PlusSign(),
+                'Option'      => (new Standard('', Division::getEndpoint(), new PlusSign(),
                     array('Id' => $Subject['Id'])))->ajaxPipelineOnClick(Division::pipelinePlus())
             );
         }
