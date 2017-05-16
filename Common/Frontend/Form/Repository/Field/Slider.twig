@@ -22,6 +22,15 @@
     {% endif %}
     {{ ElementFeedbackMessage }}
 </div>
+<script type="text/javascript">
+    //noinspection JSUnresolvedFunction
+    executeScript(function() {
+        Client.Use('ModSlider', function () {
+            jQuery('input[name="{{ ElementName }}"]').ModSlider();
+        });
+    });
+</script>
+
 {% if( AutoFocus is not empty ) %}
 <script type="text/javascript">
     //noinspection JSUnresolvedFunction

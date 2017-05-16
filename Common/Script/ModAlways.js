@@ -121,7 +121,7 @@
 
                 if (
                     jQuery('<a>').prop('href', window.location).prop('hostname')
-                    ==
+                    ===
                     jQuery('<a>').prop('href', jQuery(iFrame[Frame]).attr('src')).prop('hostname')
                 ) {
                     iRun(jQuery(iFrame[Frame]));

@@ -9,6 +9,7 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 
 /**
@@ -16,7 +17,7 @@ use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
  *
  * @package SPHERE\Common\Frontend\Ajax
  */
-class Pipeline
+class Pipeline implements IFrontendInterface
 {
 
     /** @var string $SuccessTitle */
@@ -143,6 +144,9 @@ class Pipeline
             if ($Emitter instanceof ServerEmitter) {
                 $Url = $Emitter->getAjaxUri() . $Emitter->getAjaxGetPayload();
                 if ($FrontendElement === null) {
+                    /**
+                     * NO Element
+                     */
                     if (strlen($Emitter->getAjaxPostPayload()) == 2) {
                         $Method = 'GET';
                     } else {
@@ -150,11 +154,60 @@ class Pipeline
                     }
                     $Data = $Emitter->getAjaxPostPayload();
                 } else if( $FrontendElement instanceof AbstractLink ) {
-                    if( !empty( $FrontendElement->getData() ) ) {
+                    /**
+                     * Link
+                     */
+                    if (strlen($Emitter->getAjaxPostPayload()) > 2) {
                         $Method = 'POST';
-                        $Data = json_encode( $FrontendElement->getData(), JSON_FORCE_OBJECT );
+                        if( !empty( $FrontendElement->getData() ) ) {
+                            $Payload = json_decode( $Emitter->getAjaxPostPayload(), true );
+                            $Payload = array_merge( $FrontendElement->getData(), $Payload );
+                            $Payload = json_encode( $Payload, JSON_FORCE_OBJECT );
+                        } else {
+                            $Payload = json_decode($Emitter->getAjaxPostPayload(), true);
+                            $Payload = json_encode($Payload, JSON_FORCE_OBJECT);
+                        }
+                    } else {
+                        if (!empty($FrontendElement->getData())) {
+                            $Method = 'POST';
+                            $Payload = json_encode($FrontendElement->getData(), JSON_FORCE_OBJECT);
+                        } else {
+                            $Payload = json_encode($Data, JSON_FORCE_OBJECT);
+                        }
                     }
+                    if( $Method == 'POST' ) {
+                        $Data = 'var EmitterData = ' . $Payload . '; ';
+                        $Data .= 'var Element = jQuery("#' . $FrontendElement->getHash() . '"); ';
+                        $Data .= 'var DataSet = Element.closest("form"); ';
+                        $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); ';
+                        $Data .= 'for( var Index in DataSet ) { EmitterData[DataSet[Index]["name"]] = DataSet[Index]["value"]; };';
+                        $Data .= '} ';
+                        $Data .= 'return EmitterData;';
+                    } else {
+                        $Data = $Payload;
+                    }
+//                    if (strlen($Emitter->getAjaxPostPayload()) > 2) {
+//                        $Method = 'POST';
+//                        if( !empty( $FrontendElement->getData() ) ) {
+//                            $Payload = json_decode( $Emitter->getAjaxPostPayload(), true );
+//                            $Payload = array_merge($FrontendElement->getData(), $Payload);
+//                            $Data = json_encode( $Payload, JSON_FORCE_OBJECT );
+//                        } else {
+//                            $Data = json_decode( $Emitter->getAjaxPostPayload() );
+//                            $Data = json_encode( $Data, JSON_FORCE_OBJECT );
+//                        }
+//                    } else {
+//                        if (!empty($FrontendElement->getData())) {
+//                            $Method = 'POST';
+//                            $Data = json_encode($FrontendElement->getData(), JSON_FORCE_OBJECT);
+//                        } else {
+//                            $Data = json_encode($Data, JSON_FORCE_OBJECT);
+//                        }
+//                    }
                 } else if( $FrontendElement instanceof Form ) {
+                    /**
+                     * Form
+                     */
                     $Method = 'POST';
                     if (strlen($Emitter->getAjaxPostPayload()) > 2) {
                         if( !empty( $FrontendElement->getData() ) ) {
@@ -162,6 +215,7 @@ class Pipeline
                             $Payload = array_merge( $FrontendElement->getData(), $Payload );
                             $Data = json_encode( $Payload, JSON_FORCE_OBJECT );
                         } else {
+                            $Data = json_decode( $Emitter->getAjaxPostPayload() );
                             $Data = json_encode( $Data, JSON_FORCE_OBJECT );
                         }
                         $Data = 'var EmitterData = ' . $Data . ';';
@@ -180,17 +234,17 @@ class Pipeline
                         $Data .= 'return EmitterData;';
                     }
                 } else if( $FrontendElement instanceof AbstractField ) {
+                    /**
+                     * Field
+                     */
                     $Method = 'POST';
                     if (strlen($Emitter->getAjaxPostPayload()) > 2) {
                         $Data = 'var EmitterData = ' . $Emitter->getAjaxPostPayload() . ';';
-
                         $Data .= 'var Element = jQuery("[name=\"' . $FrontendElement->getName() . '\"]");';
                         $Data .= 'var DataSet = Element.closest("form");';
                         $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); }';
                         $Data .= 'else { DataSet = jQuery.deparam("'. $FrontendElement->getName() .'=" + Element.val() ); }';
-
                         $Data .= 'for( var Index in DataSet ) { EmitterData[DataSet[Index]["name"]] = DataSet[Index]["value"]; };';
-
                         $Data .= 'return EmitterData;';
                     } else {
                         $Data = 'var Element = jQuery("[name=\"' . $FrontendElement->getName() . '\"]");';
@@ -227,15 +281,12 @@ class Pipeline
             }
             // ClientEmitter
             if ($Emitter instanceof ClientEmitter || $Emitter instanceof ScriptEmitter) {
-
                 $Content = $Emitter->getContent();
-
                 $ReceiverList = $Emitter->getAjaxReceiver();
                 $ReceiverContext = array();
                 foreach ($ReceiverList as $Receiver) {
                     $ReceiverContext[] = $Receiver->getHandler();
                 }
-
                 /** @var IBridgeInterface $Template */
                 if (!isset($Template)) {
                     $Template = Template::getTwigTemplateString(
@@ -250,7 +301,6 @@ class Pipeline
                 $Template->setVariable('Content', $Content);
                 $Template->setVariable('Receiver', json_encode($ReceiverContext));
                 $Template->setVariable('Hash', json_encode(sha1(json_encode($Content) . json_encode($ReceiverContext))));
-
             }
         }
         if (isset($Template)) {

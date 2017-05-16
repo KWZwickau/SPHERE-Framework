@@ -43,6 +43,7 @@
         {% endfor %}
     {% endfor %}
     {% if( FormButtonList|length > 0) %}
+        <br/>
         <div class="form-group">
             <div class="btn-group">
                 {% for FormButton in FormButtonList %}
@@ -63,10 +64,12 @@
                 {% if EnableSaveDraft is not empty %},saveDraftData: {{ EnableSaveDraft }}{% endif %}
             });
             {% if( AjaxEventSubmit is not empty ) %}
-            jQuery("form#{{ Hash }}").on('submit',function(Event){
-                Event.preventDefault();
-                {{ AjaxEventSubmit }}
-            })
+            Client.Use('ModAjax', function() {
+                jQuery("form#{{ Hash }}").on('submit', function (Event) {
+                    Event.preventDefault();
+                    {{ AjaxEventSubmit }}
+                });
+            });
             {% endif %}
         });
     });

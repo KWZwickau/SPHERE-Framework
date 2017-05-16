@@ -244,7 +244,8 @@ class Script extends Extension
          */
 
         $this->setModule(
-            'ModAlways', array(/*'Highlight.js',*/
+            'ModAlways', array(
+                'Highlight.js',
                 'Bootbox.js',
                 'List.Js',
                 'Bootstrap.Notify',
@@ -282,6 +283,7 @@ class Script extends Extension
                 'jQuery.DataTable.Responsive',
                 'jQuery.DataTable.Bootstrap',
                 'jQuery.DataTable',
+                'jQuery.DetectElementResize',
                 'jQuery'
             )
         );
@@ -344,7 +346,7 @@ class Script extends Extension
         if (!in_array($Alias, self::$SourceList)) {
             $RealPath = FileSystem::getFileLoader($Location)->getRealPath();
             if( !empty($RealPath) ) {
-                $cTag = '?cTAG-' . md5_file($RealPath);
+                $cTag = '?cTAG-' . hash_file('crc32',$RealPath);
             } else {
                 $cTag = '?cTAG-' . 'MISS-'.time();
             }
@@ -362,7 +364,7 @@ class Script extends Extension
         if (!in_array($Alias, self::$ModuleList)) {
             $RealPath = FileSystem::getFileLoader('/Common/Script/' . $Alias . '.js')->getRealPath();
             if( !empty($RealPath) ) {
-                $cTag = '?cTAG-' . md5_file($RealPath);
+                $cTag = '?cTAG-' . hash_file('crc32',$RealPath);
             } else {
                 $cTag = '?cTAG-' . 'MISS-'.time();
             }

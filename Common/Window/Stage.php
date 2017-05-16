@@ -38,8 +38,9 @@ class Stage extends Extension implements ITemplateInterface
     /**
      * @param null|string $Title
      * @param null|string $Description
+     * @param null|string $Message
      */
-    public function __construct($Title = null, $Description = null)
+    public function __construct($Title = null, $Description = null, $Message = null)
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Stage.twig');
@@ -48,6 +49,9 @@ class Stage extends Extension implements ITemplateInterface
         }
         if (null !== $Description) {
             $this->setDescription($Description);
+        }
+        if (null !== $Message) {
+            $this->setMessage($Message);
         }
     }
 

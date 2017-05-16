@@ -6,11 +6,11 @@ use SPHERE\Common\Frontend\Form\Repository\AbstractTextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
- * Class TextField
+ * Class Slider
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class TextField extends AbstractTextField implements IFieldInterface
+class Slider extends AbstractTextField implements IFieldInterface
 {
 
     /**
@@ -18,26 +18,21 @@ class TextField extends AbstractTextField implements IFieldInterface
      * @param null|string    $Placeholder
      * @param null|string    $Label
      * @param IIconInterface $Icon
-     * @param null|string    $Mask 9: Number, a:Char, w:Alphanumeric, *:Any, ?:Optional (plus following)
      */
     public function __construct(
         $Name,
         $Placeholder = '',
         $Label = '',
-        IIconInterface $Icon = null,
-        $Mask = null
+        IIconInterface $Icon = null
     ) {
 
         $this->Name = $Name;
-        $this->Template = $this->getTemplate(__DIR__.'/TextField.twig');
+        $this->Template = $this->getTemplate(__DIR__.'/Slider.twig');
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementPlaceholder', $Placeholder);
         if (null !== $Icon) {
             $this->Template->setVariable('ElementIcon', $Icon);
-        }
-        if (null !== $Mask) {
-            $this->Template->setVariable('ElementMask', $Mask);
         }
     }
 

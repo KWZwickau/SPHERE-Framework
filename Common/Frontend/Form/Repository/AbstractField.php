@@ -337,6 +337,16 @@ abstract class AbstractField extends Extension implements IFieldInterface
     }
 
     /**
+     * Alias for ajaxPipelineOnChange
+     *
+     * @param Pipeline|Pipeline[] $Pipeline
+     * @return $this
+     */
+    public function ajaxPipelineOnClick( $Pipeline ) {
+        return $this->ajaxPipelineOnChange( $Pipeline );
+    }
+
+    /**
      * @param Pipeline|Pipeline[] $Pipeline
      * @return $this
      */

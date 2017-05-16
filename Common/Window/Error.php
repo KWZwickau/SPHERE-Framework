@@ -80,7 +80,7 @@ class Error extends Extension implements ITemplateInterface
     public function __toString()
     {
 
-        return $this->getContent();
+        return (string)$this->getContent();
     }
 
     /**

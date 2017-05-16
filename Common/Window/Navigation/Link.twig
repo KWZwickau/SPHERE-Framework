@@ -1,3 +1,22 @@
 <li class="{{ ActiveClass }}">
-    <a href="{{ Route }}">{% if( Icon is not empty ) %}{{ Icon }}&nbsp;{% endif %}{{ Name }}</a>
+    <a href="{{ Route }}" data-trigger="hover" data-toggle="popover" data-content="{{ ElementToolTip }}">
+        {% if( Icon is not empty ) %}{{ Icon }}&nbsp;{% endif %}{{ Name }}
+    </a>
+    <script>
+        //noinspection JSUnresolvedFunction
+        executeScript(function()
+        {
+            Client.Use("ModAlways", function() {
+                $('a[href="{{ Route }}"]').popover("destroy").popover({
+                    placement: 'bottom',
+                    html: true,
+                    template: '<div class="popover">'
+                    + '<div class="arrow"></div>'
+                    + '<div class="popover-title" style="white-space: nowrap; border-radius: 0;"></div>'
+                    + '<div class="popover-content"></div>'
+                    + '</div>'
+                });
+            });
+        });
+    </script>
 </li>
