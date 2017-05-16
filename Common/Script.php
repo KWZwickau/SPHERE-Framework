@@ -283,7 +283,7 @@ class Script extends Extension
                 'jQuery.DataTable.Responsive',
                 'jQuery.DataTable.Bootstrap',
                 'jQuery.DataTable',
-                'jQuery.DetectElementResize',
+//                'jQuery.DetectElementResize',
                 'jQuery'
             )
         );

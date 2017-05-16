@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Corporation;
 
+use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
@@ -10,7 +11,6 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -21,7 +21,6 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
@@ -33,21 +32,15 @@ use SPHERE\System\Extension\Extension;
  */
 class ContactPerson extends Extension implements IApiInterface
 {
+    use ApiTrait;
 
     private static $Sleep = 0;
-
-    public static function registerApi()
-    {
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Similar', __CLASS__ . '::ApiDispatcher'
-        ));
-    }
 
     /**
      * @param string $MethodName Callable Method
      * @return string
      */
-    public function ApiDispatcher($MethodName = '')
+    public function exportApi($MethodName = '')
     {
 
         $Dispatcher = new Dispatcher(__CLASS__);

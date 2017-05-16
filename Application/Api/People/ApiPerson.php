@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\People;
 
+use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\IApiInterface;
@@ -37,7 +38,6 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
-use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
@@ -49,22 +49,16 @@ use SPHERE\System\Extension\Extension;
  */
 class ApiPerson extends Extension implements IApiInterface
 {
+    use ApiTrait;
 
     const API_DISPATCHER = 'MethodName';
-
-    public static function registerApi()
-    {
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __CLASS__, __CLASS__ . '::ApiDispatcher'
-        ));
-    }
 
     /**
      * @param string $MethodName Callable Method
      *
      * @return string
      */
-    public function ApiDispatcher($MethodName = '')
+    public function exportApi($MethodName = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
