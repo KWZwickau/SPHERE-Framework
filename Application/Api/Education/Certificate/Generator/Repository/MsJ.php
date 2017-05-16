@@ -41,60 +41,59 @@ class MsJ extends Certificate
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
 
         return (new Page())
-                ->addSlice(
-                    $Header
+            ->addSlice(
+                $Header
+            )
+            ->addSlice($this->getSchoolName($personId))
+            ->addSlice($this->getCertificateHead('Jahreszeugnis'))
+            ->addSlice($this->getDivisionAndYear($personId, '20px'))
+            ->addSlice($this->getStudentName($personId))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('nahm am Unterricht der Schulart Mittelschule teil.')
+                    ->styleTextSize('12px')
+                    ->styleMarginTop('8px')
                 )
-                ->addSlice($this->getSchoolName($personId))
-                ->addSlice($this->getCertificateHead('Jahreszeugnis'))
-                ->addSlice($this->getDivisionAndYear($personId, '20px'))
-                ->addSlice($this->getStudentName($personId))
-                // für selbe Höhe wie bei Varianten mit Bildungsgang
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleTextSize('12px')
-                        ->styleMarginTop('8px')
+            )
+            ->addSlice($this->getGradeLanes($personId))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Einschätzung:')
                     )
                 )
-                ->addSlice($this->getGradeLanes($personId))
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Einschätzung:')
-                        )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
+                                {{ Content.P'.$personId.'.Input.Rating|nl2br }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
+                        ->styleHeight('40px')
                     )
-                    ->addSection(( new Section() )
-                        ->addElementColumn((new Element())
-                            ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Rating|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                            ->styleHeight('40px')
-                        )
-                    )
+                )
+                ->styleMarginTop('15px')
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleMarginTop('15px')
+                    ->styleTextBold()
                 )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Leistungen in den einzelnen Fächern:')
-                        ->styleMarginTop('15px')
-                        ->styleTextBold()
-                    )
-                )
-                ->addSlice($this->getSubjectLanes($personId)
-                    ->styleHeight('270px'))
-                ->addSlice($this->getOrientationStandard($personId))
-                ->addSlice($this->getDescriptionHead($personId, true))
-                ->addSlice($this->getDescriptionContent($personId, '45px', '15px'))
-                ->addSlice($this->getTransfer($personId))
-                ->addSlice($this->getDateLine($personId, '10px'))
-                ->addSlice($this->getSignPart($personId, true, '15px'))
-                ->addSlice($this->getParentSign('15px'))
-                ->addSlice($this->getInfo('5px',
-                    'Notenerläuterung:',
-                    '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
-                    (6 = ungenügend nur bei der Bewertung der Leistungen)')
+            )
+            ->addSlice($this->getSubjectLanes($personId)
+                ->styleHeight('270px'))
+            ->addSlice($this->getOrientationStandard($personId))
+            ->addSlice($this->getDescriptionHead($personId, true))
+            ->addSlice($this->getDescriptionContent($personId, '45px', '15px'))
+            ->addSlice($this->getTransfer($personId))
+            ->addSlice($this->getDateLine($personId, '10px'))
+            ->addSlice($this->getSignPart($personId, true, '15px'))
+            ->addSlice($this->getParentSign('15px'))
+            ->addSlice($this->getInfo('5px',
+                'Notenerläuterung:',
+                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
+                (6 = ungenügend nur bei der Bewertung der Leistungen)')
         );
     }
 }
