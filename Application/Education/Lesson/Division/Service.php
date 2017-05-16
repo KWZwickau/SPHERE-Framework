@@ -672,14 +672,27 @@ class Service extends AbstractService
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
-     * @return mixed
+     * @return bool
      */
-    public
-    function removeDivisionSubject(
+    public function removeDivisionSubject(
         TblDivisionSubject $tblDivisionSubject
     ) {
 
-        return (new Data($this->getBinding()))->removeDivisionSubject($tblDivisionSubject);
+        $tblDivision = $tblDivisionSubject->getTblDivision();
+        $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+        if ($tblDivision && $tblSubject) {
+            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
+                $tblDivision);
+            if ($tblDivisionSubjectList) {
+                foreach ($tblDivisionSubjectList as $DivisionSubject) {
+                    (new Data($this->getBinding()))->removeDivisionSubject($DivisionSubject);
+                }
+            }
+        } else {
+            return false;
+        }
+
+        return true;
     }
 
     /**
