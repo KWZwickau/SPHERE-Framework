@@ -1053,7 +1053,7 @@ class Frontend extends Extension implements IFrontendInterface
         $UsedList = array();
         if ($tblSubjectUsedList) {
             array_walk($tblSubjectUsedList, function (TblSubject $tblSubjectUsed) use ($tblDivision, &$UsedList) {
-
+                $Item['Id'] = $tblSubjectUsed->getId();
                 $Item['Acronym'] = $tblSubjectUsed->getAcronym();
                 $Item['Name'] = $tblSubjectUsed->getName();
                 $Item['Description'] = $tblSubjectUsed->getDescription();
@@ -1067,7 +1067,7 @@ class Frontend extends Extension implements IFrontendInterface
         $AvailableList = array();
         if ($tblSubjectAvailable) {
             array_walk($tblSubjectAvailable, function (TblSubject $tblSubjectUsed) use ($tblDivision, &$AvailableList) {
-
+                $Item['Id'] = $tblSubjectUsed->getId();
                 $Item['Acronym'] = $tblSubjectUsed->getAcronym();
                 $Item['Name'] = $tblSubjectUsed->getName();
                 $Item['Description'] = $tblSubjectUsed->getDescription();
@@ -1148,26 +1148,10 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new TableData(array(
-                                array(
-                                    'Artikel' => '1',
-                                    'Option'  => (new Standard('+', DivisionAPI::getRoute(), null, array('Id' => 1)))
-                                        ->ajaxPipelineOnClick(DivisionAPI::pipelinePlus())
-                                ),
-                                array(
-                                    'Artikel' => '2',
-                                    'Option'  => (new Standard('+', DivisionAPI::getRoute(), null, array('Id' => 2)))
-                                        ->ajaxPipelineOnClick(DivisionAPI::pipelinePlus())
-                                ),
-                                array(
-                                    'Artikel' => '3',
-                                    'Option'  => (new Standard('+', DivisionAPI::getRoute(), null, array('Id' => 3)))
-                                        ->ajaxPipelineOnClick(DivisionAPI::pipelinePlus())
-                                )
-                            ), null, array('Artikel' => 'Artikel', 'Option' => 'Option'))
+                            DivisionAPI::receiverUsed(DivisionAPI::tableUsedSubject($UsedList))
                             , 6),
                         new LayoutColumn(
-                            DivisionAPI::receiverBasket(DivisionAPI::tableBasket())
+                            DivisionAPI::receiverAvailable(DivisionAPI::tableAvailableSubject($AvailableList))
                             , 6),
                     ))
                 ))
