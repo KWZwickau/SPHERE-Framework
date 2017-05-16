@@ -17,6 +17,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Extension\Extension;
 
@@ -1660,9 +1661,13 @@ abstract class Certificate extends Extension
         }
 
         if ($tblSubject) {
-            // Todo noch richtig Klären erstmal fest für Chemnitz
-            // $SubjectAcronym = str_replace(' ', '', $tblSubject-getAcronym());
-            $SubjectAcronym = 'PRO';
+            if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+                && ($value = $tblSetting->getValue())
+            ) {
+                $subjectAcronymForGrade = $value;
+            } else {
+                $subjectAcronymForGrade = $tblSubject->getAcronym();
+            }
 
             $elementName = (new Element())
                 // Profilname aus der Schülerakte
@@ -1681,8 +1686,8 @@ abstract class Certificate extends Extension
 
             $elementGrade = (new Element())
                 ->setContent('
-                    {% if(Content.P' . $personId . '.Grade.Data.' . $SubjectAcronym . ' is not empty) %}
-                        {{ Content.P' . $personId . '.Grade.Data.' . $SubjectAcronym . ' }}
+                    {% if(Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' }}
                     {% else %}
                         &ndash;
                     {% endif %}
@@ -1812,9 +1817,13 @@ abstract class Certificate extends Extension
                 $tblStudentSubject = current($tblSubjectList);
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
 
-                    // Todo noch richtig Klären erstmal fest für Chemnitz
-                    // $SubjectAcronym = $tblSubject-getAcronym();
-                    $SubjectAcronym = 'NK';
+                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+                        && ($value = $tblSetting->getValue())
+                    ) {
+                        $subjectAcronymForGrade = $value;
+                    } else {
+                        $subjectAcronymForGrade = $tblSubject->getAcronym();
+                    }
 
                     $elementOrientationName = new Element();
                     $elementOrientationName
@@ -1833,8 +1842,8 @@ abstract class Certificate extends Extension
                     $elementOrientationGrade = new Element();
                     $elementOrientationGrade
                         ->setContent('
-                            {% if(Content.P' . $personId . '.Grade.Data.' . $SubjectAcronym . ' is not empty) %}
-                                {{ Content.P' . $personId . '.Grade.Data.' . $SubjectAcronym . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
@@ -2701,7 +2710,13 @@ abstract class Certificate extends Extension
                 /** @var TblStudentSubject $tblStudentSubject */
                 $tblStudentSubject = current($tblSubjectList);
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                    $subjectAcronym = 'NK';
+                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+                        && ($value = $tblSetting->getValue())
+                    ) {
+                        $subjectAcronymForGrade = $value;
+                    } else {
+                        $subjectAcronymForGrade = $tblSubject->getAcronym();
+                    }
 
                     $elementOrientationName = new Element();
                     $elementOrientationName
@@ -2721,8 +2736,8 @@ abstract class Certificate extends Extension
                     $elementOrientationGrade = new Element();
                     $elementOrientationGrade
                         ->setContent('
-                            {% if(Content.P' . $personId . '.Grade.Data.' . $subjectAcronym . ' is not empty) %}
-                                {{ Content.P' . $personId . '.Grade.Data.' . $subjectAcronym . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
