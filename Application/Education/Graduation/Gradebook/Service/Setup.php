@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\System\Database\Binding\AbstractSetup;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -388,6 +389,8 @@ class Setup extends AbstractSetup
         if (!$Table->hasColumn('Count')) {
             $Table->addColumn('Count', 'integer');
         }
+        $this->createColumn($Table, 'Period', self::FIELD_TYPE_INTEGER, false, SelectBoxItem::PERIOD_FULL_YEAR);
+        $this->createColumn($Table, 'Highlighted', self::FIELD_TYPE_INTEGER, false, 1);
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
 

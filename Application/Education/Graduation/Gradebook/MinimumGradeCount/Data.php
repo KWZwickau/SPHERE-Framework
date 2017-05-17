@@ -51,8 +51,8 @@ abstract class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMinimumGradeCount',
             array(
                 TblMinimumGradeCount::ATTR_SERVICE_TBL_LEVEL => $tblLevel->getId(),
-                TblMinimumGradeCount::ATTR_SERVICE_TBL_SUBJECT => $tblSubject ?  $tblSubject->getId() : null,
-                TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType ?  $tblGradeType->getId() : null
+                TblMinimumGradeCount::ATTR_SERVICE_TBL_SUBJECT => $tblSubject ? $tblSubject->getId() : null,
+                TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType ? $tblGradeType->getId() : null
             )
         );
     }
@@ -63,7 +63,8 @@ abstract class Data extends AbstractData
     public function getMinimumGradeCountAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMinimumGradeCount');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblMinimumGradeCount');
     }
 
     /**
@@ -87,7 +88,7 @@ abstract class Data extends AbstractData
                     TblMinimumGradeCount::ATTR_SERVICE_TBL_SUBJECT => null
                 )
             );
-            if (!$levelList){
+            if (!$levelList) {
                 $levelList = array();
             }
 
@@ -108,6 +109,10 @@ abstract class Data extends AbstractData
                 $levelList = array_merge($levelList, $subjectList);
             }
 
+            if ($levelList) {
+                $levelList = $this->getSorter($levelList)->sortObjectBy('Period');
+            }
+
             return empty($levelList) ? false : $levelList;
         }
 
@@ -119,13 +124,18 @@ abstract class Data extends AbstractData
      * @param TblLevel $tblLevel
      * @param TblSubject|null $tblSubject
      * @param TblGradeType|null $tblGradeType
+     * @param integer $Period
+     * @param integer $Highlighted
+     *
      * @return TblMinimumGradeCount
      */
     public function createMinimumGradeCount(
         $Count,
         TblLevel $tblLevel,
         TblSubject $tblSubject = null,
-        TblGradeType $tblGradeType = null
+        TblGradeType $tblGradeType = null,
+        $Period,
+        $Highlighted
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -133,8 +143,10 @@ abstract class Data extends AbstractData
         $Entity = $Manager->getEntity('TblMinimumGradeCount')
             ->findOneBy(array(
                 TblMinimumGradeCount::ATTR_SERVICE_TBL_LEVEL => $tblLevel->getId(),
-                TblMinimumGradeCount::ATTR_SERVICE_TBL_SUBJECT => $tblSubject ?  $tblSubject->getId() : null,
-                TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType ?  $tblGradeType->getId() : null
+                TblMinimumGradeCount::ATTR_SERVICE_TBL_SUBJECT => $tblSubject ? $tblSubject->getId() : null,
+                TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType ? $tblGradeType->getId() : null,
+                TblMinimumGradeCount::ATTR_PERIOD => $Period,
+                TblMinimumGradeCount::ATTR_HIGHLIGHTED => $Highlighted,
             ));
 
         if (null === $Entity) {
@@ -143,6 +155,8 @@ abstract class Data extends AbstractData
             $Entity->setServiceTblLevel($tblLevel);
             $Entity->setServiceTblSubject($tblSubject ? $tblSubject : null);
             $Entity->setTblGradeType($tblGradeType ? $tblGradeType : null);
+            $Entity->setPeriod($Period);
+            $Entity->setHighlighted($Highlighted);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
