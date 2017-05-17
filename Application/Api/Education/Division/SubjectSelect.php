@@ -2,87 +2,339 @@
 
 namespace SPHERE\Application\Api\Education\Division;
 
-use SPHERE\Application\Api\Response;
+use SPHERE\Application\Api\ApiTrait;
+use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Lesson\Division\Division as DivisionAPP;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
-use SPHERE\Common\Frontend\Icon\Repository\Success;
-use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Main;
+use SPHERE\Application\IApiInterface;
+use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
+use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\System\Extension\Extension;
 
-class SubjectSelect extends Extension implements IModuleInterface
+class SubjectSelect extends Extension implements IApiInterface
 {
-    //ToDO Umbau aus der alten API-Variante
-    public static function registerModule()
-    {
-
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Select/Subject',
-            __CLASS__.'::executeSelectSubject'
-        ));
-    }
+    use ApiTrait;
 
     /**
-     * @return IServiceInterface
-     */
-    public static function useService()
-    {
-        // TODO: Implement useService() method.
-    }
-
-    /**
-     * @return IFrontendInterface
-     */
-    public static function useFrontend()
-    {
-        // TODO: Implement useFrontend() method.
-    }
-
-    /**
-     * @param null|array $Direction
-     * @param null|array $Data
-     * @param null|array $Additional
+     * @param string $Method Callable Method
      *
-     * @return Response
+     * @return string
      */
-    public function executeSelectSubject($Direction = null, $Data = null, $Additional = null)
+    public function exportApi($Method = '')
+    {
+        $Dispatcher = new Dispatcher(__CLASS__);
+
+        $Dispatcher->registerMethod('tableAvailableSubject');
+        $Dispatcher->registerMethod('tableUsedSubject');
+        $Dispatcher->registerMethod('serviceAddSubject');
+        $Dispatcher->registerMethod('serviceRemoveSubject');
+
+        return $Dispatcher->callMethod($Method);
+    }
+
+    /**
+     * @param string $Content
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverUsed($Content = '')
+    {
+        return (new BlockReceiver($Content))->setIdentifier('UsedReceiver');
+    }
+
+    /**
+     * @param string $Content
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverAvailable($Content = '')
+    {
+        return (new BlockReceiver($Content))->setIdentifier('AvailableReceiver');
+    }
+
+    /**
+     * @param string $Content
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverService($Content = '')
+    {
+        return (new BlockReceiver($Content))->setIdentifier('ServiceReceiver');
+    }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return Info|Warning|TableData
+     */
+    public static function tableUsedSubject($DivisionId = null)
     {
 
+        // get Content
+        $tblDivision = DivisionAPP::useService()->getDivisionById($DivisionId);
+        $ContentList = false;
+        if ($tblDivision) {
+            $ContentList = self::getTableContentUsed($tblDivision);
+        }
 
-        if ($Data && $Direction) {
-            if (!isset($Data['Id']) || !isset($Data['Division'])) {
-                return (new Response())->addError('Fehler!',
-                    new HazardSign().' Die Zuweisung des Fachs konnte nicht aktualisiert werden.', 0);
+        // Select
+        $Table = array();
+        if (is_array($ContentList)) {
+            if (!empty($ContentList)) {
+                foreach ($ContentList as $Subject) {
+                    $Table[] = array(
+                        'Acronym'     => $Subject['Acronym'],
+                        'Name'        => $Subject['Name'],
+                        'Description' => $Subject['Description'],
+                        'Option'      => (new Standard('', SubjectSelect::getEndpoint(), new MinusSign(),
+                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId'])))
+                            ->ajaxPipelineOnClick(SubjectSelect::pipelineMinus($Subject['Id'], $Subject['DivisionId']))
+                    );
+                }
+                // Anzeige
+                return new TableData($Table, null, array(
+                    'Acronym'     => 'Kürzel',
+                    'Name'        => 'Name',
+                    'Description' => 'Beschreibung',
+                    'Option'      => 'Option'
+                ),
+                    array(
+                        'columnDefs' => array(
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                        ),
+                    )
+                );
             }
-            $Id = $Data['Id'];
-            $DivisionId = $Data['Division'];
+            return new Info('Keine Fächer ausgewählt');
+        }
+        return new Warning('Klasse nicht gefunden');
+    }
 
-            if ($Direction['From'] == 'TableAvailable') {
-                $Remove = false;
-            } else {
-                $Remove = true;
-            }
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return array
+     */
+    public static function getTableContentUsed(TblDivision $tblDivision)
+    {
 
-            $tblDivision = \SPHERE\Application\Education\Lesson\Division\Division::useService()->getDivisionById($DivisionId);
-            $tblSubject = Subject::useService()->getSubjectById($Id);
-            if ($tblSubject && $tblDivision) {
-                if ($Remove) {
-                    $tblDivisionSubject = \SPHERE\Application\Education\Lesson\Division\Division::useService()
-                        ->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision, $tblSubject);
-                    if ($tblDivisionSubject) {
-                        \SPHERE\Application\Education\Lesson\Division\Division::useService()->removeDivisionSubject($tblDivisionSubject);
-                    }
-                } else {
-                    \SPHERE\Application\Education\Lesson\Division\Division::useService()->addSubjectToDivision($tblDivision,
-                        $tblSubject);
+        $tblSubjectUsedList = DivisionAPP::useService()->getSubjectAllByDivision($tblDivision);
+
+        $usedList = array();
+        if ($tblSubjectUsedList) {
+            array_walk($tblSubjectUsedList, function (TblSubject $tblSubjectUsed) use ($tblDivision, &$usedList) {
+                $Item['Id'] = $tblSubjectUsed->getId();
+                $Item['DivisionId'] = $tblDivision->getId();
+                $Item['Acronym'] = $tblSubjectUsed->getAcronym();
+                $Item['Name'] = $tblSubjectUsed->getName();
+                $Item['Description'] = $tblSubjectUsed->getDescription();
+                array_push($usedList, $Item);
+            });
+        }
+
+        return $usedList;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $DivisionId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineMinus($Id = null, $DivisionId = null)
+    {
+
+        $Pipeline = new Pipeline();
+
+        // execute Service
+        $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'serviceRemoveSubject',
+            'Id'             => $Id,
+            'DivisionId'     => $DivisionId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        // refresh Table
+        $Emitter = new ServerEmitter(self::receiverUsed(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'tableUsedSubject',
+            'DivisionId'     => $DivisionId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        // refresh Table
+        $Emitter = new ServerEmitter(self::receiverAvailable(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'tableAvailableSubject',
+            'DivisionId'     => $DivisionId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $DivisionId
+     */
+    public function serviceRemoveSubject($Id = null, $DivisionId = null)
+    {
+
+        $tblSubject = Subject::useService()->getSubjectById($Id);
+        $tblDivision = DivisionAPP::useService()->getDivisionById($DivisionId);
+
+        if ($tblSubject && $tblDivision) {
+            $tblDivisionSubjectList = DivisionAPP::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
+                $tblDivision);
+            if ($tblDivisionSubjectList) {
+                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                    DivisionAPP::useService()->removeDivisionSubject($tblDivisionSubject);
                 }
             }
-
-            return (new Response())->addData(new Success().' Die Zuweisung des Fachs wurde erfolgreich aktualisiert.');
         }
-        return (new Response())->addError('Fehler!',
-            new HazardSign().' Die Zuweisung des Fachs konnte nicht aktualisiert werden.', 0);
+    }
+
+    /**
+     * @param $DivisionId
+     *
+     * @return Info|Warning|TableData
+     */
+    public static function tableAvailableSubject($DivisionId)
+    {
+
+        // get Content
+        $tblDivision = DivisionAPP::useService()->getDivisionById($DivisionId);
+        $ContentList = false;
+        if ($tblDivision) {
+            $ContentList = self::getTableContentAvailable($tblDivision);
+        }
+
+        // Select
+        $Table = array();
+        if (is_array($ContentList)) {
+            if (!empty($ContentList)) {
+                foreach ($ContentList as $Subject) {
+                    $Table[] = array(
+                        'Acronym'     => $Subject['Acronym'],
+                        'Name'        => $Subject['Name'],
+                        'Description' => $Subject['Description'],
+                        'Option'      => (new Standard('', SubjectSelect::getEndpoint(), new PlusSign(),
+                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId'])))
+                            ->ajaxPipelineOnClick(SubjectSelect::pipelinePlus($Subject['Id'], $Subject['DivisionId']))
+                    );
+                }
+                // Anzeige
+                return new TableData($Table, null, array(
+                    'Acronym'     => 'Kürzel',
+                    'Name'        => 'Name',
+                    'Description' => 'Beschreibung',
+                    'Option'      => 'Option'
+                ),
+                    array(
+                        'columnDefs' => array(
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                        ),
+                    )
+                );
+            }
+            return new Info('Keine weiteren Fächer verfügbar');
+        }
+        return new Warning('Klasse nicht gefunden');
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return array
+     */
+    public static function getTableContentAvailable(TblDivision $tblDivision)
+    {
+
+        $tblSubjectUsedList = DivisionAPP::useService()->getSubjectAllByDivision($tblDivision);
+        $tblSubjectAll = Subject::useService()->getSubjectAll();
+
+        // get available Subjects in compare of used Subjects
+        if (is_array($tblSubjectUsedList)) {
+            $tblSubjectAvailable = array_diff($tblSubjectAll, $tblSubjectUsedList);
+        } else {
+            $tblSubjectAvailable = $tblSubjectAll;
+        }
+
+        $availableList = array();
+        if ($tblSubjectAvailable) {
+            array_walk($tblSubjectAvailable, function (TblSubject $tblSubjectUsed) use ($tblDivision, &$availableList) {
+                $Item['Id'] = $tblSubjectUsed->getId();
+                $Item['DivisionId'] = $tblDivision->getId();
+                $Item['Acronym'] = $tblSubjectUsed->getAcronym();
+                $Item['Name'] = $tblSubjectUsed->getName();
+                $Item['Description'] = $tblSubjectUsed->getDescription();
+                array_push($availableList, $Item);
+            });
+        }
+        return $availableList;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $DivisionId
+     *
+     * @return Pipeline
+     */
+    public static function pipelinePlus($Id = null, $DivisionId = null)
+    {
+
+        $Pipeline = new Pipeline();
+
+        // execute Service
+        $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'serviceAddSubject',
+            'Id'             => $Id,
+            'DivisionId'     => $DivisionId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        // refresh Table
+        $Emitter = new ServerEmitter(self::receiverUsed(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'tableUsedSubject',
+            'DivisionId'     => $DivisionId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        // refresh Table
+        $Emitter = new ServerEmitter(self::receiverAvailable(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'tableAvailableSubject',
+            'DivisionId'     => $DivisionId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $DivisionId
+     */
+    public function serviceAddSubject($Id = null, $DivisionId = null)
+    {
+
+        $tblSubject = Subject::useService()->getSubjectById($Id);
+        $tblDivision = DivisionAPP::useService()->getDivisionById($DivisionId);
+
+        if ($tblSubject && $tblDivision) {
+            DivisionAPP::useService()->addSubjectToDivision($tblDivision, $tblSubject);
+        }
     }
 }

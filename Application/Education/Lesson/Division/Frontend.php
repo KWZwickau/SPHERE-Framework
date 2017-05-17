@@ -1,13 +1,13 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
-use SPHERE\Application\Api\Education\Division\Division as DivisionAPI;
+use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
+use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -57,7 +57,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
-use SPHERE\Common\Frontend\Link\Repository\Exchange;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -961,12 +960,10 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param null $Subject
-     * @param null $Remove
      *
      * @return Stage|string
      */
-    public function frontendSubjectAdd($Id = null, $Subject = null, $Remove = null)
+    public function frontendSubjectAdd($Id = null)
     {
 
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
@@ -979,182 +976,21 @@ class Frontend extends Extension implements IFrontendInterface
         $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
         $Stage = new Stage('Fächer', $Title);
         $Stage->setMessage('');
-//            $Stage->addButton(new Backward());
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
 
-        if ($tblDivision && null !== $Subject && ( $tblSubject = Subject::useService()->getSubjectById($Subject) )) {
-            if ($Remove) {
-                Division::useService()->removeSubjectToDivision($tblDivision, $tblSubject);
-                $Stage->setContent(
-                    new Success('Fach erfolgreich entfernt')
-                    .new Redirect('/Education/Lesson/Division/Subject/Add', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            } else {
-                Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
-                $Stage->setContent(
-                    new Success('Fach erfolgreich hinzugefügt')
-                    .new Redirect('/Education/Lesson/Division/Subject/Add', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            }
-        }
-
-        $tblSubjectUsedList = Division::useService()->getSubjectAllByDivision($tblDivision);
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
-
-        if (is_array($tblSubjectUsedList)) {
-            $tblSubjectAvailable = array_udiff($tblSubjectAll, $tblSubjectUsedList,
-                function (TblSubject $ObjectA, TblSubject $ObjectB) {
-
-                    return $ObjectA->getId() - $ObjectB->getId();
-                }
-            );
-        } else {
-            $tblSubjectAvailable = $tblSubjectAll;
-        }
-
-        /** @noinspection PhpUnusedParameterInspection */
-        if (is_array($tblSubjectUsedList)) {
-            array_walk($tblSubjectUsedList, function (TblSubject &$Entity) use ($Id) {
-
-                /** @noinspection PhpUndefinedFieldInspection */
-                $Entity->Option = new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                        '/Education/Lesson/Division/Subject/Add', new Minus(),
-                        array(
-                            'Id'      => $Id,
-                            'Subject' => $Entity->getId(),
-                            'Remove'  => true
-                        ))
-                );
-            }, $Id);
-        }
-
-        /** @noinspection PhpUnusedParameterInspection */
-        if (isset( $tblSubjectAvailable )) {
-            array_walk($tblSubjectAvailable, function (TblSubject &$Entity) use ($Id) {
-
-                /** @noinspection PhpUndefinedFieldInspection */
-                $Entity->Option = new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                        '/Education/Lesson/Division/Subject/Add', new Plus(),
-                        array(
-                            'Id'      => $Id,
-                            'Subject' => $Entity->getId()
-                        ))
-                );
-            });
-        }
-
-        $UsedList = array();
-        if ($tblSubjectUsedList) {
-            array_walk($tblSubjectUsedList, function (TblSubject $tblSubjectUsed) use ($tblDivision, &$UsedList) {
-                $Item['Id'] = $tblSubjectUsed->getId();
-                $Item['Acronym'] = $tblSubjectUsed->getAcronym();
-                $Item['Name'] = $tblSubjectUsed->getName();
-                $Item['Description'] = $tblSubjectUsed->getDescription();
-                $Item['Exchange'] = new Exchange(Exchange::EXCHANGE_TYPE_MINUS, array(
-                    'Id'       => $tblSubjectUsed->getId(),
-                    'Division' => $tblDivision->getId()
-                ));
-                array_push($UsedList, $Item);
-            });
-        }
-        $AvailableList = array();
-        if ($tblSubjectAvailable) {
-            array_walk($tblSubjectAvailable, function (TblSubject $tblSubjectUsed) use ($tblDivision, &$AvailableList) {
-                $Item['Id'] = $tblSubjectUsed->getId();
-                $Item['Acronym'] = $tblSubjectUsed->getAcronym();
-                $Item['Name'] = $tblSubjectUsed->getName();
-                $Item['Description'] = $tblSubjectUsed->getDescription();
-                $Item['Exchange'] = new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(
-                    'Id'       => $tblSubjectUsed->getId(),
-                    'Division' => $tblDivision->getId()
-                ));
-                array_push($AvailableList, $Item);
-            });
-        }
-
         $Stage->setContent(
             new Layout(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Title('Ausgewählt', 'Fach'),
-//                            ( empty( $UsedList )
-//                                ? new Warning('Keine Fächer zugewiesen') :
-                            new TableData($UsedList, null,
-                                array(
-                                    'Acronym'     => 'Kürzel',
-                                    'Name'        => 'Name',
-                                    'Description' => 'Beschreibung',
-                                    'Exchange'    => ''
-                                ),
-                                array(
-                                    'columnDefs'           => array(
-                                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                                    ),
-                                    'ExtensionRowExchange' => array(
-                                        'Enabled' => true,
-                                        'Url'     => '/Api/Education/Division/Select/Subject',
-                                        'Handler' => array(
-                                            'From' => 'glyphicon-minus-sign',
-                                            'To'   => 'glyphicon-plus-sign',
-                                            'All'  => 'TableRemoveAll'
-                                        ),
-                                        'Connect' => array(
-                                            'From' => 'TableCurrent',
-                                            'To'   => 'TableAvailable',
-                                        )
-                                    )
-                                )
-                            )
-                        ), 6),
-                        new LayoutColumn(array(
-                            new Title('Verfügbar', 'Fach'),
-//                            ( empty( $AvailableList )
-//                                ? new Info('Keine weiteren Fächer verfügbar') :
-                            new TableData($AvailableList, null,
-                                array(
-                                    'Acronym'     => 'Kürzel',
-                                    'Name'        => 'Name',
-                                    'Description' => 'Beschreibung',
-                                    'Exchange'    => ''
-                                ),
-                                array(
-                                    'columnDefs'           => array(
-                                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                                    ),
-                                    'ExtensionRowExchange' => array(
-                                        'Enabled' => true,
-                                        'Url'     => '/Api/Education/Division/Select/Subject',
-                                        'Handler' => array(
-                                            'From' => 'glyphicon-plus-sign',
-                                            'To'   => 'glyphicon-minus-sign',
-                                            'All'  => 'TableAddAll'
-                                        ),
-                                        'Connect' => array(
-                                            'From' => 'TableAvailable',
-                                            'To'   => 'TableCurrent',
-                                        )
-                                    )
-                                )
-                            )
-                        ), 6)
-                    )),
+                new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            DivisionAPI::receiverUsed(DivisionAPI::tableUsedSubject($UsedList))
+                            SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
                             , 6),
                         new LayoutColumn(
-                            DivisionAPI::receiverAvailable(DivisionAPI::tableAvailableSubject($AvailableList))
+                            SubjectSelectAPI::receiverAvailable(SubjectSelectAPI::tableAvailableSubject($tblDivision->getId()))
                             , 6),
                     ))
-                ))
+                )
             )
         );
 
