@@ -2681,8 +2681,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblTestList = array();
                 }
                 $buttonList = $this->createExamsButtonList(
-                    $tblPrepare, $tblCurrentSubject, $tblNextSubject, $tblTestList, $SubjectId, $Route, $IsFinalGrade,
-                    $tblSubjectList, $IsNotSubject
+                    $tblPrepare, $tblCurrentSubject, $tblNextSubject, $tblTestList, $SubjectId, $Route, $tblSubjectList,
+                    $IsNotSubject
                 );
 
                 $studentTable = array();
@@ -2865,8 +2865,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSubjectList = array();
 
         $buttonList = $this->createExamsButtonList(
-            $tblPrepare, $tblCurrentSubject, $tblNextSubject, $tblTestList, $SubjectId, $Route, $IsFinalGrade,
-            $tblSubjectList, $IsNotSubject
+            $tblPrepare, $tblCurrentSubject, $tblNextSubject, $tblTestList, $SubjectId, $Route, $tblSubjectList,
+            $IsNotSubject
         );
 
         $studentTable = array();
@@ -2886,6 +2886,15 @@ class Frontend extends Extension implements IFrontendInterface
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'Jn (Jahresnote)';
+                $tableTitle = 'Jahresnote';
+                if ($tblNextSubject) {
+                    $textSaveButton = 'Speichern und weiter zum nächsten Fach';
+                } else {
+                    $textSaveButton = 'Speichern und weiter zu den sonstigen Informationen';
+                }
+            } else {
+                $tableTitle = 'Leistungsnachweisnoten';
+                $textSaveButton = 'Speichern und weiter zur Jahresnote';
             }
         } else {
             // Klasse 10 Realschule
@@ -2905,6 +2914,15 @@ class Frontend extends Extension implements IFrontendInterface
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'En (Endnote)';
+                $tableTitle = 'Endnote';
+                if ($tblNextSubject) {
+                    $textSaveButton = 'Speichern und weiter zum nächsten Fach';
+                } else {
+                    $textSaveButton = 'Speichern und weiter zu den sonstigen Informationen';
+                }
+            } else {
+                $tableTitle = 'Prüfungsnoten';
+                $textSaveButton = 'Speichern und weiter zur Endnote';
             }
         }
 
@@ -2926,7 +2944,10 @@ class Frontend extends Extension implements IFrontendInterface
             ),
         );
 
-        $tableData = new TableData($studentTable, null, $columnTable,
+        /** @var TblSubject $tblCurrentSubject */
+        $tableTitle = $tblCurrentSubject ? $tblCurrentSubject->getAcronym() . ' - ' . $tableTitle : $tableTitle;
+
+        $tableData = new TableData($studentTable, new \SPHERE\Common\Frontend\Table\Repository\Title($tableTitle), $columnTable,
             array(
                 "columnDefs" => $columnDef,
                 'order' => array(
@@ -2949,7 +2970,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ),
             ))
-            , new Primary('Speichern', new Save())
+            , new Primary($textSaveButton, new Save())
         );
 
         /** @var TblSubject $tblCurrentSubject */
@@ -3009,10 +3030,9 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $tblTestList
      * @param $SubjectId
      * @param $Route
-     * @param $IsFinalGrade
      * @param $tblSubjectList
-     *
      * @param $IsNotSubject
+     *
      * @return array
      */
     private function createExamsButtonList(
@@ -3022,7 +3042,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTestList,
         $SubjectId,
         $Route,
-        $IsFinalGrade,
         &$tblSubjectList,
         $IsNotSubject
     ) {
@@ -3058,11 +3077,17 @@ class Frontend extends Extension implements IFrontendInterface
 
         $buttonList = array();
 
+        if (Prepare::useService()->isCourseMainDiploma($tblPrepare)) {
+            $textLinkButton = ' - Leistungsnachweisnoten/Jahresnote';
+        } else {
+            $textLinkButton = ' - Prüfungsnoten/Endnote';
+        }
+
         foreach ($tblSubjectList as $subjectId => $value) {
             if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
                 if ($tblCurrentSubject && $tblCurrentSubject->getId() == $tblSubject->getId()) {
                     $name = new Info(new Bold($tblSubject->getAcronym()
-                        . ($IsFinalGrade ? ' - Endnote' : ' - Prüfungsnoten')
+                        . $textLinkButton
                     ));
                     $icon = new Edit();
                 } else {

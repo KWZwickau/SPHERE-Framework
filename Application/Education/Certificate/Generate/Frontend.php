@@ -51,6 +51,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -314,10 +315,10 @@ class Frontend extends Extension
                                 array(
                                     (new RadioBox('Data[GenderHeadmaster]', 'Männlich',
                                         ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
-                                            ? $tblCommonGender->getId() : 0 )),
+                                            ? $tblCommonGender->getId() : 0)),
                                     (new RadioBox('Data[GenderHeadmaster]', 'Weiblich',
                                         ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
-                                            ? $tblCommonGender->getId() : 0 ))
+                                            ? $tblCommonGender->getId() : 0))
                                 ),
                                 Panel::PANEL_TYPE_DEFAULT
                             )
@@ -508,6 +509,7 @@ class Frontend extends Extension
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Generate', new ChevronLeft()));
 
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($GenerateCertificateId))) {
+            $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
             $tableData = array();
 
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
@@ -544,6 +546,27 @@ class Frontend extends Extension
                             }
                         }
 
+                        // bei Abschlusszeugnisse Klasse 9 nur Hauptschüler zählen
+                        if ($tblCertificateType
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            && Prepare::useService()->isCourseMainDiploma($tblPrepare)
+                        ) {
+                            $countStudents = 0;
+                            if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                                foreach ($tblStudentList as $tblPerson) {
+                                    if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                        && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                        && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                            $tblTransferType))
+                                        && ($tblCourse = $tblStudentTransfer->getServiceTblCourse())
+                                        && $tblCourse->getName() == 'Hauptschule'
+                                    ) {
+                                          $countStudents++;
+                                    }
+                                }
+                            }
+                        }
+
                         $tableData[] = array(
                             'SchoolType' => $tblType->getName(),
                             'Division' => $tblDivision->getDisplayName(),
@@ -576,11 +599,13 @@ class Frontend extends Extension
                                 new Panel('Zeugnisdatum', $tblGenerateCertificate->getDate(), Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Typ', 'Halbjahreszeugnis/Halbjahresinformation', Panel::PANEL_TYPE_INFO)
+                                new Panel('Typ', $tblCertificateType ? $tblCertificateType->getName() : '',
+                                    Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Name', 'SN Noteninfo, KN Noteninfo', Panel::PANEL_TYPE_INFO)
-                            ), 6)
+                                new Panel('Name', $tblGenerateCertificate ? $tblGenerateCertificate->getName() : '',
+                                    Panel::PANEL_TYPE_INFO)
+                            ), 6),
                         ))
                     )),
                     new LayoutGroup(array(
@@ -639,11 +664,22 @@ class Frontend extends Extension
                     array('GenerateCertificateId' => $tblPrepare->getServiceTblGenerateCertificate()->getId()))
             );
 
+            $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
+            $isDiploma = false;
+            $tblCertificateType = false;
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+            ) {
+                $isDiploma = true;
+            }
+
             $tableData = array();
             if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                $count = 1;
+                $count = 0;
                 $Global = $this->getGlobal();
                 foreach ($tblStudentList as $tblPerson) {
+                    $isMuted = $isCourseMainDiploma && $isDiploma;
 
                     $tblCourse = false;
                     $tblCompany = false;
@@ -655,77 +691,87 @@ class Frontend extends Extension
                         if ($tblStudentTransfer) {
                             $tblCourse = $tblStudentTransfer->getServiceTblCourse();
                             $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                            if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                                $isMuted = false;
+                            }
                         }
                     }
 
+                    $courseName = $tblCourse ? $tblCourse->getName() : '';
+
+                    $count++;
                     $tableData[$tblPerson->getId()] = array(
-                        'Number' => $count++,
-                        'Student' => $tblPerson->getLastFirstName(),
-                        'Course' => $tblCourse ? $tblCourse->getName() : '',
-                        'School' => $tblCompany ? $tblCompany->getName() : new Warning(
+                        'Number' => $isMuted ? new Muted($count) : $count,
+                        'Student' => $isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName(),
+                        'Course' => $isMuted ? new Muted($courseName) : $courseName,
+                        'School' => $isMuted ? '' : ($tblCompany ? $tblCompany->getName() : new Warning(
                             new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
-                        )
+                        ))
                     );
 
-                    $tblCertificate = false;
-                    if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                        && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                    ) {
-
+                    if ($isMuted) {
+                        $tableData[$tblPerson->getId()]['Template'] = '';
                     } else {
-                        // Noteninformation
-                        if ($tblPrepare->isGradeInformation()) {
-                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
+                        $tblCertificate = false;
+                        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                        ) {
+
                         } else {
-                            // Mögliche Certificate herausfinden und bei einem eindeutiten Certificate vor auswählen
-                            $tblCertificateListByConsumer = Generate::useService()->getPossibleCertificates($tblPrepare,
-                                $tblPerson, Consumer::useService()->getConsumerBySession());
-                            $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
-                                $tblPerson);
-                            if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
-                                if (count($tblCertificateListByConsumer) != 1) {
-                                    $certificateList = array_merge($tblCertificateListByConsumer,
-                                        $tblCertificateListByStandard);
-                                } else {
-                                    $certificateList = $tblCertificateListByConsumer;
-                                }
-                            } elseif ($tblCertificateListByConsumer) {
-                                $certificateList = $tblCertificateListByConsumer;
-                            } elseif ($tblCertificateListByStandard) {
-                                $certificateList = $tblCertificateListByStandard;
+                            // Noteninformation
+                            if ($tblPrepare->isGradeInformation()) {
+                                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
                             } else {
-                                $certificateList = array();
-                            }
-                            if (count($certificateList) == 1) {
-                                $tblCertificate = current($certificateList);
+                                // Mögliche Certificate herausfinden und bei einem eindeutiten Certificate vor auswählen
+                                $tblCertificateListByConsumer = Generate::useService()->getPossibleCertificates($tblPrepare,
+                                    $tblPerson, Consumer::useService()->getConsumerBySession());
+                                $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
+                                    $tblPerson);
+                                if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
+                                    if (count($tblCertificateListByConsumer) != 1) {
+                                        $certificateList = array_merge($tblCertificateListByConsumer,
+                                            $tblCertificateListByStandard);
+                                    } else {
+                                        $certificateList = $tblCertificateListByConsumer;
+                                    }
+                                } elseif ($tblCertificateListByConsumer) {
+                                    $certificateList = $tblCertificateListByConsumer;
+                                } elseif ($tblCertificateListByStandard) {
+                                    $certificateList = $tblCertificateListByStandard;
+                                } else {
+                                    $certificateList = array();
+                                }
+                                if (count($certificateList) == 1) {
+                                    $tblCertificate = current($certificateList);
+                                }
                             }
                         }
-                    }
-                    if ($Global && $tblCertificate) {
-                        $Global->POST['Data'][$tblPerson->getId()] = $tblCertificate->getId();
-                        $Global->savePost();
-                    }
+                        if ($Global && $tblCertificate) {
+                            $Global->POST['Data'][$tblPerson->getId()] = $tblCertificate->getId();
+                            $Global->savePost();
+                        }
 
-                    // Alle Zeungisse nach Zeugnistyp zur Auswahl
-                    $tblCertificateType = false;
-                    if ($tblPrepare->getServiceTblGenerateCertificate()) {
-                        $tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType();
-                    }
+                        // Alle Zeungisse nach Zeugnistyp zur Auswahl
+                        $tblCertificateType = false;
+                        if ($tblPrepare->getServiceTblGenerateCertificate()) {
+                            $tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType();
+                        }
 
-                    if ($tblCertificateType) {
-                        $tblCertificateAllByType = Generator::useService()->getCertificateAllByType($tblCertificateType);
-                        if (!$tblCertificateAllByType) {
+                        if ($tblCertificateType) {
+                            $tblCertificateAllByType = Generator::useService()->getCertificateAllByType($tblCertificateType);
+                            if (!$tblCertificateAllByType) {
+                                $tblCertificateAllByType = array();
+                            }
+                        } else {
                             $tblCertificateAllByType = array();
                         }
-                    } else {
-                        $tblCertificateAllByType = array();
+                        $tableData[$tblPerson->getId()]['Template'] = new SelectBox('Data[' . $tblPerson->getId() . ']',
+                            '',
+                            array(
+                                '{{ serviceTblConsumer.Acronym }} {{ Name }} {{Description}}' => $tblCertificateAllByType
+                            )
+                        );
                     }
-                    $tableData[$tblPerson->getId()]['Template'] = new SelectBox('Data[' . $tblPerson->getId() . ']',
-                        '',
-                        array(
-                            '{{ serviceTblConsumer.Acronym }} {{ Name }} {{Description}}' => $tblCertificateAllByType
-                        )
-                    );
                 }
             }
 
@@ -756,10 +802,12 @@ class Frontend extends Extension
                                 new Panel('Zeugnisdatum', $tblPrepare->getDate(), Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Typ', 'Halbjahreszeugnis/Halbjahresinformation', Panel::PANEL_TYPE_INFO)
+                                new Panel('Typ', $tblCertificateType ? $tblCertificateType->getName() : '',
+                                    Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Name', 'SN Noteninfo, KN Noteninfo', Panel::PANEL_TYPE_INFO)
+                                new Panel('Name', $tblGenerateCertificate ? $tblGenerateCertificate->getName() : '',
+                                    Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
                                 new Panel('Klasse', $tblDivision->getDisplayName(), Panel::PANEL_TYPE_INFO)
@@ -854,41 +902,43 @@ class Frontend extends Extension
     private function formEditGenerate()
     {
 
-        return new Form(new FormGroup(array(new FormRow(array(
-            new FormColumn(
-                new Panel(
-                    'Zeugnis',
-                    array(
-                        new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar())
-                    ),
-                    Panel::PANEL_TYPE_INFO
-                ), 6
-            ),
-            new FormColumn(
-                new Panel(
-                    'Unterzeichner',
-                    array(
-                        new CheckBox('Data[IsTeacherAvailable]',
-                            'Name des Klassenlehrers und Name des/der Schulleiters/in (falls vorhanden) auf dem Zeugnis anzeigen',
-                            1
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new Panel(
+                        'Zeugnis',
+                        array(
+                            new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar())
                         ),
-                        new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiters/in'),
-                        new Panel(
-                            new Small(new Bold('Geschlecht des/der Schulleiters/in')),
-                            array(
-                                (new RadioBox('Data[GenderHeadmaster]', 'Männlich',
-                                    ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
-                                        ? $tblCommonGender->getId() : 0 )),
-                                (new RadioBox('Data[GenderHeadmaster]', 'Weiblich',
-                                    ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
-                                        ? $tblCommonGender->getId() : 0 ))
+                        Panel::PANEL_TYPE_INFO
+                    ), 6
+                ),
+                new FormColumn(
+                    new Panel(
+                        'Unterzeichner',
+                        array(
+                            new CheckBox('Data[IsTeacherAvailable]',
+                                'Name des Klassenlehrers und Name des/der Schulleiters/in (falls vorhanden) auf dem Zeugnis anzeigen',
+                                1
                             ),
-                            Panel::PANEL_TYPE_DEFAULT
-                        )
-                    ),
-                    Panel::PANEL_TYPE_INFO
-                ), 6
-            ),
-        )))));
+                            new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiters/in'),
+                            new Panel(
+                                new Small(new Bold('Geschlecht des/der Schulleiters/in')),
+                                array(
+                                    (new RadioBox('Data[GenderHeadmaster]', 'Männlich',
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                                            ? $tblCommonGender->getId() : 0)),
+                                    (new RadioBox('Data[GenderHeadmaster]', 'Weiblich',
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                                            ? $tblCommonGender->getId() : 0))
+                                ),
+                                Panel::PANEL_TYPE_DEFAULT
+                            )
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 6
+                ),
+            ))
+        )));
     }
 }
