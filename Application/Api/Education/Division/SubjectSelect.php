@@ -14,6 +14,10 @@ use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -74,7 +78,7 @@ class SubjectSelect extends Extension implements IApiInterface
     /**
      * @param null $DivisionId
      *
-     * @return Info|Warning|TableData
+     * @return Layout
      */
     public static function tableUsedSubject($DivisionId = null)
     {
@@ -82,8 +86,10 @@ class SubjectSelect extends Extension implements IApiInterface
         // get Content
         $tblDivision = DivisionAPP::useService()->getDivisionById($DivisionId);
         $ContentList = false;
+        $ContentListAvailable = false;
         if ($tblDivision) {
             $ContentList = self::getTableContentUsed($tblDivision);
+            $ContentListAvailable = self::getTableContentAvailable($tblDivision);
         }
 
         // Select
@@ -101,7 +107,7 @@ class SubjectSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                return new TableData($Table, null, array(
+                $left = new TableData($Table, null, array(
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
@@ -113,10 +119,57 @@ class SubjectSelect extends Extension implements IApiInterface
                         ),
                     )
                 );
+            } else {
+                $left = new Info('Keine Fächer ausgewählt');
             }
-            return new Info('Keine Fächer ausgewählt');
+        } else {
+            $left = new Warning('Klasse nicht gefunden');
         }
-        return new Warning('Klasse nicht gefunden');
+
+        // Select
+        $TableAvailable = array();
+        if (is_array($ContentListAvailable)) {
+            if (!empty($ContentListAvailable)) {
+                foreach ($ContentListAvailable as $Subject) {
+                    $TableAvailable[] = array(
+                        'Acronym'     => $Subject['Acronym'],
+                        'Name'        => $Subject['Name'],
+                        'Description' => $Subject['Description'],
+                        'Option'      => (new Standard('', SubjectSelect::getEndpoint(), new PlusSign(),
+                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId'])))
+                            ->ajaxPipelineOnClick(SubjectSelect::pipelinePlus($Subject['Id'], $Subject['DivisionId']))
+                    );
+                }
+                // Anzeige
+                $right = new TableData($TableAvailable, null, array(
+                    'Acronym'     => 'Kürzel',
+                    'Name'        => 'Name',
+                    'Description' => 'Beschreibung',
+                    'Option'      => 'Option'
+                ),
+                    array(
+                        'columnDefs' => array(
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                        ),
+                    )
+                );
+            } else {
+                $right = new Info('Keine weiteren Fächer verfügbar');
+            }
+        } else {
+            $right = new Warning('Klasse nicht gefunden');
+        }
+
+        return
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    $left
+                    , 6),
+                new LayoutColumn(
+                    $right
+                    , 6)
+            ))));
+
     }
 
     /**

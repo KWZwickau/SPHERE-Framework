@@ -980,18 +980,20 @@ class Frontend extends Extension implements IFrontendInterface
             array('Id' => $tblDivision->getId())));
 
         $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
-                            , 6),
-                        new LayoutColumn(
-                            SubjectSelectAPI::receiverAvailable(SubjectSelectAPI::tableAvailableSubject($tblDivision->getId()))
-                            , 6),
-                    ))
-                )
-            )
+            SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
+
+//            new Layout(
+//                new LayoutGroup(
+//                    new LayoutRow(array(
+//                        new LayoutColumn(
+//                            SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
+//                            , 6),
+//                        new LayoutColumn(
+//                            SubjectSelectAPI::receiverAvailable(SubjectSelectAPI::tableAvailableSubject($tblDivision->getId()))
+//                            , 6),
+//                    ))
+//                )
+//            )
         );
 
         return $Stage;
