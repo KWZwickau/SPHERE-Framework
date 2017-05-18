@@ -2661,7 +2661,7 @@ class Frontend extends Extension implements IFrontendInterface
             ) {
                 $Stage = new Stage('Zeugnisvorbereitung', 'Sonstige Informationen festlegen');
                 $Stage->addButton(new Standard(
-                    'Zurück', '/Education/Certificate/Prepare/Diploma/Prepare', new ChevronLeft(),
+                    'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
                     array(
                         'DivisionId' => $tblDivision->getId(),
                         'Route' => $Route
