@@ -224,14 +224,14 @@ class SubjectSelect extends Extension implements IApiInterface
             'DivisionId'     => $DivisionId
         ));
         $Pipeline->appendEmitter($Emitter);
-
-        // refresh Table
-        $Emitter = new ServerEmitter(self::receiverAvailable(), self::getEndpoint());
-        $Emitter->setPostPayload(array(
-            self::API_TARGET => 'tableAvailableSubject',
-            'DivisionId'     => $DivisionId
-        ));
-        $Pipeline->appendEmitter($Emitter);
+//
+//        // refresh Table
+//        $Emitter = new ServerEmitter(self::receiverAvailable(), self::getEndpoint());
+//        $Emitter->setPostPayload(array(
+//            self::API_TARGET => 'tableAvailableSubject',
+//            'DivisionId'     => $DivisionId
+//        ));
+//        $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
     }
@@ -365,13 +365,13 @@ class SubjectSelect extends Extension implements IApiInterface
         ));
         $Pipeline->appendEmitter($Emitter);
 
-        // refresh Table
-        $Emitter = new ServerEmitter(self::receiverAvailable(), self::getEndpoint());
-        $Emitter->setPostPayload(array(
-            self::API_TARGET => 'tableAvailableSubject',
-            'DivisionId'     => $DivisionId
-        ));
-        $Pipeline->appendEmitter($Emitter);
+//        // refresh Table
+//        $Emitter = new ServerEmitter(self::receiverAvailable(), self::getEndpoint());
+//        $Emitter->setPostPayload(array(
+//            self::API_TARGET => 'tableAvailableSubject',
+//            'DivisionId'     => $DivisionId
+//        ));
+//        $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
     }
