@@ -41,6 +41,26 @@ class Data extends AbstractData
                 $this->createSetting('Api', 'Education', 'Certificate', 'ProfileAcronym', TblSetting::TYPE_STRING,
                     '');
             }
+
+            if ($tblConsumer->getAcronym() == 'ESZC') {
+                $this->createSetting(
+                    'Education',
+                    'Certificate',
+                    'Prepare',
+                    'IsGradeVerbalOnDiploma',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            } else {
+                $this->createSetting(
+                    'Education',
+                    'Certificate',
+                    'Prepare',
+                    'IsGradeVerbalOnDiploma',
+                    TblSetting::TYPE_BOOLEAN,
+                    '0'
+                );
+            }
         }
         $this->createSetting(
             'Education',
@@ -55,14 +75,6 @@ class Data extends AbstractData
             'ClassRegister',
             'Sort',
             'SortMaleFirst',
-            TblSetting::TYPE_BOOLEAN,
-            '1'
-        );
-        $this->createSetting(
-            'Education',
-            'Certificate',
-            'Prepare',
-            'IsGradeVerbalOnDiploma',
             TblSetting::TYPE_BOOLEAN,
             '1'
         );
