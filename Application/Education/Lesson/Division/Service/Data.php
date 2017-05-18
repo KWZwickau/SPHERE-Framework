@@ -532,7 +532,7 @@ class Data extends AbstractData
             array(
                 TblDivision::ATTR_NAME  => $Name,
                 TblDivision::ATTR_LEVEL => $tblLevel->getId(),
-                TblDivision::ATTR_YEAR  => $tblYear->getId(),
+                TblDivision::ATTR_YEAR  => $tblYear->getId()
             ));
 
         return $Entity;

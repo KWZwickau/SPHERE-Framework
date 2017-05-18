@@ -76,25 +76,32 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($ImportList)) {
+            $DivisionList = array('1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
             foreach ($ImportList as $Result) {
 
-                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1, 1);
+//                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1, 1);
+//
+//                if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
+//                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2, 1);
+//                }
+//                if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
+//                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3, 1);
+//                }
+                foreach ($DivisionList as $Number) {
+                    if (isset($Result['tblDivision'.$Number]) && $Result['tblDivision'.$Number]) {
 
-                if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
-                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2, 1);
-                }
-                if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
-                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3, 1);
-                }
-                if (isset($Result['tblDivision2']) && $Result['tblDivision2']) {
-
-                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1, 2);
-
-                    if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
-                        $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2, 2);
-                    }
-                    if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
-                        $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3, 2);
+                        if (isset($Result['FileTeacher1']) && $Result['FileTeacher1'] != '') {
+                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
+                                $Number);
+                        }
+                        if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
+                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2,
+                                $Number);
+                        }
+                        if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
+                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3,
+                                $Number);
+                        }
                     }
                 }
             }
