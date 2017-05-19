@@ -6,7 +6,6 @@ use MOC\V\Component\Router\Component\Exception\Repository\MissingParameterExcept
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
 use MOC\V\Core\HttpKernel\Vendor\Universal\Request;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Router
@@ -31,7 +30,6 @@ class Router extends UniversalRouter
             (new Extension())->getGlobal()->REQUEST,
             (new Request())->getSymfonyRequest()->files->all()
         );
-        Debugger::screenDump($RequestParameters);
         $MethodArguments = array();
         /** @var \ReflectionParameter $MethodParameter */
         foreach ((array)$MethodParameters as $MethodParameter) {
