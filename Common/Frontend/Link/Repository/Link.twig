@@ -2,29 +2,38 @@
     <a id="{{ ElementHash }}" href="{{ UrlBase }}{{ ElementPath }}" class="{{ ElementType }}" data-trigger="hover"
        data-toggle="popover" data-content="{{ ElementToolTip }}"
     >{{ ElementIcon }} {{ ElementName }}</a>
+    {% if( AjaxEventClick is not empty ) %}
     <script language=javascript>
         //noinspection JSUnresolvedFunction
         executeScript(function()
         {
-            Client.Use("ModAlways", function ()
-            {
-                $('a#{{ ElementHash }}[data-toggle="popover"]').popover({
-                    placement: 'auto top'
-                });
-            });
-            {% if( AjaxEventClick is not empty ) %}
             Client.Use("ModAjax", function ()
             {
-                jQuery("a#{{ ElementHash }}").on("click", function (Event)
-                {
+                jQuery("a#{{ ElementHash }}").on("click", function(Event) {
                     Event.preventDefault();
                     {{ AjaxEventClick }}
                 });
             });
-            {% endif %}
         });
     </script>
+            {% endif %}
 {% else %}
     <a href="#" class="{{ ElementType }}" data-trigger="hover" data-toggle="popover"
        data-content="{{ ElementToolTip }}" disabled>{{ ElementIcon }} {{ ElementName }}</a>
 {% endif %}
+<script>
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
+    {
+        Client.Use("ModAlways", function() {
+            $('a#{{ ElementHash }}').not('[data-original-title]').popover({
+                placement: 'auto top',
+                template: '<div class="popover">'
+                + '<div class="arrow"></div>'
+                + '<div class="popover-title" style="white-space: nowrap; border-radius: 0;"></div>'
+                + '<div class="popover-content"></div>'
+                + '</div>'
+            });
+        });
+    });
+</script>

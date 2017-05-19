@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Platform\Gatekeeper;
 
+use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -34,7 +35,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Extension\Extension;
 
@@ -45,21 +45,16 @@ use SPHERE\System\Extension\Extension;
  */
 class ApiUserGroup extends Extension implements IApiInterface
 {
-    const API_DISPATCHER = 'MethodName';
+    use ApiTrait;
 
-    public static function registerApi()
-    {
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __CLASS__, __CLASS__ . '::ApiDispatcher'
-        ));
-    }
+    const API_DISPATCHER = 'MethodName';
 
     /**
      * @param string $MethodName Callable Method
      *
      * @return string
      */
-    public function ApiDispatcher($MethodName = '')
+    public function exportApi($MethodName = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 

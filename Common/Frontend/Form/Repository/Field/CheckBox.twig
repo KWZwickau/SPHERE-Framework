@@ -41,3 +41,20 @@
         });
     </script>
 {% endif %}
+
+{% if( AjaxEventChange is not empty ) %}
+    <script type="text/javascript">
+        //noinspection JSUnresolvedFunction
+        executeScript(function()
+        {
+            Client.Use('ModAjax', function()
+            {
+                {% if( AjaxEventChange is not empty ) %}
+                jQuery('input#{{ ElementHash }}').on('change',function(Event){
+                    {{ AjaxEventChange }}
+                });
+                {% endif %}
+            });
+        });
+    </script>
+{% endif %}

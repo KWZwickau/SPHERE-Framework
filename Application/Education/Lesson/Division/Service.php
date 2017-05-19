@@ -672,12 +672,10 @@ class Service extends AbstractService
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
-     * @return mixed
+     * @return bool
      */
-    public
-    function removeDivisionSubject(
-        TblDivisionSubject $tblDivisionSubject
-    ) {
+    public function removeDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
 
         return (new Data($this->getBinding()))->removeDivisionSubject($tblDivisionSubject);
     }

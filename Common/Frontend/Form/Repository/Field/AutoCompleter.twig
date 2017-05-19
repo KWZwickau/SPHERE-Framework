@@ -28,3 +28,57 @@
         });
     });
 </script>
+{% if( AjaxEventChange is not empty or AjaxEventKeyUp is not empty ) %}
+    <script type="text/javascript">
+
+        var typewatch = function ()
+        {
+            var timer = 0;
+            return function (callback, ms)
+            {
+                clearTimeout(timer);
+                timer = setTimeout(callback, ms);
+            }
+        }();
+
+        //noinspection JSUnresolvedFunction
+        executeScript(function()
+        {
+            Client.Use('ModAlways', function()
+            {
+                Client.Use('ModAjax', function()
+                {
+                    {% if( AjaxEventChange is not empty ) %}
+                    jQuery('input[type="text"][name="{{ ElementName }}"]').on('change',function(Event){
+                        Event.preventDefault();
+                        {{ AjaxEventChange }}
+                    });
+                    {% endif %}
+                    {% if( AjaxEventKeyUp is not empty ) %}
+                    jQuery('input[type="text"][name="{{ ElementName }}"]').on('keyup',function(Event){
+                        // Exclude Keys
+                        var KeyCode = Event.which;
+                        // Code 9 = TAB
+                        // Code 37,38,39,40 = LEFT,UP,RIGHT,DOWN Arrow
+                        if(
+                            KeyCode === 9
+                            || KeyCode === 37
+                            || KeyCode === 38
+                            || KeyCode === 39
+                            || KeyCode === 40
+                        ) {
+                            return;
+                        }
+
+                        typewatch(function ()
+                        {
+                            Event.preventDefault();
+                            {{ AjaxEventKeyUp }}
+                        }, 500);
+                    });
+                    {% endif %}
+                });
+            });
+        });
+    </script>
+{% endif %}

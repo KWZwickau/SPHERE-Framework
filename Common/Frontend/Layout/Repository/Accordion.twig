@@ -2,12 +2,12 @@
     {% for Index, Element in ContentList %}
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h4 class="panel-title">
+                <h3 class="panel-title">
                     <a class="-underline" data-toggle="collapse" data-parent="#Accordion-{{ Hash }}"
                        href="#Element-{{ Element.Hash }}">
                         {{ Element.Header }}
                     </a>
-                </h4>
+                </h3>
             </div>
             <div id="Element-{{ Element.Hash }}" class="panel-collapse collapse {% if(Element.Toggle) %}in{% endif %}">
                 <div class="panel-body" style="overflow: hidden;">

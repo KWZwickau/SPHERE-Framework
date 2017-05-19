@@ -2,7 +2,7 @@
 namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
 use SPHERE\Common\Frontend\Form\IFieldInterface;
-use SPHERE\Common\Frontend\Form\Repository\AbstractField;
+use SPHERE\Common\Frontend\Form\Repository\AbstractTextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
@@ -10,7 +10,7 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class TextField extends AbstractField implements IFieldInterface
+class TextField extends AbstractTextField implements IFieldInterface
 {
 
     /**

@@ -1,0 +1,26 @@
+<div id="Dropdown-{{ Hash }}" class="form-group dropdown clearfix" style="width: 100%;">
+    {% if( Label is not empty ) %}
+        <label>{{ Label }}<br/></label>
+    {% endif %}
+    <button type="button" id="Dropdown-Button-{{ Hash }}" class="btn btn-default dropdown-toggle form-control"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width: 100%; text-align: right;">
+        <span class="pull-left">{{ Name }}</span> <span class="pull-right"><span class="caret"></span></span>
+    </button>
+    <ul class="dropdown-menu list-group" role="menu" aria-labelledby="Dropdown-Button-{{ Hash }}"
+        style="width: 100%; margin-top: 0; padding: 0; border-top: 0;">
+        <li class="list-group-item" style="border: none;">{{ Content }}</li>
+    </ul>
+</div>
+<script type="text/javascript">
+    //noinspection JSUnresolvedFunction
+    executeScript(function ()
+    {
+        Client.Use('ModAlways', function ()
+        {
+            jQuery(document).on('click', 'div#Dropdown-{{ Hash }} .dropdown-menu', function (Event)
+            {
+                Event.stopPropagation();
+            });
+        });
+    });
+</script>

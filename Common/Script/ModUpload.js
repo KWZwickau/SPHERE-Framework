@@ -8,6 +8,7 @@
         var settings = $.extend({
             // These are the defaults.
             'showUpload': false,
+            'showPreview': false,
             'previewFileType': 'any',
             'browseLabel': 'Durchsuchen',
             'maxFilesNum': 1

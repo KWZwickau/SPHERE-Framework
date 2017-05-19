@@ -323,6 +323,10 @@
             Table.on( 'draw.dt', function () {
                 Table.fixedHeader.adjust();
             } );
+            // TODO: div:resize Event needs better handler
+            jQuery('div#nav-toggle').resize(function(){
+                Table.fixedHeader.adjust();
+            });
         }
 
         // Activate AJAX JS on Change

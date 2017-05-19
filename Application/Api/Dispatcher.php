@@ -1,13 +1,18 @@
 <?php
 namespace SPHERE\Application\Api;
 
+use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Window\Error;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\CacheLogger;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Dispatcher
@@ -24,15 +29,16 @@ class Dispatcher extends Extension
     /**
      * Dispatcher constructor.
      *
-     * @param string $__CLASS__
+     * @param string|object $ClassName
      * @throws \Exception
      */
-    public function __construct($__CLASS__)
+    public function __construct($ClassName)
     {
-        if( class_exists( $__CLASS__, true ) ) {
-            $this->ApiClass = new $__CLASS__;
+        $Class = new \ReflectionClass($ClassName);
+        if (class_exists($Class->getName(), true)) {
+            $this->ApiClass = $Class->newInstance();
         } else {
-            throw new \Exception( 'Missing API-Class ('.$__CLASS__.')' );
+            throw new \Exception('Missing API-Class (' . $ClassName . ')');
         }
     }
 
@@ -88,7 +94,10 @@ class Dispatcher extends Extension
                 $TraceList = '';
                 foreach ((array)$Exception->getTrace() as $Trace) {
                     $TraceList .= nl2br('<samp class="text-info small">'
-                        .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? 'Method: '.$Trace['type'].$Trace['function'] : 'Method: ' )
+                        . (isset($Trace['type']) && isset($Trace['function'])
+                            ? 'Method: ' . $Trace['type'] . $Trace['function']
+                            : 'Method: '
+                        )
                         .( isset( $Trace['class'] ) ? '<br/>Class: '.$Trace['class'] : '<br/>Class: ' )
                         .( isset( $Trace['file'] ) ? '<br/>File: '.$Trace['file'] : '<br/>File: ' )
                         .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
@@ -101,10 +110,49 @@ class Dispatcher extends Extension
             $Result = new Error( 'Ajax-Error', 'Missing API-Method ('.$MethodName.')' );
         }
 
-        if( $Result instanceof ITemplateInterface ) {
+        if (
+            $Result instanceof Pipeline
+            || $Result instanceof ITemplateInterface
+            || $Result instanceof IFormInterface
+        ) {
+            if (Debugger::$Enabled) {
+                $Debugger = new Accordion();
+                $ShowDebug = false;
+                $ProtocolBenchmark = $this->getLogger(new BenchmarkLogger())->getLog();
+                if (!empty( $ProtocolBenchmark )) {
+                    $Debugger->addItem('Debugger (Benchmark)', new Listing($ProtocolBenchmark), true );
+                    $ShowDebug = true;
+                }
+                $ProtocolError = $this->getLogger(new ErrorLogger())->getLog();
+                if (!empty( $ProtocolError )) {
+                    $Debugger->addItem('Debugger (Error)', new Listing($ProtocolError), false );
+                    $ShowDebug = true;
+                }
+                $ProtocolCache = $this->getLogger(new CacheLogger())->getLog();
+                if (!empty( $ProtocolCache )) {
+                    $Debugger->addItem('Debugger (Cache)', new Listing($ProtocolCache), false );
+                    $ShowDebug = true;
+                }
+                $ProtocolQuery = $this->getLogger(new QueryLogger())->getLog();
+                if (!empty( $ProtocolQuery )) {
+                    $Debugger->addItem('Debugger (Query)', new Listing($ProtocolQuery), false );
+                    $ShowDebug = true;
+                }
+                $Result = implode(array(
+                    $Result->__toString(),
+                    ( $ShowDebug ? '<br/><div class="small">'.$Debugger.'</div>' : '' )
+                ));
+            } else {
             $Result = $Result->__toString();
-        } else if( is_object($Result) ) {
-            $Result = (string)new Error( 'Ajax-Error', 'API-Method ('.$MethodName.') returned incompatiple JSON-Type ('.get_class($Result).')' );
+            }
+
+        } else {
+            if (is_object($Result)) {
+                $Result = (string)new Error(
+                    'Ajax-Error',
+                    'API-Method (' . $MethodName . ') returned incompatiple JSON-Type (' . get_class($Result) . ')'
+                );
+            }
         }
         return json_encode( $Result );
     }

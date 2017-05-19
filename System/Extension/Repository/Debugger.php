@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Extension\Repository;
 
+use SPHERE\Common\Frontend\Icon\Repository\Flash;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -155,9 +156,10 @@ class Debugger
             self::addProtocol('ScreenDump: '.$Dump);
             if (self::$Enabled) {
                 print '<pre style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
-                    . '<span style="border-bottom: 1px dotted silver;">' . self::getCallingFunctionName() . '</span><br/>'
+                    . '<span class="text-danger" style="border-bottom: 1px dotted silver;">' . new Flash() . self::getCallingFunctionName() . '</span><br/>'
+                    .'<code>'
                     . $Dump
-                    . '</pre>';
+                    . '</code></pre>';
             }
         }
     }
@@ -180,10 +182,17 @@ class Debugger
                     $Result .= "\n";
                 }
             } else {
+                $Location = $BackTrace[1];
                 $Caller = $BackTrace[2];
                 $Result = "Called by [{$Caller['function']}]";
                 if (isset($Caller['class'])) {
                     $Result .= " from Class [{$Caller['class']}]";
+                }
+                if(isset( $Location['file'] )) {
+                    $Result .= " in File [{$Location['file']}]";
+                }
+                if(isset( $Location['line'] )) {
+                    $Result .= " at Line [{$Location['line']}]";
                 }
             }
         } else {

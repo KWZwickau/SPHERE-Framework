@@ -31,8 +31,9 @@ class Link extends Extension
      * @param Name      $Name
      * @param Icon|null $Icon
      * @param bool      $Active
+     * @param string|bool $ToolTip
      */
-    public function __construct(Route $Route, Name $Name, Icon $Icon = null, $Active = false)
+    public function __construct(Route $Route, Name $Name, Icon $Icon = null, $Active = false, $ToolTip = false)
     {
 
         $this->Route = $Route;
@@ -52,6 +53,13 @@ class Link extends Extension
             $this->Template->setVariable('ActiveClass', 'active');
         } else {
             $this->Template->setVariable('ActiveClass', '');
+        }
+        if ($ToolTip) {
+            if (is_string($ToolTip)) {
+                $this->Template->setVariable('ElementToolTip', $ToolTip);
+            } else {
+                $this->Template->setVariable('ElementToolTip', $Name->getValue());
+            }
         }
     }
 

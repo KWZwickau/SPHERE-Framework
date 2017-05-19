@@ -16,11 +16,13 @@ class Container extends Extension implements ITemplateInterface
     private $Content = '';
 
     /**
-     * @param string $Content
+     * @param string|array $Content
      */
     public function __construct($Content)
     {
-
+        if( is_array($Content) ) {
+            $Content = implode( '', $Content);
+        }
         $this->Content = $Content;
     }
 

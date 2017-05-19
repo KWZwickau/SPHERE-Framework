@@ -1,12 +1,13 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
+use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -314,7 +315,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        if ($future) {
 //            $tblYearAll = Term::useService()->getYearAllFutureYears(1);
 //        } else {
-            $tblYearAll = Term::useService()->getYearAllSinceYears(0);
+        $tblYearAll = Term::useService()->getYearAllSinceYears(0);
 //        }
 
         return new Form(
@@ -626,10 +627,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Keine Schüler zugewiesen')
                                 : new TableData($tblDivisionStudentActive, null,
                                     array(
-                                        'Number' => '#',
+                                        'Number'  => '#',
                                         'Name'    => 'Schüler',
                                         'Address' => 'Adresse',
-                                        'Course' => 'Bildungsgang',
+                                        'Course'  => 'Bildungsgang',
                                         'Option'  => ''
                                     ))
                             )
@@ -642,7 +643,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(
                                         'Name'    => 'Schüler',
                                         'Address' => 'Adresse',
-                                        'Course' => 'Bildungsgang',
+                                        'Course'  => 'Bildungsgang',
                                         'Option'  => ' '
                                     ))
                             )
@@ -778,8 +779,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Keine Lehrer zugewiesen')
                                 : new TableData($tblDivisionTeacherActive, null,
                                     array(
-                                        'DisplayName'   => 'Name',
-                                        'Address'    => 'Adresse',
+                                        'DisplayName' => 'Name',
+                                        'Address'     => 'Adresse',
                                         'Description' => 'Beschreibung',
                                         'Option'      => ''
                                     ))
@@ -791,9 +792,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Info('Keine weiteren Lehrer verfügbar')
                                 : new TableData($tblTeacherAvailable, null,
                                     array(
-                                        'DisplayName'   => 'Name',
-                                        'Address'    => 'Adresse',
-                                        'Options'   => 'Beschreibung'
+                                        'DisplayName' => 'Name',
+                                        'Address'     => 'Adresse',
+                                        'Options'     => 'Beschreibung'
                                     ))
                             )
                         ), 6)
@@ -930,8 +931,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Keine Elternvertreter zugewiesen')
                                 : new TableData($tblDivisionGuardianActive, null,
                                     array(
-                                        'DisplayName'   => 'Name',
-                                        'Address'    => 'Adresse',
+                                        'DisplayName' => 'Name',
+                                        'Address'     => 'Adresse',
                                         'Description' => 'Beschreibung',
                                         'Option'      => ''
                                     ))
@@ -943,9 +944,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Info('Keine weiteren Elternvertreter verfügbar')
                                 : new TableData($tblGuardianAvailable, null,
                                     array(
-                                        'DisplayName'   => 'Name',
-                                        'Address'    => 'Adresse',
-                                        'Options'   => 'Beschreibung'
+                                        'DisplayName' => 'Name',
+                                        'Address'     => 'Adresse',
+                                        'Options'     => 'Beschreibung'
                                     ))
                             )
                         ), 6)
@@ -959,12 +960,10 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param null $Subject
-     * @param null $Remove
      *
      * @return Stage|string
      */
-    public function frontendSubjectAdd($Id = null, $Subject = null, $Remove = null)
+    public function frontendSubjectAdd($Id = null)
     {
 
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
@@ -977,110 +976,24 @@ class Frontend extends Extension implements IFrontendInterface
         $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
         $Stage = new Stage('Fächer', $Title);
         $Stage->setMessage('');
-//            $Stage->addButton(new Backward());
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
 
-        if ($tblDivision && null !== $Subject && ( $tblSubject = Subject::useService()->getSubjectById($Subject) )) {
-            if ($Remove) {
-                Division::useService()->removeSubjectToDivision($tblDivision, $tblSubject);
-                $Stage->setContent(
-                    new Success('Fach erfolgreich entfernt')
-                    .new Redirect('/Education/Lesson/Division/Subject/Add', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            } else {
-                Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
-                $Stage->setContent(
-                    new Success('Fach erfolgreich hinzugefügt')
-                    .new Redirect('/Education/Lesson/Division/Subject/Add', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $Id))
-                );
-                return $Stage;
-            }
-        }
-
-        $tblSubjectUsedList = Division::useService()->getSubjectAllByDivision($tblDivision);
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
-
-        if (is_array($tblSubjectUsedList)) {
-            $tblSubjectAvailable = array_udiff($tblSubjectAll, $tblSubjectUsedList,
-                function (TblSubject $ObjectA, TblSubject $ObjectB) {
-
-                    return $ObjectA->getId() - $ObjectB->getId();
-                }
-            );
-        } else {
-            $tblSubjectAvailable = $tblSubjectAll;
-        }
-
-        /** @noinspection PhpUnusedParameterInspection */
-        if (is_array($tblSubjectUsedList)) {
-            array_walk($tblSubjectUsedList, function (TblSubject &$Entity) use ($Id) {
-
-                /** @noinspection PhpUndefinedFieldInspection */
-                $Entity->Option = new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                        '/Education/Lesson/Division/Subject/Add', new Minus(),
-                        array(
-                            'Id'      => $Id,
-                            'Subject' => $Entity->getId(),
-                            'Remove'  => true
-                        ))
-                );
-            }, $Id);
-        }
-
-        /** @noinspection PhpUnusedParameterInspection */
-        if (isset( $tblSubjectAvailable )) {
-            array_walk($tblSubjectAvailable, function (TblSubject &$Entity) use ($Id) {
-
-                /** @noinspection PhpUndefinedFieldInspection */
-                $Entity->Option = new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                        '/Education/Lesson/Division/Subject/Add', new Plus(),
-                        array(
-                            'Id'      => $Id,
-                            'Subject' => $Entity->getId()
-                        ))
-                );
-            });
-        }
-
         $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Title('Ausgewählt', 'Fach'),
-                            ( empty( $tblSubjectUsedList )
-                                ? new Warning('Keine Fächer zugewiesen')
-                                : new TableData($tblSubjectUsedList, null,
-                                    array(
-                                        'Acronym'     => 'Kürzel',
-                                        'Name'        => 'Name',
-                                        'Description' => 'Beschreibung',
-                                        'Option'      => ''
-                                    ))
-                            )
-                        ), 6),
-                        new LayoutColumn(array(
-                            new Title('Verfügbar', 'Fach'),
-                            ( empty( $tblSubjectAvailable )
-                                ? new Info('Keine weiteren Fächer verfügbar')
-                                : new TableData($tblSubjectAvailable, null,
-                                    array(
-                                        'Acronym'     => 'Kürzel',
-                                        'Name'        => 'Name',
-                                        'Description' => 'Beschreibung',
-                                        'Option'      => ' '
-                                    ))
-                            )
-                        ), 6)
-                    ))
-                )
-            )
+            SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
+
+//            new Layout(
+//                new LayoutGroup(
+//                    new LayoutRow(array(
+//                        new LayoutColumn(
+//                            SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
+//                            , 6),
+//                        new LayoutColumn(
+//                            SubjectSelectAPI::receiverAvailable(SubjectSelectAPI::tableAvailableSubject($tblDivision->getId()))
+//                            , 6),
+//                    ))
+//                )
+//            )
         );
 
         return $Stage;
@@ -1109,7 +1022,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
             $Stage->setContent(new Warning('Fach nicht gefunden'));
             return $Stage.new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblDivision->getId()));
+                    array('Id' => $tblDivision->getId()));
         }
         $Stage = new Stage('Schüler', 'Klasse '.new Bold($tblDivision->getDisplayName()));
 //                $Stage->addButton(new Backward());
@@ -1261,7 +1174,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
             $Stage->setContent(new Warning('Fach in der Klasse nicht gefunden'));
             return $Stage.new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblDivision->getId()));
+                    array('Id' => $tblDivision->getId()));
         }
 
         if ($tblDivisionSubject->getTblSubjectGroup()) {
@@ -1284,7 +1197,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Success('Fachlehrer erfolgreich entfernt')
                     . new Redirect('/Education/Lesson/Division/SubjectTeacher/Add', Redirect::TIMEOUT_SUCCESS,
                         array(
-                            'Id' => $tblDivision->getId(),
+                            'Id'                => $tblDivision->getId(),
                             'DivisionSubjectId' => $tblDivisionSubject->getId()
                         )
                     )
@@ -1299,7 +1212,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Success('Fachlehrer erfolgreich hinzugefügt')
                     . new Redirect('/Education/Lesson/Division/SubjectTeacher/Add', Redirect::TIMEOUT_SUCCESS,
                         array(
-                            'Id' => $tblDivision->getId(),
+                            'Id'                => $tblDivision->getId(),
                             'DivisionSubjectId' => $tblDivisionSubject->getId()
                         )
                     )
@@ -1345,9 +1258,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
                             '/Education/Lesson/Division/SubjectTeacher/Add', new Minus(),
                             array(
-                                'Id' => $tblDivision->getId(),
+                                'Id'                => $tblDivision->getId(),
                                 'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                                'SubjectTeacherId' => $tblSubjectTeacher->getId()
+                                'SubjectTeacherId'  => $tblSubjectTeacher->getId()
                             ))
                     );
 
@@ -1357,22 +1270,22 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($tblTeacherAllList) {
-             foreach($tblTeacherAllList as $tblPerson){
+            foreach ($tblTeacherAllList as $tblPerson) {
 
-                 /** @noinspection PhpUndefinedFieldInspection */
-                 $tblPerson->DisplayName = $tblPerson->getLastFirstName();
-                 /** @noinspection PhpUndefinedFieldInspection */
-                 $tblPerson->Address = $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '';
-                 /** @noinspection PhpUndefinedFieldInspection */
-                 $tblPerson->Options = new PullRight(
-                     new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                         '/Education/Lesson/Division/SubjectTeacher/Add', new Plus(),
-                         array(
-                             'Id'        => $tblDivision->getId(),
-                             'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                             'PersonId' => $tblPerson->getId()
-                         ))
-                 );
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->DisplayName = $tblPerson->getLastFirstName();
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->Address = $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '';
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblPerson->Options = new PullRight(
+                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
+                        '/Education/Lesson/Division/SubjectTeacher/Add', new Plus(),
+                        array(
+                            'Id'                => $tblDivision->getId(),
+                            'DivisionSubjectId' => $tblDivisionSubject->getId(),
+                            'PersonId'          => $tblPerson->getId()
+                        ))
+                );
             }
         }
 
@@ -1397,8 +1310,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Kein Lehrer zugewiesen')
                                 : new TableData($tblTeacherSelectedList, null,
                                     array(
-                                        'DisplayName'   => 'Name',
-                                        'Address'    => 'Adresse',
+                                        'DisplayName' => 'Name',
+                                        'Address'     => 'Adresse',
                                         'Option'      => ''
                                     ))
                             )
@@ -1409,9 +1322,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Info('Keine weiteren Lehrer verfügbar')
                                 : new TableData($tblTeacherAllList, null,
                                     array(
-                                        'DisplayName'   => 'Name',
-                                        'Address'    => 'Adresse',
-                                        'Options'   => ' '
+                                        'DisplayName' => 'Name',
+                                        'Address'     => 'Adresse',
+                                        'Options'     => ' '
                                     ))
                             )
                         ), 6)
@@ -1447,7 +1360,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                array('Id' => $tblDivision->getId())));
             $Stage->setContent(new Warning('Fach nicht gefunden'));
             return $Stage.new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblDivision->getId()));
+                    array('Id' => $tblDivision->getId()));
         }
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
@@ -1470,18 +1383,18 @@ class Frontend extends Extension implements IFrontendInterface
                         $Temp['Option'] = new Standard('Bearbeiten',
                                 '/Education/Lesson/Division/SubjectGroup/Change', new Pencil(),
                                 array(
-                                    'Id' => $tblDivisionSubject->getTblSubjectGroup()->getId(),
-                                    'DivisionId' => $tblDivision->getId(),
-                                    'SubjectId' => $tblSubject->getId(),
+                                    'Id'                => $tblDivisionSubject->getTblSubjectGroup()->getId(),
+                                    'DivisionId'        => $tblDivision->getId(),
+                                    'SubjectId'         => $tblSubject->getId(),
                                     'DivisionSubjectId' => $tblDivisionSubject->getId()
                                 ))
                             . (Division::useService()->canRemoveSubjectGroup($tblDivisionSubject)
                                 ? new Standard('Löschen', '/Education/Lesson/Division/SubjectGroup/Remove',
                                     new Remove(),
                                     array(
-                                        'Id' => $tblDivision->getId(),
+                                        'Id'                => $tblDivision->getId(),
                                         'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                                        'SubjectGroupId' => $tblDivisionSubject->getTblSubjectGroup()->getId()
+                                        'SubjectGroupId'    => $tblDivisionSubject->getTblSubjectGroup()->getId()
                                     ))
                                 : ''
                             );
@@ -1687,7 +1600,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivision = Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
             return $Stage.new Danger('Klasse nicht gefunden.', new Ban())
-            .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+                .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
 
         $Global = $this->getGlobal();
@@ -2027,7 +1940,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             'FullName' => 'Schüler',
                                             'Address'  => 'Adresse',
                                             'Birthday' => 'Geburtsdatum',
-                                            'Course' => 'Bildungsgang',
+                                            'Course'   => 'Bildungsgang',
                                         ), false)
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,
@@ -2223,7 +2136,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         } else {
             return $Stage.new Warning('Klasse nicht gefunden!', new Ban())
-            .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+                .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
         return $Stage;
     }
@@ -2244,13 +2157,13 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
             return $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Danger('Klasse nicht gefunden.',
-                new Ban()))
-            .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+                    new Ban()))
+                .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
         $tblLevel = $tblDivision->getTblLevel();
         if (!$tblLevel) {
             return $Stage->setContent(new Warning('zugehörige Schulart / Klassenstufe fehlt'))
-            .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+                .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
 
         $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()
