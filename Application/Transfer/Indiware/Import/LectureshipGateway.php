@@ -67,6 +67,7 @@ class LectureshipGateway extends AbstractConverter
     private $Year = false;
     private $Division = false;
     private $Subject = false;
+    private $LectureshipList = array();
 
     /**
      * LectureshipGateway constructor.
@@ -156,6 +157,14 @@ class LectureshipGateway extends AbstractConverter
     }
 
     /**
+     * @return array
+     */
+    public function getLectureship()
+    {
+        return $this->LectureshipList;
+    }
+
+    /**
      * @param array $Row
      *
      * @return void
@@ -166,6 +175,45 @@ class LectureshipGateway extends AbstractConverter
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
         }
+
+//        for($i = 1; $i <= 3; $i++){
+//            for($j = 1; $j <= 20; $j++){
+//                $Division = $Result['FileDivision'.$j];
+//                $Teacher = $Result['FileTeacher'.$i];
+//                $Subject = $Result['FileSubject'];
+//                $SubjectGroup = $Result['FileSubjectGroup'];
+//                if($Division != ''){
+//                    $found = false;
+//                    foreach($this->LectureshipList as $Compare){
+//                        if($Compare == $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup){
+//                            $found = true;
+//                        }
+//                    }
+//                    if(!$found){
+//                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
+//                    } else {
+//                        $Result['FileDivision'.$j] = null;
+//                        $Result['DivisionId'.$j] = null;
+//                        $Result['FileTeacher'.$i] = null;
+//                        $Result['TeacherId'.$i] = null;
+//                        $Result['FileSubject'] = null;
+//                        $Result['SubjectId'] = null;
+//                        $Result['FileSubjectGroup'] = null;
+//                    }
+//
+////                    if(!array_search($this->LectureshipList, array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup))){
+////                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
+////                    } else {
+////                        $Result['FileDivision'.$j] = null;
+////                        $Result['DivisionId'.$j] = null;
+////                        $Result['FileTeacher'.$i] = null;
+////                        $Result['TeacherId'.$i] = null;
+////                        $Result['FileSubject'] = null;
+////                        $Result['FileSubjectGroup'] = null;
+////                    }
+//                }
+//            }
+//        }
 
 //        if (!$this->IsError) {
         $tblDivision1 = (isset($Result['DivisionId1']) && $Result['DivisionId1'] !== null ? Division::useService()
