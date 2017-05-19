@@ -1103,7 +1103,7 @@ class Service extends AbstractService
 //                $tblYear = Term::useService()->getYearById($Division['Year']);
 //                $tblLevel = $this->getLevelById($Division['Level']);
                 if ((new Data($this->getBinding()))->updateDivision(
-                    $tblDivision, $Division['Name'], $Division['Description']
+                    $tblDivision, trim($Division['Name']), $Division['Description']
                 )
                 ) {
                     return new Success('Die Klasse wurde erfolgreich geändert')

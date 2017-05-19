@@ -76,25 +76,33 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($ImportList)) {
+
+            $DivisionList = $this->getDivisionClassCount(20);
             foreach ($ImportList as $Result) {
 
-                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1, 1);
+//                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1, 1);
+//
+//                if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
+//                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2, 1);
+//                }
+//                if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
+//                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3, 1);
+//                }
+                foreach ($DivisionList as $Number) {
+                    if (isset($Result['tblDivision'.$Number]) && $Result['tblDivision'.$Number]) {
 
-                if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
-                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2, 1);
-                }
-                if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
-                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3, 1);
-                }
-                if (isset($Result['tblDivision2']) && $Result['tblDivision2']) {
-
-                    $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1, 2);
-
-                    if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
-                        $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2, 2);
-                    }
-                    if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
-                        $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3, 2);
+                        if (isset($Result['FileTeacher1']) && $Result['FileTeacher1'] != '') {
+                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
+                                $Number);
+                        }
+                        if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
+                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2,
+                                $Number);
+                        }
+                        if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
+                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3,
+                                $Number);
+                        }
                     }
                 }
             }
@@ -103,6 +111,22 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param int $Count *wie viele Klassenspalten sollen durchgegangen werden*
+     *
+     * @return array
+     */
+    private function getDivisionClassCount($Count = 20)
+    {
+
+        $result = array();
+        for ($i = 1; $i <= $Count; $i++) {
+            $result[] = $i;
+        }
+
+        return $result;
     }
 
     /**

@@ -143,7 +143,7 @@ class Lectureship extends Import implements IFrontendInterface
                             , 6, array(LayoutColumn::GRID_OPTION_HIDDEN_SM)
                         )),
                     new LayoutRow(
-                        new LayoutColumn(new Well(array(
+                        new LayoutColumn(new Well(
                             new Form(
                                 new FormGroup(array(
                                     new FormRow(
@@ -162,7 +162,7 @@ class Lectureship extends Import implements IFrontendInterface
                                 new Primary('Hochladen und Voransicht', new Upload()),
                                 new Link\Route(__NAMESPACE__.'/Lectureship')
                             )
-                        )), 6)
+                        ), 6)
                     )
                 ), new TitleLayout('Lehraufträge', 'importieren'))
             )
@@ -188,18 +188,19 @@ class Lectureship extends Import implements IFrontendInterface
                 ($tblYear <= 0
                     ? new WarningMessage('Bitte geben Sie das Schuljahr an.')
                     : new WarningMessage('Bitte geben sie die Datei an.'))
-                .new Redirect(new Route(__NAMESPACE__), Redirect::TIMEOUT_ERROR, array(
+                .new Redirect(new Route(__NAMESPACE__.'/Lectureship/Prepare'), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear
                 ))
             );
             return $Stage;
         }
+
         $tblYear = Term::useService()->getYearById($tblYear);
         if (!$tblYear) {
 
             $Stage->setContent(
                 new WarningMessage('Bitte geben Sie ein gültiges Schuljahr an.')
-                .new Redirect(new Route(__NAMESPACE__), Redirect::TIMEOUT_ERROR, array(
+                .new Redirect(new Route(__NAMESPACE__.'/Lectureship/Prepare'), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear
                 ))
             );
@@ -224,6 +225,41 @@ class Lectureship extends Import implements IFrontendInterface
             $Payload->setFileContent(file_get_contents($File->getRealPath()));
             $Payload->saveFile();
 
+
+            // Test
+            $Control = new LectureshipControl($Payload->getRealPath());
+            if (!$Control->getCompare()) {
+                $LayoutColumnList = array();
+                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei entspricht nicht dem vollen Export
+                 aus Indiware'));
+                $ColumnList = $Control->getColumnList();
+                if (!empty($ColumnList)) {
+                    foreach ($ColumnList as $Column => $Value) {
+                        $LayoutColumnList[] = new LayoutColumn(new Panel('Spalte '.$Column, 'Name: '.$Value,
+                            Panel::PANEL_TYPE_DANGER), 3);
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(
+                        new LayoutGroup(array(
+                            new LayoutRow(
+                                $LayoutColumnList
+                            ),
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new Redirect(new Route(__NAMESPACE__.'/Lectureship/Prepare'),
+                                        Redirect::TIMEOUT_ERROR, array(
+                                            'tblYear' => $tblYear
+                                        ))
+                                )
+                            )
+                        ))
+                    )
+                );
+                return $Stage;
+            }
+
             // add import
             $Gateway = new LectureshipGateway($Payload->getRealPath(), $tblYear);
 
@@ -233,6 +269,7 @@ class Lectureship extends Import implements IFrontendInterface
                 Import::useService()->createIndiwareImportLectureShipByImportList($ImportList, $tblYear, $tblAccount);
             }
 
+            // view up to 5 divisions
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
@@ -244,6 +281,22 @@ class Lectureship extends Import implements IFrontendInterface
                                         'AppDivision1'     => 'Software: Klasse 1',
                                         'FileDivision2'    => 'Datei: Klasse 2',
                                         'AppDivision2'     => 'Software: Klasse 2',
+                                        'FileDivision3'    => 'Datei: Klasse 3',
+                                        'AppDivision3'     => 'Software: Klasse 3',
+                                        'FileDivision4'    => 'Datei: Klasse 4',
+                                        'AppDivision4'     => 'Software: Klasse 4',
+                                        'FileDivision5'    => 'Datei: Klasse 5',
+                                        'AppDivision5'     => 'Software: Klasse 5',
+//                                        'FileDivision6'    => 'Datei: Klasse 6',
+//                                        'AppDivision6'     => 'Software: Klasse 6',
+//                                        'FileDivision7'    => 'Datei: Klasse 7',
+//                                        'AppDivision7'     => 'Software: Klasse 7',
+//                                        'FileDivision8'    => 'Datei: Klasse 8',
+//                                        'AppDivision8'     => 'Software: Klasse 8',
+//                                        'FileDivision9'    => 'Datei: Klasse 9',
+//                                        'AppDivision9'     => 'Software: Klasse 9',
+//                                        'FileDivision10'   => 'Datei: Klasse 10',
+//                                        'AppDivision10'    => 'Software: Klasse 10',
                                         'FileTeacher1'     => 'Datei: Lehrer 1',
                                         'AppTeacher1'      => 'Software: Lehrer 1',
                                         'FileTeacher2'     => 'Datei: Lehrer 2',
@@ -259,7 +312,8 @@ class Lectureship extends Import implements IFrontendInterface
                                         'order'      => array(array(0, 'desc')),
                                         'columnDefs' => array(
                                             array('type' => 'natural', 'targets' => 0),
-                                        )
+                                        ),
+                                        'responsive' => false
                                     )
                                 )
                             ),
