@@ -2808,6 +2808,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
+                                    !$tblTestList
+                                        ? new Warning('Die aktuelle Klasse ist nicht in dem ausgewählten Stichttagsnotenauftrag enthalten.'
+                                        , new Exclamation())
+                                        : null,
                                     Prepare::useService()->updatePrepareInformationList($form, $tblPrepare, $Route,
                                         $Data, $CertificateList)
                                 ))
