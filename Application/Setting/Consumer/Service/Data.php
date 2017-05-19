@@ -18,9 +18,49 @@ class Data extends AbstractData
 
         $tblAccount = Account::useService()->getAccountBySession();
         // Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok])
-        if ($tblAccount->getServiceTblConsumer()->getAcronym() == 'ESS') {
-            $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING,
-                '/Common/Style/Resource/Logo/ESS-Zeugnis-Logo.png');
+        if ($tblAccount && ($tblConsumer = $tblAccount->getServiceTblConsumer())) {
+
+            if ($tblConsumer->getAcronym() == 'ESS') {
+                $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING,
+                    '/Common/Style/Resource/Logo/ESS-Zeugnis-Logo.png');
+            } else {
+                $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING,
+                    '');
+            }
+
+            if ($tblConsumer->getAcronym() == 'ESZC'
+                || $tblConsumer->getAcronym() == 'EVSC'
+            ) {
+                $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym', TblSetting::TYPE_STRING,
+                    'NK');
+                $this->createSetting('Api', 'Education', 'Certificate', 'ProfileAcronym', TblSetting::TYPE_STRING,
+                    'PRO');
+            } else {
+                $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym', TblSetting::TYPE_STRING,
+                    '');
+                $this->createSetting('Api', 'Education', 'Certificate', 'ProfileAcronym', TblSetting::TYPE_STRING,
+                    '');
+            }
+
+            if ($tblConsumer->getAcronym() == 'ESZC') {
+                $this->createSetting(
+                    'Education',
+                    'Certificate',
+                    'Prepare',
+                    'IsGradeVerbalOnDiploma',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            } else {
+                $this->createSetting(
+                    'Education',
+                    'Certificate',
+                    'Prepare',
+                    'IsGradeVerbalOnDiploma',
+                    TblSetting::TYPE_BOOLEAN,
+                    '0'
+                );
+            }
         }
         $this->createSetting(
             'Education',
@@ -35,14 +75,6 @@ class Data extends AbstractData
             'ClassRegister',
             'Sort',
             'SortMaleFirst',
-            TblSetting::TYPE_BOOLEAN,
-            '1'
-        );
-        $this->createSetting(
-            'Education',
-            'Certificate',
-            'Prepare',
-            'IsGradeVerbalOnDiploma',
             TblSetting::TYPE_BOOLEAN,
             '1'
         );
