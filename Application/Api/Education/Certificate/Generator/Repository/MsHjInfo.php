@@ -36,10 +36,9 @@ class MsHjInfo extends Certificate
             ->addSlice($this->getCertificateHead('Halbjahresinformation'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
-            // für selbe Höhe wie bei Varianten mit Bildungsgang
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('nahm am Unterricht der Schulart Mittelschule teil.')
                     ->styleTextSize('12px')
                     ->styleMarginTop('8px')
                 )
