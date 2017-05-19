@@ -325,9 +325,8 @@ class Lectureship extends Import implements IFrontendInterface
                         ))
                         , new TitleLayout('Validierung',
                         'Rote '.new Danger(new WarningIcon()).' Einträge wurden nicht für die Bearbeitung aufgenommen! '
-                        .new ToolTip(new InfoIcon()
-                            ,
-                            'Werden Klassen nicht in der Schulsoftware gefunden, kann kein Lehrauftrag für diese erstellt werden!')))
+                        .new ToolTip(new InfoIcon(), 'Werden Klassen nicht in der Schulsoftware gefunden, kann kein 
+                        Lehrauftrag für diese erstellt werden!')))
                 )
             );
         } else {
