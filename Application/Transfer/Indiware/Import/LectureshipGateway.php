@@ -185,25 +185,13 @@ class LectureshipGateway extends AbstractConverter
                 $Subject = $Result['FileSubject'];
                 $SubjectGroup = $Result['FileSubjectGroup'];
                 if ($Division != '') {
-                    $found = false;
-                    foreach ($this->LectureshipList as $Compare) {
-                        if ($Compare == $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup) {
-                            $found = true;
-                        }
-                    }
-                    if (!$found) {
-                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
-                    } else {
-                        $Result['FileDivision'.$j] = null;
-                        $Result['DivisionId'.$j] = null;
-                        $Result['FileTeacher'.$i] = null;
-                        $Result['TeacherId'.$i] = null;
-                        $Result['FileSubject'] = '';
-                        $Result['SubjectId'] = null;
-                        $Result['FileSubjectGroup'] = '';
-                    }
-
-//                    if(!array_search($this->LectureshipList, array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup))){
+//                    $found = false;
+//                    foreach ($this->LectureshipList as $Compare) {
+//                        if ($Compare == $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup) {
+//                            $found = true;
+//                        }
+//                    }
+//                    if (!$found) {
 //                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
 //                    } else {
 //                        $Result['FileDivision'.$j] = null;
@@ -214,6 +202,18 @@ class LectureshipGateway extends AbstractConverter
 //                        $Result['SubjectId'] = null;
 //                        $Result['FileSubjectGroup'] = '';
 //                    }
+
+                    if (!in_array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup, $this->LectureshipList)) {
+                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
+                    } else {
+                        $Result['FileDivision'.$j] = null;
+                        $Result['DivisionId'.$j] = null;
+                        $Result['FileTeacher'.$i] = null;
+                        $Result['TeacherId'.$i] = null;
+                        $Result['FileSubject'] = '';
+                        $Result['SubjectId'] = null;
+                        $Result['FileSubjectGroup'] = '';
+                    }
                 }
             }
         }
