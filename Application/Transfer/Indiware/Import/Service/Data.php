@@ -76,7 +76,8 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($ImportList)) {
-            $DivisionList = array('1', '2', '3', '4', '5', '6', '7', '8', '9', '10');
+
+            $DivisionList = $this->getDivisionClassCount(20);
             foreach ($ImportList as $Result) {
 
 //                $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1, 1);
@@ -110,6 +111,22 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param int $Count *wie viele Klassenspalten sollen durchgegangen werden*
+     *
+     * @return array
+     */
+    private function getDivisionClassCount($Count = 20)
+    {
+
+        $result = array();
+        for ($i = 1; $i <= $Count; $i++) {
+            $result[] = $i;
+        }
+
+        return $result;
     }
 
     /**

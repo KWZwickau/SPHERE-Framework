@@ -102,15 +102,26 @@ class LectureshipGateway extends AbstractConverter
         $this->setSanitizer(new FieldSanitizer('L', 'AppDivision1', array($this, 'sanitizeDivision2')));
         $this->setSanitizer(new FieldSanitizer('L', 'DivisionId1', array($this, 'fetchDivision')));
 
-        $DivisionList = array(2  => 'M',
-                              3  => 'N',
-                              4  => 'O',
-                              5  => 'P',
-                              6  => 'Q',
-                              7  => 'R',
-                              8  => 'S',
-                              9  => 'T',
-                              10 => 'U'
+        $DivisionList = array(
+            2  => 'M',
+            3  => 'N',
+            4  => 'O',
+            5  => 'P',
+            6  => 'Q',
+            7  => 'R',
+            8  => 'S',
+            9  => 'T',
+            10 => 'U',
+            11 => 'V',
+            12 => 'W',
+            13 => 'X',
+            14 => 'Y',
+            15 => 'Z',
+            16 => 'AA',
+            17 => 'AB',
+            18 => 'AC',
+            19 => 'AD',
+            20 => 'AE'
         );
         foreach ($DivisionList as $Key => $FieldPosition) {
             $this->setPointer(new FieldPointer($FieldPosition, 'FileDivision'.$Key));
@@ -177,6 +188,26 @@ class LectureshipGateway extends AbstractConverter
             ->getDivisionById($Result['DivisionId9']) : null);
         $tblDivision10 = (isset($Result['DivisionId10']) && $Result['DivisionId10'] !== null ? Division::useService()
             ->getDivisionById($Result['DivisionId10']) : null);
+        $tblDivision11 = (isset($Result['DivisionId11']) && $Result['DivisionId11'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId11']) : null);
+        $tblDivision12 = (isset($Result['DivisionId12']) && $Result['DivisionId12'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId12']) : null);
+        $tblDivision13 = (isset($Result['DivisionId13']) && $Result['DivisionId13'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId13']) : null);
+        $tblDivision14 = (isset($Result['DivisionId14']) && $Result['DivisionId14'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId14']) : null);
+        $tblDivision15 = (isset($Result['DivisionId15']) && $Result['DivisionId15'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId15']) : null);
+        $tblDivision16 = (isset($Result['DivisionId16']) && $Result['DivisionId16'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId16']) : null);
+        $tblDivision17 = (isset($Result['DivisionId17']) && $Result['DivisionId17'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId17']) : null);
+        $tblDivision18 = (isset($Result['DivisionId18']) && $Result['DivisionId18'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId18']) : null);
+        $tblDivision19 = (isset($Result['DivisionId19']) && $Result['DivisionId19'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId19']) : null);
+        $tblDivision20 = (isset($Result['DivisionId20']) && $Result['DivisionId20'] !== null ? Division::useService()
+            ->getDivisionById($Result['DivisionId20']) : null);
         $tblTeacher1 = (isset($Result['TeacherId1']) && $Result['TeacherId1'] !== null ? Teacher::useService()
             ->getTeacherById($Result['TeacherId1']) : null);
         $tblTeacher2 = (isset($Result['TeacherId2']) && $Result['TeacherId2'] !== null ? Teacher::useService()
@@ -195,6 +226,16 @@ class LectureshipGateway extends AbstractConverter
         $FileDivision8 = $Result['FileDivision8'];
         $FileDivision9 = $Result['FileDivision9'];
         $FileDivision10 = $Result['FileDivision10'];
+        $FileDivision11 = $Result['FileDivision11'];
+        $FileDivision12 = $Result['FileDivision12'];
+        $FileDivision13 = $Result['FileDivision13'];
+        $FileDivision14 = $Result['FileDivision14'];
+        $FileDivision15 = $Result['FileDivision15'];
+        $FileDivision16 = $Result['FileDivision16'];
+        $FileDivision17 = $Result['FileDivision17'];
+        $FileDivision18 = $Result['FileDivision18'];
+        $FileDivision19 = $Result['FileDivision19'];
+        $FileDivision20 = $Result['FileDivision20'];
         $FileTeacher1 = $Result['FileTeacher1'];
         $FileTeacher2 = $Result['FileTeacher2'];
         $FileTeacher3 = $Result['FileTeacher3'];
@@ -213,6 +254,16 @@ class LectureshipGateway extends AbstractConverter
             'tblDivision8'     => $tblDivision8,
             'tblDivision9'     => $tblDivision9,
             'tblDivision10'    => $tblDivision10,
+            'tblDivision11'    => $tblDivision11,
+            'tblDivision12'    => $tblDivision12,
+            'tblDivision13'    => $tblDivision13,
+            'tblDivision14'    => $tblDivision14,
+            'tblDivision15'    => $tblDivision15,
+            'tblDivision16'    => $tblDivision16,
+            'tblDivision17'    => $tblDivision17,
+            'tblDivision18'    => $tblDivision18,
+            'tblDivision19'    => $tblDivision19,
+            'tblDivision20'    => $tblDivision20,
             'tblTeacher1'      => $tblTeacher1,
             'tblTeacher2'      => $tblTeacher2,
             'tblTeacher3'      => $tblTeacher3,
@@ -227,6 +278,16 @@ class LectureshipGateway extends AbstractConverter
             'FileDivision8'    => $FileDivision8,
             'FileDivision9'    => $FileDivision9,
             'FileDivision10'   => $FileDivision10,
+            'FileDivision11'   => $FileDivision11,
+            'FileDivision12'   => $FileDivision12,
+            'FileDivision13'   => $FileDivision13,
+            'FileDivision14'   => $FileDivision14,
+            'FileDivision15'   => $FileDivision15,
+            'FileDivision16'   => $FileDivision16,
+            'FileDivision17'   => $FileDivision17,
+            'FileDivision18'   => $FileDivision18,
+            'FileDivision19'   => $FileDivision19,
+            'FileDivision20'   => $FileDivision20,
             'FileTeacher1'     => $FileTeacher1,
             'FileTeacher2'     => $FileTeacher2,
             'FileTeacher3'     => $FileTeacher3,

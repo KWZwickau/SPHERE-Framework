@@ -194,12 +194,13 @@ class Lectureship extends Import implements IFrontendInterface
             );
             return $Stage;
         }
+
         $tblYear = Term::useService()->getYearById($tblYear);
         if (!$tblYear) {
 
             $Stage->setContent(
                 new WarningMessage('Bitte geben Sie ein gültiges Schuljahr an.')
-                .new Redirect(new Route(__NAMESPACE__), Redirect::TIMEOUT_ERROR, array(
+                .new Redirect(new Route(__NAMESPACE__.'/Lectureship/Prepare'), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear
                 ))
             );
@@ -223,6 +224,41 @@ class Lectureship extends Import implements IFrontendInterface
             $Payload = new FilePointer($Extension);
             $Payload->setFileContent(file_get_contents($File->getRealPath()));
             $Payload->saveFile();
+
+
+            // Test
+            $Control = new LectureshipControl($Payload->getRealPath());
+            if (!$Control->getCompare()) {
+                $LayoutColumnList = array();
+                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei entspricht nicht dem vollen Export
+                 aus Indiware'));
+                $ColumnList = $Control->getColumnList();
+                if (!empty($ColumnList)) {
+                    foreach ($ColumnList as $Column => $Value) {
+                        $LayoutColumnList[] = new LayoutColumn(new Panel('Spalte '.$Column, 'Name: '.$Value,
+                            Panel::PANEL_TYPE_DANGER), 3);
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(
+                        new LayoutGroup(array(
+                            new LayoutRow(
+                                $LayoutColumnList
+                            ),
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new Redirect(new Route(__NAMESPACE__.'/Lectureship/Prepare'),
+                                        Redirect::TIMEOUT_ERROR, array(
+                                            'tblYear' => $tblYear
+                                        ))
+                                )
+                            )
+                        ))
+                    )
+                );
+                return $Stage;
+            }
 
             // add import
             $Gateway = new LectureshipGateway($Payload->getRealPath(), $tblYear);
