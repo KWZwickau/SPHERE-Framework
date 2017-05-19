@@ -176,44 +176,47 @@ class LectureshipGateway extends AbstractConverter
             $Result = array_merge($Result, $Part);
         }
 
-//        for($i = 1; $i <= 3; $i++){
-//            for($j = 1; $j <= 20; $j++){
-//                $Division = $Result['FileDivision'.$j];
-//                $Teacher = $Result['FileTeacher'.$i];
-//                $Subject = $Result['FileSubject'];
-//                $SubjectGroup = $Result['FileSubjectGroup'];
-//                if($Division != ''){
-//                    $found = false;
-//                    foreach($this->LectureshipList as $Compare){
-//                        if($Compare == $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup){
-//                            $found = true;
-//                        }
-//                    }
-//                    if(!$found){
+        // remove doubled Lectureship
+        // Lectureship definition: Division & Teacher & Subject & SubjectGroup
+        for ($i = 1; $i <= 3; $i++) {
+            for ($j = 1; $j <= 20; $j++) {
+                $Division = $Result['FileDivision'.$j];
+                $Teacher = $Result['FileTeacher'.$i];
+                $Subject = $Result['FileSubject'];
+                $SubjectGroup = $Result['FileSubjectGroup'];
+                if ($Division != '') {
+                    $found = false;
+                    foreach ($this->LectureshipList as $Compare) {
+                        if ($Compare == $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup) {
+                            $found = true;
+                        }
+                    }
+                    if (!$found) {
+                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
+                    } else {
+                        $Result['FileDivision'.$j] = null;
+                        $Result['DivisionId'.$j] = null;
+                        $Result['FileTeacher'.$i] = null;
+                        $Result['TeacherId'.$i] = null;
+                        $Result['FileSubject'] = '';
+                        $Result['SubjectId'] = null;
+                        $Result['FileSubjectGroup'] = '';
+                    }
+
+//                    if(!array_search($this->LectureshipList, array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup))){
 //                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
 //                    } else {
 //                        $Result['FileDivision'.$j] = null;
 //                        $Result['DivisionId'.$j] = null;
 //                        $Result['FileTeacher'.$i] = null;
 //                        $Result['TeacherId'.$i] = null;
-//                        $Result['FileSubject'] = null;
+//                        $Result['FileSubject'] = '';
 //                        $Result['SubjectId'] = null;
-//                        $Result['FileSubjectGroup'] = null;
+//                        $Result['FileSubjectGroup'] = '';
 //                    }
-//
-////                    if(!array_search($this->LectureshipList, array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup))){
-////                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
-////                    } else {
-////                        $Result['FileDivision'.$j] = null;
-////                        $Result['DivisionId'.$j] = null;
-////                        $Result['FileTeacher'.$i] = null;
-////                        $Result['TeacherId'.$i] = null;
-////                        $Result['FileSubject'] = null;
-////                        $Result['FileSubjectGroup'] = null;
-////                    }
-//                }
-//            }
-//        }
+                }
+            }
+        }
 
 //        if (!$this->IsError) {
         $tblDivision1 = (isset($Result['DivisionId1']) && $Result['DivisionId1'] !== null ? Division::useService()

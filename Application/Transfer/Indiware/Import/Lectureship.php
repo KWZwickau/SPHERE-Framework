@@ -10,6 +10,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportLectureship;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -17,6 +18,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -322,7 +324,10 @@ class Lectureship extends Import implements IFrontendInterface
                             )
                         ))
                         , new TitleLayout('Validierung',
-                        new Danger('Rote Einträge wurden nicht für die Bearbeitung aufgenommen!')))
+                        'Rote '.new Danger(new WarningIcon()).' Einträge wurden nicht für die Bearbeitung aufgenommen! '
+                        .new ToolTip(new InfoIcon()
+                            ,
+                            'Werden Klassen nicht in der Schulsoftware gefunden, kann kein Lehrauftrag für diese erstellt werden!')))
                 )
             );
         } else {
