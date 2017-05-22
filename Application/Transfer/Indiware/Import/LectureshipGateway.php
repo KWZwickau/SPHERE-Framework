@@ -185,34 +185,17 @@ class LectureshipGateway extends AbstractConverter
                 $Subject = $Result['FileSubject'];
                 $SubjectGroup = $Result['FileSubjectGroup'];
                 if ($Division != '') {
-//                    $found = false;
-//                    foreach ($this->LectureshipList as $Compare) {
-//                        if ($Compare == $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup) {
-//                            $found = true;
-//                        }
-//                    }
-//                    if (!$found) {
-//                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
-//                    } else {
+
+                    if (!in_array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup, $this->LectureshipList)) {
+                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
+                    } else {
 //                        $Result['FileDivision'.$j] = null;
-//                        $Result['DivisionId'.$j] = null;
+                        $Result['DivisionId'.$j] = null;
 //                        $Result['FileTeacher'.$i] = null;
 //                        $Result['TeacherId'.$i] = null;
 //                        $Result['FileSubject'] = '';
 //                        $Result['SubjectId'] = null;
 //                        $Result['FileSubjectGroup'] = '';
-//                    }
-
-                    if (!in_array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup, $this->LectureshipList)) {
-                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
-                    } else {
-                        $Result['FileDivision'.$j] = null;
-                        $Result['DivisionId'.$j] = null;
-                        $Result['FileTeacher'.$i] = null;
-                        $Result['TeacherId'.$i] = null;
-                        $Result['FileSubject'] = '';
-                        $Result['SubjectId'] = null;
-                        $Result['FileSubjectGroup'] = '';
                     }
                 }
             }
@@ -544,19 +527,19 @@ class LectureshipGateway extends AbstractConverter
     protected function MatchDivision($Value, &$LevelName, &$DivisionName)
     {
 
-        if (preg_match('!^(\d+)([a-zA-Z]*?)$!is', $Value, $Match)) {
+        if (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
-        } elseif (preg_match('!^(.*?)\s([a-zA-Z]*?)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^(.*?)\s([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
-        } elseif (preg_match('!^([a-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
             $DivisionName = $Match[1];
             $LevelName = $Match[2];
         } elseif (preg_match('!^([0-9]*?)$!is', $Value, $Match)) {
             $DivisionName = null;
             $LevelName = $Match[1];
-        } elseif (preg_match('!^([a-zA-Z]*?)(\d+)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)(\d+)$!is', $Value, $Match)) {
             $LevelName = $Match[2];
             $DivisionName = $Match[1];
         } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
