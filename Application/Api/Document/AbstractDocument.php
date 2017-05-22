@@ -23,6 +23,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
+use SPHERE\Application\Setting\Consumer\School\School;
 
 /**
  * Class AbstractDocument
@@ -286,6 +287,29 @@ abstract class AbstractDocument
      */
     private function allocateResponsibility(&$Data)
     {
+        $tblPerson = $this->tblPerson;
+        // pre fill found information (Responsibility)
+        $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber();
+
+        if ($tblPerson) {
+            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+            if ($tblStudent) {
+                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
+                    if (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblTransferType))
+                    ) {
+                        $tblCompany = $tblTransfer->getServiceTblCompany();
+                        $tblSchoolType = $tblTransfer->getServiceTblType();
+                        $tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType);
+                        if ($tblSchool) {
+                            // fill found information (School)
+                            $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber($tblSchool);
+                        }
+                    }
+                }
+            }
+        }
+
         $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
         if ($tblResponsibilityList) {
             $tblResponsibility = $tblResponsibilityList[0];
@@ -294,7 +318,6 @@ abstract class AbstractDocument
                 if ($tblCompany) {
                     $Data['Responsibility']['Company']['Display'] = $tblCompany->getDisplayName();
                 }
-                $Data['Responsibility']['Company']['Number'] = $tblResponsibility->getCompanyNumber();
             }
         }
 

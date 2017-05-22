@@ -21,6 +21,7 @@ class TblSchool extends Element
 
     const ATTR_SERVICE_TBL_COMPANY = 'serviceTblCompany';
     const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
+    const ATTR_COMPANY_NUMBER = 'CompanyNumber';
 
     /**
      * @Column(type="bigint")
@@ -30,6 +31,10 @@ class TblSchool extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblType;
+    /**
+     * @Column(type="string")
+     */
+    protected $CompanyNumber;
 
     /**
      * @return bool|TblCompany
@@ -73,6 +78,22 @@ class TblSchool extends Element
     {
 
         $this->serviceTblType = ( null === $serviceTblType ? null : $serviceTblType->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getCompanyNumber()
+    {
+        return $this->CompanyNumber;
+    }
+
+    /**
+     * @param string $CompanyNumber
+     */
+    public function setCompanyNumber($CompanyNumber)
+    {
+        $this->CompanyNumber = $CompanyNumber;
     }
 
 }

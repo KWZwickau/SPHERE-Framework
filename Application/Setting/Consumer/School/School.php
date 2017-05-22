@@ -32,6 +32,11 @@ class School extends Extension implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Edit',
+                __NAMESPACE__.'/Frontend::frontendSchoolEdit'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
                 __NAMESPACE__.'/Frontend::frontendSchoolDelete'
             )

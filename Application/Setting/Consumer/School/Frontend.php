@@ -9,11 +9,14 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
+use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -22,6 +25,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -90,12 +94,40 @@ class Frontend extends Extension implements IFrontendInterface
             $Form = null;
             foreach ($tblSchoolAll as $tblSchool) {
                 $tblCompany = $tblSchool->getServiceTblCompany();
+                $CompanyNumber = $tblSchool->getCompanyNumber();
+                $CompanyNumberStandard = '';
+                if ($CompanyNumber == '') {
+                    $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
+                    if ($tblResponsibilityList) {
+                        /** @var TblResponsibility $tblResponsibility */
+                        $tblResponsibility = current($tblResponsibilityList);
+                        $CompanyNumberStandard = $tblResponsibility->getCompanyNumber();
+                    }
+                }
+
+                $CompanyNumberPanel = new Panel(new PullClear('Unternehmensnr. des Unfallversicherungsträgers'
+                        .new PullRight(($CompanyNumber == '' ? '(leer)' : '')))
+                    , ($CompanyNumber != ''
+                        ? $CompanyNumber
+                        : ($CompanyNumberStandard != ''
+                            ? 'Schulträger: '.$CompanyNumberStandard
+                            : '')),
+                    ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
+                    new PullRight(new Standard('', '/Setting/Consumer/School/Edit', new Edit(),
+                        array('Id' => $tblSchool->getId()),
+                        'Bearbeiten der Unternehmensnr. des Unfallversicherungsträgers')));
+
                 if ($tblCompany) {
                     $Form .= new Layout(array(
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
                                 self::frontendLayoutCombine($tblCompany)
                             )),
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    $CompanyNumberPanel
+                                    , 3)
+                            )
                         ),
                             (new Title(new TagList().' '.
                                 new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSchool->getServiceTblType()
@@ -373,6 +405,71 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param null $Id
+     * @param null $CompanyNumber
+     *
+     * @return Stage
+     */
+    public function frontendSchoolEdit($Id = null, $CompanyNumber = null)
+    {
+
+        $Stage = new Stage('Unternehmensnr. des Unfallversicherungsträgers', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
+        $tblSchool = School::useService()->getSchoolById($Id);
+        $Type = '';
+        $tblType = $tblSchool->getServiceTblType();
+        if ($tblType) {
+            $Type = $tblType->getName();
+        }
+        if (!$tblSchool) {
+            return $Stage->setContent(new Warning('Diese Schule wurde nicht gefunden.')
+                .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR));
+        }
+        $Form = new Form(new FormGroup(new FormRow(new FormColumn(
+            new Panel('Unternehmensnr. des Unfallversicherungsträgers', new TextField('CompanyNumber', '', ''),
+                Panel::PANEL_TYPE_SUCCESS)
+        ))));
+        $Form->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $tblCompany = $tblSchool->getServiceTblCompany();
+        if ($tblCompany) {
+            $PanelHead = new Panel('Institution der eine Unternehmensnr. des Unfallversicherungsträgers bearbeitet werden soll'
+                , $tblCompany->getDisplayName().' '.new Small(new Muted('('.$Type.')')), Panel::PANEL_TYPE_INFO);
+        } else {
+            $PanelHead = new Panel('Institution wird nicht mehr gefunden!', '', Panel::PANEL_TYPE_DANGER);
+        }
+
+
+        $Global = $this->getGlobal();
+        if ($tblSchool->getCompanyNumber()) {
+            $Global->POST['CompanyNumber'] = $tblSchool->getCompanyNumber();
+            $Global->savePost();
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            $PanelHead
+                            , 6)
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(School::useService()->updateSchool(
+                                $Form, $tblSchool, $CompanyNumber
+                            ))
+                            , 6)
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
     }
 
     /**
