@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student;
 
+use SPHERE\Application\Api\People\Meta\ApiMassAllocation;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -431,10 +432,14 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Schulverlauf', array(
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
-                            'Aktuelle Schule', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
-                            ), new Education()),
+                        ApiMassAllocation::receiverForm(
+                            ApiMassAllocation::getFormContent('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
+                                , 'Aktuelle Schule', $tblPerson->getId()), 'Aktuelle Schule'),
+
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
+//                            ,'Aktuelle Schule', array(
+//                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+//                            ), new Education()),
                         new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
                             'Aktuelle Schulart', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
