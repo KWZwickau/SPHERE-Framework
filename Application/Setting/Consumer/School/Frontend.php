@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -55,6 +56,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -110,7 +112,9 @@ class Frontend extends Extension implements IFrontendInterface
                     , ($CompanyNumber != ''
                         ? $CompanyNumber
                         : ($CompanyNumberStandard != ''
-                            ? 'Schulträger: '.$CompanyNumberStandard
+                            ? 'Schulträger: '.$CompanyNumberStandard.' '.
+                            new ToolTip(new Info(),
+                                'Diese wird verwendet wenn bei der Schule keine Unternehmensnr. hinterlegt ist.')
                             : '')),
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
                     new PullRight(new Standard('', '/Setting/Consumer/School/Edit', new Edit(),
