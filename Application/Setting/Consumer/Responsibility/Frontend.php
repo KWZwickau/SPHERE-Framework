@@ -78,8 +78,8 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblResponsibilityAll as $tblResponsibility) {
                 $tblCompany = $tblResponsibility->getServiceTblCompany();
                 $CompanyNumber = $tblResponsibility->getCompanyNumber();
-                $CompanyNumberPanel = new Panel('Unternehmensnr. des Unfallversicherungsträgers'
-                    .new PullRight(($CompanyNumber == '' ? '(leer)' : ''))
+                $CompanyNumberPanel = new Panel(new PullClear('Unternehmensnr. des Unfallversicherungsträgers'
+                        .new PullRight(($CompanyNumber == '' ? '(leer)' : '')))
                     , $CompanyNumber,
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
                     new PullRight(new Standard('', '/Setting/Consumer/Responsibility/Edit', new Edit(),

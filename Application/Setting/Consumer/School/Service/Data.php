@@ -70,10 +70,11 @@ class Data extends AbstractData
     /**
      * @param TblCompany $tblCompany
      * @param TblType    $tblType
+     * @param string     $CompanyNumber
      *
-     * @return TblSchool|bool
+     * @return bool|TblSchool
      */
-    public function addSchool(TblCompany $tblCompany, TblType $tblType)
+    public function addSchool(TblCompany $tblCompany, TblType $tblType, $CompanyNumber = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -86,10 +87,35 @@ class Data extends AbstractData
             $Entity = new TblSchool();
             $Entity->setServiceTblCompany($tblCompany);
             $Entity->setTblType($tblType);
+            $Entity->setCompanyNumber($CompanyNumber);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
         }
+        return false;
+    }
+
+    /**
+     * @param TblSchool $tblSchool
+     * @param string    $CompanyNumber
+     *
+     * @return bool
+     */
+    public function updateSchool(TblSchool $tblSchool, $CompanyNumber = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSchool $Entity */
+        $Entity = $Manager->getEntityById('TblSchool', $tblSchool->getId());
+        if ($Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setCompanyNumber($CompanyNumber);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+
         return false;
     }
 
