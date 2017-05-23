@@ -434,8 +434,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new Panel('Schulverlauf', array(
                         ApiMassAllocation::receiverMassModal(),     //ToDO merken der Stelle
                         ApiMassAllocation::receiverForm(
-                            ApiMassAllocation::getFormContent('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
-                                , 'Aktuelle Schule', $tblPerson->getId(), true), 'Aktuelle Schule'),
+                            ApiMassAllocation::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
+                                , 'Aktuelle Schule', $tblPerson->getId()), 'Aktuelle Schule'),
                         new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
                             'Aktuelle Schulart', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
