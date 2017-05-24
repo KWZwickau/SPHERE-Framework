@@ -745,7 +745,7 @@ class Service extends ServiceScoreRule
                     if (($tblScoreConditionGroupListByCondition
                         = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
                     ) {
-                        $hasfoundGradeType = false;
+                        $hasFoundGradeType = false;
                         foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
                             if (($tblScoreGroupGradeTypeListByGroup
                                 = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
@@ -754,8 +754,8 @@ class Service extends ServiceScoreRule
                                     if ($tblGrade->getTblGradeType() && $tblScoreGroupGradeTypeList->getTblGradeType()
                                         && $tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()
                                     ) {
-                                        $hasfoundGradeType = true;
-                                        if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                                        $hasFoundGradeType = true;
+                                        if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
                                             $count++;
                                             $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
                                                 = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
@@ -769,7 +769,7 @@ class Service extends ServiceScoreRule
                             }
                         }
 
-                        if (!$hasfoundGradeType && $tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                        if (!$hasFoundGradeType && $tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
                             if ($tblGrade->getTblGradeType()) {
                                 $error[$tblGrade->getTblGradeType()->getId()] =
                                     new LayoutRow(
@@ -785,7 +785,7 @@ class Service extends ServiceScoreRule
                     }
                 } else {
                     // alle Noten gleichwertig
-                    if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                    if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
                         $count++;
                         $sum = $sum + floatval($tblGrade->getGrade());
                     }

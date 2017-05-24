@@ -2879,11 +2879,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
                     if (!empty($studentList)) {
+                        $count = 1;
                         foreach ($studentList as $divisionListId => $students) {
                             if (is_array($students)) {
                                 foreach ($students as $studentId => $student) {
                                     foreach ($tableHeaderList[$divisionListId] as $key => $value) {
-                                        if (!isset($student[$key])) {
+                                        if ($key == 'Number') {
+                                            $studentList[$divisionId][$studentId][$key] = $count++;
+                                        } elseif (!isset($student[$key])) {
                                             $studentList[$divisionId][$studentId][$key] = "";
                                         }
                                     }
@@ -2945,9 +2948,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     } else {
                                         $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
                                         if ($tblDivisionStudentAll) {
-                                            $count = 1;
                                             foreach ($tblDivisionStudentAll as $tblPerson) {
-                                                $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
                                                     $tblTest, $tblPerson, $studentList, $grades);
                                             }

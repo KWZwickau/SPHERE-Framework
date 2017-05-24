@@ -1451,7 +1451,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ))
                             ) {
                                 foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                                    if ($tblPrepareAdditionalGrade->getGrade()) {
+                                    if ($tblPrepareAdditionalGrade->getGrade() !== null && $tblPrepareAdditionalGrade->getGrade() !== '') {
                                         $countSubjectGrades++;
                                     }
                                 }
@@ -1463,7 +1463,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 foreach ($tblTestList as $tblTest) {
                                     if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                                             $tblPerson))
-                                        && $tblTest->getServiceTblSubject() && $tblGradeItem->getGrade()
+                                        && $tblTest->getServiceTblSubject()
+                                        && $tblGradeItem->getGrade() !== null && $tblGradeItem->getGrade() !== ''
                                     ) {
                                         $countSubjectGrades++;
                                     }
@@ -1933,11 +1934,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             } else {
                                 if ($tblDivisionStudentAll) {
-                                    $count = 1;
                                     foreach ($tblDivisionStudentAll as $tblPerson) {
                                         // nur Schüler der ausgewählten Klasse
                                         if (isset($divisionPersonList[$tblPerson->getId()])) {
-                                            $studentList[$tblPerson->getId()]['Number'] = $count++;
                                             if ($Route == 'Diploma') {
                                                 $studentList = $this->setDiplomaGrade($tblPrepare, $tblPerson,
                                                     $tblSubject, $studentList);
@@ -1950,6 +1949,16 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            $count = 1;
+            foreach ($studentList as $personId => $student){
+                $studentList[$personId]['Number'] = $count++;
+                foreach ($tableHeaderList as $column) {
+                    if (!isset($studentList[$personId][$column])) {
+                        $studentList[$personId][$column] = '';
                     }
                 }
             }
