@@ -5,14 +5,17 @@ namespace SPHERE\Application\Api\People\Meta;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -29,11 +32,11 @@ use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
 /**
- * Class ApiMassAllocation
+ * Class ApiTransfer
  *
  * @package SPHERE\Application\Api\People\Meta
  */
-class ApiMassAllocation extends Extension implements IApiInterface
+class ApiTransfer extends Extension implements IApiInterface
 {
     use ApiTrait;
 
@@ -59,8 +62,9 @@ class ApiMassAllocation extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('ShowModal');
+        $Dispatcher->registerMethod('showModal');
         $Dispatcher->registerMethod('serviceApi');
+        $Dispatcher->registerMethod('closeModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -69,10 +73,11 @@ class ApiMassAllocation extends Extension implements IApiInterface
      * @param $Name
      * @param $Label
      * @param $PersonId
+     * @param $StudentTransferTypeIdentifier
      *
      * @return Pipeline
      */
-    public static function pipelineOpenModal($Name, $Label, $PersonId)
+    public static function pipelineOpenModal($Name, $Label, $PersonId, $StudentTransferTypeIdentifier)
     {
 
         $Pipeline = new Pipeline();
@@ -80,10 +85,11 @@ class ApiMassAllocation extends Extension implements IApiInterface
         // get Modal
         $Emitter = new ServerEmitter(self::receiverMassModal(), self::getEndpoint());
         $Emitter->setPostPayload(array(
-            self::API_TARGET => 'ShowModal',
-            'Name'           => $Name,
-            'Label'          => $Label,
-            'PersonId'       => $PersonId,
+            self::API_TARGET                => 'showModal',
+            'Name'                          => $Name,
+            'Label'                         => $Label,
+            'PersonId'                      => $PersonId,
+            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -94,10 +100,11 @@ class ApiMassAllocation extends Extension implements IApiInterface
      * @param $Name
      * @param $Label
      * @param $PersonId
+     * @param $StudentTransferTypeIdentifier
      *
      * @return Pipeline
      */
-    public static function pipelineModalService($Name, $Label, $PersonId)
+    public static function pipelineModalService($Name, $Label, $PersonId, $StudentTransferTypeIdentifier)
     {
 
         $Pipeline = new Pipeline();
@@ -105,12 +112,27 @@ class ApiMassAllocation extends Extension implements IApiInterface
         // get Modal
         $Emitter = new ServerEmitter(self::receiverMassModal(), self::getEndpoint());
         $Emitter->setPostPayload(array(
-            self::API_TARGET => 'serviceApi',
-            'Name'           => $Name,
-            'Label'          => $Label,
-            'PersonId'       => $PersonId,
+            self::API_TARGET                => 'serviceApi',
+            'Name'                          => $Name,
+            'Label'                         => $Label,
+            'PersonId'                      => $PersonId,
+            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
         ));
         $Pipeline->appendEmitter($Emitter);
+
+        // refresh SelectBox
+        $Emitter = new ServerEmitter(self::receiverForm(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET                => 'formSchoolSelectBox',
+            'Name'                          => $Name,
+            'Label'                         => $Label,
+            'PersonId'                      => $PersonId,
+            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        // close Modal
+        $Pipeline->appendEmitter((new CloseModal(self::receiverMassModal()))->getEmitter());
 
         return $Pipeline;
     }
@@ -132,23 +154,25 @@ class ApiMassAllocation extends Extension implements IApiInterface
      *
      * @return BlockReceiver
      */
-    public static function receiverForm($Content = '', $Name)   // ToDO später erneurn
+    public static function receiverForm($Content = '', $Name = '')
     {
         return (new BlockReceiver($Content))->setIdentifier('FormReceiver'.$Name);
     }
 
     /**
-     * @param      $Name
-     * @param      $Label
-     * @param null $PersonId
+     * @param string $Name
+     * @param string $Label
+     * @param null   $PersonId
+     * @param string $StudentTransferTypeIdentifier
      *
      * @return Layout|string
      */
-    public static function ShowModal($Name, $Label, $PersonId = null)
+    public static function showModal($Name, $Label, $PersonId = null, $StudentTransferTypeIdentifier)
     {
 
         $SelectBox = self::getFormContent($Name, $Label);
-        $SelectBox->ajaxPipelineOnSubmit(self::pipelineModalService($Name, $Label, $PersonId));
+        $SelectBox->ajaxPipelineOnSubmit(self::pipelineModalService($Name, $Label, $PersonId,
+            $StudentTransferTypeIdentifier));
 
         return new Layout(
             new LayoutGroup(
@@ -165,65 +189,64 @@ class ApiMassAllocation extends Extension implements IApiInterface
      * @param string $Name
      * @param string $Label
      * @param null   $PersonId
+     * @param string $StudentTransferTypeIdentifier
      * @param null   $Meta
      */
-    public static function serviceApi($Name, $Label, $PersonId = null, $Meta = null)
+    public static function serviceApi($Name, $Label, $PersonId = null, $StudentTransferTypeIdentifier, $Meta = null)
     {
 
         $formSelectBox = self::getFormContent($Name, $Label);
 
+        self::useService()->createTransfer($formSelectBox, $Meta, $PersonId, $StudentTransferTypeIdentifier);
 
+    }
 
-//        $tblPerson = Person::useService()->getPersonById($PersonId);
-//        if($tblPerson){
-//            $Form = ( new Form(array(
-//                new FormGroup(
-//                    new FormRow(array(
-//                        new FormColumn(
-//                            new Panel('Identifikation', array(
-//                                new TextField('Meta[Student][Identifier]', 'Schülernummer',
-//                                    'Schülernummer')
-//                            ), Panel::PANEL_TYPE_INFO)
-//                            , 4),
-//                        new FormColumn(
-//                            new Panel('Schulpflicht', array(
-//                                new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '', 'Beginnt am', new Calendar())
-//                            ), Panel::PANEL_TYPE_INFO)
-//                            , 4),
-//                    ))),
-//                Student::useFrontend()->formGroupTransfer($tblPerson),
-//                Student::useFrontend()->formGroupGeneral($tblPerson),
-//                Student::useFrontend()->formGroupSubject($tblPerson),
-//                Student::useFrontend()->formGroupIntegration($tblPerson),
-//            ), new Primary('Speichern', new Save())));
-//            Student::useService()->createMeta($Form, $tblPerson, $Meta, $Group);
-//        } else {
-////            $Form = null;
-//        }
-//
-////        Student::useService()->createMeta($Form, $tblPerson, $Meta, $Group);
+    /**
+     * @return CloseModal
+     */
+    public static function closeModal()
+    {
+        return new CloseModal(self::receiverMassModal());
     }
 
     /**
      * @param string $Name
      * @param string $Label
      * @param null   $PersonId
+     * @param string $StudentTransferTypeIdentifier
      *
-     * @return SelectBox
+     * @return SelectBox|TextField
      */
-    public static function formSchoolSelectBox($Name = '', $Label = '', $PersonId = null)
-    {
+    public static function formSchoolSelectBox(
+        $Name = '',
+        $Label = '',
+        $PersonId = null,
+        $StudentTransferTypeIdentifier = ''
+    ) {
 
-        $list = array();
+        $Button = (new Standard('', ApiTransfer::getEndpoint(), new Book())
+            )->ajaxPipelineOnClick(ApiTransfer::pipelineOpenModal($Name, $Label, $PersonId,
+                $StudentTransferTypeIdentifier)).' ';
+
         if ($Label == 'Aktuelle Schule') {
             $list = Group::useService()->getCompanyAllByGroup(
                 Group::useService()->getGroupByMetaTable('SCHOOL')
             );
+            $Field = new SelectBox($Name, $Button.' '.$Label, array('{{ Name }} {{ Description }}' => $list),
+                new Education());
+        } elseif ($Label == 'Aktuelle Schulart') {
+            $list = Type::useService()->getTypeAll();
+            $Field = new SelectBox($Name, $Button.' '.$Label, array('{{ Name }} {{ Description }}' => $list),
+                new Education());
+        } elseif ($Label == 'Aktueller Bildungsgang') {
+            $list = Type::useService()->getTypeAll();
+            $Field = new SelectBox($Name, $Button.' '.$Label, array('{{ Name }} {{ Description }}' => $list),
+                new Education());
+        } else {
+            $Field = new TextField($Name, '', $Button.' '.$Label);
         }
-        $Button = (new Standard('', ApiMassAllocation::getEndpoint(), new Book())
-            )->ajaxPipelineOnClick(ApiMassAllocation::pipelineOpenModal($Name, $Label, $PersonId)).' ';
 
-        return new SelectBox($Name, $Button.$Label, array('{{ Name }} {{ Description }}' => $list), new Education());
+        return $Field;
     }
 
     /**
@@ -235,17 +258,26 @@ class ApiMassAllocation extends Extension implements IApiInterface
     public static function getFormContent($Name = '', $Label = '')
     {
 
-        $list = array();
         if ($Label == 'Aktuelle Schule') {
             $list = Group::useService()->getCompanyAllByGroup(
                 Group::useService()->getGroupByMetaTable('SCHOOL')
             );
+            $Field = new SelectBox($Name, $Label, array('{{ Name }} {{ Description }}' => $list), new Education());
+        } elseif ($Label == 'Aktuelle Schulart') {
+            $list = Type::useService()->getTypeAll();
+            $Field = new SelectBox($Name, $Label, array('{{ Name }} {{ Description }}' => $list), new Education());
+        } elseif ($Label == 'Aktueller Bildungsgang') {
+            $list = Type::useService()->getTypeAll();
+            $Field = new SelectBox($Name, $Label, array('{{ Name }} {{ Description }}' => $list), new Education());
+        } else {
+            $Field = new TextField($Name, '', $Label);
         }
+
         return new Form(
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox($Name, $Label, array('{{ Name }} {{ Description }}' => $list), new Education())
+                        $Field
                     ),
                     new FormColumn(
                         new Primary('Speichern', new Save())

@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student;
 
-use SPHERE\Application\Api\People\Meta\ApiMassAllocation;
+use SPHERE\Application\Api\People\Meta\ApiTransfer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -432,18 +432,28 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Schulverlauf', array(
-                        ApiMassAllocation::receiverMassModal(),     //ToDO merken der Stelle
-                        ApiMassAllocation::receiverForm(
-                            ApiMassAllocation::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
-                                , 'Aktuelle Schule', $tblPerson->getId()), 'Aktuelle Schule'),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
-                            'Aktuelle Schulart', array(
-                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
-                            'Aktueller Bildungsgang', array(
-                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
-                            ), new Education()),
+                        ApiTransfer::receiverMassModal(),     //ToDO merken der Stelle
+                        ApiTransfer::receiverForm(
+                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
+                                , 'Aktuelle Schule', $tblPerson->getId(), 'PROCESS'), 'Aktuelle Schule'),
+                        ApiTransfer::receiverForm(
+                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]'
+                                , 'Aktuelle Schulart', $tblPerson->getId(), 'PROCESS'), 'Aktuelle Schulart'),
+                        ApiTransfer::receiverForm(
+                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]'
+                                , 'Aktueller Bildungsgang', $tblPerson->getId(), 'PROCESS'), 'Aktueller Bildungsgang'),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
+//                            'Aktuelle Schule', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
+//                            'Aktuelle Schulart', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
+//                            'Aktueller Bildungsgang', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
+//                            ), new Education()),
                         new TextArea('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Remark]',
                             'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
