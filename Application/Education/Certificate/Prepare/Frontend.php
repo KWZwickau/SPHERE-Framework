@@ -3231,8 +3231,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $gradeList = array();
                             foreach ($tblSubjectList[$tblCurrentSubject->getId()] as $testId => $value) {
                                 if ($isCourseMainDiploma) {
-                                    if (!$isMuted && ($tblTestTemp = Evaluation::useService()->getTestById($testId))
-                                    ) {
+                                    if (!$isMuted && ($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
                                         $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                                             $tblDivision,
                                             $tblCurrentSubject,
@@ -3250,7 +3249,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             $tblTask->getDate() ? $tblTask->getDate() : false
                                         );
 
-                                        if ($average && is_numeric($average)) {
+                                        if ($average) {
+                                            if (!is_array($average) && ($pos = strpos($average, '('))){
+                                                $average = substr($average, 0, $pos);
+                                            }
                                             $Global->POST['Data'][$tblPerson->getId()]['J'] = str_replace('.', ',',
                                                 $average);
                                             $gradeList['J'] = $average;
