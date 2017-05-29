@@ -549,4 +549,20 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->lockGenerateCertificate($tblGenerateCertificate, $IsLocked);
     }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return bool
+     */
+    public function destroyGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate) {
+
+        if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+            foreach ($tblPrepareList as $tblPrepare) {
+                Prepare::useService()->destroyPrepareCertificate($tblPrepare);
+            }
+        }
+
+        return (new Data($this->getBinding()))->destroyGenerateCertificate($tblGenerateCertificate);
+    }
 }

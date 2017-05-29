@@ -175,4 +175,20 @@ class Data extends AbstractData
 
         return false;
     }
+
+    public function destroyGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblGenerateCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblGenerateCertificate', $tblGenerateCertificate->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+
+            return true;
+        }
+        return false;
+    }
 }

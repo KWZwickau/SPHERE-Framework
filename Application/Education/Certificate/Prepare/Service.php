@@ -2154,4 +2154,16 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * soft remove
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        return (new Data($this->getBinding()))->destroyPrepareCertificate($tblPrepareCertificate);
+    }
 }
