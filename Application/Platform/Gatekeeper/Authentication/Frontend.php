@@ -1,12 +1,14 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
+use SPHERE\Application\Api\People\Meta\Upload;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -27,6 +29,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
@@ -53,7 +56,34 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Backward(true));
         $Stage->setMessage(date('d.m.Y - H:i:s'));
 
-        $Stage->setContent($this->getCleanLocalStorage());
+        $Stage->setContent(
+            (new Form(
+                new FormGroup(
+                    new FormRow(
+//                        new FormColumn(new Panel('', array(
+                        new FormColumn(array(
+                            Upload::receiverField((
+                            $Field = new SelectBox('Feld[1]', 'SelectBox-Test', array(1 => 'A', 2 => 'B'))
+                            )),
+                            Upload::receiverModal($Field),
+                            new PullRight((new Link('Ändern',
+                                Upload::getEndpoint(), null, array('Service' => 'A')))->ajaxPipelineOnClick(
+                                Upload::pipelineOpen($Field)
+                            )),
+                            Upload::receiverField((
+                            $Field = new TextField('Feld[2]', 'Placeholder', 'TextField-Test')
+                            )),
+                            Upload::receiverModal($Field),
+                            new PullRight((new Link('Ändern',
+                                Upload::getEndpoint(), null, array('Service' => 'B')))->ajaxPipelineOnClick(
+                                Upload::pipelineOpen($Field)
+                            )),
+                        ))
+                    )
+                )
+            ))->setError('Feld[2]', ':/')
+            .$this->getCleanLocalStorage()
+        );
 
         return $Stage;
     }

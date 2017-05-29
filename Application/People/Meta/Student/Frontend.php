@@ -68,6 +68,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -432,16 +433,29 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Schulverlauf', array(
-                        ApiTransfer::receiverMassModal(),     //ToDO merken der Stelle
-                        ApiTransfer::receiverForm(
-                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
-                                , 'Aktuelle Schule', $tblPerson->getId(), 'PROCESS'), 'Aktuelle Schule'),
-                        ApiTransfer::receiverForm(
-                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]'
-                                , 'Aktuelle Schulart', $tblPerson->getId(), 'PROCESS'), 'Aktuelle Schulart'),
-                        ApiTransfer::receiverForm(
-                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]'
-                                , 'Aktueller Bildungsgang', $tblPerson->getId(), 'PROCESS'), 'Aktueller Bildungsgang'),
+                        ApiTransfer::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
+                            'Aktuelle Schule', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+                            ), new Education())
+                        ))
+                        .ApiTransfer::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiTransfer::getEndpoint(), null, array('Service' => 'A')))->ajaxPipelineOnClick(
+                            ApiTransfer::pipelineOpen($Field, $tblPerson->getId(), 'PROCESS')
+                        ))
+                    ,
+//                        ApiTransfer::receiverModal(),     //ToDO merken der Stelle
+//                        ApiTransfer::receiverForm(
+//                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
+//                                , 'Aktuelle Schule', $tblPerson->getId(), 'PROCESS'), 'Aktuelle Schule'),
+//                        ApiTransfer::receiverForm(
+//                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]'
+//                                , 'Aktuelle Schulart', $tblPerson->getId(), 'PROCESS'), 'Aktuelle Schulart'),
+//                        ApiTransfer::receiverForm(
+//                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]'
+//                                , 'Aktueller Bildungsgang', $tblPerson->getId(), 'PROCESS'), 'Aktueller Bildungsgang'),
+
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
 //                            'Aktuelle Schule', array(
 //                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,

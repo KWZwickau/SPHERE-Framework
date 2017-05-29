@@ -12,26 +12,26 @@ use SPHERE\Application\People\Meta\Student\Service as ServiceAPP;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person as PersonAPP;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 
 class Service extends ServiceAPP
 {
 
     /**
-     * @param IFormInterface|null $Form
-     * @param null|array          $Meta
-     * @param integer             $PersonId
-     * @param string              $StudentTransferTypeIdentifier
-     * @param TblCompany          $tblCompany
-     * @param TblType             $tblType
-     * @param TblCourse           $tblCourse
-     * @param string              $transferDate
-     * @param string              $Remark
+     * @param AbstractField|null $Form
+     * @param null|array         $Meta
+     * @param integer            $PersonId
+     * @param string             $StudentTransferTypeIdentifier
+     * @param TblCompany         $tblCompany
+     * @param TblType            $tblType
+     * @param TblCourse          $tblCourse
+     * @param string             $transferDate
+     * @param string             $Remark
      *
-     * @return bool|ServiceAPP\Entity\TblStudentTransfer|IFormInterface
+     * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
      */
     public function createTransfer(
-        IFormInterface $Form = null,
+        AbstractField $Form = null,
         $Meta = null,
         $PersonId,
         $StudentTransferTypeIdentifier,

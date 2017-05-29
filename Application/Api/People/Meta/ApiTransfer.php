@@ -4,8 +4,6 @@ namespace SPHERE\Application\Api\People\Meta;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Corporation\Group\Group;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -13,21 +11,15 @@ use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Book;
-use SPHERE\Common\Frontend\Icon\Repository\Education;
-use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Window\Error;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
@@ -61,229 +53,187 @@ class ApiTransfer extends Extension implements IApiInterface
     public function exportApi($Method = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
-
-        $Dispatcher->registerMethod('showModal');
-        $Dispatcher->registerMethod('serviceApi');
+        $Dispatcher->registerMethod('openModal');
+        $Dispatcher->registerMethod('saveModal');
         $Dispatcher->registerMethod('closeModal');
 
         return $Dispatcher->callMethod($Method);
     }
 
     /**
-     * @param $Name
-     * @param $Label
-     * @param $PersonId
-     * @param $StudentTransferTypeIdentifier
-     *
-     * @return Pipeline
-     */
-    public static function pipelineOpenModal($Name, $Label, $PersonId, $StudentTransferTypeIdentifier)
-    {
-
-        $Pipeline = new Pipeline();
-
-        // get Modal
-        $Emitter = new ServerEmitter(self::receiverMassModal(), self::getEndpoint());
-        $Emitter->setPostPayload(array(
-            self::API_TARGET                => 'showModal',
-            'Name'                          => $Name,
-            'Label'                         => $Label,
-            'PersonId'                      => $PersonId,
-            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param $Name
-     * @param $Label
-     * @param $PersonId
-     * @param $StudentTransferTypeIdentifier
-     *
-     * @return Pipeline
-     */
-    public static function pipelineModalService($Name, $Label, $PersonId, $StudentTransferTypeIdentifier)
-    {
-
-        $Pipeline = new Pipeline();
-
-        // get Modal
-        $Emitter = new ServerEmitter(self::receiverMassModal(), self::getEndpoint());
-        $Emitter->setPostPayload(array(
-            self::API_TARGET                => 'serviceApi',
-            'Name'                          => $Name,
-            'Label'                         => $Label,
-            'PersonId'                      => $PersonId,
-            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        // refresh SelectBox
-        $Emitter = new ServerEmitter(self::receiverForm(), self::getEndpoint());
-        $Emitter->setPostPayload(array(
-            self::API_TARGET                => 'formSchoolSelectBox',
-            'Name'                          => $Name,
-            'Label'                         => $Label,
-            'PersonId'                      => $PersonId,
-            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        // close Modal
-        $Pipeline->appendEmitter((new CloseModal(self::receiverMassModal()))->getEmitter());
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param string $Header
-     * @param string $Footer
-     *
-     * @return ModalReceiver
-     */
-    public static function receiverMassModal($Header = '', $Footer = '')
-    {
-        return (new ModalReceiver($Header, $Footer))->setIdentifier('MassModalReceiver');
-    }
-
-    /**
-     * @param string $Content
-     * @param        $Name
+     * @param AbstractField $Field
      *
      * @return BlockReceiver
      */
-    public static function receiverForm($Content = '', $Name = '')
+    public static function receiverField(AbstractField $Field)
     {
-        return (new BlockReceiver($Content))->setIdentifier('FormReceiver'.$Name);
+        return (new BlockReceiver($Field))->setIdentifier('Field-Target-'.crc32($Field->getName()));
     }
 
     /**
-     * @param string $Name
-     * @param string $Label
-     * @param null   $PersonId
-     * @param string $StudentTransferTypeIdentifier
+     * @param AbstractField $Field
+     *
+     * @return ModalReceiver
+     */
+    public static function receiverModal(AbstractField $Field)
+    {
+        return (new ModalReceiver( /*$Field->getName()*/
+            'Massenänderung', new Close()))->setIdentifier('Field-Modal-'.crc32($Field->getName()));
+    }
+
+    public static function pipelineOpen(AbstractField $Field, $PersonId, $StudentTransferTypeIdentifier)
+    {
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverModal($Field), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'openModal'
+        ));
+        $Emitter->setPostPayload(array(
+            'modalField'                    => base64_encode(serialize($Field)),
+            'PersonId'                      => $PersonId,
+            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    public static function pipelineSave(AbstractField $Field, $PersonId, $StudentTransferTypeIdentifier)
+    {
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverModal($Field), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'saveModal'
+        ));
+        $Emitter->setPostPayload(array(
+            'modalField'                    => base64_encode(serialize($Field)),
+            'PersonId'                      => $PersonId,
+            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    public static function pipelineClose(AbstractField $Field, $CloneField)
+    {
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverField($Field), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'closeModal'
+        ));
+        $Emitter->setPostPayload(array(
+            'modalField' => base64_encode(serialize($Field)),
+            'CloneField' => $CloneField
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal($Field)))->getEmitter());
+        return $Pipeline;
+    }
+
+    /**
+     * @param AbstractField $modalField
+     * @param null          $PersonId
+     * @param string        $StudentTransferTypeIdentifier
+     * @param string        $Service
      *
      * @return Layout|string
      */
-    public static function showModal($Name, $Label, $PersonId = null, $StudentTransferTypeIdentifier)
+    public function openModal($modalField, $PersonId = null, $StudentTransferTypeIdentifier, $Service = '')
     {
 
-        $SelectBox = self::getFormContent($Name, $Label);
-        $SelectBox->ajaxPipelineOnSubmit(self::pipelineModalService($Name, $Label, $PersonId,
-            $StudentTransferTypeIdentifier));
-
-        return new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        $SelectBox
-                    ),
-                ))
+        /** @var AbstractField $Field */
+        $Field = unserialize(base64_decode($modalField));
+        $CloneField = $this->cloneField($Field, 'CloneField', 'Test');
+        return (new Form(
+            new FormGroup(
+                new FormRow(
+                    new FormColumn(array(
+                        $CloneField
+                    ))
+                )
             )
-        );
+            , new Primary('Ändern'), '', array('Service' => $Service)))
+            ->ajaxPipelineOnSubmit(self::pipelineSave($Field, $PersonId, $StudentTransferTypeIdentifier));
     }
 
     /**
-     * @param string $Name
-     * @param string $Label
-     * @param null   $PersonId
-     * @param string $StudentTransferTypeIdentifier
-     * @param null   $Meta
-     */
-    public static function serviceApi($Name, $Label, $PersonId = null, $StudentTransferTypeIdentifier, $Meta = null)
-    {
-
-        $formSelectBox = self::getFormContent($Name, $Label);
-
-        self::useService()->createTransfer($formSelectBox, $Meta, $PersonId, $StudentTransferTypeIdentifier);
-
-    }
-
-    /**
-     * @return CloseModal
-     */
-    public static function closeModal()
-    {
-        return new CloseModal(self::receiverMassModal());
-    }
-
-    /**
-     * @param string $Name
-     * @param string $Label
-     * @param null   $PersonId
-     * @param string $StudentTransferTypeIdentifier
+     * @param AbstractField $Field
+     * @param string        $Name
+     * @param null          $Label
      *
-     * @return SelectBox|TextField
+     * @return AbstractField|Error
      */
-    public static function formSchoolSelectBox(
-        $Name = '',
-        $Label = '',
+    private function cloneField(AbstractField $Field, $Name = 'CloneField', $Label = null)
+    {
+        /** @var AbstractField $Field */
+        $Reflection = new \ReflectionObject($Field);
+        $FieldParameterList = $Reflection->getConstructor()->getParameters();
+        // Read Parent Constructor and create Args List
+        $Constructor = array();
+        /**
+         * @var int                  $Position
+         * @var \ReflectionParameter $Parameter
+         */
+        foreach ($FieldParameterList as $Position => $Parameter) {
+            if ($Reflection->hasMethod('get'.$Parameter->getName())) {
+                $Constructor[$Position] = $Field->{'get'.$Parameter->getName()}();
+            } elseif ($Parameter->isDefaultValueAvailable()) {
+                $Constructor[$Position] = $Parameter->getDefaultValue();
+            } else {
+                if ($Parameter->allowsNull()) {
+                    $Constructor[$Position] = null;
+                } else {
+                    $E = new \Exception($Reflection->getName()." Parameter-Definition missmatch. ");
+                    return new Error($E->getCode(), $E->getMessage(), false);
+                }
+            }
+        }
+        // Replace Field Name
+        $Position = array_search('Name', array_column($FieldParameterList, 'name'));
+        $Constructor[$Position] = $Name;
+        // Replace Field Label
+        if ($Label) {
+            if (false !== ($Position = array_search('Label', array_column($FieldParameterList, 'name')))) {
+                $Constructor[$Position] = $Label;
+            }
+        }
+        // Create new Field
+        /** @var AbstractField $NewField */
+        $NewField = $Reflection->newInstanceArgs($Constructor);
+        // Set Field Value to Parent
+        if (preg_match(
+            '!(^|&)'.preg_quote($Field->getName()).'=(.*?)(&|$)!is',
+            urldecode(http_build_query($this->getGlobal()->REQUEST)),
+            $Value
+        )) {
+            $NewField->setDefaultValue($Value[2], true);
+        }
+        return $NewField;
+    }
+
+    /**
+     * @param AbstractField $modalField
+     * @param null          $PersonId
+     * @param string        $StudentTransferTypeIdentifier
+     * @param null          $Meta
+     */
+    public static function saveModal(
+        AbstractField $modalField,
         $PersonId = null,
-        $StudentTransferTypeIdentifier = ''
+        $StudentTransferTypeIdentifier,
+        $Meta = null
     ) {
 
-        $Button = (new Standard('', ApiTransfer::getEndpoint(), new Book())
-            )->ajaxPipelineOnClick(ApiTransfer::pipelineOpenModal($Name, $Label, $PersonId,
-                $StudentTransferTypeIdentifier)).' ';
+        self::useService()->createTransfer($modalField, $Meta, $PersonId, $StudentTransferTypeIdentifier);
 
-        if ($Label == 'Aktuelle Schule') {
-            $list = Group::useService()->getCompanyAllByGroup(
-                Group::useService()->getGroupByMetaTable('SCHOOL')
-            );
-            $Field = new SelectBox($Name, $Button.' '.$Label, array('{{ Name }} {{ Description }}' => $list),
-                new Education());
-        } elseif ($Label == 'Aktuelle Schulart') {
-            $list = Type::useService()->getTypeAll();
-            $Field = new SelectBox($Name, $Button.' '.$Label, array('{{ Name }} {{ Description }}' => $list),
-                new Education());
-        } elseif ($Label == 'Aktueller Bildungsgang') {
-            $list = Type::useService()->getTypeAll();
-            $Field = new SelectBox($Name, $Button.' '.$Label, array('{{ Name }} {{ Description }}' => $list),
-                new Education());
-        } else {
-            $Field = new TextField($Name, '', $Button.' '.$Label);
-        }
-
-        return $Field;
     }
 
     /**
-     * @param string $Name
-     * @param string $Label
+     * @param $modalField
      *
-     * @return Form
+     * @return CloseModal
      */
-    public static function getFormContent($Name = '', $Label = '')
+    public static function closeModal($modalField)
     {
-
-        if ($Label == 'Aktuelle Schule') {
-            $list = Group::useService()->getCompanyAllByGroup(
-                Group::useService()->getGroupByMetaTable('SCHOOL')
-            );
-            $Field = new SelectBox($Name, $Label, array('{{ Name }} {{ Description }}' => $list), new Education());
-        } elseif ($Label == 'Aktuelle Schulart') {
-            $list = Type::useService()->getTypeAll();
-            $Field = new SelectBox($Name, $Label, array('{{ Name }} {{ Description }}' => $list), new Education());
-        } elseif ($Label == 'Aktueller Bildungsgang') {
-            $list = Type::useService()->getTypeAll();
-            $Field = new SelectBox($Name, $Label, array('{{ Name }} {{ Description }}' => $list), new Education());
-        } else {
-            $Field = new TextField($Name, '', $Label);
-        }
-
-        return new Form(
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        $Field
-                    ),
-                    new FormColumn(
-                        new Primary('Speichern', new Save())
-                    ),
-                ))
-            )
-        );
+        return new CloseModal(self::receiverModal($modalField));
     }
 }
