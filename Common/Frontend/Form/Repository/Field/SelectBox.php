@@ -14,7 +14,10 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class SelectBox extends AbstractField implements IFieldInterface
 {
-
+    /** @var string $Label */
+    private $Label = '';
+    /** @var array $Data */
+    private $Data = array();
     /**
      * @param string         $Name
      * @param null|string    $Label
@@ -28,6 +31,8 @@ class SelectBox extends AbstractField implements IFieldInterface
         IIconInterface $Icon = null
     ) {
 
+        $this->Name = $Name;
+        $this->Label = $Label;
         // Sanitize (wrong) entity list parameter (e.g. bool instead of entities or empty
         if (count($Data) == 1 && is_numeric(key($Data)) === false && current($Data) === false) {
             $Data = array();
@@ -50,7 +55,7 @@ class SelectBox extends AbstractField implements IFieldInterface
                 }
             }
         }
-        $this->Name = $Name;
+
         $this->Template = $this->getTemplate(__DIR__.'/SelectBox.twig');
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
@@ -117,6 +122,7 @@ class SelectBox extends AbstractField implements IFieldInterface
                 asort($Convert, SORT_NATURAL);
             }
             $this->Template->setVariable('ElementData', $Convert);
+            $this->Data = $Convert;
         } else {
             if (array_key_exists(0, $Data) && $Data[0] != '-[ Nicht verfügbar ]-') {
                 unset( $Data[0] );
@@ -131,10 +137,26 @@ class SelectBox extends AbstractField implements IFieldInterface
                 asort($Data, SORT_NATURAL);
             }
             $this->Template->setVariable('ElementData', $Data);
+            $this->Data = $Data;
         }
         if (null !== $Icon) {
             $this->Template->setVariable('ElementIcon', $Icon);
         }
     }
 
+    /**
+     * @return string
+     */
+    public function getLabel()
+    {
+        return $this->Label;
+    }
+
+    /**
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->Data;
+    }
 }

@@ -28,6 +28,8 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\Table;
 use SPHERE\Common\Window\Error;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class Upload extends AbstractConverter implements IApiInterface
@@ -236,7 +238,7 @@ class Upload extends AbstractConverter implements IApiInterface
     {
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
-        $CloneField = $this->cloneField($Field);
+        $CloneField = $this->cloneField($Field, 'CloneField', $Field->getName());
         return (new Form(
             new FormGroup(
                 new FormRow(
@@ -260,6 +262,7 @@ class Upload extends AbstractConverter implements IApiInterface
          * @var int                  $Position
          * @var \ReflectionParameter $Parameter
          */
+        $ParameterList = array();
         foreach ($FieldParameterList as $Position => $Parameter) {
             if ($Reflection->hasMethod('get'.$Parameter->getName())) {
                 $Constructor[$Position] = $Field->{'get'.$Parameter->getName()}();
@@ -273,13 +276,14 @@ class Upload extends AbstractConverter implements IApiInterface
                     return new Error($E->getCode(), $E->getMessage(), false);
                 }
             }
+            $ParameterList[$Position] = $Parameter->getName();
         }
         // Replace Field Name
-        $Position = array_search('Name', array_column($FieldParameterList, 'name'));
+        $Position = array_search('Name', $ParameterList);
         $Constructor[$Position] = $Name;
         // Replace Field Label
         if ($Label) {
-            if (false !== ($Position = array_search('Label', array_column($FieldParameterList, 'name')))) {
+            if (false !== ($Position = array_search('Label', $ParameterList))) {
                 $Constructor[$Position] = $Label;
             }
         }

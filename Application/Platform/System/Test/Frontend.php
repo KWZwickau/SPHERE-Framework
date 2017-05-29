@@ -78,6 +78,10 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendPlatform()
     {
+        $Global = $this->getGlobal();
+        $this->getDebugger()->screenDump($Global);
+        $this->getDebugger()->screenDump($_REQUEST);
+        $this->getDebugger()->screenDump($_FILES);
 
         $Stage = new Stage('Test', 'Frontend');
 
@@ -135,9 +139,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new DatePicker('DatePicker', 'DatePicker', 'DatePicker')
                             , 3),
-                        new FormColumn(
-                            new FileUpload('FileUpload', 'FileUpload', 'FileUpload')
-                            , 3),
+                        new FormColumn(array(
+                            new FileUpload('FileUpload[1]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[2]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[A]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[B]', 'FileUpload', 'FileUpload'),
+                        ), 3),
                     )),
                     new FormRow(array(
                         new FormColumn(

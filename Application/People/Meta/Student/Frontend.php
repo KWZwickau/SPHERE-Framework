@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Api\People\Meta\ApiTransfer;
+use SPHERE\Application\Api\People\Meta\MassReplaceTransfer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -441,8 +442,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                         .ApiTransfer::receiverModal($Field)
                         .new PullRight((new Link('Massen-Änderung',
-                            ApiTransfer::getEndpoint(), null, array('Service' => 'A')))->ajaxPipelineOnClick(
-                            ApiTransfer::pipelineOpen($Field, $tblPerson->getId(), 'PROCESS')
+                            ApiTransfer::getEndpoint(), null, array(
+                                ApiTransfer::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiTransfer::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+                                'PersonId' => $tblPerson->getId(),
+                            )))->ajaxPipelineOnClick(
+                            ApiTransfer::pipelineOpen($Field)
                         ))
                     ,
 //                        ApiTransfer::receiverModal(),     //ToDO merken der Stelle

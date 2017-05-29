@@ -5,7 +5,6 @@ namespace SPHERE\Application\Api\People\Meta;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -20,7 +19,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Window\Error;
-use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -32,18 +30,8 @@ class ApiTransfer extends Extension implements IApiInterface
 {
     use ApiTrait;
 
-    /**
-     * @return Service
-     */
-    public static function useService()
-    {
-
-        return new Service(
-            new Identifier('People', 'Meta', null, null, Consumer::useService()->getConsumerBySession()),
-            'SPHERE\Application\People\Meta\Student/Service/Entity',
-            'SPHERE\Application\People\Meta\Student\Service\Entity'
-        );
-    }
+    const SERVICE_CLASS = 'ServiceClass';
+    const SERVICE_METHOD = 'ServiceMethod';
 
     /**
      * @param string $Method
@@ -67,7 +55,8 @@ class ApiTransfer extends Extension implements IApiInterface
      */
     public static function receiverField(AbstractField $Field)
     {
-        return (new BlockReceiver($Field))->setIdentifier('Field-Target-'.crc32($Field->getName()));
+        return (new BlockReceiver($Field))
+            ->setIdentifier('Field-Target-'.crc32($Field->getName()));
     }
 
     /**
@@ -77,11 +66,11 @@ class ApiTransfer extends Extension implements IApiInterface
      */
     public static function receiverModal(AbstractField $Field)
     {
-        return (new ModalReceiver( /*$Field->getName()*/
-            'Massenänderung', new Close()))->setIdentifier('Field-Modal-'.crc32($Field->getName()));
+        return (new ModalReceiver('Massenänderung', new Close()))
+            ->setIdentifier('Field-Modal-'.crc32($Field->getName()));
     }
 
-    public static function pipelineOpen(AbstractField $Field, $PersonId, $StudentTransferTypeIdentifier)
+    public static function pipelineOpen(AbstractField $Field)
     {
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverModal($Field), self::getEndpoint());
@@ -89,25 +78,18 @@ class ApiTransfer extends Extension implements IApiInterface
             self::API_TARGET => 'openModal'
         ));
         $Emitter->setPostPayload(array(
-            'modalField'                    => base64_encode(serialize($Field)),
-            'PersonId'                      => $PersonId,
-            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
+            'modalField' => base64_encode(serialize($Field))
         ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
 
-    public static function pipelineSave(AbstractField $Field, $PersonId, $StudentTransferTypeIdentifier)
+    public static function pipelineSave(AbstractField $Field)
     {
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverModal($Field), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'saveModal'
-        ));
-        $Emitter->setPostPayload(array(
-            'modalField'                    => base64_encode(serialize($Field)),
-            'PersonId'                      => $PersonId,
-            'StudentTransferTypeIdentifier' => $StudentTransferTypeIdentifier,
         ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
@@ -131,13 +113,10 @@ class ApiTransfer extends Extension implements IApiInterface
 
     /**
      * @param AbstractField $modalField
-     * @param null          $PersonId
-     * @param string        $StudentTransferTypeIdentifier
-     * @param string        $Service
      *
      * @return Layout|string
      */
-    public function openModal($modalField, $PersonId = null, $StudentTransferTypeIdentifier, $Service = '')
+    public function openModal($modalField)
     {
 
         /** @var AbstractField $Field */
@@ -151,8 +130,8 @@ class ApiTransfer extends Extension implements IApiInterface
                     ))
                 )
             )
-            , new Primary('Ändern'), '', array('Service' => $Service)))
-            ->ajaxPipelineOnSubmit(self::pipelineSave($Field, $PersonId, $StudentTransferTypeIdentifier));
+            , new Primary('Ändern'), '', $this->getGlobal()->POST))
+            ->ajaxPipelineOnSubmit(self::pipelineSave($Field));
     }
 
     /**
@@ -173,6 +152,7 @@ class ApiTransfer extends Extension implements IApiInterface
          * @var int                  $Position
          * @var \ReflectionParameter $Parameter
          */
+        $ParameterList = array();
         foreach ($FieldParameterList as $Position => $Parameter) {
             if ($Reflection->hasMethod('get'.$Parameter->getName())) {
                 $Constructor[$Position] = $Field->{'get'.$Parameter->getName()}();
@@ -186,13 +166,14 @@ class ApiTransfer extends Extension implements IApiInterface
                     return new Error($E->getCode(), $E->getMessage(), false);
                 }
             }
+            $ParameterList[$Position] = $Parameter->getName();
         }
         // Replace Field Name
-        $Position = array_search('Name', array_column($FieldParameterList, 'name'));
+        $Position = array_search('Name', $ParameterList);
         $Constructor[$Position] = $Name;
         // Replace Field Label
         if ($Label) {
-            if (false !== ($Position = array_search('Label', array_column($FieldParameterList, 'name')))) {
+            if (false !== ($Position = array_search('Label', $ParameterList))) {
                 $Constructor[$Position] = $Label;
             }
         }
@@ -211,29 +192,53 @@ class ApiTransfer extends Extension implements IApiInterface
     }
 
     /**
-     * @param AbstractField $modalField
-     * @param null          $PersonId
-     * @param string        $StudentTransferTypeIdentifier
-     * @param null          $Meta
+     * @param string $ServiceClass
+     * @param string $ServiceMethod
+     * @return mixed
      */
-    public static function saveModal(
-        AbstractField $modalField,
-        $PersonId = null,
-        $StudentTransferTypeIdentifier,
-        $Meta = null
+    public function saveModal(
+        $ServiceClass,
+        $ServiceMethod
     ) {
 
-        self::useService()->createTransfer($modalField, $Meta, $PersonId, $StudentTransferTypeIdentifier);
+        $Reflection = new \ReflectionClass( $ServiceClass );
+        $MethodParameterList = $Reflection->getMethod( $ServiceMethod )->getParameters();
 
+        // Read Parent Constructor and create Args List
+        $Constructor = array();
+        /**
+         * @var int                  $Position
+         * @var \ReflectionParameter $Parameter
+         */
+        foreach ($MethodParameterList as $Position => $Parameter) {
+            if( array_key_exists( $Parameter->getName(), $this->getGlobal()->POST ) ) {
+                $Constructor[$Position] = $this->getGlobal()->POST[$Parameter->getName()];
+            } else {
+                $Constructor[$Position] = null;
+            }
+        }
+
+        $ServiceClass = $Reflection->newInstanceWithoutConstructor();
+        return call_user_func_array( array( $ServiceClass, $ServiceMethod ), $Constructor );
     }
 
     /**
-     * @param $modalField
+     * Create Clone and set new Value
      *
-     * @return CloseModal
+     * @param string $modalField
+     * @param string $CloneField
+     *
+     * @return AbstractField
      */
-    public static function closeModal($modalField)
+    public function closeModal($modalField, $CloneField)
     {
-        return new CloseModal(self::receiverModal($modalField));
+        /** @var AbstractField $Field */
+        $Field = unserialize(base64_decode($modalField));
+        parse_str($Field->getName().'='.$CloneField, $NewValue);
+        $Globals = $this->getGlobal();
+        $Globals->POST = array_merge_recursive($Globals->POST, $NewValue);
+        $Globals->savePost();
+        $ReplaceField = $this->cloneField($Field, $Field->getName());
+        return $ReplaceField;
     }
 }
