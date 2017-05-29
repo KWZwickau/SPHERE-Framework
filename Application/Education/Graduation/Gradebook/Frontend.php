@@ -2535,7 +2535,7 @@ class Frontend extends FrontendScoreRule
                                             $tblTest, $tblPerson
                                         ))
                                     ) {
-                                        if ($tblGrade->getGrade()) {
+                                        if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
                                             $count++;
                                             if (!isset($columnDefinition['Grade' . $tblPeriod->getId() . $count])) {
                                                 $columnDefinition['Grade' . $tblPeriod->getId() . $count] = '';

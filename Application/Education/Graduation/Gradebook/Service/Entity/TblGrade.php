@@ -322,7 +322,7 @@ class TblGrade extends Element
         }
 
         $gradeValue = $this->getGrade();
-        if ($gradeValue) {
+        if ($gradeValue !== null && $gradeValue !== '') {
             if ($WithTrend) {
                 $trend = $this->getTrend();
                 if (TblGrade::VALUE_TREND_PLUS === $trend) {
@@ -331,9 +331,11 @@ class TblGrade extends Element
                     $gradeValue .= '-';
                 }
             }
+
+            return $gradeValue;
         }
 
-        return $gradeValue ? $gradeValue : '';
+        return '';
     }
 
     /**

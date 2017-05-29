@@ -176,44 +176,30 @@ class LectureshipGateway extends AbstractConverter
             $Result = array_merge($Result, $Part);
         }
 
-//        for($i = 1; $i <= 3; $i++){
-//            for($j = 1; $j <= 20; $j++){
-//                $Division = $Result['FileDivision'.$j];
-//                $Teacher = $Result['FileTeacher'.$i];
-//                $Subject = $Result['FileSubject'];
-//                $SubjectGroup = $Result['FileSubjectGroup'];
-//                if($Division != ''){
-//                    $found = false;
-//                    foreach($this->LectureshipList as $Compare){
-//                        if($Compare == $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup){
-//                            $found = true;
-//                        }
-//                    }
-//                    if(!$found){
-//                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
-//                    } else {
+        // remove doubled Lectureship
+        // Lectureship definition: Division & Teacher & Subject & SubjectGroup
+        for ($i = 1; $i <= 3; $i++) {
+            for ($j = 1; $j <= 20; $j++) {
+                $Division = $Result['FileDivision'.$j];
+                $Teacher = $Result['FileTeacher'.$i];
+                $Subject = $Result['FileSubject'];
+                $SubjectGroup = $Result['FileSubjectGroup'];
+                if ($Division != '') {
+
+                    if (!in_array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup, $this->LectureshipList)) {
+                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
+                    } else {
 //                        $Result['FileDivision'.$j] = null;
-//                        $Result['DivisionId'.$j] = null;
+                        $Result['DivisionId'.$j] = null;
 //                        $Result['FileTeacher'.$i] = null;
 //                        $Result['TeacherId'.$i] = null;
-//                        $Result['FileSubject'] = null;
+//                        $Result['FileSubject'] = '';
 //                        $Result['SubjectId'] = null;
-//                        $Result['FileSubjectGroup'] = null;
-//                    }
-//
-////                    if(!array_search($this->LectureshipList, array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup))){
-////                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
-////                    } else {
-////                        $Result['FileDivision'.$j] = null;
-////                        $Result['DivisionId'.$j] = null;
-////                        $Result['FileTeacher'.$i] = null;
-////                        $Result['TeacherId'.$i] = null;
-////                        $Result['FileSubject'] = null;
-////                        $Result['FileSubjectGroup'] = null;
-////                    }
-//                }
-//            }
-//        }
+//                        $Result['FileSubjectGroup'] = '';
+                    }
+                }
+            }
+        }
 
 //        if (!$this->IsError) {
         $tblDivision1 = (isset($Result['DivisionId1']) && $Result['DivisionId1'] !== null ? Division::useService()
@@ -541,19 +527,19 @@ class LectureshipGateway extends AbstractConverter
     protected function MatchDivision($Value, &$LevelName, &$DivisionName)
     {
 
-        if (preg_match('!^(\d+)([a-zA-Z]*?)$!is', $Value, $Match)) {
+        if (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
-        } elseif (preg_match('!^(.*?)\s([a-zA-Z]*?)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^(.*?)\s([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
-        } elseif (preg_match('!^([a-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
             $DivisionName = $Match[1];
             $LevelName = $Match[2];
         } elseif (preg_match('!^([0-9]*?)$!is', $Value, $Match)) {
             $DivisionName = null;
             $LevelName = $Match[1];
-        } elseif (preg_match('!^([a-zA-Z]*?)(\d+)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)(\d+)$!is', $Value, $Match)) {
             $LevelName = $Match[2];
             $DivisionName = $Match[1];
         } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
