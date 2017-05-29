@@ -94,6 +94,7 @@ class Data extends AbstractData
         $Entity->setHeadmasterName($HeadmasterName);
         $Entity->setIsDivisionTeacherAvailable($IsDivisionTeacherAvailable);
         $Entity->setServiceTblCommonGenderHeadmaster($tblCommonGender);
+        $Entity->setIsLocked(false);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -106,7 +107,10 @@ class Data extends AbstractData
      * @param $Date
      * @param $IsDivisionTeacherAvailable
      * @param $HeadmasterName
-     ** @param TblCommonGender $tblCommonGender
+     * @param TblCommonGender|null $tblCommonGender
+     * @param TblTask|null $tblAppointedDateTask
+     * @param TblTask|null $tblBehaviorTask
+     * @param string $Name
      *
      * @return bool
      */
@@ -115,7 +119,10 @@ class Data extends AbstractData
         $Date,
         $IsDivisionTeacherAvailable,
         $HeadmasterName,
-        TblCommonGender $tblCommonGender = null
+        TblCommonGender $tblCommonGender = null,
+        TblTask $tblAppointedDateTask = null,
+        TblTask $tblBehaviorTask = null,
+        $Name = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -128,6 +135,37 @@ class Data extends AbstractData
             $Entity->setIsDivisionTeacherAvailable($IsDivisionTeacherAvailable);
             $Entity->setHeadmasterName($HeadmasterName);
             $Entity->setServiceTblCommonGenderHeadmaster($tblCommonGender);
+            $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
+            $Entity->setServiceTblBehaviorTask($tblBehaviorTask);
+            $Entity->setName($Name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param bool $IsLocked
+     *
+     * @return bool
+     */
+    public function lockGenerateCertificate(
+        TblGenerateCertificate $tblGenerateCertificate,
+        $IsLocked = true
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGenerateCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblGenerateCertificate', $tblGenerateCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsLocked($IsLocked);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

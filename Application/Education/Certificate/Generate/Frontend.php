@@ -840,6 +840,7 @@ class Frontend extends Extension
     {
 
         $Stage = new Stage('Zeugnis generieren', 'Bearbeiten');
+        $Stage->setMessage('Die Notenaufträge können nur geändert werden bis ein Zeugnis freigeben wurde.');
 
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($Id))) {
 
@@ -855,11 +856,16 @@ class Frontend extends Extension
                 $Global->POST['Data']['HeadmasterName'] = $tblGenerateCertificate->getHeadmasterName();
                 $Global->POST['Data']['GenderHeadmaster'] = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster()
                     ? $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster()->getId() : 0;
+                $Global->POST['Data']['AppointedDateTask'] = $tblGenerateCertificate->getServiceTblAppointedDateTask()
+                    ? $tblGenerateCertificate->getServiceTblAppointedDateTask()->getId() : 0;
+                $Global->POST['Data']['BehaviorTask'] = $tblGenerateCertificate->getServiceTblBehaviorTask()
+                    ? $tblGenerateCertificate->getServiceTblBehaviorTask()->getId() : 0;
 
                 $Global->savePost();
             }
 
-            $Form = $this->formEditGenerate()
+            $tblYear = $tblGenerateCertificate->getServiceTblYear();
+            $Form = $this->formEditGenerate($tblYear ? $tblYear : null, $tblGenerateCertificate->isLocked())
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
             $Stage->setContent(
@@ -897,10 +903,31 @@ class Frontend extends Extension
     }
 
     /**
+     * @param TblYear|null $tblYear
+     *
      * @return Form
      */
-    private function formEditGenerate()
+    private function formEditGenerate(TblYear $tblYear = null, $IsLocked)
     {
+
+
+        $tblAppointedDateTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
+            Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
+            $tblYear ? $tblYear : null
+        );
+        $tblBehaviorTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
+            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'),
+            $tblYear ? $tblYear : null
+        );
+
+        $selectBoxAppointedDateTask = new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag',
+            array('{{ Date }} {{ Name }}' => $tblAppointedDateTaskListByYear));
+        $selectBoxBehaviorTask = new SelectBox('Data[BehaviorTask]', 'Kopfnotenauftrag',
+            array('{{ Date }} {{ Name }}' => $tblBehaviorTaskListByYear));
+        if ($IsLocked) {
+            $selectBoxAppointedDateTask->setDisabled();
+            $selectBoxBehaviorTask->setDisabled();
+        }
 
         return new Form(new FormGroup(array(
             new FormRow(array(
@@ -911,7 +938,17 @@ class Frontend extends Extension
                             new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar())
                         ),
                         Panel::PANEL_TYPE_INFO
-                    ), 6
+                    ), 4
+                ),
+                new FormColumn(
+                    new Panel(
+                        'Notenaufträge',
+                        array(
+                            $selectBoxAppointedDateTask,
+                            $selectBoxBehaviorTask
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
                 new FormColumn(
                     new Panel(
@@ -936,7 +973,7 @@ class Frontend extends Extension
                             )
                         ),
                         Panel::PANEL_TYPE_INFO
-                    ), 6
+                    ), 4
                 ),
             ))
         )));
