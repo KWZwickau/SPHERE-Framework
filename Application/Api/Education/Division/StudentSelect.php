@@ -211,7 +211,7 @@ class StudentSelect extends Extension implements IApiInterface
                     )
                 );
             } else {
-                $left = new Info('Keine Fächer ausgewählt');
+                $left = new Info('Keine Schüler ausgewählt');
             }
         } else {
             $left = new Warning('Klasse nicht gefunden');

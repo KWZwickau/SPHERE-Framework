@@ -102,7 +102,7 @@ class SubjectSelect extends Extension implements IApiInterface
                         'Name'        => $Subject['Name'],
                         'Description' => $Subject['Description'],
                         'Option'      => (new Standard('', SubjectSelect::getEndpoint(), new MinusSign(),
-                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId'])))
+                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId']), 'Entfernen'))
                             ->ajaxPipelineOnClick(SubjectSelect::pipelineMinus($Subject['Id'], $Subject['DivisionId']))
                     );
                 }
@@ -111,7 +111,7 @@ class SubjectSelect extends Extension implements IApiInterface
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
-                    'Option'      => 'Option'
+                    'Option'      => ''
                 ),
                     array(
                         'columnDefs' => array(
@@ -136,7 +136,7 @@ class SubjectSelect extends Extension implements IApiInterface
                         'Name'        => $Subject['Name'],
                         'Description' => $Subject['Description'],
                         'Option'      => (new Standard('', SubjectSelect::getEndpoint(), new PlusSign(),
-                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId'])))
+                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId']), 'Hinzufügen'))
                             ->ajaxPipelineOnClick(SubjectSelect::pipelinePlus($Subject['Id'], $Subject['DivisionId']))
                     );
                 }
@@ -145,7 +145,7 @@ class SubjectSelect extends Extension implements IApiInterface
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
-                    'Option'      => 'Option'
+                    'Option'      => ''
                 ),
                     array(
                         'columnDefs' => array(
