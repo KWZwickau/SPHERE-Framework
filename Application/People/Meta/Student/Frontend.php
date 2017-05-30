@@ -91,7 +91,6 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblPerson $tblPerson
      * @param array     $Meta
-     *
      * @param null      $Group
      *
      * @return Stage
@@ -533,6 +532,15 @@ class Frontend extends Extension implements IFrontendInterface
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Meta']['MedicalRecord'] )) {
+//                $tblYear = false;
+//                $tblYearList = Term::useService()->getYearByNow();
+//                if($tblYearList){
+//                    $tblYear = current($tblYearList);
+//                }
+//                /** @var TblYear $tblYear */
+//                if($tblYear){
+//                    $Global->POST['Year']['TblYear_Id'] = $tblYear->getId();
+//                }
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -707,6 +715,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextField('Meta[Transport][Station][Exit]', 'Ausstiegshaltestelle',
                             'Ausstiegshaltestelle', new StopSign()),
                         new TextArea('Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+//                        new HiddenField('Year[TblYear_Id]'),
                     ), Panel::PANEL_TYPE_INFO),
                     $LiberationPanel
                 ), 3),
