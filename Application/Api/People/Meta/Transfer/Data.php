@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Api\People\Meta;
+namespace SPHERE\Application\Api\People\Meta\Transfer;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
@@ -31,7 +31,7 @@ class Data extends DataAPP
         TblCompany $tblCompany = null,
         TblType $tblType = null,
         TblCourse $tblCourse = null,
-        $TransferDate,
+        $TransferDate = null,
         $Remark
     ) {
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Api\People\Meta;
+namespace SPHERE\Application\Api\MassReplace;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
@@ -22,11 +22,11 @@ use SPHERE\Common\Window\Error;
 use SPHERE\System\Extension\Extension;
 
 /**
- * Class ApiTransfer
+ * Class ApiMassReplace
  *
  * @package SPHERE\Application\Api\People\Meta
  */
-class ApiTransfer extends Extension implements IApiInterface
+class ApiMassReplace extends Extension implements IApiInterface
 {
     use ApiTrait;
 

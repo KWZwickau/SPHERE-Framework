@@ -1,13 +1,10 @@
 <?php
 
-namespace SPHERE\Application\Api\People\Meta;
+namespace SPHERE\Application\Api\People\Meta\Transfer;
 
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service as ServiceAPP;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person as PersonAPP;
@@ -18,21 +15,17 @@ class Service extends ServiceAPP
 {
 
     /**
-     * @param AbstractField|null $Form
-     * @param null|array         $Meta
-     * @param integer            $PersonId
-     * @param string             $StudentTransferTypeIdentifier
-     * @param TblCompany         $tblCompany
-     * @param TblType            $tblType
-     * @param TblCourse          $tblCourse
-     * @param string             $transferDate
-     * @param string             $Remark
+     * @param integer    $PersonId
+     * @param string     $StudentTransferTypeIdentifier
+     * @param TblCompany $tblCompany
+     * @param TblType    $tblType
+     * @param TblCourse  $tblCourse
+     * @param string     $transferDate
+     * @param string     $Remark
      *
      * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
      */
     public function createTransfer(
-        AbstractField $Form = null,
-        $Meta = null,
         $PersonId,
         $StudentTransferTypeIdentifier,
         $tblCompany = null,
@@ -42,72 +35,14 @@ class Service extends ServiceAPP
         $Remark = ''
     ) {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Meta) {
-            return $Form;
-        }
-
-        if (isset($Meta)) {
-
-            foreach ($Meta as $Category) {
-                foreach ($Category as $Type) {
-                    foreach ($Type as $Field => $Value) {
-                        if ($Field == 'School') {
-                            $tblCompany = Company::useService()->getCompanyById($Value);
-                        }
-                        if ($Field == 'Type') {
-                            $tblType = Type::useService()->getTypeById($Value);
-                        }
-                        if ($Field == 'Course') {
-                            $tblCourse = Course::useService()->getCourseById($Value);
-                        }
-                    }
-                }
-            }
-        }
-
         $tblPerson = PersonAPP::useService()->getPersonById($PersonId);
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier($StudentTransferTypeIdentifier);
         if ($tblPerson && $tblStudentTransferType) {
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if ($tblStudent) {
-                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                    $tblStudentTransferType);
-            } else {
+            if (!$tblStudent) {
                 $tblStudent = $this->createStudent($tblPerson);
             }
         }
-
-        if (isset($tblStudentTransfer) && $tblStudentTransfer) {
-            if ($tblCompany === null) {
-                $tblCompany = $tblStudentTransfer->getServiceTblCompany();
-
-            }
-            if ($tblType === null) {
-                $tblType = $tblStudentTransfer->getServiceTblType();
-            }
-            if ($tblCourse === null) {
-                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-            }
-            if ($transferDate == '') {
-                $transferDate = $tblStudentTransfer->getTransferDate();
-            }
-            if ($Remark == '') {
-                $Remark = $tblStudentTransfer->getRemark();
-            }
-        }
-        if (!$tblCompany && null !== $tblCompany) {
-            $tblCompany = null;
-        }
-        if (!$tblType && null !== $tblType) {
-            $tblType = null;
-        }
-        if (!$tblCourse && null !== $tblCourse) {
-            $tblCourse = null;
-        }
-
 
         if (isset($tblStudent) && $tblStudent) {
             return (new Data($this->getBinding()))->createStudentTransfer(

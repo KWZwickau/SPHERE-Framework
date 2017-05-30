@@ -1,8 +1,8 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student;
 
-use SPHERE\Application\Api\People\Meta\ApiTransfer;
-use SPHERE\Application\Api\People\Meta\MassReplaceTransfer;
+use SPHERE\Application\Api\MassReplace\ApiMassReplace;
+use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -431,36 +431,57 @@ class Frontend extends Extension implements IFrontendInterface
                     ), Panel::PANEL_TYPE_INFO),
                 ), 4),
             )),
+            //ToDO merken der Stelle
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Schulverlauf', array(
-                        ApiTransfer::receiverField((
+                        ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
                             'Aktuelle Schule', array(
-                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
                             ), new Education())
                         ))
-                        .ApiTransfer::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field)
                         .new PullRight((new Link('Massen-Änderung',
-                            ApiTransfer::getEndpoint(), null, array(
-                                ApiTransfer::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                ApiTransfer::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
                                 'PersonId' => $tblPerson->getId(),
                             )))->ajaxPipelineOnClick(
-                            ApiTransfer::pipelineOpen($Field)
-                        ))
-                    ,
-//                        ApiTransfer::receiverModal(),     //ToDO merken der Stelle
-//                        ApiTransfer::receiverForm(
-//                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]'
-//                                , 'Aktuelle Schule', $tblPerson->getId(), 'PROCESS'), 'Aktuelle Schule'),
-//                        ApiTransfer::receiverForm(
-//                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]'
-//                                , 'Aktuelle Schulart', $tblPerson->getId(), 'PROCESS'), 'Aktuelle Schulart'),
-//                        ApiTransfer::receiverForm(
-//                            ApiTransfer::formSchoolSelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]'
-//                                , 'Aktueller Bildungsgang', $tblPerson->getId(), 'PROCESS'), 'Aktueller Bildungsgang'),
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
 
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
+                            'Aktuelle Schulart', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL_TYPE,
+                                'PersonId'                     => $tblPerson->getId(),
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
+                            'Aktueller Bildungsgang', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
+                                'PersonId'                     => $tblPerson->getId(),
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
 //                            'Aktuelle Schule', array(
 //                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
