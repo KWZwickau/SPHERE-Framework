@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Contact\Address\Address;
@@ -359,12 +360,10 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param null $StudentId
-     * @param null $Remove
      *
      * @return Stage|string
      */
-    public function frontendStudentAdd($Id = null, $StudentId = null, $Remove = null)
+    public function frontendStudentAdd($Id = null)
     {
 
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
@@ -372,286 +371,20 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage = new Stage('Schüler', 'hinzufügen');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
             $Stage->setContent(new Warning('Klasse nicht gefunden'));
-            return $Stage.new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+
+            return $Stage . new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
 
         $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
-
         $Stage = new Stage('Schüler', $Title);
-//            $Stage->addButton(new Backward());
+
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
 
-        if (!$tblDivision->getTblLevel()) {
-            $Stage->setMessage('Liste aller Schüler im Schuljahr '.( $tblDivision->getServiceTblYear()
-                    ? $tblDivision->getServiceTblYear()->getDisplayName() : '' ).'.');
-
-            if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
-                if ($Remove) {
-                    Division::useService()->removeStudentToDivision($tblDivision, $tblPerson);
-                    $Stage->setContent(
-                        new Success('Schüler erfolgreich entfernt')
-                        .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
-                            array('Id' => $Id))
-                    );
-                    return $Stage;
-                } else {
-                    Division::useService()->addStudentToDivision($tblDivision, $tblPerson);
-                    $Stage->setContent(
-                        new Success('Schüler erfolgreich hinzugefügt')
-                        .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
-                            array('Id' => $Id))
-                    );
-                    return $Stage;
-                }
-            }
-            $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-            $tblDivisionStudentAll = false;
-            if ($tblGroup) {
-
-                $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
-                if ($tblDivision->getTblLevel()) {
-                    if ($tblDivision->getServiceTblYear()) {
-                        $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
-                        if ($tblStudentList) {
-                            if ($tblDivisionList) {
-                                foreach ($tblDivisionList as $tblSingleDivision) {
-                                    $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
-                                    if ($tblDivision->getTblLevel() && $tblDivisionStudentList) {
-                                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                                            function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
-
-                                                return $tblPersonA->getId() - $tblPersonB->getId();
-                                            });
-                                    }
-                                }
-                                if (is_array($tblStudentList)) {
-                                    $tblDivisionStudentAll = $tblStudentList;
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-                    if ($tblDivisionStudentList) {
-                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                            function (TblPerson $invoiceA, TblPerson $invoiceB) {
-
-                                return $invoiceA->getId() - $invoiceB->getId();
-                            });
-                    }
-                    if (is_array($tblStudentList)) {
-                        $tblDivisionStudentAll = $tblStudentList;
-                    }
-                }
-
-            }
-        } else {
-            if ($tblDivision->getTblLevel()->getIsChecked()) {
-                $Stage->setMessage('Liste aller Schüler die im Schuljahr '.( $tblDivision->getServiceTblYear()
-                        ? $tblDivision->getServiceTblYear()->getDisplayName() : '' )
-                    .' noch keiner Klasse zugeordnet sind.');
-            } else {
-                $Stage->setMessage('Liste aller Schüler im Schuljahr '.( $tblDivision->getServiceTblYear()
-                        ? $tblDivision->getServiceTblYear()->getDisplayName() : '' ).'.');
-            }
-
-            if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
-                if ($Remove) {
-                    Division::useService()->removeStudentToDivision($tblDivision, $tblPerson);
-                    $Stage->setContent(
-                        new Success('Schüler erfolgreich entfernt')
-                        .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
-                            array('Id' => $Id))
-                    );
-                    return $Stage;
-                } else {
-                    Division::useService()->addStudentToDivision($tblDivision, $tblPerson);
-                    $Stage->setContent(
-                        new Success('Schüler erfolgreich hinzugefügt')
-                        .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
-                            array('Id' => $Id))
-                    );
-                    return $Stage;
-                }
-            }
-            $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-            $tblDivisionStudentAll = false;
-            if ($tblGroup) {
-
-                $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
-                $IsChecked = $tblDivision->getTblLevel()->getIsChecked();
-                if (!$IsChecked) {
-                    if ($tblDivision->getServiceTblYear()) {
-                        $tblYear = $tblDivision->getServiceTblYear();
-                        $tblYearAll = Term::useService()->getYearAll();
-                        $tblDivisionList = array();
-                        if ($tblYearAll) {
-                            foreach ($tblYearAll as $Year) {
-                                if ($tblYear->getYear() == $Year->getYear()) {
-                                    $DivisionList = Division::useService()->getDivisionByYear($Year);
-                                    if (is_array($DivisionList)) {
-                                        $tblDivisionList = array_merge($tblDivisionList, $DivisionList);
-                                    }
-                                }
-                            }
-                        }
-//                            $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
-                        if ($tblStudentList) {
-
-                            if ($tblDivisionList) {
-                                /** @var TblDivision $tblSingleDivision */
-                                foreach ($tblDivisionList as $tblSingleDivision) {
-                                    if ($tblSingleLevel = $tblSingleDivision->getTblLevel()) {
-                                        $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
-                                        if (!$tblSingleLevel->getIsChecked() && $tblDivisionStudentList) {
-                                            $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                                                function (TblPerson $invoiceA, TblPerson $invoiceB) {
-
-                                                    return $invoiceA->getId() - $invoiceB->getId();
-                                                });
-                                        }
-                                    }
-                                }
-                                if (is_array($tblStudentList)) {
-                                    $tblDivisionStudentAll = $tblStudentList;
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-                    if ($tblDivisionStudentList) {
-                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                            function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
-
-                                return $tblPersonA->getId() - $tblPersonB->getId();
-                            });
-                    }
-                    if (is_array($tblStudentList)) {
-                        $tblDivisionStudentAll = $tblStudentList;
-                    }
-                }
-
-            }
-        }
-
-        $tblDivisionStudentActive = Division::useService()->getStudentAllByDivision($tblDivision);
-
-        if (is_array($tblDivisionStudentActive) && is_array($tblDivisionStudentAll)) {
-            $tblStudentAvailable = array_udiff($tblDivisionStudentAll, $tblDivisionStudentActive,
-                function (TblPerson $ObjectA, TblPerson $ObjectB) {
-
-                    return $ObjectA->getId() - $ObjectB->getId();
-                }
-            );
-        } else {
-            $tblStudentAvailable = $tblDivisionStudentAll;
-        }
-
-        /** @noinspection PhpUnusedParameterInspection */
-        if (is_array($tblDivisionStudentActive)) {
-            $count = 1;
-            array_walk($tblDivisionStudentActive, function (TblPerson &$Entity) use (&$Id, &$count) {
-                $Entity->Number = $count++;
-                $Entity->Name = $Entity->getLastFirstName();
-                $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($Entity);
-                $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                if (!empty( $tblAddressAll )) {
-                    $tblAddress = current($tblAddressAll)->getGuiString();
-                } else {
-                    $tblAddress = false;
-                }
-                if (isset( $tblAddress ) && $tblAddress) {
-                    $Entity->Address = $tblAddress;
-                } else {
-                    $Entity->Address = new WarningText('Keine Adresse hinterlegt');
-                }
-
-                $tblCourse = Student::useService()->getCourseByPerson($Entity);
-                $Entity->Course = $tblCourse ? $tblCourse->getName() : '';
-
-                /** @noinspection PhpUndefinedFieldInspection */
-                $Entity->Option = new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                        '/Education/Lesson/Division/Student/Add', new Minus(),
-                        array(
-                            'Id'        => $Id,
-                            'StudentId' => $Entity->getId(),
-                            'Remove'    => true
-                        ))
-                );
-            });
-        }
-
-        /** @noinspection PhpUnusedParameterInspection */
-        if (isset( $tblDivisionStudentAll ) && !empty( $tblDivisionStudentAll )) {
-            array_walk($tblDivisionStudentAll, function (TblPerson &$Entity) use ($Id) {
-
-                $Entity->Name = $Entity->getLastFirstName();
-                $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($Entity);
-                $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                if (!empty( $tblAddressAll )) {
-                    $tblAddress = current($tblAddressAll)->getGuiString();
-                } else {
-                    $tblAddress = false;
-                }
-                if (isset( $tblAddress ) && $tblAddress) {
-                    $Entity->Address = $tblAddress;
-                } else {
-                    $Entity->Address = new WarningText('Keine Adresse hinterlegt');
-                }
-
-                $tblCourse = Student::useService()->getCourseByPerson($Entity);
-                $Entity->Course = $tblCourse ? $tblCourse->getName() : '';
-
-                /** @noinspection PhpUndefinedFieldInspection */
-                $Entity->Option = new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                        '/Education/Lesson/Division/Student/Add', new Plus(),
-                        array(
-                            'Id'        => $Id,
-                            'StudentId' => $Entity->getId()
-                        ))
-                );
-            });
-        }
-
         $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Title('Ausgewählt', 'Schüler'),
-                            ( empty( $tblDivisionStudentActive )
-                                ? new Warning('Keine Schüler zugewiesen')
-                                : new TableData($tblDivisionStudentActive, null,
-                                    array(
-                                        'Number'  => '#',
-                                        'Name'    => 'Schüler',
-                                        'Address' => 'Adresse',
-                                        'Course'  => 'Bildungsgang',
-                                        'Option'  => ''
-                                    ))
-                            )
-                        ), 6),
-                        new LayoutColumn(array(
-                            new Title('Verfügbar', 'Schüler'),
-                            ( empty( $tblStudentAvailable )
-                                ? new Info('Keine weiteren Schüler verfügbar')
-                                : new TableData($tblStudentAvailable, null,
-                                    array(
-                                        'Name'    => 'Schüler',
-                                        'Address' => 'Adresse',
-                                        'Course'  => 'Bildungsgang',
-                                        'Option'  => ' '
-                                    ))
-                            )
-                        ), 6)
-                    ))
-                )
-            )
+            StudentSelect::receiverUsed(StudentSelect::tablePerson($tblDivision->getId()))
         );
+
         return $Stage;
     }
 
