@@ -2,11 +2,13 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\Frontend as FrontendScoreRule;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
@@ -783,8 +785,13 @@ class Frontend extends FrontendScoreRule
 
         // Mindestnotenanzahlen
         if ($tblDivisionSubject) {
-            $minimumGradeCountPanel = $this->getMinimumGradeCountPanel($tblDivisionSubject);
             $tblMinimumGradeCountList = Gradebook::useService()->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject);
+            $minimumGradeCountPanel = $this->getMinimumGradeCountPanel($tblMinimumGradeCountList);
+            if ($tblMinimumGradeCountList) {
+                foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
+                    $MinimumGradeCountSortedList[$tblMinimumGradeCount->getPeriod()][] = $tblMinimumGradeCount;
+                }
+            }
         } else {
             $minimumGradeCountPanel = false;
             $tblMinimumGradeCountList = false;
@@ -819,12 +826,15 @@ class Frontend extends FrontendScoreRule
         $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
         $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
+        $countPeriod = 0;
+        $countMinimumGradeCount = 1;
         // Tabellenkopf mit Test-Code und Datum erstellen
         if ($tblPeriodList) {
             /** @var TblPeriod $tblPeriod */
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($tblDivisionSubject->getServiceTblSubject()) {
                     $count = 0;
+                    $countPeriod++;
                     $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
                         $tblDivision,
                         $tblDivisionSubject->getServiceTblSubject(),
@@ -870,6 +880,13 @@ class Frontend extends FrontendScoreRule
                         }
                         $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
                         $count++;
+                        if (isset($MinimumGradeCountSortedList[$countPeriod])) {
+                            /**@var TblMinimumGradeCount $tblMinimumGradeCount **/
+                            foreach ($MinimumGradeCountSortedList[$countPeriod] as $tblMinimumGradeCount) {
+                                $columnDefinition['MinimumGradeCount' . $tblMinimumGradeCount->getId()] = '#' . $countMinimumGradeCount++;
+                                $count++;
+                            }
+                        }
                         $periodListCount[$tblPeriod->getId()] = $count;
                     } else {
                         $periodListCount[$tblPeriod->getId()] = 1;
@@ -878,9 +895,9 @@ class Frontend extends FrontendScoreRule
                 }
             }
             $columnDefinition['YearAverage'] = '&#216;';
-            if ($tblMinimumGradeCountList) {
-                $countMinimumGradeCount = 1;
-                foreach ($tblMinimumGradeCountList as $item) {
+            if (isset($MinimumGradeCountSortedList[SelectBoxItem::PERIOD_FULL_YEAR])) {
+                /** @var TblMinimumGradeCount $item */
+                foreach ($MinimumGradeCountSortedList[SelectBoxItem::PERIOD_FULL_YEAR] as $item) {
                     $columnDefinition['MinimumGradeCount' . $item->getId()] = '#' . $countMinimumGradeCount++;
                 }
             }
@@ -898,9 +915,11 @@ class Frontend extends FrontendScoreRule
         if ($tblStudentList) {
 
             $count = 1;
+            $countPeriod = 0;
             // Ermittlung der Zensuren zu den Schülern
             /** @var TblPerson $tblPerson */
             foreach ($tblStudentList as $tblPerson) {
+                $countPeriod++;
                 $data = array();
                 $data['Number'] = $count % 5 == 0 ? new Bold($count) : $count;
                 $count++;
@@ -2692,19 +2711,19 @@ class Frontend extends FrontendScoreRule
     }
 
     /**
-     * @param TblDivisionSubject $tblDivisionSubject
+     * @param $tblMinimumGradeCountList
      *
      * @return false|Panel
      */
-    private function getMinimumGradeCountPanel(TblDivisionSubject $tblDivisionSubject)
+    private function getMinimumGradeCountPanel($tblMinimumGradeCountList)
     {
 
-        $tblMinimumGradeCountList = Gradebook::useService()->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject);
         if ($tblMinimumGradeCountList) {
 
             $minimumGradeCountContent = array();
             $count = 1;
 
+            /** @var TblMinimumGradeCount $tblMinimumGradeCount */
             foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
 
                 $minimumGradeCountContent[] = array(
@@ -2713,6 +2732,7 @@ class Frontend extends FrontendScoreRule
                     'Level' => $tblMinimumGradeCount->getLevelDisplayName(),
                     'Subject' => $tblMinimumGradeCount->getSubjectDisplayName(),
                     'GradeType' => $tblMinimumGradeCount->getGradeTypeDisplayName(),
+                    'Period' => $tblMinimumGradeCount->getPeriodDisplayName(),
                     'Count' => $tblMinimumGradeCount->getCount()
                 );
             }
@@ -2728,6 +2748,7 @@ class Frontend extends FrontendScoreRule
                             'Level' => 'Klassenstufe',
                             'Subject' => 'Fach',
                             'GradeType' => 'Zensuren-Typ',
+                            'Period' => 'Zeitraum',
                             'Count' => 'Anzahl',
                         ),
                         array(
