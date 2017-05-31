@@ -12,9 +12,8 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
-use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -31,9 +30,10 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Error;
@@ -172,155 +172,40 @@ class ApiMassReplace extends Extension implements IApiInterface
         $Field = unserialize(base64_decode($modalField));
         $CloneField = $this->cloneField($Field, 'CloneField', 'Auswahl/Eingabe');
 
-        $Pile = new Pile(Pile::JOIN_TYPE_INNER);
-        $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
-            null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-        );
-        $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(),
-            ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-        );
-        $Pile->addPile((new ViewDivisionStudent())->getViewService(), new ViewDivisionStudent(),
-            ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
-        );
-        $Pile->addPile((new ViewYear())->getViewService(), new ViewYear(),
-            ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
-        );
+        $TableContent = $this->getStudentFilterResult($Year, $Division);
 
-        $Result = '';
-
-        if (isset($Year) && $Year && isset($Pile)) {
-            // Preparation Filter
-            array_walk($Year, function (&$Input) {
-
-                if (!empty($Input)) {
-                    $Input = explode(' ', $Input);
-                    $Input = array_filter($Input);
-                } else {
-                    $Input = false;
-                }
-            });
-            $Year = array_filter($Year);
-//            // Preparation FilterPerson
-//            $Filter['Person'] = array();
-
-            // Preparation $FilterType
-            if (isset($Division) && $Division) {
-                array_walk($Division, function (&$Input) {
-
-                    if (!empty($Input)) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
-                    }
-                });
-                $Division = array_filter($Division);
-            } else {
-                $Division = array();
-            }
-
-            $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-            $Result = $Pile->searchPile(array(
-                0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())),
-                1 => array(),   // empty Person search
-                2 => $Division,
-                3 => $Year
-            ));
-        }
-
-        $SearchResult = array();
-        if ($Result != '') {
-            foreach ($Result as $Index => $Row) {
-                /** @var array $DataPerson */
-                $DataPerson = $Row[1]->__toArray();
-                /** @var TblPerson $tblPerson */
-                $Person = $Row[1]->__toArray();
-                if (isset($Person['Id'])) {
-                    $tblPerson = Person::useService()->getPersonById($Person['Id']);
-                    if ($tblPerson) {
-                        $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
-                        if ($tblProspect) {
-                            $tblProspectReservation = $tblProspect->getTblProspectReservation();
-                            if ($tblProspectReservation) {
-                                $DataPerson['ProspectYear'] = $tblProspectReservation->getReservationYear();
-                                $DataPerson['ProspectDivision'] = $tblProspectReservation->getReservationDivision();
-                            }
-                        }
-                    }
-                }
-//                $tblDivisionStudent = $Row[2]->getTblDivisionStudent();
-//                if ($tblDivisionStudent) {
-//                    $tblDivision = $tblDivisionStudent->getTblDivision();
-//                    if ($tblDivision) {
-//                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($tblDivision->getDisplayName());
-//                    } else {
-//                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-//                    }
-//                } else {
-//                    $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-//                }
+//        $Test = array();
+//        if (!empty($TableContent)) {
+//            foreach ($TableContent as $TableContentRow) {
+////                $Test[] = $SearchResultRow;
 //
-//                /** @noinspection PhpUndefinedFieldInspection */
-//                $DataPerson['Exchange'] = (string)new Exchange(Exchange::EXCHANGE_TYPE_PLUS, array(
-//                    'Id'       => $Id,
-//                    'PersonId' => $DataPerson['TblPerson_Id']
-//                ));
-                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Name'] = false;
-                if ($tblPerson) {
-                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-//                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-//                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                }
-//                /** @noinspection PhpUndefinedFieldInspection */
-//                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-//                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-//                    /** @noinspection PhpUndefinedFieldInspection */
-//                    $DataPerson['Address'] = $tblAddress->getGuiString();
-//                }
-//                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-//                if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-//                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-//                }
-//
-                if (!isset($DataPerson['ProspectYear'])) {
-                    $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
-                }
-                if (!isset($DataPerson['ProspectDivision'])) {
-                    $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
-                }
+//                $Test[] = $TableContentRow['TblPerson_Id'].': '.$TableContentRow['Level'].'-'.$TableContentRow['Division']
+//                    .' -> '.$TableContentRow['TblPerson_FirstName'].', '.$TableContentRow['TblPerson_LastName'];
+//            }
+//        }
 
-                // ignore duplicated Person
-                if ($DataPerson['Name']) {
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                        $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
-                    }
-                }
-            }
-        }
+        return new Well($this->receiverFilter('Filter', $this->getStudentFilter($modalField))).
+            new Well(
+                new TableData($TableContent, null,
+                    array(
+                        'Name'          => 'Name',
+                        'StudentNumber' => 'Schülernummer',
+                        'Level'         => 'Stufe',
+                        'Division'      => 'Klasse',
+                        'Course'        => 'Bildungsgang',
+                    ), null).
+//            new Code(print_r($Test, true)).
 
-        $Test = array();
-        if (!empty($SearchResult)) {
-            foreach ($SearchResult as $SearchResultRow) {
-                $Test[] = $SearchResultRow['TblPerson_Id'].': '.$SearchResultRow['TblPerson_FirstName'].', '.
-                    $SearchResultRow['TblPerson_LastName'];
-            }
-        }
-
-        return
-            $this->receiverFilter('Filter', $this->getStudentFilter($modalField)).
-            new Code(print_r($Test, true)).
-            (new Form(
-            new FormGroup(
-                new FormRow(
-                    new FormColumn(array(
-                        $CloneField
-                    ))
-                )
-            )
-            , new Primary('Ändern'), '', $this->getGlobal()->POST))
-            ->ajaxPipelineOnSubmit(self::pipelineSave($Field));
+                (new Form(
+                    new FormGroup(
+                        new FormRow(
+                            new FormColumn(
+                                $CloneField
+                            )
+                        )
+                    )
+                    , new Primary('Ändern'), '', $this->getGlobal()->POST))
+                    ->ajaxPipelineOnSubmit(self::pipelineSave($Field)));
     }
 
     /**
@@ -380,6 +265,139 @@ class ApiMassReplace extends Extension implements IApiInterface
         return $NewField;
     }
 
+    /**
+     * @param null $Year
+     * @param null $Division
+     *
+     * @return array $SearchResult
+     */
+    private function getStudentFilterResult($Year = null, $Division = null)
+    {
+        $Pile = new Pile(Pile::JOIN_TYPE_INNER);
+        $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
+            null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
+        );
+        $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(),
+            ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
+        );
+        $Pile->addPile((new ViewDivisionStudent())->getViewService(), new ViewDivisionStudent(),
+            ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
+        );
+        $Pile->addPile((new ViewYear())->getViewService(), new ViewYear(),
+            ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
+        );
+
+        $Result = '';
+
+        if (isset($Year) && $Year && isset($Pile)) {
+            // Preparation Filter
+            array_walk($Year, function (&$Input) {
+
+                if (!empty($Input)) {
+                    $Input = explode(' ', $Input);
+                    $Input = array_filter($Input);
+                } else {
+                    $Input = false;
+                }
+            });
+            $Year = array_filter($Year);
+//            // Preparation FilterPerson
+//            $Filter['Person'] = array();
+
+            // Preparation $FilterType
+            if (isset($Division) && $Division) {
+                array_walk($Division, function (&$Input) {
+
+                    if (!empty($Input)) {
+                        $Input = explode(' ', $Input);
+                        $Input = array_filter($Input);
+                    } else {
+                        $Input = false;
+                    }
+                });
+                $Division = array_filter($Division);
+            } else {
+                $Division = array();
+            }
+
+            $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+            $Result = $Pile->searchPile(array(
+                0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())),
+                1 => array(),   // empty Person search
+                2 => $Division,
+                3 => $Year
+            ));
+        }
+
+        $SearchResult = array();
+        if ($Result != '') {
+            /**
+             * @var int                                $Index
+             * @var ViewPerson[]|ViewDivisionStudent[] $Row
+             */
+            foreach ($Result as $Index => $Row) {
+                /** @var ViewPerson $DataPerson */
+                $DataPerson = $Row[1]->__toArray();
+                /** @var ViewDivisionStudent $DivisionStudent */
+                $DivisionStudent = $Row[2]->__toArray();
+                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Name'] = false;
+                $DataPerson['Course'] = '';
+                if ($tblPerson) {
+                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
+//                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                    if ($tblStudent) {
+                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblStudentTransferType);
+                        if ($tblStudentTransfer && $tblStudentTransfer->getServiceTblCourse()) {
+                            $DataPerson['Course'] = $tblStudentTransfer->getServiceTblCourse()->getName();
+                        }
+                    }
+                }
+                $DataPerson['Division'] = '';
+                $DataPerson['Level'] = '';
+
+                $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
+                if ($tblDivision) {
+                    $DataPerson['Division'] = $tblDivision->getName();
+                    $tblLevel = $tblDivision->getTblLevel();
+                    if ($tblLevel) {
+                        $DataPerson['Level'] = $tblLevel->getName();
+                    }
+                }
+//                /** @noinspection PhpUndefinedFieldInspection */
+//                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
+//                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
+//                    /** @noinspection PhpUndefinedFieldInspection */
+//                    $DataPerson['Address'] = $tblAddress->getGuiString();
+//                }
+                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
+                if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                }
+
+                if (!isset($DataPerson['ProspectYear'])) {
+                    $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
+                }
+                if (!isset($DataPerson['ProspectDivision'])) {
+                    $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
+                }
+
+                // ignore duplicated Person
+                if ($DataPerson['Name']) {
+                    if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
+                        $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
+                    }
+                }
+            }
+        }
+
+        return $SearchResult;
+    }
+
     public function showFilter($modalField)
     {
 
@@ -392,6 +410,7 @@ class ApiMassReplace extends Extension implements IApiInterface
     /**
      * @param string $ServiceClass
      * @param string $ServiceMethod
+     *
      * @return mixed
      */
     public function saveModal(
@@ -399,8 +418,8 @@ class ApiMassReplace extends Extension implements IApiInterface
         $ServiceMethod
     ) {
 
-        $Reflection = new \ReflectionClass( $ServiceClass );
-        $MethodParameterList = $Reflection->getMethod( $ServiceMethod )->getParameters();
+        $Reflection = new \ReflectionClass($ServiceClass);
+        $MethodParameterList = $Reflection->getMethod($ServiceMethod)->getParameters();
 
         // Read Parent Constructor and create Args List
         $Constructor = array();
@@ -409,7 +428,7 @@ class ApiMassReplace extends Extension implements IApiInterface
          * @var \ReflectionParameter $Parameter
          */
         foreach ($MethodParameterList as $Position => $Parameter) {
-            if( array_key_exists( $Parameter->getName(), $this->getGlobal()->POST ) ) {
+            if (array_key_exists($Parameter->getName(), $this->getGlobal()->POST)) {
                 $Constructor[$Position] = $this->getGlobal()->POST[$Parameter->getName()];
             } else {
                 $Constructor[$Position] = null;
@@ -417,7 +436,7 @@ class ApiMassReplace extends Extension implements IApiInterface
         }
 
         $ServiceClass = $Reflection->newInstanceWithoutConstructor();
-        return call_user_func_array( array( $ServiceClass, $ServiceMethod ), $Constructor );
+        return call_user_func_array(array($ServiceClass, $ServiceMethod), $Constructor);
     }
 
     /**
@@ -445,11 +464,6 @@ class ApiMassReplace extends Extension implements IApiInterface
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
-//        $tblYear = null;
-//        $tblYearList = Term::useService()->getYearByNow();
-//        if($tblYearList){
-//            $tblYear = current($tblYearList);
-//        }
 
 //        if($CloneField != null){
 //            parse_str($Field->getName().'='.$CloneField, $NewValue);

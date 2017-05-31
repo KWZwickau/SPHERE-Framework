@@ -8,6 +8,8 @@ use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
@@ -360,6 +362,15 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSchoolCourseAll = array(new TblCourse());
         }
 
+        $Year['TblYear_Id'] = '';
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($tblYearList) {
+            $tblYear = current($tblYearList);
+            /** @var TblYear $tblYear */
+            if ($tblYear) {
+                $Year['TblYear_Id'] = $tblYear->getId();
+            }
+        }
         $tblStudentTransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
         $tblStudentTransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
         $tblStudentTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
@@ -445,7 +456,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
-                                'PersonId' => $tblPerson->getId(),
+                                'PersonId'                     => $tblPerson->getId(),
+                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
@@ -462,6 +474,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL_TYPE,
                                 'PersonId'                     => $tblPerson->getId(),
+                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
@@ -478,6 +491,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
                                 'PersonId'                     => $tblPerson->getId(),
+                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
@@ -532,15 +546,6 @@ class Frontend extends Extension implements IFrontendInterface
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Meta']['MedicalRecord'] )) {
-//                $tblYear = false;
-//                $tblYearList = Term::useService()->getYearByNow();
-//                if($tblYearList){
-//                    $tblYear = current($tblYearList);
-//                }
-//                /** @var TblYear $tblYear */
-//                if($tblYear){
-//                    $Global->POST['Year']['TblYear_Id'] = $tblYear->getId();
-//                }
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -715,7 +720,6 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextField('Meta[Transport][Station][Exit]', 'Ausstiegshaltestelle',
                             'Ausstiegshaltestelle', new StopSign()),
                         new TextArea('Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
-//                        new HiddenField('Year[TblYear_Id]'),
                     ), Panel::PANEL_TYPE_INFO),
                     $LiberationPanel
                 ), 3),
