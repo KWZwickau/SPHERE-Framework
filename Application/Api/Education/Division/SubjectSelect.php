@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\System\Extension\Extension;
 
@@ -107,7 +108,7 @@ class SubjectSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $left = new TableData($Table, null, array(
+                $left = new TableData($Table, new Title('Ausgewählte', 'Fächer'), array(
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
@@ -141,7 +142,7 @@ class SubjectSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $right = new TableData($TableAvailable, null, array(
+                $right = new TableData($TableAvailable, new Title('Verfügbare', 'Fächer'), array(
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',

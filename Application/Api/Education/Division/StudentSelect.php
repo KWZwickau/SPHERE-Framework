@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\System\Extension\Extension;
 
@@ -197,7 +198,7 @@ class StudentSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $left = new TableData($Table, null, array(
+                $left = new TableData($Table, new Title('Ausgewählte', 'Schüler'), array(
                     'Number'  => '#',
                     'Name' => 'Name',
                     'Address' => 'Adresse',
@@ -232,7 +233,7 @@ class StudentSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $right = new TableData($TableAvailable, null, array(
+                $right = new TableData($TableAvailable, new Title('Verfügbare', 'Schüler'), array(
                     'Name' => 'Name',
                     'Address' => 'Adresse',
                     'Course' => 'Bildungsgang',
