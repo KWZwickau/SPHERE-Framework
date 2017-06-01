@@ -24,18 +24,27 @@ use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Error;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
@@ -61,7 +70,7 @@ class ApiMassReplace extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('openModal');
-        $Dispatcher->registerMethod('showFilter');
+//        $Dispatcher->registerMethod('showFilter');
         $Dispatcher->registerMethod('saveModal');
         $Dispatcher->registerMethod('closeModal');
 
@@ -116,19 +125,19 @@ class ApiMassReplace extends Extension implements IApiInterface
         return $Pipeline;
     }
 
-    public static function pipelineFilter(AbstractField $Field, $Name, $Content)
-    {
-        $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverFilter($Name, $Content), self::getEndpoint());
-        $Emitter->setGetPayload(array(
-            self::API_TARGET => 'showFilter'
-        ));
-        $Emitter->setPostPayload(array(
-            'modalField' => base64_encode(serialize($Field))
-        ));
-        $Pipeline->appendEmitter($Emitter);
-        return $Pipeline;
-    }
+//    public static function pipelineFilter(AbstractField $Field, $Name, $Content)
+//    {
+//        $Pipeline = new Pipeline();
+//        $Emitter = new ServerEmitter(self::receiverFilter($Name, $Content), self::getEndpoint());
+//        $Emitter->setGetPayload(array(
+//            self::API_TARGET => 'showFilter'
+//        ));
+//        $Emitter->setPostPayload(array(
+//            'modalField' => base64_encode(serialize($Field))
+//        ));
+//        $Pipeline->appendEmitter($Emitter);
+//        return $Pipeline;
+//    }
 
     public static function pipelineSave(AbstractField $Field)
     {
@@ -162,17 +171,18 @@ class ApiMassReplace extends Extension implements IApiInterface
      * @param AbstractField $modalField
      * @param null          $Year
      * @param null          $Division
+     * @param null          $PersonId
      *
      * @return Layout|string
      */
-    public function openModal($modalField, $Year = null, $Division = null)
+    public function openModal($modalField, $Year = null, $Division = null, $PersonId = null)
     {
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
         $CloneField = $this->cloneField($Field, 'CloneField', 'Auswahl/Eingabe');
 
-        $TableContent = $this->getStudentFilterResult($Year, $Division);
+        $TableContent = $this->getStudentFilterResult($Year, $Division, $PersonId);
 
 //        $Test = array();
 //        if (!empty($TableContent)) {
@@ -183,28 +193,86 @@ class ApiMassReplace extends Extension implements IApiInterface
 //                    .' -> '.$TableContentRow['TblPerson_FirstName'].', '.$TableContentRow['TblPerson_LastName'];
 //            }
 //        }
+        $initialPersonContent = array();
+        $tblPerson = ($PersonId != null ? Person::useService()->getPersonById($PersonId) : false);
+        if ($tblPerson) {
+            $item['Name'] = '';
+            $item['Course'] = '';
+            $item['Check'] = 'feels bad man';
+            if ($tblPerson) {
+                $item['Check'] = (new CheckBox('InitalPerson', ' ', 1))->setChecked()->setDisabled();
+                $item['Name'] = $tblPerson->getLastFirstName();
+//                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                if ($tblStudent) {
+                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblStudentTransferType);
+                    if ($tblStudentTransfer && $tblStudentTransfer->getServiceTblCourse()) {
+                        $item['Course'] = $tblStudentTransfer->getServiceTblCourse()->getName();
+                    }
+                }
+            }
+            $item['LevelDivision'] = '';
+            $item['LevelDivision'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+
+            $item['StudentNumber'] = new Small(new Muted('-NA-'));
+            if (isset($tblStudent) && $tblStudent) {
+                $item['StudentNumber'] = $tblStudent->getIdentifier();
+            }
+
+            array_push($initialPersonContent, $item);
+        }
 
         return new Well($this->receiverFilter('Filter', $this->getStudentFilter($modalField))).
-            new Well(
-                new TableData($TableContent, null,
-                    array(
-                        'Name'          => 'Name',
-                        'StudentNumber' => 'Schülernummer',
-                        'Level'         => 'Stufe',
-                        'Division'      => 'Klasse',
-                        'Course'        => 'Bildungsgang',
-                    ), null).
-//            new Code(print_r($Test, true)).
-
-                (new Form(
-                    new FormGroup(
-                        new FormRow(
-                            new FormColumn(
-                                $CloneField
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Aktuelle Person',
+                                new TableData($initialPersonContent, null,
+                                    array(
+                                        'Check'         => 'Auswahl',
+                                        'Name'          => 'Name',
+                                        'StudentNumber' => 'Schülernummer',
+                                        'LevelDivision' => 'aktuelle Klasse(n)',
+                                        'Course'        => 'Bildungsgang',
+                                    ), null),
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     )
+                ))
+            ).
+//            new Code(print_r($Test, true)).
+            new Well(
+                (new Form(
+                    new FormGroup(
+                        new FormRow(array(
+                            new FormColumn(
+                                new Panel('Weitere Personen:',
+                                    (!empty($TableContent)
+                                        ? new TableData($TableContent, null,
+                                            array(
+                                                'Check'         => 'Auswahl',
+                                                'Name'          => 'Name',
+                                                'StudentNumber' => 'Schülernummer',
+                                                'Level'         => 'Stufe',
+                                                'Division'      => 'Klasse',
+                                                'Course'        => 'Bildungsgang',
+                                            ), null)
+                                        : new Warning('Keine Personen gefunden '.
+                                            new ToolTip(new Info(), 'Das Schuljahr ist ein Pflichtfeld'))),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            ),
+                            new FormColumn(
+                                $CloneField
+                            )
+                        ))
+                    )
                     , new Primary('Ändern'), '', $this->getGlobal()->POST))
+//                    ->ajaxPipelineOnSubmit(self::pipelineOpen($Field)));
                     ->ajaxPipelineOnSubmit(self::pipelineSave($Field)));
     }
 
@@ -268,10 +336,11 @@ class ApiMassReplace extends Extension implements IApiInterface
     /**
      * @param null $Year
      * @param null $Division
+     * @param null $PersonId
      *
      * @return array $SearchResult
      */
-    private function getStudentFilterResult($Year = null, $Division = null)
+    private function getStudentFilterResult($Year = null, $Division = null, $PersonId = null)
     {
         $Pile = new Pile(Pile::JOIN_TYPE_INNER);
         $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
@@ -289,7 +358,7 @@ class ApiMassReplace extends Extension implements IApiInterface
 
         $Result = '';
 
-        if (isset($Year) && $Year && isset($Pile)) {
+        if (isset($Year) && $Year['TblYear_Id'] != 0 && isset($Pile)) {
             // Preparation Filter
             array_walk($Year, function (&$Input) {
 
@@ -336,15 +405,23 @@ class ApiMassReplace extends Extension implements IApiInterface
              * @var ViewPerson[]|ViewDivisionStudent[] $Row
              */
             foreach ($Result as $Index => $Row) {
+
                 /** @var ViewPerson $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
+                if ($PersonId == $DataPerson['TblPerson_Id']) {
+                    continue;
+                }
                 /** @var ViewDivisionStudent $DivisionStudent */
                 $DivisionStudent = $Row[2]->__toArray();
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
                 /** @noinspection PhpUndefinedFieldInspection */
                 $DataPerson['Name'] = false;
                 $DataPerson['Course'] = '';
+                $DataPerson['Check'] = '';
                 if ($tblPerson) {
+                    $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
+                        $tblPerson->getId()
+                        , array($tblPerson->getId())))->setChecked();
                     $DataPerson['Name'] = $tblPerson->getLastFirstName();
 //                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -398,14 +475,14 @@ class ApiMassReplace extends Extension implements IApiInterface
         return $SearchResult;
     }
 
-    public function showFilter($modalField)
-    {
-
-        /** @var AbstractField $Field */
-        $Field = unserialize(base64_decode($modalField));
-
-        return $this->getStudentFilter($Field);
-    }
+//    public function showFilter($modalField)
+//    {
+//
+//        /** @var AbstractField $Field */
+//        $Field = unserialize(base64_decode($modalField));
+//
+//        return $this->getStudentFilter($Field);
+//    }
 
     /**
      * @param string $ServiceClass
@@ -473,31 +550,25 @@ class ApiMassReplace extends Extension implements IApiInterface
 //        }
 
         return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(array(
-                        new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr',
-                            array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))),
-                    ), 4),
-                    new FormColumn(array(
-                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
-                            array('{{ Name }} {{ serviceTblType.Name }}' => Division::useService()->getLevelAll()))
-                    ), 4),
-                    new FormColumn(array(
-                        new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
-                            'Klasse: Gruppe',
-                            array('Name' => Division::useService()->getDivisionAll()))
-                    ), 4),
-                )),
-//                new FormRow(array(
-//                    new FormColumn(array(
-//                        new TextField('Filter['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname')
-//                    ), 4),
-//                    new FormColumn(array(
-//                        new TextField('Filter['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Person: Nachname', 'Person: Nachname')
-//                    ), 4)
-//                ))
-            ))
-            , new Primary('Filtern'), '', $this->getGlobal()->POST))->ajaxPipelineOnSubmit(self::pipelineOpen($Field));
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(array(
+                            new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new Danger('*'),
+                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))),
+                        ), 4),
+                        new FormColumn(array(
+                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
+                                array('{{ Name }} {{ serviceTblType.Name }}' => Division::useService()->getLevelAll()))
+                        ), 4),
+                        new FormColumn(array(
+                            new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
+                                'Klasse: Gruppe',
+                                array('Name' => Division::useService()->getDivisionAll()))
+                        ), 4),
+                    )),
+                ))
+                , new Primary('Filtern'), '',
+                $this->getGlobal()->POST))->ajaxPipelineOnSubmit(self::pipelineOpen($Field))
+            .new Danger('*'.new Small('Pflichtfeld'));
     }
 }

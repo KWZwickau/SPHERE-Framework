@@ -8,6 +8,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service as ServiceAPP;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person as PersonAPP;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 
@@ -22,6 +23,7 @@ class Service extends ServiceAPP
      * @param TblCourse  $tblCourse
      * @param string     $transferDate
      * @param string     $Remark
+     * @param array      $PersonIdArray
      *
      * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
      */
@@ -32,10 +34,12 @@ class Service extends ServiceAPP
         $tblType = null,
         $tblCourse = null,
         $transferDate = '',
-        $Remark = ''
+        $Remark = '',
+        $PersonIdArray = array()
     ) {
 
         $tblPerson = PersonAPP::useService()->getPersonById($PersonId);
+        $tblStudent = false;
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier($StudentTransferTypeIdentifier);
         if ($tblPerson && $tblStudentTransferType) {
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -44,18 +48,82 @@ class Service extends ServiceAPP
             }
         }
 
-        if (isset($tblStudent) && $tblStudent) {
-            return (new Data($this->getBinding()))->createStudentTransfer(
-                $tblStudent,
-                $tblStudentTransferType,
-                $tblCompany,
-                $tblType,
-                $tblCourse,
-                $transferDate,
-                $Remark);
-        } else {
-            return false;
+//        if (isset($tblStudent) && $tblStudent) {
+//            (new Data($this->getBinding()))->createStudentTransfer(
+//                $tblStudent,
+//                $tblStudentTransferType,
+//                $tblCompany,
+//                $tblType,
+//                $tblCourse,
+//                $transferDate,
+//                $Remark);
+//        }
+
+        if ($tblStudent) {
+            if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferType))
+            ) {
+                (new ServiceAPP\Data($this->getBinding()))->updateStudentTransfer(
+                    $tblStudentTransfer,
+                    $tblStudent,
+                    $tblStudentTransferType,
+                    $tblCompany,
+                    $tblType,
+                    $tblCourse,
+                    $transferDate,
+                    $Remark);
+            } else {
+                (new ServiceAPP\Data($this->getBinding()))->createStudentTransfer(
+                    $tblStudent,
+                    $tblStudentTransferType,
+                    $tblCompany,
+                    $tblType,
+                    $tblCourse,
+                    $transferDate,
+                    $Remark);
+            }
         }
+
+        if (!empty($PersonIdArray)) {
+            foreach ($PersonIdArray as $PersonIdList) {
+                $tblStudent = false;
+                $tblPerson = Person::useService()->getPersonById($PersonIdList);
+                if ($tblPerson) {
+                    if ($tblPerson && $tblStudentTransferType) {
+                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                        if (!$tblStudent) {
+                            $tblStudent = $this->createStudent($tblPerson);
+                        }
+                    }
+                }
+                if ($tblStudent) {
+                    if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblStudentTransferType))
+                    ) {
+                        (new ServiceAPP\Data($this->getBinding()))->updateStudentTransfer(
+                            $tblStudentTransfer,
+                            $tblStudent,
+                            $tblStudentTransferType,
+                            $tblCompany,
+                            $tblType,
+                            $tblCourse,
+                            $transferDate,
+                            $Remark);
+                    } else {
+                        (new ServiceAPP\Data($this->getBinding()))->createStudentTransfer(
+                            $tblStudent,
+                            $tblStudentTransferType,
+                            $tblCompany,
+                            $tblType,
+                            $tblCourse,
+                            $transferDate,
+                            $Remark);
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

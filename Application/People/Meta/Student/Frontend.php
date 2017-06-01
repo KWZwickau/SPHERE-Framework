@@ -457,7 +457,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
                                 'PersonId'                     => $tblPerson->getId(),
-                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
+//                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
@@ -474,7 +474,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL_TYPE,
                                 'PersonId'                     => $tblPerson->getId(),
-                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
+//                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
@@ -491,7 +491,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
                                 'PersonId'                     => $tblPerson->getId(),
-                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
+//                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),

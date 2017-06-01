@@ -34,14 +34,15 @@ class MassReplaceTransfer extends Extension
     }
 
     /**
-     * @param $modalField
-     * @param $CloneField
-     * @param $PersonId
-     * @param $Meta
+     * @param string $modalField
+     * @param int    $CloneField
+     * @param int    $PersonId
+     * @param array  $Meta
+     * @param array  $PersonIdArray
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceCurrentSchool($modalField, $CloneField, $PersonId, $Meta)
+    public function replaceCurrentSchool($modalField, $CloneField, $PersonId, $Meta, $PersonIdArray = array())
     {
 
 //        $tblCompany = false;
@@ -82,7 +83,7 @@ class MassReplaceTransfer extends Extension
         }
 
         $this->useService()->createTransfer($PersonId, $StudentTransferTypeIdentifier, $tblCompany, $tblType,
-            $tblCourse, null, $Remark);
+            $tblCourse, null, $Remark, $PersonIdArray);
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
@@ -95,14 +96,15 @@ class MassReplaceTransfer extends Extension
     }
 
     /**
-     * @param $modalField
-     * @param $CloneField
-     * @param $PersonId
-     * @param $Meta
+     * @param string $modalField
+     * @param int    $CloneField
+     * @param int    $PersonId
+     * @param array  $Meta
+     * @param array  $PersonIdArray
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceCurrentSchoolType($modalField, $CloneField, $PersonId, $Meta)
+    public function replaceCurrentSchoolType($modalField, $CloneField, $PersonId, $Meta, $PersonIdArray = array())
     {
 
         $tblCompany = false;
@@ -138,7 +140,7 @@ class MassReplaceTransfer extends Extension
         }
 
         $this->useService()->createTransfer($PersonId, $StudentTransferTypeIdentifier, $tblCompany, $tblType,
-            $tblCourse, null, $Remark);
+            $tblCourse, null, $Remark, $PersonIdArray);
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
@@ -148,14 +150,15 @@ class MassReplaceTransfer extends Extension
     }
 
     /**
-     * @param $modalField
-     * @param $CloneField
-     * @param $PersonId
-     * @param $Meta
+     * @param string $modalField
+     * @param int    $CloneField
+     * @param int    $PersonId
+     * @param array  $Meta
+     * @param array  $PersonIdArray
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceCurrentCourse($modalField, $CloneField, $PersonId, $Meta)
+    public function replaceCurrentCourse($modalField, $CloneField, $PersonId, $Meta, $PersonIdArray = array())
     {
 
         $tblCompany = false;
@@ -191,7 +194,7 @@ class MassReplaceTransfer extends Extension
         }
 
         $this->useService()->createTransfer($PersonId, $StudentTransferTypeIdentifier, $tblCompany, $tblType,
-            $tblCourse, null, $Remark);
+            $tblCourse, null, $Remark, $PersonIdArray);
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
