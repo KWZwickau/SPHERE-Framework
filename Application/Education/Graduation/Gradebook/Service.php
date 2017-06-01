@@ -842,7 +842,7 @@ class Service extends ServiceScoreRule
                             if ($tblScoreGroup->isEveryGradeASingleGroup() && is_array($group)) {
 
                                 foreach ($group as $itemValue) {
-                                    if (isset($itemValue['Value']) && isset($itemValue['Multiplier']) && $itemValue['Value'] > 0) {
+                                    if (isset($itemValue['Value']) && isset($itemValue['Multiplier'])) {
                                         $totalMultiplier += $multiplier;
                                         $average += $multiplier * ($itemValue['Value'] / $itemValue['Multiplier']);
                                     }
@@ -850,7 +850,7 @@ class Service extends ServiceScoreRule
 
                             } else {
 
-                                if (isset($group['Value']) && isset($group['Multiplier']) && $group['Value'] > 0) {
+                                if (isset($group['Value']) && isset($group['Multiplier'])) {
                                     $totalMultiplier += $multiplier;
                                     $average += $multiplier * ($group['Value'] / $group['Multiplier']);
                                 }
