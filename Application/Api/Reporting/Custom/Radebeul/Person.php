@@ -172,7 +172,7 @@ class Person
                 $fileLocation = RadebeulPerson::useService()->createNurseryExcel($PersonList, $PLZ);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Radebeul Allergieliste ".$tblGroup->getName()
+                    "Radebeul Stichtagsmeldung Deckblatt ".$tblGroup->getName()
                     ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }
@@ -194,7 +194,7 @@ class Person
                 $fileLocation = RadebeulPerson::useService()->createNurseryListExcel($PersonList, $PLZ);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Radebeul Allergieliste ".$tblGroup->getName()
+                    "Radebeul Stichtagsmeldung ".$tblGroup->getName()
                     ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }

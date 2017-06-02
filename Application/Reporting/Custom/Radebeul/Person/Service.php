@@ -923,7 +923,17 @@ class Service extends Extension
 
             $now = (new \DateTime());
             $nowString = $now->format('d.m.Y');
-            $toDateString = '01.'.$now->add(new \DateInterval('P1M'))->format('m.Y');
+            // build
+            $nowMonthInt = (int)$now->format('m');
+            $nowYearInt = (int)$now->format('Y');
+            if ($nowMonthInt == 12) {
+                $nowYearInt = $nowYearInt + 1;
+                $nowMonthInt = 0;
+            }
+            $nowMonthInt = $nowMonthInt + 1;
+            $nowMonthInt = str_pad($nowMonthInt, 2, '0', STR_PAD_LEFT);
+            $toDateString = '01.'.$nowMonthInt.'.'.$nowYearInt;
+//            $toDateString = '01.'.$now->add(new \DateInterval('P1M'))->format('m.Y');
 
             $export = Document::getDocument($fileLocation->getFileLocation());
 
