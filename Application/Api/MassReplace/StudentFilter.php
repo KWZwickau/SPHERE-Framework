@@ -57,7 +57,7 @@ class StudentFilter extends Extension
                     new FormRow(array(
                         new FormColumn(array(
                             new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new DangerText('*'),
-                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))),
+                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
                         ), 4),
                         new FormColumn(array(
                             new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
@@ -69,10 +69,23 @@ class StudentFilter extends Extension
                                 array('Name' => Division::useService()->getDivisionAll()))
                         ), 4),
                     )),
+                    new FormRow(
+                        new FormColumn(
+                            (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filter',
+                                ApiMassReplace::getEndpoint(),
+                                null,
+                                $this->getGlobal()->POST))->ajaxPipelineOnClick(ApiMassReplace::pipelineOpen($Field))
+                        )
+                    ),
+                    new FormRow(
+                        new FormColumn(
+                            new DangerText('*'.new Small('Pflichtfeld'))
+                        )
+                    )
                 ))
-                , new Primary('Filtern'), '',
-                $this->getGlobal()->POST))->ajaxPipelineOnSubmit(ApiMassReplace::pipelineOpen($Field))
-            .new DangerText('*'.new Small('Pflichtfeld'));
+//                , new Primary('Filtern'), '',
+//                $this->getGlobal()->POST))->ajaxPipelineOnSubmit(ApiMassReplace::pipelineOpen($Field))
+        ));
     }
 
     /**
