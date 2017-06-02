@@ -80,6 +80,11 @@ class TblGenerateCertificate extends Element
     protected $serviceTblCommonGenderHeadmaster;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsLocked;
+
+    /**
      * @return string
      */
     public function getDate()
@@ -262,5 +267,22 @@ class TblGenerateCertificate extends Element
     {
 
         $this->serviceTblCommonGenderHeadmaster = (null === $tblGender ? null : $tblGender->getId());
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isLocked()
+    {
+
+        return (boolean) $this->IsLocked;
+    }
+
+    /**
+     * @param boolean $IsLocked
+     */
+    public function setIsLocked($IsLocked)
+    {
+        $this->IsLocked = (boolean) $IsLocked;
     }
 }
