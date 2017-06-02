@@ -365,6 +365,12 @@ class Service extends AbstractService
             && ($tblDivision = $tblPrepareStudent->getTblPrepareCertificate()->getServiceTblDivision())
         ) {
 
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                && !$tblGenerateCertificate->isLocked()
+            ) {
+                Generate::useService()->lockGenerateCertificate($tblGenerateCertificate, true);
+            }
+
             if (($tblCertificateType = $tblCertificate->getTblCertificateType())
                 && $tblCertificateType->getIdentifier() == 'DIPLOMA'
             ) {
@@ -1552,6 +1558,11 @@ class Service extends AbstractService
                 $isDiploma = false;
             }
 
+            if (!$tblGenerateCertificate->isLocked()) {
+
+                Generate::useService()->lockGenerateCertificate($tblGenerateCertificate, true);
+            }
+
             return (new Data($this->getBinding()))->copySubjectGradesByPrepare($tblPrepare, $isDiploma);
         } else {
             return false;
@@ -2142,5 +2153,17 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * soft remove
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        return (new Data($this->getBinding()))->destroyPrepareCertificate($tblPrepareCertificate);
     }
 }

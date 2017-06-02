@@ -1664,9 +1664,9 @@ abstract class Certificate extends Extension
             if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
                 && ($value = $tblSetting->getValue())
             ) {
-                $subjectAcronymForGrade = $value;
+                $subjectAcronymForGrade = str_replace(' ', '', $value);
             } else {
-                $subjectAcronymForGrade = $tblSubject->getAcronym();
+                $subjectAcronymForGrade = str_replace(' ', '', $tblSubject->getAcronym());
             }
 
             $elementName = (new Element())
@@ -1820,9 +1820,9 @@ abstract class Certificate extends Extension
                     if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
                         && ($value = $tblSetting->getValue())
                     ) {
-                        $subjectAcronymForGrade = $value;
+                        $subjectAcronymForGrade = str_replace(' ', '', $value);
                     } else {
-                        $subjectAcronymForGrade = $tblSubject->getAcronym();
+                        $subjectAcronymForGrade = str_replace(' ', '', $tblSubject->getAcronym());
                     }
 
                     $elementOrientationName = new Element();
