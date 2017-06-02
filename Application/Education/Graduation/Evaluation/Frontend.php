@@ -2302,7 +2302,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblGrade $tblGrade */
             $student[$tblPerson->getId()]['Grade'] = $tblGrade ? $tblGrade->getDisplayGrade() : '';
             $student[$tblPerson->getId()]['Comment'] = $tblGrade ? $tblGrade->getComment() : '';
-            $student[$tblPerson->getId()]['Text'] = $tblGrade->getTblGradeText() ? $tblGrade->getTblGradeText()->getName() : '';
+            $student[$tblPerson->getId()]['Text'] = ($tblGrade ? ($tblGrade->getTblGradeText() ? $tblGrade->getTblGradeText()->getName() : '') : '');
         } else {
             if ($tblScoreType) {
                 if ($tblScoreType->getIdentifier() == 'VERBAL') {

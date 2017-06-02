@@ -462,6 +462,27 @@ class Service extends AbstractService
             return $Form;
         }
 
+        if ($tblGenerateCertificate->isLocked()) {
+            $tblAppointedDateTask = $tblGenerateCertificate->getServiceTblAppointedDateTask();
+            $tblBehaviorTask = $tblGenerateCertificate->getServiceTblBehaviorTask();
+            $Name = $tblGenerateCertificate->getName();
+        } else {
+            $tblAppointedDateTask = isset($Data['AppointedDateTask'])
+                ? Evaluation::useService()->getTaskById($Data['AppointedDateTask']) : false;
+            $tblBehaviorTask = isset($Data['BehaviorTask'])
+                ? Evaluation::useService()->getTaskById($Data['BehaviorTask']) : false;
+            if ($tblAppointedDateTask && $tblBehaviorTask) {
+                $Name = $tblAppointedDateTask->getName() . ', ' . $tblBehaviorTask->getName();
+            } elseif ($tblAppointedDateTask) {
+                $Name = $tblAppointedDateTask->getName();
+            } elseif ($tblBehaviorTask) {
+                $Name = $tblBehaviorTask->getName();
+            } else {
+                $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
+                $Name = $tblCertificateType ? $tblCertificateType->getName() : '';
+            }
+        }
+
         if ((new Data($this->getBinding()))->updateGenerateCertificate(
             $tblGenerateCertificate,
             $Data['Date'],
@@ -469,16 +490,20 @@ class Service extends AbstractService
             isset($Data['HeadmasterName']) ? $Data['HeadmasterName'] : '',
             isset($Data['GenderHeadmaster'])
             && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
-                ? $tblCommonGender : null)
+                ? $tblCommonGender : null,
+            $tblAppointedDateTask ? $tblAppointedDateTask : null,
+            $tblBehaviorTask ? $tblBehaviorTask : null,
+            $Name
+        )
         ) {
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
                 foreach ($tblPrepareList as $tblPrepare) {
                     Prepare::useService()->updatePrepareData(
                         $tblPrepare,
                         $Data['Date'],
-                        $tblPrepare->getName(),
-                        $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
-                        $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
+                        $Name,
+                        $tblAppointedDateTask ? $tblAppointedDateTask : null,
+                        $tblBehaviorTask ? $tblBehaviorTask : null,
                         isset($Data['IsTeacherAvailable'])
                             ? ($tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null)
                             : null
@@ -509,5 +534,35 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param bool $IsLocked
+     *
+     * @return bool
+     */
+    public function lockGenerateCertificate(
+        TblGenerateCertificate $tblGenerateCertificate,
+        $IsLocked = true
+    ) {
+
+        return (new Data($this->getBinding()))->lockGenerateCertificate($tblGenerateCertificate, $IsLocked);
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return bool
+     */
+    public function destroyGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate) {
+
+        if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+            foreach ($tblPrepareList as $tblPrepare) {
+                Prepare::useService()->destroyPrepareCertificate($tblPrepare);
+            }
+        }
+
+        return (new Data($this->getBinding()))->destroyGenerateCertificate($tblGenerateCertificate);
     }
 }

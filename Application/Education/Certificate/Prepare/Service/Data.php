@@ -1261,4 +1261,26 @@ class Data extends AbstractData
 
         return $Entity;
     }
+
+    /**
+     * soft remove
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblPrepareCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareCertificate', $tblPrepareCertificate->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+
+            return true;
+        }
+        return false;
+    }
 }
