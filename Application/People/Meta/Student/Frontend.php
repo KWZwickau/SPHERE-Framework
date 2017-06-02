@@ -2,6 +2,8 @@
 namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
+use SPHERE\Application\Api\MassReplace\StudentFilter;
+use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
 use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
@@ -456,6 +458,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+                                ApiMassReplace::USED_FILTER    => StudentFilter::STUDENT_FILTER,
                                 'PersonId'                     => $tblPerson->getId(),
 //                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
@@ -473,6 +476,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL_TYPE,
+                                ApiMassReplace::USED_FILTER    => StudentFilter::STUDENT_FILTER,
                                 'PersonId'                     => $tblPerson->getId(),
 //                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
@@ -490,6 +494,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
+                                ApiMassReplace::USED_FILTER    => StudentFilter::STUDENT_FILTER,
                                 'PersonId'                     => $tblPerson->getId(),
 //                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
@@ -816,25 +821,25 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     $this->panelSubjectList('FOREIGN_LANGUAGE', 'Fremdsprachen', 'Fremdsprache',
-                        $tblSubjectForeignLanguage, 4, ( $tblStudent ? $tblStudent : null )),
+                        $tblSubjectForeignLanguage, 4, $tblPerson, ($tblStudent ? $tblStudent : null)),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1),
-                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1),
+                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1, $tblPerson),
+                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1, $tblPerson),
                     $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation,
-                        1),
+                        1, $tblPerson),
                     $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced,
-                        1),
+                        1, $tblPerson),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3),
+                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3, $tblPerson),
                     $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll,
-                        3),
+                        3, $tblPerson),
                 ), 3),
                 new FormColumn(array(
                     $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll,
-                        2),
-                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8),
+                        2, $tblPerson),
+                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8, $tblPerson),
                 ), 3),
             )),
         ), new Title(new TileSmall().' Unterrichtsfächer', new Bold(new Success($tblPerson->getFullName()))));
@@ -846,6 +851,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string       $Label
      * @param TblSubject[] $SubjectList
      * @param int          $Count
+     * @param TblPerson    $tblPerson
      * @param TblStudent   $tblStudent
      *
      * @return Panel
@@ -856,6 +862,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Label,
         $SubjectList,
         $Count = 1,
+        TblPerson $tblPerson = null,
         TblStudent $tblStudent = null
     ) {
 
@@ -863,14 +870,44 @@ class Frontend extends Extension implements IFrontendInterface
         $Panel = array();
         for ($Rank = 1; $Rank <= $Count; $Rank++) {
             $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Rank);
-            array_push($Panel,
+
+            $PersonId = null;
+            if ($tblPerson) {
+                $PersonId = $tblPerson->getId();
+            }
+
+            // activate MassReplace
+            if ($Identifier == 'PROFILE'
+                || $Identifier == 'RELIGION'
+                || $Identifier == 'ADVANCED'
+            ) {
+                array_push($Panel,
+                    ApiMassReplace::receiverField((
+                    $Field = new SelectBox('Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
+                        $Label, array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList), new Education())
+                    ))
+                    .ApiMassReplace::receiverModal($Field)
+                    .new PullRight((new Link('Massen-Änderung',
+                        ApiMassReplace::getEndpoint(), null, array(
+                            ApiMassReplace::SERVICE_CLASS    => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
+                            ApiMassReplace::SERVICE_METHOD   => MassReplaceSubject::METHOD_REPLACE_SUBJECT,
+                            ApiMassReplace::USED_FILTER      => StudentFilter::STUDENT_FILTER,
+                            MassReplaceSubject::ATTR_TYPE    => $tblStudentSubjectType->getId(),
+                            MassReplaceSubject::ATTR_RANKING => $tblStudentSubjectRanking->getId(),
+                            'PersonId'                       => $PersonId,
+                        )))->ajaxPipelineOnClick(
+                        ApiMassReplace::pipelineOpen($Field)
+                    ))
+                );
+            } else {
+                array_push($Panel,
                 new SelectBox(
                     'Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                     ( $Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '' ).$Label,
                     array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList),
                     new Education()
-                )
-            );
+                ));
+            }
             // Student FOREIGN_LANGUAGE: LevelFrom, LevelTill
             if ($tblStudentSubjectType->getIdentifier() == 'FOREIGN_LANGUAGE') {
                 $tblLevelAll = Division::useService()->getLevelAll();
