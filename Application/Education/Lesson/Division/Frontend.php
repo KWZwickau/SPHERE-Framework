@@ -1434,6 +1434,9 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDivisionShow($Id = null)
     {
 
+
+        // ToDo
+
         $Stage = new Stage('Klassenansicht', 'Übersicht');
         $Stage->addButton(new Backward());
 //        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
@@ -1494,18 +1497,18 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $tblPersonList = new Warning('Kein Klassenlehrer festgelegt');
             }
-            $tblCostodyList = Division::useService()->getCustodyAllByDivision($tblDivision);
-            if ($tblCostodyList) {
+            $tblCustodyList = Division::useService()->getCustodyAllByDivision($tblDivision);
+            if ($tblCustodyList) {
                 $CostodyList = array();
                 /** @var TblPerson $tblPerson */
-                foreach ($tblCostodyList as &$tblPerson) {
+                foreach ($tblCustodyList as &$tblPerson) {
                     $Description = Division::useService()->getDivisionCustodyByDivisionAndPerson($tblDivision,
                         $tblPerson)->getDescription();
                     $CostodyList[] = $tblPerson->getFullName().' '.new Muted($Description);
                 }
-                $tblCostodyList = new Panel('Elternvertreter', $CostodyList, Panel::PANEL_TYPE_INFO);
+                $tblCustodyList = new Panel('Elternvertreter', $CostodyList, Panel::PANEL_TYPE_INFO);
             } else {
-                $tblCostodyList = new Warning('Kein Elternvertreter festgelegt');
+                $tblCustodyList = new Warning('Kein Elternvertreter festgelegt');
             }
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
 
@@ -1566,7 +1569,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     if (count($tblDivisionSubjectTestList) > 1) {
-                        $Grouparray = array();
+                        $GroupArray = array();
                         $TeacherPanelArray = '';
                         $TeacherGroupList = array(new Bold('Gruppenlehrer:'));
                         $StudentsGroupCount = 0;
@@ -1597,7 +1600,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Id'                => $tblDivision->getId(),
                                             'DivisionSubjectId' => $tblDivisionSubjectTest->getId()
                                         ), 'Gruppenlehrer festlegen'));
-                                $Grouparray[] = $tblDivisionSubjectTest->getTblSubjectGroup()->getName();
+                                $GroupArray[] = $tblDivisionSubjectTest->getTblSubjectGroup()->getName();
 
                                 $tblSubjectStudentsList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectTest);
                                 if ($tblSubjectStudentsList) {
@@ -1632,7 +1635,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 Panel::PANEL_TYPE_INFO);
                         }
 
-                        $tblDivisionSubject->Group = new Panel('Gruppen', $Grouparray, Panel::PANEL_TYPE_INFO,
+                        $tblDivisionSubject->Group = new Panel('Gruppen', $GroupArray, Panel::PANEL_TYPE_INFO,
                             new Standard('Gruppen', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
                                 array(
                                     'Id'                => $tblDivision->getId(),
@@ -1679,7 +1682,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ,
                             ), 6),
                             new LayoutColumn($tblPersonList, 5),
-                            new LayoutColumn($tblCostodyList, 5)
+                            new LayoutColumn($tblCustodyList, 5)
                         )), new Title($TitleClass)
                     )
                 ).
