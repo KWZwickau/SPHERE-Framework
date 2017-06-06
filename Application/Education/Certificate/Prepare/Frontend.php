@@ -3229,6 +3229,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if (isset($tblSubjectList[$tblCurrentSubject->getId()])) {
                             $Global = $this->getGlobal();
                             $gradeList = array();
+
                             foreach ($tblSubjectList[$tblCurrentSubject->getId()] as $testId => $value) {
                                 if ($isCourseMainDiploma) {
                                     if (!$isMuted && ($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
@@ -3528,13 +3529,18 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblSubjectItem))
                     ) {
                         if ($tblCertificateSubject->getLane() == 1) {
-                            $index = 2 * $tblCertificateSubject->getRanking();
+                            $index = 10 * (2 * $tblCertificateSubject->getRanking());
                         } else {
-                            $index = 2 * $tblCertificateSubject->getRanking() + 1;
+                            $index = 10 * (2 * $tblCertificateSubject->getRanking() + 1);
                         }
                     } else {
                         $offset++;
-                        $index = 100 + $offset;
+                        $index = 1000 + $offset;
+                    }
+
+                    // für Fachgruppen notwendig
+                    while (isset($tblTestSortedList[$index])) {
+                        $index++;
                     }
                     $tblTestSortedList[$index] = $tblTest;
                 }
@@ -3545,6 +3551,4 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $tblTestList;
     }
-
-
 }
