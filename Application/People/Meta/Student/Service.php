@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
@@ -322,7 +323,7 @@ class Service extends Integration
      * @param array          $Meta
      * @param                $Group
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group)
     {
@@ -925,5 +926,35 @@ class Service extends Integration
             $tblSubject,
             $tblLevelFrom,
             $tblLevelTill);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+
+        $tblDivisionList = array();
+        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
+            $tblPerson)
+        ) {
+
+            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+            if ($tblDivisionStudentList) {
+                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                    if ($tblDivisionStudent->getTblDivision()) {
+                        $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                        if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                            $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($tblDivisionList) ? false : $tblDivisionList;
     }
 }
