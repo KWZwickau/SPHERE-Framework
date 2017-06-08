@@ -113,7 +113,14 @@ abstract class Certificate extends Extension
             }
         }
 
-        return (new Frame())->addDocument($document);
+        // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
+        if (strpos(get_class($this), 'RadebeulLernentwicklungsbericht') !== false) {
+            $InjectStyle = 'body { margin-left: 0.6cm !important; margin-right: 0.6cm !important; }';
+        } else {
+            $InjectStyle = '';
+        }
+
+        return (new Frame($InjectStyle))->addDocument($document);
     }
 
 
