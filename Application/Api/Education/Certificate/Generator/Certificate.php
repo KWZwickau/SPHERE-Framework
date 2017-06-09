@@ -335,6 +335,7 @@ abstract class Certificate extends Extension
 
         if ($extendByOwnPicture) {
             $PicturePath = $this->getUsedPicture();
+            $height = $this->getPictureHeight();
             $Header = $this->getHeadSlice($IsSample, $PicturePath, $with, $height);
         } else {
             $Header = $this->getHeadSlice($IsSample, '', $with, $height);
@@ -661,7 +662,7 @@ abstract class Certificate extends Extension
                             , '39%');
                     }
 
-                    $TextSizeSmall = '8px';
+                    $TextSizeSmall = '8.5px';
 
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
@@ -2905,5 +2906,22 @@ abstract class Certificate extends Extension
             return (string)$tblSetting->getValue();
         }
         return '';
+    }
+
+    /**
+     * @return string
+     */
+    private function getPictureHeight()
+    {
+
+        $value = '';
+
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'PictureHeight'))
+        ) {
+            $value = $tblSetting->getValue();
+        }
+
+        return $value ? $value : '55px';
     }
 }
