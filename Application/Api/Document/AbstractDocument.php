@@ -22,6 +22,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
 
@@ -752,5 +753,54 @@ abstract class AbstractDocument
                 , '1.2%')
         )
         ->styleHeight('24px');
+    }
+
+    /**
+     * @param string $with
+     *
+     * @return Element|Element\Image
+     */
+    protected function getPictureEnrollmentDocument($with = 'auto')
+    {
+
+        $picturePath = $this->getEnrollmentDocumentUsedPicture();
+        if ($picturePath != '') {
+            $height = $this->getEnrollmentDocumentPictureHeight();
+            $column = (new Element\Image($picturePath, $with, $height));
+        } else {
+            $column = (new Element())
+                ->setContent('&nbsp;');
+        }
+        return $column;
+    }
+
+    /**
+     * @return string
+     */
+    private function getEnrollmentDocumentUsedPicture()
+    {
+        if (($tblSetting = Consumer::useService()->getSetting(
+            'Document', 'Standard', 'EnrollmentDocument', 'PictureAddress'))
+        ) {
+            return (string)$tblSetting->getValue();
+        }
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    private function getEnrollmentDocumentPictureHeight()
+    {
+
+        $value = '';
+
+        if (($tblSetting = Consumer::useService()->getSetting(
+            'Document', 'Standard', 'EnrollmentDocument', 'PictureHeight'))
+        ) {
+            $value = (string)$tblSetting->getValue();
+        }
+
+        return $value ? $value : '50px';
     }
 }
