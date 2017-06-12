@@ -17,9 +17,6 @@ class Person extends AbstractModule implements IModuleInterface
     public static function registerModule()
     {
 
-//        Main::getDisplay()->addApplicationNavigation(
-//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personen (allgemein)'))
-//        );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/ClassList'), new Link\Name('Klassenlisten'))
         );
@@ -32,6 +29,9 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/MedicalInsuranceClassList'),
                 new Link\Name('Klassenlisten Krankenkasse'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/InterestedPersonList'), new Link\Name('Interessenten'))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/GroupList'), new Link\Name('Personengruppenlisten'))
@@ -54,6 +54,9 @@ class Person extends AbstractModule implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/GroupList', __NAMESPACE__.'\Frontend::frontendGroupList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/InterestedPersonList', __NAMESPACE__.'\Frontend::frontendInterestedPersonList'
         ));
     }
 
