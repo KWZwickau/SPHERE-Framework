@@ -36,7 +36,6 @@ class MassReplaceSubject extends Extension
     /**
      * @param string $modalField
      * @param int    $CloneField
-     * @param int    $PersonId
      * @param int    $TypeId
      * @param int    $RankingId
      * @param array  $PersonIdArray
@@ -46,7 +45,6 @@ class MassReplaceSubject extends Extension
     public function replaceSubject(
         $modalField,
         $CloneField,
-        $PersonId,
         $TypeId,
         $RankingId,
         $PersonIdArray = array()
@@ -63,8 +61,9 @@ class MassReplaceSubject extends Extension
             $tblSubject = null;
         }
 
-        $this->useService()->replaceSubject($PersonId, $tblSubject, $tblStudentSubjectType, $tblStudentSubjectRanking,
-            null, null, $PersonIdArray);
+        $this->useService()->replaceSubjectByPersonIdList($PersonIdArray, $tblSubject, $tblStudentSubjectType,
+            $tblStudentSubjectRanking,
+            null, null);
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));

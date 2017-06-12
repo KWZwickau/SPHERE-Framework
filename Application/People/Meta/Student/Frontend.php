@@ -459,7 +459,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
                                 ApiMassReplace::USED_FILTER    => StudentFilter::STUDENT_FILTER,
-                                'PersonId'                     => $tblPerson->getId(),
+//                                'PersonId'                     => $tblPerson->getId(),
 //                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
@@ -477,7 +477,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL_TYPE,
                                 ApiMassReplace::USED_FILTER    => StudentFilter::STUDENT_FILTER,
-                                'PersonId'                     => $tblPerson->getId(),
+//                                'PersonId'                     => $tblPerson->getId(),
 //                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
@@ -495,7 +495,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS  => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
                                 ApiMassReplace::USED_FILTER    => StudentFilter::STUDENT_FILTER,
-                                'PersonId'                     => $tblPerson->getId(),
+//                                'PersonId'                     => $tblPerson->getId(),
 //                                'Year[TblYear_Id]'             => $Year['TblYear_Id'],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
@@ -821,25 +821,21 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     $this->panelSubjectList('FOREIGN_LANGUAGE', 'Fremdsprachen', 'Fremdsprache',
-                        $tblSubjectForeignLanguage, 4, $tblPerson, ($tblStudent ? $tblStudent : null)),
+                        $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null)),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1, $tblPerson),
-                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1, $tblPerson),
-                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation,
-                        1, $tblPerson),
-                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced,
-                        1, $tblPerson),
+                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1),
+                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1),
+                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1),
+                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3, $tblPerson),
-                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll,
-                        3, $tblPerson),
+                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3),
+                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll,
-                        2, $tblPerson),
-                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8, $tblPerson),
+                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2),
+                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8),
                 ), 3),
             )),
         ), new Title(new TileSmall().' Unterrichtsfächer', new Bold(new Success($tblPerson->getFullName()))));
@@ -851,7 +847,6 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string       $Label
      * @param TblSubject[] $SubjectList
      * @param int          $Count
-     * @param TblPerson    $tblPerson
      * @param TblStudent   $tblStudent
      *
      * @return Panel
@@ -862,7 +857,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Label,
         $SubjectList,
         $Count = 1,
-        TblPerson $tblPerson = null,
         TblStudent $tblStudent = null
     ) {
 
@@ -870,11 +864,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Panel = array();
         for ($Rank = 1; $Rank <= $Count; $Rank++) {
             $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Rank);
-
-            $PersonId = null;
-            if ($tblPerson) {
-                $PersonId = $tblPerson->getId();
-            }
 
             // activate MassReplace
             if ($Identifier == 'PROFILE'
@@ -894,7 +883,6 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::USED_FILTER      => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE    => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING => $tblStudentSubjectRanking->getId(),
-                            'PersonId'                       => $PersonId,
                         )))->ajaxPipelineOnClick(
                         ApiMassReplace::pipelineOpen($Field)
                     ))

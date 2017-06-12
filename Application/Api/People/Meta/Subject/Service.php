@@ -14,44 +14,24 @@ class Service extends ServiceAPP
 {
 
     /**
-     * @param                                            $PersonId
+     * @param array                                      $PersonIdArray
      * @param TblSubject|null                            $tblSubject
      * @param ServiceAPP\Entity\TblStudentSubjectType    $tblStudentSubjectType
      * @param ServiceAPP\Entity\TblStudentSubjectRanking $tblStudentSubjectRanking
      * @param TblLevel|null                              $tblLevelFrom
      * @param TblLevel|null                              $tblLevelTill
-     * @param array                                      $PersonIdArray
      *
      * @return bool
      */
-    public function replaceSubject(
-        $PersonId,
+    public function replaceSubjectByPersonIdList(
+        $PersonIdArray = array(),
         TblSubject $tblSubject = null,
         ServiceAPP\Entity\TblStudentSubjectType $tblStudentSubjectType,
         ServiceAPP\Entity\TblStudentSubjectRanking $tblStudentSubjectRanking,
         TblLevel $tblLevelFrom = null,
-        TblLevel $tblLevelTill = null,
-        $PersonIdArray = array()
+        TblLevel $tblLevelTill = null
     ) {
 
-        $tblPerson = PersonAPP::useService()->getPersonById($PersonId);
-        $tblStudent = false;
-        if ($tblPerson) {
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if (!$tblStudent) {
-                $tblStudent = $this->createStudent($tblPerson);
-            }
-        }
-
-        if ($tblStudent) {
-            (new Data($this->getBinding()))->createStudentSubject(
-                $tblStudent,
-                $tblSubject,
-                $tblStudentSubjectType,
-                $tblStudentSubjectRanking,
-                $tblLevelFrom,
-                $tblLevelTill);
-        }
         if (!empty($PersonIdArray)) {
             foreach ($PersonIdArray as $PersonIdList) {
                 $tblStudent = false;

@@ -53,36 +53,36 @@ class StudentFilter extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         return (new Form(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
-                            new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new DangerText('*'),
-                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
-                        ), 4),
-                        new FormColumn(array(
-                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
-                                array('{{ Name }} {{ serviceTblType.Name }}' => Division::useService()->getLevelAll()))
-                        ), 4),
-                        new FormColumn(array(
-                            new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
-                                'Klasse: Gruppe',
-                                array('Name' => Division::useService()->getDivisionAll()))
-                        ), 4),
-                    )),
-                    new FormRow(
-                        new FormColumn(
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filter',
-                                ApiMassReplace::getEndpoint(),
-                                null,
-                                $this->getGlobal()->POST))->ajaxPipelineOnClick(ApiMassReplace::pipelineOpen($Field))
-                        )
-                    ),
-                    new FormRow(
-                        new FormColumn(
-                            new DangerText('*'.new Small('Pflichtfeld'))
-                        )
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(array(
+                        new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new DangerText('*'),
+                            array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
+                    ), 4),
+                    new FormColumn(array(
+                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
+                            array('{{ Name }} {{ serviceTblType.Name }}' => Division::useService()->getLevelAll()))
+                    ), 4),
+                    new FormColumn(array(
+                        new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
+                            'Klasse: Gruppe',
+                            array('Name' => Division::useService()->getDivisionAll()))
+                    ), 4),
+                )),
+                new FormRow(
+                    new FormColumn(
+                        (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filter',
+                            ApiMassReplace::getEndpoint(),
+                            null,
+                            $this->getGlobal()->POST))->ajaxPipelineOnClick(ApiMassReplace::pipelineOpen($Field))
                     )
-                ))
+                ),
+                new FormRow(
+                    new FormColumn(
+                        new DangerText('*'.new Small('Pflichtfeld'))
+                    )
+                )
+            ))
 //                , new Primary('Filtern'), '',
 //                $this->getGlobal()->POST))->ajaxPipelineOnSubmit(ApiMassReplace::pipelineOpen($Field))
         ));
@@ -92,50 +92,17 @@ class StudentFilter extends Extension
      * @param $modalField
      * @param $Year
      * @param $Division
-     * @param $PersonId
      *
      * @return Layout
      * // Content for OpenModal -> ApiMassReplace
      */
-    public function getFrontendStudentFilter($modalField, $Year = null, $Division = null, $PersonId = null)
+    public function getFrontendStudentFilter($modalField, $Year = null, $Division = null)
     {
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
         $CloneField = (new ApiMassReplace())->cloneField($Field, 'CloneField', 'Auswahl/Eingabe');
 
-        $TableContent = $this->getStudentFilterResult($Year, $Division, $PersonId);
-
-        // extra table for InitialPerson
-        $initialPersonContent = array();
-        $tblPerson = ($PersonId != null ? Person::useService()->getPersonById($PersonId) : false);
-        if ($tblPerson) {
-            $item['Name'] = '';
-            $item['Course'] = '';
-            $item['Check'] = 'feels bad man';
-            if ($tblPerson) {
-                $item['Check'] = (new CheckBox('InitalPerson', ' ', 1))->setChecked()->setDisabled();
-                $item['Name'] = $tblPerson->getLastFirstName();
-//                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                if ($tblStudent) {
-                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblStudentTransferType);
-                    if ($tblStudentTransfer && $tblStudentTransfer->getServiceTblCourse()) {
-                        $item['Course'] = $tblStudentTransfer->getServiceTblCourse()->getName();
-                    }
-                }
-            }
-            $item['LevelDivision'] = '';
-            $item['LevelDivision'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
-
-            $item['StudentNumber'] = new Small(new Muted('-NA-'));
-            if (isset($tblStudent) && $tblStudent) {
-                $item['StudentNumber'] = $tblStudent->getIdentifier();
-            }
-
-            array_push($initialPersonContent, $item);
-        }
+        $TableContent = $this->getStudentFilterResult($Year, $Division);
 
         return new Layout(
             new LayoutGroup(
@@ -143,19 +110,6 @@ class StudentFilter extends Extension
                     new LayoutColumn(new Well(
                         ApiMassReplace::receiverFilter('Filter', $this->formStudentFilter($modalField))
                     )),
-                    new LayoutColumn(
-                        new Panel('Aktuelle Person',
-                            new TableData($initialPersonContent, null,
-                                array(
-                                    'Check'         => 'Auswahl',
-                                    'Name'          => 'Name',
-                                    'StudentNumber' => 'Schülernummer',
-                                    'LevelDivision' => 'aktuelle Klasse(n)',
-                                    'Course'        => 'Bildungsgang',
-                                ), null),
-                            Panel::PANEL_TYPE_INFO
-                        )
-                    ),
                     new LayoutColumn(new Well(
                         (new Form(
                             new FormGroup(
@@ -194,11 +148,10 @@ class StudentFilter extends Extension
     /**
      * @param null $Year
      * @param null $Division
-     * @param null $PersonId
      *
      * @return array $SearchResult
      */
-    private function getStudentFilterResult($Year = null, $Division = null, $PersonId = null)
+    private function getStudentFilterResult($Year = null, $Division = null)
     {
         $Pile = new Pile(Pile::JOIN_TYPE_INNER);
         $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
@@ -266,9 +219,6 @@ class StudentFilter extends Extension
 
                 /** @var ViewPerson $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
-                if ($PersonId == $DataPerson['TblPerson_Id']) {
-                    continue;
-                }
                 /** @var ViewDivisionStudent $DivisionStudent */
                 $DivisionStudent = $Row[2]->__toArray();
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
