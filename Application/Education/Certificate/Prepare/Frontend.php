@@ -1877,7 +1877,9 @@ class Frontend extends Extension implements IFrontendInterface
             $divisionPersonList = array();
             if ($tblDivisionStudentAll) {
                 foreach ($tblDivisionStudentAll as $tblPerson) {
-                    if (($tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
+                    if (($tblYear = $tblTask->getServiceTblYear())
+                        && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson, $tblYear))
+                    ) {
                         foreach ($tblPersonDivisionList as $tblDivisionItem) {
                             if (!isset($divisionList[$tblDivisionItem->getId()])) {
                                 $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
