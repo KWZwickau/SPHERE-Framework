@@ -845,7 +845,11 @@ class Service extends AbstractService
                                   $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                               } else {
                                   $grade = $tblPrepareAdditionalGrade->getGrade();
+                                  if ((Gradebook::useService()->getGradeTextByName($grade))) {
+                                      $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                                  }
                               }
+
                               $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()]
                                   = $grade;
                           }
@@ -2130,7 +2134,7 @@ class Service extends AbstractService
             case 6 : return 'ungenügend'; break;
         }
 
-        return '';
+        return $grade;
     }
 
     /**
