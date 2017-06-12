@@ -59,9 +59,9 @@ class StudentFilter extends Extension
         if ($tblLevelList) {
             foreach ($tblLevelList as &$tblLevel) {
                 if (!$tblLevel->getName()) {
-
-                    $tblLevel->setName('Stufenübergreifende Klassen');
-                    $tblLevelShowList[] = $tblLevel;
+                    $tblLevelClone = clone $tblLevel;
+                    $tblLevelClone->setName('Stufenübergreifende Klassen');
+                    $tblLevelShowList[] = $tblLevelClone;
                 } else {
                     $tblLevelShowList[] = $tblLevel;
                 }
