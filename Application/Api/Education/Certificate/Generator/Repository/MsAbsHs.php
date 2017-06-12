@@ -51,7 +51,6 @@ class MsAbsHs extends Certificate
                         , '22%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                                {{ Content.P' . $personId . '.Person.Data.Name.Salutation }}
                                 {{ Content.P' . $personId . '.Person.Data.Name.First }}
                                 {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                                                 ')
