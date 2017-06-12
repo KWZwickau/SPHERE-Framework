@@ -2153,4 +2153,15 @@ class Data extends AbstractData
 
         return empty($resultList) ? false : $resultList;
     }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByYear(TblYear $tblYear) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivision',
+            array(TblDivision::ATTR_YEAR => $tblYear->getId()));
+    }
 }

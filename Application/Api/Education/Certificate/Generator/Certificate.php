@@ -113,7 +113,14 @@ abstract class Certificate extends Extension
             }
         }
 
-        return (new Frame())->addDocument($document);
+        // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
+        if (strpos(get_class($this), 'RadebeulLernentwicklungsbericht') !== false) {
+            $InjectStyle = 'body { margin-left: 0.6cm !important; margin-right: 0.6cm !important; }';
+        } else {
+            $InjectStyle = '';
+        }
+
+        return (new Frame($InjectStyle))->addDocument($document);
     }
 
 
@@ -335,6 +342,7 @@ abstract class Certificate extends Extension
 
         if ($extendByOwnPicture) {
             $PicturePath = $this->getUsedPicture();
+            $height = $this->getPictureHeight();
             $Header = $this->getHeadSlice($IsSample, $PicturePath, $with, $height);
         } else {
             $Header = $this->getHeadSlice($IsSample, '', $with, $height);
@@ -661,7 +669,7 @@ abstract class Certificate extends Extension
                             , '39%');
                     }
 
-                    $TextSizeSmall = '8px';
+                    $TextSizeSmall = '8.5px';
 
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
@@ -1664,17 +1672,17 @@ abstract class Certificate extends Extension
             if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
                 && ($value = $tblSetting->getValue())
             ) {
-                $subjectAcronymForGrade = str_replace(' ', '', $value);
+                $subjectAcronymForGrade = $value;
             } else {
-                $subjectAcronymForGrade = str_replace(' ', '', $tblSubject->getAcronym());
+                $subjectAcronymForGrade = $tblSubject->getAcronym();
             }
 
             $elementName = (new Element())
                 // Profilname aus der Schülerakte
                 // bei einem Leerzeichen im Acronymn stürzt das TWIG ab
                 ->setContent('
-                   {% if(Content.P' . $personId . '.Student.Profile.' . str_replace(' ', '', $tblSubject->getAcronym()) . ' is not empty) %}
-                       {{ Content.P' . $personId . '.Student.Profile.' . str_replace(' ', '', $tblSubject->getAcronym()) . '.Name' . ' }}
+                   {% if(Content.P' . $personId . '.Student.Profile["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                       {{ Content.P' . $personId . '.Student.Profile["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                    {% else %}
                         &nbsp;
                    {% endif %}
@@ -1686,8 +1694,8 @@ abstract class Certificate extends Extension
 
             $elementGrade = (new Element())
                 ->setContent('
-                    {% if(Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' is not empty) %}
-                        {{ Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' }}
+                    {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
                     {% else %}
                         &ndash;
                     {% endif %}
@@ -1820,17 +1828,16 @@ abstract class Certificate extends Extension
                     if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
                         && ($value = $tblSetting->getValue())
                     ) {
-                        $subjectAcronymForGrade = str_replace(' ', '', $value);
+                        $subjectAcronymForGrade = $value;
                     } else {
-                        $subjectAcronymForGrade = str_replace(' ', '', $tblSubject->getAcronym());
+                        $subjectAcronymForGrade = $tblSubject->getAcronym();
                     }
 
                     $elementOrientationName = new Element();
                     $elementOrientationName
                         ->setContent('
-                            {% if(Content.P' . $personId . '.Student.Orientation.' . str_replace(' ', '', $tblSubject->getAcronym()) . ' is not empty) %}
-                                 {{ Content.P' . $personId . '.Student.Orientation.' . str_replace(' ', '',
-                                $tblSubject->getAcronym()) . '.Name' . ' }}
+                            {% if(Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
@@ -1842,8 +1849,8 @@ abstract class Certificate extends Extension
                     $elementOrientationGrade = new Element();
                     $elementOrientationGrade
                         ->setContent('
-                            {% if(Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' is not empty) %}
-                                {{ Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
@@ -1871,8 +1878,8 @@ abstract class Certificate extends Extension
                         $elementForeignLanguageName = new Element();
                         $elementForeignLanguageName
                             ->setContent('
-                            {% if(Content.P' . $personId . '.Student.ForeignLanguage.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                 {{ Content.P' . $personId . '.Student.ForeignLanguage.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% if(Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
@@ -1884,8 +1891,8 @@ abstract class Certificate extends Extension
                         $elementForeignLanguageGrade = new Element();
                         $elementForeignLanguageGrade
                             ->setContent('
-                            {% if(Content.P' . $personId . '.Grade.Data.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                {{ Content.P' . $personId . '.Grade.Data.' . $tblSubject->getAcronym() . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
@@ -2721,8 +2728,8 @@ abstract class Certificate extends Extension
                     $elementOrientationName = new Element();
                     $elementOrientationName
                         ->setContent('
-                            {% if(Content.P' . $personId . '.Student.Orientation.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                 {{ Content.P' . $personId . '.Student.Orientation.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% if(Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
@@ -2736,8 +2743,8 @@ abstract class Certificate extends Extension
                     $elementOrientationGrade = new Element();
                     $elementOrientationGrade
                         ->setContent('
-                            {% if(Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' is not empty) %}
-                                {{ Content.P' . $personId . '.Grade.Data.' . $subjectAcronymForGrade . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
@@ -2767,8 +2774,8 @@ abstract class Certificate extends Extension
                         $elementForeignLanguageName = new Element();
                         $elementForeignLanguageName
                             ->setContent('
-                            {% if(Content.P' . $personId . '.Student.ForeignLanguage.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                 {{ Content.P' . $personId . '.Student.ForeignLanguage.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% if(Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
@@ -2782,8 +2789,8 @@ abstract class Certificate extends Extension
                         $elementForeignLanguageGrade = new Element();
                         $elementForeignLanguageGrade
                             ->setContent('
-                            {% if(Content.P' . $personId . '.Grade.Data.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                {{ Content.P' . $personId . '.Grade.Data.' . $tblSubject->getAcronym() . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
@@ -2905,5 +2912,22 @@ abstract class Certificate extends Extension
             return (string)$tblSetting->getValue();
         }
         return '';
+    }
+
+    /**
+     * @return string
+     */
+    private function getPictureHeight()
+    {
+
+        $value = '';
+
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'PictureHeight'))
+        ) {
+            $value = $tblSetting->getValue();
+        }
+
+        return $value ? $value : '55px';
     }
 }

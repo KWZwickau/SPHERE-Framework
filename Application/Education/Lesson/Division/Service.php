@@ -2357,4 +2357,39 @@ class Service extends AbstractService
 
         return !Gradebook::useService()->existsGradeByDivisionSubject($tblDivisionSubject);
     }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByYear(TblYear $tblYear)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionAllByYear($tblYear);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return int
+     */
+    public function getStudentCountByYear(TblYear $tblYear)
+    {
+
+        $countStudentsByYear = 0;
+        if (($tblDivisionList = $this->getDivisionAllByYear($tblYear))) {
+            foreach ($tblDivisionList as $tblDivision) {
+                if (($tblLevel = $tblDivision->getTblLevel())
+                    && !$tblLevel->getIsChecked()
+                ) {
+                    if (($tblStudentList = $this->getStudentAllByDivision($tblDivision))) {
+                        $countStudentsByYear += count ($tblStudentList);
+                    }
+                }
+            }
+        }
+
+        return $countStudentsByYear;
+    }
 }

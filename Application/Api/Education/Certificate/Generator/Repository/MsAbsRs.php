@@ -30,6 +30,9 @@ class MsAbsRs extends Certificate
 
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
 
+        // leere Seite
+        $pageList[] = new Page();
+
         $pageList[] = (new Page())
             ->addSlice(
                 $Header
@@ -42,14 +45,6 @@ class MsAbsRs extends Certificate
                     ->styleMarginTop('32%')
                     ->styleTextBold()
                 )
-
-//                ->addSlice((new Slice())
-//                    ->addElement((new Element())
-//                        ->setContent('der Mittelschule')
-//                        ->styleTextSize('22px')
-//                        ->styleAlignCenter()
-//                        ->styleMarginTop('15px')
-//                    )
             );
 
         $pageList[] = (new Page())
@@ -265,6 +260,7 @@ class MsAbsRs extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleAlignCenter()
+                        ->styleMarginTop('10px')
                         ->styleBorderBottom('1px', '#000')
                         , '30%')
                     ->addElementColumn((new Element())
@@ -272,6 +268,7 @@ class MsAbsRs extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleAlignCenter()
+                        ->styleMarginTop('10px')
                         ->styleBorderBottom('1px', '#000')
                         , '30%')
                 )
@@ -307,6 +304,7 @@ class MsAbsRs extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleAlignCenter()
+                        ->styleMarginTop('15px')
                         ->styleBorderBottom('1px', '#000')
                         , '30%')
                 )
@@ -322,13 +320,10 @@ class MsAbsRs extends Certificate
                         , '30%')
                 )
             )
-            ->addSlice($this->getInfo('120px',
+            ->addSlice($this->getInfo('95px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );
-
-        // leere Seite
-        $pageList[] = new Page();
 
         return $pageList;
     }
@@ -346,7 +341,7 @@ class MsAbsRs extends Certificate
         $IsGradeUnderlined = false
     ) {
 
-        $TextSizeSmall = '8px';
+        $TextSizeSmall = '8.5px';
 
         $slice = new Slice();
         if (($tblGradeList = $this->getAdditionalGrade())) {

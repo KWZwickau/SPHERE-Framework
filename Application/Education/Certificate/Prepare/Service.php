@@ -845,7 +845,11 @@ class Service extends AbstractService
                                   $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                               } else {
                                   $grade = $tblPrepareAdditionalGrade->getGrade();
+                                  if ((Gradebook::useService()->getGradeTextByName($grade))) {
+                                      $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                                  }
                               }
+
                               $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()]
                                   = $grade;
                           }
@@ -992,8 +996,8 @@ class Service extends AbstractService
                 /** @var TblStudentSubject $tblStudentSubject */
                 $tblStudentSubject = current($tblStudentSubjectList);
                 if (($tblSubjectOrientation = $tblStudentSubject->getServiceTblSubject())) {
-                    $Content['P' . $personId]['Student']['Orientation'][str_replace(' ', '',
-                        $tblSubjectOrientation->getAcronym())]['Name'] = $tblSubjectOrientation->getName();
+                    $Content['P' . $personId]['Student']['Orientation'][
+                        $tblSubjectOrientation->getAcronym()]['Name'] = $tblSubjectOrientation->getName();
                 }
             }
 
@@ -1008,8 +1012,8 @@ class Service extends AbstractService
                         && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
                         && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
                     ) {
-                        $Content['P' . $personId]['Student']['ForeignLanguage'][str_replace(' ', '',
-                            $tblSubjectForeignLanguage->getAcronym())]['Name'] = $tblSubjectForeignLanguage->getName();
+                        $Content['P' . $personId]['Student']['ForeignLanguage'][
+                            $tblSubjectForeignLanguage->getAcronym()]['Name'] = $tblSubjectForeignLanguage->getName();
                     }
                 }
             }
@@ -1022,8 +1026,7 @@ class Service extends AbstractService
                 /** @var TblStudentSubject $tblStudentSubject */
                 $tblStudentSubject = current($tblStudentSubjectList);
                 if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                    $Content['P' . $personId]['Student']['Profile'][str_replace(' ', '',
-                        $tblSubjectProfile->getAcronym())]['Name']
+                    $Content['P' . $personId]['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
                         = str_replace('Profil', '', $tblSubjectProfile->getName());
                 }
             }
@@ -2131,7 +2134,7 @@ class Service extends AbstractService
             case 6 : return 'ungenügend'; break;
         }
 
-        return '';
+        return $grade;
     }
 
     /**
