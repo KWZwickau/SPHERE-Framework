@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -52,22 +53,41 @@ class StudentFilter extends Extension
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
 
+        $tblLevelShowList = array();
+
+        $tblLevelList = Division::useService()->getLevelAll();
+        if ($tblLevelList) {
+            foreach ($tblLevelList as &$tblLevel) {
+                if (!$tblLevel->getName()) {
+
+                    $tblLevel->setName('Stufenübergreifende Klassen');
+                    $tblLevelShowList[] = $tblLevel;
+                } else {
+                    $tblLevelShowList[] = $tblLevel;
+                }
+            }
+        }
+
         return (new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
                         new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new DangerText('*'),
                             array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
-                    ), 4),
+                    ), 3),
+                    new FormColumn(array(
+                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Bildung: Schulart',
+                            array('Name' => Type::useService()->getTypeAll()))
+                    ), 3),
                     new FormColumn(array(
                         new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
-                            array('{{ Name }} {{ serviceTblType.Name }}' => Division::useService()->getLevelAll()))
-                    ), 4),
+                            array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList))
+                    ), 3),
                     new FormColumn(array(
                         new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
                             'Klasse: Gruppe',
                             array('Name' => Division::useService()->getDivisionAll()))
-                    ), 4),
+                    ), 3),
                 )),
                 new FormRow(
                     new FormColumn(
