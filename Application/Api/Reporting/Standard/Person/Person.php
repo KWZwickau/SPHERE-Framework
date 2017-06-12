@@ -143,4 +143,30 @@ class Person
         return false;
     }
 
+    /**
+     * @return string|bool
+     */
+    public function downloadInterestedPersonList()
+    {
+
+        $PersonList = ReportingPerson::useService()->createInterestedPersonList();
+        if ($PersonList) {
+            $firstName = array();
+            foreach ($PersonList as $key => $row) {
+                $name[$key] = strtoupper($row['LastName']);
+                $firstName[$key] = strtoupper($row['FirstName']);
+            }
+            array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
+
+            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+            if ($tblPersonList) {
+                $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList);
+
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Interessentenliste ".date("Y-m-d H:i:s").".xlsx")->__toString();
+            }
+        }
+
+        return false;
+    }
 }

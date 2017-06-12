@@ -829,4 +829,93 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    /**
+     * @return Stage
+     */
+    public function frontendInterestedPersonList()
+    {
+
+        $Stage = new Stage('Auswertung', 'Neuanmeldungen/Interessenten');
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+        $PersonList = Person::useService()->createInterestedPersonList();
+        if ($PersonList) {
+            $Stage->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Standard/Person/InterestedPersonList/Download', new Download())
+            );
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'RegistrationDate' => 'Anmeldedatum',
+                                    'FirstName'        => 'Vorname',
+                                    'LastName'         => 'Name',
+                                    'SchoolYear'       => 'Schuljahr',
+                                    'DivisionLevel'    => 'Klassenstufe',
+                                    'TypeOptionA'      => 'Schulart 1',
+                                    'TypeOptionB'      => 'Schulart 2',
+                                    'Address'          => 'Adresse',
+                                    'Birthday'         => 'Geburtsdatum',
+                                    'Birthplace'       => 'Geburtsort',
+                                    'Nationality'      => 'Staatsangeh.',
+                                    'Denomination'     => 'Bekenntnis',
+                                    'Siblings'         => 'Geschwister',
+                                    'Father'           => 'Sorgeberechtigter 1',
+                                    'Mother'           => 'Sorgeberechtigter 2',
+                                    'Phone'            => 'Telefon Interessent',
+                                    'PhoneGuardian'    => 'Telefon Sorgeb.',
+                                ),
+                                array(
+                                    'order' => array(
+                                        array(2, 'asc'),
+                                        array(1, 'asc')
+                                    ),
+                                    "pageLength" => -1,
+                                    "responsive" => false
+                                )
+                            )
+                        )
+                    )
+                ),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Weiblich', array(
+                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Männlich', array(
+                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Gesamt', array(
+                                'Anzahl: ' . count($tblPersonList),
+                            ), Panel::PANEL_TYPE_INFO)
+                            , 4)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                                null)
+                        )
+                    )
+                ))
+            ))
+        );
+
+        return $Stage;
+    }
 }

@@ -300,10 +300,12 @@ abstract class AbstractDocument
                     ) {
                         $tblCompany = $tblTransfer->getServiceTblCompany();
                         $tblSchoolType = $tblTransfer->getServiceTblType();
-                        $tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType);
-                        if ($tblSchool) {
-                            // fill found information (School)
-                            $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber($tblSchool);
+                        if ($tblCompany && $tblSchoolType) {
+                            $tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType);
+                            if ($tblSchool) {
+                                // fill found information (School)
+                                $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber($tblSchool);
+                            }
                         }
                     }
                 }
