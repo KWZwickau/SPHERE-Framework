@@ -401,6 +401,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 if (($tblLevel = $tblDivision->getTblLevel()) && $tblLevel->getName()) {
                                     $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
                                     $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
+                                    if (($tblType = $tblLevel->getServiceTblType())) {
+                                        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
+                                    }
                                 }
                             }
                         }
@@ -408,11 +411,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-
-//        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
-//        if(isset($Global) && isset($Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Type'])){
-//            $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Type'];
-//        }
 
         $tblStudentTransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
         $tblStudentTransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
@@ -499,12 +497,12 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                          => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                         => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
-                                ApiMassReplace::USED_FILTER                            => StudentFilter::STUDENT_FILTER,
+                                ApiMassReplace::USED_FILTER                                     => StudentFilter::STUDENT_FILTER,
 //                                'PersonId'                     => $tblPerson->getId(),
-                                'Year['.ViewYear::TBL_YEAR_ID.']'                      => $Year[ViewYear::TBL_YEAR_ID],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'      => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-//                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
@@ -545,11 +543,11 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                          => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                         => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
-                                ApiMassReplace::USED_FILTER                            => StudentFilter::STUDENT_FILTER,
-                                'Year['.ViewYear::TBL_YEAR_ID.']'                      => $Year[ViewYear::TBL_YEAR_ID],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'      => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-//                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                ApiMassReplace::USED_FILTER                                     => StudentFilter::STUDENT_FILTER,
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
@@ -892,6 +890,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 if (($tblLevel = $tblDivision->getTblLevel()) && $tblLevel->getName()) {
                                     $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
                                     $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
+                                    if (($tblType = $tblLevel->getServiceTblType())) {
+                                        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
+                                    }
                                 }
                             }
                         }
@@ -977,10 +978,11 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::SERVICE_METHOD                         => MassReplaceSubject::METHOD_REPLACE_SUBJECT,
                             ApiMassReplace::USED_FILTER                            => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE                          => $tblStudentSubjectType->getId(),
-                            MassReplaceSubject::ATTR_RANKING                       => $tblStudentSubjectRanking->getId(),
-                            'Year['.ViewYear::TBL_YEAR_ID.']'                      => $Year[ViewYear::TBL_YEAR_ID],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'      => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                            MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
+                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
                         )))->ajaxPipelineOnClick(
                         ApiMassReplace::pipelineOpen($Field)
                     ))
