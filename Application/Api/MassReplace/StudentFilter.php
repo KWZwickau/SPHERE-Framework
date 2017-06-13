@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -17,6 +18,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -73,20 +75,20 @@ class StudentFilter extends Extension
                     new FormColumn(array(
                         new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new DangerText('*'),
                             array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
-                    ), 4),
-//                    new FormColumn(array(
-//                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Bildung: Schulart',
-//                            array('Name' => Type::useService()->getTypeAll()))
-//                    ), 3),
+                    ), 3),
+                    new FormColumn(array(
+                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Bildung: Schulart',
+                            array('Name' => Type::useService()->getTypeAll()))
+                    ), 3),
                     new FormColumn(array(
                         new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
                             array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList))
-                    ), 4),
+                    ), 3),
                     new FormColumn(array(
                         new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
                             'Klasse: Gruppe',
                             array('Name' => Division::useService()->getDivisionAll()))
-                    ), 4),
+                    ), 3),
                 )),
                 new FormRow(
                     new FormColumn(
@@ -117,11 +119,11 @@ class StudentFilter extends Extension
      */
     public function getFrontendStudentFilter($modalField, $Year = null, $Division = null)
     {
-        /** @var AbstractField $Field */
+        /** @var SelectBox|TextField $Field */
         $Field = unserialize(base64_decode($modalField));
         $CloneField = (new ApiMassReplace())->cloneField($Field, 'CloneField', 'Auswahl/Eingabe');
 
-        $TableContent = $this->getStudentFilterResult($Year, $Division);
+        $TableContent = $this->getStudentFilterResult($Year, $Division, $Field->getLabel());
 
         return new Layout(
             new LayoutGroup(
@@ -143,7 +145,7 @@ class StudentFilter extends Extension
                                                         'StudentNumber' => 'Schülernummer',
                                                         'Level'         => 'Stufe',
                                                         'Division'      => 'Klasse',
-                                                        'Course'        => 'Bildungsgang',
+                                                        'Edit'          => $Field->getLabel(),
                                                     ), null)
                                                 : new Warning('Keine Personen gefunden '.
                                                     new ToolTip(new Info(), 'Das Schuljahr ist ein Pflichtfeld'))),
@@ -165,12 +167,13 @@ class StudentFilter extends Extension
     }
 
     /**
-     * @param null $Year
-     * @param null $Division
+     * @param null   $Year
+     * @param null   $Division
+     * @param string $Label
      *
      * @return array $SearchResult
      */
-    private function getStudentFilterResult($Year = null, $Division = null)
+    private function getStudentFilterResult($Year = null, $Division = null, $Label = '')
     {
         $Pile = new Pile(Pile::JOIN_TYPE_INNER);
         $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
@@ -243,8 +246,8 @@ class StudentFilter extends Extension
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
                 /** @noinspection PhpUndefinedFieldInspection */
                 $DataPerson['Name'] = false;
-                $DataPerson['Course'] = '';
                 $DataPerson['Check'] = '';
+                $DataPerson['Edit'] = ''; // get content by Field->getLabel()
                 if ($tblPerson) {
                     $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
                         $tblPerson->getId()
@@ -256,8 +259,43 @@ class StudentFilter extends Extension
                         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                         $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                             $tblStudentTransferType);
-                        if ($tblStudentTransfer && $tblStudentTransfer->getServiceTblCourse()) {
-                            $DataPerson['Course'] = $tblStudentTransfer->getServiceTblCourse()->getName();
+                        if ($tblStudentTransfer) {
+                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule') {
+                                $DataPerson['Edit'] = $tblCompany->getName();
+                            }
+                            if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang') {
+                                $DataPerson['Edit'] = $tblCourse->getName();
+                            }
+//                            if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
+//                                $DataPerson['Edit'] = $tblType->getName();
+//                            }
+                        }
+                        if ($Label == 'Religion') {
+                            $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION');
+                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
+                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                $tblStudentSubjectType, $tblStudentSubjectRanking);
+                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                            }
+                        }
+                        if ($Label == 'Profil') {
+                            $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
+                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
+                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                $tblStudentSubjectType, $tblStudentSubjectRanking);
+                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                            }
+                        }
+                        if ($Label == 'Vertiefungskurs') {
+                            $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ADVANCED');
+                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
+                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                $tblStudentSubjectType, $tblStudentSubjectRanking);
+                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                            }
                         }
                     }
                 }
