@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 
 /**
  * Class MsAbsHsQ
@@ -27,6 +28,14 @@ class MsAbsHsQ extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+
+        if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+            && $tblConsumer->getAcronym() == 'ESZC'
+        ) {
+            $isSchoolNameBold = true;
+        } else {
+            $isSchoolNameBold = false;
+        }
 
         // leere Seite
         $pageList[] = new Page();
@@ -113,13 +122,14 @@ class MsAbsHsQ extends Certificate
                                 {% endif %}')
                         ->styleBorderBottom('1px')
                         ->styleAlignCenter()
+                        ->styleTextBold($isSchoolNameBold ? 'bold' : 'normal')
                     )
                     ->addElementColumn((new Element())
                         ->styleBorderBottom('1px')
                         ->setContent('&nbsp;')
                         , '5%')
                 )
-                ->styleMarginTop('20px')
+                ->styleMarginTop('35px')
             )
             ->addSlice(
                 (new Slice())
@@ -127,7 +137,7 @@ class MsAbsHsQ extends Certificate
                         (new Element())
                             ->setContent('{% if(Content.P' . $personId . '.Company.Address.Street.Name) %}
                                     {{ Content.P' . $personId . '.Company.Address.Street.Name }}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }},
+                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}')
@@ -307,7 +317,7 @@ class MsAbsHsQ extends Certificate
                         , '30%')
                 )
             )
-            ->addSlice($this->getInfo('125px',
+            ->addSlice($this->getInfo('120px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
         );

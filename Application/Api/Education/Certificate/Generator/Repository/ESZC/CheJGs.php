@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESZC;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
@@ -17,6 +18,17 @@ class CheJGs extends Certificate
 {
 
     const TEXT_SIZE = '12pt';
+
+    /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
 
     /**
      * @param TblPerson|null $tblPerson
@@ -144,20 +156,16 @@ class CheJGs extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Einschätzung:')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        , '16%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                        ->setContent('Einschätzung: {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
                                     {{ Content.P' . $personId . '.Input.Rating }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
                         ->styleTextSize('11pt')
-                        ->styleHeight('50px')
-                        , '84%')
+                        ->styleHeight('95px')
+                    )
                 )
-                ->styleMarginTop('15px')
+                ->styleMarginTop('10px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -171,7 +179,7 @@ class CheJGs extends Certificate
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->styleHeight('15px')
+                    ->styleHeight('5px')
                 )
             )
             ->addSlice((new Slice())
@@ -218,12 +226,12 @@ class CheJGs extends Certificate
                         ->styleTextSize(self::TEXT_SIZE)
                     )
                 )
-                ->styleMarginTop('25px')
+                ->styleMarginTop('15px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->styleHeight('20px')
+                    ->styleHeight('5px')
                 )
             )
             ->addSlice((new Slice())
@@ -234,7 +242,7 @@ class CheJGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleHeight('100px')
+                        ->styleHeight('110px')
                         ->styleTextSize('11pt')
                     )
                 )
@@ -277,7 +285,7 @@ class CheJGs extends Certificate
                     ->addElementColumn((new Element())
                         , '70%')
                 )
-                ->styleMarginTop('18px')
+                ->styleMarginTop('12px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())

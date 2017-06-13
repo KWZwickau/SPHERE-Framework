@@ -606,6 +606,27 @@ abstract class Certificate extends Extension
                 }
             }
 
+            // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
+            if (($tblCertificate = $this->getCertificateEntity())
+                && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+                && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+                && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+                && $tblSetting->getValue()
+            ) {
+                $subjectWidth = 37;
+                $gradeWidth = 11;
+                $TextSizeSmall = '13px';
+                $paddingTopShrinking = '4px';
+                $paddingBottomShrinking = '4px';
+            } else {
+                $subjectWidth = 39;
+                $gradeWidth = 9;
+                $TextSizeSmall = '8.5px';
+                $paddingTopShrinking = '5px';
+                $paddingBottomShrinking = '6px';
+            }
+
             $count = 0;
             foreach ($SubjectStructure as $SubjectList) {
                 $count++;
@@ -642,7 +663,7 @@ abstract class Certificate extends Extension
                             ->styleBorderBottom('1px', '#000')
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
-                            , '37%');
+                            , (string)($subjectWidth - 2) . '%');
                         $SubjectSection->addElementColumn((new Element()), '2%');
                     } elseif ($isShrinkMarginTop) {
                         $SubjectSection->addElementColumn((new Element())
@@ -650,7 +671,7 @@ abstract class Certificate extends Extension
                             ->stylePaddingTop()
                             ->styleMarginTop('0px')
                             ->styleTextSize($TextSize)
-                            , '39%');
+                            , (string)$subjectWidth . '%');
                         // ToDo Dynamisch für alle zu langen Fächer
                     } elseif ($Subject['SubjectName'] == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
                         $SubjectSection->addElementColumn((new Element())
@@ -659,17 +680,15 @@ abstract class Certificate extends Extension
                             ->stylePaddingTop()
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
-                            , '39%');
+                            , (string)$subjectWidth . '%');
                     } else {
                         $SubjectSection->addElementColumn((new Element())
                             ->setContent($Subject['SubjectName'])
                             ->stylePaddingTop()
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
-                            , '39%');
+                            , (string)$subjectWidth . '%');
                     }
-
-                    $TextSizeSmall = '8.5px';
 
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
@@ -684,7 +703,7 @@ abstract class Certificate extends Extension
                             '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
-                                 5px
+                                ' . $paddingTopShrinking . ' 
                              {% else %}
                                  2px
                              {% endif %}'
@@ -693,7 +712,7 @@ abstract class Certificate extends Extension
                             '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
-                                 6px
+                               ' . $paddingBottomShrinking . ' 
                              {% else %}
                                  2px
                              {% endif %}'
@@ -708,7 +727,7 @@ abstract class Certificate extends Extension
                                  ' . $TextSize . '
                              {% endif %}'
                         )
-                        , '9%');
+                        , (string)$gradeWidth . '%');
 
                     if ($isShrinkMarginTop && $Lane == 2) {
                         $isShrinkMarginTop = false;
@@ -742,7 +761,7 @@ abstract class Certificate extends Extension
                         ->styleMarginTop('0px')
                         ->styleMarginBottom('0px')
                         ->styleTextSize('9px')
-                        , '39%');
+                        , (string)$subjectWidth . '%');
 
                     if ($hasAdditionalLine['Lane'] == 1) {
                         $SubjectSection->addElementColumn((new Element()), '52%');
@@ -1803,7 +1822,7 @@ abstract class Certificate extends Extension
 
         $tblPerson = Person::useService()->getPersonById($personId);
 
-        $marginTop = '5px';
+        $marginTop = '3px';
 
         $slice = new Slice();
         $sectionList = array();
@@ -1812,6 +1831,28 @@ abstract class Certificate extends Extension
         $elementOrientationGrade = false;
         $elementForeignLanguageName = false;
         $elementForeignLanguageGrade = false;
+
+        // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
+        if (($tblCertificate = $this->getCertificateEntity())
+            && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+            && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+            && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+            && $tblSetting->getValue()
+        ) {
+            $subjectWidth = 89;
+            $gradeWidth = 11;
+            $TextSizeSmall = '13px';
+            $paddingTopShrinking = '4px';
+            $paddingBottomShrinking = '4px';
+        } else {
+            $subjectWidth = 91;
+            $gradeWidth = 9;
+            $TextSizeSmall = '8.5px';
+            $paddingTopShrinking = '5px';
+            $paddingBottomShrinking = '6px';
+        }
+
         if ($tblPerson
             && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
         ) {
@@ -1843,7 +1884,7 @@ abstract class Certificate extends Extension
                             {% endif %}')
                         ->stylePaddingTop('0px')
                         ->stylePaddingBottom('0px')
-                        ->styleMarginTop($marginTop)
+                        ->styleMarginTop('7px')
                         ->styleTextSize($TextSize);
 
                     $elementOrientationGrade = new Element();
@@ -1857,10 +1898,28 @@ abstract class Certificate extends Extension
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop('0px')
-                        ->stylePaddingBottom('0px')
-                        ->styleMarginTop($marginTop)
-                        ->styleTextSize($TextSize);
+                        ->stylePaddingTop(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $paddingTopShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                  ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->styleTextSize(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
+                        ->styleMarginTop($marginTop);
                 }
             }
 
@@ -1885,7 +1944,7 @@ abstract class Certificate extends Extension
                             {% endif %}')
                             ->stylePaddingTop('0px')
                             ->stylePaddingBottom('0px')
-                            ->styleMarginTop($marginTop)
+                            ->styleMarginTop('7px')
                             ->styleTextSize($TextSize);
 
                         $elementForeignLanguageGrade = new Element();
@@ -1899,10 +1958,28 @@ abstract class Certificate extends Extension
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                            ->stylePaddingTop('0px')
-                            ->stylePaddingBottom('0px')
-                            ->styleMarginTop($marginTop)
-                            ->styleTextSize($TextSize);
+                            ->stylePaddingTop(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $paddingTopShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                            )
+                            ->stylePaddingBottom(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                  ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                            )
+                            ->styleTextSize(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                            )
+                            ->styleMarginTop($marginTop);
                     }
                 }
             }
@@ -1923,8 +2000,8 @@ abstract class Certificate extends Extension
             if ($elementOrientationName) {
                 $section = new Section();
                 $section
-                    ->addElementColumn($elementOrientationName, '91%')
-                    ->addElementColumn($elementOrientationGrade, '9%');
+                    ->addElementColumn($elementOrientationName, (string)$subjectWidth . '%')
+                    ->addElementColumn($elementOrientationGrade, (string)$gradeWidth . '%');
                 $sectionList[] = $section;
 
                 $section = new Section();
@@ -1935,14 +2012,14 @@ abstract class Certificate extends Extension
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
-                        , '89%')
-                    ->addElementColumn((new Element()), '11%');
+                        , (string)($subjectWidth - 2) . '%')
+                    ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                 $sectionList[] = $section;
             } elseif ($elementForeignLanguageName) {
                 $section = new Section();
                 $section
-                    ->addElementColumn($elementForeignLanguageName, '91%')
-                    ->addElementColumn($elementForeignLanguageGrade, '9%');
+                    ->addElementColumn($elementForeignLanguageName, (string)$subjectWidth . '%')
+                    ->addElementColumn($elementForeignLanguageGrade, (string)$gradeWidth . '%');
                 $sectionList[] = $section;
 
                 $section = new Section();
@@ -1953,8 +2030,8 @@ abstract class Certificate extends Extension
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
-                        , '89%')
-                    ->addElementColumn((new Element()), '11%');
+                        , (string)($subjectWidth - 2) . '%')
+                    ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                 $sectionList[] = $section;
             } else {
                 $elementName = (new Element())
@@ -2453,7 +2530,7 @@ abstract class Certificate extends Extension
         $marginTopSection = new Section();
         $marginTopSection->addElementColumn((new Element())
             ->setContent('&nbsp;')
-            ->styleHeight('15px')
+            ->styleHeight('5px')
         );
         $SubjectSlice->addSection($marginTopSection);
         $SectionList[] = $marginTopSection;

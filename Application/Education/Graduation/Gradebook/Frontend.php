@@ -2015,7 +2015,10 @@ class Frontend extends FrontendScoreRule
                                         Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                         $tblScoreRule ? $tblScoreRule : null
                                     );
-                                    if (is_string($average) && strpos($average, '(')) {
+
+                                    if (is_array($average)) {
+                                        $average = 'Fehler';
+                                    } elseif (is_string($average) && strpos($average, '(')) {
                                         $average = substr($average, 0, strpos($average, '('));
                                     }
 
