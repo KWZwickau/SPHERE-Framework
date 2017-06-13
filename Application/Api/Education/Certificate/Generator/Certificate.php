@@ -2453,7 +2453,7 @@ abstract class Certificate extends Extension
         $marginTopSection = new Section();
         $marginTopSection->addElementColumn((new Element())
             ->setContent('&nbsp;')
-            ->styleHeight('15px')
+            ->styleHeight('5px')
         );
         $SubjectSlice->addSection($marginTopSection);
         $SectionList[] = $marginTopSection;

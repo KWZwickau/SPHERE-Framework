@@ -775,7 +775,7 @@ class Service extends AbstractService
                 $Content['P' . $personId]['DivisionTeacher']['Gender'] = $genderValue;
                 if ($genderValue == 'M') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
-                } elseif ($genderValue == 'W') {
+                } elseif ($genderValue == 'F') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
                 }
             }
