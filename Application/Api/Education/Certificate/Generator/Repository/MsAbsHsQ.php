@@ -127,7 +127,7 @@ class MsAbsHsQ extends Certificate
                         (new Element())
                             ->setContent('{% if(Content.P' . $personId . '.Company.Address.Street.Name) %}
                                     {{ Content.P' . $personId . '.Company.Address.Street.Name }}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }},
+                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}')
