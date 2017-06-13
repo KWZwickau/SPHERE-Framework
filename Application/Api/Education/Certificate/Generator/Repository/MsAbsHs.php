@@ -313,7 +313,7 @@ class MsAbsHs extends Certificate
                         , '30%')
                 )
             )
-            ->addSlice($this->getInfo('125px',
+            ->addSlice($this->getInfo('120px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );

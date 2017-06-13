@@ -341,10 +341,27 @@ class MsAbsRs extends Certificate
         $IsGradeUnderlined = false
     ) {
 
-        $TextSizeSmall = '8.5px';
-
         $slice = new Slice();
         if (($tblGradeList = $this->getAdditionalGrade())) {
+
+            // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
+            if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+                && $tblSetting->getValue()
+            ) {
+                $subjectWidth = 37;
+                $gradeWidth = 11;
+                $TextSizeSmall = '13px';
+                $paddingTopShrinking = '4px';
+                $paddingBottomShrinking = '4px';
+            } else {
+                $subjectWidth = 39;
+                $gradeWidth = 9;
+                $TextSizeSmall = '8.5px';
+                $paddingTopShrinking = '5px';
+                $paddingBottomShrinking = '6px';
+            }
+
             $count = 0;
             $section = new Section();
             foreach ($tblGradeList['Data'] as $subjectAcronym => $grade) {
@@ -363,7 +380,7 @@ class MsAbsRs extends Certificate
                         ->stylePaddingTop()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
-                        , '39%');
+                        , (string)$subjectWidth . '%');
 
                     $section->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
@@ -376,14 +393,14 @@ class MsAbsRs extends Certificate
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.AdditionalGrade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
-                                 5px
+                                 ' . $paddingTopShrinking . ' 
                              {% else %}
                                  2px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
                             '{% if(Content.P' . $personId . '.AdditionalGrade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
-                                 6px
+                                  ' . $paddingBottomShrinking . ' 
                              {% else %}
                                  2px
                              {% endif %}'
@@ -396,7 +413,7 @@ class MsAbsRs extends Certificate
                                  ' . $TextSize . '
                              {% endif %}'
                         )
-                        , '9%');
+                        , (string)$gradeWidth . '%');
                 }
             }
 
