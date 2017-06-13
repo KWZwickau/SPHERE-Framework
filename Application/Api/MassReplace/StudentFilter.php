@@ -7,7 +7,6 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -74,20 +73,20 @@ class StudentFilter extends Extension
                     new FormColumn(array(
                         new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new DangerText('*'),
                             array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
-                    ), 3),
-                    new FormColumn(array(
-                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Bildung: Schulart',
-                            array('Name' => Type::useService()->getTypeAll()))
-                    ), 3),
+                    ), 4),
+//                    new FormColumn(array(
+//                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Bildung: Schulart',
+//                            array('Name' => Type::useService()->getTypeAll()))
+//                    ), 3),
                     new FormColumn(array(
                         new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
                             array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList))
-                    ), 3),
+                    ), 4),
                     new FormColumn(array(
                         new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
                             'Klasse: Gruppe',
                             array('Name' => Division::useService()->getDivisionAll()))
-                    ), 3),
+                    ), 4),
                 )),
                 new FormRow(
                     new FormColumn(
