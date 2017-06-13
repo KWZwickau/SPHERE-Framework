@@ -780,7 +780,7 @@ abstract class AbstractDocument
     private function getEnrollmentDocumentUsedPicture()
     {
         if (($tblSetting = Consumer::useService()->getSetting(
-            'Document', 'Standard', 'EnrollmentDocument', 'PictureAddress'))
+            'Api', 'Document', 'Standard', 'EnrollmentDocument_PictureAddress'))
         ) {
             return (string)$tblSetting->getValue();
         }
@@ -796,7 +796,7 @@ abstract class AbstractDocument
         $value = '';
 
         if (($tblSetting = Consumer::useService()->getSetting(
-            'Document', 'Standard', 'EnrollmentDocument', 'PictureHeight'))
+            'Api', 'Document', 'Standard', 'EnrollmentDocument_PictureHeight'))
         ) {
             $value = (string)$tblSetting->getValue();
         }
