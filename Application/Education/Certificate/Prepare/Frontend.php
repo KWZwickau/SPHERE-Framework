@@ -27,6 +27,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -1151,10 +1152,15 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblPerson);
                         $hasTransfer = false;
                         $isTeamSet = false;
+                        $hasRemarkText = false;
                         if ($tblPrepareInformationAll) {
                             foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
                                 if ($tblPrepareInformation->getField() == 'Team' || $tblPrepareInformation->getField() == 'TeamExtra') {
                                     $isTeamSet = true;
+                                }
+
+                                if ($tblPrepareInformation->getField() == 'Remark') {
+                                    $hasRemarkText = true;
                                 }
 
                                 if ($tblPrepareInformation->getField() == 'SchoolType'
@@ -1181,6 +1187,23 @@ class Frontend extends Extension implements IFrontendInterface
                                         = $tblPrepareInformation->getValue();
                                 }
                             }
+                        }
+
+                        // Coswig Versetzungsvermerk in die Bemerkung vorsetzten
+                        if (!$hasRemarkText
+                            && ($tblConsumer = Consumer::useService()->getConsumerBySession())
+                            && $tblConsumer->getAcronym() == 'EVSC'
+                            && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+                            && $tblCertificateType->getIdentifier() == 'YEAR'
+                        ) {
+                            $nextLevel = 'x';
+                            if (($tblLevel = $tblDivision->getTblLevel())
+                                && is_numeric($tblLevel->getName())
+                            ) {
+                                $nextLevel = floatval($tblLevel->getName()) + 1;
+                            }
+                            $Global->POST['Data'][$tblPerson->getId()]['Remark'] =
+                                $tblPerson->getFirstSecondName() . ' wird versetzt in Klasse ' . $nextLevel . '.';
                         }
 
                         // Arbeitsgemeinschaften aus der Schülerakte laden

@@ -25,8 +25,8 @@ class CheJGs extends Certificate
     public function selectValuesTransfer()
     {
         return array(
-            1 => "wird versetzt",
-            2 => "wird nicht versetzt"
+            1 => "wird versetzt.",
+            2 => "wird nicht versetzt."
         );
     }
 

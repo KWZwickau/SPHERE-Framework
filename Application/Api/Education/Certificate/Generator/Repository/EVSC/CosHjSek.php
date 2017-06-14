@@ -20,16 +20,47 @@ class CosHjSek extends Certificate
 
     /**
      * @param TblPerson|null $tblPerson
-     * @return Page
-     * @internal param bool $IsSample
      *
+     * @return Page
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        if ($this->isSample()) {
+        $gradeLanesSlice = $this->getGradeLanesCoswig($personId, self::TEXT_SIZE, false, '10px');
+        $subjectLanesSlice = $this->getSubjectLanesCoswig($personId, true, array(), self::TEXT_SIZE,
+            false);
+        $obligationToVotePart = $this->getObligationToVotePartCustomForCoswig($personId,
+            self::TEXT_SIZE);
+
+        return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Schule (Sekundarstufe)',
+            $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart
+        );
+    }
+
+    /**
+     * @param $personId
+     * @param $isSample
+     * @param string $title
+     * @param Slice $gradeLanesSlice
+     * @param Slice $subjectLanesSlice
+     * @param Slice $obligationToVotePart
+     *
+     * @return Page
+     */
+    public static function buildContentPage(
+        $personId,
+        $isSample,
+        $title = 'Halbjahresinformation der Schule (Sekundarstufe)',
+        Slice $gradeLanesSlice,
+        Slice $subjectLanesSlice,
+        Slice $obligationToVotePart
+    ) {
+
+        $subjectLanesSlice->styleHeight('248px');
+
+        if ($isSample) {
             $Header = array(
                 (new Section())
                     ->addSliceColumn((new Slice())
@@ -121,7 +152,7 @@ class CosHjSek extends Certificate
                             ->styleAlignCenter()
                         )
                         ->addElement((new Element())
-                            ->setContent('Halbjahresinformation der Schule (Sekundarstufe)')
+                            ->setContent($title)
                             ->styleFontFamily('Trebuchet MS')
                             ->styleTextSize('20px')
                             ->styleTextBold()
@@ -200,7 +231,7 @@ class CosHjSek extends Certificate
                             )
                         )
                         ->addSection((new Section())
-                            ->addSliceColumn($this->getGradeLanesCoswig($personId, self::TEXT_SIZE, false, '10px'))
+                            ->addSliceColumn($gradeLanesSlice)
                         )
                         ->addSection((new Section())
                             ->addSliceColumn((new Slice())
@@ -215,13 +246,10 @@ class CosHjSek extends Certificate
                             )
                         )
                         ->addSection((new Section())
-                            ->addSliceColumn($this->getSubjectLanesCoswig($personId, true, array(), self::TEXT_SIZE,
-                                false)
-                                ->styleHeight('248px'))
+                            ->addSliceColumn($subjectLanesSlice)
                         )
                         ->addSection((new Section())
-                            ->addSliceColumn($this->getObligationToVotePartCustomForCoswig($personId,
-                                self::TEXT_SIZE))
+                            ->addSliceColumn($obligationToVotePart)
                         )
                         ->addSection((new Section())
                             ->addSliceColumn((new Slice())
