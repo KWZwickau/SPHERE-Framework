@@ -32,7 +32,7 @@ class ApiMassReplace extends Extension implements IApiInterface
 
     const SERVICE_CLASS = 'ServiceClass';
     const SERVICE_METHOD = 'ServiceMethod';
-    const USED_FILTER = 'usedFilter';
+    const USE_FILTER = 'useFilter';
 
     /**
      * @param string $Method
@@ -129,18 +129,18 @@ class ApiMassReplace extends Extension implements IApiInterface
 
     /**
      * @param AbstractField $modalField
-     * @param null          $usedFilter
+     * @param null          $useFilter
      * @param null          $Year
      * @param null          $Division
      *
      * @return Layout|string
      */
-    public function openModal($modalField, $usedFilter = null, $Year = null, $Division = null)
+    public function openModal($modalField, $useFilter = null, $Year = null, $Division = null)
     {
-        if ($usedFilter == null) {
+        if ($useFilter == null) {
             return new Warning('Filter einstellen!');
         }
-        if ($usedFilter == StudentFilter::STUDENT_FILTER) {
+        if ($useFilter == StudentFilter::STUDENT_FILTER) {
             return (new StudentFilter())->getFrontendStudentFilter($modalField, $Year, $Division);
         }
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
@@ -133,7 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             Student::useService()->createMeta(
-                                ( new Form(array(
+                                (new Form(array(
                                     new FormGroup(
                                         new FormRow(array(
                                             new FormColumn(
@@ -144,10 +145,12 @@ class Frontend extends Extension implements IFrontendInterface
                                                 , 4),
                                             new FormColumn(
                                                 new Panel('Schulpflicht', array(
-                                                    new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '', 'Beginnt am', new Calendar())
+                                                    new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '',
+                                                        'Beginnt am', new Calendar())
                                                 ), Panel::PANEL_TYPE_INFO)
                                                 , 4),
-                                        )), new Title(new TileSmall().' Grunddaten ', new Bold(new Success($tblPerson->getFullName())))
+                                        )), new Title(new TileSmall().' Grunddaten ',
+                                            new Bold(new Success($tblPerson->getFullName())))
                                     ),
                                     $this->formGroupTransfer($tblPerson),
                                     $this->formGroupGeneral($tblPerson),
@@ -176,7 +179,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Meta']['Transfer'] )) {
+            if (!isset($Global->POST['Meta']['Transfer'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -321,6 +324,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblYear = $tblDivision->getServiceTblYear();
                         if ($tblLevel && $tblYear) {
                             $VisitedDivisions[] = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
+                                .new Muted(new Small(' '.($tblLevel->getServiceTblType() ? $tblLevel->getServiceTblType()->getName() : '')))
                                 .$TeacherString;
                             foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
                                 if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
@@ -339,7 +343,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                if (!empty( $VisitedDivisions )) {
+                if (!empty($VisitedDivisions)) {
                     rsort($VisitedDivisions);
                 }
             }
@@ -495,10 +499,9 @@ class Frontend extends Extension implements IFrontendInterface
                         .ApiMassReplace::receiverModal($Field)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
-                                ApiMassReplace::SERVICE_CLASS                          => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                ApiMassReplace::SERVICE_METHOD                         => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
-                                ApiMassReplace::USED_FILTER                                     => StudentFilter::STUDENT_FILTER,
-//                                'PersonId'                     => $tblPerson->getId(),
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -506,31 +509,6 @@ class Frontend extends Extension implements IFrontendInterface
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
-
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
-                            'Aktuelle Schulart', array(
-                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
-                            ), new Education()),
-
-//                        ApiMassReplace::receiverField((
-//                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
-//                            'Aktuelle Schulart', array(
-//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-//                            ), new Education())
-//                        ))
-//                        .ApiMassReplace::receiverModal($Field)
-//                        .new PullRight((new Link('Massen-Änderung',
-//                            ApiMassReplace::getEndpoint(), null, array(
-//                                ApiMassReplace::SERVICE_CLASS                          => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-//                                ApiMassReplace::SERVICE_METHOD                         => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL_TYPE,
-//                                ApiMassReplace::USED_FILTER                            => StudentFilter::STUDENT_FILTER,
-//                                'Year['.ViewYear::TBL_YEAR_ID.']'                      => $Year[ViewYear::TBL_YEAR_ID],
-//                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'      => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-//                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-////                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-//                            )))->ajaxPipelineOnClick(
-//                            ApiMassReplace::pipelineOpen($Field)
-//                        )),
 
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
@@ -541,9 +519,9 @@ class Frontend extends Extension implements IFrontendInterface
                         .ApiMassReplace::receiverModal($Field)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
-                                ApiMassReplace::SERVICE_CLASS                          => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                ApiMassReplace::SERVICE_METHOD                         => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
-                                ApiMassReplace::USED_FILTER                                     => StudentFilter::STUDENT_FILTER,
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -555,6 +533,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                            'Aktuelle Schule', array(
 //                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
 //                            ), new Education()),
+                        // removed SchoolType
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
 //                            'Aktuelle Schulart', array(
 //                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
@@ -601,7 +580,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Meta']['MedicalRecord'] )) {
+            if (!isset($Global->POST['Meta']['MedicalRecord'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -789,14 +768,14 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return FormGroup
      */
-    private    function formGroupSubject(
+    private function formGroupSubject(
         TblPerson $tblPerson = null
     ) {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         $Global = $this->getGlobal();
 
-        if ($tblStudent && !isset( $Global->POST['Meta']['Subject'] )) {
+        if ($tblStudent && !isset($Global->POST['Meta']['Subject'])) {
 
             $tblStudentSubjectAll = Student::useService()->getStudentSubjectAllByStudent($tblStudent);
             if ($tblStudentSubjectAll) {
@@ -973,10 +952,10 @@ class Frontend extends Extension implements IFrontendInterface
                     .ApiMassReplace::receiverModal($Field)
                     .new PullRight((new Link('Massen-Änderung',
                         ApiMassReplace::getEndpoint(), null, array(
-                            ApiMassReplace::SERVICE_CLASS                          => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
-                            ApiMassReplace::SERVICE_METHOD                         => MassReplaceSubject::METHOD_REPLACE_SUBJECT,
-                            ApiMassReplace::USED_FILTER                            => StudentFilter::STUDENT_FILTER,
-                            MassReplaceSubject::ATTR_TYPE                          => $tblStudentSubjectType->getId(),
+                            ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
+                            ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_SUBJECT,
+                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                            MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
                             'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                             'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
@@ -988,12 +967,12 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             } else {
                 array_push($Panel,
-                new SelectBox(
-                    'Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
-                    ( $Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '' ).$Label,
-                    array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList),
-                    new Education()
-                ));
+                    new SelectBox(
+                        'Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
+                        ($Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '').$Label,
+                        array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList),
+                        new Education()
+                    ));
             }
             // Student FOREIGN_LANGUAGE: LevelFrom, LevelTill
             if ($tblStudentSubjectType->getIdentifier() == 'FOREIGN_LANGUAGE') {
@@ -1052,7 +1031,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Meta']['Integration'] )) {
+            if (!isset($Global->POST['Meta']['Integration'])) {
 
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
 

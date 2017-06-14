@@ -61,9 +61,11 @@ class MassReplaceSubject extends Extension
             $tblSubject = null;
         }
 
-        $this->useService()->replaceSubjectByPersonIdList($PersonIdArray, $tblSubject, $tblStudentSubjectType,
-            $tblStudentSubjectRanking,
-            null, null);
+        if ($tblStudentSubjectType && $tblStudentSubjectRanking && !empty($PersonIdArray)) {
+            $this->useService()->replaceSubjectByPersonIdList($PersonIdArray, $tblSubject, $tblStudentSubjectType,
+                $tblStudentSubjectRanking,
+                null, null);
+        }
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
