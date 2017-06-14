@@ -397,6 +397,7 @@ class Service extends AbstractService
             'Content.Input.DateCertifcate'  => 'DatePicker',
             'Content.Input.DateConference'  => 'DatePicker',
             'Content.Input.Transfer'        => 'SelectBox',
+            'Content.Input.IndividualTransfer'       => 'TextField',
             'Content.Input.TeamExtra'       => 'TextField'
         );
     }
@@ -418,6 +419,7 @@ class Service extends AbstractService
             'Content.Input.DateCertifcate'  => 'Datum des Zeugnisses',
             'Content.Input.DateConference'  => 'Datum der Konferenz',
             'Content.Input.Transfer'        => 'Versetzungsvermerk',
+            'Content.Input.IndividualTransfer'       => 'Versetzungsvermerk',
             'Content.Input.TeamExtra'       => 'Arbeitsgemeinschaften'
         );
     }
