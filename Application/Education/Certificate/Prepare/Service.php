@@ -722,6 +722,9 @@ class Service extends AbstractService
                 } elseif ($tblPrepareInformation->getField() == 'Transfer') {
                     $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
                         . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
+                } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
+                    $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
+                        . ' ' . $tblPrepareInformation->getValue();
                 } else {
                     $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
                 }
@@ -734,7 +737,14 @@ class Service extends AbstractService
 
             if ($team || $remark) {
                 if ($team) {
-                    $remark = $team . " \n\n " . $remark;
+                    if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                        && $tblConsumer->getAcronym() == 'EVSR'
+                    ) {
+                        // Arbeitsgemeinschaften am Ende der Bemerkungnen
+                        $remark = $remark . " \n " . $team;
+                    } else {
+                        $remark = $team . " \n\n " . $remark;
+                    }
                 }
             }
             $Content['P' . $personId]['Input']['Remark'] = $remark;
@@ -872,8 +882,19 @@ class Service extends AbstractService
                                 $withTrend = false;
                             }
 
-                            $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
-                                = $tblGradeItem->getDisplayGrade($withTrend);
+                            // Radebeul Zensuren im Wortlaut
+                            if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                && $tblConsumer->getAcronym() == 'EVSR'
+                                && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                                'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
+                                && $tblSetting->getValue()
+                            ) {
+                                $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
+                                    = $this->getVerbalGrade($tblGradeItem->getGrade());;
+                            } else {
+                                $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
+                                    = $tblGradeItem->getDisplayGrade($withTrend);
+                            }
 
                             // bei Zeugnistext als Note Schriftgröße verkleinern
                             if ($tblGradeItem->getTblGradeText()) {
@@ -898,6 +919,13 @@ class Service extends AbstractService
                         ) {
                             $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
                             $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
+                        } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                && $tblConsumer->getAcronym() == 'EVSR'
+                                && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                                    'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
+                                && $tblSetting->getValue()
+                            ) {
+                                $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());;
                         } else {
                             // bei Zeugnistext als Note Schriftgröße verkleinern
                             if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())) {

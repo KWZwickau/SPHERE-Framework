@@ -320,7 +320,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                     ->addElementColumn((new Element())
                         , '30%')
                     ->addElementColumn((new Element())
-                        ->setContent('Erziehungsberechtigte')
+                        ->setContent('Personensorgeberechtigte')
                         ->styleFontFamily($fontFamily)
                         ->styleTextSize('11px')
                         ->styleAlignCenter()

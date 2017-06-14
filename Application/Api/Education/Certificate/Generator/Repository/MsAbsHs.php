@@ -7,7 +7,6 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 
 /**
  * Class MsAbsHs
@@ -28,14 +27,6 @@ class MsAbsHs extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
-
-        if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-            && $tblConsumer->getAcronym() == 'ESZC'
-        ) {
-            $isSchoolNameBold = true;
-        } else {
-            $isSchoolNameBold = false;
-        }
 
         // leere Seite
         $pageList[] = new Page();
@@ -110,81 +101,7 @@ class MsAbsHs extends Certificate
                     )
                 )->styleMarginTop('10px')
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('hat')
-                        , '5%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                        ->styleBorderBottom('1px')
-                        ->styleAlignCenter()
-                        ->styleTextBold($isSchoolNameBold ? 'bold' : 'normal')
-                    )
-                    ->addElementColumn((new Element())
-                        ->styleBorderBottom('1px')
-                        ->setContent('&nbsp;')
-                        , '5%')
-                )
-                ->styleMarginTop('35px')
-            )
-            ->addSlice(
-                (new Slice())
-                    ->addElement(
-                        (new Element())
-                            ->setContent('{% if(Content.P' . $personId . '.Company.Address.Street.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Name }}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                            ->styleBorderBottom('1px')
-                            ->styleAlignCenter()
-                    )
-                    ->styleMarginTop('10px')
-            )
-            ->addSlice(
-                (new Slice())
-                    ->addSection(
-                        (new Section())
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('&nbsp;')
-                                    ->styleBorderBottom('1px')
-                                , '10%')
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('{% if(Content.P' . $personId . '.Company.Address.City.Name) %}
-                                            {{ Content.P' . $personId . '.Company.Address.City.Code }}
-                                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
-                                        {% else %}
-                                              &nbsp;
-                                        {% endif %}')
-                                    ->styleBorderBottom('1px')
-                                    ->styleAlignCenter()
-                            )
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('besucht')
-                                    ->styleAlignRight()
-                                , '10%')
-                    )
-                    ->styleMarginTop('10px')
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Name und Anschrift der Schule')
-                    ->styleTextSize('9px')
-                    ->styleTextColor('#999')
-                    ->styleAlignCenter()
-                    ->styleMarginTop('5px')
-                    ->styleMarginBottom('5px')
-                )
-            )
+            ->addSliceArray(MsAbsRs::getSchoolPart($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('und hat an der besonderen Leistungsfeststellung in der Klassenstufe 9 der 

@@ -300,8 +300,8 @@ class RadebeulJahreszeugnis extends Certificate
                                 , '22%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                        {% if(Content.P' . $personId . '.Input.Transfer) %}
-                                            {{ Content.P' . $personId . '.Input.Transfer|nl2br }}
+                                        {% if(Content.P' . $personId . '.Input.IndividualTransfer) %}
+                                            {{ Content.P' . $personId . '.Input.IndividualTransfer|nl2br }}
                                         {% else %}
                                             &nbsp;
                                         {% endif %}
@@ -404,6 +404,34 @@ class RadebeulJahreszeugnis extends Certificate
                                 ->styleBorderBottom('1px', $textColorBlue)
                                 ->styleFontFamily($fontFamily)
                                 ->styleMarginTop('20px')
+                                , '30%')
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('
+                                {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.Headmaster.Description }}
+                                {% else %}
+                                    Schulleiter(in)
+                                {% endif %}'
+                                )
+                                ->styleFontFamily($fontFamily)
+                                ->styleTextColor($textColorBlue)
+                                ->styleTextSize('10px')
+                                , '30%')
+                            ->addElementColumn((new Element())
+                                , '40%')
+                            ->addElementColumn((new Element())
+                                ->setContent('
+                                {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                                {% else %}
+                                    Klassenlehrer(in)
+                                {% endif %}'
+                                )
+                                ->styleFontFamily($fontFamily)
+                                ->styleTextColor($textColorBlue)
+                                ->styleTextSize('10px')
                                 , '30%')
                         )
                         ->addSection((new Section())

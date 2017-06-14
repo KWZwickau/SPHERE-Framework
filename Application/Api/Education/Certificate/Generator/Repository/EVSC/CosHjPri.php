@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\EVSC;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
@@ -29,7 +30,35 @@ class CosHjPri extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        if ($this->isSample()) {
+        $gradeLanesSlice = $this->getGradeLanesCoswig($personId, self::TEXT_SIZE, false, '25px');
+        $subjectLanesSlice = $this->getSubjectLanesCoswig($personId, true, array(), self::TEXT_SIZE,
+            false);
+
+        return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Schule (Primarstufe)',
+            $gradeLanesSlice, $subjectLanesSlice
+        );
+    }
+
+    /**
+     * @param $personId
+     * @param $isSample
+     * @param string $title
+     * @param Slice $gradeLanesSlice
+     * @param Slice $subjectLanesSlice
+     *
+     * @return Page
+     */
+    public static function buildContentPage(
+        $personId,
+        $isSample,
+        $title = 'Halbjahresinformation der Schule (Primarstufe)',
+        $gradeLanesSlice,
+        $subjectLanesSlice
+    ) {
+
+        $subjectLanesSlice->styleHeight('185px');
+
+        if ($isSample) {
             $Header = array(
                 (new Section())
                     ->addSliceColumn((new Slice())
@@ -120,7 +149,7 @@ class CosHjPri extends Certificate
                             ->styleAlignCenter()
                         )
                         ->addElement((new Element())
-                            ->setContent('Halbjahresinformation der Schule (Primarstufe)')
+                            ->setContent($title)
                             ->styleFontFamily('Trebuchet MS')
                             ->styleTextSize('20px')
                             ->styleTextBold()
@@ -181,7 +210,7 @@ class CosHjPri extends Certificate
                             )
                         )
                         ->addSection((new Section())
-                            ->addSliceColumn($this->getGradeLanesCoswig($personId, self::TEXT_SIZE, false, '25px'))
+                            ->addSliceColumn($gradeLanesSlice)
                         )
                         ->addSection((new Section())
                             ->addSliceColumn((new Slice())
@@ -196,9 +225,7 @@ class CosHjPri extends Certificate
                             )
                         )
                         ->addSection((new Section())
-                            ->addSliceColumn($this->getSubjectLanesCoswig($personId, true, array(), self::TEXT_SIZE,
-                                false)
-                                ->styleHeight('185px'))
+                            ->addSliceColumn($subjectLanesSlice)
                         )
                         ->addElement((new Element())
                             ->setContent('Bemerkungen:')
