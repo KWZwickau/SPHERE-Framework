@@ -14,7 +14,6 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
-use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -30,6 +29,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
@@ -92,7 +92,7 @@ class StudentFilter extends Extension
                 )),
                 new FormRow(
                     new FormColumn(
-                        (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filter',
+                        (new Primary('Filter',
                             ApiMassReplace::getEndpoint(),
                             null,
                             $this->getGlobal()->POST))->ajaxPipelineOnClick(ApiMassReplace::pipelineOpen($Field))
@@ -133,7 +133,7 @@ class StudentFilter extends Extension
                     )),
                     new LayoutColumn(new Well(
                         (new Form(
-                            new FormGroup(
+                            new FormGroup(array(
                                 new FormRow(array(
                                     new FormColumn(
                                         new Panel('Weitere Personen:',
@@ -155,11 +155,16 @@ class StudentFilter extends Extension
                                     new FormColumn(
                                         $CloneField
                                     )
-                                ))
-                            )
-                            , new Primary('Ändern'), '', $this->getGlobal()->POST))
-//                            ->ajaxPipelineOnSubmit(ApiMassReplace::pipelineOpen($Field))
-                            ->ajaxPipelineOnSubmit(ApiMassReplace::pipelineSave($Field))
+                                )),
+                                new FormRow(
+                                    new FormColumn(
+                                        (new Primary('Ändern', ApiMassReplace::getEndpoint(),
+                                            null,
+                                            $this->getGlobal()->POST))->ajaxPipelineOnClick(ApiMassReplace::pipelineSave($Field))
+                                    )
+                                )
+                            ))
+                        ))
                     ))
                 ))
             )
