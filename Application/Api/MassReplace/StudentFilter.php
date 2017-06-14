@@ -278,15 +278,15 @@ class StudentFilter extends Extension
                             ) {
                                 $DataPerson['Edit'] = $tblCompany->getName();
                             }
-                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Schulart'
+                            if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Schulart'
                                 && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
                             ) {
-                                $DataPerson['Edit'] = $tblCompany->getName();
+                                $DataPerson['Edit'] = $tblType->getName();
                             }
-                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Bildungsgang'
+                            if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Bildungsgang'
                                 && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
                             ) {
-                                $DataPerson['Edit'] = $tblCompany->getName();
+                                $DataPerson['Edit'] = $tblCourse->getName();
                             }
 
                             if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
