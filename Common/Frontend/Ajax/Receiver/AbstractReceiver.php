@@ -57,6 +57,7 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface,
      */
     public function setIdentifier($Identifier)
     {
+        $Identifier = preg_replace('![^\w\d\_\-]!is','_', $Identifier);
         $this->Identifier = $Identifier;
         return $this;
     }
