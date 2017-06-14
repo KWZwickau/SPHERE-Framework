@@ -964,7 +964,6 @@ class Frontend extends Extension implements IFrontendInterface
             // activate MassReplace
             if ($Identifier == 'PROFILE'
                 || $Identifier == 'RELIGION'
-                || $Identifier == 'ADVANCED'
             ) {
                 array_push($Panel,
                     ApiMassReplace::receiverField((
