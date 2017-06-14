@@ -7,7 +7,6 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 
 /**
  * Class MsAbsHs
@@ -28,14 +27,6 @@ class MsAbsHs extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
-
-        if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-            && $tblConsumer->getAcronym() == 'ESZC'
-        ) {
-            $isSchoolNameBold = true;
-        } else {
-            $isSchoolNameBold = false;
-        }
 
         // leere Seite
         $pageList[] = new Page();
@@ -123,7 +114,6 @@ class MsAbsHs extends Certificate
                                 {% endif %}')
                         ->styleBorderBottom('1px')
                         ->styleAlignCenter()
-                        ->styleTextBold($isSchoolNameBold ? 'bold' : 'normal')
                     )
                     ->addElementColumn((new Element())
                         ->styleBorderBottom('1px')
