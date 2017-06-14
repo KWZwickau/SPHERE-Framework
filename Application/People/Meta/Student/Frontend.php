@@ -820,13 +820,13 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubjectOrientation = array(new TblSubject());
         }
 
-        // Advanced
-        $tblSubjectAdvanced = Subject::useService()->getSubjectAdvancedAll();
-        if ($tblSubjectAdvanced) {
-            array_push($tblSubjectAdvanced, new TblSubject());
-        } else {
-            $tblSubjectAdvanced = array(new TblSubject());
-        }
+//        // Advanced
+//        $tblSubjectAdvanced = Subject::useService()->getSubjectAdvancedAll();
+//        if ($tblSubjectAdvanced) {
+//            array_push($tblSubjectAdvanced, new TblSubject());
+//        } else {
+//            $tblSubjectAdvanced = array(new TblSubject());
+//        }
 
         // Elective
         $tblSubjectElective = Subject::useService()->getSubjectElectiveAll();
@@ -914,8 +914,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Division),
                     $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1,
                         null, $Year, $Division),
-                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1,
-                        null, $Year, $Division),
+//                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1,
+//                        null, $Year, $Division),
                 ), 3),
                 new FormColumn(array(
                     $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3, null, $Year,
