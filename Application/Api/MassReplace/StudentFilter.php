@@ -123,7 +123,7 @@ class StudentFilter extends Extension
         $Field = unserialize(base64_decode($modalField));
         $CloneField = (new ApiMassReplace())->cloneField($Field, 'CloneField', 'Auswahl/Eingabe');
 
-        $TableContent = $this->getStudentFilterResult($Year, $Division, $Field->getLabel());
+        $TableContent = $this->getStudentFilterResult($Year, $Division, $Field);
 
         return new Layout(
             new LayoutGroup(
@@ -167,14 +167,27 @@ class StudentFilter extends Extension
     }
 
     /**
-     * @param null   $Year
-     * @param null   $Division
-     * @param string $Label
+     * @param null          $Year
+     * @param null          $Division
+     * @param AbstractField $Field
      *
      * @return array $SearchResult
+     *
      */
-    private function getStudentFilterResult($Year = null, $Division = null, $Label = '')
+    private function getStudentFilterResult($Year = null, $Division = null, AbstractField $Field)
     {
+        /** @var SelectBox|TextField $Field */
+        $Label = $Field->getLabel();
+
+        $tblStudentTransferType = false;
+        if (preg_match('!([Meta]*)(\[[Transfer]*\])\[([\d]*)\](\[[\w]*\])!is', $Field->getName(), $matches)) {
+//            return new Code(print_r($Matches, true));
+            if (isset($matches[3])) {
+                $tblStudentTransferType = Student::useService()->getStudentTransferTypeById($matches[3]);
+            }
+        }
+
+
         $Pile = new Pile(Pile::JOIN_TYPE_INNER);
         $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
             null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
@@ -255,15 +268,35 @@ class StudentFilter extends Extension
                     $DataPerson['Name'] = $tblPerson->getLastFirstName();
 //                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                    if ($tblStudent && $tblStudentTransferType) {
+//                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                         $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                             $tblStudentTransferType);
                         if ($tblStudentTransfer) {
-                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule') {
+                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Schule'
+                                && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                            ) {
                                 $DataPerson['Edit'] = $tblCompany->getName();
                             }
-                            if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang') {
+                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Schulart'
+                                && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                            ) {
+                                $DataPerson['Edit'] = $tblCompany->getName();
+                            }
+                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Bildungsgang'
+                                && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                            ) {
+                                $DataPerson['Edit'] = $tblCompany->getName();
+                            }
+
+                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
+                                && $tblStudentTransferType->getIdentifier() == 'PROCESS'
+                            ) {
+                                $DataPerson['Edit'] = $tblCompany->getName();
+                            }
+                            if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang'
+                                && $tblStudentTransferType->getIdentifier() == 'PROCESS'
+                            ) {
                                 $DataPerson['Edit'] = $tblCourse->getName();
                             }
 //                            if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
@@ -281,15 +314,6 @@ class StudentFilter extends Extension
                         }
                         if ($Label == 'Profil') {
                             $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
-                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
-                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
-                                $tblStudentSubjectType, $tblStudentSubjectRanking);
-                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
-                            }
-                        }
-                        if ($Label == 'Vertiefungskurs') {
-                            $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ADVANCED');
                             $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
                             $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
                                 $tblStudentSubjectType, $tblStudentSubjectRanking);

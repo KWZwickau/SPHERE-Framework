@@ -652,7 +652,9 @@ class Service extends Integration
                 $TransferTypeProcess
             );
             $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeProcess->getId()]['School']);
-            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeProcess->getId()]['Type']);
+            // removed "Aktuelle Schulart"
+//            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeProcess->getId()]['Type']);
+            $tblType = false;
             $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeProcess->getId()]['Course']);
             if ($tblStudentTransferByTypeProcess) {
                 (new Data($this->getBinding()))->updateStudentTransfer(
@@ -680,6 +682,10 @@ class Service extends Integration
             $tblStudentSubjectAll = $this->getStudentSubjectAllByStudent($tblStudent);
             if ($tblStudentSubjectAll) {
                 foreach ($tblStudentSubjectAll as $tblStudentSubject) {
+                    // removed "Vertiefungskurs"
+                    if ($tblStudentSubject->getTblStudentSubjectType()->getIdentifier() == 'ADVANCED') {
+                        continue;
+                    }
                     if (!Subject::useService()->getSubjectById(
                         $Meta['Subject'][$tblStudentSubject->getTblStudentSubjectType()->getId()]
                         [$tblStudentSubject->getTblStudentSubjectRanking()->getId()])

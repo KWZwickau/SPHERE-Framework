@@ -5,6 +5,8 @@ namespace SPHERE\Application\Api\People\Meta\Transfer;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\System\Database\Link\Identifier;
@@ -15,6 +17,9 @@ class MassReplaceTransfer extends Extension
 
     const CLASS_MASS_REPLACE_TRANSFER = 'SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer';
 
+    const METHOD_REPLACE_ENROLLMENT_SCHOOL = 'replaceEnrollmentSchool';
+    const METHOD_REPLACE_ENROLLMENT_SCHOOL_TYPE = 'replaceEnrollmentSchoolType';
+    const METHOD_REPLACE_ENROLLMENT_COURSE = 'replaceEnrollmentCourse';
     const METHOD_REPLACE_CURRENT_SCHOOL = 'replaceCurrentSchool';
 //    const METHOD_REPLACE_CURRENT_SCHOOL_TYPE = 'replaceCurrentSchoolType';
     const METHOD_REPLACE_CURRENT_COURSE = 'replaceCurrentCourse';
@@ -47,18 +52,23 @@ class MassReplaceTransfer extends Extension
         $tblCourse = false;
         $transferDate = null;
         $Remark = '';
-        $StudentTransferTypeIdentifier = 'PROCESS';
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
 
-//        if (isset($Meta['Transfer'][4]['School']) && $Meta['Transfer'][4]['School']) {
-//            $CompanyId = $Meta['Transfer'][4]['School'];
+//        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['School'])
+//            && $Meta['Transfer'][$tblStudentTransferType->getId()]['School']) {
+//            $CompanyId = $Meta['Transfer'][$tblStudentTransferType->getId()]['School'];
 //            $tblCompany = Company::useService()->getCompanyById($CompanyId);
 //        }
-        if (isset($Meta['Transfer'][4]['Course']) && $Meta['Transfer'][4]['Course']) {
-            $CourseId = $Meta['Transfer'][4]['Course'];
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Course'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Course']
+        ) {
+            $CourseId = $Meta['Transfer'][$tblStudentTransferType->getId()]['Course'];
             $tblCourse = Course::useService()->getCourseById($CourseId);
         }
-        if (isset($Meta['Transfer'][4]['Remark']) && $Meta['Transfer'][4]['Remark']) {
-            $Remark = $Meta['Transfer'][4]['Remark'];
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark']
+        ) {
+            $Remark = $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'];
         }
 
         // get selected Company
@@ -72,7 +82,8 @@ class MassReplaceTransfer extends Extension
             $tblCourse = null;
         }
 
-        $this->useService()->createTransferByPersonIdList($PersonIdArray, $StudentTransferTypeIdentifier, $tblCompany,
+        $this->useService()->createTransferByPersonIdList($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblCompany,
             null, $tblCourse, null, $Remark);
 
         /** @var AbstractField $Field */
@@ -84,59 +95,6 @@ class MassReplaceTransfer extends Extension
 //        return new Code( print_r( $this->getGlobal()->POST, true ) )
 //        .new Code( print_r( $CloneField, true ) );
     }
-
-//    /**
-//     * @param string $modalField
-//     * @param int    $CloneField
-//     * @param array  $Meta
-//     * @param array  $PersonIdArray
-//     *
-//     * @return \SPHERE\Common\Frontend\Ajax\Pipeline
-//     */
-//    public function replaceCurrentSchoolType($modalField, $CloneField, $Meta, $PersonIdArray = array())
-//    {
-//
-//        $tblCompany = false;
-//        $tblCourse = false;
-//        $transferDate = null;
-//        $Remark = '';
-//        $StudentTransferTypeIdentifier = 'PROCESS';
-//
-//        if (isset($Meta['Transfer'][4]['School']) && $Meta['Transfer'][4]['School']) {
-//            $CompanyId = $Meta['Transfer'][4]['School'];
-//            $tblCompany = Company::useService()->getCompanyById($CompanyId);
-//        }
-//        if (isset($Meta['Transfer'][4]['Course']) && $Meta['Transfer'][4]['Course']) {
-//            $CourseId = $Meta['Transfer'][4]['Course'];
-//            $tblCourse = Course::useService()->getCourseById($CourseId);
-//        }
-//        if (isset($Meta['Transfer'][4]['Remark']) && $Meta['Transfer'][4]['Remark']) {
-//            $Remark = $Meta['Transfer'][4]['Remark'];
-//        }
-//
-//        // get selected Company
-//        $tblType = Type::useService()->getTypeById($CloneField);
-//
-//        // change miss matched to null
-//        if (!$tblCompany && null !== $tblCompany) {
-//            $tblCompany = null;
-//        }
-//        if (!$tblType && null !== $tblType) {
-//            $tblType = null;
-//        }
-//        if (!$tblCourse && null !== $tblCourse) {
-//            $tblCourse = null;
-//        }
-//
-//        $this->useService()->createTransferByPersonIdList($PersonIdArray, $StudentTransferTypeIdentifier, $tblCompany,
-//            $tblType, $tblCourse, null, $Remark);
-//
-//        /** @var AbstractField $Field */
-//        $Field = unserialize(base64_decode($modalField));
-//
-//        // Success!
-//        return ApiMassReplace::pipelineClose($Field, $CloneField);
-//    }
 
     /**
      * @param string $modalField
@@ -152,14 +110,18 @@ class MassReplaceTransfer extends Extension
         $tblCompany = false;
         $transferDate = null;
         $Remark = '';
-        $StudentTransferTypeIdentifier = 'PROCESS';
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
 
-        if (isset($Meta['Transfer'][4]['School']) && $Meta['Transfer'][4]['School']) {
-            $CompanyId = $Meta['Transfer'][4]['School'];
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['School'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['School']
+        ) {
+            $CompanyId = $Meta['Transfer'][$tblStudentTransferType->getId()]['School'];
             $tblCompany = Company::useService()->getCompanyById($CompanyId);
         }
-        if (isset($Meta['Transfer'][4]['Remark']) && $Meta['Transfer'][4]['Remark']) {
-            $Remark = $Meta['Transfer'][4]['Remark'];
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark']
+        ) {
+            $Remark = $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'];
         }
 
         // get selected Company
@@ -173,8 +135,211 @@ class MassReplaceTransfer extends Extension
             $tblCourse = null;
         }
 
-        $this->useService()->createTransferByPersonIdList($PersonIdArray, $StudentTransferTypeIdentifier, $tblCompany,
-            null, $tblCourse, null, $Remark);
+        $this->useService()->createTransferByPersonIdList($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblCompany, null, $tblCourse, null, $Remark);
+
+        /** @var AbstractField $Field */
+        $Field = unserialize(base64_decode($modalField));
+
+        // Success!
+        return ApiMassReplace::pipelineClose($Field, $CloneField);
+    }
+
+    /**
+     * @param string $modalField
+     * @param int    $CloneField
+     * @param array  $Meta
+     * @param array  $PersonIdArray
+     *
+     * @return \SPHERE\Common\Frontend\Ajax\Pipeline
+     */
+    public function replaceEnrollmentSchool($modalField, $CloneField, $Meta, $PersonIdArray = array())
+    {
+
+        $tblCourse = false;
+        $tblType = false;
+        $transferDate = null;
+        $Date = null;
+        $Remark = '';
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
+
+//        if (isset($Meta['Transfer'][4]['School']) && $Meta['Transfer'][4]['School']) {
+//            $CompanyId = $Meta['Transfer'][4]['School'];
+//            $tblCompany = Company::useService()->getCompanyById($CompanyId);
+//        }
+
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Type'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Type']
+        ) {
+            $CourseId = $Meta['Transfer'][$tblStudentTransferType->getId()]['Type'];
+            $tblType = Type::useService()->getTypeById($CourseId);
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Course'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Course']
+        ) {
+            $CourseId = $Meta['Transfer'][$tblStudentTransferType->getId()]['Course'];
+            $tblCourse = Course::useService()->getCourseById($CourseId);
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Date'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Date']
+        ) {
+            $Date = $Meta['Transfer'][$tblStudentTransferType->getId()]['Date'];
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark']
+        ) {
+            $Remark = $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'];
+        }
+
+        // get selected Company
+        $tblCompany = Company::useService()->getCompanyById($CloneField);
+
+        // change miss matched to null
+        if (!$tblCompany && null !== $tblCompany) {
+            $tblCompany = null;
+        }
+        if (!$tblType && null !== $tblType) {
+            $tblType = null;
+        }
+        if (!$tblCourse && null !== $tblCourse) {
+            $tblCourse = null;
+        }
+
+        $this->useService()->createTransferByPersonIdList($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblCompany, $tblType, $tblCourse, $Date, $Remark);
+
+        /** @var AbstractField $Field */
+        $Field = unserialize(base64_decode($modalField));
+
+        // Success!
+        return ApiMassReplace::pipelineClose($Field, $CloneField);
+
+//        return new Code( print_r( $this->getGlobal()->POST, true ) )
+//        .new Code( print_r( $CloneField, true ) );
+    }
+
+    /**
+     * @param string $modalField
+     * @param int    $CloneField
+     * @param array  $Meta
+     * @param array  $PersonIdArray
+     *
+     * @return \SPHERE\Common\Frontend\Ajax\Pipeline
+     */
+    public function replaceEnrollmentSchoolType($modalField, $CloneField, $Meta, $PersonIdArray = array())
+    {
+
+        $tblCompany = false;
+        $tblCourse = false;
+        $transferDate = null;
+        $Date = null;
+        $Remark = '';
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
+
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['School'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['School']
+        ) {
+            $CompanyId = $Meta['Transfer'][$tblStudentTransferType->getId()]['School'];
+            $tblCompany = Company::useService()->getCompanyById($CompanyId);
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Course'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Course']
+        ) {
+            $CourseId = $Meta['Transfer'][$tblStudentTransferType->getId()]['Course'];
+            $tblCourse = Course::useService()->getCourseById($CourseId);
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Date'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Date']
+        ) {
+            $Date = $Meta['Transfer'][$tblStudentTransferType->getId()]['Date'];
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark']
+        ) {
+            $Remark = $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'];
+        }
+
+        // get selected Company
+        $tblType = Type::useService()->getTypeById($CloneField);
+
+        // change miss matched to null
+        if (!$tblCompany && null !== $tblCompany) {
+            $tblCompany = null;
+        }
+        if (!$tblType && null !== $tblType) {
+            $tblType = null;
+        }
+        if (!$tblCourse && null !== $tblCourse) {
+            $tblCourse = null;
+        }
+
+        $this->useService()->createTransferByPersonIdList($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblCompany, $tblType, $tblCourse, $Date, $Remark);
+
+        /** @var AbstractField $Field */
+        $Field = unserialize(base64_decode($modalField));
+
+        // Success!
+        return ApiMassReplace::pipelineClose($Field, $CloneField);
+    }
+
+    /**
+     * @param string $modalField
+     * @param int    $CloneField
+     * @param array  $Meta
+     * @param array  $PersonIdArray
+     *
+     * @return \SPHERE\Common\Frontend\Ajax\Pipeline
+     */
+    public function replaceEnrollmentCourse($modalField, $CloneField, $Meta, $PersonIdArray = array())
+    {
+
+        $tblCompany = false;
+        $tblType = false;
+        $transferDate = null;
+        $Date = null;
+        $Remark = '';
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
+
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['School'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['School']
+        ) {
+            $CompanyId = $Meta['Transfer'][$tblStudentTransferType->getId()]['School'];
+            $tblCompany = Company::useService()->getCompanyById($CompanyId);
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Type'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Type']
+        ) {
+            $CourseId = $Meta['Transfer'][$tblStudentTransferType->getId()]['Type'];
+            $tblType = Type::useService()->getTypeById($CourseId);
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Date'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Date']
+        ) {
+            $Date = $Meta['Transfer'][$tblStudentTransferType->getId()]['Date'];
+        }
+        if (isset($Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'])
+            && $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark']
+        ) {
+            $Remark = $Meta['Transfer'][$tblStudentTransferType->getId()]['Remark'];
+        }
+
+        // get selected Company
+        $tblCourse = Course::useService()->getCourseById($CloneField);
+
+        // change miss matched to null
+        if (!$tblCompany && null !== $tblCompany) {
+            $tblCompany = null;
+        }
+        if (!$tblType && null !== $tblType) {
+            $tblType = null;
+        }
+        if (!$tblCourse && null !== $tblCourse) {
+            $tblCourse = null;
+        }
+
+        $this->useService()->createTransferByPersonIdList($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblCompany, $tblType, $tblCourse, $Date, $Remark);
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));

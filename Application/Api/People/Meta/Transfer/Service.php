@@ -32,7 +32,7 @@ class Service extends ServiceAPP
         $tblCompany = null,
         $tblType = null,
         $tblCourse = null,
-        $transferDate = '',
+        $transferDate = null,
         $Remark = ''
     ) {
 
