@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
  * Class MsAbsRs
@@ -105,80 +106,7 @@ class MsAbsRs extends Certificate
                     )
                 )->styleMarginTop('10px')
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('hat')
-                        , '5%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                        ->styleBorderBottom('1px')
-                        ->styleAlignCenter()
-                    )
-                    ->addElementColumn((new Element())
-                        ->styleBorderBottom('1px')
-                        ->setContent('&nbsp;')
-                        , '5%')
-                )
-                ->styleMarginTop('35px')
-            )
-            ->addSlice(
-                (new Slice())
-                    ->addElement(
-                        (new Element())
-                            ->setContent('{% if(Content.P' . $personId . '.Company.Address.Street.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Name }}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                            ->styleBorderBottom('1px')
-                            ->styleAlignCenter()
-                    )
-                    ->styleMarginTop('10px')
-            )
-            ->addSlice(
-                (new Slice())
-                    ->addSection(
-                        (new Section())
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('&nbsp;')
-                                    ->styleBorderBottom('1px')
-                                , '10%')
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('{% if(Content.P' . $personId . '.Company.Address.City.Name) %}
-                                            {{ Content.P' . $personId . '.Company.Address.City.Code }}
-                                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
-                                        {% else %}
-                                              &nbsp;
-                                        {% endif %}')
-                                    ->styleBorderBottom('1px')
-                                    ->styleAlignCenter()
-                            )
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('besucht')
-                                    ->styleAlignRight()
-                                , '10%')
-                    )
-                    ->styleMarginTop('10px')
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Name und Anschrift der Schule')
-                    ->styleTextSize('9px')
-                    ->styleTextColor('#999')
-                    ->styleAlignCenter()
-                    ->styleMarginTop('5px')
-                    ->styleMarginBottom('5px')
-                )
-            )
+            ->addSliceArray($this->getSchoolPart($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('und hat nach Bestehen der Abschlussprüfung der Schulart Mittelschule den')
@@ -328,6 +256,113 @@ class MsAbsRs extends Certificate
         return $pageList;
     }
 
+    public static function getSchoolPart($personId)
+    {
+
+        $sliceList = array();
+
+        // Artikel vor dem Schulnamen
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName'))
+            && $tblSetting->getValue()
+        ) {
+            $sliceList[] = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('hat ' . $tblSetting->getValue())
+                        , '9%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
+                                    {{ Content.P' . $personId . '.Company.Data.Name }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
+                        ->styleBorderBottom('1px')
+                        ->styleAlignCenter()
+                    )
+                    ->addElementColumn((new Element())
+                        ->styleBorderBottom('1px')
+                        ->setContent('&nbsp;')
+                        , '9%')
+                )
+                ->styleMarginTop('35px');
+        } else {
+            $sliceList[] = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('hat')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
+                                    {{ Content.P' . $personId . '.Company.Data.Name }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
+                        ->styleBorderBottom('1px')
+                        ->styleAlignCenter()
+                    )
+                    ->addElementColumn((new Element())
+                        ->styleBorderBottom('1px')
+                        ->setContent('&nbsp;')
+                        , '5%')
+                )
+                ->styleMarginTop('35px');
+        }
+
+        $sliceList[] = (new Slice())
+                ->addElement(
+                    (new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Company.Address.Street.Name) %}
+                                    {{ Content.P' . $personId . '.Company.Address.Street.Name }}
+                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
+                        ->styleBorderBottom('1px')
+                        ->styleAlignCenter()
+                )
+                ->styleMarginTop('10px');
+
+        $sliceList[] = (new Slice())
+                ->addSection(
+                    (new Section())
+                        ->addElementColumn(
+                            (new Element())
+                                ->setContent('&nbsp;')
+                                ->styleBorderBottom('1px')
+                            , '10%')
+                        ->addElementColumn(
+                            (new Element())
+                                ->setContent('{% if(Content.P' . $personId . '.Company.Address.City.Name) %}
+                                            {{ Content.P' . $personId . '.Company.Address.City.Code }}
+                                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
+                                        {% else %}
+                                              &nbsp;
+                                        {% endif %}')
+                                ->styleBorderBottom('1px')
+                                ->styleAlignCenter()
+                        )
+                        ->addElementColumn(
+                            (new Element())
+                                ->setContent('besucht')
+                                ->styleAlignRight()
+                            , '10%')
+                )
+                ->styleMarginTop('10px');
+
+        $sliceList[] = (new Slice())
+            ->addElement((new Element())
+                ->setContent('Name und Anschrift der Schule')
+                ->styleTextSize('9px')
+                ->styleTextColor('#999')
+                ->styleAlignCenter()
+                ->styleMarginTop('5px')
+                ->styleMarginBottom('5px')
+            );
+
+        return $sliceList;
+    }
+
     /**
      * @param $personId
      * @param string $TextSize
@@ -345,7 +380,7 @@ class MsAbsRs extends Certificate
         if (($tblGradeList = $this->getAdditionalGrade())) {
 
             // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
-            if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            if (($tblSetting = Consumer::useService()->getSetting(
                     'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
                 && $tblSetting->getValue()
             ) {
