@@ -106,7 +106,7 @@ class StudentFilter extends Extension
             ))
 //                , new Primary('Filtern'), '',
 //                $this->getGlobal()->POST))->ajaxPipelineOnSubmit(ApiMassReplace::pipelineOpen($Field))
-        ));
+        ))->disableSubmitAction();
     }
 
     /**
@@ -164,7 +164,7 @@ class StudentFilter extends Extension
                                     )
                                 )
                             ))
-                        ))
+                        ))->disableSubmitAction()
                     ))
                 ))
             )
