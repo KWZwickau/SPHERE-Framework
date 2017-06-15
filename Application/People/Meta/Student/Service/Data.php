@@ -6,7 +6,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
@@ -667,27 +666,16 @@ class Data extends Integration
     public function bulkSaveEntityList($EntityList = array())
     {
 
-//        return new Code(print_r($EntityList, true));
-
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($EntityList)) {
             foreach ($EntityList as $Entity) {
                 $Protocol = clone $Entity;
-
-                if ($Entity instanceof TblStudentTransfer) {
-//                    return new Code(print_r($Entity, true));
-                    /**@var TblStudentTransfer $Entity */
-                    $Manager->saveEntity($Entity);
-                    Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-                        $Entity);
-                    return true;
-                }
-//                $Manager->bulkSaveEntity($Entity);
-//                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-//                    $Entity, true);
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
+                    $Entity, true);
             }
-//            $Manager->flushCache();
-//            Protocol::useService()->flushBulkEntries();
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;

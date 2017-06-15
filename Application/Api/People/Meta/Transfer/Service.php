@@ -45,9 +45,10 @@ class Service extends ServiceAPP
                         $tblStudentTransferType);
                     if (!$tblStudentTransfer) {
                         $tblStudentTransfer = new ServiceAPP\Entity\TblStudentTransfer();
+                        $tblStudentTransfer->setTblStudent($tblStudent);
+                        $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
+                        $tblStudentTransfer->setRemark('');
                     }
-                    $tblStudentTransfer->setTblStudent($tblStudent);
-                    $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
                     $tblStudentTransfer->setServiceTblCompany($tblCompany);
 
                     $BulkSave[] = $tblStudentTransfer;
@@ -93,9 +94,10 @@ class Service extends ServiceAPP
                         $tblStudentTransferType);
                     if (!$tblStudentTransfer) {
                         $tblStudentTransfer = new ServiceAPP\Entity\TblStudentTransfer();
+                        $tblStudentTransfer->setTblStudent($tblStudent);
+                        $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
+                        $tblStudentTransfer->setRemark('');
                     }
-                    $tblStudentTransfer->setTblStudent($tblStudent);
-                    $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
                     $tblStudentTransfer->setServiceTblType($tblSchoolType);
 
                     $BulkSave[] = $tblStudentTransfer;
@@ -142,9 +144,10 @@ class Service extends ServiceAPP
                         $tblStudentTransferType);
                     if (!$tblStudentTransfer) {
                         $tblStudentTransfer = new ServiceAPP\Entity\TblStudentTransfer();
+                        $tblStudentTransfer->setTblStudent($tblStudent);
+                        $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
+                        $tblStudentTransfer->setRemark('');
                     }
-                    $tblStudentTransfer->setTblStudent($tblStudent);
-                    $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
                     $tblStudentTransfer->setServiceTblCourse($tblCourse);
 
                     $BulkSave[] = $tblStudentTransfer;
