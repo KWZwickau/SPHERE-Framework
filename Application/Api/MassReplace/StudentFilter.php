@@ -266,6 +266,7 @@ class StudentFilter extends Extension
                 $DataPerson['Name'] = false;
                 $DataPerson['Check'] = '';
                 $DataPerson['Edit'] = ''; // get content by Field->getLabel()
+
                 if ($tblPerson) {
                     $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
                         $tblPerson->getId()
@@ -273,41 +274,45 @@ class StudentFilter extends Extension
                     $DataPerson['Name'] = $tblPerson->getLastFirstName();
 //                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent && $tblStudentTransferType) {
+                    if ($tblStudent) {
+                        // Transfer
+                        if ($tblStudentTransferType) {
 //                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblStudentTransferType);
-                        if ($tblStudentTransfer) {
-                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Schule'
-                                && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
-                            ) {
-                                $DataPerson['Edit'] = $tblCompany->getName();
-                            }
-                            if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Schulart'
-                                && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
-                            ) {
-                                $DataPerson['Edit'] = $tblType->getName();
-                            }
-                            if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Bildungsgang'
-                                && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
-                            ) {
-                                $DataPerson['Edit'] = $tblCourse->getName();
-                            }
+                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                $tblStudentTransferType);
+                            if ($tblStudentTransfer) {
+                                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Schule'
+                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                ) {
+                                    $DataPerson['Edit'] = $tblCompany->getName();
+                                }
+                                if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Schulart'
+                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                ) {
+                                    $DataPerson['Edit'] = $tblType->getName();
+                                }
+                                if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Bildungsgang'
+                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                ) {
+                                    $DataPerson['Edit'] = $tblCourse->getName();
+                                }
 
-                            if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
-                                && $tblStudentTransferType->getIdentifier() == 'PROCESS'
-                            ) {
-                                $DataPerson['Edit'] = $tblCompany->getName();
+                                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
+                                    && $tblStudentTransferType->getIdentifier() == 'PROCESS'
+                                ) {
+                                    $DataPerson['Edit'] = $tblCompany->getName();
+                                }
+                                if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang'
+                                    && $tblStudentTransferType->getIdentifier() == 'PROCESS'
+                                ) {
+                                    $DataPerson['Edit'] = $tblCourse->getName();
+                                }
+                                //                            if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
+                                //                                $DataPerson['Edit'] = $tblType->getName();
+                                //                            }
                             }
-                            if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang'
-                                && $tblStudentTransferType->getIdentifier() == 'PROCESS'
-                            ) {
-                                $DataPerson['Edit'] = $tblCourse->getName();
-                            }
-//                            if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
-//                                $DataPerson['Edit'] = $tblType->getName();
-//                            }
                         }
+                        // Subject
                         if ($Label == 'Religion') {
                             $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION');
                             $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');

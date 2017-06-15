@@ -8,7 +8,6 @@ use SPHERE\Application\People\Meta\Student\Service as ServiceAPP;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person as PersonAPP;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 class Service extends ServiceAPP
 {
@@ -39,7 +38,7 @@ class Service extends ServiceAPP
                 if ($tblPerson) {
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if (!$tblStudent) {
-                        $tblStudent = $this->createStudent($tblPerson);
+                        $tblStudent = Student::useService()->createStudent($tblPerson);
                     }
                 }
                 if ($tblStudent) {
@@ -55,43 +54,5 @@ class Service extends ServiceAPP
         }
 
         return true;
-    }
-
-    /**
-     * @param TblPerson                                      $tblPerson
-     * @param string                                         $Identifier
-     * @param ServiceAPP\Entity\TblStudentMedicalRecord|null $tblStudentMedicalRecord
-     * @param ServiceAPP\Entity\TblStudentTransport|null     $tblStudentTransport
-     * @param ServiceAPP\Entity\TblStudentBilling|null       $tblStudentBilling
-     * @param ServiceAPP\Entity\TblStudentLocker|null        $tblStudentLocker
-     * @param ServiceAPP\Entity\TblStudentBaptism|null       $tblStudentBaptism
-     * @param ServiceAPP\Entity\TblStudentIntegration|null   $tblStudentIntegration
-     * @param string                                         $SchoolAttendanceStartDate
-     *
-     * @return ServiceAPP\Entity\TblStudent
-     */
-    public function createStudent(
-        TblPerson $tblPerson,
-        $Identifier = '',
-        $tblStudentMedicalRecord = null,
-        $tblStudentTransport = null,
-        $tblStudentBilling = null,
-        $tblStudentLocker = null,
-        $tblStudentBaptism = null,
-        $tblStudentIntegration = null,
-        $SchoolAttendanceStartDate = ''
-    ) {
-
-        return (new Data($this->getBinding()))->createStudent(
-            $tblPerson,
-            $Identifier,
-            $tblStudentMedicalRecord,
-            $tblStudentTransport,
-            $tblStudentBilling,
-            $tblStudentLocker,
-            $tblStudentBaptism,
-            $tblStudentIntegration,
-            $SchoolAttendanceStartDate
-        );
     }
 }

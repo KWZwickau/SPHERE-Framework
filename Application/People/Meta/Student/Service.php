@@ -18,6 +18,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -316,6 +317,41 @@ class Service extends Integration
         );
     }
 
+    /**
+     * @param TblPerson                    $tblPerson
+     * @param                              $Identifier
+     * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
+     * @param TblStudentTransport|null     $tblStudentTransport
+     * @param TblStudentBilling|null       $tblStudentBilling
+     * @param TblStudentLocker|null        $tblStudentLocker
+     * @param TblStudentBaptism|null       $tblStudentBaptism
+     * @param TblStudentIntegration|null   $tblStudentIntegration
+     * @param string                       $SchoolAttendanceStartDate
+     *
+     * @return TblStudent
+     */
+    public function createStudent(
+        TblPerson $tblPerson,
+        $Identifier = '',
+        TblStudentMedicalRecord $tblStudentMedicalRecord = null,
+        TblStudentTransport $tblStudentTransport = null,
+        TblStudentBilling $tblStudentBilling = null,
+        TblStudentLocker $tblStudentLocker = null,
+        TblStudentBaptism $tblStudentBaptism = null,
+        TblStudentIntegration $tblStudentIntegration = null,
+        $SchoolAttendanceStartDate = ''
+    ) {
+
+        return (new Data($this->getBinding()))->createStudent($tblPerson,
+            $Identifier,
+            $tblStudentMedicalRecord,
+            $tblStudentTransport,
+            $tblStudentBilling,
+            $tblStudentLocker,
+            $tblStudentBaptism,
+            $tblStudentIntegration,
+            $SchoolAttendanceStartDate);
+    }
 
     /**
      * @param IFormInterface $Form
@@ -962,5 +998,20 @@ class Service extends Integration
         }
 
         return empty($tblDivisionList) ? false : $tblDivisionList;
+    }
+
+    /**
+     * @param array $EntityList
+     *
+     * @return bool
+     */
+    public function bulkSaveEntityList($EntityList = array())
+    {
+
+        if (!empty($EntityList)) {
+            return (new Data($this->getBinding()))->bulkSaveEntityList($EntityList);
+        }
+
+        return false;
     }
 }

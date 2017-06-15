@@ -395,6 +395,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
+        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
+        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
         if ($tblPerson) {
             $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
             if ($tblDivisionStudentList && isset($tblYear) && $tblYear) {
@@ -920,6 +922,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
+        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
+        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
         if ($tblPerson) {
             $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
             if ($tblDivisionStudentList && isset($tblYear) && $tblYear) {
