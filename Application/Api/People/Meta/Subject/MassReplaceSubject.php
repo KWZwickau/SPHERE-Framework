@@ -5,9 +5,7 @@ namespace SPHERE\Application\Api\People\Meta\Subject;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
-use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
 class MassReplaceSubject extends Extension
@@ -21,16 +19,12 @@ class MassReplaceSubject extends Extension
     const ATTR_RANKING = 'RankingId';
 
     /**
-     * @return Service
+     * @return StudentService
      */
-    private function useService()
+    private function useStudentService()
     {
 
-        return new Service(
-            new Identifier('People', 'Meta', null, null, Consumer::useService()->getConsumerBySession()),
-            'SPHERE\Application\People\Meta\Student/Service/Entity',
-            'SPHERE\Application\People\Meta\Student\Service\Entity'
-        );
+        return new StudentService();
     }
 
     /**
@@ -62,9 +56,9 @@ class MassReplaceSubject extends Extension
         }
 
         if ($tblStudentSubjectType && $tblStudentSubjectRanking && !empty($PersonIdArray)) {
-            $this->useService()->replaceSubjectByPersonIdList($PersonIdArray, $tblSubject, $tblStudentSubjectType,
-                $tblStudentSubjectRanking,
-                null, null);
+            $this->useStudentService()->replaceSubjectByPersonIdList($PersonIdArray, $tblSubject,
+                $tblStudentSubjectType,
+                $tblStudentSubjectRanking);
         }
 
         /** @var AbstractField $Field */

@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
@@ -125,6 +126,16 @@ class StudentFilter extends Extension
 
         $TableContent = $this->getStudentFilterResult($Year, $Division, $Field);
 
+        $Table = new TableData($TableContent, null,
+            array(
+                'Check'         => 'Auswahl',
+                'Name'          => 'Name',
+                'StudentNumber' => 'Schülernummer',
+                'Level'         => 'Stufe',
+                'Division'      => 'Klasse',
+                'Edit'          => $Field->getLabel(),
+            ), null);
+
         return new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
@@ -138,15 +149,7 @@ class StudentFilter extends Extension
                                     new FormColumn(
                                         new Panel('Weitere Personen:',
                                             (!empty($TableContent)
-                                                ? new TableData($TableContent, null,
-                                                    array(
-                                                        'Check'         => 'Auswahl',
-                                                        'Name'          => 'Name',
-                                                        'StudentNumber' => 'Schülernummer',
-                                                        'Level'         => 'Stufe',
-                                                        'Division'      => 'Klasse',
-                                                        'Edit'          => $Field->getLabel(),
-                                                    ), null)
+                                                ? new ToggleCheckbox('Alle wählen/abwählen', $Table).$Table
                                                 : new Warning('Keine Personen gefunden '.
                                                     new ToolTip(new Info(), 'Das Schuljahr ist ein Pflichtfeld'))),
                                             Panel::PANEL_TYPE_INFO

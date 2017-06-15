@@ -10,7 +10,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 
-class Service extends ServiceAPP
+class StudentService
 {
 
     /**

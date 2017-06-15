@@ -7,9 +7,7 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
-use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
 class MassReplaceTransfer extends Extension
@@ -25,16 +23,12 @@ class MassReplaceTransfer extends Extension
     const METHOD_REPLACE_CURRENT_COURSE = 'replaceCurrentCourse';
 
     /**
-     * @return Service
+     * @return StudentService
      */
-    private function useService()
+    private function useStudentService()
     {
 
-        return new Service(
-            new Identifier('People', 'Meta', null, null, Consumer::useService()->getConsumerBySession()),
-            'SPHERE\Application\People\Meta\Student/Service/Entity',
-            'SPHERE\Application\People\Meta\Student\Service\Entity'
-        );
+        return new StudentService();
     }
 
     /**
@@ -57,7 +51,7 @@ class MassReplaceTransfer extends Extension
             $tblCompany = null;
         }
 
-        $this->useService()->createTransferCompany($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+        $this->useStudentService()->createTransferCompany($PersonIdArray, $tblStudentTransferType->getIdentifier(),
             $tblCompany);
 
         /** @var AbstractField $Field */
@@ -90,7 +84,8 @@ class MassReplaceTransfer extends Extension
             $tblCourse = null;
         }
 
-        $this->useService()->createTransferCourse($PersonIdArray, $tblStudentTransferType->getIdentifier(), $tblCourse);
+        $this->useStudentService()->createTransferCourse($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblCourse);
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
@@ -119,7 +114,7 @@ class MassReplaceTransfer extends Extension
             $tblCompany = null;
         }
 
-        $this->useService()->createTransferCompany($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+        $this->useStudentService()->createTransferCompany($PersonIdArray, $tblStudentTransferType->getIdentifier(),
             $tblCompany);
 
         /** @var AbstractField $Field */
@@ -149,7 +144,8 @@ class MassReplaceTransfer extends Extension
             $tblType = null;
         }
 
-        $this->useService()->createTransferType($PersonIdArray, $tblStudentTransferType->getIdentifier(), $tblType);
+        $this->useStudentService()->createTransferType($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblType);
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
@@ -178,7 +174,8 @@ class MassReplaceTransfer extends Extension
             $tblCourse = null;
         }
 
-        $this->useService()->createTransferCourse($PersonIdArray, $tblStudentTransferType->getIdentifier(), $tblCourse);
+        $this->useStudentService()->createTransferCourse($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblCourse);
 
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
