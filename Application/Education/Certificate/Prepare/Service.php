@@ -913,7 +913,9 @@ class Service extends AbstractService
             if ($tblPrepareGradeSubjectList) {
                 foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
                     if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
-                        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                        if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
                                 'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
                             && $tblSetting->getValue()
                         ) {
@@ -1400,6 +1402,7 @@ class Service extends AbstractService
      * @param TblGradeType $tblNextGradeType
      * @param string $Route
      * @param $Data
+     * @param $Trend
      *
      * @return IFormInterface|string
      */
