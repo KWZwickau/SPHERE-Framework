@@ -251,7 +251,9 @@ class ApiMassReplace extends Extension implements IApiInterface
         $Field = unserialize(base64_decode($modalField));
         parse_str($Field->getName().'='.$CloneField, $NewValue);
         $Globals = $this->getGlobal();
+
         $Globals->POST = array_merge_recursive($Globals->POST, $NewValue);
+
         $Globals->savePost();
         $ReplaceField = $this->cloneField($Field, $Field->getName());
         return $ReplaceField;

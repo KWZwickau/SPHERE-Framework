@@ -508,18 +508,77 @@ class Frontend extends Extension implements IFrontendInterface
                 ), 4),
                 new FormColumn(array(
                     new Panel('Schüler - Aufnahme', array(
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
                             'Abgebende Schule / Kita', array(
                                 '{{ Name }} {{ Description }}' => $tblCompanyAllSchoolNursery
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Type]',
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Type]',
                             'Letzte Schulart', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Course]',
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL_TYPE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Course]',
                             'Letzter Bildungsgang', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
-                            ), new Education()),
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_COURSE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
+//                            'Abgebende Schule / Kita', array(
+//                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchoolNursery
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Type]',
+//                            'Letzte Schulart', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Course]',
+//                            'Letzter Bildungsgang', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+//                            ), new Education()),
                         new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Date]',
                             'Datum',
                             'Datum', new Calendar()),
@@ -529,18 +588,77 @@ class Frontend extends Extension implements IFrontendInterface
                 ), 4),
                 new FormColumn(array(
                     new Panel('Schüler - Abgabe', array(
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
                             'Aufnehmende Schule', array(
                                 '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Type]',
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Type]',
                             'Letzte Schulart', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Course]',
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL_TYPE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Course]',
                             'Letzter Bildungsgang', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
-                            ), new Education()),
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_COURSE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field)
+                        )),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
+//                            'Aufnehmende Schule', array(
+//                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Type]',
+//                            'Letzte Schulart', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Course]',
+//                            'Letzter Bildungsgang', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+//                            ), new Education()),
                         new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Date]',
                             'Datum',
                             'Datum', new Calendar()),

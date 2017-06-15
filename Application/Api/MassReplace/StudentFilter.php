@@ -284,6 +284,7 @@ class StudentFilter extends Extension
                             $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                                 $tblStudentTransferType);
                             if ($tblStudentTransfer) {
+                                // Ersteinschulung
                                 if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Schule'
                                     && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
                                 ) {
@@ -299,7 +300,41 @@ class StudentFilter extends Extension
                                 ) {
                                     $DataPerson['Edit'] = $tblCourse->getName();
                                 }
+                                // Schüler - Aufnahme
+                                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Abgebende Schule / Kita'
+                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                ) {
+                                    $DataPerson['Edit'] = $tblCompany->getName();
+                                }
+                                if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Letzte Schulart'
+                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                ) {
+                                    $DataPerson['Edit'] = $tblType->getName();
+                                }
+                                if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Letzter Bildungsgang'
+                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                ) {
+                                    $DataPerson['Edit'] = $tblCourse->getName();
+                                }
 
+                                // Schüler - Abgabe
+                                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aufnehmende Schule'
+                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                ) {
+                                    $DataPerson['Edit'] = $tblCompany->getName();
+                                }
+                                if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Letzte Schulart'
+                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                ) {
+                                    $DataPerson['Edit'] = $tblType->getName();
+                                }
+                                if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Letzter Bildungsgang'
+                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                ) {
+                                    $DataPerson['Edit'] = $tblCourse->getName();
+                                }
+
+                                // Schulverlauf
                                 if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
                                     && $tblStudentTransferType->getIdentifier() == 'PROCESS'
                                 ) {
@@ -310,9 +345,9 @@ class StudentFilter extends Extension
                                 ) {
                                     $DataPerson['Edit'] = $tblCourse->getName();
                                 }
-                                //                            if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
-                                //                                $DataPerson['Edit'] = $tblType->getName();
-                                //                            }
+//                                if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
+//                                $DataPerson['Edit'] = $tblType->getName();
+//                                }
                             }
                         }
                         // Subject
