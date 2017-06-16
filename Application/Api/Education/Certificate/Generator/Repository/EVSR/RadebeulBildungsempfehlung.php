@@ -423,19 +423,47 @@ class RadebeulBildungsempfehlung extends Certificate
                     ->addElementColumn((new Element())
                         ->styleBorderBottom('1px', '#000')
                         ->styleAlignCenter()
-                        ->styleMarginTop('95px')
+                        ->styleMarginTop('80px')
 
                         , '35%')
                     ->addElementColumn((new Element())
                         ->setContent('Dienstsiegel der Schule')
                         ->styleTextSize('11px')
                         ->styleAlignCenter()
-                        ->styleMarginTop('80px')
+                        ->styleMarginTop('65px')
                         , '30%')
                     ->addElementColumn((new Element())
                         ->styleBorderBottom('1px', '#000')
                         ->styleAlignCenter()
-                        ->styleMarginTop('95px')
+                        ->styleMarginTop('80px')
+                        , '35%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                                {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.Headmaster.Description }}
+                                {% else %}
+                                    Schulleiter(in)
+                                {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('5px')
+                        ->styleAlignCenter()
+                        , '35%')
+                    ->addElementColumn((new Element())
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                                {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                                {% else %}
+                                    Klassenlehrer(in)
+                                {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('5px')
+                        ->styleAlignCenter()
                         , '35%')
                 )
                 ->addSection((new Section())
@@ -448,7 +476,7 @@ class RadebeulBildungsempfehlung extends Certificate
                                 {% endif %}'
                         )
                         ->styleTextSize('11px')
-                        ->stylePaddingTop('5px')
+                        ->stylePaddingTop('3px')
                         ->styleAlignCenter()
                         , '35%')
                     ->addElementColumn((new Element())
@@ -462,7 +490,7 @@ class RadebeulBildungsempfehlung extends Certificate
                                 {% endif %}'
                         )
                         ->styleTextSize('11px')
-                        ->stylePaddingTop('5px')
+                        ->stylePaddingTop('3px')
                         ->styleAlignCenter()
                         , '35%')
                 )

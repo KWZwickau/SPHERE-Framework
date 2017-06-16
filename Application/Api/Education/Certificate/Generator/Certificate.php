@@ -1658,7 +1658,17 @@ abstract class Certificate extends Extension
             if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
                 $tblSubject = $tblSubjectProfile;
 
-                if (strpos(strtolower($tblSubject->getName()), 'naturwissen') !== false
+                // Bei Chemnitz nur bei naturwissenschaftlichem Profil
+                if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+                    && $tblConsumer->getAcronym() == 'ESZC'
+                ) {
+                    if (strpos(strtolower($tblSubject->getName()), 'naturwissen') !== false
+                    && $this->getTblDivision()
+                    && $this->getTblDivision()->getTblLevel()
+                    && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())) {
+                        $profileAppendText = 'Profil mit informatischer Bildung';
+                    }
+                } elseif (strpos(strtolower($tblSubject->getName()), 'wissen') !== false
                     && $this->getTblDivision()
                     && $this->getTblDivision()->getTblLevel()
                     && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())

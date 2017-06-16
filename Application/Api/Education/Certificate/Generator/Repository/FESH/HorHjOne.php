@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
  * Class HorHjOne
@@ -34,6 +35,15 @@ class HorHjOne extends Certificate
             ->styleTextSize('30px')
             ->styleHeight('12px')
         );
+
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Hormersdorf', 'RemarkTextSizeHorHjOne'))
+            && $tblSetting->getValue()
+        ) {
+            $TextSizeRemark = $tblSetting->getValue();
+        } else {
+            $TextSizeRemark = '13px';
+        }
 
         return (new Page())
             ->addSlice((new Slice())
@@ -175,7 +185,7 @@ class HorHjOne extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleTextSize('13px')
+                        ->styleTextSize($TextSizeRemark)
                         ->styleHeight('490px')
                         ->styleMarginTop('35px')
                         ->stylePaddingLeft('30px')

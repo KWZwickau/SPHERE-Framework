@@ -741,7 +741,7 @@ class Service extends AbstractService
                         && $tblConsumer->getAcronym() == 'EVSR'
                     ) {
                         // Arbeitsgemeinschaften am Ende der Bemerkungnen
-                        $remark = $remark . " \n " . $team;
+                        $remark = $remark . " \n\n " . $team;
                     } else {
                         $remark = $team . " \n\n " . $remark;
                     }
@@ -814,7 +814,20 @@ class Service extends AbstractService
         if ($tblPrepareGradeBehaviorList) {
             foreach ($tblPrepareGradeBehaviorList as $tblPrepareGrade) {
                 if ($tblPrepareGrade->getServiceTblGradeType()) {
-                    $Content['P' . $personId]['Input'][$tblPrepareGrade->getServiceTblGradeType()->getCode()] = $tblPrepareGrade->getGrade();
+                    if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                        && $tblConsumer->getAcronym() == 'EVSR'
+                        && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                        && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
+                        && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                            'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
+                        && $tblSetting->getValue()
+                    ) {
+                        $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());;
+                    } else {
+                        $grade = $tblPrepareGrade->getGrade();
+                    }
+
+                    $Content['P' . $personId]['Input'][$tblPrepareGrade->getServiceTblGradeType()->getCode()] = $grade;
                 }
             }
         }
@@ -885,6 +898,8 @@ class Service extends AbstractService
                             // Radebeul Zensuren im Wortlaut
                             if (($tblConsumer = Consumer::useService()->getConsumerBySession())
                                 && $tblConsumer->getAcronym() == 'EVSR'
+                                && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                                && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
                                 && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
                                 'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
                                 && $tblSetting->getValue()
@@ -913,7 +928,9 @@ class Service extends AbstractService
             if ($tblPrepareGradeSubjectList) {
                 foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
                     if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
-                        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                        if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
                                 'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
                             && $tblSetting->getValue()
                         ) {
@@ -921,6 +938,8 @@ class Service extends AbstractService
                             $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                         } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
                                 && $tblConsumer->getAcronym() == 'EVSR'
+                                && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                                && $tblCertificateType->getIdentifier() != 'RECOMMENDATION'
                                 && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
                                     'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
                                 && $tblSetting->getValue()
@@ -1400,6 +1419,7 @@ class Service extends AbstractService
      * @param TblGradeType $tblNextGradeType
      * @param string $Route
      * @param $Data
+     * @param $Trend
      *
      * @return IFormInterface|string
      */
