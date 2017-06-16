@@ -203,7 +203,6 @@ class Manager extends Extension
     final public function removeEntity($Entity)
     {
 
-        $Entity = $this->prepareEntity( $Entity );
         $Entity->setEntityRemove(true);
         $this->saveEntity($Entity);
         return $this;
@@ -217,7 +216,6 @@ class Manager extends Extension
     final public function saveEntity($Entity)
     {
 
-        $Entity = $this->prepareEntity( $Entity, true );
         $this->EntityManager->persist($Entity);
         $this->flushCache(get_class($Entity));
         (new DataCacheHandler(__METHOD__))->addDependency($Entity)->clearData();

@@ -1002,14 +1002,15 @@ class Service extends Integration
 
     /**
      * @param array $EntityList
+     * @param array $ProtocolList
      *
      * @return bool
      */
-    public function bulkSaveEntityList($EntityList = array())
+    public function bulkSaveEntityList($EntityList = array(), $ProtocolList = array())
     {
 
         if (!empty($EntityList)) {
-            return (new Data($this->getBinding()))->bulkSaveEntityList($EntityList);
+            return (new Data($this->getBinding()))->bulkSaveEntityList($EntityList, $ProtocolList);
         }
 
         return false;

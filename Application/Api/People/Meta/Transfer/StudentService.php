@@ -27,6 +27,8 @@ class StudentService
     ) {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier($StudentTransferTypeIdentifier);
+        $BulkSave = array();
+        $BulkProtocol = array();
 
         if (!empty($PersonIdArray)) {
             foreach ($PersonIdArray as $PersonIdList) {
@@ -45,9 +47,12 @@ class StudentService
                         $tblStudentTransferType);
                     if (!$tblStudentTransfer) {
                         $tblStudentTransfer = new ServiceAPP\Entity\TblStudentTransfer();
+                        $BulkProtocol[] = false;
                         $tblStudentTransfer->setTblStudent($tblStudent);
                         $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
                         $tblStudentTransfer->setRemark('');
+                    } else {
+                        $BulkProtocol[] = clone $tblStudentTransfer;
                     }
                     $tblStudentTransfer->setServiceTblCompany($tblCompany);
 
@@ -55,7 +60,7 @@ class StudentService
                 }
             }
             if (!empty($BulkSave)) {
-                return Student::useService()->bulkSaveEntityList($BulkSave);
+                return Student::useService()->bulkSaveEntityList($BulkSave, $BulkProtocol);
             }
             return true;
         }
@@ -76,6 +81,8 @@ class StudentService
     ) {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier($StudentTransferTypeIdentifier);
+        $BulkSave = array();
+        $BulkProtocol = array();
 
         if (!empty($PersonIdArray)) {
             foreach ($PersonIdArray as $PersonIdList) {
@@ -94,9 +101,12 @@ class StudentService
                         $tblStudentTransferType);
                     if (!$tblStudentTransfer) {
                         $tblStudentTransfer = new ServiceAPP\Entity\TblStudentTransfer();
+                        $BulkProtocol[] = false;
                         $tblStudentTransfer->setTblStudent($tblStudent);
                         $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
                         $tblStudentTransfer->setRemark('');
+                    } else {
+                        $BulkProtocol[] = clone $tblStudentTransfer;
                     }
                     $tblStudentTransfer->setServiceTblType($tblSchoolType);
 
@@ -104,7 +114,7 @@ class StudentService
                 }
             }
             if (!empty($BulkSave)) {
-                return Student::useService()->bulkSaveEntityList($BulkSave);
+                return Student::useService()->bulkSaveEntityList($BulkSave, $BulkProtocol);
             }
             return false;
         }
@@ -126,6 +136,8 @@ class StudentService
     ) {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier($StudentTransferTypeIdentifier);
+        $BulkSave = array();
+        $BulkProtocol = array();
 
         if (!empty($PersonIdArray)) {
             foreach ($PersonIdArray as $PersonIdList) {
@@ -144,9 +156,12 @@ class StudentService
                         $tblStudentTransferType);
                     if (!$tblStudentTransfer) {
                         $tblStudentTransfer = new ServiceAPP\Entity\TblStudentTransfer();
+                        $BulkProtocol[] = false;
                         $tblStudentTransfer->setTblStudent($tblStudent);
                         $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
                         $tblStudentTransfer->setRemark('');
+                    } else {
+                        $BulkProtocol[] = clone $tblStudentTransfer;
                     }
                     $tblStudentTransfer->setServiceTblCourse($tblCourse);
 
@@ -154,7 +169,7 @@ class StudentService
                 }
             }
             if (!empty($BulkSave)) {
-                return Student::useService()->bulkSaveEntityList($BulkSave);
+                return Student::useService()->bulkSaveEntityList($BulkSave, $BulkProtocol);
             }
             return false;
         }

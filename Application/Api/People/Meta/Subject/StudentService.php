@@ -27,6 +27,9 @@ class StudentService
         TblStudentSubjectRanking $tblStudentSubjectRanking
     ) {
 
+        $BulkSave = array();
+        $BulkProtocol = array();
+
         if (!empty($PersonIdArray)) {
             foreach ($PersonIdArray as $PersonIdList) {
                 $tblStudent = false;
@@ -42,9 +45,12 @@ class StudentService
                         $tblStudentSubjectType, $tblStudentSubjectRanking);
                     if (!$tblStudentSubject) {
                         $tblStudentSubject = new TblStudentSubject();
+                        $BulkProtocol[] = false;
                         $tblStudentSubject->setTblStudent($tblStudent);
                         $tblStudentSubject->setTblStudentSubjectType($tblStudentSubjectType);
                         $tblStudentSubject->setTblStudentSubjectRanking($tblStudentSubjectRanking);
+                    } else {
+                        $BulkProtocol[] = clone $tblStudentSubject;
                     }
                     $tblStudentSubject->setServiceTblSubject($tblSubject);
 
@@ -52,7 +58,7 @@ class StudentService
                 }
             }
             if (!empty($BulkSave)) {
-                return Student::useService()->bulkSaveEntityList($BulkSave);
+                return Student::useService()->bulkSaveEntityList($BulkSave, $BulkProtocol);
             }
             return false;
         }

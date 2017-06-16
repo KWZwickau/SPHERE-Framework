@@ -21,6 +21,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -659,20 +660,26 @@ class Data extends Integration
     }
 
     /**
-     * @param array $EntityList
+     * @param Element[] $EntityList
+     * @param Element[] $ProtocolList
      *
      * @return bool
+     *
      */
-    public function bulkSaveEntityList($EntityList = array())
+    public function bulkSaveEntityList($EntityList = array(), $ProtocolList = array())
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($EntityList)) {
-            foreach ($EntityList as $Entity) {
-                $Protocol = clone $Entity;
+            foreach ($EntityList as $key => $Entity) {
                 $Manager->bulkSaveEntity($Entity);
-                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-                    $Entity, true);
+                if ($ProtocolList[$key] === false) {
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                } else {
+                    Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                        $ProtocolList[$key],
+                        $Entity, true);
+                }
             }
             $Manager->flushCache();
             Protocol::useService()->flushBulkEntries();
