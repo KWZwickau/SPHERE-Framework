@@ -868,7 +868,9 @@ class Service extends AbstractService
                                   $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                               } else {
                                   $grade = $tblPrepareAdditionalGrade->getGrade();
-                                  if ((Gradebook::useService()->getGradeTextByName($grade))) {
+                                  if ((Gradebook::useService()->getGradeTextByName($grade))
+                                      && $grade != 'befreit'
+                                  ) {
                                       $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                                   }
                               }
@@ -912,7 +914,9 @@ class Service extends AbstractService
                             }
 
                             // bei Zeugnistext als Note Schriftgröße verkleinern
-                            if ($tblGradeItem->getTblGradeText()) {
+                            if ($tblGradeItem->getTblGradeText()
+                                && $tblGradeItem->getTblGradeText()->getName() != 'befreit'
+                            ) {
                                 $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblTest->getServiceTblSubject()->getAcronym()] = true;
                             }
                         }
@@ -947,7 +951,9 @@ class Service extends AbstractService
                                 $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());;
                         } else {
                             // bei Zeugnistext als Note Schriftgröße verkleinern
-                            if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())) {
+                            if (Gradebook::useService()->getGradeTextByName($tblPrepareGrade->getGrade())
+                                && $tblPrepareGrade->getGrade() != 'befreit'
+                            ) {
                                 $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()] = true;
                             }
                             $grade = $tblPrepareGrade->getGrade();
