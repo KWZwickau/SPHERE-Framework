@@ -35,6 +35,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/KamenzReport/Create', __CLASS__.'::createKamenzReportPdf'
+        ));
 
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__.'/StudentCard/Download', __NAMESPACE__.'\Repository\StudentCardTwig::downloadStudentCard')
@@ -79,6 +82,15 @@ class Standard extends Extension implements IModuleInterface
     {
 
         return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\AccidentReport');
+    }
+
+    /**
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createKamenzReportPdf()
+    {
+
+        return Creator::createPdf(null, __NAMESPACE__.'\Repository\KamenzReport');
     }
 
     /**
