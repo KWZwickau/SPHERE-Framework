@@ -279,13 +279,24 @@ class RadebeulBildungsempfehlung extends Certificate
                                 hat ausweislich der Halbjahresinformation /
                                 der für das Jahreszeugnis vorgesehenen Noten gemäß Beschluss der Klassenkonferenz¹
                             {% endif %}
-                             vom
-                             {% if(Content.P' . $personId . '.Input.DateCertifcate is not empty) %}
-                                {{ Content.P' . $personId . '.Input.DateCertifcate }}
+                                vom
+                            {% if (Content.P' . $personId . '.Input.Type is not empty) 
+                                and (Content.P' . $personId . '.Input.Type 
+                                    == "der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz") %}
+                                {% if(Content.P' . $personId . '.Input.DateConference is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.DateConference }}
+                                {% else %}
+                                    ______________
+                                {% endif %}
                             {% else %}
-                                ______________
+                                {% if(Content.P' . $personId . '.Input.DateCertifcate is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.DateCertifcate }}
+                                {% else %}
+                                    ______________
+                                {% endif %}
                             {% endif %}
-                            folgende Leistungen erreicht:')
+                            folgende Leistungen erreicht:
+                            ')
                         ->stylePaddingBottom('25px')
                     )
                 )
