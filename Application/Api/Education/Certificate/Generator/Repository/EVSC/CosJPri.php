@@ -30,7 +30,7 @@ class CosJPri extends Certificate
         $subjectLanesSlice = $this->getSubjectLanesCoswig($personId, true, array(), self::TEXT_SIZE,
             false);
 
-        return CosHjPri::buildContentPage($personId, $this->isSample(), 'Jahreszeugnis der Schule (Primarstufe)',
+        return CosHjPri::buildContentPage($personId, $this->isSample(), 'Jahreszeugnis der Schule (Primarstufe)', 'Schuljahr',
             $gradeLanesSlice, $subjectLanesSlice
         );
     }

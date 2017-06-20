@@ -35,7 +35,7 @@ class CosHjPri extends Certificate
             false);
 
         return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Schule (Primarstufe)',
-            $gradeLanesSlice, $subjectLanesSlice
+            '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice
         );
     }
 
@@ -43,15 +43,16 @@ class CosHjPri extends Certificate
      * @param $personId
      * @param $isSample
      * @param string $title
+     * @param $term
      * @param Slice $gradeLanesSlice
      * @param Slice $subjectLanesSlice
-     *
      * @return Page
      */
     public static function buildContentPage(
         $personId,
         $isSample,
         $title = 'Halbjahresinformation der Schule (Primarstufe)',
+        $term,
         $gradeLanesSlice,
         $subjectLanesSlice
     ) {
@@ -175,7 +176,7 @@ class CosHjPri extends Certificate
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '57%')
                                     ->addElementColumn((new Element())
-                                        ->setContent('1. Schulhalbjahr')
+                                        ->setContent($term)
                                         ->styleFontFamily('Trebuchet MS')
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '16%')
