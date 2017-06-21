@@ -23,6 +23,7 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -74,7 +75,7 @@ use SPHERE\Common\Window\Navigation\Link;
  * Class Lectureship
  * @package SPHERE\Application\Transfer\Indiware\Import
  */
-class Lectureship extends Import implements IFrontendInterface
+class Lectureship extends Extension implements IFrontendInterface
 {
 
 
@@ -102,8 +103,6 @@ class Lectureship extends Import implements IFrontendInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __CLASS__.'/Import', __CLASS__.'::frontendImportLectureship'
         ));
-
-        parent::registerModule();
     }
 
     public function frontendLectureshipPrepare()

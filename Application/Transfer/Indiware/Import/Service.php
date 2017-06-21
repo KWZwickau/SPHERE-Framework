@@ -8,10 +8,12 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeache
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Data;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportLectureship;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudentCourse;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -61,6 +63,29 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Id
+     *
+     * @return false|TblIndiwareImportStudentCourse
+     */
+    public function getIndiwareImportStudentCourseById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getIndiwareImportStudentCourseById($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblIndiwareImportStudentCourse[]
+     *
+     */
+    public function getIndiwareImportStudentCourseByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getIndiwareImportStudentCourseByPerson($tblPerson);
+    }
+
+    /**
      * @param bool $ByAccount
      *
      * @return false|TblIndiwareImportLectureship[]
@@ -79,6 +104,43 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $ByAccount
+     *
+     * @return false|TblIndiwareImportLectureship[]
+     */
+    public function getIndiwareImportStudentCourseAll($ByAccount = false)
+    {
+        if ($ByAccount) {
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($tblAccount) {
+                return (new Data($this->getBinding()))->getIndiwareImportStudentCourseAllByAccount($tblAccount);
+            }
+            return false;
+        } else {
+            return (new Data($this->getBinding()))->getIndiwareImportStudentCourseAll();
+        }
+    }
+
+    public function getPersonAllByStudentCourseAll()
+    {
+
+        $tblPersonList = array();
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $StudentCourseList = (new Data($this->getBinding()))->getIndiwareImportStudentCourseAllByAccount($tblAccount);
+        }
+        if (isset($StudentCourseList) && $StudentCourseList) {
+            foreach ($StudentCourseList as $StudentCourse) {
+                $tblPerson = $StudentCourse->getServiceTblPerson();
+                if ($tblPerson && !in_array($tblPerson, $tblPersonList)) {
+                    $tblPersonList[] = $tblPerson;
+                }
+            }
+        }
+        return (!empty($tblPersonList) ? $tblPersonList : false);
+    }
+
+    /**
      * @param            $ImportList
      * @param TblYear    $tblYear
      * @param TblAccount $tblAccount
@@ -89,6 +151,21 @@ class Service extends AbstractService
     {
 
         (new Data($this->getBinding()))->createIndiwareImportLectureshipBulk($ImportList, $tblYear, $tblAccount);
+
+        return true;
+    }
+
+    /**
+     * @param            $ImportList
+     * @param TblYear    $tblYear
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function createIndiwareImportStudentCourseByImportList($ImportList, TblYear $tblYear, TblAccount $tblAccount)
+    {
+
+        (new Data($this->getBinding()))->createIndiwareImportStudentCourseBulk($ImportList, $tblYear, $tblAccount);
 
         return true;
     }
@@ -188,6 +265,26 @@ class Service extends AbstractService
             }
         } else {
             return (new Data($this->getBinding()))->destroyIndiwareImportLectureship($tblIndiwareImportLectureship);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblIndiwareImportStudentCourse|null $tblIndiwareImportStudentCourse
+     *
+     * @return bool
+     */
+    public function destroyIndiwareImportStudentCourse(
+        TblIndiwareImportStudentCourse $tblIndiwareImportStudentCourse = null
+    ) {
+
+        if ($tblIndiwareImportStudentCourse == null) {
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($tblAccount) {
+                return (new Data($this->getBinding()))->destroyIndiwareImportStudentCourseByAccount($tblAccount);
+            }
+        } else {
+            return (new Data($this->getBinding()))->destroyIndiwareImportStudentCourse($tblIndiwareImportStudentCourse);
         }
         return false;
     }
