@@ -331,8 +331,9 @@ class Data extends AbstractData
         $Entity->setSubjectGroup($Result['AppSubjectGroup'.$SubjectNumber]);
         $Entity->setCourseNumber($SubjectNumber);
         $Entity->setIsIntensiveCourse($Result['IsIntensiveCourse'.$SubjectNumber]);
-        $Entity->setServiceTblPerson($Result['tblPerson']);
-        $Entity->setServiceTblSubject($Result['tblSubject'.$SubjectNumber]);
+        $Entity->setServiceTblPerson(($Result['tblPerson'] ? $Result['tblPerson'] : null));
+        $Entity->setServiceTblDivision(($Result['tblDivision'] ? $Result['tblDivision'] : null));
+        $Entity->setServiceTblSubject(($Result['tblSubject'.$SubjectNumber] ? $Result['tblSubject'.$SubjectNumber] : null));
         $Entity->setServiceTblAccount($tblAccount);
         $Entity->setIsIgnore(false);
         $Manager->bulkSaveEntity($Entity);

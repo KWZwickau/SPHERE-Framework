@@ -335,6 +335,11 @@ class StudentCourseGateway extends AbstractConverter
         } elseif ($tblPerson) {
             $Result['AppPerson'] = $tblPerson->getFullName();
         }
+        // search Division
+        $tblDivision = false;
+        if ($tblPerson) {
+            $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $this->Year);
+        }
 
         for ($i = 1; $i <= 17; $i++) {
             $Result['tblSubject'.$i] = (isset($Result['SubjectId'.$i]) && $Result['SubjectId'.$i] !== null ? Subject::useService()
@@ -344,15 +349,16 @@ class StudentCourseGateway extends AbstractConverter
         // Importe nur mit gültigen Personen
         if ($tblPerson) {
             $ImportRow = array(
-                'tblPerson'           => $tblPerson,
-                'FileSubject1'        => $Result['FileSubject1'],
-                'FileSubject2'        => $Result['FileSubject2'],
-                'FileSubject3'        => $Result['FileSubject3'],
-                'FileSubject4'        => $Result['FileSubject4'],
-                'FileSubject5'        => $Result['FileSubject5'],
-                'FileSubject6'        => $Result['FileSubject6'],
-                'FileSubject7'        => $Result['FileSubject7'],
-                'FileSubject8'        => $Result['FileSubject8'],
+                'tblPerson'    => $tblPerson,
+                'tblDivision'  => $tblDivision,
+                'FileSubject1' => $Result['FileSubject1'],
+                'FileSubject2' => $Result['FileSubject2'],
+                'FileSubject3' => $Result['FileSubject3'],
+                'FileSubject4' => $Result['FileSubject4'],
+                'FileSubject5' => $Result['FileSubject5'],
+                'FileSubject6' => $Result['FileSubject6'],
+                'FileSubject7' => $Result['FileSubject7'],
+                'FileSubject8' => $Result['FileSubject8'],
                 'FileSubject9'        => $Result['FileSubject9'],
                 'FileSubject10'       => $Result['FileSubject10'],
                 'FileSubject11'       => $Result['FileSubject11'],

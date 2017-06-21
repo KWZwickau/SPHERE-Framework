@@ -123,6 +123,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'serviceTblDivision')) {
+            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
+        }
         if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }

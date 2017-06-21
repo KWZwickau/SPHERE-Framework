@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -35,6 +37,7 @@ class TblIndiwareImportStudentCourse extends Element
     const ATTR_IS_INTENSIVE_COURSE = 'IsIntensiveCourse';
 
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
 
@@ -73,6 +76,10 @@ class TblIndiwareImportStudentCourse extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblDivision;
     /**
      * @Column(type="bigint")
      */
@@ -263,6 +270,28 @@ class TblIndiwareImportStudentCourse extends Element
     {
 
         $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
+    }
+
+    /**
+     * @return bool|TblDivision
+     */
+    public function getServiceTblDivision()
+    {
+
+        if (null === $this->serviceTblDivision) {
+            return false;
+        } else {
+            return Division::useService()->getDivisionById($this->serviceTblDivision);
+        }
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     */
+    public function setServiceTblDivision(TblDivision $tblDivision = null)
+    {
+
+        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
     }
 
     /**

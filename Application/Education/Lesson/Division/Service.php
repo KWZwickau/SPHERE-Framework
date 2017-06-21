@@ -1437,6 +1437,33 @@ class Service extends AbstractService
     }
 
     /**
+     * return Division without LevelName (Level->getName() != '')
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear   $tblYear
+     *
+     * @return bool|TblDivision
+     */
+    public function getDivisionByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+
+        $tblDivisionList = $this->getDivisionByYear($tblYear);
+        if ($tblDivisionList) {
+            foreach ($tblDivisionList as $tblDivision) {
+                $tblLevel = $tblDivision->getTblLevel();
+                if ($tblLevel->getName() != '') {
+                    $DivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision,
+                        $tblPerson);
+                    if ($DivisionStudent) {
+                        return $tblDivision;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return bool|TblDivisionStudent[]
