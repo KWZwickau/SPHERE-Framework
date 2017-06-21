@@ -299,7 +299,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Gymnasium Halbjahreszeugnis', '', 'GymHj');
@@ -336,7 +336,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Gymnasium Jahreszeugnis', '', 'GymJ');
@@ -393,7 +393,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Hauptschule', 'MsAbgHs');
@@ -533,7 +533,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-6', 'MsHjInfo');
@@ -573,7 +573,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Realschule', 'MsHjInfoRs');
@@ -617,7 +617,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Hauptschule', 'MsHjHs');
@@ -655,7 +655,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         // wird aktuell nicht benötigt
@@ -699,7 +699,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Hauptschule', 'MsJHs');
@@ -745,7 +745,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Klasse 5-6', 'MsJ');
@@ -790,7 +790,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Realschule', 'MsJRs');
@@ -839,7 +839,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-            $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         /*
@@ -950,7 +950,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -976,7 +976,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -1002,7 +1002,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -1028,7 +1028,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -1054,7 +1054,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -1080,7 +1080,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -1106,7 +1106,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -1132,7 +1132,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -1158,7 +1158,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
 //                    $tblCertificate = $this->createCertificate(
@@ -1184,7 +1184,7 @@ class Data extends AbstractData
 //                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
 //                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6, false);
 //                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//                        $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+//                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
 //                    }
 //
                     $tblCertificate = $this->createCertificate(
@@ -2041,7 +2041,7 @@ class Data extends AbstractData
                     $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
                     $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
                     $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-                    $this->setCertificateSubject($tblCertificate, 'INFO', 2, 8);
+                    $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
                 }
             }
         }
@@ -2483,6 +2483,11 @@ class Data extends AbstractData
             $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('RELI');
+            }
+        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO') {
+            $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
             }
         } elseif (($tblSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym))) {
 
