@@ -357,6 +357,32 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int|string $tblLevelName
+     * used LevelName to find same Level range
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionAllByLevelName($tblLevelName)
+    {
+
+        $tblDivisionList = array();
+        $tblLevelList = Division::useService()->getLevelAllByName($tblLevelName);
+        if ($tblLevelList) {
+            array_walk($tblLevelList, function ($tblLevel) use (&$tblDivisionList) {
+                $tblDivisionArray = Division::useService()->getDivisionAllByLevel($tblLevel);
+                if ($tblDivisionArray) {
+                    /** @var TblDivision $tblDivision */
+                    foreach ($tblDivisionArray as $tblDivision) {
+                        $tblDivisionList[] = $tblDivision;
+                    }
+                }
+            });
+        }
+
+        return (!empty($tblDivisionList) ? $tblDivisionList : false);
+    }
+
+    /**
      * @param TblLevel $tblLevel
      * @param TblYear  $tblYear
      *
@@ -366,6 +392,17 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getDivisionAllByLevelAndYear($tblLevel, $tblYear);
+    }
+
+    /**
+     * @param TblLevel $tblLevel
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByLevel(TblLevel $tblLevel)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionAllByLevel($tblLevel);
     }
 
     /**

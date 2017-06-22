@@ -110,11 +110,9 @@
 namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
@@ -134,8 +132,6 @@ class StudentCourseGateway extends AbstractConverter
     private $ImportList = array();
     private $Year = false;
     private $Level = false;
-    private $Division = false;
-//    private $Subject = false;
     private $StudentCourseList = array();
 
     /**
@@ -254,17 +250,6 @@ class StudentCourseGateway extends AbstractConverter
         $this->setPointer(new FieldPointer('C', 'LastName'));
         $this->setPointer(new FieldPointer('E', 'Birthday'));
 
-
-//        $this->setPointer(new FieldPointer('O', 'FileDivision'));
-//        $this->setPointer(new FieldPointer('O', 'AppDivision'));
-//        $this->setPointer(new FieldPointer('O', 'DivisionId'));
-//        $this->setSanitizer(new FieldSanitizer('O', 'AppDivision', array($this, 'sanitizeDivision')));
-//        $this->setSanitizer(new FieldSanitizer('O', 'DivisionId', array($this, 'fetchDivision')));
-
-//        $this->setPointer(new FieldPointer('AF', 'FileSubjectGroup'));
-//        $this->setPointer(new FieldPointer('AF', 'AppSubjectGroup'));
-//        $this->setSanitizer(new FieldSanitizer('AF', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
-
         $this->scanFile(1);
     }
 
@@ -303,26 +288,6 @@ class StudentCourseGateway extends AbstractConverter
         foreach ($Row as $Part) {
             $Result = array_merge($Result, $Part);
         }
-
-        // remove doubled Lectureship
-        // Lectureship definition: Division & Teacher & Subject & SubjectGroup
-//        for ($i = 1; $i <= 17; $i++) {
-//            $Subject = $Result['FileSubject'.$i];
-//            $SubjectGroup = $Result['FileSubjectGroup'.$i];
-//            if ($SubjectGroup != '') {
-//                if (!in_array($Subject.'x'.$SubjectGroup, $this->StudentCourseList)) {
-//                    $this->StudentCourseList[] = $Subject.'x'.$SubjectGroup;
-////                } else {
-////                    $Result['FileDivision'.$j] = null;
-////                    $Result['DivisionId'.$j] = null;
-////                    $Result['FileTeacher'.$i] = null;
-////                    $Result['TeacherId'.$i] = null;
-////                    $Result['FileSubject'] = '';
-////                    $Result['SubjectId'] = null;
-////                    $Result['FileSubjectGroup'] = '';
-//                }
-//            }
-//        }
 
 //        if (!$this->IsError) {
         $tblPerson = false;
@@ -429,135 +394,6 @@ class StudentCourseGateway extends AbstractConverter
 //        Debugger::screenDump($Result);
         $this->ResultList[] = $Result;
 //        exit;
-    }
-
-    /**
-     * @param $Value
-     *
-     * @return null|string|int
-     */
-    protected function sanitizeDivision($Value)
-    {
-        $LevelName = null;
-        $DivisionName = null;
-        if ($Value === '') {
-            return null;
-        }
-
-        $this->MatchDivision($Value, $LevelName, $DivisionName);
-        $tblLevel = null;
-        $tblYear = Term::useService()->getYearById($this->Year);
-
-        $tblDivisionList = array();
-        // search with Level
-        if (($tblLevelList = Division::useService()->getLevelAllByName($LevelName)) && $tblYear) {
-            foreach ($tblLevelList as $tblLevel) {
-                if (($tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName,
-                    $tblLevel, $tblYear))
-                ) {
-                    if ($tblDivisionArray) {
-                        foreach ($tblDivisionArray as $tblDivision) {
-                            $tblDivisionList[] = $tblDivision;
-                        }
-                    }
-                }
-            }
-            if (count($tblDivisionList) == 1) {
-                /** @var TblDivision $tblDivision */
-                $tblDivision = current($tblDivisionList);
-                return $tblDivision->getDisplayName();
-            } elseif (count($tblDivisionList) >= 2) {
-                return new Warning(new WarningIcon().' Zu viele Treffer für mögliche Klassen');
-            }
-        }
-        return new Warning(new WarningIcon().' Klasse wurde nicht gefunden');
-    }
-
-    /**
-     * @param $Value
-     *
-     * @return null|int
-     */
-    protected function fetchDivision($Value)
-    {
-
-        if ($Value != '') {
-            $LevelName = null;
-            $DivisionName = null;
-            $this->MatchDivision($Value, $LevelName, $DivisionName);
-            $tblLevel = null;
-            $tblYear = Term::useService()->getYearById($this->Year);
-
-            $tblDivisionList = array();
-            // search with Level
-            if (($tblLevelList = Division::useService()->getLevelAllByName($LevelName)) && $tblYear) {
-                foreach ($tblLevelList as $tblLevel) {
-                    if (($tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName,
-                        $tblLevel, $tblYear))
-                    ) {
-                        if ($tblDivisionArray) {
-                            foreach ($tblDivisionArray as $tblDivision) {
-                                $tblDivisionList[] = $tblDivision;
-                            }
-                        }
-                    }
-                }
-                if (!empty($tblDivisionList) && count($tblDivisionList) == 1) {
-                    $tblDivision = $tblDivisionList[0];
-                    $this->Division = $tblDivision->getId();
-                    return $tblDivision->getId();
-                }
-            }
-            // search without Level
-            if ($tblLevel === null && $tblYear && $LevelName == '') {
-                if (($tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName,
-                    $tblLevel, $tblYear))
-                ) {
-                    if ($tblDivisionArray) {
-                        foreach ($tblDivisionArray as $tblDivision) {
-                            $tblDivisionList[] = $tblDivision;
-                        }
-                    }
-                }
-                if (!empty($tblDivisionList) && count($tblDivisionList) == 1) {
-                    $tblDivision = $tblDivisionList[0];
-                    $this->Division = $tblDivision->getId();
-                    return $tblDivision->getId();
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param $Value
-     * @param $LevelName
-     * @param $DivisionName
-     */
-    protected function MatchDivision($Value, &$LevelName, &$DivisionName)
-    {
-
-        if (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
-            $LevelName = $Match[1];
-            $DivisionName = $Match[2];
-        } elseif (preg_match('!^(.*?)\s([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
-            $LevelName = $Match[1];
-            $DivisionName = $Match[2];
-        } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
-            $DivisionName = $Match[1];
-            $LevelName = $Match[2];
-        } elseif (preg_match('!^([0-9]*?)$!is', $Value, $Match)) {
-            $DivisionName = null;
-            $LevelName = $Match[1];
-        } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)(\d+)$!is', $Value, $Match)) {
-            $LevelName = $Match[2];
-            $DivisionName = $Match[1];
-        } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
-            $DivisionName = $Match[1];
-            $LevelName = null;
-        }
-        $DivisionName = trim($DivisionName);
-        $LevelName = trim($LevelName);
     }
 
     /**

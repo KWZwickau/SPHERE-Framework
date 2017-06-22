@@ -80,10 +80,24 @@ class Service extends AbstractService
      */
     public function getIndiwareImportStudentCourseByIndiwareImportStudent(
         TblIndiwareImportStudent $tblIndiwareImportStudent
-    )
-    {
+    ) {
 
         return (new Data($this->getBinding()))->getIndiwareImportStudentCourseByIndiwareImportStudent($tblIndiwareImportStudent);
+    }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param                          $Number
+     *
+     * @return false|TblIndiwareImportStudentCourse
+     */
+    public function getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber(
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        $Number
+    ) {
+
+        return (new Data($this->getBinding()))->getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber(
+            $tblIndiwareImportStudent, $Number);
     }
 
     /**

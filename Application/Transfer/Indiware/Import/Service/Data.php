@@ -57,13 +57,30 @@ class Data extends AbstractData
      */
     public function getIndiwareImportStudentCourseByIndiwareImportStudent(
         TblIndiwareImportStudent $tblIndiwareImportStudent
-    )
-    {
+    ) {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblIndiwareImportStudentCourse',
             array(
                 TblIndiwareImportStudentCourse::ATTR_TBL_INDIWARE_IMPORT_STUDENT => $tblIndiwareImportStudent->getId()
+            ));
+    }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param                          $Number
+     *
+     * @return false|TblIndiwareImportStudentCourse
+     */
+    public function getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber(
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        $Number
+    ) {
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblIndiwareImportStudentCourse',
+            array(
+                TblIndiwareImportStudentCourse::ATTR_TBL_INDIWARE_IMPORT_STUDENT => $tblIndiwareImportStudent->getId(),
+                TblIndiwareImportStudentCourse::ATTR_COURSE_NUMBER               => $Number,
             ));
     }
 

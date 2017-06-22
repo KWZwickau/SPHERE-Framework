@@ -469,6 +469,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblLevel $tblLevel
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByLevel(TblLevel $tblLevel)
+    {
+
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+            ));
+    }
+
+    /**
      * @param TblYear $tblYear
      *
      * @return bool|TblDivision[]
