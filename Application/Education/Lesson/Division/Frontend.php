@@ -1508,9 +1508,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDivisionShow($Id = null)
     {
 
-
-        // ToDo
-
         $Stage = new Stage('Klassenansicht', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
@@ -1797,7 +1794,6 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             if ($tblDivisionStudentList) {
-                //ToDo Fächer für SEKII anders anzeigen
                 if ($IsSekTwo) {
                     $columnList['AdvancedCourse1'] = '1. LK';
                     $columnList['AdvancedCourse2'] = '2. LK';
