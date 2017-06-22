@@ -122,7 +122,7 @@ class ApiMassReplace extends Extension implements IApiInterface
             'modalField' => base64_encode(serialize($Field)),
             'CloneField' => $CloneField
         ));
-        $Pipeline->appendEmitter($Emitter);
+//        $Pipeline->appendEmitter($Emitter);   //ToDO Entscheidung wann das Feld ersetzt werden muss
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal($Field)))->getEmitter());
         return $Pipeline;
     }
