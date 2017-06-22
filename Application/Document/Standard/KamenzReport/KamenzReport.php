@@ -59,16 +59,20 @@ class KamenzReport extends AbstractModule implements IModuleInterface
 
         $Stage = new Stage('Kamenz-Statistik', 'Bereit zum Download');
 
-        $Stage->addbutton(new External('Herunterladen',
+        $Stage->addbutton(new External('Herunterladen: Oberschulstatistik',
             'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
             new Download(), array(), 'Kamenz-Statistik Herungerladen'));
+
+        $Stage->addButton(new External('Herunterladen: Grundschulstatistik',
+            'SPHERE\Application\Api\Document\Standard\KamenzReportGS\Create',
+            new Download(), array(), 'Kamenz-Statistik der GS herunterladen'));
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Success('Hier können Sie die Kamenz-Statistik herunterladen')
+                            new Success('Hier können Sie die Kamenz-Statistiken herunterladen')
                         )
                     )
                 )

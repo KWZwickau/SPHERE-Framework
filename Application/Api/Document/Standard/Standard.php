@@ -94,6 +94,14 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createKamenzReportGSPdf()
+    {
+        return Creator::createPdf(null, __NAMESPACE__.'\Repository\KamenzReportGS');
+    }
+
+    /**
      *
      */
     public static function useService()
