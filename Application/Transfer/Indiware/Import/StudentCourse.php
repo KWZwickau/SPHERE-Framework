@@ -162,11 +162,11 @@ class StudentCourse extends Extension implements IFrontendInterface
 
         $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
 
-        $LevelList = array(11 => 'Stufe 11', 12 => 'Stufe 12');
-        $PeriodList = array(
-            1 => 'Aktuelles Schuljahr 1. Halbjahr',
-            2 => 'Aktuelles Schuljahr 2. Halbjahr',
-            3 => 'Nächstes Schuljahr 1. Halbjahr'
+        $LevelList = array(
+            1 => 'Stufe 11 - 1.Halbjahr',
+            2 => 'Stufe 11 - 2.Halbjahr',
+            3 => 'Stufe 12 - 1.Halbjahr',
+            4 => 'Stufe 12 - 2.Halbjahr'
         );
 
         $Stage->setContent(
@@ -193,14 +193,9 @@ class StudentCourse extends Extension implements IFrontendInterface
                                                             '{{ Year }} {{ Description }}' => $tblYearAll
                                                         )))->setRequired(),
                                                     (new SelectBox('Level',
-                                                        'aktuelle Stufe '.new ToolTip(new InfoIcon(),
-                                                            'In welcher Stufe befinden sich die Schüler aktuell?'),
+                                                        'Importauswahl '.new ToolTip(new InfoIcon(),
+                                                            'Weche Werte sollen importiert werden'),
                                                         $LevelList
-                                                    ))->setRequired(),
-                                                    (new SelectBox('Period',
-                                                        'Schulhalbjahr auswählen '.new ToolTip(new InfoIcon(),
-                                                            'Welches Halbjahr soll importiert werden?'
-                                                        ), $PeriodList
                                                     ))->setRequired(),
                                                     (new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
                                                         array('showPreview' => false)))->setRequired()
@@ -224,15 +219,13 @@ class StudentCourse extends Extension implements IFrontendInterface
      * @param null|UploadedFile $File
      * @param null|int          $tblYear
      * @param null              $Level
-     * @param null              $Period
      *
      * @return Stage|string
      */
     public function frontendStudentCourseUpload(
         UploadedFile $File = null,
         $tblYear = null,
-        $Level = null,
-        $Period = null
+        $Level = null
     ) {
 
         $Stage = new Stage('Indiware', 'Daten importieren');
@@ -245,19 +238,17 @@ class StudentCourse extends Extension implements IFrontendInterface
                     : new WarningMessage('Bitte geben sie die Datei an.'))
                 .new Redirect(new Route(__NAMESPACE__.'/StudentCourse/Prepare'), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear,
-                    'Level'   => $Level,
-                    'Period'  => $Period
+                    'Level'   => $Level
                 ))
             );
             return $Stage;
         }
-        if ($Level == 12 && $Period == 3) {
+        if ($Level == 0) {
             $Stage->setContent(
-                new WarningMessage('Vorbereitung der Klasse 13 ist nicht vorgesehen!')
+                new WarningMessage('Bitte geben Sie den zu importierenden Abschnitt an')
                 .new Redirect(new Route(__NAMESPACE__.'/StudentCourse/Prepare'), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear,
-                    'Level'   => $Level,
-                    'Period'  => $Period
+                    'Level'   => $Level
                 ))
             );
             return $Stage;
@@ -331,7 +322,7 @@ class StudentCourse extends Extension implements IFrontendInterface
 //            return $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Success('Datei Stimmt'));
 
             // add import
-            $Gateway = new StudentCourseGateway($Payload->getRealPath(), $tblYear, $Level, $Period);
+            $Gateway = new StudentCourseGateway($Payload->getRealPath(), $tblYear, $Level);
 
             $ImportList = $Gateway->getImportList();
             $tblAccount = Account::useService()->getAccountBySession();

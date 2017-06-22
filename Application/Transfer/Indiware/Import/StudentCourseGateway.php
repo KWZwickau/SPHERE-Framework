@@ -140,9 +140,8 @@ class StudentCourseGateway extends AbstractConverter
      * @param string  $File SpUnterricht.csv
      * @param TblYear $tblYear
      * @param null    $Level
-     * @param null    $Period
      */
-    public function __construct($File, TblYear $tblYear, $Level = null, $Period = null)
+    public function __construct($File, TblYear $tblYear, $Level = null)
     {
         $this->loadFile($File);
         $this->Year = $tblYear;
@@ -172,7 +171,7 @@ class StudentCourseGateway extends AbstractConverter
         );
 
         // Klasse 11 2. Halbjahr
-        if ($Level == 11 && $Period == 2) {
+        if ($Level == 2) {
             $SubjectList = array(
                 1  => 'BA',
                 2  => 'BB',
@@ -192,7 +191,7 @@ class StudentCourseGateway extends AbstractConverter
                 16 => 'BP',
                 17 => 'BQ'
             );
-        } elseif ($Level == 12 && $Period == 1 || $Level == 11 && $Period == 3) {   // Klasse 12 1. Halbjahr
+        } elseif ($Level == 3) {   // Klasse 12 1. Halbjahr
             $SubjectList = array(
                 1  => 'BR',
                 2  => 'BS',
@@ -212,7 +211,7 @@ class StudentCourseGateway extends AbstractConverter
                 16 => 'CG',
                 17 => 'CH'
             );
-        } elseif ($Level == 12 && $Period == 2) {    // Klasse 12 2. Halbjahr
+        } elseif ($Level == 4) {    // Klasse 12 2. Halbjahr
             $SubjectList = array(
                 1  => 'CI',
                 2  => 'CJ',
