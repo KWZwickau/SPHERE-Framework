@@ -297,7 +297,7 @@ class Data extends AbstractData
                     if (isset($Result['FileSubject'.$Number]) && $Result['FileSubject'.$Number]) {
 
                         if (isset($Result['FileSubject'.$Number]) && $Result['FileSubject'.$Number] != '') {
-                            $this->createIndiwareImportStudentCourse($Manager, $Result, $Number,
+                            $this->createIndiwareImportStudentCourseBulk($Manager, $Result, $Number,
                                 $tblIndiwareImportStudent);
                         }
                     }
@@ -359,7 +359,7 @@ class Data extends AbstractData
      * @param int                      $SubjectNumber
      * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      */
-    private function createIndiwareImportStudentCourse(
+    private function createIndiwareImportStudentCourseBulk(
         Manager $Manager,
         $Result = array(),
         $SubjectNumber = 1,
@@ -375,6 +375,37 @@ class Data extends AbstractData
         $Entity->settblIndiwareImportStudent($tblIndiwareImportStudent);
         $Manager->bulkSaveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+    }
+
+    /**
+     * @param TblSubject               $tblSubject
+     * @param string                   $SubjectGroup
+     * @param string                   $SubjectName
+     * @param int                      $Number
+     * @param bool                     $IsIntensiveCourse
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     */
+    public function createIndiwareImportStudentCourse(
+        $SubjectGroup = '',
+        $SubjectName = '',
+        $Number,
+        $IsIntensiveCourse = false,
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        $tblSubject = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblIndiwareImportStudentCourse();
+        $Entity->setSubjectGroup($SubjectGroup);
+        $Entity->setSubjectName($SubjectName);
+        $Entity->setCourseNumber($Number);
+        $Entity->setIsIntensiveCourse($IsIntensiveCourse);
+        $Entity->settblIndiwareImportStudent($tblIndiwareImportStudent);
+        $Entity->setServiceTblSubject($tblSubject);
+
+        $Manager->SaveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
     }
 
     /**

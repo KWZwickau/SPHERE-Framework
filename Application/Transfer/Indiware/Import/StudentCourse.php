@@ -670,7 +670,9 @@ class StudentCourse extends Extension implements IFrontendInterface
                     ),
                     new LayoutRow(
                         new LayoutColumn(
-                            new Well($Form)
+                            new Well(Import::useService()
+                                ->updateIndiwareImportStudentCourse($Form, $Data, $tblIndiwareImportStudent, $Visible)
+                            )
                         )
                     )
                 ))

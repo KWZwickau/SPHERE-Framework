@@ -233,6 +233,81 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface|null      $Stage
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param null|array               $Data
+     * @param bool                     $Visible
+     *
+     * @return IFormInterface|string
+     */
+    public function updateIndiwareImportStudentCourse(
+        IFormInterface $Stage = null,
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        $Data = null,
+        $Visible = false
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        if (isset($Data['DivisionId']) && $Data['DivisionId'] != 0) {
+            $tblDivision = Division::useService()->getDivisionById($Data['DivisionId']);
+        } else {
+            $tblDivision = null;
+        }
+        //ToDO Remove all existing Course by ImportStudent
+        for ($i = 1; $i <= 17; $i++) {
+            $tblSubject = null;
+            $SubjectGroup = '';
+            $SubjectName = '';
+            $tblIndiwareImportStudentCourse = Import::useService()->getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber(
+                $tblIndiwareImportStudent, $i);
+            if ($tblIndiwareImportStudentCourse) {
+                $SubjectName = $tblIndiwareImportStudentCourse->getSubjectName();
+            }
+
+            if (isset($Data['SubjectId'.$i]) && !empty($Data['SubjectId'.$i])) {
+                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId'.$i]);
+            }
+            if (isset($Data['SubjectGroup'.$i]) && !empty($Data['SubjectId'.$i])) {
+                $SubjectGroup = $Data['SubjectId'.$i];
+            }
+            if (isset($Data['IsIntensivCourse'.$i]) && !empty($Data['IsIntensivCourse'.$i])) {
+                $IsIntensiveCourse = true;
+            } else {
+                $IsIntensiveCourse = false;
+            }
+            if ($tblSubject || $SubjectGroup != '') {
+                (new Data($this->getBinding()))->createIndiwareImportStudentCourse($tblSubject, $SubjectGroup,
+                    $SubjectName, $i, $IsIntensiveCourse, $tblIndiwareImportStudent);
+            }
+        }
+//        if(isset())
+//
+//        if ((new Data($this->getBinding()))->updateIndiwareImportLectureship(
+//            $tblIndiwareImportLectureship,
+//            $tblDivision,
+//            $tblTeacher,
+//            $tblSubject,
+//            $SubjectGroup,
+//            $IsIgnore)
+//        ) {
+//            $Message = new Success('Änderungen gespeichert');
+//            return $Message.new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_SUCCESS,
+//                    array('Visible' => $Visible));
+//        } else {
+//            $Stage->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Änderungen gespeichert')))));
+//            return $Stage.new Redirect('/Transfer/Indiware/Import/Lectureship/Edit', Redirect::TIMEOUT_SUCCESS,
+//                    array('Id' => $tblIndiwareImportLectureship->getId(), 'Visible' => $Visible));
+//        }
+        return false;
+    }
+
+    /**
      * @param TblIndiwareImportLectureship $tblIndiwareImportLectureship
      * @param bool                         $isIgnore
      *
