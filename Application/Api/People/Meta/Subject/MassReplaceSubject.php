@@ -33,6 +33,7 @@ class MassReplaceSubject extends Extension
      * @param int    $TypeId
      * @param int    $RankingId
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
@@ -41,7 +42,8 @@ class MassReplaceSubject extends Extension
         $CloneField,
         $TypeId,
         $RankingId,
-        $PersonIdArray = array()
+        $PersonIdArray = array(),
+        $Id = null
     ) {
 
         $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeById($TypeId);
@@ -65,7 +67,13 @@ class MassReplaceSubject extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            }
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
 
 //        return new Code( print_r( $this->getGlobal()->POST, true ) )
 //        .new Code( print_r( $CloneField, true ) );

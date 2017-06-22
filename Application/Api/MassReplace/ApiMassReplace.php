@@ -111,7 +111,7 @@ class ApiMassReplace extends Extension implements IApiInterface
         return $Pipeline;
     }
 
-    public static function pipelineClose(AbstractField $Field, $CloneField)
+    public static function pipelineClose(AbstractField $Field, $CloneField, $IsChange = false)
     {
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverField($Field), self::getEndpoint());
@@ -122,7 +122,9 @@ class ApiMassReplace extends Extension implements IApiInterface
             'modalField' => base64_encode(serialize($Field)),
             'CloneField' => $CloneField
         ));
-//        $Pipeline->appendEmitter($Emitter);   //ToDO Entscheidung wann das Feld ersetzt werden muss
+        if($IsChange){
+            $Pipeline->appendEmitter($Emitter);
+        }
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal($Field)))->getEmitter());
         return $Pipeline;
     }
@@ -137,6 +139,7 @@ class ApiMassReplace extends Extension implements IApiInterface
      */
     public function openModal($modalField, $useFilter = null, $Year = null, $Division = null)
     {
+
         if ($useFilter == null) {
             return new Warning('Filter einstellen!');
         }

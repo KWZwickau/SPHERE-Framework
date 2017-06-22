@@ -440,6 +440,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_SCHOOL,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -460,6 +461,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_SCHOOL_TYPE,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -480,6 +482,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_COURSE,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -520,6 +523,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -540,6 +544,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL_TYPE,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -560,6 +565,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_COURSE,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -600,6 +606,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -620,6 +627,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL_TYPE,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -640,6 +648,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_COURSE,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -683,6 +692,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -703,6 +713,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
                                 ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
                                 'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
@@ -1067,43 +1078,44 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     $this->panelSubjectList('FOREIGN_LANGUAGE', 'Fremdsprachen', 'Fremdsprache',
-                        $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null), $Year, $Division),
+                        $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
                     $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1, null, $Year,
-                        $Division),
+                        $Division, $tblPerson),
                     $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1, null, $Year,
-                        $Division),
+                        $Division, $tblPerson),
                     $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1,
-                        null, $Year, $Division),
+                        null, $Year, $Division, $tblPerson),
 //                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1,
-//                        null, $Year, $Division),
+//                        null, $Year, $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
                     $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3, null, $Year,
-                        $Division),
+                        $Division, $tblPerson),
                     $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3,
-                        null, $Year, $Division),
+                        null, $Year, $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
                     $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2,
-                        null, $Year, $Division),
+                        null, $Year, $Division, $tblPerson),
                     $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8, null, $Year,
-                        $Division),
+                        $Division, $tblPerson),
                 ), 3),
             )),
         ), new Title(new TileSmall().' Unterrichtsfächer', new Bold(new Success($tblPerson->getFullName()))));
     }
 
     /**
-     * @param string       $Identifier
-     * @param string       $Title
-     * @param string       $Label
+     * @param string $Identifier
+     * @param string $Title
+     * @param string $Label
      * @param TblSubject[] $SubjectList
-     * @param int          $Count
-     * @param TblStudent   $tblStudent
-     * @param array        $Year
-     * @param array        $Division
+     * @param int $Count
+     * @param TblStudent $tblStudent
+     * @param array $Year
+     * @param array $Division
+     * @param TblPerson|null $tblPerson
      *
      * @return Panel
      */
@@ -1115,14 +1127,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Count = 1,
         TblStudent $tblStudent = null,
         $Year = array(),
-        $Division = array()
+        $Division = array(),
+        TblPerson $tblPerson = null
     ) {
 
         $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier(strtoupper($Identifier));
         $Panel = array();
         for ($Rank = 1; $Rank <= $Count; $Rank++) {
             $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Rank);
-
+            $PersonId = false;
+            if($tblPerson) {
+                $PersonId = $tblPerson->getId();
+            }
             // activate MassReplace
             if ($Identifier == 'PROFILE'
                 || $Identifier == 'RELIGION'
@@ -1140,6 +1156,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
+                            'Id'                                                            => $PersonId,
                             'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
                             'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                             'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],

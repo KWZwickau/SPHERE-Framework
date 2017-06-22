@@ -41,10 +41,11 @@ class MassReplaceTransfer extends Extension
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceCurrentSchool($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceCurrentSchool($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -64,7 +65,13 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
 
 //        return new Code( print_r( $this->getGlobal()->POST, true ) )
 //        .new Code( print_r( $CloneField, true ) );
@@ -74,10 +81,11 @@ class MassReplaceTransfer extends Extension
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceCurrentCourse($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceCurrentCourse($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -97,17 +105,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            }
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceEnrollmentSchool($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceEnrollmentSchool($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
@@ -127,17 +142,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceEnrollmentSchoolType($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceEnrollmentSchoolType($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
@@ -157,17 +179,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceEnrollmentCourse($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceEnrollmentCourse($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
@@ -187,17 +216,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceArriveSchool($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceArriveSchool($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
@@ -217,17 +253,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceArriveSchoolType($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceArriveSchoolType($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
@@ -247,17 +290,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceArriveCourse($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceArriveCourse($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
@@ -277,17 +327,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceLeaveSchool($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceLeaveSchool($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
@@ -307,17 +364,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceLeaveSchoolType($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceLeaveSchoolType($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
@@ -337,17 +401,24 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 
     /**
      * @param string $modalField
      * @param int    $CloneField
      * @param array  $PersonIdArray
+     * @param null   $Id
      *
      * @return \SPHERE\Common\Frontend\Ajax\Pipeline
      */
-    public function replaceLeaveCourse($modalField, $CloneField, $PersonIdArray = array())
+    public function replaceLeaveCourse($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
     {
 
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
@@ -367,6 +438,12 @@ class MassReplaceTransfer extends Extension
         $Field = unserialize(base64_decode($modalField));
 
         // Success!
-        return ApiMassReplace::pipelineClose($Field, $CloneField);
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }
 }
