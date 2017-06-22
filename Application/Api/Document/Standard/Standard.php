@@ -38,6 +38,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/KamenzReport/Create', __CLASS__.'::createKamenzReportPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/KamenzReportGS/Create', __CLASS__.'::createKamenzReportGSPdf'
+        ));
 
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__.'/StudentCard/Download', __NAMESPACE__.'\Repository\StudentCardTwig::downloadStudentCard')
