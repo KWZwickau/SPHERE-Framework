@@ -756,16 +756,17 @@ class Service extends AbstractService
      * @param TblSubject $tblSubject
      * @param $Group
      * @param $DivisionSubjectId
+     * @param boolean $IsSekTwo
      *
      * @return IFormInterface|string
      */
-    public
-    function addSubjectToDivisionWithGroup(
+    public function addSubjectToDivisionWithGroup(
         IFormInterface $Form,
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         $Group,
-        $DivisionSubjectId
+        $DivisionSubjectId,
+        $IsSekTwo
     ) {
 
         /**
@@ -781,7 +782,8 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            $tblGroup = (new Data($this->getBinding()))->createSubjectGroup($Group['Name'], $Group['Description']);
+            $tblGroup = (new Data($this->getBinding()))->createSubjectGroup($Group['Name'], $Group['Description'],
+                $IsSekTwo ? isset($Group['IsAdvancedCourse']) : null);
             if ($tblGroup) {
                 if ((new Data($this->getBinding()))->addDivisionSubject($tblDivision, $tblSubject, $tblGroup)) {
                     return new Success('Die Gruppe ' . new Bold($Group['Name']) . ' wurde erfolgreich angelegt')
@@ -1185,20 +1187,20 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param                $Group
-     * @param                $Id
-     * @param                $DivisionId
-     * @param                $DivisionSubjectId
-     *
+     * @param $Group
+     * @param $Id
+     * @param $DivisionId
+     * @param $DivisionSubjectId
+     * @param boolean $IsSekTwo
      * @return IFormInterface|string
      */
-    public
-    function changeSubjectGroup(
+    public function changeSubjectGroup(
         IFormInterface $Form,
         $Group,
         $Id,
         $DivisionId,
-        $DivisionSubjectId
+        $DivisionSubjectId,
+        $IsSekTwo
     ) {
 
         /**
@@ -1230,7 +1232,7 @@ class Service extends AbstractService
 
             if ($tblSubjectGroup) {
                 if ((new Data($this->getBinding()))->updateSubjectGroup(
-                    $tblSubjectGroup, $Group['Name'], $Group['Description']
+                    $tblSubjectGroup, $Group['Name'], $Group['Description'], $IsSekTwo ? isset($Group['IsAdvancedCourse']) : null
                 )
                 ) {
                     return new Success('Die Gruppe wurde erfolgreich geändert')
@@ -1980,8 +1982,7 @@ class Service extends AbstractService
      * @param TblDivision $tblDivision
      * @param TblDivision $tblDivisionCopy
      */
-    public
-    function addSubjectWithGroups(
+    public function addSubjectWithGroups(
         TblDivision $tblDivision,
         TblDivision $tblDivisionCopy
     ) {
@@ -2000,7 +2001,7 @@ class Service extends AbstractService
 
                         if ($tblSubjectGroup) {
                             $tblSubjectGroupCopy = (new Data($this->getBinding()))->createSubjectGroup($tblSubjectGroup->getName(),
-                                $tblSubjectGroup->getDescription());
+                                $tblSubjectGroup->getDescription(), $tblSubjectGroup->isAdvancedCourse() !== null ? $tblSubjectGroup->isAdvancedCourse() : null);
                         }
 
                         if ($tblDivisionSubject->getServiceTblSubject()) {

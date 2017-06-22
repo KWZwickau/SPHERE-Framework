@@ -218,6 +218,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblSubjectGroup', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        $this->createColumn($Table, 'IsAdvancedCourse', self::FIELD_TYPE_BOOLEAN, true, null);
         return $Table;
     }
 

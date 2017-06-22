@@ -40,6 +40,7 @@ class ViewDivisionSubject extends AbstractView
     const TBL_SUBJECT_GROUP_ID = 'TblSubjectGroup_Id';
     const TBL_SUBJECT_GROUP_NAME = 'TblSubjectGroup_Name';
     const TBL_SUBJECT_GROUP_DESCRIPTION = 'TblSubjectGroup_Description';
+    const TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE = 'TblSubjectGroup_IsAdvancedCourse';
 
     /**
      * @Column(type="string")
@@ -114,6 +115,11 @@ class ViewDivisionSubject extends AbstractView
      * @Column(type="string")
      */
     protected $TblSubjectGroup_Description;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $TblSubjectGroup_IsAdvancedCourse;
 
     /**
      * Overwrite this method to return View-ObjectName as View-DisplayName
