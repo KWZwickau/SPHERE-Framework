@@ -8,8 +8,8 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudent;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -160,7 +161,7 @@ class StudentCourse extends Extension implements IFrontendInterface
 //            Debugger::screenDump('Keine Treffer!');
 //        }
 
-        $tblIndiwareImportStudentCourseList = Import::useService()->getIndiwareImportStudentCourseAll(true);
+        $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
 
         $LevelList = array(11 => 'Stufe 11', 12 => 'Stufe 12');
         $PeriodList = array(
@@ -174,7 +175,7 @@ class StudentCourse extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            ($tblIndiwareImportStudentCourseList ? new WarningMessage(new WarningIcon().' Vorsicht vorhandene Importdaten werden entfernt!') : '')
+                            ($tblIndiwareImportStudentList ? new WarningMessage(new WarningIcon().' Vorsicht vorhandene Importdaten werden entfernt!') : '')
                             , 6, array(LayoutColumn::GRID_OPTION_HIDDEN_SM)
                         )
                     ),
@@ -281,7 +282,7 @@ class StudentCourse extends Extension implements IFrontendInterface
         ) {
 
             // remove existing import
-            Import::useService()->destroyIndiwareImportStudentCourse();
+            Import::useService()->destroyIndiwareImportStudent();
 
             // match File
             $Extension = (strtolower($File->getClientOriginalExtension()) == 'txt'
@@ -336,7 +337,7 @@ class StudentCourse extends Extension implements IFrontendInterface
             $ImportList = $Gateway->getImportList();
             $tblAccount = Account::useService()->getAccountBySession();
             if ($ImportList && $tblYear && $tblAccount) {
-                Import::useService()->createIndiwareImportStudentCourseByImportList($ImportList, $tblYear, $tblAccount);
+                Import::useService()->createIndiwareImportStudentByImportList($ImportList, $tblYear, $tblAccount);
             }
 
             $Stage->setContent(
@@ -425,112 +426,105 @@ class StudentCourse extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Lehraufträge', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
-        $tblPersonList = Import::useService()->getPersonAllByStudentCourseAll();
+        $tblIndiwareImportStudent = Import::useService()->getIndiwareImportStudentAll(true);
         $TableContent = array();
-        $TableCompare = array();
+//        $TableCompare = array();
         $tblYear = false;
-        if ($tblPersonList) {
-            array_walk($tblPersonList,
-                function (TblPerson $tblPerson)
-                use (&$TableContent, &$tblYear, $Visible, &$TableCompare) {
+        if ($tblIndiwareImportStudent) {
+            array_walk($tblIndiwareImportStudent, function (TblIndiwareImportStudent $tblIndiwareImportStudent)
+            use (&$TableContent, &$tblYear, $Visible) {
+                $tblPerson = $tblIndiwareImportStudent->getServiceTblPerson();
+                $tblYear = $tblIndiwareImportStudent->getServiceTblYear();
+                $Item['Person'] = '';
+                $Item['Year'] = '';
+                for ($i = 1; $i <= 17; $i++) {
+                    $Item['SubjectAndGroup'.$i] = '';
+                }
+                if ($tblPerson) {
                     $Item['Person'] = $tblPerson->getLastFirstName();
-                    for ($i = 1; $i <= 17; $i++) {
-                        $Item['SubjectAndGroup'.$i] = ''; //new Warning('Test');
-//                        $Item['SubjectGroup'.$i] = '';
-                    }
-                    $Item['Year'] = false;
+                }
+                if ($tblYear) {
+                    $Item['Year'] = $tblIndiwareImportStudent->getServiceTblYear();
+                }
+                $Item['Option'] = new Standard('', '/Transfer/Indiware/Import/StudentCourse/Edit'
+                    , new Edit(), array('Id' => $tblPerson->getId(), 'Visible' => $Visible),
+                    'Importvorbereitung bearbeiten');
+                if ($tblIndiwareImportStudent->getIsIgnore()) {
+                    $Item['Option'] .= new Standard('', '/Transfer/Indiware/Import/StudentCourse/Ignore',
+                        new SuccessIcon(),
+                        array(
+                            'Id'      => $tblIndiwareImportStudent->getId(),
+                            'Visible' => $Visible
+                        ), 'Manuell freigeben');
+                    $Item['Ignore'] = new Center(new Warning(new WarningIcon()));
 
-                    $IsImportError = false;
-                    $IsError = false;
-                    $tblIndiwareImportStudentCourseList = Import::useService()->getIndiwareImportStudentCourseByPerson($tblPerson);
-                    if ($tblIndiwareImportStudentCourseList) {
-                        foreach ($tblIndiwareImportStudentCourseList as $tblIndiwareImportStudentCourse) {
-                            // Manueller "nicht Import" gefunden (überschreibt Success)
-                            if ($tblIndiwareImportStudentCourse->getIsIgnore() || $IsError) {
-                                $Item['Ignore'] = new Center(new Warning(new ToolTip(new Disable(),
-                                    'Einige Fächer werden nicht importiert! (Manuell)')));
-                            } else {
-                                //Success wenn noch nicht vorhanden
-                                if (!isset($Item['Ignore'])) {
-                                    $Item['Ignore'] = new Center(new Success(new SuccessIcon()));
-                                }
-//                                $showIgnoreButton = true;
-                            }
+                } else {
+                    $Item['Option'] .= new Standard('', '/Transfer/Indiware/Import/StudentCourse/Ignore',
+                        new Remove(),
+                        array(
+                            'Id'      => $tblIndiwareImportStudent->getId(),
+                            'Visible' => $Visible
+                        ), 'Manuell sperren');
+                    $Item['Ignore'] = new Center(new Success(new SuccessIcon()));
+                }
 
-                            if (!$Item['Year']) {
-                                $Item['Year'] = $tblYear = $tblIndiwareImportStudentCourse->getServiceTblYear();
-                            }
-                            $CourseNumber = $tblIndiwareImportStudentCourse->getCourseNumber();
-//                            $Item['FileSubject'.$CourseNumber] = $tblIndiwareImportStudentCourse->getSubjectName();
-                            $ListContent = array();
-                            $SubjectString = '';
-                            if (($tblSubject = $tblIndiwareImportStudentCourse->getServiceTblSubject())) {
-                                $SubjectString = ($tblIndiwareImportStudentCourse->getIsIgnore() ? new Warning(
-                                        new ToolTip(new Disable().' ', 'Manuell deaktiviert')) : '').
-                                    $tblSubject->getAcronym().' - '.$tblSubject->getName();
-                            }
-                            if ($tblIndiwareImportStudentCourse->getIsIntensiveCourse()) {
-                                $GroupIsIntensiveString = new Muted(new Small(new Bold(' LK')));
-                            } else {
-                                $GroupIsIntensiveString = new Muted(new Small(' GK'));
-                            }
-                            $GroupString = $tblIndiwareImportStudentCourse->getSubjectGroup();
+                $IsImportError = false;
+                $tblIndiwareImportStudentCourseList = Import::useService()
+                    ->getIndiwareImportStudentCourseByIndiwareImportStudent($tblIndiwareImportStudent);
+                if ($tblIndiwareImportStudentCourseList) {
+                    foreach ($tblIndiwareImportStudentCourseList as $tblIndiwareImportStudentCourse) {
+                        $ListContent = array();
+                        $CourseNumber = $tblIndiwareImportStudentCourse->getCourseNumber();
+                        $SubjectString = '';
+                        if (($tblSubject = $tblIndiwareImportStudentCourse->getServiceTblSubject())) {
+                            $SubjectString = $tblSubject->getAcronym().' - '.$tblSubject->getName();
+                        }
+                        if ($tblIndiwareImportStudentCourse->getIsIntensiveCourse()) {
+                            $GroupIsIntensiveString = new Muted(new Small(new Bold(' LK')));
+                        } else {
+                            $GroupIsIntensiveString = new Muted(new Small(' GK'));
+                        }
+                        $GroupString = $tblIndiwareImportStudentCourse->getSubjectGroup();
 
-                            if ($GroupString != '' && $SubjectString == '') {
-                                $SubjectString = new Danger(new InfoIcon().' Fach nicht gefunden!');
-                            }
-                            $ListContent[] = $SubjectString;
+                        if ($GroupString != '' && $SubjectString == '') {
+                            $SubjectString = new Danger(new InfoIcon().' Fach nicht gefunden!');
+                        }
+                        $ListContent[] = $SubjectString;
 //                            $ListContent[] = $GroupIsIntensiveString;
-                            $ListContent[] = $GroupString.' - '.$GroupIsIntensiveString;
-                            $Item['SubjectAndGroup'.$CourseNumber] = new Listing($ListContent);
+                        $ListContent[] = $GroupString.' - '.$GroupIsIntensiveString;
+                        $Item['SubjectAndGroup'.$CourseNumber] = new Listing($ListContent);
 
-                            // Error wenn Fächerzuweisung fehlt
-                            if (!$tblSubject && $tblIndiwareImportStudentCourse->getSubjectGroup() != '') {
-                                $IsError = true;
+                        // Error wenn Fächerzuweisung fehlt
+                        if (!$tblSubject && $tblIndiwareImportStudentCourse->getSubjectGroup() != '') {
+                            if (!$tblIndiwareImportStudent->getIsIgnore()) {
+                                $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
+                                    'Einige Fächer werden nicht importiert! (Fach nicht gefunden)')));
                             }
+                            $IsImportError = true;
                         }
                     }
+                }
 
-                    if (isset($IsError) && $IsError) {
-                        $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
-                            'Einige Fächer werden nicht importiert! (Fach nicht gefunden)')));
-                        $IsImportError = true;
-                    }
-
-                    $Item['Option'] = new Standard('', '/Transfer/Indiware/Import/StudentCourse/Edit'
-                        , new Edit(), array('Id' => $tblPerson->getId(), 'Visible' => $Visible),
-                        'Importvorbereitung bearbeiten');
-
-//                    if (!$tblYear && $tblIndiwareImportStudentCourse->getServiceTblYear()) {
-//                        $tblYear = $tblIndiwareImportStudentCourse->getServiceTblYear();
-//                    }
-//                    if (($tblSubject = $tblIndiwareImportStudentCourse->getServiceTblSubject())) {
-//                        $Item['AppSubject'] = $tblSubject->getAcronym().' - '.$tblSubject->getName();
-//                    } else {
-//                        $ImportError++;
-//                    }
-
-                    if (!$Visible) {
-                        array_push($TableContent, $Item);
-                    } else {
-                        if ($Visible == 1) {
-                            // only rows they would be import
-                            if (!$IsImportError) {
-                                array_push($TableContent, $Item);
-                            }
-                        } elseif ($Visible == 2) {
-                            // only rows they need update to import
-                            if ($IsImportError) {
-                                array_push($TableContent, $Item);
-                            }
+                if (!$Visible) {
+                    array_push($TableContent, $Item);
+                } else {
+                    if ($Visible == 1) {
+                        // only rows they would be import
+                        if (!$IsImportError) {
+                            array_push($TableContent, $Item);
+                        }
+                    } elseif ($Visible == 2) {
+                        // only rows they need update to import
+                        if ($IsImportError) {
+                            array_push($TableContent, $Item);
                         }
                     }
+                }
 
-                    if (!$IsImportError) {
-                        array_push($TableCompare, $Item);
-                    }
-
-                });
+//                if (!$IsImportError) {
+//                    array_push($TableCompare, $Item);
+//                }
+            });
         } else {
             $Stage->setContent(new WarningMessage('Leider konnten keine Schüler-Kurs Zuweisungen importiert werden.
             Bitte kontrollieren Sie ihre Datei und das angegebene Schuljahr')
@@ -624,14 +618,14 @@ class StudentCourse extends Extension implements IFrontendInterface
     public function frontendStudentCourseEdit($Id = null, $Data = null, $Visible = false)
     {
         $Stage = new Stage('Lehrauftrag', 'Bearbeiten');
-        $tblIndiwareImportStudentCourse = ($Id !== null ? Import::useService()->getIndiwareImportStudentCourseById($Id) : false);
-        if (!$tblIndiwareImportStudentCourse) {
+        $tblIndiwareImportStudent = ($Id !== null ? Import::useService()->getIndiwareImportStudentById($Id) : false);
+        if (!$tblIndiwareImportStudent) {
             $Stage->setContent(new WarningMessage('Lehrauftrag nicht gefunden.')
                 .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
 
-        $tblYear = $tblIndiwareImportStudentCourse->getServiceTblYear();
+        $tblYear = $tblIndiwareImportStudent->getServiceTblYear();
         if (!$tblYear) {
             $Stage->setContent(new WarningMessage('Schuljahr nicht gefunden. Dies erfordert einen erneuten Import')
                 .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_ERROR));
@@ -643,19 +637,19 @@ class StudentCourse extends Extension implements IFrontendInterface
 
 //        $Global = $this->getGlobal();
 //        if ($Data === null) {
-//            if (($tblDivision = $tblIndiwareImportStudentCourse->getServiceTblDivision())) {
+//            if (($tblDivision = $tblIndiwareImportStudent->getServiceTblDivision())) {
 //                $Global->POST['Data']['DivisionId'] = $tblDivision->getId();
 //            }
-//            if (($tblTeacher = $tblIndiwareImportStudentCourse->getServiceTblTeacher())) {
+//            if (($tblTeacher = $tblIndiwareImportStudent->getServiceTblTeacher())) {
 //                $Global->POST['Data']['TeacherId'] = $tblTeacher->getId();
 //            }
-//            if (($tblSubject = $tblIndiwareImportStudentCourse->getServiceTblSubject())) {
+//            if (($tblSubject = $tblIndiwareImportStudent->getServiceTblSubject())) {
 //                $Global->POST['Data']['SubjectId'] = $tblSubject->getId();
 //            }
-//            if (($SubjectGroup = $tblIndiwareImportStudentCourse->getSubjectGroup())) {
+//            if (($SubjectGroup = $tblIndiwareImportStudent->getSubjectGroup())) {
 //                $Global->POST['Data']['SubjectGroup'] = $SubjectGroup;
 //            }
-//            if (($IsIgnore = $tblIndiwareImportStudentCourse->getIsIgnore())) {
+//            if (($IsIgnore = $tblIndiwareImportStudent->getIsIgnore())) {
 //                $Global->POST['Data']['IsIgnore'] = $IsIgnore;
 //            }
 //            $Global->savePost();
@@ -679,26 +673,26 @@ class StudentCourse extends Extension implements IFrontendInterface
 //                        ),
 //                        new LayoutColumn(
 //                            new Panel('Klasse:',
-//                                $tblIndiwareImportStudentCourse->getSchoolClass(), Panel::PANEL_TYPE_SUCCESS)
+//                                $tblIndiwareImportStudent->getSchoolClass(), Panel::PANEL_TYPE_SUCCESS)
 //                            , 3),
 //                        new LayoutColumn(
 //                            new Panel('Lehrer:',
-//                                $tblIndiwareImportStudentCourse->getTeacherAcronym(), Panel::PANEL_TYPE_SUCCESS)
+//                                $tblIndiwareImportStudent->getTeacherAcronym(), Panel::PANEL_TYPE_SUCCESS)
 //                            , 3),
 //                        new LayoutColumn(
 //                            new Panel('Fach:',
-//                                $tblIndiwareImportStudentCourse->getSubjectName(), Panel::PANEL_TYPE_SUCCESS)
+//                                $tblIndiwareImportStudent->getSubjectName(), Panel::PANEL_TYPE_SUCCESS)
 //                            , 3),
 //                        new LayoutColumn(
 //                            new Panel('Gruppe:',
-//                                $tblIndiwareImportStudentCourse->getSubjectGroupName(), Panel::PANEL_TYPE_SUCCESS)
+//                                $tblIndiwareImportStudent->getSubjectGroupName(), Panel::PANEL_TYPE_SUCCESS)
 //                            , 3),
 //                    )),
 //                    new LayoutRow(
 //                        new LayoutColumn(
 //                            new Well(
-//                                Import::useService()->updateIndiwareImportStudentCourse(
-//                                    $Form, $tblIndiwareImportStudentCourse, $Data, $Visible
+//                                Import::useService()->updateIndiwareImportStudent(
+//                                    $Form, $tblIndiwareImportStudent, $Data, $Visible
 //                                )
 //                            )
 //                        )
@@ -772,8 +766,8 @@ class StudentCourse extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Importvorbereitung', 'Leeren');
         $Stage->setMessage('Hierbei werden alle nicht importierte Daten der letzten Importvorbereitung gelöscht.');
-        $tblIndiwareImportStudentCourseList = Import::useService()->getIndiwareImportStudentCourseAll(true);
-        if (!$tblIndiwareImportStudentCourseList) {
+        $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
+        if (!$tblIndiwareImportStudentList) {
             $Stage->setContent(new Warning('Keine Restdaten eines Import\s vorhanden'));
             return $Stage.new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_ERROR);
         }
@@ -783,7 +777,7 @@ class StudentCourse extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                     new Panel(new Question().'Vorhandene Importvorbereitung der Lehraufträge wirklich löschen? '
-                        .new Muted(new Small('Anzahl Datensätze: "<b>'.count($tblIndiwareImportStudentCourseList).'</b>"')),
+                        .new Muted(new Small('Anzahl Schüler-Datensätze: "<b>'.count($tblIndiwareImportStudentList).'</b>"')),
                         '',
                         Panel::PANEL_TYPE_DANGER,
                         new Standard(
@@ -803,7 +797,7 @@ class StudentCourse extends Extension implements IFrontendInterface
                 new Layout(
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            (Import::useService()->destroyIndiwareImportStudentCourse()
+                            (Import::useService()->destroyIndiwareImportStudent()
                                 ? new SuccessMessage('Der Import ist nun leer')
                                 .new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_SUCCESS)
                                 : new WarningMessage('Der Import konnte nicht vollständig gelöscht werden')
@@ -819,21 +813,30 @@ class StudentCourse extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $Visible
      *
      * @return Stage
      */
-    public function frontendIgnoreImport($Id = null)
+    public function frontendIgnoreImport($Id = null, $Visible = null)
     {
         $Stage = new Stage('Import', 'Verhindern');
-//        $tblIndiwareImportStudentCourse = Import::useService()->getIndiwareImportStudentCourseById($Id);
-//        if ($tblIndiwareImportStudentCourse) {
-//            Import::useService()->updateIndiwareImportStudentCourseIsIgnore($tblIndiwareImportStudentCourse);
-//            $Stage->setContent(new SuccessMessage('Import wird nun manuell verhindert.')
-//                .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS));
-//        } else {
-//            $Stage->setContent(new DangerMessage('Datensatz nicht gefunden')
-//                .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_ERROR));
-//        }
+        $tblIndiwareImportStudent = Import::useService()->getIndiwareImportStudentById($Id);
+        if ($tblIndiwareImportStudent) {
+            Import::useService()->updateIndiwareImportStudentIsIgnore($tblIndiwareImportStudent,
+                !$tblIndiwareImportStudent->getIsIgnore());
+            if ($tblIndiwareImportStudent->getIsIgnore()) {
+                $Stage->setContent(new SuccessMessage('Import wird nun manuell verhindert.')
+                    .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS,
+                        array('Visible' => $Visible)));
+            } else {
+                $Stage->setContent(new SuccessMessage('Import wird nun nicht mehr manuell verhindert.')
+                    .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS,
+                        array('Visible' => $Visible)));
+            }
+        } else {
+            $Stage->setContent(new DangerMessage('Datensatz nicht gefunden')
+                .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_ERROR));
+        }
         return $Stage;
     }
 

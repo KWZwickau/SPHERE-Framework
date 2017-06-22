@@ -6,16 +6,9 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Transfer\Indiware\Import\Import;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -26,60 +19,17 @@ use SPHERE\System\Database\Fitting\Element;
 class TblIndiwareImportStudentCourse extends Element
 {
 
-    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
-
-//    const ATTR_FIRST_NAME = 'FirstName';
-//    const ATTR_LAST_NAME = 'LastName';
-//    const ATTR_BIRTHDAY = 'Birthday';
     const ATTR_SUBJECT_NAME = 'SubjectName';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SUBJECT_GROUP = 'SubjectGroup';
     const ATTR_COURSE_NUMBER = 'CourseNumber';
     const ATTR_IS_INTENSIVE_COURSE = 'IsIntensiveCourse';
+    const ATTR_TBL_INDIWARE_IMPORT_STUDENT = 'tblIndiwareImportStudent';
 
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
-    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-    const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
-
-    const ATTR_IS_IGNORE = 'IsIgnore';
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblYear;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $FirstName;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $LastName;
-//    /**
-//     * @Column(type="datetime")
-//     */
-//    protected $Birthday;
     /**
      * @Column(type="string")
      */
     protected $SubjectName;
-    /**
-     * @Column(type="integer")
-     */
-    protected $CourseNumber;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsIntensiveCourse;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblPerson;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblDivision;
     /**
      * @Column(type="bigint")
      */
@@ -89,94 +39,17 @@ class TblIndiwareImportStudentCourse extends Element
      */
     protected $SubjectGroup;
     /**
-     * @Column(type="bigint")
+     * @Column(type="integer")
      */
-    protected $serviceTblAccount;
+    protected $CourseNumber;
     /**
      * @Column(type="boolean")
      */
-    protected $IsIgnore;
-
+    protected $IsIntensiveCourse;
     /**
-     * @return bool|TblYear
+     * @Column(type="bigint")
      */
-    public function getServiceTblYear()
-    {
-
-        return Term::useService()->getYearById($this->serviceTblYear);
-    }
-
-    /**
-     * @param TblYear $tblYear
-     */
-    public function setServiceTblYear(TblYear $tblYear)
-    {
-
-        $this->serviceTblYear = (null === $tblYear ? null : $tblYear->getId());
-    }
-
-//    /**
-//     * @return string
-//     */
-//    public function getFirstName()
-//    {
-//
-//        return $this->FirstName;
-//    }
-//
-//    /**
-//     * @param string $FirstName
-//     */
-//    public function setFirstName($FirstName)
-//    {
-//
-//        $this->FirstName = $FirstName;
-//    }
-//
-//    /**
-//     * @return string
-//     */
-//    public function getLastName()
-//    {
-//
-//        return $this->LastName;
-//    }
-//
-//    /**
-//     * @param string $LastName
-//     */
-//    public function setLastName($LastName)
-//    {
-//
-//        $this->LastName = $LastName;
-//    }
-//
-//    /**
-//     * @return string
-//     */
-//    public function getBirthday()
-//    {
-//
-//        if (null === $this->Birthday) {
-//            return false;
-//        }
-//        /** @var \DateTime $Birthday */
-//        $Birthday = $this->Birthday;
-//        if ($Birthday instanceof \DateTime) {
-//            return $Birthday->format('d.m.Y');
-//        } else {
-//            return (string)$Birthday;
-//        }
-//    }
-
-    /**
-     * @param null|\DateTime $Birthday
-     */
-    public function setBirthday(\DateTime $Birthday = null)
-    {
-
-        $this->Birthday = $Birthday;
-    }
+    protected $tblIndiwareImportStudent;
 
     /**
      * @return string
@@ -194,6 +67,28 @@ class TblIndiwareImportStudentCourse extends Element
     {
 
         $this->SubjectName = $SubjectName;
+    }
+
+    /**
+     * @return bool|TblSubject
+     */
+    public function getServiceTblSubject()
+    {
+
+        if (null === $this->serviceTblSubject) {
+            return false;
+        } else {
+            return Subject::useService()->getSubjectById($this->serviceTblSubject);
+        }
+    }
+
+    /**
+     * @param TblSubject|null $tblSubject
+     */
+    public function setServiceTblSubject(TblSubject $tblSubject = null)
+    {
+
+        $this->serviceTblSubject = (null === $tblSubject ? null : $tblSubject->getId());
     }
 
     /**
@@ -251,108 +146,23 @@ class TblIndiwareImportStudentCourse extends Element
     }
 
     /**
-     * @return bool|TblPerson
+     * @return bool|TblIndiwareImportStudent
      */
-    public function getServiceTblPerson()
+    public function getTblIndiwareImportStudent()
     {
-
-        if (null === $this->serviceTblPerson) {
+        if (null === $this->tblIndiwareImportStudent) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
+            return Import::useService()->getIndiwareImportStudentById($this->tblIndiwareImportStudent);
         }
     }
 
     /**
-     * @param TblPerson|null $tblPerson
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
+    public function settblIndiwareImportStudent($tblIndiwareImportStudent)
     {
 
-        $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
-    }
-
-    /**
-     * @return bool|TblDivision
-     */
-    public function getServiceTblDivision()
-    {
-
-        if (null === $this->serviceTblDivision) {
-            return false;
-        } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
-        }
-    }
-
-    /**
-     * @param TblDivision|null $tblDivision
-     */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
-    {
-
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
-    }
-
-    /**
-     * @return bool|TblSubject
-     */
-    public function getServiceTblSubject()
-    {
-
-        if (null === $this->serviceTblSubject) {
-            return false;
-        } else {
-            return Subject::useService()->getSubjectById($this->serviceTblSubject);
-        }
-    }
-
-    /**
-     * @param TblSubject|null $tblSubject
-     */
-    public function setServiceTblSubject(TblSubject $tblSubject = null)
-    {
-
-        $this->serviceTblSubject = (null === $tblSubject ? null : $tblSubject->getId());
-    }
-
-    /**
-     * @return bool|TblAccount
-     */
-    public function getServiceTblAccount()
-    {
-
-        if (null === $this->serviceTblAccount) {
-            return false;
-        } else {
-            return Account::useService()->getAccountById($this->serviceTblAccount);
-        }
-    }
-
-    /**
-     * @param TblAccount|null $tblAccount
-     */
-    public function setServiceTblAccount(TblAccount $tblAccount = null)
-    {
-
-        $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
-    }
-
-    /**
-     * @return bool
-     */
-    public function getIsIgnore()
-    {
-
-        return $this->IsIgnore;
-    }
-
-    /**
-     * @param bool $IsIgnore
-     */
-    public function setIsIgnore($IsIgnore)
-    {
-
-        $this->IsIgnore = $IsIgnore;
+        $this->tblIndiwareImportStudent = $tblIndiwareImportStudent->getId();
     }
 }

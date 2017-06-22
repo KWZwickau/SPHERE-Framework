@@ -84,9 +84,9 @@ class Import extends Extension implements IModuleInterface
         $PanelStudentCourseImport[] = new PullClear('Schüler-Kurse SEK II importieren: '.
             new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/Prepare', new Upload()
                 , array(), 'Hochladen, danach bearbeiten')));
-        $tblIndiwareImportStudentCourse = Import::useService()->getIndiwareImportStudentCourseAll(true);
+        $tblIndiwareImportStudent = Import::useService()->getIndiwareImportStudentAll(true);
         // load if TblIndiwareImportLectureship exist (by Account)
-        if ($tblIndiwareImportStudentCourse) {
+        if ($tblIndiwareImportStudent) {
             $PanelStudentCourseImport[] = 'Vorhandenen Schüler-Kurse der SEK II bearbeiten: '.
                 new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/Show', new Edit(), array(),
                         'Bearbeiten')

@@ -6,10 +6,10 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportLectureship;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudent;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudentCourse;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Manager;
@@ -41,28 +41,29 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
-     * @return false|TblIndiwareImportStudentCourse
+     * @return false|TblIndiwareImportStudent
      */
-    public function getIndiwareImportStudentCourseById($Id)
+    public function getIndiwareImportStudentById($Id)
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblIndiwareImportStudentCourse', $Id);
+            'TblIndiwareImportStudent', $Id);
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      *
      * @return false|TblIndiwareImportStudentCourse[]
-     *
      */
-    public function getIndiwareImportStudentCourseByPerson(TblPerson $tblPerson)
+    public function getIndiwareImportStudentCourseByIndiwareImportStudent(
+        TblIndiwareImportStudent $tblIndiwareImportStudent
+    )
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblIndiwareImportStudentCourse',
             array(
-                TblIndiwareImportStudentCourse::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                TblIndiwareImportStudentCourse::ATTR_TBL_INDIWARE_IMPORT_STUDENT => $tblIndiwareImportStudent->getId()
             ));
     }
 
@@ -77,13 +78,13 @@ class Data extends AbstractData
     }
 
     /**
-     * @return false|TblIndiwareImportStudentCourse[]
+     * @return false|TblIndiwareImportStudent[]
      */
-    public function getIndiwareImportStudentCourseAll()
+    public function getIndiwareImportStudentAll()
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblIndiwareImportStudentCourse');
+            'TblIndiwareImportStudent');
     }
 
     /**
@@ -104,15 +105,15 @@ class Data extends AbstractData
     /**
      * @param TblAccount|null $tblAccount
      *
-     * @return false|TblIndiwareImportStudentCourse[]
+     * @return false|TblIndiwareImportStudent[]
      */
-    public function getIndiwareImportStudentCourseAllByAccount(TblAccount $tblAccount)
+    public function getIndiwareImportStudentAllByAccount(TblAccount $tblAccount)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblIndiwareImportStudentCourse',
+            'TblIndiwareImportStudent',
             array(
-                TblIndiwareImportStudentCourse::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+                TblIndiwareImportStudent::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
             ));
     }
 
@@ -263,7 +264,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function createIndiwareImportStudentCourseBulk(
+    public function createIndiwareImportStudentBulk(
         $ImportList,
         TblYear $tblYear,
         TblAccount $tblAccount
@@ -274,12 +275,13 @@ class Data extends AbstractData
 
             $SubjectList = $this->getSubjectCount(17);
             foreach ($ImportList as $Result) {
-
+                $tblIndiwareImportStudent = $this->createIndiwareImportStudent($tblYear, $tblAccount, $Result);
                 foreach ($SubjectList as $Number) {
                     if (isset($Result['FileSubject'.$Number]) && $Result['FileSubject'.$Number]) {
 
                         if (isset($Result['FileSubject'.$Number]) && $Result['FileSubject'.$Number] != '') {
-                            $this->createIndiwareImportStudentCourse($Manager, $tblYear, $tblAccount, $Result, $Number);
+                            $this->createIndiwareImportStudentCourse($Manager, $Result, $Number,
+                                $tblIndiwareImportStudent);
                         }
                     }
                 }
@@ -308,47 +310,65 @@ class Data extends AbstractData
     }
 
     /**
-     * @param Manager    $Manager
      * @param TblYear    $tblYear
      * @param TblAccount $tblAccount
      * @param array      $Result
-     * @param int        $SubjectNumber
+     *
+     * @return TblIndiwareImportStudent
+     */
+    private function createIndiwareImportStudent(
+        TblYear $tblYear,
+        TblAccount $tblAccount,
+        $Result = array()
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblIndiwareImportStudent();
+        $Entity->setServiceTblYear($tblYear);
+        $Entity->setServiceTblPerson(($Result['tblPerson'] ? $Result['tblPerson'] : null));
+        $Entity->setServiceTblDivision(($Result['tblDivision'] ? $Result['tblDivision'] : null));
+        $Entity->setServiceTblAccount($tblAccount);
+        $Entity->setIsIgnore(false);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param Manager                  $Manager
+     * @param array                    $Result
+     * @param int                      $SubjectNumber
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      */
     private function createIndiwareImportStudentCourse(
         Manager $Manager,
-        TblYear $tblYear,
-        TblAccount $tblAccount,
         $Result = array(),
-        $SubjectNumber = 1
+        $SubjectNumber = 1,
+        TblIndiwareImportStudent $tblIndiwareImportStudent
     ) {
 
         $Entity = new TblIndiwareImportStudentCourse();
-        $Entity->setServiceTblYear($tblYear);
-//        $Entity->setFirstName($Result['FirstName']);
-//        $Entity->setLastName($Result['LastName']);
-//        $Entity->setBirthday($Result['Birthday']);
         $Entity->setSubjectName($Result['FileSubject'.$SubjectNumber]);
         $Entity->setSubjectGroup($Result['AppSubjectGroup'.$SubjectNumber]);
         $Entity->setCourseNumber($SubjectNumber);
         $Entity->setIsIntensiveCourse($Result['IsIntensiveCourse'.$SubjectNumber]);
-        $Entity->setServiceTblPerson(($Result['tblPerson'] ? $Result['tblPerson'] : null));
-        $Entity->setServiceTblDivision(($Result['tblDivision'] ? $Result['tblDivision'] : null));
         $Entity->setServiceTblSubject(($Result['tblSubject'.$SubjectNumber] ? $Result['tblSubject'.$SubjectNumber] : null));
-        $Entity->setServiceTblAccount($tblAccount);
-        $Entity->setIsIgnore(false);
+        $Entity->settblIndiwareImportStudent($tblIndiwareImportStudent);
         $Manager->bulkSaveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
     }
 
     /**
      * @param TblIndiwareImportLectureship $tblIndiwareImportLectureship
-     * @param boolean                      $IsIgnore
+     * @param boolean                      $isIgnore
      *
      * @return bool
      */
     public function updateIndiwareImportLectureshipIsIgnore(
         TblIndiwareImportLectureship $tblIndiwareImportLectureship,
-        $IsIgnore = true
+        $isIgnore = true
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -357,7 +377,33 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblIndiwareImportLectureship', $tblIndiwareImportLectureship->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setIsIgnore($IsIgnore);
+            $Entity->setIsIgnore($isIgnore);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param bool                     $isIgnore
+     *
+     * @return mixed
+     */
+    public function updateIndiwareImportStudentIsIgnore(
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        $isIgnore = true
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblIndiwareImportStudent $Entity */
+        $Entity = $Manager->getEntityById('TblIndiwareImportStudent', $tblIndiwareImportStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsIgnore($isIgnore);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -392,17 +438,42 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      *
      * @return bool
      */
-    public function destroyIndiwareImportStudentCourseByAccount(TblAccount $tblAccount)
+    public function destroyIndiwareImportStudentCourse(TblIndiwareImportStudent $tblIndiwareImportStudent)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $EntityList = $Manager->getEntity('TblIndiwareImportStudentCourse')
-            ->findBy(array(TblIndiwareImportStudentCourse::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()));
+            ->findBy(array(TblIndiwareImportStudentCourse::ATTR_TBL_INDIWARE_IMPORT_STUDENT => $tblIndiwareImportStudent->getId()));
+        if (null !== $EntityList) {
+            foreach ($EntityList as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity, true);
+                $Manager->bulkKillEntity($Entity);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function destroyIndiwareImportStudentByAccount(TblAccount $tblAccount)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $EntityList = $Manager->getEntity('TblIndiwareImportStudent')
+            ->findBy(array(TblIndiwareImportStudent::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()));
         if (null !== $EntityList) {
             foreach ($EntityList as $Entity) {
                 Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
@@ -439,18 +510,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblIndiwareImportStudentCourse $tblIndiwareImportStudentCourse
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      *
      * @return bool
      */
-    public function destroyIndiwareImportStudentCourse(TblIndiwareImportStudentCourse $tblIndiwareImportStudentCourse)
+    public function destroyIndiwareImportStudent(TblIndiwareImportStudent $tblIndiwareImportStudent)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblIndiwareImportStudentCourse $Entity */
-        $Entity = $Manager->getEntity('TblIndiwareImportStudentCourse')
-            ->find($tblIndiwareImportStudentCourse->getId());
+        /** @var TblIndiwareImportStudent $Entity */
+        $Entity = $Manager->getEntity('TblIndiwareImportStudent')
+            ->find($tblIndiwareImportStudent->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity, true);
