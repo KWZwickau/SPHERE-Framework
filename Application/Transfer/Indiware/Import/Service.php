@@ -262,7 +262,7 @@ class Service extends AbstractService
             $tblDivision = null;
         }
         //ToDO Remove all existing Course by ImportStudent
-        $this->destroyIndiwareImportStudent($tblIndiwareImportStudent);
+        $this->destroyIndiwareImportStudentCourseAllByIndiwareImportStudent($tblIndiwareImportStudent);
 
         for ($i = 1; $i <= 17; $i++) {
             $tblSubject = null;
@@ -272,8 +272,8 @@ class Service extends AbstractService
             if (isset($Data['SubjectId' . $i]) && !empty($Data['SubjectId' . $i])) {
                 $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId' . $i]);
             }
-            if (isset($Data['SubjectGroup' . $i]) && !empty($Data['SubjectId' . $i])) {
-                $SubjectGroup = $Data['SubjectId' . $i];
+            if (isset($Data['SubjectGroup'.$i]) && !empty($Data['SubjectGroup'.$i])) {
+                $SubjectGroup = $Data['SubjectGroup'.$i];
             }
             if (isset($Data['IsIntensivCourse' . $i]) && !empty($Data['IsIntensivCourse' . $i])) {
                 $IsIntensiveCourse = true;
@@ -284,8 +284,8 @@ class Service extends AbstractService
                 $SubjectName = $arraySubjectName[$i];
             }
             if ($tblSubject || $SubjectGroup != '') {
-                (new Data($this->getBinding()))->createIndiwareImportStudentCourse($tblSubject, $SubjectGroup,
-                    $SubjectName, $i, $IsIntensiveCourse, $tblIndiwareImportStudent);
+                (new Data($this->getBinding()))->createIndiwareImportStudentCourse($SubjectGroup,
+                    $SubjectName, $i, $IsIntensiveCourse, $tblIndiwareImportStudent, $tblSubject);
             }
         }
 
@@ -361,7 +361,6 @@ class Service extends AbstractService
                         (new Data($this->getBinding()))->destroyIndiwareImportStudentCourse($tblIndiwareImportStudent);
                     }
                 }
-
 
                 return (new Data($this->getBinding()))->destroyIndiwareImportStudentByAccount($tblAccount);
 

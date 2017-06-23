@@ -428,8 +428,7 @@ class StudentCourse extends Extension implements IFrontendInterface
                 $tblDivision = $tblIndiwareImportStudent->getServiceTblDivision();
                 $Item['Person'] = '';
                 $Item['Year'] = '';
-                $Item['Division'] = new Center(new Danger(new ToolTip(new Remove(),
-                    'Keine Klasse = Kein Import für diese Person')));
+                $Item['Division'] = new Center(new Danger(new Remove()));
                 for ($i = 1; $i <= 17; $i++) {
                     $Item['SubjectAndGroup'.$i] = '';
                 }
@@ -440,7 +439,7 @@ class StudentCourse extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblIndiwareImportStudent->getServiceTblYear();
                 }
                 if ($tblDivision) {
-                    $Item['Division'] = $tblDivision->getDisplayName();
+                    $Item['Division'] = new Center($tblDivision->getDisplayName());
                 }
                 $Item['Option'] = new Standard('', '/Transfer/Indiware/Import/StudentCourse/Edit'
                     , new Edit(), array('Id' => $tblIndiwareImportStudent->getId(), 'Visible' => $Visible),
@@ -493,10 +492,14 @@ class StudentCourse extends Extension implements IFrontendInterface
                         // Error wenn Fächerzuweisung fehlt
                         if (!$tblSubject && $tblIndiwareImportStudentCourse->getSubjectGroup() != '') {
                             if (!$tblIndiwareImportStudent->getIsIgnore()) {
-                                $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
+                                $Item['Ignore'] = new Center(new Warning(new ToolTip(new Disable(),
                                     'Einige Fächer werden nicht importiert! (Fach nicht gefunden)')));
                             }
                             $IsImportError = true;
+                        }
+                        if (!$tblDivision) {
+                            $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
+                                'Ohne Klasse kann die Person nicht importiert werden')));
                         }
                     }
                 }
@@ -653,14 +656,14 @@ class StudentCourse extends Extension implements IFrontendInterface
 
 
         $Name = ($tblPerson ? $tblPerson->getFullName() : 'Person nicht gefunden');
-        $Division = ($tblPerson ? $tblDivision->getDisplayName() : 'Klasse nicht gefunden');
-        $Year = ($tblPerson ? $tblYear->getDisplayName() : 'Jahr nicht gefunden');
+        $Division = ($tblDivision ? $tblDivision->getDisplayName() : 'Klasse nicht gefunden');
+        $Year = ($tblYear ? $tblYear->getDisplayName() : 'Jahr nicht gefunden');
 
         $PanelHead = new Panel('Person', array('Name: '.$Name, 'Klasse: '.$Division, 'Jahr: '.$Year),
             Panel::PANEL_TYPE_SUCCESS);
 
 
-        $Form = $this->formSubjectCourse($tblIndiwareImportStudent);
+        $Form = $this->formSubjectCourse($tblIndiwareImportStudent, $tblYear);
         $Form->appendFormButton(new Primary('Speichern', new Save()));
         $Form->setConfirm('Die Zuweisung der Personen wurde noch nicht gespeichert.');
 
@@ -675,7 +678,7 @@ class StudentCourse extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(Import::useService()
-                                ->updateIndiwareImportStudentCourse($Form, $Data, $tblIndiwareImportStudent, $Visible,
+                                ->updateIndiwareImportStudentCourse($Form, $tblIndiwareImportStudent, $Data, $Visible,
                                     $arraySubjectName)
                             )
                         )
@@ -689,10 +692,11 @@ class StudentCourse extends Extension implements IFrontendInterface
 
     /**
      * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param TblYear|null             $tblYear
      *
      * @return Form
      */
-    public function formSubjectCourse(TblIndiwareImportStudent $tblIndiwareImportStudent)
+    public function formSubjectCourse(TblIndiwareImportStudent $tblIndiwareImportStudent, TblYear $tblYear = null)
     {
 
         $FormSubjectAll = array();
@@ -744,22 +748,24 @@ class StudentCourse extends Extension implements IFrontendInterface
         }
 
         $tblDivisionList = array();
-//        if(Division::useService()->getDivisionAllByLevelName('10')){
-//            $tblDivisionList = array_merge($tblDivisionList, Division::useService()->getDivisionAllByLevelName('10'));
-//        }
-        if (Division::useService()->getDivisionAllByLevelName('11')) {
-            $tblDivisionList = array_merge($tblDivisionList, Division::useService()->getDivisionAllByLevelName('11'));
-        }
-        if (Division::useService()->getDivisionAllByLevelName('12')) {
-            $tblDivisionList = array_merge($tblDivisionList, Division::useService()->getDivisionAllByLevelName('12'));
+        $tblDivisionResult = Division::useService()->getDivisionAllByYear($tblYear);
+        if ($tblDivisionResult) {
+            foreach ($tblDivisionResult as $tblDivision) {
+                if (($tblLevel = $tblDivision->getTblLevel())) {
+                    if ($tblLevel->getName() == 11 || $tblLevel->getName() == 12) {
+                        $tblDivisionList[] = $tblDivision;
+                    }
+                }
+            }
         }
 
         return new Form(array(
                 new FormGroup(
                     new FormRow(
                     new FormColumn(
-                        new SelectBox('Data[DivisionId]', 'Klasse des Schülers',
-                            array('{{ DisplayName }} - {{ tblLevel.serviceTblType.Name }}' => $tblDivisionList))
+                        new Panel('Klasse', new SelectBox('Data[DivisionId]', 'Klasse des Schülers',
+                            array('{{ DisplayName }} - {{ tblLevel.serviceTblType.Name }}' => $tblDivisionList)),
+                            Panel::PANEL_TYPE_INFO)
                     )
                     ), new TitleForm(new Edit().' Bearbeiten', 'der Angaben')
                 ),
