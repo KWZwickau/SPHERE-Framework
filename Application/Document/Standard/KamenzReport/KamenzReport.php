@@ -67,6 +67,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
             'SPHERE\Application\Api\Document\Standard\KamenzReportGS\Create',
             new Download(), array(), 'Kamenz-Statistik der GS herunterladen'));
 
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(

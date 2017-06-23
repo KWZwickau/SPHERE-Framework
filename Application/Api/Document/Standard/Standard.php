@@ -93,7 +93,7 @@ class Standard extends Extension implements IModuleInterface
     public static function createKamenzReportPdf()
     {
 
-        return Creator::createPdf(null, __NAMESPACE__.'\Repository\KamenzReport');
+        return Creator::createKamenzPdf(__NAMESPACE__.'\Repository\KamenzReport');
     }
 
     /**
@@ -101,7 +101,7 @@ class Standard extends Extension implements IModuleInterface
      */
     public static function createKamenzReportGSPdf()
     {
-        return Creator::createPdf(null, __NAMESPACE__.'\Repository\KamenzReportGS');
+        return Creator::createKamenzPdf( __NAMESPACE__.'\Repository\KamenzReportGS');
     }
 
     /**

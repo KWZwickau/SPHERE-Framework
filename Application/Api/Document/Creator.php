@@ -155,4 +155,41 @@ class Creator extends Extension
 
         return "Keine Schülerkartei vorhanden!";
     }
+
+    /**
+     * @param $DocumentClass
+     *
+     * @return Stage|string
+     */
+    public static function createKamenzPdf($DocumentClass)
+    {
+
+        if (class_exists($DocumentClass)) {
+            /** @var AbstractDocument $Document */
+            $Document = new $DocumentClass();
+
+            $Data = array();
+            if (strpos($DocumentClass, 'KamenzReportGS') !== false) {
+
+            } elseif (strpos($DocumentClass, 'KamenzReport') !== false) {
+                $Data = Generator::useService()->setKamenzReportContent($Data);
+            }
+
+            $File = self::buildDummyFile($Document, $Data);
+
+            $FileName = $Document->getName() . ' ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        } elseif (class_exists($DocumentClass)) {
+            // create PDF without Data and PersonId
+            /** @var AbstractDocument $Document */
+            $Document = new $DocumentClass();
+            $File = self::buildDummyFile($Document);
+            $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
 }

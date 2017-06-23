@@ -1,0 +1,417 @@
+<?php
+
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
+
+use SPHERE\Application\Document\Generator\Repository\Element;
+use SPHERE\Application\Document\Generator\Repository\Section;
+use SPHERE\Application\Document\Generator\Repository\Slice;
+
+/**
+ * Created by PhpStorm.
+ * User: lehmann
+ * Date: 23.06.2017
+ * Time: 10:59
+ */
+class E02
+{
+    public static function getContent()
+    {
+
+        $sliceList = array();
+
+        $sliceList[] = (new Slice())
+            ->styleTextBold()
+            ->styleMarginBottom('5px')
+            ->addElement((new Element())
+                ->setContent('E02. Schüler im Schuljahr {{Content.Schoolyear.Current}} nach Geburtsjahren und Klassenstufen')
+            );
+
+        $sliceList[] = (new Slice())
+            ->styleBackgroundColor('lightgrey')
+            ->styleAlignCenter()
+            ->styleBorderTop()
+            ->styleBorderBottom()
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Geburtsjahr')
+                    ->styleBorderRight()
+                    ->stylePaddingTop('34.7px')
+                    ->stylePaddingBottom('34.7px'), '20%'
+                )
+                ->addSliceColumn((new Slice())
+                    ->styleBorderRight()
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Klassenstufe'), '70%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('5')
+                            ->styleBorderBottom()
+                            ->styleBorderRight()
+                            ->stylePaddingTop('17.1px')
+                            ->stylePaddingBottom('17px'), '10%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('6')
+                            ->styleBorderBottom()
+                            ->styleBorderRight()
+                            ->stylePaddingTop('17.1px')
+                            ->stylePaddingBottom('17px'), '10%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('7')
+                            ->styleBorderBottom()
+                            ->styleBorderRight()
+                            ->stylePaddingTop('17.1px')
+                            ->stylePaddingBottom('17px'), '10%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('8')
+                            ->styleBorderBottom()
+                            ->styleBorderRight()
+                            ->stylePaddingTop('17.1px')
+                            ->stylePaddingBottom('17px'), '10%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('9')
+                            ->styleBorderBottom()
+                            ->styleBorderRight()
+                            ->stylePaddingTop('17.1px')
+                            ->stylePaddingBottom('17px'), '10%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('10')
+                            ->styleBorderBottom()
+                            ->styleBorderRight()
+                            ->stylePaddingTop('17.1px')
+                            ->stylePaddingBottom('17px'), '10%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
+                            ->styleBorderBottom(), '10%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight(), '5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w'), '5%'
+                        )
+                    )
+                )
+                ->addSliceColumn((new Slice())
+                    ->styleTextBold()
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Insgesamt')
+                            ->styleBorderBottom()
+                            ->stylePaddingTop('25.7px')
+                            ->stylePaddingBottom('25.6px'), '100%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight(), '50%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w'), '50%'
+                        )
+                    ), '10%'
+                )
+            );
+
+        for ($i = 0; $i < 10; $i++) {
+            $sliceList[] = (new Slice())
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->styleBorderLeft()
+                ->styleBorderRight()
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.YearName is not empty) %}
+                                {{ Content.E02.Y' . $i . '.YearName }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '20%'
+                    )
+                    // $Content['E02'][$count][$level][$gender] = $value;
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L5.m is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L5.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L5.w is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L5.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L6.m is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L6.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L6.w is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L6.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L7.m is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L7.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L7.w is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L7.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L8.m is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L8.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L8.w is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L8.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L9.m is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L9.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L9.w is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L9.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L10.m is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L10.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.L10.w is not empty) %}
+                                {{ Content.E02.Y' . $i . '.L10.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBackgroundColor('lightgrey')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBackgroundColor('lightgrey')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBackgroundColor('lightgrey')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBackgroundColor('lightgrey'), '5%'
+                    )
+                );
+        }
+
+        $sliceList[] = (new Slice())
+            ->styleBackgroundColor('lightgrey')
+            ->styleTextBold()
+            ->styleAlignCenter()
+            ->styleBorderBottom()
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Insgesamt')
+                    ->styleBorderRight(), '20%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;'), '5%'
+                )
+            );
+
+        return $sliceList;
+    }
+}

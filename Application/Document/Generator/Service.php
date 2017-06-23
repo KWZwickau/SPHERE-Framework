@@ -12,6 +12,7 @@ use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Service\Data;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocument;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocumentSubject;
+use SPHERE\Application\Document\Generator\Service\Kamenz\KamenzReportService;
 use SPHERE\Application\Document\Generator\Service\Setup;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
@@ -130,7 +131,8 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         AbstractDocument $documentClass,
         TblType $tblType = null
-    ) {
+    )
+    {
 
         // Profil
         if (($tblStudent = $tblPerson->getStudent())
@@ -443,7 +445,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblDocument $tblDocument,
         $Data
-    ) {
+    )
+    {
 
         /**
          * Skip to Frontend
@@ -476,5 +479,21 @@ class Service extends AbstractService
         return new Success('Die Fächer wurden der Schülerkartei erfolgreich zugewiesen.',
                 new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect('/Document/Standard/StudentCard/Setting', Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param array $Content
+     * @param TblPerson $tblPerson
+     * @param AbstractDocument $documentClass
+     * @param TblType $tblType
+     *
+     * @return array
+     */
+    public function setKamenzReportContent(
+        $Content
+    )
+    {
+
+       return KamenzReportService::setKamenzReportContent($Content);
     }
 }
