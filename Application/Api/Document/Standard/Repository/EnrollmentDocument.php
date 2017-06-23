@@ -75,7 +75,11 @@ class EnrollmentDocument extends AbstractDocument
                                 ')
                             ->styleHeight('118px')
                             ->stylePaddingLeft('5px')
+                            , '70%'
                         )
+                        ->addElementColumn($this->getPictureEnrollmentDocument()
+                            ->styleAlignCenter()
+                            , '30%')
                     )
                 )
                 ->addSlice((new Slice())
