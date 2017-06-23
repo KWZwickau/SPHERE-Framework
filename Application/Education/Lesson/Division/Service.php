@@ -2358,4 +2358,16 @@ class Service extends AbstractService
 
         return !Gradebook::useService()->existsGradeByDivisionSubject($tblDivisionSubject);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return null|object|TblSubjectStudent
+     */
+    public function addSubjectStudentData(TblDivisionSubject $tblDivisionSubject, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, $tblPerson);
+    }
 }

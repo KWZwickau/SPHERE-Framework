@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
@@ -749,53 +750,82 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Warning('Klasse nicht gefunden'));
             return $Stage.new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
-        $tblDivisionSubject = $DivisionSubjectId === null ? false : Division::useService()->getDivisionSubjectById($DivisionSubjectId);
-        if (!$tblDivisionSubject) {
-            $Stage = new Stage('Schüler', 'auswählen');
-            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
-            $Stage->setContent(new Warning('Fach nicht gefunden'));
-            return $Stage.new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblDivision->getId()));
-        }
-        $Stage = new Stage('Schüler', 'Klasse '.new Bold($tblDivision->getDisplayName()));
-//                $Stage->addButton(new Backward());
-        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
-            array('Id' => $Id)));
-        $Stage->setMessage(new WarningText('"Schüler in Gelb"')
-            .' sind bereits in einer anderen Gruppe in diesem Fach angelegt.');
 
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel('Fach - Gruppe', array(
-                                'Fach: '.new Bold($tblDivisionSubject->getServiceTblSubject()
-                                    ? $tblDivisionSubject->getServiceTblSubject()->getName() : ''),
-                                'Gruppe: '.new Bold($tblDivisionSubject->getTblSubjectGroup()->getName())
-                            ), Panel::PANEL_TYPE_INFO)
+        if (($tblLevel = $tblDivision->getTblLevel())
+            && ($tblType = $tblLevel->getServiceTblType())
+            && $tblType->getName() == 'Gymnasium'
+            && ($tblLevel->getName() == '11'
+                || $tblLevel->getName() == '12')
+        ) {
+            $IsSekTwo = true;
+        } else {
+            $IsSekTwo = false;
+        }
+
+        if ($IsSekTwo) {
+            $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
+                array('Id' => $Id)));
+
+            if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+                $Stage->setContent(
+                    StudentGroupSelect::receiverUsed(StudentGroupSelect::tablePerson($tblDivisionSubject->getId()))
+                );
+            } else {
+                $Stage->setContent(new Warning('Fach-Klasse nicht gefunden'));
+            }
+
+            return $Stage;
+
+        } else {
+            $tblDivisionSubject = $DivisionSubjectId === null ? false : Division::useService()->getDivisionSubjectById($DivisionSubjectId);
+            if (!$tblDivisionSubject) {
+                $Stage = new Stage('Schüler', 'auswählen');
+                $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+                $Stage->setContent(new Warning('Fach nicht gefunden'));
+                return $Stage . new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblDivision->getId()));
+            }
+            $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
+//                $Stage->addButton(new Backward());
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
+                array('Id' => $Id)));
+            $Stage->setMessage(new WarningText('"Schüler in Gelb"')
+                . ' sind bereits in einer anderen Gruppe in diesem Fach angelegt.');
+
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Panel('Fach - Gruppe', array(
+                                    'Fach: ' . new Bold($tblDivisionSubject->getServiceTblSubject()
+                                        ? $tblDivisionSubject->getServiceTblSubject()->getName() : ''),
+                                    'Gruppe: ' . new Bold($tblDivisionSubject->getTblSubjectGroup()->getName())
+                                ), Panel::PANEL_TYPE_INFO)
+                            )
                         )
                     )
                 )
-            )
-            .new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(
-                                Division::useService()->addSubjectStudent(
-                                    $this->formSubjectStudentAdd($tblDivisionSubject)
-                                        ->appendFormButton(new Primary('Speichern', new Save))
-                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $DivisionSubjectId, $Student, $Id
+                . new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    Division::useService()->addSubjectStudent(
+                                        $this->formSubjectStudentAdd($tblDivisionSubject)
+                                            ->appendFormButton(new Primary('Speichern', new Save))
+                                            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                        , $DivisionSubjectId, $Student, $Id
+                                    )
                                 )
                             )
-                        )
-                    ), new Title(new Check().' Zuordnen')
-                )
-            ));
+                        ), new Title(new Check() . ' Zuordnen')
+                    )
+                ));
 
-        return $Stage;
+            return $Stage;
+        }
     }
 
     /**
