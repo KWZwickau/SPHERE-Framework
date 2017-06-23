@@ -636,7 +636,7 @@ class Service extends AbstractService
                         $tblSubject = $tblIndiwareImportStudentCourse->getServiceTblSubject();
                         $tblPerson = $tblIndiwareImportStudent->getServiceTblPerson();
 
-                        if ($SubjectGroup && $tblSubject) {
+                        if ($SubjectGroup && $tblSubject && !$tblIndiwareImportStudent->getIsIgnore()) {
 
                             // insert Subject in Division if not exist
                             if (!Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
@@ -653,27 +653,32 @@ class Service extends AbstractService
                                 $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
                                     $tblSubject, $tblSubjectGroup);
                             } else {
+
                                 // create Group + add/get DivisionSubject
                                 $tblDivisionSubject = Division::useService()->addSubjectToDivisionWithGroupImport($tblDivision,
-                                    $tblSubject, $SubjectGroup);
+                                    $tblSubject, $SubjectGroup,
+                                    $tblIndiwareImportStudentCourse->getIsIntensiveCourse());
                             }
 
-                            if ($tblDivisionSubject && $tblPerson) {
+                            if ($tblPerson && $tblDivision &&
+                                Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson)
+                            ) {
+                                if ($tblDivisionSubject) {
 
-                                // add Subject Teacher
-                                $createSubjectStudentList[] = array(
-                                    'tblDivisionSubject' => $tblDivisionSubject,
-                                    'tblPerson'          => $tblPerson
-                                );
+                                    // add Subject Teacher
+                                    $createSubjectStudentList[] = array(
+                                        'tblDivisionSubject' => $tblDivisionSubject,
+                                        'tblPerson'          => $tblPerson
+                                    );
+                                }
                             }
                         }
                     }
-
-                    if (!empty($createSubjectStudentList)) {
-                        Division::useService()->addSubjectStudentList($createSubjectStudentList);
-                        Import::useService()->destroyIndiwareImportStudentAll();
-                    }
                 }
+            }
+            if (!empty($createSubjectStudentList)) {
+                Division::useService()->addSubjectStudentList($createSubjectStudentList);
+                Import::useService()->destroyIndiwareImportStudentAll();
             }
         }
 

@@ -840,19 +840,39 @@ class Service extends AbstractService
     }
 
     /**
+     * @param              $Name
+     * @param string       $Description
+     * @param null|boolean $IsAdvancedCourse
+     *
+     * @return TblSubjectGroup
+     */
+    public function addSubjectGroup($Name, $Description = '', $IsAdvancedCourse = null)
+    {
+
+        return (new Data($this->getBinding()))->createSubjectGroup($Name, $Description, $IsAdvancedCourse);
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param TblSubject  $tblSubject
-     * @param             $SubjectGroup
+     * @param string      $SubjectGroup
+     * @param bool        $IsIntensiveCourse
      *
      * @return bool|null|object|TblDivisionSubject
      */
     public function addSubjectToDivisionWithGroupImport(
         TblDivision $tblDivision,
         TblSubject $tblSubject,
-        $SubjectGroup
+        $SubjectGroup,
+        $IsIntensiveCourse = false
     ) {
 
-        $tblSubjectGroup = ( new Data($this->getBinding()) )->createSubjectGroup($SubjectGroup);
+        $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($SubjectGroup,
+            $tblDivision, $tblSubject);
+        if (!$tblSubjectGroup) {
+            $tblSubjectGroup = Division::useService()->addSubjectGroup($SubjectGroup, '', $IsIntensiveCourse);
+        }
+
         if ($tblSubjectGroup) {
             return ( new Data($this->getBinding()) )->addDivisionSubject($tblDivision, $tblSubject, $tblSubjectGroup);
         }
