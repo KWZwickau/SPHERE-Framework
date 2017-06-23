@@ -82,6 +82,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Level' => $tblMinimumGradeCount->getLevelDisplayName(),
                         'Subject' => $tblMinimumGradeCount->getSubjectDisplayName(),
                         'GradeType' => $tblMinimumGradeCount->getGradeTypeDisplayName(),
+                        'Period' => $tblMinimumGradeCount->getPeriodDisplayName(),
                         'Count' => $tblMinimumGradeCount->getCount(),
                         'Option' => (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Edit',
                                 new Edit(), array(
@@ -108,6 +109,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Level' => 'Klassenstufe',
                                     'Subject' => 'Fach',
                                     'GradeType' => 'Zensuren-Typ',
+                                    'Period' => 'Zeitraum',
                                     'Count' => 'Anzahl',
                                     'Option' => ''
                                 ),
@@ -151,26 +153,49 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGradeTypeList = array();
         }
 
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FULL_YEAR, '-Gesamtes Schuljahr-');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FIRST_PERIOD, '1. Zeitraum');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_SECOND_PERIOD, '2. Zeitraum');
+
+        $highLightedList[] = new SelectBoxItem(SelectBoxItem::HIGHLIGHTED_ALL, 'Alle Zensuren-Typen');
+        $highLightedList[] = new SelectBoxItem(SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED, 'Nur große Zensuren-Typen (Fett marktiert)');
+        $highLightedList[] = new SelectBoxItem(SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED, 'Nur kleine Zensuren-Typen (nicht Fett markiert)');
+
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[Level]', 'Schulart - Klassenstufe '
-                        . new DangerText('*'),
-                        array('{{ serviceTblType.Name }} - {{ Name }}' => $tblLevelAll)),
-                    3
+                    new Panel(
+                        'Klassen',
+                        array(
+                            new SelectBox('MinimumGradeCount[Level]', 'Schulart - Klassenstufe '
+                                . new DangerText('*'),
+                                array('{{ serviceTblType.Name }} - {{ Name }}' => $tblLevelAll)),
+                            new SelectBox('MinimumGradeCount[Subject]', 'Fach',
+                                array('{{ Acronym }} - {{ Name }}' => $tblSubjectAll))
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 3
                 ),
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[Subject]', 'Fach',
-                        array('{{ Acronym }} - {{ Name }}' => $tblSubjectAll)), 3
+                    new Panel(
+                        'Zensuren-Typen',
+                        array(
+                            new SelectBox('MinimumGradeCount[GradeType]', 'Zensuren-Typ',
+                                array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)),
+                            new SelectBox('MinimumGradeCount[Highlighted]', 'oder Zensuren-Typen beschränken',
+                                array('{{ Name }}' => $highLightedList))
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 3
                 ),
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[GradeType]', 'Zensuren-Typ',
-                        array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)), 3
+                    new SelectBox('MinimumGradeCount[Period]', 'Zeitraum',
+                        array('{{ Name }}' => $periodList)), 3
                 ),
                 new FormColumn(
                     new NumberField('MinimumGradeCount[Count]', '',
                         'Anzahl ' . new DangerText('*'), new Quantity()), 3
-                ),
+                )
             )),
             new FormRow(array(
                 new FormColumn(array(
@@ -208,7 +233,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblSchoolType = false;
             }
             $tblSubject = $tblMinimumGradeCount->getServiceTblSubject();
-            $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
 
             $Form = $this->formEditMinimumGradeCount()
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -237,13 +261,20 @@ class Frontend extends Extension implements IFrontendInterface
                                     Panel::PANEL_TYPE_INFO
                                 ), 3
                             ) : null,
-                            $tblGradeType ? new LayoutColumn(
+                            new LayoutColumn(
                                 new Panel(
                                     'Zensuren-Typ',
-                                    $tblGradeType->getCode() . ' - ' . $tblGradeType->getName(),
+                                    $tblMinimumGradeCount->getGradeTypeDisplayName(),
                                     Panel::PANEL_TYPE_INFO
                                 ), 3
-                            ) : null,
+                            ),
+                            new LayoutColumn(
+                                new Panel(
+                                    'Zeitraum',
+                                    $tblMinimumGradeCount->getPeriodDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ), 3
+                            )
                         ))
                     )),
                     new LayoutGroup(array(

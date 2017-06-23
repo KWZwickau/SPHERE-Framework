@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubje
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -117,7 +118,9 @@ abstract class Service extends AbstractService
                 $MinimumGradeCount['Count'],
                 $tblLevel,
                 $tblSubject ? $tblSubject : null,
-                $tblGradeType ? $tblGradeType : null
+                $tblGradeType ? $tblGradeType : null,
+                isset($MinimumGradeCount['Period']) ? $MinimumGradeCount['Period'] : SelectBoxItem::PERIOD_FULL_YEAR,
+                isset($MinimumGradeCount['Highlighted']) ? $MinimumGradeCount['Highlighted'] : SelectBoxItem::HIGHLIGHTED_ALL
             );
 
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Mindestnotenanzahl ist erfasst worden')
@@ -199,20 +202,38 @@ abstract class Service extends AbstractService
         ) {
 
             $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
+            $tblPeriod = false;
+            if ($tblMinimumGradeCount->getPeriod() != SelectBoxItem::PERIOD_FULL_YEAR) {
+                $index = $tblMinimumGradeCount->getPeriod() - 1;
+                if (($tblYear = $tblDivision->getServiceTblYear())
+                    && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))
+                    && isset($tblPeriodList[$index])
+                ) {
+                    $tblPeriod = $tblPeriodList[$index];
+                }
+            }
 
-            $tblGradeList = Gradebook::useService()->getGradesByStudent($tblPerson, $tblDivision, $tblSubject, $tblTestType);
+            $tblGradeList = Gradebook::useService()->getGradesByStudent($tblPerson, $tblDivision, $tblSubject, $tblTestType,
+                $tblPeriod ? $tblPeriod : null);
             if ($tblGradeList){
                 /** @var TblGrade $tblGrade */
                 foreach ($tblGradeList as $tblGrade){
                    if ($tblGrade->getGrade()
-                       && $tblGrade->getTblGradeType()
+                       && $tblGrade->getServiceTblTest()
+                       && ($tblGradeTypeItem = $tblGrade->getTblGradeType())
                    ){
                        if ($tblGradeType){
-                           if ($tblGradeType->getId() == $tblGrade->getTblGradeType()){
+                           if ($tblGradeType->getId() == $tblGradeTypeItem->getId()){
                                $count++;
                            }
-                       } else {
-                           $count++;
+                       } elseif ($tblMinimumGradeCount->getHighlighted() == SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED) {
+                           if ($tblGradeTypeItem->isHighlighted()) {
+                               $count++;
+                           }
+                       } elseif ($tblMinimumGradeCount->getHighlighted() == SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED) {
+                           if (!$tblGradeTypeItem->isHighlighted()) {
+                               $count++;
+                           }
                        }
                    }
                 }
