@@ -27,6 +27,8 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $this->setTableIndiwareImportLectureship($Schema);
+        $tblIndiwareImportStudent = $this->setTableIndiwareImportStudent($Schema);
+        $this->setTableIndiwareImportStudentCourse($Schema, $tblIndiwareImportStudent);
 
         /**
          * Migration & Protocol
@@ -80,6 +82,68 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblIndiwareImportLectureship', 'IsIgnore')) {
             $Table->addColumn('IsIgnore', 'boolean');
         }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table $tblIndiwareImportStudentCourse
+     *
+     * @return Table
+     */
+    private function setTableIndiwareImportStudent(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblIndiwareImportStudent');
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudent', 'serviceTblYear')) {
+            $Table->addColumn('serviceTblYear', 'bigint');
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudent', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudent', 'serviceTblDivision')) {
+            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudent', 'serviceTblAccount')) {
+            $Table->addColumn('serviceTblAccount', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudent', 'IsIgnore')) {
+            $Table->addColumn('IsIgnore', 'boolean');
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table $tblIndiwareImportStudentCourse
+     *
+     * @return Table
+     */
+    private function setTableIndiwareImportStudentCourse(Schema &$Schema, $tblIndiwareImportStudent)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblIndiwareImportStudentCourse');
+
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'SubjectName')) {
+            $Table->addColumn('SubjectName', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'SubjectGroup')) {
+            $Table->addColumn('SubjectGroup', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'CourseNumber')) {
+            $Table->addColumn('CourseNumber', 'integer');
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'IsIntensiveCourse')) {
+            $Table->addColumn('IsIntensiveCourse', 'boolean');
+        }
+        $this->createForeignKey($Table, $tblIndiwareImportStudent);
 
         return $Table;
     }
