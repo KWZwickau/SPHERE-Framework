@@ -631,6 +631,8 @@ class StudentCourse extends Extension implements IFrontendInterface
         $tblDivision = $tblIndiwareImportStudent->getServiceTblDivision();
         $tblYear = $tblIndiwareImportStudent->getServiceTblYear();
 
+        $arraySubjectName = array();
+
         $Global = $this->getGlobal();
         $Global->POST['Data']['DivisionId'] = ($tblDivision ? $tblDivision->getId() : null);
         if ($tblIndiwareImportStudentCourseList) {
@@ -642,6 +644,8 @@ class StudentCourse extends Extension implements IFrontendInterface
                     if ($tblIndiwareImportStudentCourse->getIsIntensiveCourse()) {
                         $Global->POST['Data']['IsIntensivCourse'.$Number] = 1;
                     }
+                    $arraySubjectName[$Number] = $tblIndiwareImportStudentCourse->getSubjectName();
+
                 }
                 $Global->savePost();
             }
@@ -671,7 +675,8 @@ class StudentCourse extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(Import::useService()
-                                ->updateIndiwareImportStudentCourse($Form, $Data, $tblIndiwareImportStudent, $Visible)
+                                ->updateIndiwareImportStudentCourse($Form, $Data, $tblIndiwareImportStudent, $Visible,
+                                    $arraySubjectName)
                             )
                         )
                     )

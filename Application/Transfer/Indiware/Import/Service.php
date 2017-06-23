@@ -233,10 +233,11 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null      $Stage
+     * @param IFormInterface|null $Stage
      * @param TblIndiwareImportStudent $tblIndiwareImportStudent
-     * @param null|array               $Data
-     * @param bool                     $Visible
+     * @param null|array $Data
+     * @param bool $Visible
+     * @param array $arraySubjectName
      *
      * @return IFormInterface|string
      */
@@ -244,8 +245,9 @@ class Service extends AbstractService
         IFormInterface $Stage = null,
         TblIndiwareImportStudent $tblIndiwareImportStudent,
         $Data = null,
-        $Visible = false
-    ) {
+        $Visible = false,
+        $arraySubjectName = array()
+        ) {
 
         /**
          * Skip to Frontend
@@ -260,51 +262,38 @@ class Service extends AbstractService
             $tblDivision = null;
         }
         //ToDO Remove all existing Course by ImportStudent
+        $this->destroyIndiwareImportStudent($tblIndiwareImportStudent);
+
         for ($i = 1; $i <= 17; $i++) {
             $tblSubject = null;
             $SubjectGroup = '';
             $SubjectName = '';
-            $tblIndiwareImportStudentCourse = Import::useService()->getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber(
-                $tblIndiwareImportStudent, $i);
-            if ($tblIndiwareImportStudentCourse) {
-                $SubjectName = $tblIndiwareImportStudentCourse->getSubjectName();
-            }
 
-            if (isset($Data['SubjectId'.$i]) && !empty($Data['SubjectId'.$i])) {
-                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId'.$i]);
+            if (isset($Data['SubjectId' . $i]) && !empty($Data['SubjectId' . $i])) {
+                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId' . $i]);
             }
-            if (isset($Data['SubjectGroup'.$i]) && !empty($Data['SubjectId'.$i])) {
-                $SubjectGroup = $Data['SubjectId'.$i];
+            if (isset($Data['SubjectGroup' . $i]) && !empty($Data['SubjectId' . $i])) {
+                $SubjectGroup = $Data['SubjectId' . $i];
             }
-            if (isset($Data['IsIntensivCourse'.$i]) && !empty($Data['IsIntensivCourse'.$i])) {
+            if (isset($Data['IsIntensivCourse' . $i]) && !empty($Data['IsIntensivCourse' . $i])) {
                 $IsIntensiveCourse = true;
             } else {
                 $IsIntensiveCourse = false;
+            }
+            if (isset($arraySubjectName[$i])) {
+                $SubjectName = $arraySubjectName[$i];
             }
             if ($tblSubject || $SubjectGroup != '') {
                 (new Data($this->getBinding()))->createIndiwareImportStudentCourse($tblSubject, $SubjectGroup,
                     $SubjectName, $i, $IsIntensiveCourse, $tblIndiwareImportStudent);
             }
         }
-//        if(isset())
-//
-//        if ((new Data($this->getBinding()))->updateIndiwareImportLectureship(
-//            $tblIndiwareImportLectureship,
-//            $tblDivision,
-//            $tblTeacher,
-//            $tblSubject,
-//            $SubjectGroup,
-//            $IsIgnore)
-//        ) {
-//            $Message = new Success('Änderungen gespeichert');
-//            return $Message.new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_SUCCESS,
-//                    array('Visible' => $Visible));
-//        } else {
-//            $Stage->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Änderungen gespeichert')))));
-//            return $Stage.new Redirect('/Transfer/Indiware/Import/Lectureship/Edit', Redirect::TIMEOUT_SUCCESS,
-//                    array('Id' => $tblIndiwareImportLectureship->getId(), 'Visible' => $Visible));
-//        }
-        return false;
+
+        (new Data($this->getBinding()))->updateIndiwareImportStudent($tblIndiwareImportStudent, $tblDivision);
+
+        $Message = new Success('Änderungen gespeichert');
+        return $Message.new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS,
+                array('Visible' => $Visible));
     }
 
     /**
@@ -380,6 +369,15 @@ class Service extends AbstractService
         }
         return false;
     }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @return bool
+     */
+    public function destroyIndiwareImportStudentCourseAllByIndiwareImportStudent(TblIndiwareImportStudent $tblIndiwareImportStudent)
+     {
+         return (new Data($this->getBinding()))->destroyIndiwareImportStudentCourse($tblIndiwareImportStudent);
+     }
 
     /**
      * @param TblIndiwareImportLectureship[] $tblIndiwareImportLectureshipList

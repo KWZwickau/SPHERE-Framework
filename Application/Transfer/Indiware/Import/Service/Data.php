@@ -354,6 +354,33 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param TblDivision|null         $tblDivision
+     *
+     * @return bool
+     */
+    public function updateIndiwareImportStudent(
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        TblDivision $tblDivision = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblIndiwareImportStudent $Entity */
+        $Entity = $Manager->getEntityById('TblIndiwareImportStudent', $tblIndiwareImportStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblDivision($tblDivision);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param Manager                  $Manager
      * @param array                    $Result
      * @param int                      $SubjectNumber
