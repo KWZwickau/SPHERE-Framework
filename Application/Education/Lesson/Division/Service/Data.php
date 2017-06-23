@@ -155,12 +155,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param        $Name
+     * @param $Name
      * @param string $Description
-     *
+     * @param null|boolean $IsAdvancedCourse
      * @return TblSubjectGroup
      */
-    public function createSubjectGroup($Name, $Description = '')
+    public function createSubjectGroup($Name, $Description = '', $IsAdvancedCourse = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -168,6 +168,9 @@ class Data extends AbstractData
         $Entity = new TblSubjectGroup();
         $Entity->setName($Name);
         $Entity->setDescription($Description);
+        if ($IsAdvancedCourse !== null) {
+            $Entity->setIsAdvancedCourse($IsAdvancedCourse);
+        }
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -1446,10 +1449,11 @@ class Data extends AbstractData
      * @param TblSubjectGroup $tblSubjectGroup
      * @param string $Name
      * @param string $Description
+     * @param null|boolean $IsAdvancedCourse
      *
      * @return bool
      */
-    public function updateSubjectGroup(TblSubjectGroup $tblSubjectGroup, $Name, $Description = '')
+    public function updateSubjectGroup(TblSubjectGroup $tblSubjectGroup, $Name, $Description = '', $IsAdvancedCourse = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -1460,6 +1464,9 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            if ($IsAdvancedCourse !== null) {
+                $Entity->setIsAdvancedCourse($IsAdvancedCourse);
+            }
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

@@ -19,6 +19,7 @@ class TblSubjectGroup extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
+    const ATTR_IS_ADVANCED_COURSE = 'IsAdvancedCourse';
 
     /**
      * @Column(type="string")
@@ -29,6 +30,10 @@ class TblSubjectGroup extends Element
      */
     protected $Description;
 
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsAdvancedCourse;
 
     /**
      * @return string
@@ -64,5 +69,21 @@ class TblSubjectGroup extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isAdvancedCourse()
+    {
+        return (boolean) $this->IsAdvancedCourse;
+    }
+
+    /**
+     * @param boolean $IsAdvancedCourse
+     */
+    public function setIsAdvancedCourse($IsAdvancedCourse)
+    {
+        $this->IsAdvancedCourse = $IsAdvancedCourse;
     }
 }
