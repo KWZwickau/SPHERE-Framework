@@ -1095,7 +1095,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param array $SubjectTeacherList
+     * @param array $SubjectTeacherList [tblPerson => $tblPerson, tblDivisionSubject => $tblDivisionSubject]
      *
      * @return bool
      */
@@ -1118,6 +1118,43 @@ class Data extends AbstractData
 
                 if (null === $Entity) {
                     $Entity = new TblSubjectTeacher();
+                    $Entity->setServiceTblPerson($tblPerson);
+                    $Entity->setTblDivisionSubject($tblDivisionSubject);
+                    $Manager->bulkSaveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $SubjectStudentList [tblPerson => $tblPerson, tblDivisionSubject => $tblDivisionSubject]
+     *
+     * @return bool
+     */
+    public function addSubjectStudentList($SubjectStudentList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if ($SubjectStudentList) {
+            foreach ($SubjectStudentList as $Content) {
+                /** @var TblDivisionSubject $tblDivisionSubject */
+                $tblDivisionSubject = $Content['tblDivisionSubject'];
+                /** @var TblPerson $tblPerson */
+                $tblPerson = $Content['tblPerson'];
+                $Entity = $Manager->getEntity('TblSubjectStudent')
+                    ->findOneBy(array(
+                        TblSubjectStudent::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                        TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                    ));
+
+                if (null === $Entity) {
+                    $Entity = new TblSubjectStudent();
                     $Entity->setServiceTblPerson($tblPerson);
                     $Entity->setTblDivisionSubject($tblDivisionSubject);
                     $Manager->bulkSaveEntity($Entity);
@@ -1281,6 +1318,32 @@ class Data extends AbstractData
                 $Manager->killEntity($Entity);
             }
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubjectStudent[] $tblSubjectStudentList
+     *
+     * @return string
+     */
+    public function removeSubjectStudentBulk(
+        $tblSubjectStudentList = array()
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($tblSubjectStudentList)) {
+            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                $Entity = $Manager->getEntityById('TblSubjectStudent', $tblSubjectStudent->getId());
+                if (null !== $Entity) {
+                    /** @var TblSubjectStudent $Entity */
+                    $Manager->bulkKillEntity($Entity);
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;

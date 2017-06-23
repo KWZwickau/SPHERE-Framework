@@ -1004,6 +1004,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblSubjectStudent[] $tblSubjectStudentList
+     *
+     * @return string
+     */
+    public function removeSubjectStudentBulk(
+        $tblSubjectStudentList = array()
+    ) {
+
+        return (new Data($this->getBinding()))->removeSubjectStudentBulk($tblSubjectStudentList);
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblDivisionStudent
@@ -1040,6 +1052,17 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->addSubjectTeacherList($SubjectTeacherList);
+    }
+
+    /**
+     * @param array $SubjectStudentList [tblPerson => $tblPerson, tblDivisionSubject => $tblDivisionSubject]
+     *
+     * @return bool
+     */
+    public function addSubjectStudentList($SubjectStudentList)
+    {
+
+        return (new Data($this->getBinding()))->addSubjectStudentList($SubjectStudentList);
     }
 
     /**

@@ -584,4 +584,182 @@ class Service extends AbstractService
 
         return $LayoutRowList;
     }
+
+    /**
+     * @return LayoutRow[]
+     */
+    public function importIndiwareStudentCourse()
+    {
+
+//        $InfoList = array();
+        $tblIndiwareImportStudentList = $this->getIndiwareImportStudentAll(true);
+        if ($tblIndiwareImportStudentList) {
+            $tblDivisionList = array();
+            array_walk($tblIndiwareImportStudentList,
+                function (TblIndiwareImportStudent $tblIndiwareImportStudent) use (&$tblDivisionList) {
+                    if (($tblDivision = $tblIndiwareImportStudent->getServiceTblDivision())
+                        && !array_key_exists($tblDivision->getId(), $tblDivisionList)
+                    ) {
+                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                    }
+                });
+
+            //remove SubjectStudent (by used Division [clear all Course-Data])
+            if (!empty($tblDivisionList)) {
+                array_walk($tblDivisionList, function (TblDivision $tblDivision) {
+                    $tblSubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
+                    if ($tblSubjectList) {
+                        foreach ($tblSubjectList as $tblSubject) {
+                            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
+                                $tblDivision);
+                            if ($tblDivisionSubjectList) {
+                                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                    $tblDivisionStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                    Division::useService()->removeSubjectStudentBulk($tblDivisionStudentList);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+
+            $createSubjectStudentList = array();
+//            $IsTeacherList = array();
+            foreach ($tblIndiwareImportStudentList as $Key => $tblIndiwareImportStudent) {
+//                $ImportError = 0;
+                if (!($tblDivision = $tblIndiwareImportStudent->getServiceTblDivision())) {
+//                    $ImportError++;
+                }
+                if ($tblIndiwareImportStudent->getIsIgnore()) {
+//                    $ImportError++;
+                }
+
+                $tblIndiwareImportStudentCourseList = Import::useService()
+                    ->getIndiwareImportStudentCourseByIndiwareImportStudent($tblIndiwareImportStudent);
+                if ($tblIndiwareImportStudentCourseList && $tblDivision) {
+                    foreach ($tblIndiwareImportStudentCourseList as $tblIndiwareImportStudentCourse) {
+                        $SubjectGroup = $tblIndiwareImportStudentCourse->getSubjectGroup();
+                        $tblSubject = $tblIndiwareImportStudentCourse->getServiceTblSubject();
+                        $tblPerson = $tblIndiwareImportStudent->getServiceTblPerson();
+
+                        if ($SubjectGroup && $tblSubject) {
+
+                            // insert Subject in Division if not exist
+                            if (!Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
+                                $tblDivision)
+                            ) {
+                                Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
+                            }
+
+                            // get Group
+                            $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($SubjectGroup,
+                                $tblDivision, $tblSubject);
+                            if ($tblSubjectGroup) {
+                                // get DivisionSubject with Group
+                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                    $tblSubject, $tblSubjectGroup);
+                            } else {
+                                // create Group + add/get DivisionSubject
+                                $tblDivisionSubject = Division::useService()->addSubjectToDivisionWithGroupImport($tblDivision,
+                                    $tblSubject, $SubjectGroup);
+                            }
+
+                            if ($tblDivisionSubject && $tblPerson) {
+
+                                // add Subject Teacher
+                                $createSubjectStudentList[] = array(
+                                    'tblDivisionSubject' => $tblDivisionSubject,
+                                    'tblPerson'          => $tblPerson
+                                );
+                            }
+                        }
+                    }
+
+                    if (!empty($createSubjectStudentList)) {
+                        Division::useService()->addSubjectStudentList($createSubjectStudentList);
+                    }
+                }
+            }
+        }
+
+//                if ($tblDivisionSubject) {
+//
+//                    $IsTeacherId = $tblDivisionSubject->getId().'.'.$tblPerson->getId();
+//                    if (!array_key_exists($IsTeacherId, $IsTeacherList)) {
+//                        $IsTeacherList[$IsTeacherId] = true;
+//
+//                        // addInfoList (only success no doubled)
+//                        $InfoList[$tblDivision->getId()]['DivisionName'] = $tblDivision->getDisplayName();
+//                        $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] = $tblSubject->getAcronym().' - '.$tblSubject->getName()
+//                            .new PullRight($tblPerson->getFullName());
+//                        $InfoList[$tblDivision->getId()]['PanelColor'][$tblSubject->getId()] = Panel::PANEL_TYPE_WARNING;
+//
+//                        // add Subject Teacher
+//                        $createSubjectTeacherList[] = array(
+//                            'tblDivisionSubject' => $tblDivisionSubject,
+//                            'tblPerson'          => $tblPerson
+//                        );
+//                    }
+//                }
+//
+//            }
+//            // bulkSave for Lectureship
+//            Division::useService()->addSubjectTeacherList($createSubjectTeacherList);
+//
+//            //Delete tblImport
+//            Import::useService()->destroyIndiwareImportLectureship();
+//        }
+//
+//        $LayoutColumnArray = array();
+//        if (!empty($InfoList)) {
+//            // better show result
+//            foreach ($InfoList as $key => $Info) {
+//                $divisionName[$key] = strtoupper($Info['DivisionName']);
+//            }
+//            array_multisort($divisionName, SORT_NATURAL, $InfoList);
+//            foreach ($InfoList as $Info) {
+//
+//                if (isset($Info['DivisionName']) && isset($Info['SubjectList'])) {
+//                    $LayoutColumnList = array();
+//                    $PanelContent = array();
+//                    if (!empty($Info['SubjectList'])) {
+//                        foreach ($Info['SubjectList'] as $SubjectAndTeacherArray) {
+//                            if (!empty($SubjectAndTeacherArray)) {
+//                                foreach ($SubjectAndTeacherArray as $SubjectAndTeacher) {
+//                                    $PanelContent[] = $SubjectAndTeacher;
+//                                }
+//                            }
+//                        }
+//                        $LayoutColumnList[] = new LayoutColumn(array(
+//                                new Title('Klasse: '.$Info['DivisionName']),
+//                                new Panel('Acronym - Fach'.new PullRight('Lehrer'),
+//                                    $PanelContent, Panel::PANEL_TYPE_SUCCESS)
+//                            )
+//                            , 4);
+//                    }
+//                    $LayoutColumnArray = array_merge($LayoutColumnArray, $LayoutColumnList);
+//                }
+//            }
+//        }
+//
+//        // save clean view by LayoutRows
+//        $LayoutRowList = array();
+//        $LayoutRowCount = 0;
+//        $LayoutRow = null;
+//        /**
+//         * @var LayoutColumn $tblPhone
+//         */
+//        foreach ($LayoutColumnArray as $LayoutColumn) {
+//            if ($LayoutRowCount % 3 == 0) {
+//                $LayoutRow = new LayoutRow(array());
+//                $LayoutRowList[] = $LayoutRow;
+//            }
+//            $LayoutRow->addColumn($LayoutColumn);
+//            $LayoutRowCount++;
+//        }
+
+        $LayoutRowList = array();
+        return $LayoutRowList;
+    }
 }

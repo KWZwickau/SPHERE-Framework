@@ -229,7 +229,7 @@ class StudentCourse extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Indiware', 'Daten importieren');
-        $Stage->setMessage('Lehraufträge importieren');
+        $Stage->setMessage('Schüler-Kurse SEK II  importieren');
 
         if ($File === null || $tblYear === null || $tblYear <= 0) {
             $Stage->setContent(
@@ -414,7 +414,7 @@ class StudentCourse extends Extension implements IFrontendInterface
      */
     public function frontendStudentCourseShow($Visible = false)
     {
-        $Stage = new Stage('Lehraufträge', 'Übersicht');
+        $Stage = new Stage('Schüler-Kurse SEK II ', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
         $tblIndiwareImportStudent = Import::useService()->getIndiwareImportStudentAll(true);
         $TableContent = array();
@@ -799,7 +799,7 @@ class StudentCourse extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
             $Stage->setContent(
                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                    new Panel(new Question().'Vorhandene Importvorbereitung der Lehraufträge wirklich löschen? '
+                    new Panel(new Question().'Vorhandene Importvorbereitung der Schüler-Kurse SEK II wirklich löschen? '
                         .new Muted(new Small('Anzahl Schüler-Datensätze: "<b>'.count($tblIndiwareImportStudentList).'</b>"')),
                         '',
                         Panel::PANEL_TYPE_DANGER,
@@ -876,16 +876,16 @@ class StudentCourse extends Extension implements IFrontendInterface
             'Zurück zum Indiware-Import'));
 
         $Stage->setMessage(
-            new Container('Abgebildet werden alle Lehraufträge aller importierten Klassen für das ausgewählte Jahr '.($tblYear ? $tblYear->getYear() : '').'.')
-            .new Container('Lehraufträge anderer Klassen bleiben unangetastet!'));
-//        $LayoutRowList = Import::useService()->importIndiwareStudentCourse();
-//        $Stage->setContent(
-//            new Layout(
-//                new LayoutGroup(
-//                    $LayoutRowList
-//                )
-//            )
-//        );
+            new Container('Abgebildet werden alle Schüler-Kurse SEK II  aller importierten Klassen für das ausgewählte Jahr '.($tblYear ? $tblYear->getYear() : '').'.')
+            .new Container('Kurse anderer Klassen bleiben unangetastet!'));
+        $LayoutRowList = Import::useService()->importIndiwareStudentCourse();
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    $LayoutRowList
+                )
+            )
+        );
         return $Stage;
     }
 }
