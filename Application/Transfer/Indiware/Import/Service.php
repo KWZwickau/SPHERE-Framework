@@ -262,7 +262,7 @@ class Service extends AbstractService
             $tblDivision = null;
         }
         //ToDO Remove all existing Course by ImportStudent
-        $this->destroyIndiwareImportStudentCourseAllByIndiwareImportStudent($tblIndiwareImportStudent);
+        $this->destroyIndiwareImportStudent($tblIndiwareImportStudent);
 
         for ($i = 1; $i <= 17; $i++) {
             $tblSubject = null;
@@ -344,27 +344,20 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblIndiwareImportStudent|null $tblIndiwareImportStudent
-     *
      * @return bool
      */
-    public function destroyIndiwareImportStudent(
-        TblIndiwareImportStudent $tblIndiwareImportStudent = null
-    ) {
+    public function destroyIndiwareImportStudentAll()
+    {
 
-        if ($tblIndiwareImportStudent == null) {
-            $tblAccount = Account::useService()->getAccountBySession();
-            if ($tblAccount) {
-                $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
-                if ($tblIndiwareImportStudentList) {
-                    foreach ($tblIndiwareImportStudentList as $tblIndiwareImportStudent) {
-                        (new Data($this->getBinding()))->destroyIndiwareImportStudentCourse($tblIndiwareImportStudent);
-                    }
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
+            if ($tblIndiwareImportStudentList) {
+                foreach ($tblIndiwareImportStudentList as $tblIndiwareImportStudent) {
+                    (new Data($this->getBinding()))->destroyIndiwareImportStudentCourse($tblIndiwareImportStudent);
                 }
-
-                return (new Data($this->getBinding()))->destroyIndiwareImportStudentByAccount($tblAccount);
-
             }
+            return (new Data($this->getBinding()))->destroyIndiwareImportStudentByAccount($tblAccount);
         }
         return false;
     }
@@ -373,7 +366,7 @@ class Service extends AbstractService
      * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      * @return bool
      */
-    public function destroyIndiwareImportStudentCourseAllByIndiwareImportStudent(TblIndiwareImportStudent $tblIndiwareImportStudent)
+    public function destroyIndiwareImportStudent(TblIndiwareImportStudent $tblIndiwareImportStudent)
      {
          return (new Data($this->getBinding()))->destroyIndiwareImportStudentCourse($tblIndiwareImportStudent);
      }
@@ -678,30 +671,12 @@ class Service extends AbstractService
 
                     if (!empty($createSubjectStudentList)) {
                         Division::useService()->addSubjectStudentList($createSubjectStudentList);
+                        Import::useService()->destroyIndiwareImportStudentAll();
                     }
                 }
             }
         }
 
-//                if ($tblDivisionSubject) {
-//
-//                    $IsTeacherId = $tblDivisionSubject->getId().'.'.$tblPerson->getId();
-//                    if (!array_key_exists($IsTeacherId, $IsTeacherList)) {
-//                        $IsTeacherList[$IsTeacherId] = true;
-//
-//                        // addInfoList (only success no doubled)
-//                        $InfoList[$tblDivision->getId()]['DivisionName'] = $tblDivision->getDisplayName();
-//                        $InfoList[$tblDivision->getId()]['SubjectList'][$tblSubject->getId()][$Key] = $tblSubject->getAcronym().' - '.$tblSubject->getName()
-//                            .new PullRight($tblPerson->getFullName());
-//                        $InfoList[$tblDivision->getId()]['PanelColor'][$tblSubject->getId()] = Panel::PANEL_TYPE_WARNING;
-//
-//                        // add Subject Teacher
-//                        $createSubjectTeacherList[] = array(
-//                            'tblDivisionSubject' => $tblDivisionSubject,
-//                            'tblPerson'          => $tblPerson
-//                        );
-//                    }
-//                }
 //
 //            }
 //            // bulkSave for Lectureship

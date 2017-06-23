@@ -272,7 +272,7 @@ class StudentCourse extends Extension implements IFrontendInterface
         ) {
 
             // remove existing import
-            Import::useService()->destroyIndiwareImportStudent();
+            Import::useService()->destroyIndiwareImportStudentAll();
 
             // match File
             $Extension = (strtolower($File->getClientOriginalExtension()) == 'txt'
@@ -820,7 +820,7 @@ class StudentCourse extends Extension implements IFrontendInterface
                 new Layout(
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            (Import::useService()->destroyIndiwareImportStudent()
+                            (Import::useService()->destroyIndiwareImportStudentAll()
                                 ? new SuccessMessage('Der Import ist nun leer')
                                 .new Redirect('/Transfer/Indiware/Import', Redirect::TIMEOUT_SUCCESS)
                                 : new WarningMessage('Der Import konnte nicht vollständig gelöscht werden')
