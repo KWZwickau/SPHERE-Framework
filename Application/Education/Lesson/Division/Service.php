@@ -714,6 +714,11 @@ class Service extends AbstractService
     public function removeDivisionSubject(TblDivisionSubject $tblDivisionSubject)
     {
 
+        // Fachlehrer entfernen
+       (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+       // Schüler entfernen
+       (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
+
         return (new Data($this->getBinding()))->removeDivisionSubject($tblDivisionSubject);
     }
 
@@ -723,8 +728,7 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public
-    function removeSubjectGroup(
+    public function removeSubjectGroup(
         TblSubjectGroup $tblSubjectGroup,
         TblDivisionSubject $tblDivisionSubject
     ) {
@@ -761,8 +765,7 @@ class Service extends AbstractService
      *
      * @return null|TblDivisionCustody
      */
-    public
-    function addDivisionCustody(
+    public function addDivisionCustody(
         TblDivision $tblDivision,
         TblPerson $tblPerson,
         $Description
@@ -778,8 +781,7 @@ class Service extends AbstractService
      *
      * @return null|object|TblDivisionSubject
      */
-    public
-    function addSubjectToDivision(
+    public function addSubjectToDivision(
         TblDivision $tblDivision,
         TblSubject $tblSubject
     ) {
@@ -1700,8 +1702,7 @@ class Service extends AbstractService
      *
      * @return bool|Service\Entity\TblDivisionSubject[]
      */
-    public
-    function getDivisionSubjectBySubjectAndDivision(
+    public function getDivisionSubjectBySubjectAndDivision(
         TblSubject $tblSubject,
         TblDivision $tblDivision
     ) {
