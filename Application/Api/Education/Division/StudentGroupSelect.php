@@ -170,7 +170,6 @@ class StudentGroupSelect extends Extension implements IApiInterface
             $ContentList = self::getTableContentUsed($tblDivisionSubject);
             $ContentListAvailable = self::getTableContentAvailable($tblDivisionSubject);
 
-            // Todo AdvancedCourses
             if (($tblDivision = $tblDivisionSubject->getTblDivision())
                 && ($tblDivisionSubjectList = DivisionApplication::useService()->getDivisionSubjectByDivision($tblDivision))) {
                 foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {

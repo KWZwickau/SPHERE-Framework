@@ -1683,7 +1683,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     if (count($tblDivisionSubjectTestList) > 1) {
                         $GroupArray = array();
-                        $TeacherPanelArray = '';
+                        $TeacherPanelArray = array();
                         $TeacherGroupList = array(new Bold('Gruppenlehrer:'));
                         $StudentsGroupCount = 0;
                         $StudentPanel = '';
@@ -1705,7 +1705,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         $TeacherGroupList[] = $Teachers;
                                     }
                                 }
-                                $TeacherPanelArray .= New Panel($tblDivisionSubjectTest->getTblSubjectGroup()->getName(),
+                                $TeacherPanelArray[$tblDivisionSubjectTest->getTblSubjectGroup()->getName()] = New Panel(
+                                    $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
+                                        ? new Bold($tblDivisionSubjectTest->getTblSubjectGroup()->getName())
+                                        : $tblDivisionSubjectTest->getTblSubjectGroup()->getName(),
                                     $TeachersArray, Panel::PANEL_TYPE_INFO,
                                     new Standard('Lehrer', '/Education/Lesson/Division/SubjectTeacher/Add',
                                         new Pencil(),
@@ -1763,6 +1766,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         asort($GroupArray);
+                        asort($TeacherPanelArray);
 
                         if ($StudentTableCount > $StudentsGroupCount && $tblDivisionSubject->getServiceTblSubject()) {
                             $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()
@@ -1783,7 +1787,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'DivisionSubjectId' => $tblDivisionSubject->getId()
                                 ), 'Gruppen bearbeiten'));
 
-                        $tblDivisionSubject->GroupTeacher = $TeacherPanelArray;
+                        $tblDivisionSubject->GroupTeacher = implode(' ', $TeacherPanelArray);
                         $tblDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
                         $tblDivisionSubject->Student = (new Accordion())
                             ->addItem('Enthaltene Schüler', $StudentPanel, false);
