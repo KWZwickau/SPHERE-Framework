@@ -2468,6 +2468,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return null|object|TblSubjectStudent
+     */
+    public function addSubjectStudentData(TblDivisionSubject $tblDivisionSubject, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, $tblPerson);
+    }
+
+    /**
      * @param TblYear $tblYear
      *
      * @return false|TblDivision[]
