@@ -1686,7 +1686,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $TeacherPanelArray = array();
                         $TeacherGroupList = array(new Bold('Gruppenlehrer:'));
                         $StudentsGroupCount = 0;
-                        $StudentPanel = '';
+                        $StudentPanel = array();
                         /** @var TblDivisionSubject $tblDivisionSubjectTest */
                         foreach ($tblDivisionSubjectTestList as $tblDivisionSubjectTest) {
                             if ($tblDivisionSubjectTest->getTblSubjectGroup()) {
@@ -1716,7 +1716,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Id'                => $tblDivision->getId(),
                                             'DivisionSubjectId' => $tblDivisionSubjectTest->getId()
                                         ), 'Gruppenlehrer festlegen'));
-                                $GroupArray[] = $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
+                                $GroupArray[$tblDivisionSubjectTest->getTblSubjectGroup()->getName()]
+                                    = $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
                                     ? new Bold($tblDivisionSubjectTest->getTblSubjectGroup()->getName())
                                     : $tblDivisionSubjectTest->getTblSubjectGroup()->getName();
 
@@ -1754,7 +1755,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 }
-                                $StudentPanel .= new Panel($tblDivisionSubjectTest->getTblSubjectGroup()->getName(),
+                                $StudentPanel[$tblDivisionSubjectTest->getTblSubjectGroup()->getName()] = New Panel(
+                                    $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
+                                        ? new Bold($tblDivisionSubjectTest->getTblSubjectGroup()->getName())
+                                        : $tblDivisionSubjectTest->getTblSubjectGroup()->getName(),
                                     $StudentArray, Panel::PANEL_TYPE_INFO,
                                     new Standard('Schüler', '/Education/Lesson/Division/SubjectStudent/Add',
                                         new Pencil(),
@@ -1765,8 +1769,11 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
 
-                        asort($GroupArray);
-                        asort($TeacherPanelArray);
+
+                        ksort($GroupArray);
+                        ksort($TeacherPanelArray);
+                        ksort($StudentPanel);
+                        $StudentPanel = implode (' ', $StudentPanel);
 
                         if ($StudentTableCount > $StudentsGroupCount && $tblDivisionSubject->getServiceTblSubject()) {
                             $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()
