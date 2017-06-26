@@ -91,7 +91,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
                                                 'Passwort wiederholen',
                                                 new Repeat()))->setRequired()
-//                                                    ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+                                                ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
                                         ), Panel::PANEL_TYPE_INFO)
                                     ),
                                 ))
