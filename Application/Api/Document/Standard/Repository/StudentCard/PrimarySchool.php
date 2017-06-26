@@ -105,7 +105,7 @@ class PrimarySchool extends AbstractStudentCard
                                 ->styleTextSize($SmallTextSize)
                                 , '50%')
                             ->addElementColumn((new Element())
-                                ->setContent('Geburtsort')
+                                ->setContent('Geburtsdatum')
                                 ->stylePaddingLeft('4px')
                                 ->styleTextSize($SmallTextSize)
                                 ->styleBorderTop($InnerLines)

@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Document;
 
 use MOC\V\Component\Document\Document as PdfDocument;
+use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchool;
@@ -59,6 +60,14 @@ class Creator extends Extension
             $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
 
             return self::buildDownloadFile($File, $FileName);
+        } elseif (class_exists($DocumentClass)) {
+            // create PDF without Data and PersonId
+            /** @var AbstractDocument $Document */
+            $Document = new $DocumentClass();
+            $File = self::buildDummyFile($Document);
+            $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
         }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');
@@ -78,9 +87,13 @@ class Creator extends Extension
 
         // Create Tmp
         $File = Storage::createFilePointer('pdf');
+
+        // build before const is set (picture)
+        /** @var IBridgeInterface $Content */
+        $Content = $DocumentClass->createDocument($Data, $pageList);
         /** @var DomPdf $Document */
         $Document = PdfDocument::getPdfDocument($File->getFileLocation());
-        $Document->setContent($DocumentClass->createDocument($Data, $pageList));
+        $Document->setContent($Content);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
         return $File;
@@ -95,7 +108,7 @@ class Creator extends Extension
     private static function buildDownloadFile(FilePointer $File, $FileName = '')
     {
 
-        return FileSystem::getDownload(
+        return FileSystem::getStream(
             $File->getRealPath(),
             $FileName ? $FileName : "Dokument " . date("Y-m-d") . ".pdf"
         )->__toString();

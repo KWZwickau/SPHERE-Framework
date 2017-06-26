@@ -3,6 +3,7 @@ namespace MOC\V\Core\FileSystem;
 
 use MOC\V\Core\FileSystem\Component\Bridge\Repository\SymfonyFinder;
 use MOC\V\Core\FileSystem\Component\Bridge\Repository\UniversalDownload;
+use MOC\V\Core\FileSystem\Component\Bridge\Repository\UniversalStream;
 use MOC\V\Core\FileSystem\Component\Bridge\Repository\UniversalFileLoader;
 use MOC\V\Core\FileSystem\Component\Bridge\Repository\UniversalFileWriter;
 use MOC\V\Core\FileSystem\Component\IBridgeInterface;
@@ -112,6 +113,19 @@ class FileSystem implements IVendorInterface
      * @param null|string $Filename
      *
      * @return IBridgeInterface
+     * @throws FileSystemException
+     */
+    public static function getStream($Location, $Filename = null)
+    {
+
+        return self::getUniversalStream($Location, $Filename);
+    }
+
+    /**
+     * @param string      $Location
+     * @param null|string $Filename
+     *
+     * @return IBridgeInterface
      */
     private static function getUniversalDownload($Location, $Filename = null)
     {
@@ -119,6 +133,27 @@ class FileSystem implements IVendorInterface
         $Loader = new FileSystem(
             new Vendor(
                 new UniversalDownload(
+                    new FileParameter($Location),
+                    new FileParameter($Filename)
+                )
+            )
+        );
+
+        return $Loader->getBridgeInterface();
+    }
+
+    /**
+     * @param string      $Location
+     * @param null|string $Filename
+     *
+     * @return IBridgeInterface
+     */
+    private static function getUniversalStream($Location, $Filename = null)
+    {
+
+        $Loader = new FileSystem(
+            new Vendor(
+                new UniversalStream(
                     new FileParameter($Location),
                     new FileParameter($Filename)
                 )

@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Relationship;
 
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Data;
@@ -78,13 +79,74 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson)
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null)
     {
 
-        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType);
+    }
+
+    /**
+     * @param TblToPerson[] $tblToPersonList
+     *
+     * @return array|TblPerson[]
+     * sortet by Gender (0 => mother - 1 = father - 2... => unknown)
+     * without hits on Mother or Father the unknown get the 0 and 1
+     */
+    public function getPersonGuardianAllByToPersonList($tblToPersonList)
+    {
+
+        $GuardianList = array();
+        if ($tblToPersonList && !empty($tblToPersonList)) {
+            $i = 2;
+            foreach ($tblToPersonList as $tblToPerson) {
+                $tblPersonGuardian = $tblToPerson->getServiceTblPersonFrom();
+                // get Gender
+                $Gender = '';
+                if ($tblPersonGuardian && ($common = Common::useService()->getCommonByPerson($tblPersonGuardian))) {
+                    if (($tblCommonBirthDates = $common->getTblCommonBirthDates())) {
+                        if (($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())) {
+                            $Gender = $tblCommonGender->getName();
+                        }
+                    }
+                }
+                if ($Gender == '') {
+                    $Salutation = $tblPersonGuardian->getSalutation();
+                    if ($Salutation == 'Frau') {
+                        $Gender = 'Weiblich';
+                    } elseif ($Salutation == 'Herr') {
+                        $Gender = 'Männlich';
+                    }
+                }
+                // get sorted List (0 => Mother; 1 => Father; 2.. => Other )
+                if ($Gender == 'Weiblich') {
+                    if (isset($GuardianList[0])) {
+                        if (!isset($GuardianList[1])) {
+                            $GuardianList[1] = $GuardianList[0];
+                        } else {
+                            $GuardianList[$i++] = $GuardianList[0];
+                        }
+                    }
+                    $GuardianList[0] = $tblToPerson->getServiceTblPersonFrom();
+                } elseif (!isset($GuardianList[1]) && $Gender == 'Männlich') {
+                    if (isset($GuardianList[1])) {
+                        if (!isset($GuardianList[0])) {
+                            $GuardianList[0] = $GuardianList[1];
+                        } else {
+                            $GuardianList[$i++] = $GuardianList[1];
+                        }
+                    }
+                    $GuardianList[1] = $tblToPerson->getServiceTblPersonFrom();
+                } else {
+                    // if no matches set unknown to Mother/Father to keep it running
+                    $GuardianList[] = $tblToPerson->getServiceTblPersonFrom();
+                }
+            }
+        }
+        return $GuardianList;
     }
 
     /**

@@ -61,6 +61,20 @@
                 {% endif %}
                 {% if( AjaxEventKeyUp is not empty ) %}
                 jQuery('input[type="text"][name="{{ ElementName }}"]').on('keyup',function(Event){
+                    // Exclude Keys
+                    var KeyCode = Event.which;
+                    // Code 9 = TAB
+                    // Code 37,38,39,40 = LEFT,UP,RIGHT,DOWN Arrow
+                    if(
+                        KeyCode === 9
+                        || KeyCode === 37
+                        || KeyCode === 38
+                        || KeyCode === 39
+                        || KeyCode === 40
+                    ) {
+                        return;
+                    }
+
                     typewatch(function ()
                     {
                         Event.preventDefault();

@@ -2,15 +2,15 @@
 namespace MOC\V\Component\Document\Component\Bridge\Repository;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Cell;
-use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\File;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Style;
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Worksheet;
 
 /**
  * Class PhpExcel
  *
  * @package MOC\V\Component\Document\Component\Bridge\Repository
  */
-class PhpExcel extends File
+class PhpExcel extends Worksheet
 {
 
     /**

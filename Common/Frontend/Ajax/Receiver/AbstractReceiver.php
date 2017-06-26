@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Frontend\Ajax\Receiver;
 
 use SPHERE\Common\Frontend\Ajax\IReceiverInterface;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -9,7 +10,7 @@ use SPHERE\System\Extension\Extension;
  *
  * @package SPHERE\Common\Frontend\Ajax\Receiver
  */
-abstract class AbstractReceiver extends Extension implements IReceiverInterface
+abstract class AbstractReceiver extends Extension implements IReceiverInterface, IFrontendInterface
 {
 
     const IDENTIFIER_PREFIX = 'Sphere-Ajax-Receiver';
@@ -56,6 +57,7 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface
      */
     public function setIdentifier($Identifier)
     {
+        $Identifier = preg_replace('![^\w\d\_\-]!is','_', $Identifier);
         $this->Identifier = $Identifier;
         return $this;
     }

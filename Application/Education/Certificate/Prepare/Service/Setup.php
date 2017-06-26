@@ -33,9 +33,11 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblPrepare = $this->setTableCertificatePrepare($Schema);
+        $tblPrepareAdditionalGradeType = $this->setTablePrepareAdditionalGradeType($Schema);
         $this->setTablePrepareGrade($Schema, $tblPrepare);
         $this->setTablePrepareStudent($Schema, $tblPrepare);
         $this->setTablePrepareInformation($Schema, $tblPrepare);
+        $this->setTablePrepareAdditionalGrade($Schema, $tblPrepare, $tblPrepareAdditionalGradeType);
 
         /**
          * Migration & Protocol
@@ -176,6 +178,45 @@ class Setup extends AbstractSetup
         }
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblPrepare
+     * @param Table $tblPrepareAdditionalGradeType
+     *
+     * @return Table
+     */
+    private function setTablePrepareAdditionalGrade(Schema &$Schema, Table $tblPrepare, Table $tblPrepareAdditionalGradeType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblPrepareAdditionalGrade');
+
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER);
+
+        $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
+        $this->getConnection()->addForeignKey($Table, $tblPrepareAdditionalGradeType, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTablePrepareAdditionalGradeType(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblPrepareAdditionalGradeType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
+        $this->createIndex($Table, array('Identifier'));
 
         return $Table;
     }

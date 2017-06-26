@@ -7,11 +7,14 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
+use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -82,6 +85,10 @@ class Service extends Extension
                 $Item['Salutation'] = $tblPerson->getSalutation();
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
+                $Item['Phone'] = '';
+                $Item['ExcelPhone'] = '';
+                $Item['Mail'] = '';
+                $Item['ExcelMail'] = '';
 
                 if ($address !== null) {
                     $Item['StreetName'] = $address->getTblAddress()->getStreetName();
@@ -106,6 +113,113 @@ class Service extends Extension
                     $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                     $Item['Address'] = '';
                 }
+
+                //Phone
+                $tblPhoneList = array();
+                $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+                if ($tblToPersonPhoneList) {
+                    foreach ($tblToPersonPhoneList as $tblToPersonPhone) {
+                        $tblPhone = $tblToPersonPhone->getTblPhone();
+                        if ($tblPhone) {
+                            if (isset($tblPhoneList[$tblPerson->getId()])) {
+                                $tblPhoneList[$tblPerson->getId()] = $tblPhoneList[$tblPerson->getId()].', '
+                                    .$tblPhone->getNumber().' '.$this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
+                            } else {
+                                $tblPhoneList[$tblPerson->getId()] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('
+                                    .$tblPhone->getNumber().' '.$this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
+                            }
+                        }
+                    }
+                    if (isset($tblPhoneList[$tblPerson->getId()])) {
+                        $tblPhoneList[$tblPerson->getId()] .= ')';
+                    }
+                }
+
+                //Mail
+                $tblMailList = array();
+                $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson);
+                if ($tblToPersonMailList) {
+                    foreach ($tblToPersonMailList as $tblToPersonMail) {
+                        $tblMail = $tblToPersonMail->getTblMail();
+                        if ($tblMail) {
+                            if (isset($tblMailList[$tblPerson->getId()])) {
+                                $tblMailList[$tblPerson->getId()] = $tblMailList[$tblPerson->getId()].', '
+                                    .$tblMail->getAddress();
+                            } else {
+                                $tblMailList[$tblPerson->getId()] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('
+                                    .$tblMail->getAddress();
+                            }
+                        }
+                    }
+                    if (isset($tblMailList[$tblPerson->getId()])) {
+                        $tblMailList[$tblPerson->getId()] .= ')';
+                    }
+                }
+
+                $tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                $tblToPersonGuardianList = false;
+                if ($tblType) {
+                    $tblToPersonGuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                        $tblType);
+                }
+                if ($tblToPersonGuardianList) {
+                    foreach ($tblToPersonGuardianList as $tblToPersonGuardian) {
+                        //Phone Guardian
+                        $tblPersonGuardian = $tblToPersonGuardian->getServiceTblPersonFrom();
+                        $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
+                        if ($tblToPersonPhoneList) {
+                            foreach ($tblToPersonPhoneList as $tblToPersonPhone) {
+                                $tblPhone = $tblToPersonPhone->getTblPhone();
+                                if ($tblPhone) {
+                                    if (isset($tblPhoneList[$tblPersonGuardian->getId()])) {
+                                        $tblPhoneList[$tblPersonGuardian->getId()] = $tblPhoneList[$tblPersonGuardian->getId()].', '
+                                            .$tblPhone->getNumber().' '.$this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
+                                    } else {
+                                        $tblPhoneList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.
+                                            $tblPersonGuardian->getLastName().' ('
+                                            .$tblPhone->getNumber().' '.$this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
+                                    }
+                                }
+                            }
+                            if (isset($tblPhoneList[$tblPersonGuardian->getId()])) {
+                                $tblPhoneList[$tblPersonGuardian->getId()] .= ')';
+                            }
+                        }
+
+                        //Mail Guardian
+                        $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPersonGuardian);
+                        if ($tblToPersonMailList) {
+                            foreach ($tblToPersonMailList as $tblToPersonMail) {
+                                $tblMail = $tblToPersonMail->getTblMail();
+                                if ($tblMail) {
+                                    if (isset($tblMailList[$tblPersonGuardian->getId()])) {
+                                        $tblMailList[$tblPersonGuardian->getId()] = $tblMailList[$tblPersonGuardian->getId()].', '
+                                            .$tblMail->getAddress();
+                                    } else {
+                                        $tblMailList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.
+                                            $tblPersonGuardian->getLastName().' ('
+                                            .$tblMail->getAddress();
+                                    }
+                                }
+                            }
+                            if (isset($tblMailList[$tblPersonGuardian->getId()])) {
+                                $tblMailList[$tblPersonGuardian->getId()] .= ')';
+                            }
+                        }
+                    }
+                }
+
+                // Insert PhoneList
+                if (!empty($tblPhoneList)) {
+                    $Item['Phone'] .= implode('<br>', $tblPhoneList);
+                    $Item['ExcelPhone'] = $tblPhoneList;
+                }
+                // Insert MailList
+                if (!empty($tblMailList)) {
+                    $Item['Mail'] .= implode('<br>', $tblMailList);
+                    $Item['ExcelMail'] = $tblMailList;
+                }
+
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
@@ -140,37 +254,65 @@ class Service extends Extension
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Anrede");
-            $export->setValue($export->getCell("1", "0"), "Vorname");
-            $export->setValue($export->getCell("2", "0"), "Name");
-            $export->setValue($export->getCell("3", "0"), "Konfession");
-            $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("5", "0"), "Geburtsort");
-            $export->setValue($export->getCell("6", "0"), "Ortsteil");
-            $export->setValue($export->getCell("7", "0"), "Straße");
-            $export->setValue($export->getCell("8", "0"), "Hausnr.");
-            $export->setValue($export->getCell("9", "0"), "PLZ");
-            $export->setValue($export->getCell("10", "0"), "Ort");
+            $export->setValue($export->getCell("0", "0"), "Vorname");
+            $export->setValue($export->getCell("1", "0"), "Name");
+            $export->setValue($export->getCell("2", "0"), "Konfession");
+            $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("4", "0"), "Geburtsort");
+            $export->setValue($export->getCell("5", "0"), "Ortsteil");
+            $export->setValue($export->getCell("6", "0"), "Straße");
+            $export->setValue($export->getCell("7", "0"), "Hausnr.");
+            $export->setValue($export->getCell("8", "0"), "PLZ");
+            $export->setValue($export->getCell("9", "0"), "Ort");
+            $export->setValue($export->getCell("10", "0"), "Telefon");
+            $export->setValue($export->getCell("11", "0"), "E-Mail");
 
-            $Row = 1;
+            $export->setStyle($export->getCell(0, 0), $export->getCell(11, 0))
+                ->setFontBold();
+
+            $Row = 0;
 
             foreach ($PersonList as $PersonData) {
-
-                $export->setValue($export->getCell("0", $Row), $PersonData['Salutation']);
-                $export->setValue($export->getCell("1", $Row), $PersonData['FirstName']);
-                $export->setValue($export->getCell("2", $Row), $PersonData['LastName']);
-                $export->setValue($export->getCell("3", $Row), $PersonData['Denomination']);
-                $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell("5", $Row), $PersonData['Birthplace']);
-                $export->setValue($export->getCell("6", $Row), $PersonData['District']);
-                $export->setValue($export->getCell("7", $Row), $PersonData['StreetName']);
-                $export->setValue($export->getCell("8", $Row), $PersonData['StreetNumber']);
-                $export->setValue($export->getCell("9", $Row), $PersonData['Code']);
-                $export->setValue($export->getCell("10", $Row), $PersonData['City']);
-
                 $Row++;
+                $phoneRow = $mailRow = $Row;
+
+                $export->setValue($export->getCell("0", $Row), $PersonData['FirstName']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell("2", $Row), $PersonData['Denomination']);
+                $export->setValue($export->getCell("3", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['District']);
+                $export->setValue($export->getCell("6", $Row), $PersonData['StreetName']);
+                $export->setValue($export->getCell("7", $Row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell("8", $Row), $PersonData['Code']);
+                $export->setValue($export->getCell("9", $Row), $PersonData['City']);
+//                $export->setValue($export->getCell("10", $Row), $PersonData['ExcelPhone']);
+//                $export->setValue($export->getCell("11", $Row), $PersonData['ExcelMail']);
+
+                if (is_array($PersonData['ExcelPhone'])) {
+                    foreach ($PersonData['ExcelPhone'] as $Phone) {
+                        $export->setValue($export->getCell(10, $phoneRow++), $Phone);
+                    }
+                }
+                if (is_array($PersonData['ExcelMail'])) {
+                    foreach ($PersonData['ExcelMail'] as $Mail) {
+                        $export->setValue($export->getCell(11, $mailRow++), $Mail);
+                    }
+                }
+                // get row to the same high as highest PhoneRow or MailRow
+                if ($Row < ($phoneRow - 1)) {
+                    $Row = ($phoneRow - 1);
+                }
+                if ($Row < ($mailRow - 1)) {
+                    $Row = ($mailRow - 1);
+                }
             }
 
+            //Column width
+            $export->setStyle($export->getCell(10, 0), $export->getCell(10, $Row))->setColumnWidth(35);
+            $export->setStyle($export->getCell(11, 0), $export->getCell(11, $Row))->setColumnWidth(45);
+
+            $Row++;
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Weiblich:');
             $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
@@ -180,6 +322,18 @@ class Service extends Extension
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            // Legende
+            $Row = $Row - 2;
+            $export->setValue($export->getCell("10", $Row), 'Abkürzungen Telefon:');
+            $Row++;
+            $export->setValue($export->getCell("10", $Row), 'p = Privat');
+            $Row++;
+            $export->setValue($export->getCell("10", $Row), 'g = Geschäftlich');
+            $Row++;
+            $export->setValue($export->getCell("10", $Row), 'n = Notfall');
+            $Row++;
+            $export->setValue($export->getCell("10", $Row), 'f = Fax');
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -494,12 +648,16 @@ class Service extends Extension
             });
         }
         if (!empty( $TableContent )) {
+
+            $day = array();
+            $month = array();
+            $year = array();
             foreach ($TableContent as $key => $row) {
                 $month[$key] = substr($row['Birthday'], 3, 2);
                 $day[$key] = substr($row['Birthday'], 0, 2);
                 $year[$key] = substr($row['Birthday'], 6, 4);
             }
-            array_multisort($month, SORT_ASC, $day, SORT_ASC, $day, SORT_DESC, $TableContent);
+            array_multisort($month, SORT_ASC, $day, SORT_ASC, $year, SORT_DESC, $TableContent);
 
 
             array_walk($TableContent, function (&$Row) use (&$All) {
@@ -825,6 +983,8 @@ class Service extends Extension
 
         if (!empty( $tblPersonList )) {
 
+            $lastName = array();
+            $firstName = array();
             foreach ($tblPersonList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
@@ -966,6 +1126,312 @@ class Service extends Extension
                 $export->setValue($export->getCell("6", $Row), $PersonData['PhoneNumber']);
                 $export->setValue($export->getCell("7", $Row), $PersonData['MobilPhoneNumber']);
                 $export->setValue($export->getCell("8", $Row), $PersonData['Mail']);
+
+                $Row++;
+            }
+
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
+            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Männlich:');
+            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
+            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblToPersonPhone $tblToPerson
+     *
+     * @return string
+     */
+    public function getShortTypeByTblToPersonPhone(TblToPersonPhone $tblToPerson)
+    {
+
+        $result = '';
+        $tblType = $tblToPerson->getTblType();
+        if ($tblType) {
+            switch ($tblType->getName()) {
+                case 'Privat':
+                    $result = 'p';
+                    break;
+                case 'Geschäftlich':
+                    $result = 'g';
+                    break;
+                case 'Notfall':
+                    $result = 'n';
+                    break;
+                case 'Fax':
+                    $result = 'f';
+                    break;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @return array
+     */
+    public function createInterestedPersonList()
+    {
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+        $TableContent = array();
+        if (!empty($tblPersonList)) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['LastName'] = $tblPerson->getLastName();
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
+                $Item['Address'] = '';
+                $Item['Phone'] = '';
+                $Item['PhoneGuardian'] = '';
+                $Item['TypeOptionA'] = $Item['TypeOptionB'] = $Item['DivisionLevel'] = $Item['RegistrationDate'] = '';
+                $Item['SchoolYear'] = '';
+                $Item['Birthday'] = $Item['Birthplace'] = $Item['Denomination'] = $Item['Nationality'] = '';
+                $Item['Siblings'] = array();
+                $Item['FatherSalutation'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
+                $Item['MotherSalutation'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
+
+                if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+                    $address = $addressList[0];
+                } else {
+                    $address = null;
+                }
+                if ($address !== null) {
+                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
+                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
+                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
+                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
+                    $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
+                    $Item['Address'] =
+                        ( $Item['District'] !== '' ? $Item['District'].' ' : '' ).
+                        $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().', '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
+                }
+
+                $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                if ($tblProspect) {
+                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                    if ($tblProspectReservation) {
+                        $Item['SchoolYear'] = $tblProspectReservation->getReservationYear();
+                        if ($tblProspectReservation->getServiceTblTypeOptionA()) {
+                            $Item['TypeOptionA'] = $tblProspectReservation->getServiceTblTypeOptionA()->getName();
+                        }
+                        if ($tblProspectReservation->getServiceTblTypeOptionB()) {
+                            $Item['TypeOptionB'] = $tblProspectReservation->getServiceTblTypeOptionB()->getName();
+                        }
+                        if ($tblProspectReservation->getReservationDivision()) {
+                            $Item['DivisionLevel'] = $tblProspectReservation->getReservationDivision();
+                        }
+                    }
+                    $tblProspectAppointment = $tblProspect->getTblProspectAppointment();
+                    if ($tblProspectAppointment) {
+                        $Item['RegistrationDate'] = $tblProspectAppointment->getReservationDate();
+                    }
+                }
+
+                $common = Common::useService()->getCommonByPerson($tblPerson);
+                if ($common) {
+                    $Item['Denomination'] = $common->getTblCommonInformation()->getDenomination();
+                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
+                    $Item['Birthplace'] = $common->getTblCommonBirthDates()->getBirthplace();
+                    $Item['Nationality'] = $common->getTblCommonInformation()->getNationality();
+                }
+
+                $relationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                if (!empty($relationshipList)) {
+                    /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToPerson $relationship */
+                    foreach ($relationshipList as $relationship) {
+                        if ($relationship->getServiceTblPersonFrom() && $relationship->getServiceTblPersonTo()
+                            && $relationship->getTblType()->getName() == 'Geschwisterkind'
+                        ) {
+                            if ($relationship->getServiceTblPersonFrom()->getId() == $tblPerson->getId()) {
+                                $Item['Siblings'][] = $relationship->getServiceTblPersonTo()->getFullName();
+                            } else {
+                                $Item['Siblings'][] = $relationship->getServiceTblPersonFrom()->getFullName();
+                            }
+                        }
+                    }
+                    if (!empty($Item['Siblings'])) {
+                        $Item['Siblings'] = implode(', ', $Item['Siblings']);
+                    }
+                }
+                if (empty($Item['Siblings'])) {
+                    $Item['Siblings'] = '';
+                }
+
+                // get PhoneNumber by Prospect
+                $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+                if ($tblToPhoneList) {
+                    foreach ($tblToPhoneList as $tblToPhone) {
+                        if (( $tblPhone = $tblToPhone->getTblPhone() )) {
+                            if ($Item['Phone'] == '') {
+                                $Item['Phone'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName().' ('.$tblPhone->getNumber().' '.
+                                    // modify TypeShort
+                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                            } else {
+                                $Item['Phone'] .= ', '.$tblPhone->getNumber().' '.
+                                    // modify TypeShort
+                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                            }
+                        }
+                    }
+                    if ($Item['Phone'] != '') {
+                        $Item['Phone'] .= ')';
+                    }
+                }
+
+                $father = null;
+                $mother = null;
+                $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                if ($guardianList) {
+                    foreach ($guardianList as $guardian) {
+                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
+                            // get PhoneNumber by Guardian
+                            $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
+                            if ($tblPersonGuardian) {
+                                $tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
+                                if ($tblToPhoneList) {
+                                    foreach ($tblToPhoneList as $tblToPhone) {
+                                        if (( $tblPhone = $tblToPhone->getTblPhone() )) {
+                                            if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
+                                                    $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
+                                                    ' ('.$tblPhone->getNumber().' '.
+                                                    // modify TypeShort
+                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                            } else {
+                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
+                                                    // modify TypeShort
+                                                    str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
+                                            }
+                                        }
+                                    }
+                                }
+                                if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
+                                    $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+                                }
+                            }
+
+                            if (($salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation())) {
+                                if ($salutation->getId() == 1) {
+                                    $father = $guardian->getServiceTblPersonFrom();
+                                } elseif ($salutation->getId() == 2) {
+                                    $mother = $guardian->getServiceTblPersonFrom();
+                                }
+                            } else {
+                                if ($father === null) {
+                                    $father = $guardian->getServiceTblPersonFrom();
+                                } else {
+                                    $mother = $guardian->getServiceTblPersonFrom();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($Item['PhoneGuardian'])) {
+                    $Item['PhoneGuardian'] = implode('; ', $Item['PhoneGuardian']);
+                }
+
+                if ($father !== null) {
+                    $Item['FatherSalutation'] = $father->getSalutation();
+                    $Item['FatherLastName'] = $father->getLastName();
+                    $Item['FatherFirstName'] = $father->getFirstSecondName();
+                    $Item['Father'] = $father->getFullName();
+                }
+                if ($mother !== null) {
+                    $Item['MotherSalutation'] = $mother->getSalutation();
+                    $Item['MotherLastName'] = $mother->getLastName();
+                    $Item['MotherFirstName'] = $mother->getFirstSecondName();
+                    $Item['Mother'] = $mother->getFullName();
+                }
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $PersonList
+     * @param $tblPersonList
+     *
+     * @return bool|FilePointer
+     */
+    public function createInterestedPersonListExcel($PersonList, $tblPersonList)
+    {
+
+        if (!empty($PersonList)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell("0", "0"), "Anmeldedatum");
+            $export->setValue($export->getCell("1", "0"), "Vorname");
+            $export->setValue($export->getCell("2", "0"), "Name");
+            $export->setValue($export->getCell("3", "0"), "Schuljahr");
+            $export->setValue($export->getCell("4", "0"), "Klassenstufe");
+            $export->setValue($export->getCell("5", "0"), "Schulart 1");
+            $export->setValue($export->getCell("6", "0"), "Schulart 2");
+            $export->setValue($export->getCell("7", "0"), "Straße");
+            $export->setValue($export->getCell("8", "0"), "Hausnummer");
+            $export->setValue($export->getCell("9", "0"), "PLZ");
+            $export->setValue($export->getCell("10", "0"), "Ort");
+            $export->setValue($export->getCell("11", "0"), "Ortsteil");
+            $export->setValue($export->getCell("12", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("13", "0"), "Geburtsort");
+            $export->setValue($export->getCell("14", "0"), "Staatsangeh.");
+            $export->setValue($export->getCell("15", "0"), "Bekenntnis");
+            $export->setValue($export->getCell("16", "0"), "Geschwister");
+            $export->setValue($export->getCell("17", "0"), "Anrede Sorgeberechtigter 1");
+            $export->setValue($export->getCell("18", "0"), "Name Sorgeberechtigter 1");
+            $export->setValue($export->getCell("19", "0"), "Vorname Sorgeberechtigter 1");
+            $export->setValue($export->getCell("20", "0"), "Anrede Sorgeberechtigter 2");
+            $export->setValue($export->getCell("21", "0"), "Name Sorgeberechtigter 2");
+            $export->setValue($export->getCell("22", "0"), "Vorname Sorgeberechtigter 2");
+            $export->setValue($export->getCell("23", "0"), "Telefon Interessent");
+            $export->setValue($export->getCell("24", "0"), "Telefon Sorgeberechtigte");
+
+            $Row = 1;
+            foreach ($PersonList as $PersonData) {
+
+                $export->setValue($export->getCell("0", $Row), $PersonData['RegistrationDate']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['FirstName']);
+                $export->setValue($export->getCell("2", $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell("3", $Row), $PersonData['SchoolYear']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['DivisionLevel']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['TypeOptionA']);
+                $export->setValue($export->getCell("6", $Row), $PersonData['TypeOptionB']);
+                $export->setValue($export->getCell("7", $Row), $PersonData['StreetName']);
+                $export->setValue($export->getCell("8", $Row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell("9", $Row), $PersonData['Code']);
+                $export->setValue($export->getCell("10", $Row), $PersonData['City']);
+                $export->setValue($export->getCell("11", $Row), $PersonData['District']);
+                $export->setValue($export->getCell("12", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("13", $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell("14", $Row), $PersonData['Nationality']);
+                $export->setValue($export->getCell("15", $Row), $PersonData['Denomination']);
+                $export->setValue($export->getCell("16", $Row), $PersonData['Siblings']);
+                $export->setValue($export->getCell("17", $Row), $PersonData['FatherSalutation']);
+                $export->setValue($export->getCell("18", $Row), $PersonData['FatherLastName']);
+                $export->setValue($export->getCell("19", $Row), $PersonData['FatherFirstName']);
+                $export->setValue($export->getCell("20", $Row), $PersonData['MotherSalutation']);
+                $export->setValue($export->getCell("21", $Row), $PersonData['MotherLastName']);
+                $export->setValue($export->getCell("22", $Row), $PersonData['MotherFirstName']);
+                $export->setValue($export->getCell("23", $Row), $PersonData['Phone']);
+                $export->setValue($export->getCell("24", $Row), $PersonData['PhoneGuardian']);
 
                 $Row++;
             }

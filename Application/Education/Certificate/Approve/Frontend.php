@@ -137,7 +137,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                             . (new External(
                                 '',
-                                '/Api/Education/Certificate/Generator/PreviewZip',
+                                '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                 new Download(),
                                 array(
                                     'PrepareId' => $tblPrepare->getId(),
@@ -214,7 +214,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ))
                                 . (new External(
                                     '',
-                                    '/Api/Education/Certificate/Generator/PreviewZip',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),
@@ -425,7 +425,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new External(
                                     'Alle Zeugnisse als Muster herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewZip',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),

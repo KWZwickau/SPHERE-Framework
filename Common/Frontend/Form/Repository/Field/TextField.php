@@ -2,7 +2,7 @@
 namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
 use SPHERE\Common\Frontend\Form\IFieldInterface;
-use SPHERE\Common\Frontend\Form\Repository\AbstractField;
+use SPHERE\Common\Frontend\Form\Repository\AbstractTextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
@@ -10,9 +10,10 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class TextField extends AbstractField implements IFieldInterface
+class TextField extends AbstractTextField implements IFieldInterface
 {
-
+    /** @var string $Label */
+    private $Label = '';
     /**
      * @param string         $Name
      * @param null|string    $Placeholder
@@ -29,6 +30,7 @@ class TextField extends AbstractField implements IFieldInterface
     ) {
 
         $this->Name = $Name;
+        $this->Label = $Label;
         $this->Template = $this->getTemplate(__DIR__.'/TextField.twig');
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
@@ -41,4 +43,11 @@ class TextField extends AbstractField implements IFieldInterface
         }
     }
 
+    /**
+     * @return string
+     */
+    public function getLabel()
+    {
+        return $this->Label;
+    }
 }

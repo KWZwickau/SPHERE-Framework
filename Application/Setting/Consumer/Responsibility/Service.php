@@ -107,6 +107,32 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface    $Form
+     * @param TblResponsibility $tblResponsibility
+     * @param                   $CompanyNumber
+     *
+     * @return IFormInterface|string
+     */
+    public function updateResponsibility(IFormInterface $Form, TblResponsibility $tblResponsibility, $CompanyNumber)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button'])) {
+            return $Form;
+        }
+
+        if ((new Data($this->getBinding()))->updateResponsibility($tblResponsibility, $CompanyNumber)) {
+            return new Success('Die Unternehmensnr. des Unfallversicherungsträgers wurde erfolgreich gespeichert')
+                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS);
+        }
+        return new Danger('Die Unternehmensnr. des Unfallversicherungsträgers konnte nicht gespeichert werden')
+            .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR);
+    }
+
+    /**
      * @param TblResponsibility $tblResponsibility
      *
      * @return bool

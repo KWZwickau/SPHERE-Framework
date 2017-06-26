@@ -155,12 +155,12 @@ class Data extends AbstractData
     }
 
     /**
-     * @param        $Name
+     * @param $Name
      * @param string $Description
-     *
+     * @param null|boolean $IsAdvancedCourse
      * @return TblSubjectGroup
      */
-    public function createSubjectGroup($Name, $Description = '')
+    public function createSubjectGroup($Name, $Description = '', $IsAdvancedCourse = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -168,6 +168,9 @@ class Data extends AbstractData
         $Entity = new TblSubjectGroup();
         $Entity->setName($Name);
         $Entity->setDescription($Description);
+        if ($IsAdvancedCourse !== null) {
+            $Entity->setIsAdvancedCourse($IsAdvancedCourse);
+        }
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -469,6 +472,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblLevel $tblLevel
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByLevel(TblLevel $tblLevel)
+    {
+
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+            ));
+    }
+
+    /**
      * @param TblYear $tblYear
      *
      * @return bool|TblDivision[]
@@ -532,7 +549,7 @@ class Data extends AbstractData
             array(
                 TblDivision::ATTR_NAME  => $Name,
                 TblDivision::ATTR_LEVEL => $tblLevel->getId(),
-                TblDivision::ATTR_YEAR  => $tblYear->getId(),
+                TblDivision::ATTR_YEAR  => $tblYear->getId()
             ));
 
         return $Entity;
@@ -746,7 +763,7 @@ class Data extends AbstractData
             'TblDivisionTeacher',
             array(
                 TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
-            ));
+            ), array('EntityCreate' => self::ORDER_ASC));
 
         $EntityList = array();
         if (!empty ($TempList)) {
@@ -1081,7 +1098,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param array $SubjectTeacherList
+     * @param array $SubjectTeacherList [tblPerson => $tblPerson, tblDivisionSubject => $tblDivisionSubject]
      *
      * @return bool
      */
@@ -1104,6 +1121,43 @@ class Data extends AbstractData
 
                 if (null === $Entity) {
                     $Entity = new TblSubjectTeacher();
+                    $Entity->setServiceTblPerson($tblPerson);
+                    $Entity->setTblDivisionSubject($tblDivisionSubject);
+                    $Manager->bulkSaveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $SubjectStudentList [tblPerson => $tblPerson, tblDivisionSubject => $tblDivisionSubject]
+     *
+     * @return bool
+     */
+    public function addSubjectStudentList($SubjectStudentList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if ($SubjectStudentList) {
+            foreach ($SubjectStudentList as $Content) {
+                /** @var TblDivisionSubject $tblDivisionSubject */
+                $tblDivisionSubject = $Content['tblDivisionSubject'];
+                /** @var TblPerson $tblPerson */
+                $tblPerson = $Content['tblPerson'];
+                $Entity = $Manager->getEntity('TblSubjectStudent')
+                    ->findOneBy(array(
+                        TblSubjectStudent::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                        TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                    ));
+
+                if (null === $Entity) {
+                    $Entity = new TblSubjectStudent();
                     $Entity->setServiceTblPerson($tblPerson);
                     $Entity->setTblDivisionSubject($tblDivisionSubject);
                     $Manager->bulkSaveEntity($Entity);
@@ -1267,6 +1321,32 @@ class Data extends AbstractData
                 $Manager->killEntity($Entity);
             }
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubjectStudent[] $tblSubjectStudentList
+     *
+     * @return string
+     */
+    public function removeSubjectStudentBulk(
+        $tblSubjectStudentList = array()
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($tblSubjectStudentList)) {
+            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                $Entity = $Manager->getEntityById('TblSubjectStudent', $tblSubjectStudent->getId());
+                if (null !== $Entity) {
+                    /** @var TblSubjectStudent $Entity */
+                    $Manager->bulkKillEntity($Entity);
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;
@@ -1446,10 +1526,11 @@ class Data extends AbstractData
      * @param TblSubjectGroup $tblSubjectGroup
      * @param string $Name
      * @param string $Description
+     * @param null|boolean $IsAdvancedCourse
      *
      * @return bool
      */
-    public function updateSubjectGroup(TblSubjectGroup $tblSubjectGroup, $Name, $Description = '')
+    public function updateSubjectGroup(TblSubjectGroup $tblSubjectGroup, $Name, $Description = '', $IsAdvancedCourse = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -1460,6 +1541,9 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            if ($IsAdvancedCourse !== null) {
+                $Entity->setIsAdvancedCourse($IsAdvancedCourse);
+            }
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -2152,5 +2236,16 @@ class Data extends AbstractData
         }
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionAllByYear(TblYear $tblYear) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivision',
+            array(TblDivision::ATTR_YEAR => $tblYear->getId()));
     }
 }

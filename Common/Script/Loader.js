@@ -107,7 +107,20 @@ var Client = (function ()
         } else {
             if (10000 < useConfig[Module].Retry) {
                 if (console && console.log) {
-                    console.log('Unable to load ' + Module)
+                    console.log('### Unable to load ' + Module + ' depending on: ###');
+                    for( var Index in useConfig[Module].Depending ) {
+                        var isUsed = useConfig[useConfig[Module].Depending[Index]].isUsed;
+                        var isLoaded = useConfig[useConfig[Module].Depending[Index]].isLoaded;
+                        console.log(
+                            ( isUsed && isLoaded
+                                ? 'OK: '
+                                    + useConfig[Module].Depending[Index]
+                                : 'FAILED: '
+                                    + useConfig[Module].Depending[Index]
+                                    + ' > Used: ' + isUsed + ' Loaded: ' + isLoaded
+                            )
+                        );
+                    }
                 }
                 if ('undefined' != typeof jQuery) {
                     jQuery('span.loading-indicator').hide();

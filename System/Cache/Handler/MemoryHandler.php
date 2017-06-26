@@ -101,10 +101,13 @@ class MemoryHandler extends AbstractHandler implements HandlerInterface
     public function clearCache($Region = null)
     {
 
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Clear Memory');
         if (null === $Region) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())
+                ->addLog('Clear Memory (Full-Flush)');
             $this->MemoryRegister = array();
         } else {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())
+                ->addLog('Clear Memory (Slot-Flush: '.$Region.')');
             $this->MemoryRegister[$Region] = array();
         }
         return $this;

@@ -106,6 +106,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|TblDocument[]
+     */
+    public function getDocumentAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDocument');
+    }
+
+    /**
      * @param string $name
      *
      * @return false|TblDocument
@@ -225,6 +234,56 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblDocumentSubject $tblDocumentSubject
+     * @param TblSubject $tblSubject
+     * @param bool $IsEssential
+     *
+     * @return bool
+     */
+    public function updateDocumentSubject(
+        TblDocumentSubject $tblDocumentSubject,
+        TblSubject $tblSubject,
+        $IsEssential = false
+    ) {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblDocumentSubject $Entity */
+        $Entity = $Manager->getEntityById('TblDocumentSubject', $tblDocumentSubject->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setEssential($IsEssential);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDocumentSubject $tblDocumentSubject
+     *
+     * @return bool
+     */
+    public function destroyDocumentSubject(TblDocumentSubject $tblDocumentSubject)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        /** @var TblDocumentSubject $Entity */
+        $Entity = $Manager->getEntityById('TblDocumentSubject', $tblDocumentSubject->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 
     /**

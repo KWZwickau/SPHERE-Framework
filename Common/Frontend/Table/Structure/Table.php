@@ -113,29 +113,8 @@ class Table extends Extension implements ITemplateInterface
     public function getHash()
     {
 
-        if (empty( $this->Hash )) {
-            $HeadList = $this->TableHead;
-            array_walk($HeadList, function (&$H) {
-
-                if (is_object($H)) {
-                    $H = serialize($H);
-                }
-            });
-            $BodyList = $this->TableBody;
-            array_walk($BodyList, function (&$H) {
-
-                if (is_object($H)) {
-                    $H = serialize($H);
-                }
-            });
-            $FootList = $this->TableFoot;
-            array_walk($FootList, function (&$H) {
-
-                if (is_object($H)) {
-                    $H = serialize($H);
-                }
-            });
-            $this->Hash = md5(json_encode($HeadList) . json_encode($BodyList) . json_encode($FootList));
+        if (empty($this->Hash)) {
+            $this->Hash = crc32(uniqid('Table', true));
         }
         return $this->Hash;
     }

@@ -42,15 +42,18 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     protected $Data;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
-
-    private static $LinkCounter = 0;
+    /** @var string $Hash */
+    protected $Hash = '';
 
     /**
      * @return string
      */
     public function getHash()
     {
-        return 'Link-Hash-'.sha1($this->getName().$this->getPath()).'-'.self::$LinkCounter;
+        if (empty( $this->Hash )) {
+            $this->Hash = 'Link-'.crc32( uniqid(__CLASS__, true) );
+        }
+        return $this->Hash;
     }
 
     /**
@@ -65,8 +68,6 @@ abstract class AbstractLink extends Extension implements ILinkInterface
      */
     public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false, $Anchor = null)
     {
-        // Generate Hash
-        self::$LinkCounter++;
 
         if( !empty( $Anchor ) ) {
             $this->setName($Name.' '.new Link() );

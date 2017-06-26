@@ -20,8 +20,8 @@ class ToggleCheckbox extends Extension implements ILinkInterface
     protected $Name;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
-
-    private static $LinkCounter = 0;
+    /** @var string $Hash */
+    protected $Hash = '';
 
     /**
      * ToggleCheckbox constructor.
@@ -33,8 +33,6 @@ class ToggleCheckbox extends Extension implements ILinkInterface
      */
     public function __construct($Name, IFrontendInterface $Frontend, IIconInterface $Icon = null, $ToolTip = false)
     {
-        // Generate Hash
-        self::$LinkCounter++;
 
         $this->Name = $Name;
         $this->Template = $this->getTemplate(__DIR__.'/ToggleCheckbox.twig');
@@ -61,7 +59,10 @@ class ToggleCheckbox extends Extension implements ILinkInterface
      */
     public function getHash()
     {
-        return 'Toggle-Hash-'.self::$LinkCounter;
+        if (empty( $this->Hash )) {
+            $this->Hash = 'Toggle-'.crc32( uniqid(__CLASS__, true) );
+        }
+        return $this->Hash;
     }
 
     /**

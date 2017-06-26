@@ -5,6 +5,8 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
+use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\Service\Data;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\Application\Setting\Consumer\School\Service\Setup;
@@ -134,6 +136,56 @@ class Service extends AbstractService
         }
 
         return $Form;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblSchool      $tblSchool
+     * @param string         $CompanyNumber
+     *
+     * @return IFormInterface|string
+     */
+    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, $CompanyNumber = '')
+    {
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button'])) {
+            return $Form;
+        }
+
+        if ((new Data($this->getBinding()))->updateSchool($tblSchool, $CompanyNumber)) {
+            return new Success('Die Unternehmensnr. des Unfallversicherungsträgers wurde erfolgreich gespeichert')
+                .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_SUCCESS);
+        }
+        return new Danger('Die Unternehmensnr. des Unfallversicherungsträgers konnte nicht gespeichert werden')
+            .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR);
+    }
+
+    /**
+     * @param TblSchool|null $tblSchool
+     *
+     * @return string
+     * choose Standard from Responsibility if School is empty
+     */
+    public function getCompanyNumber(TblSchool $tblSchool = null)
+    {
+
+        $result = '';
+        if ($tblSchool) {
+            $result = $tblSchool->getCompanyNumber();
+        }
+        if ($result == '') {
+            $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
+            if ($tblResponsibilityList) {
+                /** @var TblResponsibility $tblResponsibility */
+                $tblResponsibility = current($tblResponsibilityList);
+                $result = $tblResponsibility->getCompanyNumber();
+            }
+        }
+
+        return $result;
     }
 
     /**

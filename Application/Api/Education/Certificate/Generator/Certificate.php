@@ -1,24 +1,24 @@
 <?php
+
 namespace SPHERE\Application\Api\Education\Certificate\Generator;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Frame;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 abstract class Certificate extends Extension
@@ -38,9 +38,9 @@ abstract class Certificate extends Extension
     private $Grade;
 
     /**
-     * @var TblPerson|null
+     * @var array|false
      */
-    private $tblPerson = null;
+    private $AdditionalGrade;
 
     /**
      * @var TblDivision|null
@@ -48,58 +48,43 @@ abstract class Certificate extends Extension
     private $tblDivision = null;
 
     /**
+     * @param TblDivision $tblDivision
      * @param bool|true $IsSample
+     * @param array $pageList
      */
-    public function __construct($IsSample = true)
+    public function __construct(TblDivision $tblDivision = null, $IsSample = true, $pageList = array())
     {
 
-        $this->getCache(new TwigHandler())->clearCache();
+        // Twig as string wouldn't be cached (used function getTwigTemplateString)
+//        $this->getCache(new TwigHandler())->clearCache();
 
         $this->setGrade(false);
+        $this->setAdditionalGrade(false);
+        $this->tblDivision = $tblDivision;
         $this->IsSample = (bool)$IsSample;
-        $this->Certificate = $this->buildCertificate($this->IsSample);
+
+        // need for Preview frontend (getTemplateInformationForPreview)
+        $this->Certificate = $this->buildCertificate($pageList);
     }
 
     /**
+     * @param TblPerson|null $tblPerson
+     * @return Page|Page[]
+     * @internal param bool $IsSample
+     *
+     */
+    abstract public function buildPages(TblPerson $tblPerson = null);
+
+    /**
      * @param array $Data
+     * @param array $PageList
      *
      * @return IBridgeInterface
      */
-    public function createCertificate($Data = array())
+    public function createCertificate($Data = array(), $PageList = array())
     {
 
-        if (isset($Data['Grade'])) {
-            $this->setGrade($Data['Grade']);
-        }
-        if (isset($Data['Person']['Id'])) {
-            if (($person = Person::useService()->getPersonById($Data['Person']['Id']))) {
-                $this->setTblPerson($person);
-                $this->allocatePersonData($Data);
-                $this->allocatePersonAddress($Data);
-                $this->allocatePersonCommon($Data);
-                $this->allocatePersonParents($Data);
-            } else {
-                $this->setTblPerson(null);
-            }
-        }
-        if (isset($Data['Company']['Id'])
-            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
-        ) {
-            $this->allocateCompanyData($Data);
-            $this->allocateCompanyAddress($Data);
-        }
-        if (isset($Data['Division']['Id'])
-            && ($tblDivision = Division::useService()->getDivisionById($Data['Division']['Id']))
-        ) {
-            $this->setTblDivision($tblDivision);
-        }
-
-        $this->Certificate = $this->buildCertificate($this->IsSample);
-
-        // für Befreiung
-        if (isset($Data['Grade'])) {
-            $Data['Grade'] = $this->getGrade();
-        }
+        $this->Certificate = $this->buildCertificate($PageList);
 
         if (!empty($Data)) {
             $this->Certificate->setData($Data);
@@ -109,11 +94,35 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param bool $IsSample
+     * @param array $PageList
      *
      * @return Frame
      */
-    abstract public function buildCertificate($IsSample = true);
+    public function buildCertificate($PageList = array())
+    {
+
+        $document = new Document();
+
+        foreach ($PageList as $personPages) {
+            if (is_array($personPages)) {
+                foreach ($personPages as $page) {
+                    $document->addPage($page);
+                }
+            } else {
+                $document->addPage($personPages);
+            }
+        }
+
+        // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
+        if (strpos(get_class($this), 'RadebeulLernentwicklungsbericht') !== false) {
+            $InjectStyle = 'body { margin-left: 0.6cm !important; margin-right: 0.6cm !important; }';
+        } else {
+            $InjectStyle = '';
+        }
+
+        return (new Frame($InjectStyle))->addDocument($document);
+    }
+
 
     /**
      * @param $Grade
@@ -133,27 +142,6 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @return false|TblPerson
-     */
-    public function getTblPerson()
-    {
-        if (null === $this->tblPerson) {
-            return false;
-        } else {
-            return $this->tblPerson;
-        }
-    }
-
-    /**
-     * @param false|TblPerson $tblPerson
-     */
-    public function setTblPerson(TblPerson $tblPerson = null)
-    {
-
-        $this->tblPerson = $tblPerson;
-    }
-
-    /**
      * @return false|TblDivision
      */
     public function getTblDivision()
@@ -163,15 +151,6 @@ abstract class Certificate extends Extension
         } else {
             return $this->tblDivision;
         }
-    }
-
-    /**
-     * @param false|TblDivision $tblDivision
-     */
-    public function setTblDivision(TblDivision $tblDivision = null)
-    {
-
-        $this->tblDivision = $tblDivision;
     }
 
     /**
@@ -188,11 +167,35 @@ abstract class Certificate extends Extension
         $tblCertificate = Generator::useService()->getCertificateByCertificateClassName($Certificate);
         if ($tblCertificate) {
             return $tblCertificate->getName() . ($tblCertificate->getDescription()
-                ? ' (' . $tblCertificate->getDescription() . ')'
-                : ''
-            );
+                    ? ' (' . $tblCertificate->getDescription() . ')'
+                    : ''
+                );
         }
         throw new \Exception('Certificate Missing: ' . $Certificate);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSample()
+    {
+        return $this->IsSample;
+    }
+
+    /**
+     * @return array|false
+     */
+    public function getAdditionalGrade()
+    {
+        return $this->AdditionalGrade;
+    }
+
+    /**
+     * @param array|false $AdditionalGrade
+     */
+    public function setAdditionalGrade($AdditionalGrade)
+    {
+        $this->AdditionalGrade = $AdditionalGrade;
     }
 
     /**
@@ -241,160 +244,69 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param array $Data
+     * @param $personId
+     * @param string $MarginTop
      *
-     * @return array $Data
+     * @return Slice
      */
-    private function allocatePersonData(&$Data)
+    protected function getSchoolName($personId, $MarginTop = '20px')
     {
 
-        if ($this->getTblPerson()) {
-            $Data['Person']['Data']['Name']['Salutation'] = $this->getTblPerson()->getSalutation();
-            $Data['Person']['Data']['Name']['First'] = $this->getTblPerson()->getFirstSecondName();
-            $Data['Person']['Data']['Name']['Last'] = $this->getTblPerson()->getLastName();
-        }
-
-        return $Data;
-    }
-
-    /**
-     * @param array $Data
-     *
-     * @return array $Data
-     */
-    private function allocatePersonAddress(&$Data)
-    {
-
-        if ($this->getTblPerson()) {
-            if (($tblAddress = $this->getTblPerson()->fetchMainAddress())) {
-                $Data['Person']['Address']['Street']['Name'] = $tblAddress->getStreetName();
-                $Data['Person']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
-                $Data['Person']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
-                $Data['Person']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
-            }
-        }
-
-        return $Data;
-    }
-
-    /**
-     * @param array $Data
-     *
-     * @return array $Data
-     */
-    private function allocatePersonCommon(&$Data)
-    {
-
-        if ($this->getTblPerson()) {
-            if (($tblCommon = Common::useService()->getCommonByPerson($this->getTblPerson()))
-                && $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()
-            ) {
-                $Data['Person']['Common']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
-                $Data['Person']['Common']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
-                $Data['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
-                    ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
-            }
-        }
-
-        return $Data;
-    }
-
-    /**
-     * @param array $Data
-     *
-     * @return array $Data
-     */
-    private function allocatePersonParents(&$Data)
-    {
-
-        if ($this->getTblPerson()) {
-            if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
-                foreach ($tblRelationshipList as $tblToPerson) {
-                    if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
-                        && $tblToPerson->getServiceTblPersonTo()
-                        && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
-                        && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
-                    ) {
-                        if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
-                            $Data['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
-                            $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
-                        } elseif (!isset($Data['Person']['Parent']['Father']['Name'])) {
-                            $Data['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
-                            $Data['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
+        $isLargeCompanyName = false;
+        // get company name
+        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblTransferType);
+                    if ($tblStudentTransfer) {
+                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
+                            if (strlen($tblCompany->getName()) > 60) {
+                                $isLargeCompanyName = true;
+                            }
                         }
                     }
                 }
             }
         }
 
-        return $Data;
-    }
-
-    /**
-     * @param array $Data
-     *
-     * @return array $Data
-     */
-    private function allocateCompanyData(&$Data)
-    {
-
-        if (isset($Data['Company']['Id'])
-            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
-        ) {
-            $Data['Company']['Data']['Name'] = $tblCompany->getName();
-        }
-
-        return $Data;
-    }
-
-    /**
-     * @param array $Data
-     *
-     * @return array $Data
-     */
-    private function allocateCompanyAddress(&$Data)
-    {
-
-        if (isset($Data['Company']['Id'])
-            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']['Id']))
-        ) {
-            if (($tblAddress = $tblCompany->fetchMainAddress())) {
-                $Data['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
-                $Data['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
-                $Data['Company']['Address']['City']['Code'] = $tblAddress->getTblCity()->getCode();
-                $Data['Company']['Address']['City']['Name'] = $tblAddress->getTblCity()->getDisplayName();
-            }
-        }
-
-        return $Data;
-    }
-
-    /**
-     * @param string $MarginTop
-     *
-     * @return Slice
-     */
-    protected function getSchoolName($MarginTop = '20px')
-    {
         $SchoolSlice = (new Slice());
-        $SchoolSlice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('Name der Schule:')
-                , '18%')
-            ->addElementColumn((new Element())
-                ->setContent('{% if(Content.Company.Data.Name) %}
-                                        {{ Content.Company.Data.Name }}
+        if ($isLargeCompanyName) {
+            $SchoolSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Name der Schule:')
+                    , '18%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
+                                        {{ Content.P'.$personId.'.Company.Data.Name }}
                                     {% else %}
                                           &nbsp;
                                     {% endif %}')
-                ->styleBorderBottom()
-                ->styleAlignCenter()
-                , '64%')
-            ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
-                ->styleBorderBottom()
-                , '18%')
-        )->styleMarginTop($MarginTop);
+                    ->styleBorderBottom()
+                    , '82%')
+            )->styleMarginTop($MarginTop);
+        } else {
+            $SchoolSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Name der Schule:')
+                    , '18%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
+                                        {{ Content.P' . $personId . '.Company.Data.Name }}
+                                    {% else %}
+                                          &nbsp;
+                                    {% endif %}')
+                    ->styleBorderBottom()
+                    ->styleAlignCenter()
+                    , '64%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    , '18%')
+            )->styleMarginTop($MarginTop);
+        }
+
+
         return $SchoolSlice;
     }
 
@@ -418,12 +330,97 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param bool   $IsSample
+     * @param bool   $extendByOwnPicture
+     * @param string $with
+     * @param string $height
+     *
+     * @return Slice
+     */
+    protected function getHead($IsSample, $extendByOwnPicture = false, $with = 'auto', $height = '50px')
+    {
+
+        if ($extendByOwnPicture) {
+            $PicturePath = $this->getUsedPicture();
+            $height = $this->getPictureHeight();
+            $Header = $this->getHeadSlice($IsSample, $PicturePath, $with, $height);
+        } else {
+            $Header = $this->getHeadSlice($IsSample, '', $with, $height);
+        }
+        return $Header;
+    }
+
+    /**
+     * @param bool   $IsSample
+     * @param string $picturePath
+     * @param string $with
+     * @param string $height
+     *
+     * @return Slice
+     */
+    protected function getHeadSlice($IsSample, $picturePath = '', $with = '100%', $height = '100%')
+    {
+        if ($picturePath != '') {
+            if ($IsSample) {
+                $Header = (new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element\Image($picturePath, $with, $height))
+                            ->styleAlignCenter()
+                            , '25%')
+                        ->addElementColumn((new Element\Sample())
+                            ->styleTextSize('30px')
+                        )
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px'))
+                            , '25%')
+                    );
+            } else {
+                $Header = (new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element\Image($picturePath, $with, $height))
+                            ->styleAlignCenter()
+                            , '25%')
+                        ->addElementColumn((new Element()), '50%')
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px'))
+                            , '25%')
+                    );
+            }
+        } else {
+            if ($IsSample) {
+                $Header = (new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            , '25%'
+                        )
+                        ->addElementColumn((new Element\Sample())
+                            ->styleTextSize('30px')
+                        )
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px'))
+                            , '25%')
+                    );
+            } else {
+                $Header = (new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element()), '75%')
+                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                            '165px', '50px'))
+                            , '25%')
+                    );
+            }
+        }
+        return $Header;
+    }
+
+    /**
+     * @param $personId
      * @param string $MarginTop
      * @param string $YearString
      *
      * @return Slice
      */
-    protected function getDivisionAndYear($MarginTop = '20px', $YearString = 'Schuljahr')
+    protected function getDivisionAndYear($personId, $MarginTop = '20px', $YearString = 'Schuljahr')
     {
         $YearDivisionSlice = (new Slice());
         $YearDivisionSlice->addSection((new Section())
@@ -431,7 +428,7 @@ abstract class Certificate extends Extension
                 ->setContent('Klasse:')
                 , '7%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.Division.Data.Level.Name }}{{ Content.Division.Data.Name }}')
+                ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
                 ->styleBorderBottom()
                 ->styleAlignCenter()
                 , '7%')
@@ -442,7 +439,7 @@ abstract class Certificate extends Extension
                 ->styleAlignRight()
                 , '18%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.Division.Data.Year }}')
+                ->setContent('{{ Content.P' . $personId . '.Division.Data.Year }}')
                 ->styleBorderBottom()
                 ->styleAlignCenter()
                 , '13%')
@@ -451,11 +448,12 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $MarginTop
      *
      * @return Slice
      */
-    protected function getStudentName($MarginTop = '5px')
+    protected function getStudentName($personId, $MarginTop = '5px')
     {
         $StudentSlice = (new Slice());
         $StudentSlice->addSection((new Section())
@@ -463,8 +461,8 @@ abstract class Certificate extends Extension
                 ->setContent('Vorname und Name:')
                 , '21%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.Person.Data.Name.First }}
-                              {{ Content.Person.Data.Name.Last }}')
+                ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                              {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                 ->styleBorderBottom()
                 , '79%')
         )->styleMarginTop($MarginTop);
@@ -472,19 +470,355 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param bool|true $isSlice
-     * @param array     $languagesWithStartLevel
-     * @param string    $TextSize
-     * @param bool      $IsGradeUnderlined
+     * @param array $languagesWithStartLevel
+     * @param string $TextSize
+     * @param bool $IsGradeUnderlined
+     * @param bool $hasSecondLanguageDiploma
      *
      * @return Section[]|Slice
      */
     protected function getSubjectLanes(
+        $personId,
+        $isSlice = true,
+        $languagesWithStartLevel = array(),
+        $TextSize = '14px',
+        $IsGradeUnderlined = false,
+        $hasSecondLanguageDiploma = false
+    ) {
+
+        $tblPerson = Person::useService()->getPersonById($personId);
+
+        $SubjectSlice = (new Slice());
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+
+        $SectionList = array();
+
+        if (!empty($tblCertificateSubjectAll)) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject) {
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
+                    }
+                }
+            }
+
+            $tblSecondForeignLanguageDiploma = false;
+
+            // add SecondLanguageField, Fach wird aus der Schüleraktte des Schülers ermittelt
+            $tblSecondForeignLanguage = false;
+            if (!empty($languagesWithStartLevel)) {
+                if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])) {
+                    $SubjectStructure[$languagesWithStartLevel['Rank']]
+                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = 'Empty';
+                    $SubjectStructure[$languagesWithStartLevel['Rank']]
+                    [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
+                    if ($tblPerson
+                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                    ) {
+                        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                                $tblStudentSubjectType))
+                        ) {
+                            /** @var TblStudentSubject $tblStudentSubject */
+                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                if ($tblStudentSubject->getTblStudentSubjectRanking()
+                                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                                    && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
+                                ) {
+                                    $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
+                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
+                                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
+                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
+                                    [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSubjectForeignLanguage->getName();
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                if ($hasSecondLanguageDiploma
+                    && $tblPerson
+                    && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                ) {
+                    if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                        && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                            $tblStudentSubjectType))
+                    ) {
+                        /** @var TblStudentSubject $tblStudentSubject */
+                        foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                            if ($tblStudentSubject->getTblStudentSubjectRanking()
+                                && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                                && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
+                            ) {
+                                $tblSecondForeignLanguageDiploma = $tblSubjectForeignLanguage;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array(1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+
+            $hasAdditionalLine = false;
+            $isShrinkMarginTop = false;
+
+            // Abschlusszeugnis 2. Fremdsprache anfügen
+            if ($hasSecondLanguageDiploma) {
+                // Zeiger auf letztes Element
+                end($SubjectStructure);
+                $lastItem = &$SubjectStructure[key($SubjectStructure)];
+                //
+                if (isset($lastItem[1])) {
+                    $SubjectStructure[][1] = $this->addSecondForeignLanguageDiploma($tblSecondForeignLanguageDiploma
+                        ? $tblSecondForeignLanguageDiploma : null);
+                } else {
+                    $lastItem[1] = $this->addSecondForeignLanguageDiploma($tblSecondForeignLanguageDiploma
+                        ? $tblSecondForeignLanguageDiploma : null);
+                }
+            }
+
+            // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
+            if (($tblCertificate = $this->getCertificateEntity())
+                && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+                && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+                && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+                && $tblSetting->getValue()
+            ) {
+                $subjectWidth = 37;
+                $gradeWidth = 11;
+                $TextSizeSmall = '13px';
+                $paddingTopShrinking = '4px';
+                $paddingBottomShrinking = '4px';
+            } else {
+                $subjectWidth = 39;
+                $gradeWidth = 9;
+                $TextSizeSmall = '8.5px';
+                $paddingTopShrinking = '5px';
+                $paddingBottomShrinking = '6px';
+            }
+
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                $count++;
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                $SubjectSection = (new Section());
+
+                if (count($SubjectList) == 1 && isset($SubjectList[2])) {
+                    $SubjectSection->addElementColumn((new Element()), 'auto');
+                }
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    // 2. Fremdsprache ab Klassenstufe
+                    if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])
+                        && $languagesWithStartLevel['Lane'] == $Lane && $languagesWithStartLevel['Rank'] == $count
+                    ) {
+                        $hasAdditionalLine['Lane'] = $Lane;
+                        $hasAdditionalLine['Ranking'] = 2;
+                        $hasAdditionalLine['SubjectAcronym'] = $tblSecondForeignLanguage
+                            ? $tblSecondForeignLanguage->getAcronym() : 'Empty';
+                    }
+
+                    if ($Lane > 1) {
+                        $SubjectSection->addElementColumn((new Element())
+                            , '4%');
+                    }
+                    if ($hasAdditionalLine && $Lane == $hasAdditionalLine['Lane']) {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom('0px')
+                            ->styleMarginBottom('0px')
+                            ->styleBorderBottom('1px', '#000')
+                            ->styleMarginTop('10px')
+                            ->styleTextSize($TextSize)
+                            , (string)($subjectWidth - 2) . '%');
+                        $SubjectSection->addElementColumn((new Element()), '2%');
+                    } elseif ($isShrinkMarginTop) {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->stylePaddingTop()
+                            ->styleMarginTop('0px')
+                            ->styleTextSize($TextSize)
+                            , (string)$subjectWidth . '%');
+                        // ToDo Dynamisch für alle zu langen Fächer
+                    } elseif ($Subject['SubjectName'] == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent(new Container('Gemeinschaftskunde/')
+                                . new Container('Rechtserziehung/Wirtschaft'))
+                            ->stylePaddingTop()
+                            ->styleMarginTop('10px')
+                            ->styleTextSize($TextSize)
+                            , (string)$subjectWidth . '%');
+                    } else {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->stylePaddingTop()
+                            ->styleMarginTop('10px')
+                            ->styleTextSize($TextSize)
+                            , (string)$subjectWidth . '%');
+                    }
+
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                             {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                                         {% else %}
+                                             &ndash;
+                                         {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor('#BBB')
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                        ->stylePaddingTop(
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                ' . $paddingTopShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                               ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->styleMarginTop($isShrinkMarginTop ? '0px' : '10px')
+                        ->styleTextSize(
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
+                        , (string)$gradeWidth . '%');
+
+                    if ($isShrinkMarginTop && $Lane == 2) {
+                        $isShrinkMarginTop = false;
+                    }
+                }
+
+                if (count($SubjectList) == 1 && isset($SubjectList[1])) {
+                    $SubjectSection->addElementColumn((new Element()), '52%');
+                    $isShrinkMarginTop = false;
+                }
+
+                $SubjectSlice->addSection($SubjectSection);
+                $SectionList[] = $SubjectSection;
+
+                if ($hasAdditionalLine) {
+                    $SubjectSection = (new Section());
+
+                    if ($hasAdditionalLine['Lane'] == 2) {
+                        $SubjectSection->addElementColumn((new Element()), '52%');
+                    }
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
+                            '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
+                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
+                                 {% else %}
+                                    &nbsp;
+                                 {% endif %}'
+                            . ')')
+                        ->stylePaddingTop('0px')
+                        ->stylePaddingBottom('0px')
+                        ->styleMarginTop('0px')
+                        ->styleMarginBottom('0px')
+                        ->styleTextSize('9px')
+                        , (string)$subjectWidth . '%');
+
+                    if ($hasAdditionalLine['Lane'] == 1) {
+                        $SubjectSection->addElementColumn((new Element()), '52%');
+                    }
+
+                    $hasAdditionalLine = false;
+
+                    // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
+//                    $isShrinkMarginTop = true;
+
+                    $SubjectSlice->addSection($SubjectSection);
+                    $SectionList[] = $SubjectSection;
+                }
+
+            }
+        }
+
+        if ($isSlice) {
+            return $SubjectSlice;
+        } else {
+            return $SectionList;
+        }
+    }
+
+    /**
+     * @param TblSubject|null $tblSecondForeignLanguageDiploma
+     *
+     * @return array
+     */
+    private function addSecondForeignLanguageDiploma(TblSubject $tblSecondForeignLanguageDiploma = null)
+    {
+        return array(
+            'SubjectAcronym' => $tblSecondForeignLanguageDiploma ? $tblSecondForeignLanguageDiploma->getAcronym() : 'SECONDLANGUAGE',
+            'SubjectName' => $tblSecondForeignLanguageDiploma
+                ? $tblSecondForeignLanguageDiploma->getName() . ' (abschlussorientiert)'
+                :'2. Fremdsprache (abschlussorientiert)'
+        );
+    }
+
+    /**
+     * @param $personId
+     * @param bool|true $isSlice
+     * @param array $languagesWithStartLevel
+     * @param string $TextSize
+     * @param bool $IsGradeUnderlined
+     *
+     * @return Section[]|Slice
+     */
+    protected function getSubjectLanesCoswig(
+        $personId,
         $isSlice = true,
         $languagesWithStartLevel = array(),
         $TextSize = '14px',
         $IsGradeUnderlined = false
     ) {
+
+        $tblPerson = Person::useService()->getPersonById($personId);
 
         $SubjectSlice = (new Slice());
 
@@ -512,25 +846,6 @@ abstract class Certificate extends Extension
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
 
-                        // es steht nur befreit auf dem Zeugnis -> jetzt auswählbar am Stichtagsnotenauftrag
-//                        // Liberation?
-//                        if (
-//                            $this->getTblPerson()
-//                            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
-//                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
-//                        ) {
-//                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-//                            if ($tblStudentLiberationAll) {
-//                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-//                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
-//                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
-//                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-//                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
                     }
                 }
             }
@@ -543,8 +858,8 @@ abstract class Certificate extends Extension
                     [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = 'Empty';
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
                     [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
-                    if ($this->getTblPerson()
-                        && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+                    if ($tblPerson
+                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
                     ) {
                         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
                             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
@@ -614,6 +929,8 @@ abstract class Certificate extends Extension
                     if ($hasAdditionalLine && $Lane == $hasAdditionalLine['Lane']) {
                         $SubjectSection->addElementColumn((new Element())
                             ->setContent($Subject['SubjectName'])
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
                             ->stylePaddingTop()
                             ->stylePaddingBottom('0px')
                             ->styleMarginBottom('0px')
@@ -625,6 +942,8 @@ abstract class Certificate extends Extension
                     } elseif ($isShrinkMarginTop) {
                         $SubjectSection->addElementColumn((new Element())
                             ->setContent($Subject['SubjectName'])
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
                             ->stylePaddingTop()
                             ->styleMarginTop('0px')
                             ->styleTextSize($TextSize)
@@ -634,6 +953,8 @@ abstract class Certificate extends Extension
                         $SubjectSection->addElementColumn((new Element())
                             ->setContent(new Container('Gemeinschaftskunde/')
                                 . new Container('Rechtserziehung/Wirtschaft'))
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
                             ->stylePaddingTop()
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
@@ -641,6 +962,8 @@ abstract class Certificate extends Extension
                     } else {
                         $SubjectSection->addElementColumn((new Element())
                             ->setContent($Subject['SubjectName'])
+                            ->styleFontFamily('Trebuchet MS')
+                            ->styleLineHeight('85%')
                             ->stylePaddingTop()
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
@@ -650,23 +973,25 @@ abstract class Certificate extends Extension
                     $TextSizeSmall = '8px';
 
                     $SubjectSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                             {{ Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                             {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
                                          {% else %}
                                              &ndash;
                                          {% endif %}')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor('#E9E9E9')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
-                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  4px
                              {% else %}
                                  2px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
-                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  5px
                              {% else %}
                                  2px
@@ -674,7 +999,7 @@ abstract class Certificate extends Extension
                         )
                         ->styleMarginTop($isShrinkMarginTop ? '0px' : '10px')
                         ->styleTextSize(
-                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  ' . $TextSizeSmall . '
                              {% else %}
                                  ' . $TextSize . '
@@ -703,12 +1028,14 @@ abstract class Certificate extends Extension
                     }
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
-                            '{% if(Content.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
-                                     {{ Content.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
+                            '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
+                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
                                  {% else %}
                                     &nbsp;
                                  {% endif %}'
                             . ')')
+                        ->styleFontFamily('Trebuchet MS')
+                        ->styleLineHeight('85%')
                         ->stylePaddingTop('0px')
                         ->stylePaddingBottom('0px')
                         ->styleMarginTop('0px')
@@ -740,291 +1067,12 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param bool|true $isSlice
-     * @param array     $languagesWithStartLevel
-     * @param string    $TextSize
-     * @param bool      $IsGradeUnderlined
-     *
-     * @return Section[]|Slice
-     */
-    protected function getSubjectLanesCoswig(
-        $isSlice = true,
-        $languagesWithStartLevel = array(),
-        $TextSize = '14px',
-        $IsGradeUnderlined = false
-    ) {
-
-        $SubjectSlice = ( new Slice() );
-
-        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
-        $tblGradeList = $this->getGrade();
-
-        $SectionList = array();
-
-        if (!empty($tblCertificateSubjectAll)) {
-            $SubjectStructure = array();
-            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
-                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
-
-                // Grade Exists? => Add Subject to Certificate
-                if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
-                        = $tblSubject->getAcronym();
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
-                        = $tblSubject->getName();
-                } else {
-                    // Grade Missing, But Subject Essential => Add Subject to Certificate
-                    if ($tblCertificateSubject->isEssential()) {
-                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
-                            = $tblSubject->getAcronym();
-                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
-                            = $tblSubject->getName();
-
-                        // es steht nur befreit auf dem Zeugnis -> jetzt auswählbar am Stichtagsnotenauftrag
-//                        // Liberation?
-//                        if (
-//                            $this->getTblPerson()
-//                            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
-//                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
-//                        ) {
-//                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-//                            if ($tblStudentLiberationAll) {
-//                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-//                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
-//                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
-//                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-//                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-                    }
-                }
-            }
-
-            // add SecondLanguageField, Fach wird aus der Schüleraktte des Schülers ermittelt
-            $tblSecondForeignLanguage = false;
-            if (!empty($languagesWithStartLevel)) {
-                if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])) {
-                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = 'Empty';
-                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                    [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
-                    if ($this->getTblPerson()
-                        && ( $tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()) )
-                    ) {
-                        if (( $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE') )
-                            && ( $tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                                $tblStudentSubjectType) )
-                        ) {
-                            /** @var TblStudentSubject $tblStudentSubject */
-                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                                if ($tblStudentSubject->getTblStudentSubjectRanking()
-                                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                                    && ( $tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject() )
-                                ) {
-                                    $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
-                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
-                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                                    [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSubjectForeignLanguage->getName();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Shrink Lanes
-            $LaneCounter = array(1 => 0, 2 => 0);
-            $SubjectLayout = array();
-            ksort($SubjectStructure);
-            foreach ($SubjectStructure as $SubjectList) {
-                ksort($SubjectList);
-                foreach ($SubjectList as $Lane => $Subject) {
-                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
-                    $LaneCounter[$Lane]++;
-                }
-            }
-            $SubjectStructure = $SubjectLayout;
-
-            $hasAdditionalLine = false;
-            $isShrinkMarginTop = false;
-
-            $count = 0;
-            foreach ($SubjectStructure as $SubjectList) {
-                $count++;
-                // Sort Lane-Ranking (1,2...)
-                ksort($SubjectList);
-
-                $SubjectSection = ( new Section() );
-
-                if (count($SubjectList) == 1 && isset($SubjectList[2])) {
-                    $SubjectSection->addElementColumn(( new Element() ), 'auto');
-                }
-
-                foreach ($SubjectList as $Lane => $Subject) {
-                    // 2. Fremdsprache ab Klassenstufe
-                    if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])
-                        && $languagesWithStartLevel['Lane'] == $Lane && $languagesWithStartLevel['Rank'] == $count
-                    ) {
-                        $hasAdditionalLine['Lane'] = $Lane;
-                        $hasAdditionalLine['Ranking'] = 2;
-                        $hasAdditionalLine['SubjectAcronym'] = $tblSecondForeignLanguage
-                            ? $tblSecondForeignLanguage->getAcronym() : 'Empty';
-                    }
-
-                    if ($Lane > 1) {
-                        $SubjectSection->addElementColumn(( new Element() )
-                            , '4%');
-                    }
-                    if ($hasAdditionalLine && $Lane == $hasAdditionalLine['Lane']) {
-                        $SubjectSection->addElementColumn(( new Element() )
-                            ->setContent($Subject['SubjectName'])
-                            ->styleFontFamily('Trebuchet MS')
-                            ->styleLineHeight('85%')
-                            ->stylePaddingTop()
-                            ->stylePaddingBottom('0px')
-                            ->styleMarginBottom('0px')
-                            ->styleBorderBottom('1px', '#000')
-                            ->styleMarginTop('10px')
-                            ->styleTextSize($TextSize)
-                            , '37%');
-                        $SubjectSection->addElementColumn(( new Element() ), '2%');
-                    } elseif ($isShrinkMarginTop) {
-                        $SubjectSection->addElementColumn(( new Element() )
-                            ->setContent($Subject['SubjectName'])
-                            ->styleFontFamily('Trebuchet MS')
-                            ->styleLineHeight('85%')
-                            ->stylePaddingTop()
-                            ->styleMarginTop('0px')
-                            ->styleTextSize($TextSize)
-                            , '39%');
-                        // ToDo Dynamisch für alle zu langen Fächer
-                    } elseif ($Subject['SubjectName'] == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
-                        $SubjectSection->addElementColumn(( new Element() )
-                            ->setContent(new Container('Gemeinschaftskunde/')
-                                .new Container('Rechtserziehung/Wirtschaft'))
-                            ->styleFontFamily('Trebuchet MS')
-                            ->styleLineHeight('85%')
-                            ->stylePaddingTop()
-                            ->styleMarginTop('10px')
-                            ->styleTextSize($TextSize)
-                            , '39%');
-                    } else {
-                        $SubjectSection->addElementColumn(( new Element() )
-                            ->setContent($Subject['SubjectName'])
-                            ->styleFontFamily('Trebuchet MS')
-                            ->styleLineHeight('85%')
-                            ->stylePaddingTop()
-                            ->styleMarginTop('10px')
-                            ->styleTextSize($TextSize)
-                            , '39%');
-                    }
-
-                    $TextSizeSmall = '8px';
-
-                    $SubjectSection->addElementColumn(( new Element() )
-                        ->setContent('{% if(Content.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                             {{ Content.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
-                                         {% else %}
-                                             &ndash;
-                                         {% endif %}')
-                        ->styleFontFamily('Trebuchet MS')
-                        ->styleLineHeight('85%')
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor('#E9E9E9')
-                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop(
-                            '{% if(Content.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                 4px
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                        )
-                        ->stylePaddingBottom(
-                            '{% if(Content.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                 5px
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                        )
-                        ->styleMarginTop($isShrinkMarginTop ? '0px' : '10px')
-                        ->styleTextSize(
-                            '{% if(Content.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                 '.$TextSizeSmall.'
-                             {% else %}
-                                 '.$TextSize.'
-                             {% endif %}'
-                        )
-                        , '9%');
-
-                    if ($isShrinkMarginTop && $Lane == 2) {
-                        $isShrinkMarginTop = false;
-                    }
-                }
-
-                if (count($SubjectList) == 1 && isset($SubjectList[1])) {
-                    $SubjectSection->addElementColumn(( new Element() ), '52%');
-                    $isShrinkMarginTop = false;
-                }
-
-                $SubjectSlice->addSection($SubjectSection);
-                $SectionList[] = $SubjectSection;
-
-                if ($hasAdditionalLine) {
-                    $SubjectSection = ( new Section() );
-
-                    if ($hasAdditionalLine['Lane'] == 2) {
-                        $SubjectSection->addElementColumn(( new Element() ), '52%');
-                    }
-                    $SubjectSection->addElementColumn(( new Element() )
-                        ->setContent($hasAdditionalLine['Ranking'].'. Fremdsprache (ab Klassenstufe '.
-                            '{% if(Content.Subject.Level["'.$hasAdditionalLine['SubjectAcronym'].'"] is not empty) %}
-                                     {{ Content.Subject.Level["'.$hasAdditionalLine['SubjectAcronym'].'"] }}
-                                 {% else %}
-                                    &nbsp;
-                                 {% endif %}'
-                            .')')
-                        ->styleFontFamily('Trebuchet MS')
-                        ->styleLineHeight('85%')
-                        ->stylePaddingTop('0px')
-                        ->stylePaddingBottom('0px')
-                        ->styleMarginTop('0px')
-                        ->styleMarginBottom('0px')
-                        ->styleTextSize('9px')
-                        , '39%');
-
-                    if ($hasAdditionalLine['Lane'] == 1) {
-                        $SubjectSection->addElementColumn(( new Element() ), '52%');
-                    }
-
-                    $hasAdditionalLine = false;
-
-                    // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
-//                    $isShrinkMarginTop = true;
-
-                    $SubjectSlice->addSection($SubjectSection);
-                    $SectionList[] = $SubjectSection;
-                }
-
-            }
-        }
-
-        if ($isSlice) {
-            return $SubjectSlice;
-        } else {
-            return $SectionList;
-        }
-    }
-
-    /**
+     * @param $personId
      * @param bool $isMissing
      *
      * @return Slice
      */
-    protected function getDescriptionHead($isMissing = false)
+    protected function getDescriptionHead($personId, $isMissing = false)
     {
         $DescriptionSlice = (new Slice());
         if ($isMissing) {
@@ -1038,8 +1086,8 @@ abstract class Certificate extends Extension
                     ->styleAlignRight()
                     , '25%')
                 ->addElementColumn((new Element())
-                    ->setContent('{% if(Content.Input.Missing is not empty) %}
-                                    {{ Content.Input.Missing }}
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Missing }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
@@ -1052,8 +1100,8 @@ abstract class Certificate extends Extension
                     ->styleAlignRight()
                     , '25%')
                 ->addElementColumn((new Element())
-                    ->setContent('{% if(Content.Input.Bad.Missing is not empty) %}
-                                    {{ Content.Input.Bad.Missing }}
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Bad.Missing }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
@@ -1077,17 +1125,17 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $Height
      * @param string $MarginTop
-     *
      * @return Slice
      */
-    public function getDescriptionContent($Height = '150px', $MarginTop = '0px')
+    public function getDescriptionContent($personId, $Height = '150px', $MarginTop = '0px')
     {
         $DescriptionSlice = (new Slice());
-        $DescriptionSlice->addElement(( new Element() )
-            ->setContent('{% if(Content.Input.Remark is not empty) %}
-                        {{ Content.Input.Remark|nl2br }}
+        $DescriptionSlice->addElement((new Element())
+            ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Remark|nl2br }}
                     {% else %}
                         &nbsp;
                     {% endif %}')
@@ -1098,11 +1146,12 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $MarginTop
      *
      * @return Slice
      */
-    public function getTransfer($MarginTop = '5px')
+    public function getTransfer($personId, $MarginTop = '5px')
     {
         $TransferSlice = (new Slice());
         $TransferSlice->addSection((new Section())
@@ -1110,8 +1159,8 @@ abstract class Certificate extends Extension
                 ->setContent('Versetzungsvermerk:')
                 , '22%')
             ->addElementColumn((new Element())
-                ->setContent('{% if(Content.Input.Transfer) %}
-                                        {{ Content.Input.Transfer }}
+                ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
+                                        {{ Content.P' . $personId . '.Input.Transfer }}
                                     {% else %}
                                           &nbsp;
                                     {% endif %}')
@@ -1125,11 +1174,12 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $MarginTop
      *
      * @return Slice
      */
-    protected function getDateLine($MarginTop = '25px')
+    protected function getDateLine($personId, $MarginTop = '25px')
     {
         $DateSlice = (new Slice());
         $DateSlice->addSection((new Section())
@@ -1137,8 +1187,8 @@ abstract class Certificate extends Extension
                 ->setContent('Datum:')
                 , '7%')
             ->addElementColumn((new Element())
-                ->setContent('{% if(Content.Input.Date is not empty) %}
-                                    {{ Content.Input.Date }}
+                ->setContent('{% if(Content.P' . $personId . '.Input.Date is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Date }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
@@ -1153,12 +1203,13 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param bool $isExtended with directory and stamp
      * @param string $MarginTop
      *
      * @return Slice
      */
-    protected function getSignPart($isExtended = true, $MarginTop = '25px')
+    protected function getSignPart($personId, $isExtended = true, $MarginTop = '25px')
     {
         $SignSlice = (new Slice());
         if ($isExtended) {
@@ -1179,7 +1230,13 @@ abstract class Certificate extends Extension
                 ->styleMarginTop($MarginTop)
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Schulleiter(in)')
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Description }}
+                            {% else %}
+                                Schulleiter(in)
+                            {% endif %}'
+                        )
                         ->styleAlignCenter()
                         ->styleTextSize('11px')
                         , '30%')
@@ -1193,7 +1250,13 @@ abstract class Certificate extends Extension
                     ->addElementColumn((new Element())
                         , '5%')
                     ->addElementColumn((new Element())
-                        ->setContent('Klassenlehrer(in)')
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                            {% else %}
+                                Klassenlehrer(in)
+                            {% endif %}'
+                        )
                         ->styleAlignCenter()
                         ->styleTextSize('11px')
                         , '30%')
@@ -1201,8 +1264,8 @@ abstract class Certificate extends Extension
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent(
-                            '{% if(Content.Headmaster.Name is not empty) %}
-                                {{ Content.Headmaster.Name }}
+                            '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Name }}
                             {% else %}
                                 &nbsp;
                             {% endif %}'
@@ -1215,8 +1278,8 @@ abstract class Certificate extends Extension
                         , '40%')
                     ->addElementColumn((new Element())
                         ->setContent(
-                            '{% if(Content.DivisionTeacher.Name is not empty) %}
-                                {{ Content.DivisionTeacher.Name }}
+                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
                             {% else %}
                                 &nbsp;
                             {% endif %}'
@@ -1241,7 +1304,13 @@ abstract class Certificate extends Extension
                     ->addElementColumn((new Element())
                         , '70%')
                     ->addElementColumn((new Element())
-                        ->setContent('Klassenlehrer(in)')
+                        ->setContent('
+                        {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                            {% else %}
+                                Klassenlehrer(in)
+                            {% endif %}
+                        ')
                         ->styleAlignCenter()
                         ->styleTextSize('11px')
                         , '30%')
@@ -1251,8 +1320,8 @@ abstract class Certificate extends Extension
                         , '70%')
                     ->addElementColumn((new Element())
                         ->setContent(
-                            '{% if(Content.DivisionTeacher.Name is not empty) %}
-                                {{ Content.DivisionTeacher.Name }}
+                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
                             {% else %}
                                 &nbsp;
                             {% endif %}'
@@ -1372,13 +1441,14 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $TextSize
      * @param bool $IsGradeUnderlined
      * @param string $MarginTop
      *
      * @return Slice
      */
-    protected function getGradeLanes($TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px')
+    protected function getGradeLanes($personId, $TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px')
     {
 
         $GradeSlice = (new Slice());
@@ -1434,8 +1504,8 @@ abstract class Certificate extends Extension
                         ->styleTextSize($TextSize)
                         , '39%');
                     $GradeSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
-                                         {{ Content.Input["' . $Grade['GradeAcronym'] . '"] }}
+                        ->setContent('{% if(Content.P' . $personId . '.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                                         {{ Content.P' . $personId . '.Input["' . $Grade['GradeAcronym'] . '"] }}
                                      {% else %}
                                          &ndash;
                                      {% endif %}')
@@ -1450,7 +1520,7 @@ abstract class Certificate extends Extension
                 }
 
                 if (count($GradeList) == 1 && isset($GradeList[1])) {
-                    $GradeSection->addElementColumn(( new Element() ), '52%');
+                    $GradeSection->addElementColumn((new Element()), '52%');
                 }
 
                 $GradeSlice->addSection($GradeSection)->styleMarginTop($MarginTop);
@@ -1461,16 +1531,21 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $TextSize
-     * @param bool   $IsGradeUnderlined
+     * @param bool $IsGradeUnderlined
      * @param string $MarginTop
-     *
      * @return Slice
      */
-    protected function getGradeLanesCoswig($TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px')
+    protected function getGradeLanesCoswig(
+        $personId,
+        $TextSize = '14px',
+        $IsGradeUnderlined = false,
+        $MarginTop = '15px'
+    )
     {
 
-        $GradeSlice = ( new Slice() );
+        $GradeSlice = (new Slice());
 
         $tblCertificateGradeAll = Generator::useService()->getCertificateGradeAll($this->getCertificateEntity());
         $GradeStructure = array();
@@ -1504,19 +1579,19 @@ abstract class Certificate extends Extension
                 // Sort Lane-Ranking (1,2...)
                 ksort($GradeList);
 
-                $GradeSection = ( new Section() );
+                $GradeSection = (new Section());
 
                 if (count($GradeList) == 1 && isset($GradeList[2])) {
-                    $GradeSection->addElementColumn(( new Element() ), 'auto');
+                    $GradeSection->addElementColumn((new Element()), 'auto');
                 }
 
                 foreach ($GradeList as $Lane => $Grade) {
 
                     if ($Lane > 1) {
-                        $GradeSection->addElementColumn(( new Element() )
+                        $GradeSection->addElementColumn((new Element())
                             , '4%');
                     }
-                    $GradeSection->addElementColumn(( new Element() )
+                    $GradeSection->addElementColumn((new Element())
                         ->setContent($Grade['GradeName'])
                         ->styleFontFamily('Trebuchet MS')
                         ->styleLineHeight('85%')
@@ -1524,9 +1599,9 @@ abstract class Certificate extends Extension
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
                         , '39%');
-                    $GradeSection->addElementColumn(( new Element() )
-                        ->setContent('{% if(Content.Input["'.$Grade['GradeAcronym'].'"] is not empty) %}
-                                         {{ Content.Input["'.$Grade['GradeAcronym'].'"] }}
+                    $GradeSection->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                                         {{ Content.P' . $personId . '.Input["' . $Grade['GradeAcronym'] . '"] }}
                                      {% else %}
                                          &ndash;
                                      {% endif %}')
@@ -1554,13 +1629,15 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $TextSize
      * @param bool $IsGradeUnderlined
-     *
      * @return Slice
      */
-    public function getProfileStandard($TextSize = '14px', $IsGradeUnderlined = false)
+    public function getProfileStandard($personId, $TextSize = '14px', $IsGradeUnderlined = false)
     {
+
+        $tblPerson = Person::useService()->getPersonById($personId);
 
         $slice = new Slice();
         $sectionList = array();
@@ -1570,8 +1647,8 @@ abstract class Certificate extends Extension
         $profileAppendText = 'Profil';
 
         // Profil
-        if ($this->getTblPerson()
-            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+        if ($tblPerson
+            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
             && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
                 $tblStudentSubjectType))
@@ -1581,7 +1658,17 @@ abstract class Certificate extends Extension
             if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
                 $tblSubject = $tblSubjectProfile;
 
-                if (strpos(strtolower($tblSubject->getName()), 'naturwissen') !== false
+                // Bei Chemnitz nur bei naturwissenschaftlichem Profil
+                if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+                    && $tblConsumer->getAcronym() == 'ESZC'
+                ) {
+                    if (strpos(strtolower($tblSubject->getName()), 'naturwissen') !== false
+                    && $this->getTblDivision()
+                    && $this->getTblDivision()->getTblLevel()
+                    && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())) {
+                        $profileAppendText = 'Profil mit informatischer Bildung';
+                    }
+                } elseif (strpos(strtolower($tblSubject->getName()), 'wissen') !== false
                     && $this->getTblDivision()
                     && $this->getTblDivision()->getTblLevel()
                     && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
@@ -1593,8 +1680,8 @@ abstract class Certificate extends Extension
 
         $foreignLanguageName = '---';
         // 3. Fremdsprache
-        if ($this->getTblPerson()
-            && ($tblStudent = $this->getTblPerson()->getStudent())
+        if ($tblPerson
+            && ($tblStudent = $tblPerson->getStudent())
             && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
                 $tblStudentSubjectType))
@@ -1611,16 +1698,20 @@ abstract class Certificate extends Extension
         }
 
         if ($tblSubject) {
-            // Todo noch richtig Klären erstmal fest für Chemnitz
-            // $SubjectAcronym = str_replace(' ', '', $tblSubject-getAcronym());
-            $SubjectAcronym = 'PRO';
+            if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+                && ($value = $tblSetting->getValue())
+            ) {
+                $subjectAcronymForGrade = $value;
+            } else {
+                $subjectAcronymForGrade = $tblSubject->getAcronym();
+            }
 
             $elementName = (new Element())
                 // Profilname aus der Schülerakte
                 // bei einem Leerzeichen im Acronymn stürzt das TWIG ab
                 ->setContent('
-                   {% if(Content.Student.Profile.' . str_replace(' ', '', $tblSubject->getAcronym()) . ' is not empty) %}
-                       {{ Content.Student.Profile.' . str_replace(' ', '', $tblSubject->getAcronym()) . '.Name' . ' }}
+                   {% if(Content.P' . $personId . '.Student.Profile["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                       {{ Content.P' . $personId . '.Student.Profile["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                    {% else %}
                         &nbsp;
                    {% endif %}
@@ -1632,8 +1723,8 @@ abstract class Certificate extends Extension
 
             $elementGrade = (new Element())
                 ->setContent('
-                    {% if(Content.Grade.Data.' . $SubjectAcronym . ' is not empty) %}
-                        {{ Content.Grade.Data.' . $SubjectAcronym . ' }}
+                    {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
                     {% else %}
                         &ndash;
                     {% endif %}
@@ -1731,15 +1822,17 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $TextSize
      * @param bool $IsGradeUnderlined
-     *
      * @return Slice
      */
-    public function getOrientationStandard($TextSize = '14px', $IsGradeUnderlined = false)
+    public function getOrientationStandard($personId, $TextSize = '14px', $IsGradeUnderlined = false)
     {
 
-        $marginTop = '5px';
+        $tblPerson = Person::useService()->getPersonById($personId);
+
+        $marginTop = '3px';
 
         $slice = new Slice();
         $sectionList = array();
@@ -1748,8 +1841,30 @@ abstract class Certificate extends Extension
         $elementOrientationGrade = false;
         $elementForeignLanguageName = false;
         $elementForeignLanguageGrade = false;
-        if ($this->getTblPerson()
-            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+
+        // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
+        if (($tblCertificate = $this->getCertificateEntity())
+            && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+            && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+            && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+            && $tblSetting->getValue()
+        ) {
+            $subjectWidth = 89;
+            $gradeWidth = 11;
+            $TextSizeSmall = '13px';
+            $paddingTopShrinking = '4px';
+            $paddingBottomShrinking = '4px';
+        } else {
+            $subjectWidth = 91;
+            $gradeWidth = 9;
+            $TextSizeSmall = '8.5px';
+            $paddingTopShrinking = '5px';
+            $paddingBottomShrinking = '6px';
+        }
+
+        if ($tblPerson
+            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
         ) {
 
             // Neigungskurs
@@ -1761,38 +1876,60 @@ abstract class Certificate extends Extension
                 $tblStudentSubject = current($tblSubjectList);
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
 
-                    // Todo noch richtig Klären erstmal fest für Chemnitz
-                    // $SubjectAcronym = $tblSubject-getAcronym();
-                    $SubjectAcronym = 'NK';
+                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+                        && ($value = $tblSetting->getValue())
+                    ) {
+                        $subjectAcronymForGrade = $value;
+                    } else {
+                        $subjectAcronymForGrade = $tblSubject->getAcronym();
+                    }
 
                     $elementOrientationName = new Element();
                     $elementOrientationName
                         ->setContent('
-                            {% if(Content.Student.Orientation.' . str_replace(' ', '', $tblSubject->getAcronym()) . ' is not empty) %}
-                                 {{ Content.Student.Orientation.' . str_replace(' ', '', $tblSubject->getAcronym()) . '.Name' . ' }}
+                            {% if(Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
                         ->stylePaddingTop('0px')
                         ->stylePaddingBottom('0px')
-                        ->styleMarginTop($marginTop)
+                        ->styleMarginTop('7px')
                         ->styleTextSize($TextSize);
 
                     $elementOrientationGrade = new Element();
                     $elementOrientationGrade
                         ->setContent('
-                            {% if(Content.Grade.Data.' . $SubjectAcronym . ' is not empty) %}
-                                {{ Content.Grade.Data.' . $SubjectAcronym . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop('0px')
-                        ->stylePaddingBottom('0px')
-                        ->styleMarginTop($marginTop)
-                        ->styleTextSize($TextSize);
+                        ->stylePaddingTop(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $paddingTopShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                  ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->styleTextSize(
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
+                        ->styleMarginTop($marginTop);
                 }
             }
 
@@ -1810,31 +1947,49 @@ abstract class Certificate extends Extension
                         $elementForeignLanguageName = new Element();
                         $elementForeignLanguageName
                             ->setContent('
-                            {% if(Content.Student.ForeignLanguage.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                 {{ Content.Student.ForeignLanguage.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% if(Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
                             ->stylePaddingTop('0px')
                             ->stylePaddingBottom('0px')
-                            ->styleMarginTop($marginTop)
+                            ->styleMarginTop('7px')
                             ->styleTextSize($TextSize);
 
                         $elementForeignLanguageGrade = new Element();
                         $elementForeignLanguageGrade
                             ->setContent('
-                            {% if(Content.Grade.Data.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                {{ Content.Grade.Data.' . $tblSubject->getAcronym() . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#BBB')
                             ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                            ->stylePaddingTop('0px')
-                            ->stylePaddingBottom('0px')
-                            ->styleMarginTop($marginTop)
-                            ->styleTextSize($TextSize);
+                            ->stylePaddingTop(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $paddingTopShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                            )
+                            ->stylePaddingBottom(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                  ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                            )
+                            ->styleTextSize(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                            )
+                            ->styleMarginTop($marginTop);
                     }
                 }
             }
@@ -1855,8 +2010,8 @@ abstract class Certificate extends Extension
             if ($elementOrientationName) {
                 $section = new Section();
                 $section
-                    ->addElementColumn($elementOrientationName, '91%')
-                    ->addElementColumn($elementOrientationGrade, '9%');
+                    ->addElementColumn($elementOrientationName, (string)$subjectWidth . '%')
+                    ->addElementColumn($elementOrientationGrade, (string)$gradeWidth . '%');
                 $sectionList[] = $section;
 
                 $section = new Section();
@@ -1867,14 +2022,14 @@ abstract class Certificate extends Extension
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
-                        , '89%')
-                    ->addElementColumn((new Element()), '11%');
+                        , (string)($subjectWidth - 2) . '%')
+                    ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                 $sectionList[] = $section;
             } elseif ($elementForeignLanguageName) {
                 $section = new Section();
                 $section
-                    ->addElementColumn($elementForeignLanguageName, '91%')
-                    ->addElementColumn($elementForeignLanguageGrade, '9%');
+                    ->addElementColumn($elementForeignLanguageName, (string)$subjectWidth . '%')
+                    ->addElementColumn($elementForeignLanguageGrade, (string)$gradeWidth . '%');
                 $sectionList[] = $section;
 
                 $section = new Section();
@@ -1885,8 +2040,8 @@ abstract class Certificate extends Extension
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
-                        , '89%')
-                    ->addElementColumn((new Element()), '11%');
+                        , (string)($subjectWidth - 2) . '%')
+                    ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                 $sectionList[] = $section;
             } else {
                 $elementName = (new Element())
@@ -1923,12 +2078,58 @@ abstract class Certificate extends Extension
                         , '50%');
                 $sectionList[] = $section;
             }
+        } else {
+
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('Wahlpflichtbereich:')
+                    ->styleTextBold()
+                    ->styleMarginTop('10px')
+                    ->styleTextSize($TextSize)
+                );
+            $sectionList[] = $section;
+
+            $elementName = (new Element())
+                ->setContent('---')
+                ->styleBorderBottom()
+                ->styleMarginTop($marginTop)
+                ->styleTextSize($TextSize);
+
+            $elementGrade = (new Element())
+                ->setContent('&ndash;')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->stylePaddingTop('0px')
+                ->stylePaddingBottom('0px')
+                ->styleMarginTop($marginTop)
+                ->styleTextSize($TextSize);
+
+            $section = new Section();
+            $section
+                ->addElementColumn($elementName
+                    , '90%')
+                ->addElementColumn((new Element())
+                    , '1%')
+                ->addElementColumn($elementGrade
+                    , '9%');
+            $sectionList[] = $section;
+
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)')
+                    ->styleTextSize('11px')
+                    , '50%');
+            $sectionList[] = $section;
         }
 
         return empty($sectionList) ? (new Slice())->styleHeight('60px') : $slice->addSectionList($sectionList);
     }
 
     /**
+     * @param $personId
      * @param string $TextColor
      * @param string $TextSize
      * @param string $GradeFieldBackgroundColor
@@ -1936,10 +2137,10 @@ abstract class Certificate extends Extension
      * @param string $MarginTop
      * @param int $GradeFieldWidth
      * @param string $fontFamily
-     *
      * @return Slice
      */
     protected function getGradeLanesForRadebeul(
+        $personId,
         $TextColor = 'black',
         $TextSize = '13px',
         $GradeFieldBackgroundColor = 'rgb(224,226,231)',
@@ -2007,8 +2208,8 @@ abstract class Certificate extends Extension
                         ->styleFontFamily($fontFamily)
                         , $widthText);
                     $GradeSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
-                                         {{ Content.Input["' . $Grade['GradeAcronym'] . '"] }}
+                        ->setContent('{% if(Content.P' . $personId . '.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                                         {{ Content.P' . $personId . '.Input["' . $Grade['GradeAcronym'] . '"] }}
                                      {% else %}
                                          &ndash;
                                      {% endif %}')
@@ -2036,6 +2237,7 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $TextColor
      * @param string $TextSize
      * @param string $GradeFieldBackgroundColor
@@ -2047,6 +2249,7 @@ abstract class Certificate extends Extension
      * @return Slice
      */
     protected function getSubjectLanesForRadebeul(
+        $personId,
         $TextColor = 'black',
         $TextSize = '13px',
         $GradeFieldBackgroundColor = 'rgb(224,226,231)',
@@ -2055,6 +2258,8 @@ abstract class Certificate extends Extension
         $GradeFieldWidth = 28,
         $fontFamily = 'MetaPro'
     ) {
+
+        $tblPerson = Person::useService()->getPersonById($personId);
 
         $widthText = (50 - $GradeFieldWidth - 4) . '%';
         $widthGrade = $GradeFieldWidth . '%';
@@ -2087,8 +2292,8 @@ abstract class Certificate extends Extension
 
                         // Liberation?
                         if (
-                            $this->getTblPerson()
-                            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+                            $tblPerson
+                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
                             && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
                         ) {
                             $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
@@ -2148,22 +2353,41 @@ abstract class Certificate extends Extension
                         ->styleFontFamily($fontFamily)
                         , $widthText);
 
-                    $SubjectSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                             {{ Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                    if (strlen($Subject['SubjectName']) > 20 && preg_match('!\s!', $Subject['SubjectName'])) {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent('{% if(Content.P' . $personId . '.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                                             {{ Content.P' . $personId . '.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
                                          {% else %}
                                              &ndash;
                                          {% endif %}')
-                        ->styleTextColor($TextColor)
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor($GradeFieldBackgroundColor)
-                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
-                        ->stylePaddingTop('-4px')
-                        ->stylePaddingBottom('2px')
-                        ->styleMarginTop($count == 1 ? '14px' : '8px')
-                        ->styleTextSize($TextSize)
-                        ->styleFontFamily($fontFamily)
-                        , $widthGrade);
+                            ->styleTextColor($TextColor)
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor($GradeFieldBackgroundColor)
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
+                            ->stylePaddingTop('-4px')
+                            ->stylePaddingBottom('2px')
+                            ->styleMarginTop($count == 1 ? '25px' : '19px')
+                            ->styleTextSize($TextSize)
+                            ->styleFontFamily($fontFamily)
+                            , $widthGrade);
+                    } else {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent('{% if(Content.P' . $personId . '.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                                             {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                                         {% else %}
+                                             &ndash;
+                                         {% endif %}')
+                            ->styleTextColor($TextColor)
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor($GradeFieldBackgroundColor)
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', $TextColor)
+                            ->stylePaddingTop('-4px')
+                            ->stylePaddingBottom('2px')
+                            ->styleMarginTop($count == 1 ? '14px' : '8px')
+                            ->styleTextSize($TextSize)
+                            ->styleFontFamily($fontFamily)
+                            , $widthGrade);
+                    }
                 }
 
                 if (count($SubjectList) == 1 && isset($SubjectList[1])) {
@@ -2179,14 +2403,18 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param string $TextSize
      * @param bool $IsGradeUnderlined
      * @param string $MarginTop
-     *
      * @return Slice
      */
-    protected function getGradeLanesCustomForChemnitz($TextSize = '14px', $IsGradeUnderlined = false, $MarginTop = '15px')
-    {
+    protected function getGradeLanesCustomForChemnitz(
+        $personId,
+        $TextSize = '14px',
+        $IsGradeUnderlined = false,
+        $MarginTop = '15px'
+    ) {
 
         $GradeFieldWidth = 16;
         $space = 7;
@@ -2249,8 +2477,8 @@ abstract class Certificate extends Extension
                         ->styleTextSize($TextSize)
                         , $widthText);
                     $GradeSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
-                                         {{ Content.Input["' . $Grade['GradeAcronym'] . '"] }}
+                        ->setContent('{% if(Content.P' . $personId . '.Input["' . $Grade['GradeAcronym'] . '"] is not empty) %}
+                                         {{ Content.P' . $personId . '.Input["' . $Grade['GradeAcronym'] . '"] }}
                                      {% else %}
                                          &ndash;
                                      {% endif %}')
@@ -2265,7 +2493,7 @@ abstract class Certificate extends Extension
                 }
 
                 if (count($GradeList) == 1 && isset($GradeList[1])) {
-                    $GradeSection->addElementColumn(( new Element() ), (50 + $space) . '%');
+                    $GradeSection->addElementColumn((new Element()), (50 + $space) . '%');
                 }
 
                 $GradeSlice->addSection($GradeSection)->styleMarginTop($MarginTop);
@@ -2276,6 +2504,7 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param $personId
      * @param bool $isSlice
      * @param array $languagesWithStartLevel
      * @param string $TextSize
@@ -2284,12 +2513,14 @@ abstract class Certificate extends Extension
      * @return array|Slice
      */
     protected function getSubjectLanesCustomForChemnitz(
+        $personId,
         $isSlice = true,
         $languagesWithStartLevel = array(),
         $TextSize = '14px',
         $IsGradeUnderlined = false
     ) {
 
+        $tblPerson = Person::useService()->getPersonById($personId);
 
         $GradeFieldWidth = 16;
         $space = 7;
@@ -2309,10 +2540,10 @@ abstract class Certificate extends Extension
         $marginTopSection = new Section();
         $marginTopSection->addElementColumn((new Element())
             ->setContent('&nbsp;')
-            ->styleHeight('15px')
+            ->styleHeight('5px')
         );
         $SubjectSlice->addSection($marginTopSection);
-        $SectionList[] =  $marginTopSection;
+        $SectionList[] = $marginTopSection;
 
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
@@ -2344,8 +2575,8 @@ abstract class Certificate extends Extension
                     [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = 'Empty';
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
                     [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
-                    if ($this->getTblPerson()
-                        && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+                    if ($tblPerson
+                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
                     ) {
                         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
                             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
@@ -2451,8 +2682,8 @@ abstract class Certificate extends Extension
                     $TextSizeSmall = '8px';
 
                     $SubjectSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                             {{ Content.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                             {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
                                          {% else %}
                                              &ndash;
                                          {% endif %}')
@@ -2460,14 +2691,14 @@ abstract class Certificate extends Extension
                         ->styleBackgroundColor('#E9E9E9')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
-                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  4px
                              {% else %}
                                  2px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
-                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  5px
                              {% else %}
                                  2px
@@ -2475,7 +2706,7 @@ abstract class Certificate extends Extension
                         )
                         ->styleMarginTop($isShrinkMarginTop ? '0px' : $marginTop)
                         ->styleTextSize(
-                            '{% if(Content.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
                                  ' . $TextSizeSmall . '
                              {% else %}
                                  ' . $TextSize . '
@@ -2504,8 +2735,8 @@ abstract class Certificate extends Extension
                     }
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
-                            '{% if(Content.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
-                                     {{ Content.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
+                            '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
+                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
                                  {% else %}
                                     &nbsp;
                                  {% endif %}'
@@ -2541,12 +2772,16 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param $TextSize
+     * @param $personId
+     * @param string $TextSize
      * @param bool $IsGradeUnderlined
+     *
      * @return Slice
      */
-    protected function getObligationToVotePartCustomForCoswig($TextSize = '14px', $IsGradeUnderlined = false)
+    protected function getObligationToVotePartCustomForCoswig($personId, $TextSize = '14px', $IsGradeUnderlined = false)
     {
+
+        $tblPerson = Person::useService()->getPersonById($personId);
 
         $marginTop = '5px';
 
@@ -2557,8 +2792,8 @@ abstract class Certificate extends Extension
         $elementOrientationGrade = false;
         $elementForeignLanguageName = false;
         $elementForeignLanguageGrade = false;
-        if ($this->getTblPerson()
-            && ($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))
+        if ($tblPerson
+            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
         ) {
 
             // Neigungskurs
@@ -2569,13 +2804,19 @@ abstract class Certificate extends Extension
                 /** @var TblStudentSubject $tblStudentSubject */
                 $tblStudentSubject = current($tblSubjectList);
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                    $subjectAcronym = 'NK';
+                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+                        && ($value = $tblSetting->getValue())
+                    ) {
+                        $subjectAcronymForGrade = $value;
+                    } else {
+                        $subjectAcronymForGrade = $tblSubject->getAcronym();
+                    }
 
                     $elementOrientationName = new Element();
                     $elementOrientationName
                         ->setContent('
-                            {% if(Content.Student.Orientation.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                 {{ Content.Student.Orientation.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% if(Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
@@ -2589,8 +2830,8 @@ abstract class Certificate extends Extension
                     $elementOrientationGrade = new Element();
                     $elementOrientationGrade
                         ->setContent('
-                            {% if(Content.Grade.Data.' . $subjectAcronym . ' is not empty) %}
-                                {{ Content.Grade.Data.' . $subjectAcronym . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
@@ -2620,8 +2861,8 @@ abstract class Certificate extends Extension
                         $elementForeignLanguageName = new Element();
                         $elementForeignLanguageName
                             ->setContent('
-                            {% if(Content.Student.ForeignLanguage.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                 {{ Content.Student.ForeignLanguage.' . $tblSubject->getAcronym() . '.Name' . ' }}
+                            {% if(Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
@@ -2635,8 +2876,8 @@ abstract class Certificate extends Extension
                         $elementForeignLanguageGrade = new Element();
                         $elementForeignLanguageGrade
                             ->setContent('
-                            {% if(Content.Grade.Data.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                {{ Content.Grade.Data.' . $tblSubject->getAcronym() . ' }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
@@ -2741,9 +2982,39 @@ abstract class Certificate extends Extension
         }
 
         return empty($sectionList)
-            ? $slice->addElement(( new Element() )
+            ? $slice->addElement((new Element())
                 ->setContent('&nbsp;')
             )->styleHeight('76px')
             : $slice->addSectionList($sectionList);
+    }
+
+    /**
+     * @return string
+     */
+    public function getUsedPicture()
+    {
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'PictureAddress'))
+        ) {
+            return (string)$tblSetting->getValue();
+        }
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    private function getPictureHeight()
+    {
+
+        $value = '';
+
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'PictureHeight'))
+        ) {
+            $value = $tblSetting->getValue();
+        }
+
+        return $value ? $value : '50px';
     }
 }

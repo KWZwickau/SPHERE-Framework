@@ -162,18 +162,22 @@ class View
         array_walk($PropertyList, function (\ReflectionProperty &$Property) use ($Entity, $Prefix) {
 
             $Property = $this->convertSelectAlias($Property->getName(), $Entity->getEntityShortName(), $Prefix);
+
         });
+        $PropertyList = array_filter( $PropertyList );
+
         return implode(', ', $PropertyList);
     }
 
     /**
      * Prepend Table-Alias
      *
-     * @param      $Field
-     * @param      $Table
+     * @param string $Field
+     * @param string $Table
      * @param bool $Prefix
-     *
      * @return string
+     *
+     * @throws \Exception
      */
     private function convertSelectAlias($Field, $Table, $Prefix = true)
     {

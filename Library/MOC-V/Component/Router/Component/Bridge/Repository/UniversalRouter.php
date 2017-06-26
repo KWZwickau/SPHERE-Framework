@@ -65,7 +65,7 @@ class UniversalRouter extends Bridge implements IBridgeInterface
      * @throws ComponentException
      * @return callable
      */
-    private function handleController(RouteParameter $Route)
+    protected function handleController(RouteParameter $Route)
     {
 
         $Class = $Route->getClass();
@@ -93,7 +93,7 @@ class UniversalRouter extends Bridge implements IBridgeInterface
      * @throws MissingParameterException
      * @return array
      */
-    private function handleArguments($Controller, RouteParameter $Route)
+    protected function handleArguments($Controller, RouteParameter $Route)
     {
 
         $Reflection = new \ReflectionMethod($Controller[0], $Controller[1]);

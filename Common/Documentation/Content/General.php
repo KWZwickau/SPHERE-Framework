@@ -49,9 +49,9 @@ class General
             $Page->addParagraph('http://www.whatbrowser.org/');
             $Page->addParagraph(new External('Meine Browser-Version anzeigen', 'http://www.whatbrowser.org/'));
 
-            $Page->addHeadline('Welcher Browser ist der Schnellste?', '', true);
-            $Page->addParagraph('Diese Frage ist eigentlich schnell geklärt. Bislang schein wohl der Google Chrome gefolgt vom Apple Safari bei der Geschwindigkeit die Nase vorn zu haben. Trotz vieler Optimierungen seitens Mozilla ist der Firefox immer noch sehr träge und benötigt einige Zeit zum starten. Auch der neue Browser “Microsoft Edge” ist sehr schnell.');
-            $Page->addParagraph('Auch beim Aufbau der Webseiten und gerade bei der Ausführung von Java Script ist der Firefox das Schlusslicht. Moderne Webseiten besitzen immer mehr dynamische Seitenelemente und Inhalte, die per Java Skript nachgeladen werden. Wer also einen stabilen und schnellen Browser sucht, ist mit dem Chrome sehr gut beraten.');
+//            $Page->addHeadline('Welcher Browser ist der Schnellste?', '', true);
+//            $Page->addParagraph('Diese Frage ist eigentlich schnell geklärt. Bislang schein wohl der Google Chrome gefolgt vom Apple Safari bei der Geschwindigkeit die Nase vorn zu haben. Trotz vieler Optimierungen seitens Mozilla ist der Firefox immer noch sehr träge und benötigt einige Zeit zum starten. Auch der neue Browser “Microsoft Edge” ist sehr schnell.');
+//            $Page->addParagraph('Auch beim Aufbau der Webseiten und gerade bei der Ausführung von Java Script ist der Firefox das Schlusslicht. Moderne Webseiten besitzen immer mehr dynamische Seitenelemente und Inhalte, die per Java Skript nachgeladen werden. Wer also einen stabilen und schnellen Browser sucht, ist mit dem Chrome sehr gut beraten.');
 
             $Page->addHeadline('Welcher Browser wird für die Schulsoftware empfohlen?', '', true);
             $Page->addParagraph(
@@ -63,7 +63,13 @@ class General
                                 'Google Chrome',
                                 'Beim Aufbau der Webseiten und gerade bei der Ausführung von Java Script ist dieser Browser einer der schnellsten',
                                 new External('Download', 'https://www.google.de/chrome/browser/desktop/')
-                            ), 5),
+                            ), 6),
+                            new LayoutColumn(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/Browser/browser_firefox.jpg'),
+                                'Firefox',
+                                '',
+                                new External('Download', 'https://www.mozilla.org/de/firefox/new/')
+                            ), 6)
                         )),
                     ))
                 )

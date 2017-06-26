@@ -18,11 +18,16 @@ class TblResponsibility extends Element
 {
 
     const SERVICE_TBL_COMPANY = 'serviceTblCompany';
+    const ATTR_COMPANY_NUMBER = 'CompanyNumber';
 
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblCompany;
+    /**
+     * @Column(type="string")
+     */
+    protected $CompanyNumber;
 
     /**
      * @return bool|TblCompany
@@ -44,5 +49,21 @@ class TblResponsibility extends Element
     {
 
         $this->serviceTblCompany = ( null === $tblCompany ? null : $tblCompany->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getCompanyNumber()
+    {
+        return $this->CompanyNumber;
+    }
+
+    /**
+     * @param string $CompanyNumber
+     */
+    public function setCompanyNumber($CompanyNumber)
+    {
+        $this->CompanyNumber = $CompanyNumber;
     }
 }

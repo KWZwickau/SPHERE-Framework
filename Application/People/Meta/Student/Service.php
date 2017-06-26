@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
@@ -17,6 +18,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -315,6 +317,41 @@ class Service extends Integration
         );
     }
 
+    /**
+     * @param TblPerson                    $tblPerson
+     * @param                              $Identifier
+     * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
+     * @param TblStudentTransport|null     $tblStudentTransport
+     * @param TblStudentBilling|null       $tblStudentBilling
+     * @param TblStudentLocker|null        $tblStudentLocker
+     * @param TblStudentBaptism|null       $tblStudentBaptism
+     * @param TblStudentIntegration|null   $tblStudentIntegration
+     * @param string                       $SchoolAttendanceStartDate
+     *
+     * @return TblStudent
+     */
+    public function createStudent(
+        TblPerson $tblPerson,
+        $Identifier = '',
+        TblStudentMedicalRecord $tblStudentMedicalRecord = null,
+        TblStudentTransport $tblStudentTransport = null,
+        TblStudentBilling $tblStudentBilling = null,
+        TblStudentLocker $tblStudentLocker = null,
+        TblStudentBaptism $tblStudentBaptism = null,
+        TblStudentIntegration $tblStudentIntegration = null,
+        $SchoolAttendanceStartDate = ''
+    ) {
+
+        return (new Data($this->getBinding()))->createStudent($tblPerson,
+            $Identifier,
+            $tblStudentMedicalRecord,
+            $tblStudentTransport,
+            $tblStudentBilling,
+            $tblStudentLocker,
+            $tblStudentBaptism,
+            $tblStudentIntegration,
+            $SchoolAttendanceStartDate);
+    }
 
     /**
      * @param IFormInterface $Form
@@ -322,7 +359,7 @@ class Service extends Integration
      * @param array          $Meta
      * @param                $Group
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group)
     {
@@ -651,7 +688,9 @@ class Service extends Integration
                 $TransferTypeProcess
             );
             $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeProcess->getId()]['School']);
-            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeProcess->getId()]['Type']);
+            // removed "Aktuelle Schulart"
+//            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeProcess->getId()]['Type']);
+            $tblType = false;
             $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeProcess->getId()]['Course']);
             if ($tblStudentTransferByTypeProcess) {
                 (new Data($this->getBinding()))->updateStudentTransfer(
@@ -679,6 +718,10 @@ class Service extends Integration
             $tblStudentSubjectAll = $this->getStudentSubjectAllByStudent($tblStudent);
             if ($tblStudentSubjectAll) {
                 foreach ($tblStudentSubjectAll as $tblStudentSubject) {
+                    // removed "Vertiefungskurs"
+                    if ($tblStudentSubject->getTblStudentSubjectType()->getIdentifier() == 'ADVANCED') {
+                        continue;
+                    }
                     if (!Subject::useService()->getSubjectById(
                         $Meta['Subject'][$tblStudentSubject->getTblStudentSubjectType()->getId()]
                         [$tblStudentSubject->getTblStudentSubjectRanking()->getId()])
@@ -925,5 +968,51 @@ class Service extends Integration
             $tblSubject,
             $tblLevelFrom,
             $tblLevelTill);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+
+        $tblDivisionList = array();
+        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
+            $tblPerson)
+        ) {
+
+            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+            if ($tblDivisionStudentList) {
+                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                    if ($tblDivisionStudent->getTblDivision()) {
+                        $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                        if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                            $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($tblDivisionList) ? false : $tblDivisionList;
+    }
+
+    /**
+     * @param array $EntityList
+     * @param array $ProtocolList
+     *
+     * @return bool
+     */
+    public function bulkSaveEntityList($EntityList = array(), $ProtocolList = array())
+    {
+
+        if (!empty($EntityList)) {
+            return (new Data($this->getBinding()))->bulkSaveEntityList($EntityList, $ProtocolList);
+        }
+
+        return false;
     }
 }

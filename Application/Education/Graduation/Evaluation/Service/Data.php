@@ -391,6 +391,7 @@ class Data extends AbstractData
      * @param null $CorrectionDate
      * @param null $ReturnDate
      * @param null $FinishDate
+     * @param TblGradeType $tblGradeType
      *
      * @return bool
      */
@@ -400,7 +401,8 @@ class Data extends AbstractData
         $Date = null,
         $CorrectionDate = null,
         $ReturnDate = null,
-        $FinishDate = null
+        $FinishDate = null,
+        TblGradeType $tblGradeType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -414,6 +416,9 @@ class Data extends AbstractData
             $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
             $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
             $Entity->setFinishDate($FinishDate ? new \DateTime($FinishDate) : null);
+            if ($tblGradeType) {
+                $Entity->setServiceTblGradeType($tblGradeType);
+            }
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

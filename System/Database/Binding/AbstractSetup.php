@@ -4,6 +4,7 @@ namespace SPHERE\System\Database\Binding;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\Structure;
 
 /**
@@ -20,6 +21,8 @@ abstract class AbstractSetup
     const FIELD_TYPE_INTEGER = 'integer';
     const FIELD_TYPE_BOOLEAN = 'boolean';
     const FIELD_TYPE_DATETIME = 'datetime';
+    const FIELD_TYPE_BINARY = 'blob';
+    const FIELD_TYPE_FLOAT = 'float';
 
     /** @var null|Structure $Connection */
     private $Connection = null;
@@ -76,12 +79,15 @@ abstract class AbstractSetup
      * Create / Update: Table
      *
      * @param Schema $Schema
-     * @param string $Name
+     * @param string|AbstractEntity $Name
      *
      * @return Table
      */
     final protected function createTable(Schema $Schema, $Name)
     {
+        if( $Name instanceof AbstractEntity ) {
+            $Name = $Name->getEntityShortName();
+        }
 
         if (!$Schema->hasTable($Name)) {
             return $this->getConnection()->createTable($Schema, $Name);
@@ -204,14 +210,16 @@ abstract class AbstractSetup
      * [ServiceTable] Index to Table on Column: "Id", Without Foreign-Key Constrain, Null
      *
      * @param Table $Table
-     * @param string|Table $ServiceTable
+     * @param string|AbstractEntity|Element|Table $ServiceTable
      *
      * @return Table
      */
     final protected function createServiceKey(Table $Table, $ServiceTable)
     {
 
-        if( $ServiceTable instanceof Table ) {
+        if( $ServiceTable instanceof AbstractEntity || $ServiceTable instanceof Element ) {
+            $Name = $ServiceTable->getEntityShortName();
+        } else if( $ServiceTable instanceof Table ) {
             $Name = $ServiceTable->getName();
         } else {
             $Name = $ServiceTable;

@@ -152,7 +152,9 @@ class Database extends Extension
             $MemcachedHandler = $this->getCache(new MemcachedHandler());
             $APCuHandler = $this->getCache(new APCuHandler());
 
-            $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(array($EntityPath));
+            $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(
+                array($EntityPath),false,null,null,false
+            );
             $MetadataConfiguration->setDefaultRepositoryClassName('\SPHERE\System\Database\Fitting\Repository');
             $MetadataConfiguration->addCustomHydrationMode(
                 ColumnHydrator::HYDRATION_MODE, '\SPHERE\System\Database\Fitting\ColumnHydrator'

@@ -123,7 +123,7 @@ class External extends Extension implements ILinkInterface
     {
 
         if (empty( $this->Hash )) {
-            $this->Hash = md5( uniqid( __CLASS__, true ) );
+            $this->Hash = 'External-'.crc32( uniqid(__CLASS__, true) );
         }
         return $this->Hash;
     }

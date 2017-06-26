@@ -13,20 +13,23 @@ class SuperGlobal
     public $POST;
     public $REQUEST;
     public $SESSION;
+    public $FILES;
 
     /**
      * @param $GET
      * @param $POST
      * @param $REQUEST
      * @param $SESSION
+     * @param $FILES
      */
-    public function __construct($GET, $POST, $REQUEST, $SESSION)
+    public function __construct($GET, $POST, $REQUEST, $SESSION, $FILES)
     {
 
         $this->GET = $GET;
         $this->POST = $POST;
-        $this->REQUEST = $_REQUEST;
+        $this->REQUEST = $REQUEST;
         $this->SESSION = $SESSION;
+        $this->FILES = $FILES;
     }
 
     public function saveGet()

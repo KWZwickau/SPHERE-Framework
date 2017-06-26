@@ -15,11 +15,13 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -29,12 +31,16 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -49,6 +55,8 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
@@ -131,7 +139,15 @@ class Frontend extends Extension
                                 'GenerateCertificateId' => $tblGenerateCertificate->getId(),
                             )
                             , 'Zeugnisvorlagen zuordnen'
-                        ))
+                        )) . ($tblGenerateCertificate->isLocked()
+                            ? ''
+                            : (new Standard(
+                                '', '/Education/Certificate/Generate/Destroy', new Remove(),
+                                array(
+                                    'Id' => $tblGenerateCertificate->getId(),
+                                )
+                                , 'Löschen'
+                            )))
                 );
             }
         }
@@ -276,31 +292,51 @@ class Frontend extends Extension
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 6
+                    new Panel(
+                        'Zeugnis',
+                        array(
+                            new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()),
+                            new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList))
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
                 new FormColumn(
-                    new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList)), 6
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag',
-                        array('{{ Date }} {{ Name }}' => $tblAppointedDateTaskListByYear)), 6
-                ),
-                new FormColumn(
-                    new SelectBox('Data[BehaviorTask]', 'Kopfnotenauftrag',
-                        array('{{ Date }} {{ Name }}' => $tblBehaviorTaskListByYear)), 6
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new CheckBox('Data[IsTeacherAvailable]',
-                        'Name des Klassenlehrers und Name des Schulleiters (falls vorhanden) auf dem Zeugnis anzeigen',
-                        1
-                    ), 12
+                    new Panel(
+                        'Notenaufträge',
+                        array(
+                            new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag',
+                                array('{{ Date }} {{ Name }}' => $tblAppointedDateTaskListByYear)),
+                            new SelectBox('Data[BehaviorTask]', 'Kopfnotenauftrag',
+                                array('{{ Date }} {{ Name }}' => $tblBehaviorTaskListByYear))
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
                 new FormColumn(
-                    new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiter/in'), 12
+                    new Panel(
+                        'Unterzeichner',
+                        array(
+                            (new CheckBox('Data[IsTeacherAvailable]',
+                                'Name des Klassenlehrers und Name des/der Schulleiters/in (falls vorhanden) auf dem Zeugnis anzeigen',
+                                1
+                            )),
+                            new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiters/in'),
+                            new Panel(
+                                new Small(new Bold('Geschlecht des/der Schulleiters/in')),
+                                array(
+                                    (new RadioBox('Data[GenderHeadmaster]', 'Männlich',
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                                            ? $tblCommonGender->getId() : 0)),
+                                    (new RadioBox('Data[GenderHeadmaster]', 'Weiblich',
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                                            ? $tblCommonGender->getId() : 0))
+                                ),
+                                Panel::PANEL_TYPE_DEFAULT
+                            )
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
             )),
         )));
@@ -485,6 +521,7 @@ class Frontend extends Extension
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Generate', new ChevronLeft()));
 
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($GenerateCertificateId))) {
+            $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
             $tableData = array();
 
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
@@ -521,6 +558,27 @@ class Frontend extends Extension
                             }
                         }
 
+                        // bei Abschlusszeugnisse Klasse 9 nur Hauptschüler zählen
+                        if ($tblCertificateType
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            && Prepare::useService()->isCourseMainDiploma($tblPrepare)
+                        ) {
+                            $countStudents = 0;
+                            if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                                foreach ($tblStudentList as $tblPerson) {
+                                    if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                        && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                        && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                            $tblTransferType))
+                                        && ($tblCourse = $tblStudentTransfer->getServiceTblCourse())
+                                        && $tblCourse->getName() == 'Hauptschule'
+                                    ) {
+                                        $countStudents++;
+                                    }
+                                }
+                            }
+                        }
+
                         $tableData[] = array(
                             'SchoolType' => $tblType->getName(),
                             'Division' => $tblDivision->getDisplayName(),
@@ -553,11 +611,13 @@ class Frontend extends Extension
                                 new Panel('Zeugnisdatum', $tblGenerateCertificate->getDate(), Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Typ', 'Halbjahreszeugnis/Halbjahresinformation', Panel::PANEL_TYPE_INFO)
+                                new Panel('Typ', $tblCertificateType ? $tblCertificateType->getName() : '',
+                                    Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Name', 'SN Noteninfo, KN Noteninfo', Panel::PANEL_TYPE_INFO)
-                            ), 6)
+                                new Panel('Name', $tblGenerateCertificate ? $tblGenerateCertificate->getName() : '',
+                                    Panel::PANEL_TYPE_INFO)
+                            ), 6),
                         ))
                     )),
                     new LayoutGroup(array(
@@ -616,11 +676,22 @@ class Frontend extends Extension
                     array('GenerateCertificateId' => $tblPrepare->getServiceTblGenerateCertificate()->getId()))
             );
 
+            $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
+            $isDiploma = false;
+            $tblCertificateType = false;
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+            ) {
+                $isDiploma = true;
+            }
+
             $tableData = array();
             if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                $count = 1;
+                $count = 0;
                 $Global = $this->getGlobal();
                 foreach ($tblStudentList as $tblPerson) {
+                    $isMuted = $isCourseMainDiploma && $isDiploma;
 
                     $tblCourse = false;
                     $tblCompany = false;
@@ -632,77 +703,87 @@ class Frontend extends Extension
                         if ($tblStudentTransfer) {
                             $tblCourse = $tblStudentTransfer->getServiceTblCourse();
                             $tblCompany = $tblStudentTransfer->getServiceTblCompany();
+                            if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                                $isMuted = false;
+                            }
                         }
                     }
 
+                    $courseName = $tblCourse ? $tblCourse->getName() : '';
+
+                    $count++;
                     $tableData[$tblPerson->getId()] = array(
-                        'Number' => $count++,
-                        'Student' => $tblPerson->getLastFirstName(),
-                        'Course' => $tblCourse ? $tblCourse->getName() : '',
-                        'School' => $tblCompany ? $tblCompany->getName() : new Warning(
+                        'Number' => $isMuted ? new Muted($count) : $count,
+                        'Student' => $isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName(),
+                        'Course' => $isMuted ? new Muted($courseName) : $courseName,
+                        'School' => $isMuted ? '' : ($tblCompany ? $tblCompany->getName() : new Warning(
                             new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
-                        )
+                        ))
                     );
 
-                    $tblCertificate = false;
-                    if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                        && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                    ) {
-
+                    if ($isMuted) {
+                        $tableData[$tblPerson->getId()]['Template'] = '';
                     } else {
-                        // Noteninformation
-                        if ($tblPrepare->isGradeInformation()) {
-                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
+                        $tblCertificate = false;
+                        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                        ) {
+
                         } else {
-                            // Mögliche Certificate herausfinden und bei einem eindeutiten Certificate vor auswählen
-                            $tblCertificateListByConsumer = Generate::useService()->getPossibleCertificates($tblPrepare,
-                                $tblPerson, Consumer::useService()->getConsumerBySession());
-                            $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
-                                $tblPerson);
-                            if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
-                                if (count($tblCertificateListByConsumer) != 1) {
-                                    $certificateList = array_merge($tblCertificateListByConsumer,
-                                        $tblCertificateListByStandard);
-                                } else {
-                                    $certificateList = $tblCertificateListByConsumer;
-                                }
-                            } elseif ($tblCertificateListByConsumer) {
-                                $certificateList = $tblCertificateListByConsumer;
-                            } elseif ($tblCertificateListByStandard) {
-                                $certificateList = $tblCertificateListByStandard;
+                            // Noteninformation
+                            if ($tblPrepare->isGradeInformation()) {
+                                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
                             } else {
-                                $certificateList = array();
-                            }
-                            if (count($certificateList) == 1) {
-                                $tblCertificate = current($certificateList);
+                                // Mögliche Certificate herausfinden und bei einem eindeutiten Certificate vor auswählen
+                                $tblCertificateListByConsumer = Generate::useService()->getPossibleCertificates($tblPrepare,
+                                    $tblPerson, Consumer::useService()->getConsumerBySession());
+                                $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
+                                    $tblPerson);
+                                if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
+                                    if (count($tblCertificateListByConsumer) != 1) {
+                                        $certificateList = array_merge($tblCertificateListByConsumer,
+                                            $tblCertificateListByStandard);
+                                    } else {
+                                        $certificateList = $tblCertificateListByConsumer;
+                                    }
+                                } elseif ($tblCertificateListByConsumer) {
+                                    $certificateList = $tblCertificateListByConsumer;
+                                } elseif ($tblCertificateListByStandard) {
+                                    $certificateList = $tblCertificateListByStandard;
+                                } else {
+                                    $certificateList = array();
+                                }
+                                if (count($certificateList) == 1) {
+                                    $tblCertificate = current($certificateList);
+                                }
                             }
                         }
-                    }
-                    if ($Global && $tblCertificate) {
-                        $Global->POST['Data'][$tblPerson->getId()] = $tblCertificate->getId();
-                        $Global->savePost();
-                    }
+                        if ($Global && $tblCertificate) {
+                            $Global->POST['Data'][$tblPerson->getId()] = $tblCertificate->getId();
+                            $Global->savePost();
+                        }
 
-                    // Alle Zeungisse nach Zeugnistyp zur Auswahl
-                    $tblCertificateType = false;
-                    if ($tblPrepare->getServiceTblGenerateCertificate()) {
-                        $tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType();
-                    }
+                        // Alle Zeungisse nach Zeugnistyp zur Auswahl
+                        $tblCertificateType = false;
+                        if ($tblPrepare->getServiceTblGenerateCertificate()) {
+                            $tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType();
+                        }
 
-                    if ($tblCertificateType) {
-                        $tblCertificateAllByType = Generator::useService()->getCertificateAllByType($tblCertificateType);
-                        if (!$tblCertificateAllByType) {
+                        if ($tblCertificateType) {
+                            $tblCertificateAllByType = Generator::useService()->getCertificateAllByType($tblCertificateType);
+                            if (!$tblCertificateAllByType) {
+                                $tblCertificateAllByType = array();
+                            }
+                        } else {
                             $tblCertificateAllByType = array();
                         }
-                    } else {
-                        $tblCertificateAllByType = array();
+                        $tableData[$tblPerson->getId()]['Template'] = new SelectBox('Data[' . $tblPerson->getId() . ']',
+                            '',
+                            array(
+                                '{{ serviceTblConsumer.Acronym }} {{ Name }} {{Description}}' => $tblCertificateAllByType
+                            )
+                        );
                     }
-                    $tableData[$tblPerson->getId()]['Template'] = new SelectBox('Data[' . $tblPerson->getId() . ']',
-                        '',
-                        array(
-                            '{{ serviceTblConsumer.Acronym }} {{ Name }} {{Description}}' => $tblCertificateAllByType
-                        )
-                    );
                 }
             }
 
@@ -733,10 +814,12 @@ class Frontend extends Extension
                                 new Panel('Zeugnisdatum', $tblPrepare->getDate(), Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Typ', 'Halbjahreszeugnis/Halbjahresinformation', Panel::PANEL_TYPE_INFO)
+                                new Panel('Typ', $tblCertificateType ? $tblCertificateType->getName() : '',
+                                    Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
-                                new Panel('Name', 'SN Noteninfo, KN Noteninfo', Panel::PANEL_TYPE_INFO)
+                                new Panel('Name', $tblGenerateCertificate ? $tblGenerateCertificate->getName() : '',
+                                    Panel::PANEL_TYPE_INFO)
                             ), 3),
                             new LayoutColumn(array(
                                 new Panel('Klasse', $tblDivision->getDisplayName(), Panel::PANEL_TYPE_INFO)
@@ -769,6 +852,7 @@ class Frontend extends Extension
     {
 
         $Stage = new Stage('Zeugnis generieren', 'Bearbeiten');
+        $Stage->setMessage('Die Notenaufträge können nur geändert werden bis ein Zeugnis freigeben wurde.');
 
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($Id))) {
 
@@ -782,11 +866,18 @@ class Frontend extends Extension
                 $Global->POST['Data']['Date'] = $tblGenerateCertificate->getDate();
                 $Global->POST['Data']['IsTeacherAvailable'] = $tblGenerateCertificate->isDivisionTeacherAvailable();
                 $Global->POST['Data']['HeadmasterName'] = $tblGenerateCertificate->getHeadmasterName();
+                $Global->POST['Data']['GenderHeadmaster'] = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster()
+                    ? $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster()->getId() : 0;
+                $Global->POST['Data']['AppointedDateTask'] = $tblGenerateCertificate->getServiceTblAppointedDateTask()
+                    ? $tblGenerateCertificate->getServiceTblAppointedDateTask()->getId() : 0;
+                $Global->POST['Data']['BehaviorTask'] = $tblGenerateCertificate->getServiceTblBehaviorTask()
+                    ? $tblGenerateCertificate->getServiceTblBehaviorTask()->getId() : 0;
 
                 $Global->savePost();
             }
 
-            $Form = $this->formEditGenerate()
+            $tblYear = $tblGenerateCertificate->getServiceTblYear();
+            $Form = $this->formEditGenerate($tblYear ? $tblYear : null, $tblGenerateCertificate->isLocked())
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
             $Stage->setContent(
@@ -824,29 +915,158 @@ class Frontend extends Extension
     }
 
     /**
+     * @param TblYear|null $tblYear
+     *
      * @return Form
      */
-    private function formEditGenerate()
+    private function formEditGenerate(TblYear $tblYear = null, $IsLocked)
     {
+
+
+        $tblAppointedDateTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
+            Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
+            $tblYear ? $tblYear : null
+        );
+        $tblBehaviorTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
+            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'),
+            $tblYear ? $tblYear : null
+        );
+
+        $selectBoxAppointedDateTask = new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag',
+            array('{{ Date }} {{ Name }}' => $tblAppointedDateTaskListByYear));
+        $selectBoxBehaviorTask = new SelectBox('Data[BehaviorTask]', 'Kopfnotenauftrag',
+            array('{{ Date }} {{ Name }}' => $tblBehaviorTaskListByYear));
+        if ($IsLocked) {
+            $selectBoxAppointedDateTask->setDisabled();
+            $selectBoxBehaviorTask->setDisabled();
+        }
 
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()), 6
-                ),
-
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new CheckBox('Data[IsTeacherAvailable]',
-                        'Name des Klassenlehrers und Name des Schulleiters (falls vorhanden) auf dem Zeugnis anzeigen',
-                        1
-                    ), 12
+                    new Panel(
+                        'Zeugnis',
+                        array(
+                            new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar())
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
                 new FormColumn(
-                    new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiter/in'), 12
+                    new Panel(
+                        'Notenaufträge',
+                        array(
+                            $selectBoxAppointedDateTask,
+                            $selectBoxBehaviorTask
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
-            )),
+                new FormColumn(
+                    new Panel(
+                        'Unterzeichner',
+                        array(
+                            new CheckBox('Data[IsTeacherAvailable]',
+                                'Name des Klassenlehrers und Name des/der Schulleiters/in (falls vorhanden) auf dem Zeugnis anzeigen',
+                                1
+                            ),
+                            new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiters/in'),
+                            new Panel(
+                                new Small(new Bold('Geschlecht des/der Schulleiters/in')),
+                                array(
+                                    (new RadioBox('Data[GenderHeadmaster]', 'Männlich',
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                                            ? $tblCommonGender->getId() : 0)),
+                                    (new RadioBox('Data[GenderHeadmaster]', 'Weiblich',
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                                            ? $tblCommonGender->getId() : 0))
+                                ),
+                                Panel::PANEL_TYPE_DEFAULT
+                            )
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
+                ),
+            ))
         )));
+    }
+
+    /**
+     * @param null $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyGenerate($Id = null, $Confirm = false)
+    {
+
+        $Stage = new Stage('Zeugnisgenerierung', 'Löschen');
+
+        if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($Id))) {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Generate', new ChevronLeft()
+            ));
+
+            if (!$Confirm) {
+                $divisionList = array();
+                $divisionList[] = 'Zeungisdatum: ' . $tblGenerateCertificate->getDate();
+                $divisionList[] = 'Typ: ' . (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                        ? $tblCertificateType->getName() : '');
+                $divisionList[] = 'Name: ' . $tblGenerateCertificate->getName();
+
+                if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                    $divisionList[] = '&nbsp;';
+                    foreach ($tblPrepareList as $tblPrepare) {
+                        if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+                            $divisionList[] = 'Klasse: ' . $tblDivision->getDisplayName();
+                        }
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(
+                            new Question() . ' Diese Zeugnisgenerierung wirklich löschen?',
+                            $divisionList,
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Certificate/Generate/Destroy', new Ok(),
+                                array(
+                                    'Id' => $Id,
+                                    'Confirm' => true
+                                )
+                            )
+                            . new Standard(
+                                'Nein', '/Education/Certificate/Generate', new Disable()
+                            )
+                        ),
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Generate::useService()->destroyGenerateCertificate($tblGenerateCertificate)
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(
+                                    new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zeugnisgenerierung wurde gelöscht')
+                                . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS)
+                                : new Danger(new Ban() . ' Die Zeugnisgenerierung konnte nicht gelöscht werden')
+                                . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_ERROR)
+                            )
+                        )))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger(new Ban() . ' Die Zeugnisgenerierung konnte nicht gefunden werden'),
+                        new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
     }
 }

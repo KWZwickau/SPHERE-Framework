@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\People;
 
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -9,6 +11,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -62,21 +65,36 @@ class People implements IClusterInterface
         if ($tblGroupAll) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
+
+                if ($tblGroup->getMetaTable() == 'STUDENT') {
+                    $countContent = array();
+                    if (($tblYearList = Term::useService()->getYearAllFutureYears(0))) {
+                        foreach ($tblYearList as $tblYear) {
+                            $countContent[$tblYear->getId()] = new Muted(new Small(
+                                Division::useService()->getStudentCountByYear($tblYear)
+                                . ' Mitglieder im Schuljahr ' .  $tblYear->getDisplayName() . ' '));
+                        }
+                    }
+                    $countContent = new Listing($countContent);
+                } else {
+                    $countContent = new Muted(new Small(Group::useService()->countMemberAllByGroup($tblGroup) . '&nbsp;Mitglieder'));
+                }
+
                 $content =
                     new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
                                 $tblGroup->getName()
                                 .new Muted(new Small('<br/>'.$tblGroup->getDescription()))
-                                , array(9, 0, 7)),
+                                , 5),
                             new LayoutColumn(
-                                new Muted(new Small(Group::useService()->countMemberAllByGroup($tblGroup).'&nbsp;Mitglieder'))
-                                , 2, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
+                                $countContent
+                                , 5, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
                             new LayoutColumn(
                                 new PullRight(
                                     new Standard('', '/People/Search/Group',
                                         new \SPHERE\Common\Frontend\Icon\Repository\Group(),
                                         array('Id' => $tblGroup->getId()))
-                                ), array(3, 0, 3))
+                                ), 2)
                         )
                     )));
 

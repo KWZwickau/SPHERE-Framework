@@ -72,7 +72,8 @@
             /**
              * Activate: External Link
              */
-            $('a[rel="external"]').attr('target', '_blank');
+            // MOVED TO EXTERNAL
+            // $('a[rel="external"]').attr('target', '_blank');
             /**
              * Activate: Source-Code Highlighter
              */
@@ -120,7 +121,7 @@
 
                 if (
                     jQuery('<a>').prop('href', window.location).prop('hostname')
-                    ==
+                    ===
                     jQuery('<a>').prop('href', jQuery(iFrame[Frame]).attr('src')).prop('hostname')
                 ) {
                     iRun(jQuery(iFrame[Frame]));
