@@ -17,61 +17,75 @@ class Account implements IModuleInterface
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('/People/User/Account/Person'), new Link\Name('Benutzer verwalten'))
+            new Link(new Link\Route(__NAMESPACE__.'/Student/Add'), new Link\Name('Neu Schüler'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('/People/User/Account/Address'), new Link\Name('Serienbrief'))
+            new Link(new Link\Route(__NAMESPACE__.'/Custody/Add'), new Link\Name('Neu Eltern'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('/People/User/Account/Mail'), new Link\Name('E-Mail'))
+            new Link(new Link\Route(__NAMESPACE__.'/Student/Show'), new Link\Name('Schülerübersicht'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/Custody/Show'), new Link\Name('Elternübersicht'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/Export'), new Link\Name('Export'))
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account', __NAMESPACE__.'\Frontend::frontendPrepare')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Student/Add',
+                __NAMESPACE__.'\Frontend::frontendStudentAdd')
+        );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPrepare')
         );
         //FrontendAddress
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Address', __NAMESPACE__.'\Frontend::frontendAddress')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address', __NAMESPACE__.'\Frontend::frontendAddress')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Address/Edit',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address/Edit',
                 __NAMESPACE__.'\Frontend::frontendAddressEdit')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Address/Select', __NAMESPACE__.'\Frontend::frontendAddressSelect')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address/Select',
+                __NAMESPACE__.'\Frontend::frontendAddressSelect')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Address/IsExport',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address/IsExport',
                 __NAMESPACE__.'\Frontend::frontendSendAddressIsExport')
         );
         //FrontendMail
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Mail', __NAMESPACE__.'\Frontend::frontendMail')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Mail', __NAMESPACE__.'\Frontend::frontendMail')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Mail/Edit',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Mail/Edit',
                 __NAMESPACE__.'\Frontend::frontendMailEdit')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Mail/Select', __NAMESPACE__.'\Frontend::frontendMailSelect')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Mail/Select',
+                __NAMESPACE__.'\Frontend::frontendMailSelect')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Mail/IsSend',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Mail/IsSend',
                 __NAMESPACE__.'\Frontend::frontendMailIsSend')
         );
         //remove from Reset Password
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Reset',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Reset',
                 __NAMESPACE__.'\Frontend::frontendResetAccount')
         );
         //remove from prepare
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Destroy',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
                 __NAMESPACE__.'\Frontend::frontendDestroyPrepare')
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User/Account/Person', __NAMESPACE__.'\Frontend::frontendPreparePersonList')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person',
+                __NAMESPACE__.'\Frontend::frontendPreparePersonList')
         );
     }
 

@@ -18,12 +18,12 @@ class User implements IApplicationInterface
         Account::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route('/People/User'), new Link\Name('Eltern und Schülerzugänge'),
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schüler und Eltern Zugang'),
                 new Link\Icon(new Family()))
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/People/User', __NAMESPACE__.'\Account\Frontend::frontendDashboard')
+            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Account\Frontend::frontendDashboard')
         );
     }
 }

@@ -7,16 +7,23 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -61,6 +68,7 @@ use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
@@ -68,6 +76,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractView;
+use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
 
 class Frontend extends Extension implements IFrontendInterface
@@ -81,7 +90,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Übersicht', 'Accounts');
         $Stage->addButton(new Standard('Zurück', '/People', new ChevronLeft()));
-//        $Stage->addButton(new Standard('Personenzuweisung', '/People/User/Account/Person', new Listing(), array()
+//        $Stage->addButton(new Standard('Personenzuweisung', '/Setting/User/Account/Person', new Listing(), array()
 //            , 'Auswahl der Personen'));
 
         $tblUserAccountAll = Account::useService()->getUserAccountAll();
@@ -98,13 +107,14 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
                 $Item['Option'] =
-//                    new Standard('', '/People/User/Account/Address/Edit', new Building(),
+//                    new Standard('', '/Setting/User/Account/Address/Edit', new Building(),
 //                        array('Id' => $tblUserAccount->getId()), 'Adresse ändern/anlegen')
-//                    .new Standard('', '/People/User/Account/Mail/Edit', new MailIcon(),
+//                    .new Standard('', '/Setting/User/Account/Mail/Edit', new MailIcon(),
 //                        array('Id' => $tblUserAccount->getId()), 'E-Mail ändern/anlegen')
-                    new Standard('', '/People/User/Account/Reset', new Repeat(), array('Id' => $tblUserAccount->getId())
+                    new Standard('', '/Setting/User/Account/Reset', new Repeat(),
+                        array('Id' => $tblUserAccount->getId())
                         , 'Passwort Zurücksetzten')
-                    .new Standard('', '/People/User/Account/Destroy', new Remove(),
+                    .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
                         array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
@@ -194,7 +204,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ))
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.
                                 Bitte klicken Sie auf &nbsp;'.new Standard('Benutzer verwalten',
-                                        '/People/User/Account/Person')
+                                        '/Setting/User/Account/Person')
                                     .' um neue Benutzer anzulegen')
                             )
                         )
@@ -206,6 +216,229 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    public function frontendStudentAdd($Year = null, $Division = null)
+    {
+
+        $Stage = new Stage('Schüler-Accounts', 'Erstellen');
+
+        $form = $this->getStudentFilterForm();
+
+        $TableContent = $this->getStudentFilterResult($Year, $Division);
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            $form
+                        ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($TableContent, null, array(
+                                'Check'         => 'Auswahl',
+                                'Name'          => 'Name',
+                                'StudentNumber' => 'Schüler-Nr.',
+                                'Course'        => 'Schulart',
+                                'Division'      => 'Klasse',
+                                'Address'       => 'Adresse',
+                                'Optionen'      => '',
+                            ), null)
+                        )
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Form
+     */
+    private function getStudentFilterForm()
+    {
+        $tblLevelShowList = array();
+
+        $tblLevelList = Division::useService()->getLevelAll();
+        if ($tblLevelList) {
+            foreach ($tblLevelList as &$tblLevel) {
+                if (!$tblLevel->getName()) {
+                    $tblLevelClone = clone $tblLevel;
+                    $tblLevelClone->setName('Stufenübergreifende Klassen');
+                    $tblLevelShowList[] = $tblLevelClone;
+                } else {
+                    $tblLevelShowList[] = $tblLevel;
+                }
+            }
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(array(
+                        new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new Danger('*'),
+                            array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
+                    ), 3),
+                    new FormColumn(array(
+                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Bildung: Schulart',
+                            array('Name' => Type::useService()->getTypeAll()))
+                    ), 3),
+                    new FormColumn(array(
+                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
+                            array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList))
+                    ), 3),
+                    new FormColumn(array(
+                        new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
+                            'Klasse: Gruppe',
+                            array('Name' => Division::useService()->getDivisionAll()))
+                    ), 3),
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new Danger('*'.new Small('Pflichtfeld'))
+                    )
+                )
+            ))
+            , new Primary('Filtern')
+        );
+    }
+
+    private function getStudentFilterResult($Year, $Division)
+    {
+
+        $Pile = new Pile(Pile::JOIN_TYPE_INNER);
+        $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
+            null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
+        );
+        $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(),
+            ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
+        );
+        $Pile->addPile((new ViewDivisionStudent())->getViewService(), new ViewDivisionStudent(),
+            ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
+        );
+        $Pile->addPile((new ViewYear())->getViewService(), new ViewYear(),
+            ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
+        );
+
+        $Result = '';
+
+        if (isset($Year) && $Year['TblYear_Id'] != 0 && isset($Pile)) {
+            // Preparation Filter
+            array_walk($Year, function (&$Input) {
+
+                if (!empty($Input)) {
+                    $Input = explode(' ', $Input);
+                    $Input = array_filter($Input);
+                } else {
+                    $Input = false;
+                }
+            });
+            $Year = array_filter($Year);
+//            // Preparation FilterPerson
+//            $Filter['Person'] = array();
+
+            // Preparation $FilterType
+            if (isset($Division) && $Division) {
+                array_walk($Division, function (&$Input) {
+
+                    if (!empty($Input)) {
+                        $Input = explode(' ', $Input);
+                        $Input = array_filter($Input);
+                    } else {
+                        $Input = false;
+                    }
+                });
+                $Division = array_filter($Division);
+            } else {
+                $Division = array();
+            }
+
+            $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+            $Result = $Pile->searchPile(array(
+                0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())),
+                1 => array(),   // empty Person search
+                2 => $Division,
+                3 => $Year
+            ));
+        }
+
+        $SearchResult = array();
+        if ($Result != '') {
+            /**
+             * @var int                                $Index
+             * @var ViewPerson[]|ViewDivisionStudent[] $Row
+             */
+            foreach ($Result as $Index => $Row) {
+
+                /** @var ViewPerson $DataPerson */
+                $DataPerson = $Row[1]->__toArray();
+                /** @var ViewDivisionStudent $DivisionStudent */
+                $DivisionStudent = $Row[2]->__toArray();
+                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Name'] = false;
+                $DataPerson['Check'] = '';
+                $DataPerson['Course'] = '';
+                $DataPerson['Course'] = '';
+                $DataPerson['Address'] = new WarningMessage('keine Hauptadresse Hinterlegt!');
+
+                if ($tblPerson) {
+                    $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
+                        $tblPerson->getId()
+                        , array($tblPerson->getId())))->setChecked();
+                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
+                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                    if ($tblStudent) {
+                        $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                        if ($tblTransferType) {
+                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                $tblTransferType);
+                            if ($tblStudentTransfer && ($tblCourse = $tblStudentTransfer->getServiceTblCourse())) {
+                                $DataPerson['Course'] = $tblCourse->getName();
+                            }
+                        }
+                    }
+                }
+                $DataPerson['Division'] = '';
+                $DataPerson['Level'] = '';
+
+                $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
+                if ($tblDivision) {
+                    $DataPerson['Division'] = $tblDivision->getDisplayName();
+                }
+
+                /** @noinspection PhpUndefinedFieldInspection */
+                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
+                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $DataPerson['Address'] = $tblAddress->getGuiString();
+                }
+                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
+                if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                }
+
+                if (!isset($DataPerson['ProspectYear'])) {
+                    $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
+                }
+                if (!isset($DataPerson['ProspectDivision'])) {
+                    $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
+                }
+
+                // ignore duplicated Person
+                if ($DataPerson['Name']) {
+                    if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
+                        $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
+                    }
+                }
+            }
+        }
+
+        return $SearchResult;
+    }
+
     /**
      * @return Stage
      */
@@ -213,7 +446,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Benutzer', 'Übersicht der Adressen');
-        $Stage->addButton(new Standard('Zurück', '/People/User', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
         $tblUserAccountAll = Account::useService()->getUserAccountAll();
         $TableContent = array();
         if ($tblUserAccountAll) {
@@ -224,7 +457,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Account hinterlegt');
                 $Item['Address'] = new Warning(new WarningIcon().' Keine Adresse gewählt');
                 $Item['IsAddress'] = '';
-                $Item['Option'] = new Standard('', '/People/User/Account/Address/Edit', new Building(),
+                $Item['Option'] = new Standard('', '/Setting/User/Account/Address/Edit', new Building(),
                     array('Id' => $tblUserAccount->getId()), 'Adresse ändern/anlegen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
@@ -240,7 +473,7 @@ class Frontend extends Extension implements IFrontendInterface
                         // show send status
                         if ($tblUserAccount->getIsExport()) {
                             $Item['IsAddress'] = ''; //new Center(new Warning(new Disable()));
-                            $Item['Option'] .= new Standard('', '/People/User/Account/Address/IsExport',
+                            $Item['Option'] .= new Standard('', '/Setting/User/Account/Address/IsExport',
                                 new SuccessIcon(),
                                 array('Id' => $tblUserAccount->getId(), 'IsExport' => false), 'Adresse benutzen');
                         } else {
@@ -248,7 +481,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $Item['IsAddress'] = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                                 new Center(new Success(new SuccessIcon()))
                             ))));
-                            $Item['Option'] .= new Standard('', '/People/User/Account/Address/IsExport', new Disable(),
+                            $Item['Option'] .= new Standard('', '/Setting/User/Account/Address/IsExport', new Disable(),
                                 array('Id' => $tblUserAccount->getId(), 'IsExport' => true), 'Adresse nicht benutzen');
                         }
                     }
@@ -310,7 +543,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ))
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.
                                 Bitte klicken Sie auf &nbsp;'.new Standard('Benutzer verwalten',
-                                        '/People/User/Account/Person')
+                                        '/Setting/User/Account/Person')
                                     .' um neue Benutzer anzulegen')
                             )
                         )
@@ -344,17 +577,17 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Adresse', 'Auswählen');
-        $Stage->addButton(new Standard('Zurück', '/People/User/Account/Address', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Setting/User/Account/Address', new ChevronLeft()));
         $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
         if (!$tblUserAccount) {
             $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
-                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/Setting/User/Account/Address', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
         $tblPerson = $tblUserAccount->getServiceTblPerson();
         if (!$tblPerson) {
             $Stage->setContent(new WarningMessage('Person nicht gefunden')
-                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/Setting/User/Account/Address', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
 
@@ -417,7 +650,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ->appendFormButton(new Primary('Speichern', new Save()))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblPerson, $Street, $City, $State, $Type, $County, $Nation,
-                                '/People/User/Account/Address/Edit',
+                                '/Setting/User/Account/Address/Edit',
                                 array('Id' => $tblUserAccount->getId())
                             ))
                         ))
@@ -462,7 +695,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? Panel::PANEL_TYPE_SUCCESS
                                     : Panel::PANEL_TYPE_INFO)
                                 : Panel::PANEL_TYPE_INFO),
-                            new Standard('', '/People/User/Account/Address/Select', new Ok(),
+                            new Standard('', '/Setting/User/Account/Address/Select', new Ok(),
                                 array('Id'         => $tblUserAccount->getId(),
                                       'toPersonId' => $tblToAddress->getId()), 'Adresse auswählen'
                             )
@@ -510,13 +743,13 @@ class Frontend extends Extension implements IFrontendInterface
         $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
         if (!$tblUserAccount) {
             $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
-                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/Setting/User/Account/Address', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
         $tblToPersonAddress = ( $toPersonId === null ? false : Address::useService()->getAddressToPersonById($toPersonId) );
         if (!$tblToPersonAddress) {
             $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
-                .new Redirect('/People/User/Account/Address/Edit', Redirect::TIMEOUT_ERROR,
+                .new Redirect('/Setting/User/Account/Address/Edit', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblUserAccount->getId()))
             );
             return $Stage;
@@ -526,11 +759,11 @@ class Frontend extends Extension implements IFrontendInterface
         if (Account::useService()->updateUserAccountByToPersonAddress($tblUserAccount, $tblToPersonAddress)) {
             // success
             $Stage->setContent(new SuccessMessage('Adresse erfolgreich übernommen')
-                .new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_SUCCESS));
+                .new Redirect('/Setting/User/Account/Address', Redirect::TIMEOUT_SUCCESS));
         } else {
             // error
             $Stage->setContent(new WarningMessage('Adresse konnte nicht übernommen werden')
-                .new Redirect('/People/User/Account/Address/Edit', Redirect::TIMEOUT_ERROR,
+                .new Redirect('/Setting/User/Account/Address/Edit', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblUserAccount->getId())));
         }
         return $Stage;
@@ -549,7 +782,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$tblUserAccount) {
             return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                 new Warning('Acountzuweisung nicht gefunden.'),
-                new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR)
+                new Redirect('/Setting/User/Account/Address', Redirect::TIMEOUT_ERROR)
             ))))));
         }
         if ($IsExport) {
@@ -565,8 +798,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             (Account::useService()->updateUserAccountByIsExport($tblUserAccount, $IsExport)
-                                ? $Success.new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_SUCCESS)
-                                : $Error.new Redirect('/People/User/Account/Address', Redirect::TIMEOUT_ERROR))
+                                ? $Success.new Redirect('/Setting/User/Account/Address', Redirect::TIMEOUT_SUCCESS)
+                                : $Error.new Redirect('/Setting/User/Account/Address', Redirect::TIMEOUT_ERROR))
                         )
                     )
                 )
@@ -583,7 +816,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Benutzer', 'Übersicht der E-Mails');
-        $Stage->addButton(new Standard('Zurück', '/People/User', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
         $tblUserAccountAll = Account::useService()->getUserAccountAll();
         $TableContent = array();
         if ($tblUserAccountAll) {
@@ -594,7 +827,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Account hinterlegt');
                 $Item['Mail'] = new Warning(new WarningIcon().' Keine E-Mail gewählt');
                 $Item['IsMail'] = '';
-                $Item['Option'] = new Standard('', '/People/User/Account/Mail/Edit', new MailIcon(),
+                $Item['Option'] = new Standard('', '/Setting/User/Account/Mail/Edit', new MailIcon(),
                     array('Id' => $tblUserAccount->getId()), 'E-Mail ändern/anlegen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
@@ -611,13 +844,13 @@ class Frontend extends Extension implements IFrontendInterface
                         // show send status
                         if ($tblUserAccount->getIsSend()) {
 //                            $Item['IsMail'] = new Center(new Warning(new Disable()));
-                            $Item['Option'] .= new Standard('', '/People/User/Account/Mail/IsSend', new SuccessIcon(),
+                            $Item['Option'] .= new Standard('', '/Setting/User/Account/Mail/IsSend', new SuccessIcon(),
                                 array('Id' => $tblUserAccount->getId(), 'IsSend' => false), 'E-Mail verschicken');
                         } else {
                             $Item['IsMail'] = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                                 new Center(new Success(new SuccessIcon()))
                             ))));
-                            $Item['Option'] .= new Standard('', '/People/User/Account/Mail/IsSend', new Disable(),
+                            $Item['Option'] .= new Standard('', '/Setting/User/Account/Mail/IsSend', new Disable(),
                                 array('Id' => $tblUserAccount->getId(), 'IsSend' => true), 'keine E-Mail verschicken');
                         }
                     }
@@ -672,7 +905,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ))
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.
                                 Bitte klicken Sie auf &nbsp;'.new Standard('Benutzer verwalten',
-                                        '/People/User/Account/Person')
+                                        '/Setting/User/Account/Person')
                                     .' um neue Benutzer anzulegen')
                             )
                         )
@@ -698,17 +931,17 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('E-Mail', 'Auswählen');
-        $Stage->addButton(new Standard('Zurück', '/People/User', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
         $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
         if (!$tblUserAccount) {
             $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
-                .new Redirect('/People/User', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
         $tblPerson = $tblUserAccount->getServiceTblPerson();
         if (!$tblPerson) {
             $Stage->setContent(new WarningMessage('Person nicht gefunden')
-                .new Redirect('/People/User', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
         $tblToPersonMail = $tblUserAccount->getServiceTblToPersonMail();
@@ -769,7 +1002,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $formAddress
                                     ->appendFormButton(new Primary('Speichern', new Save()))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblPerson, $Address, $Type, '/People/User/Account/Mail/Edit',
+                                , $tblPerson, $Address, $Type, '/Setting/User/Account/Mail/Edit',
                                 array('Id' => $tblUserAccount->getId())
                             ))
                         ))
@@ -796,7 +1029,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblToPersonMailList) {
             foreach ($tblToPersonMailList as $tblToMail) {
 
-                $activateButton = new Standard('', '/People/User/Account/Mail/Select', new Ok(),
+                $activateButton = new Standard('', '/Setting/User/Account/Mail/Select', new Ok(),
                     array(
                         'Id'         => $tblUserAccount->getId(),
                         'toPersonId' => $tblToMail->getId()
@@ -868,13 +1101,13 @@ class Frontend extends Extension implements IFrontendInterface
         $tblUserAccount = ( $Id === null ? false : Account::useService()->getUserAccountById($Id) );
         if (!$tblUserAccount) {
             $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
-                .new Redirect('/People/User', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR));
             return $Stage;
         }
         $tblToPersonMail = ( $toPersonId === null ? false : Mail::useService()->getMailToPersonById($toPersonId) );
         if (!$tblToPersonMail) {
             $Stage->setContent(new WarningMessage('Acountzuweisung nicht gefunden')
-                .new Redirect('/People/User/Account/Mail/Edit', Redirect::TIMEOUT_ERROR,
+                .new Redirect('/Setting/User/Account/Mail/Edit', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblUserAccount->getId()))
             );
             return $Stage;
@@ -884,11 +1117,11 @@ class Frontend extends Extension implements IFrontendInterface
         if (Account::useService()->updateUserAccountByToPersonMail($tblUserAccount, $tblToPersonMail)) {
             // success
             $Stage->setContent(new SuccessMessage('E-Mail Adresse erfolgreich übernommen')
-                .new Redirect('/People/User', Redirect::TIMEOUT_SUCCESS));
+                .new Redirect('/Setting/User', Redirect::TIMEOUT_SUCCESS));
         } else {
             // error
             $Stage->setContent(new WarningMessage('E-Mail Adresse konnte nicht übernommen werden')
-                .new Redirect('/People/User/Account/Mail/Edit', Redirect::TIMEOUT_ERROR,
+                .new Redirect('/Setting/User/Account/Mail/Edit', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblUserAccount->getId())));
         }
         return $Stage;
@@ -907,7 +1140,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$tblUserAccount) {
             return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                 new Warning('Acountzuweisung nicht gefunden.'),
-                new Redirect('/People/User/Account/Mail', Redirect::TIMEOUT_ERROR)
+                new Redirect('/Setting/User/Account/Mail', Redirect::TIMEOUT_ERROR)
             ))))));
         }
         if ($IsSend) {
@@ -923,8 +1156,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             (Account::useService()->updateUserAccountByIsSend($tblUserAccount, $IsSend)
-                                ? $Success.new Redirect('/People/User/Account/Mail', Redirect::TIMEOUT_SUCCESS)
-                                : $Error.new Redirect('/People/User/Account/Mail', Redirect::TIMEOUT_ERROR))
+                                ? $Success.new Redirect('/Setting/User/Account/Mail', Redirect::TIMEOUT_SUCCESS)
+                                : $Error.new Redirect('/Setting/User/Account/Mail', Redirect::TIMEOUT_ERROR))
                         )
                     )
                 )
@@ -951,7 +1184,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TabActive = 'STUDENTFILTER'
     ) {
         $Stage = new Stage('Personen', 'Zuweisung');
-        $Stage->addButton(new Standard('Zurück', '/People/User', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
         $IsSend = $IsExport = false;
         $tblUserAccountList = Account::useService()->getUserAccountByIsSendAndIsExport($IsSend, $IsExport);
         $Global = $this->getGlobal();
@@ -1580,12 +1813,12 @@ class Frontend extends Extension implements IFrontendInterface
             $tblUserAccount = Account::useService()->getUserAccountById($Id);
             if (!$tblUserAccount) {
                 return $Stage.new DangerMessage('Benutzeraccount nicht gefunden', new Ban())
-                    .new Redirect('/People/User', Redirect::TIMEOUT_ERROR);
+                    .new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR);
             }
             $tblAccount = $tblUserAccount->getServiceTblAccount();
             if (!$tblAccount) {
                 return $Stage->setContent(new WarningMessage('Account nicht vorhanden')
-                    .new Redirect('/People/User', Redirect::TIMEOUT_ERROR));
+                    .new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR));
             }
             $tblPerson = $tblUserAccount->getServiceTblPerson();
             if (!$tblPerson) {
@@ -1595,17 +1828,17 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel(new Question().' Diesen Benutzer wirklich Zurücksetzen?', '',
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
-                                'Ja', '/People/User/Account/Reset', new Ok(),
+                                'Ja', '/Setting/User/Account/Reset', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard('Nein', '/People/User', new Disable())
+                            .new Standard('Nein', '/Setting/User', new Disable())
                         )
                     )
                 )))));
             }
 
             $Stage->addButton(
-                new Standard('Zurück', '/People/User', new ChevronLeft())
+                new Standard('Zurück', '/Setting/User', new ChevronLeft())
             );
             if (!$Confirm) {
                 $Stage->setContent(
@@ -1621,10 +1854,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel(new Question().' Diesen Benutzer wirklich Zurücksetzen?', '',
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
-                                'Ja', '/People/User/Account/Reset', new Ok(),
+                                'Ja', '/Setting/User/Account/Reset', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard('Nein', '/People/User', new Disable())
+                            .new Standard('Nein', '/Setting/User', new Disable())
                         )
                     )))))
                 );
@@ -1645,7 +1878,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new SuccessMessage(new SuccessIcon().' Der Benutzer wurde Zurückgesetzt')
                                 : new DangerMessage(new Ban().' Der Benutzer konnte nicht Zurückgesetzt werden')
                             ),
-                            new Redirect('/People/User', Redirect::TIMEOUT_SUCCESS)
+                            new Redirect('/Setting/User', Redirect::TIMEOUT_SUCCESS)
                         )))
                     )))
                 );
@@ -1655,7 +1888,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new DangerMessage(new Ban().' Der Benutzer konnte nicht gefunden werden'),
-                        new Redirect('/People/User', Redirect::TIMEOUT_ERROR)
+                        new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
@@ -1677,7 +1910,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblUserAccount = Account::useService()->getUserAccountById($Id);
             if (!$tblUserAccount) {
                 return $Stage.new DangerMessage('Benutzeraccount nicht gefunden', new Ban())
-                    .new Redirect('/People/User', Redirect::TIMEOUT_ERROR);
+                    .new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR);
             }
             $tblAccount = $tblUserAccount->getServiceTblAccount();
             $tblPerson = $tblUserAccount->getServiceTblPerson();
@@ -1694,7 +1927,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(
                             array(
                                 new SuccessMessage(new SuccessIcon().' Der Benutzer wurde gelöscht'),
-                                new Redirect('/People/User', Redirect::TIMEOUT_SUCCESS)
+                                new Redirect('/Setting/User', Redirect::TIMEOUT_SUCCESS)
                             )
                         ))
                     )))
@@ -1702,7 +1935,7 @@ class Frontend extends Extension implements IFrontendInterface
                 return $Stage;
             }
             $Stage->addButton(
-                new Standard('Zurück', '/People/User', new ChevronLeft())
+                new Standard('Zurück', '/Setting/User', new ChevronLeft())
             );
             if (!$Confirm) {
                 $Stage->setContent(
@@ -1718,10 +1951,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel(new Question().' Diesen Benutzer wirklich löschen?', '',
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
-                                'Ja', '/People/User/Account/Destroy', new Ok(),
+                                'Ja', '/Setting/User/Account/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard('Nein', '/People/User', new Disable())
+                            .new Standard('Nein', '/Setting/User', new Disable())
                         )
                     )))))
                 );
@@ -1743,7 +1976,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new SuccessMessage(new SuccessIcon().' Der Benutzer wurde gelöscht')
                                 : new DangerMessage(new Ban().' Der Benutzer konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/User', Redirect::TIMEOUT_SUCCESS)
+                            new Redirect('/Setting/User', Redirect::TIMEOUT_SUCCESS)
                         )))
                     )))
                 );
@@ -1753,7 +1986,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new DangerMessage(new Ban().' Der Benutzer konnte nicht gefunden werden'),
-                        new Redirect('/People/User', Redirect::TIMEOUT_ERROR)
+                        new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
