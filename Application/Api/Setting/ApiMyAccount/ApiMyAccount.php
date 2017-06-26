@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Setting\ApiMyAccount;
 
+use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -12,46 +13,29 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Extension\Extension;
 
 class ApiMyAccount extends Extension implements IApiInterface
 {
 
-    const API_DISPATCHER = 'MethodName';
-
-    public static function registerApi()
-    {
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __CLASS__, __CLASS__.'::ApiDispatcher'
-        ));
-    }
+    use ApiTrait;
 
     /**
-     * @param string $MethodName Callable Method
+     * @param string $Method
      *
      * @return string
      */
-    public function ApiDispatcher($MethodName = '')
+    public function exportApi($Method = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
+        $Dispatcher->registerMethod('comparePassword');
 
-        $Dispatcher->registerMethod('ComparePassword');
-
-        return $Dispatcher->callMethod($MethodName);
-    }
-
-    /**
-     * @return Route
-     */
-    public static function getRoute()
-    {
-        return new Route(__CLASS__);
+        return $Dispatcher->callMethod($Method);
     }
 
     public static function receiverComparePassword()
     {
+
         return new BlockReceiver();
     }
 
@@ -63,11 +47,10 @@ class ApiMyAccount extends Extension implements IApiInterface
     public static function pipelineComparePassword(AbstractReceiver $Receiver)
     {
         $ComparePasswordPipeline = new Pipeline(false);
-        $ComparePasswordEmitter = new ServerEmitter($Receiver, ApiMyAccount::getRoute());
+        $ComparePasswordEmitter = new ServerEmitter($Receiver, ApiMyAccount::getEndpoint());
         $ComparePasswordEmitter->setGetPayload(array(
-            ApiMyAccount::API_DISPATCHER => 'ComparePassword'
+            ApiMyAccount::API_TARGET => 'comparePassword'
         ));
-
         $ComparePasswordPipeline->appendEmitter($ComparePasswordEmitter);
 
         return $ComparePasswordPipeline;
@@ -79,7 +62,7 @@ class ApiMyAccount extends Extension implements IApiInterface
      *
      * @return Panel
      */
-    public function ComparePassword($CredentialLock = '', $CredentialLockSafety = '')
+    public function comparePassword($CredentialLock = '', $CredentialLockSafety = '')
     {
 
         $Step = 0;

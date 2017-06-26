@@ -74,36 +74,34 @@ class Frontend extends Extension implements IFrontendInterface
         $Receiver = ApiMyAccount::receiverComparePassword();
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        new Well(
-                            MyAccount::useService()->updatePassword(
-                                new Form(
-                                    new FormGroup(
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new Panel('Passwort', array(
-                                                    (new PasswordField('CredentialLock', 'Neues Passwort',
-                                                        'Neues Passwort'
+                new LayoutColumn(
+                    new Well(MyAccount::useService()->updatePassword(
+                        new Form(
+                            new FormGroup(
+                                new FormRow(array(
+                                    new FormColumn(
+                                        new Panel('Passwort', array(
+                                            (new PasswordField('CredentialLock', 'Neues Passwort',
+                                                'Neues Passwort'
 //                                                    . new Small(new Warning('(Das Passwort muss mindestens 8 Zeichen lang sein.)'))
-                                                        ,
-                                                        new Lock()))->setRequired()
-                                                        ->setAutoFocus()
-                                                        ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver)),
-                                                    (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
-                                                        'Passwort wiederholen',
-                                                        new Repeat()))->setRequired()
-                                                        ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
-                                                ), Panel::PANEL_TYPE_INFO)
-                                            ),
-                                        ))
-                                    ), new Primary('Speichern', new Save())
-                                ), $tblAccount, $CredentialLock, $CredentialLockSafety
-                            )
-                        )
-                        , 8),
-                    new LayoutColumn($Receiver.ApiMyAccount::pipelineComparePassword($Receiver), 4)
-                )
-            ), new Title('Neues Passwort'))));
+                                                ,
+                                                new Lock()))->setRequired()
+                                                ->setAutoFocus()
+                                                ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver)),
+                                            (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
+                                                'Passwort wiederholen',
+                                                new Repeat()))->setRequired()
+//                                                    ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+                                        ), Panel::PANEL_TYPE_INFO)
+                                    ),
+                                ))
+                            ), new Primary('Speichern', new Save())
+                        ), $tblAccount, $CredentialLock, $CredentialLockSafety
+                    ))
+                    , 8),
+                new LayoutColumn(($Receiver).ApiMyAccount::pipelineComparePassword($Receiver), 4)
+            )), new Title('Neues Passwort')))
+        );
         return $Stage;
     }
 
