@@ -12,6 +12,10 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class D01
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS
+ */
 class D01
 {
     public static function getContent()

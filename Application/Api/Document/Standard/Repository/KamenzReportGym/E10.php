@@ -2,17 +2,17 @@
 /**
  * Created by PhpStorm.
  * User: lehmann
- * Date: 23.06.2017
- * Time: 14:18
+ * Date: 27.06.2017
+ * Time: 10:33
  */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
-class E04
+class E10
 {
     public static function getContent()
     {
@@ -23,7 +23,7 @@ class E04
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04. Schüler mit der ersten Fremdsprache im Schuljahr {{Content.Schoolyear.Current}} nach Klassenstufen')
+                ->setContent('E10. Herkunftssprachlicher Unterricht für <u>Schüler mit Migrationshintergund</u> im Schuljahr {{Content.Schoolyear.Current}} nach Sprachen und Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -35,43 +35,51 @@ class E04
             ->styleBorderRight()
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Fremdsprache')
+                    ->setContent('Herkunftssprache')
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '30%'
+                    ->stylePaddingBottom('8.5px'), '50%'
                 )
                 ->addSliceColumn((new Slice())
                     ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenstufe'), '100%'
+                            ->setContent('Klassen- bzw. Jahrgangsstufe'), '100%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
-                            ->styleBorderRight(), '20%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('10'), '20%'
+                            ->setContent('10')
+                            ->styleBorderRight(), '12.5%'
                         )
-                    ), '60%'
+                        ->addElementColumn((new Element())
+                            ->setContent('11')
+                            ->styleBorderRight(), '12.5%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('12'), '12.5%'
+                        )
+                    ), '40%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
@@ -90,31 +98,39 @@ class E04
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('Sprache')
-                        ->styleBorderRight(), '30%'
+                        ->styleBorderRight(), '50%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('00')
-                        ->styleBorderRight(), '10%'
+                        ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('00')
-                        ->styleBorderRight(), '10%'
+                        ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('00')
-                        ->styleBorderRight(), '10%'
+                        ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('00')
-                        ->styleBorderRight(), '10%'
+                        ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('00')
-                        ->styleBorderRight(), '10%'
+                        ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('00')
-                        ->styleBorderRight(), '10%'
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('00')
+                        ->styleBorderRight(), '5%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('00')
+                        ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')

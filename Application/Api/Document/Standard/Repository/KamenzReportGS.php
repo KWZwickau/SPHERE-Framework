@@ -36,8 +36,6 @@ class KamenzReportGS extends AbstractDocument
         return 'Kamenz-Statistik GS';
     }
 
-
-
     public function buildDocument($pageList = array())
     {
         return (new Frame())->addDocument((new Document())

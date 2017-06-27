@@ -2,11 +2,11 @@
 /**
  * Created by PhpStorm.
  * User: lehmann
- * Date: 23.06.2017
- * Time: 13:27
+ * Date: 27.06.2017
+ * Time: 08:57
  */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
@@ -43,11 +43,9 @@ class B02
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Abgangszeugnis')
+                            ->setContent('Abgangszeugnis<br/><b>ohne</b> Vermerk')
                             ->styleBorderBottom()
-                            ->styleBorderRight()
-                            ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px'), '17.6%'
+                            ->styleBorderRight(), '17.6%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Hauptschul-<br/>abschluss')
@@ -55,12 +53,12 @@ class B02
                             ->styleBorderRight(), '17.6%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Quali. Haupt-<br/>schulabschluss')
+                            ->setContent('Ralschul-<br/>schulabschluss')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '17.6%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Realschul-<br/>abschluss')
+                            ->setContent('Allgemeine<br/>Hochschulreife')
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             , '17.6%'
@@ -230,4 +228,5 @@ class B02
 
         return $sliceList;
     }
+
 }

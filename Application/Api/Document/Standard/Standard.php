@@ -36,11 +36,15 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/KamenzReportGS/Create', __CLASS__.'::createKamenzReportGSPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/KamenzReport/Create', __CLASS__.'::createKamenzReportPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/KamenzReportGS/Create', __CLASS__.'::createKamenzReportGSPdf'
+            __NAMESPACE__.'/KamenzReportGym/Create', __CLASS__.'::createKamenzReportGymPdf'
         ));
+
 
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__.'/StudentCard/Download', __NAMESPACE__.'\Repository\StudentCardTwig::downloadStudentCard')
@@ -102,6 +106,14 @@ class Standard extends Extension implements IModuleInterface
     public static function createKamenzReportGSPdf()
     {
         return Creator::createKamenzPdf( __NAMESPACE__.'\Repository\KamenzReportGS');
+    }
+
+    /**
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createKamenzReportGymPdf()
+    {
+        return Creator::createKamenzPdf( __NAMESPACE__.'\Repository\KamenzReportGym');
     }
 
     /**
