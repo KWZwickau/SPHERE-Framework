@@ -11,7 +11,6 @@ use SPHERE\Application\Contact\Mail\Service\Entity\ViewMailToPerson;
 use SPHERE\Application\Contact\Mail\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -179,62 +178,6 @@ class Service extends AbstractService
             } else {
                 return new Danger(new Ban().' Die E-Mail Adresse konnte nicht hinzugefügt werden')
                     .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
-            }
-        }
-        return $Form;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param string         $Address
-     * @param array          $Type
-     * @param string         $Route
-     * @param array          $RouteData
-     *
-     * @return IFormInterface|string
-     */
-    public function createMailToPersonByRoute(
-        IFormInterface $Form,
-        TblPerson $tblPerson,
-        $Address,
-        $Type,
-        $Route,
-        $RouteData = array()
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Address) {
-            return $Form;
-        }
-
-        $Error = $this->checkFormMailToPerson($Form, $Address, $Type);
-        $tblType = $this->getTypeById($Type['Type']);
-
-        if (!$Error && $tblType) {
-            $tblMail = (new Data($this->getBinding()))->createMail($Address);
-
-            if (($tblToPerson = (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType,
-                $Type['Remark']))
-            ) {
-                // add TblToPerson to TblUserAccount
-                if ($Route == '/People/User/Account/Mail/Edit') {
-                    if (isset($RouteData['Id'])) {
-                        $tblUserAccount = Account::useService()->getUserAccountById($RouteData['Id']);
-                        if ($tblUserAccount) {
-//                            $UserName = Account::useService()->generateUserName($tblPerson, $tblToPerson);
-                            Account::useService()->updateUserAccountByToPersonMail($tblUserAccount, $tblToPerson);
-//                            Account::useService()->updateUserAccountByUserName($tblUserAccount, $UserName); //ToDO update UserName from TblAccount or not?
-                        }
-                    }
-                }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
-                    .new Redirect($Route, Redirect::TIMEOUT_SUCCESS, $RouteData);
-            } else {
-                return new Danger(new Ban().' Die E-Mail Adresse konnte nicht hinzugefügt werden')
-                    .new Redirect($Route, Redirect::TIMEOUT_ERROR, $RouteData);
             }
         }
         return $Form;

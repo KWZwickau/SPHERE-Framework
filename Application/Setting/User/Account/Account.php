@@ -32,45 +32,10 @@ class Account implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/Export'), new Link\Name('Export'))
         );
 
+        // Dashboard
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Student/Add',
-                __NAMESPACE__.'\Frontend::frontendStudentAdd')
-        );
-
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPrepare')
-        );
-        //FrontendAddress
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address', __NAMESPACE__.'\Frontend::frontendAddress')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address/Edit',
-                __NAMESPACE__.'\Frontend::frontendAddressEdit')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address/Select',
-                __NAMESPACE__.'\Frontend::frontendAddressSelect')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Address/IsExport',
-                __NAMESPACE__.'\Frontend::frontendSendAddressIsExport')
-        );
-        //FrontendMail
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Mail', __NAMESPACE__.'\Frontend::frontendMail')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Mail/Edit',
-                __NAMESPACE__.'\Frontend::frontendMailEdit')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Mail/Select',
-                __NAMESPACE__.'\Frontend::frontendMailSelect')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Mail/IsSend',
-                __NAMESPACE__.'\Frontend::frontendMailIsSend')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person',
+                __NAMESPACE__.'\Frontend::frontendPreparePersonList')
         );
         //remove from Reset Password
         Main::getDispatcher()->registerRoute(
@@ -82,11 +47,33 @@ class Account implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
                 __NAMESPACE__.'\Frontend::frontendDestroyPrepare')
         );
-
+        // add StudentAccount
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person',
-                __NAMESPACE__.'\Frontend::frontendPreparePersonList')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Student/Add',
+                __NAMESPACE__.'\Frontend::frontendStudentAdd')
         );
+        // add CustodyAccount
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Custody/Add',
+                __NAMESPACE__.'\Frontend::frontendCustodyAdd')
+        );
+        // show StudentAccount
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Student/Show',
+                __NAMESPACE__.'\Frontend::frontendStudentShow')
+        );
+        // show CustodyAccount
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Custody/Show',
+                __NAMESPACE__.'\Frontend::frontendCustodyShow')
+        );
+        // export AccountList
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Export',
+                __NAMESPACE__.'\Frontend::frontendAccountExport')
+        );
+
+
     }
 
     /**

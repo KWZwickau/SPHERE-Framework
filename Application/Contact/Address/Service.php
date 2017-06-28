@@ -13,7 +13,6 @@ use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\Contact\Address\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -253,81 +252,6 @@ class Service extends AbstractService
                 return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
                     .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
                         array('Id' => $tblPerson->getId()));
-            }
-        }
-        return $Form;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Street
-     * @param array          $City
-     * @param integer        $State
-     * @param array          $Type
-     * @param string         $County
-     * @param string         $Nation
-     * @param string         $Route
-     * @param array          $RouteData
-     *
-     * @return IFormInterface|string|TblToPerson
-     */
-    public function createAddressToPersonByRoute(
-        IFormInterface $Form,
-        TblPerson $tblPerson,
-        $Street,
-        $City,
-        $State,
-        $Type,
-        $County,
-        $Nation,
-        $Route,
-        $RouteData = array()
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Street
-            && null === $City
-            && null === $State
-        ) {
-            return $Form;
-        }
-
-        $Error = $this->checkFormAddressToPerson($Form, $tblPerson, $Street, $City, $Type);
-        $tblType = $this->getTypeById($Type['Type']);
-
-        if (!$Error && $tblType) {
-            if ($State) {
-                $tblState = $this->getStateById($State);
-            } else {
-                $tblState = null;
-            }
-            $tblCity = (new Data($this->getBinding()))->createCity(
-                $City['Code'], $City['Name'], $City['District']
-            );
-            $tblAddress = (new Data($this->getBinding()))->createAddress(
-                $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
-            );
-
-            if (($tblToPerson = (new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
-                $Type['Remark']))
-            ) {
-                // add TblToPerson to TblUserAccount
-                if ($Route == '/People/User/Account/Address/Edit') {
-                    if (isset($RouteData['Id'])) {
-                        $tblUserAccount = Account::useService()->getUserAccountById($RouteData['Id']);
-                        if ($tblUserAccount) {
-                            Account::useService()->updateUserAccountByToPersonAddress($tblUserAccount, $tblToPerson);
-                        }
-                    }
-                }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich hinzugefügt')
-                    .new Redirect($Route, Redirect::TIMEOUT_SUCCESS, $RouteData);
-            } else {
-                return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
-                    .new Redirect($Route, Redirect::TIMEOUT_ERROR, $RouteData);
             }
         }
         return $Form;
