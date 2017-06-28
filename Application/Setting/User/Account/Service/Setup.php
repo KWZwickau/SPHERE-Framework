@@ -67,6 +67,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'IsExport')) {
             $Table->addColumn('IsExport', 'boolean');
         }
+        if (!$this->getConnection()->hasColumn('tblUserAccount', 'groupByTime')) {
+            $Table->addColumn('groupByTime', 'datetime');
+        }
 
         return $Table;
     }

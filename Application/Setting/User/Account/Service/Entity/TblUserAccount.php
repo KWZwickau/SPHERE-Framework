@@ -31,6 +31,7 @@ class TblUserAccount extends Element
     const ATTR_USER_PASSWORD = 'userPassword';
     const ATTR_IS_SEND = 'IsSend';
     const ATTR_IS_EXPORT = 'IsExport';
+    const ATTR_GROUP_BY_TIME = 'groupByTime';
 
     /**
      * @Column(type="bigint")
@@ -64,6 +65,10 @@ class TblUserAccount extends Element
      * @Column(type="boolean")
      */
     protected $IsExport;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $groupByTime;
 
     /**
      * @return false|TblPerson
@@ -223,5 +228,28 @@ class TblUserAccount extends Element
     public function setIsExport($IsExport = '')
     {
         $this->IsExport = $IsExport;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getGroupByTime()
+    {
+
+        /** @var \DateTime $groupByTime */
+        $groupByTime = $this->groupByTime;
+        if ($groupByTime instanceof \DateTime) {
+            return $groupByTime->format('d.m.Y H:i:s');
+        }
+        return false;
+    }
+
+    /**
+     * @param \DateTime $DateTime
+     */
+    public function setGroupByTime($DateTime)
+    {
+
+        $this->groupByTime = $DateTime;
     }
 }

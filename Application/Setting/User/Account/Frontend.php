@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\User\Account;
 
+use SPHERE\Application\Api\Contact\ApiContactAddress;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -216,6 +218,12 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param null $Year
+     * @param null $Division
+     *
+     * @return Stage
+     */
     public function frontendStudentAdd($Year = null, $Division = null)
     {
 
@@ -235,15 +243,22 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($TableContent, null, array(
-                                'Check'         => 'Auswahl',
-                                'Name'          => 'Name',
-                                'StudentNumber' => 'Schüler-Nr.',
-                                'Course'        => 'Schulart',
-                                'Division'      => 'Klasse',
-                                'Address'       => 'Adresse',
-                                'Optionen'      => '',
-                            ), null)
+                            new Form(
+                                new FormGroup(
+                                    new FormRow(
+                                        new FormColumn(
+                                            new TableData($TableContent, null, array(
+                                                'Check'         => 'Auswahl',
+                                                'Name'          => 'Name',
+                                                'StudentNumber' => 'Schüler-Nr.',
+                                                'Course'        => 'Schulart',
+                                                'Division'      => 'Klasse',
+                                                'Address'       => 'Adresse',
+                                            ), null)
+                                        )
+                                    )
+                                )
+                            )
                         )
                     )
                 ))
@@ -277,22 +292,33 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new Danger('*'),
-                            array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
-                    ), 3),
-                    new FormColumn(array(
-                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Bildung: Schulart',
-                            array('Name' => Type::useService()->getTypeAll()))
-                    ), 3),
-                    new FormColumn(array(
-                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
-                            array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList))
-                    ), 3),
-                    new FormColumn(array(
-                        new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
-                            'Klasse: Gruppe',
-                            array('Name' => Division::useService()->getDivisionAll()))
-                    ), 3),
+                            new Panel('Bildung: Schuljahr', array(
+                                (new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Schuljahr',
+                                    array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                                    ->setRequired()
+                            ), Panel::PANEL_TYPE_INFO
+                            )
+                        )
+                        , 3),
+                    new FormColumn(
+                        new Panel('Bildung: Schulart', array(
+                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Schulart',
+                                array('Name' => Type::useService()->getTypeAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 3),
+                    new FormColumn(
+                        new Panel('Klasse: Stufe', array(
+                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Stufe',
+                                array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList))
+                        ), Panel::PANEL_TYPE_INFO
+                        ), 3),
+                    new FormColumn(
+                        new Panel('Klasse: Gruppe', array(
+                            new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
+                                'Klasse: Gruppe',
+                                array('Name' => Division::useService()->getDivisionAll()))
+                        ), Panel::PANEL_TYPE_INFO
+                        ), 3),
                 )),
                 new FormRow(
                     new FormColumn(
@@ -304,6 +330,12 @@ class Frontend extends Extension implements IFrontendInterface
         );
     }
 
+    /**
+     * @param $Year
+     * @param $Division
+     *
+     * @return array
+     */
     private function getStudentFilterResult($Year, $Division)
     {
 
@@ -381,14 +413,34 @@ class Frontend extends Extension implements IFrontendInterface
                 $DataPerson['Check'] = '';
                 $DataPerson['Course'] = '';
                 $DataPerson['Course'] = '';
-                $DataPerson['Address'] = new WarningMessage('keine Hauptadresse Hinterlegt!');
+
+                $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
+                    'Bearbeiten der Hauptadresse'))
+                    ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
+
+                $AddressReceiver = new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                ApiContactAddress::receiverColumn($tblPerson->getId())
+                                , 11),
+                            new LayoutColumn(
+                                new Center($Button).ApiContactAddress::receiverModal($tblPerson->getId())
+                                , 1),
+                        ))
+                    )
+                );
+//                $AddressReceiver = ApiContactAddress::receiverColumn($tblPerson->getId()); // . new PullRight($Button);
+
+
+                $DataPerson['Address'] = $AddressReceiver;
 
                 if ($tblPerson) {
                     $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
                         $tblPerson->getId()
                         , array($tblPerson->getId())))->setChecked();
                     $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+//                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if ($tblStudent) {
                         $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -409,12 +461,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $DataPerson['Division'] = $tblDivision->getDisplayName();
                 }
 
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $DataPerson['Address'] = $tblAddress->getGuiString();
-                }
+//                /** @noinspection PhpUndefinedFieldInspection */
+//                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
+//                    /** @noinspection PhpUndefinedFieldInspection */
+//                    $DataPerson['Address'] = $AddressReceiver;
+//                }
                 $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
                 if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
                     $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
@@ -427,10 +478,13 @@ class Frontend extends Extension implements IFrontendInterface
                     $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
                 }
 
-                // ignore duplicated Person
-                if ($DataPerson['Name']) {
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                        $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
+                // ignor existing Accounts (By Person)
+                if (!Account::useService()->getUserAccountByPerson($tblPerson)) {
+                    // ignore duplicated Person
+                    if ($DataPerson['Name']) {
+                        if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
+                            $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
+                        }
                     }
                 }
             }
@@ -1422,9 +1476,9 @@ class Frontend extends Extension implements IFrontendInterface
                                                     ? 'Sorgeberechtigte zu den gefilterten Schülern'
                                                     : 'Gefilterte Schüler' )),
                                                     array('Exchange'     => '',
-                                                          'Salutation'   => 'Anrede',
-                                                          'Name'         => 'Name',
-                                                          'Address'      => 'Adresse',
+                                                          'Salutation'        => 'Anrede',
+                                                          'Name'              => 'Name',
+                                                          'Address'           => 'Adresse',
                                                           'PersonListCustody' => 'Sorgeberechtigte',
                                                           'PersonListStudent' => 'Schüler '
                                                     ),

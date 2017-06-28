@@ -444,6 +444,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblType
+     */
+    public function getTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType',
+            array(
+                TblType::ATTR_NAME => $Name
+            ));
+    }
+
+    /**
      * @param TblCompany $tblCompany
      *
      * @return bool|TblAddress

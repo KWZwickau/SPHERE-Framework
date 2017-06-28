@@ -334,6 +334,67 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param array     $Street
+     * @param array     $City
+     * @param integer   $State
+     * @param array     $Type
+     * @param string    $County
+     * @param string    $Nation
+     *
+     * @return IFormInterface|string|TblToPerson
+     */
+    public function createAddressToPersonByApi(
+        TblPerson $tblPerson,
+        $Street = array(),
+        $City = array(),
+        $State,
+        $Type,
+        $County,
+        $Nation
+    ) {
+
+        $tblType = $this->getTypeById($Type['Type']);
+        if ($tblType) {
+            if ($State) {
+                $tblState = $this->getStateById($State);
+            } else {
+                $tblState = null;
+            }
+            $tblCity = (new Data($this->getBinding()))->createCity(
+                $City['Code'], $City['Name'], $City['District']
+            );
+            $tblAddress = (new Data($this->getBinding()))->createAddress(
+                $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
+            );
+
+            if ($tblType->getName() == 'Hauptadresse'
+                && $tblToPersonList = Address::useService()->getAddressAllByPersonAndType($tblPerson, $tblType)
+            ) {
+                $tblToPerson = current($tblToPersonList);
+                if ($tblToPerson->getServiceTblPerson()) {
+                    // Update current if exist
+                    if ((new Data($this->getBinding()))->updateAddressToPerson(
+                        $tblToPerson,
+                        $tblAddress,
+                        $tblType,
+                        $Type['Remark'])
+                    ) {
+                        return true;
+                    }
+                }
+            }
+            // Create if not exist
+            if ((new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
+                $Type['Remark'])
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblType
@@ -342,6 +403,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTypeById($Id);
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblType
+     */
+    public function getTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getTypeByName($Name);
     }
 
     /**
@@ -769,7 +841,8 @@ class Service extends AbstractService
     }
 
 
-    /**
+    /** get Main Address (Type ID 1)
+     *
      * @param TblPerson $tblPerson
      *
      * @return bool|TblAddress
