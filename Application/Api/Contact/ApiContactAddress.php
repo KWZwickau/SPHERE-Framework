@@ -278,9 +278,13 @@ class ApiContactAddress extends Extension implements IApiInterface
         }
 
         $tblPerson = Person::useService()->getPersonById($PersonId);
-        if ($form = $this->checkInputAddress($PersonId, $Type, $Street, $City)) {
+        if ($form = $this->checkInputAddress($PersonId, $Street, $City)) {
             // display Errors on form
-            return $form;
+            $Global = $this->getGlobal();
+            $tblType = Address::useService()->getTypeByName('Hauptadresse');
+            $Global->POST['Type']['Type'] = $tblType->getId();
+            $Global->savePost();
+            return new Well($form);
         }
         // do service
         if (Address::useService()->createAddressToPersonByApi($tblPerson, $Street, $City, $State, $Type, $County,
@@ -294,13 +298,12 @@ class ApiContactAddress extends Extension implements IApiInterface
 
     /**
      * @param int   $PersonId
-     * @param array $Type
      * @param array $Street
      * @param array $City
      *
-     * @return false|Form
+     * @return false|string|Form
      */
-    private function checkInputAddress($PersonId, $Type = array(), $Street = array(), $City = array())
+    private function checkInputAddress($PersonId, $Street = array(), $City = array())
     {
         $Error = false;
         $form = $this->formAddress($PersonId);
@@ -319,10 +322,6 @@ class ApiContactAddress extends Extension implements IApiInterface
         }
         if (isset($City['Name']) && empty($City['Name'])) {
             $form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
-            $Error = true;
-        }
-        if (isset($Type['Type']) && !($tblType = Address::useService()->getTypeById($Type['Type']))) {
-            $form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
             $Error = true;
         }
 

@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -44,6 +46,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
@@ -51,7 +54,6 @@ use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
@@ -196,19 +198,55 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Year
-     * @param null $Division
+     * @param null  $Person
+     * @param null  $Year
+     * @param null  $Division
+     * @param array $PersonIdArray
      *
      * @return Stage
      */
-    public function frontendStudentAdd($Year = null, $Division = null)
+    public function frontendStudentAdd($Person = null, $Year = null, $Division = null, $PersonIdArray = array())
     {
 
         $Stage = new Stage('Schüler-Accounts', 'Erstellen');
 
         $form = $this->getStudentFilterForm();
 
-        $TableContent = $this->getStudentFilterResult($Year, $Division);
+        $TableContent = $this->getStudentFilterResult($Person, $Year, $Division);
+
+        $Table = new TableData($TableContent, null, array(
+            'Check'         => 'Auswahl',
+            'Name'          => 'Name',
+            'StudentNumber' => 'Schüler-Nr.',
+            'Course'        => 'Schulart',
+            'Division'      => 'Klasse',
+            'Address'       => 'Adresse',
+        ),
+            array(
+                'order'      => array(array(1, 'asc')),
+                'columnDefs' => array(
+                    array('type' => 'german-string', 'targets' => 1),
+                ),
+                'pageLength' => -1,
+                'paging'     => false,
+                'info'       => false,
+                'searching'  => false,
+                'responsive' => false,
+            )
+//            false
+        );
+
+        //get ErrorMessage by Filter
+        $formResult = new Form(new FormGroup(new FormRow(new FormColumn(
+            (isset($Year[ViewYear::TBL_YEAR_ID]) && $Year[ViewYear::TBL_YEAR_ID] != 0
+                ? new WarningMessage('Filterung findet keine Personen ohne Account.')
+                : new WarningMessage('Die Filterung benötigt ein Schuljahr.'))
+        ))));
+        if (!empty($TableContent)) {
+            $formResult = (new Form(new FormGroup(new FormRow(new FormColumn($Table)))))
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+        }
 
         $Stage->setContent(
             new Layout(
@@ -220,22 +258,10 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                     new LayoutRow(
                         new LayoutColumn(
-                            new Form(
-                                new FormGroup(
-                                    new FormRow(
-                                        new FormColumn(
-                                            new TableData($TableContent, null, array(
-                                                'Check'         => 'Auswahl',
-                                                'Name'          => 'Name',
-                                                'StudentNumber' => 'Schüler-Nr.',
-                                                'Course'        => 'Schulart',
-                                                'Division'      => 'Klasse',
-                                                'Address'       => 'Adresse',
-                                            ), null)
-                                        )
-                                    )
-                                )
-                            )
+                            new Panel('Filterung', array(
+                                (!empty($TableContent) ? new ToggleCheckbox('Alle wählen/abwählen', $Table) : ''),
+                                Account::useService()->createAccount($formResult, $PersonIdArray)
+                            ))
                         )
                     )
                 ))
@@ -268,52 +294,48 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(array(
-                            new Panel('Bildung: Schuljahr', array(
-                                (new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Schuljahr',
-                                    array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
-                                    ->setRequired()
-                            ), Panel::PANEL_TYPE_INFO
-                            )
-                        )
-                        , 3),
                     new FormColumn(
-                        new Panel('Bildung: Schulart', array(
+                        new Panel('Person', array(
+                            new TextField('Person['.ViewPerson::TBL_PERSON_FIRST_NAME.']', '', 'Vorname'),
+                            new TextField('Person['.ViewPerson::TBL_PERSON_LAST_NAME.']', '', 'Nachname')
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Bildung', array(
+                            (new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Schuljahr',
+                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                                ->setRequired(),
                             new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Schulart',
                                 array('Name' => Type::useService()->getTypeAll()))
                         ), Panel::PANEL_TYPE_INFO)
-                        , 3),
+                        , 4),
                     new FormColumn(
                         new Panel('Klasse: Stufe', array(
                             new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Stufe',
-                                array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList))
-                        ), Panel::PANEL_TYPE_INFO
-                        ), 3),
-                    new FormColumn(
-                        new Panel('Klasse: Gruppe', array(
+                                array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList)),
                             new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
-                                'Klasse: Gruppe',
-                                array('Name' => Division::useService()->getDivisionAll()))
-                        ), Panel::PANEL_TYPE_INFO
-                        ), 3),
+                                'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
                 )),
                 new FormRow(
                     new FormColumn(
-                        new Danger('*'.new Small('Pflichtfeld'))
+                        new Primary('Filtern')
                     )
                 )
             ))
-            , new Primary('Filtern')
+//            , new Primary('Filtern')
         );
     }
 
     /**
+     * @param $Person
      * @param $Year
      * @param $Division
      *
      * @return array
      */
-    private function getStudentFilterResult($Year, $Division)
+    private function getStudentFilterResult($Person, $Year, $Division)
     {
 
         $Pile = new Pile(Pile::JOIN_TYPE_INNER);
@@ -333,7 +355,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Result = '';
 
         if (isset($Year) && $Year['TblYear_Id'] != 0 && isset($Pile)) {
-            // Preparation Filter
+            // Preparation Filter $FilterYear
             array_walk($Year, function (&$Input) {
 
                 if (!empty($Input)) {
@@ -343,11 +365,26 @@ class Frontend extends Extension implements IFrontendInterface
                     $Input = false;
                 }
             });
-            $Year = array_filter($Year);
+            $FilterYear = array_filter($Year);
 //            // Preparation FilterPerson
 //            $Filter['Person'] = array();
 
-            // Preparation $FilterType
+            // Preparation $FilterPerson
+            if (isset($Person) && $Person) {
+                array_walk($Person, function (&$Input) {
+
+                    if (!empty($Input)) {
+                        $Input = explode(' ', $Input);
+                        $Input = array_filter($Input);
+                    } else {
+                        $Input = false;
+                    }
+                });
+                $FilterPerson = array_filter($Person);
+            } else {
+                $FilterPerson = array();
+            }
+            // Preparation $FilterDivision
             if (isset($Division) && $Division) {
                 array_walk($Division, function (&$Input) {
 
@@ -358,17 +395,17 @@ class Frontend extends Extension implements IFrontendInterface
                         $Input = false;
                     }
                 });
-                $Division = array_filter($Division);
+                $FilterDivision = array_filter($Division);
             } else {
-                $Division = array();
+                $FilterDivision = array();
             }
 
             $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
             $Result = $Pile->searchPile(array(
                 0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())),
-                1 => array(),   // empty Person search
-                2 => $Division,
-                3 => $Year
+                1 => $FilterPerson,
+                2 => $FilterDivision,
+                3 => $FilterYear
             ));
         }
 

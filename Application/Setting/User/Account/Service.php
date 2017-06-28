@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStud
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountPlatform;
@@ -15,6 +16,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Service\Data;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Setup;
+use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Filter\Link\Pile;
 
@@ -270,6 +272,40 @@ class Service extends AbstractService
         $IsTimeout = $Pile->isTimeout();
 
         return (!empty($Result) ? $Result : false);
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param array          $PersonIdArray
+     *
+     * @return IFormInterface
+     */
+    public function createAccount(IFormInterface $form, $PersonIdArray = array())
+    {
+
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
+            return $form;
+        } elseif ($Global->POST['Button']['Submit'] != 'Speichern') {
+            return $form;
+        }
+
+        if (empty($PersonIdArray)) {
+            return $form;
+        }
+
+        foreach ($PersonIdArray as $PersonId) {
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+            if ($tblPerson) {
+                // ignore if Person have an existing Account
+                if (AccountPlatform::useService()->getAccountAllByPerson($tblPerson)) {
+                    continue;
+                }
+                //ToDO service create Account
+                //ToDO data create UserAccount
+            }
+        }
+        return $form;
     }
 
     /**
