@@ -80,7 +80,7 @@ class ApiContactAddress extends Extension implements IApiInterface
                 ->setIdentifier('Target-'.$PersonId);
         } else {
             return
-                (new BlockReceiver(new WarningMessage('Keine Adresse Hinterlegt!')))
+                (new BlockReceiver(new WarningMessage('Keine Adresse hinterlegt!')))
                     ->setIdentifier('Target-'.$PersonId);
         }
     }
@@ -348,7 +348,7 @@ class ApiContactAddress extends Extension implements IApiInterface
         if ($tblAddress) {
             return $tblAddress->getGuiString();
         } else {
-            return new WarningMessage('Keine Adresse Hinterlegt!');
+            return new WarningMessage('Keine Adresse hinterlegt!');
         }
     }
 }

@@ -52,24 +52,31 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblToPersonAddress')) {
             $Table->addColumn('serviceTblToPersonAddress', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblToPersonMail')) {
-            $Table->addColumn('serviceTblToPersonMail', 'bigint', array('notnull' => false));
-        }
+//        if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblToPersonMail')) {
+//            $Table->addColumn('serviceTblToPersonMail', 'bigint', array('notnull' => false));
+//        }
 //        if (!$this->getConnection()->hasColumn('tblUserAccount', 'UserName')) {
 //            $Table->addColumn('UserName', 'string');
 //        }
+        if (!$this->getConnection()->hasColumn('tblUserAccount', 'type')) {
+            $Table->addColumn('type', 'string');
+        }
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'UserPassword')) {
             $Table->addColumn('UserPassword', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblUserAccount', 'IsSend')) {
-            $Table->addColumn('IsSend', 'boolean');
+        if (!$this->getConnection()->hasColumn('tblUserAccount', 'AccountPassword')) {
+            $Table->addColumn('AccountPassword', 'string');
         }
+//        if (!$this->getConnection()->hasColumn('tblUserAccount', 'IsSend')) {
+//            $Table->addColumn('IsSend', 'boolean');
+//        }
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'IsExport')) {
             $Table->addColumn('IsExport', 'boolean');
         }
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'groupByTime')) {
             $Table->addColumn('groupByTime', 'datetime');
         }
+        $this->getConnection()->getSchema()->getTableNames();
 
         return $Table;
     }

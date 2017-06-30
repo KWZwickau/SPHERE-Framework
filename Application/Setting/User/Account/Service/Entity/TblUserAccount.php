@@ -7,8 +7,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblToPersonAddress;
-use SPHERE\Application\Contact\Mail\Mail;
-use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblToPersonMail;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
@@ -23,13 +21,17 @@ use SPHERE\System\Database\Fitting\Element;
 class TblUserAccount extends Element
 {
 
+    const VALUE_TYPE_STUDENT = 'STUDENT';
+    const VALUE_TYPE_CUSTODY = 'CUSTODY';
+
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_TO_PERSON_ADDRESS = 'serviceTblToPersonAddress';
-    const ATTR_SERVICE_TBL_TO_PERSON_MAIL = 'serviceTblToPersonMail';
-//    const ATTR_USER_NAME = 'userName';
-    const ATTR_USER_PASSWORD = 'userPassword';
-    const ATTR_IS_SEND = 'IsSend';
+    const ATTR_TYPE = 'type';
+//    const ATTR_SERVICE_TBL_TO_PERSON_MAIL = 'serviceTblToPersonMail';
+    const ATTR_USER_PASSWORD = 'UserPassword';
+    const ATTR_ACCOUNT_PASSWORD = 'AccountPassword';
+//    const ATTR_IS_SEND = 'IsSend';
     const ATTR_IS_EXPORT = 'IsExport';
     const ATTR_GROUP_BY_TIME = 'groupByTime';
 
@@ -45,22 +47,26 @@ class TblUserAccount extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblToPersonAddress;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblToPersonMail;
 //    /**
-//     * @Column(type="string")
+//     * @Column(type="bigint")
 //     */
-//    protected $userName;
+//    protected $serviceTblToPersonMail;
     /**
      * @Column(type="string")
      */
-    protected $userPassword;
+    protected $type;
     /**
-     * @Column(type="boolean")
+     * @Column(type="string")
      */
-    protected $IsSend;
+    protected $UserPassword;
+    /**
+     * @Column(type="string")
+     */
+    protected $AccountPassword;
+//    /**
+//     * @Column(type="boolean")
+//     */
+//    protected $IsSend;
     /**
      * @Column(type="boolean")
      */
@@ -142,77 +148,93 @@ class TblUserAccount extends Element
         $this->serviceTblToPersonAddress = ( null === $tblToPersonAddress ? null : $tblToPersonAddress->getId() );
     }
 
-    /**
-     * @return false|TblToPersonMail
-     */
-    public function getServiceTblToPersonMail()
-    {
-
-        $tblToPersonMail = ( $this->serviceTblToPersonMail != null
-            ? Mail::useService()->getMailToPersonById($this->serviceTblToPersonMail)
-            : false );
-        if ($tblToPersonMail) {
-            return $tblToPersonMail;
-        }
-        return false;
-    }
-
-    /**
-     * @param null|TblToPersonMail $tblToPersonMail
-     */
-    public function setServiceTblToPersonMail(TblToPersonMail $tblToPersonMail = null)
-    {
-
-        $this->serviceTblToPersonMail = ( null === $tblToPersonMail ? null : $tblToPersonMail->getId() );
-    }
-
 //    /**
-//     * @return string
+//     * @return false|TblToPersonMail
 //     */
-//    public function getUserName()
+//    public function getServiceTblToPersonMail()
 //    {
-//        return $this->userName;
+//
+//        $tblToPersonMail = ( $this->serviceTblToPersonMail != null
+//            ? Mail::useService()->getMailToPersonById($this->serviceTblToPersonMail)
+//            : false );
+//        if ($tblToPersonMail) {
+//            return $tblToPersonMail;
+//        }
+//        return false;
 //    }
 //
 //    /**
-//     * @param string $userName
+//     * @param null|TblToPersonMail $tblToPersonMail
 //     */
-//    public function setUserName($userName = '')
+//    public function setServiceTblToPersonMail(TblToPersonMail $tblToPersonMail = null)
 //    {
-//        $this->userName = $userName;
+//
+//        $this->serviceTblToPersonMail = ( null === $tblToPersonMail ? null : $tblToPersonMail->getId() );
 //    }
+
+    /**
+     * @return mixed
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @param mixed $type
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
+    }
 
     /**
      * @return string
      */
     public function getUserPassword()
     {
-        return $this->userPassword;
+        return $this->UserPassword;
     }
 
     /**
-     * @param string $userPassword
+     * @param string $UserPassword
      */
-    public function setUserPassword($userPassword = '')
+    public function setUserPassword($UserPassword = '')
     {
-        $this->userPassword = $userPassword;
+        $this->UserPassword = $UserPassword;
     }
 
     /**
-     * @return string
+     * @return mixed
      */
-    public function getIsSend()
+    public function getAccountPassword()
     {
-        return $this->IsSend;
+        return $this->AccountPassword;
     }
 
     /**
-     * @param string $IsSend
+     * @param mixed $AccountPassword
      */
-    public function setIsSend($IsSend = '')
+    public function setAccountPassword($AccountPassword)
     {
-        $this->IsSend = $IsSend;
+        $this->AccountPassword = $AccountPassword;
     }
+
+//    /**
+//     * @return string
+//     */
+//    public function getIsSend()
+//    {
+//        return $this->IsSend;
+//    }
+//
+//    /**
+//     * @param string $IsSend
+//     */
+//    public function setIsSend($IsSend = '')
+//    {
+//        $this->IsSend = $IsSend;
+//    }
 
     /**
      * @return string

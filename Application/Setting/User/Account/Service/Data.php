@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Setting\User\Account\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblToPersonAddress;
-use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblToPersonMail;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -35,17 +34,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param bool $IsSend
      * @param bool $IsExport
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByIsSendAndIsExport($IsSend = false, $IsExport = false)
+    public function getUserAccountByIsExport($IsExport = false)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
             array(
-                TblUserAccount::ATTR_IS_SEND   => $IsSend,
                 TblUserAccount::ATTR_IS_EXPORT => $IsExport
             ));
     }
@@ -89,11 +86,40 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $type
+     *
+     * @return bool|TblUserAccount[]
+     */
+    public function getUserAccountAllByType($type)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_TYPE => $type
+            ));
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return bool|TblUserAccount[]
+     */
+    public function countUserAccountAllByType($type)
+    {
+
+        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_TYPE => $type
+            ));
+    }
+
+    /**
      * @param TblAccount              $tblAccount
      * @param TblPerson               $tblPerson
      * @param TblToPersonAddress|null $tblToPersonAddress
-     * @param TblToPersonMail|null    $tblToPersonMail
-     * @param string                  $UserPassword
+     * @param \DateTime               $TimeStamp
+     * @param string                  $userPassword
+     * @param string                  $type STUDENT|CUSTODY
      *
      * @return TblUserAccount
      */
@@ -101,8 +127,9 @@ class Data extends AbstractData
         TblAccount $tblAccount,
         TblPerson $tblPerson,
         TblToPersonAddress $tblToPersonAddress = null,
-        TblToPersonMail $tblToPersonMail = null,
-        $UserPassword
+        \DateTime $TimeStamp,
+        $userPassword,
+        $type = 'STUDENT'
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -117,10 +144,11 @@ class Data extends AbstractData
             $Entity->setServiceTblAccount($tblAccount);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblToPersonAddress($tblToPersonAddress);
-            $Entity->setServiceTblToPersonMail($tblToPersonMail);
-            $Entity->setUserPassword($UserPassword);
-            $Entity->setIsSend(false);
+            $Entity->setType($type);
+            $Entity->setUserPassword($userPassword);
+            $Entity->setAccountPassword(hash('sha256', $userPassword));
             $Entity->setIsExport(false);
+            $Entity->setGroupByTime($TimeStamp);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
@@ -153,28 +181,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblUserAccount  $tblUserAccount
-     * @param TblToPersonMail $tblToPersonMail
-     *
-     * @return bool
-     */
-    public function updateUserAccountByToPersonMail(TblUserAccount $tblUserAccount, TblToPersonMail $tblToPersonMail)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblUserAccount $Entity */
-        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setServiceTblToPersonMail($tblToPersonMail !== null ? $tblToPersonMail : null);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * @param TblUserAccount $tblUserAccount
      * @param bool           $IsExport
      *
@@ -189,28 +195,6 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setIsExport($IsExport);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param TblUserAccount $tblUserAccount
-     * @param bool           $IsSend
-     *
-     * @return bool
-     */
-    public function updateUserAccountByIsSend(TblUserAccount $tblUserAccount, $IsSend)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblUserAccount $Entity */
-        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setIsSend($IsSend);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

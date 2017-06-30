@@ -762,6 +762,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string     $Password (sha256) no clear text
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function resetPassword($Password, TblAccount $tblAccount = null)
+    {
+
+        if (null === $tblAccount) {
+            $tblAccount = $this->getAccountBySession();
+        }
+        $Manager = $this->getConnection()->getEntityManager();
+        /**
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
+         */
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setPassword($Password);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param null|string $Session
      *
      * @return bool|TblAccount
@@ -993,16 +1021,31 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param TblPerson   $tblPerson
+     * @param TblConsumer $tblConsumer
      *
      * @return bool|TblAccount[]
      */
-    public function getAccountAllByPerson(TblPerson $tblPerson)
+    public function getAccountAllByPerson(TblPerson $tblPerson, TblConsumer $tblConsumer)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUser', array(
-            TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
+        $tblAccountList = array();
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUser',
+            array(
+                TblUser::SERVICE_TBL_PERSON => $tblPerson->getId(),
         ));
+        if ($EntityList) {
+            /** @var TblUser $Entity */
+            foreach ($EntityList as $Entity) {
+                $tblAccount = $Entity->getTblAccount();
+                if ($tblAccount && $tblAccount->getServiceTblConsumer()) {
+                    if ($tblAccount->getServiceTblConsumer()->getId() == $tblConsumer->getId()) {
+                        $tblAccountList[] = $tblAccount;
+                    }
+                }
+            }
+        }
+        return (!empty($tblAccountList) ? $tblAccountList : false);
     }
 
     /**

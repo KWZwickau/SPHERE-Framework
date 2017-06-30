@@ -20,13 +20,13 @@ class Account implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/Student/Add'), new Link\Name('Neu Schüler'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Custody/Add'), new Link\Name('Neu Eltern'))
+            new Link(new Link\Route(__NAMESPACE__.'/Custody/Add'), new Link\Name('Neu Sorgeberechtigte'))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Student/Show'), new Link\Name('Schülerübersicht'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Custody/Show'), new Link\Name('Elternübersicht'))
+            new Link(new Link\Route(__NAMESPACE__.'/Custody/Show'), new Link\Name('Sorgeberechtigtenübersicht'))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Export'), new Link\Name('Export'))

@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 
-use SPHERE\Application\Api\Platform\Gatekeeper\ApiUserGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
@@ -19,8 +18,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
-use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -705,9 +702,9 @@ class Service extends AbstractService
     public function getAccountAllByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson);
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson, $tblConsumer);
     }
-
 
     /**
      * @param TblAccount $tblAccount
@@ -777,6 +774,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->changePassword($Password, $tblAccount);
+    }
+
+    /**
+     * @param string     $Password (sha256) no clear text
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function resetPassword($Password, TblAccount $tblAccount = null)
+    {
+
+        return (new Data($this->getBinding()))->resetPassword($Password, $tblAccount);
     }
 
     /**
