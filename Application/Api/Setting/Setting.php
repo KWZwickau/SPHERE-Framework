@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Setting;
 
 use SPHERE\Application\Api\Setting\ApiMyAccount\ApiMyAccount;
+use SPHERE\Application\Api\Setting\UserAccount\AccountUserExcel;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -16,5 +17,6 @@ class Setting implements IApplicationInterface
     {
 
         ApiMyAccount::registerApi();
+        AccountUserExcel::registerModule();
     }
 }

@@ -72,6 +72,10 @@ class Account implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Export',
                 __NAMESPACE__.'\Frontend::frontendAccountExport')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Clear',
+                __NAMESPACE__.'\Frontend::clearPassword')
+        );
 
 
     }

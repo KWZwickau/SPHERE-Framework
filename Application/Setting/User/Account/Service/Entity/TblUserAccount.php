@@ -5,8 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblToPersonAddress;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
@@ -26,7 +24,7 @@ class TblUserAccount extends Element
 
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const ATTR_SERVICE_TBL_TO_PERSON_ADDRESS = 'serviceTblToPersonAddress';
+//    const ATTR_SERVICE_TBL_TO_PERSON_ADDRESS = 'serviceTblToPersonAddress';
     const ATTR_TYPE = 'type';
 //    const ATTR_SERVICE_TBL_TO_PERSON_MAIL = 'serviceTblToPersonMail';
     const ATTR_USER_PASSWORD = 'UserPassword';
@@ -43,10 +41,10 @@ class TblUserAccount extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblToPersonAddress;
+//    /**
+//     * @Column(type="bigint")
+//     */
+//    protected $serviceTblToPersonAddress;
 //    /**
 //     * @Column(type="bigint")
 //     */
@@ -124,29 +122,29 @@ class TblUserAccount extends Element
         $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
     }
 
-    /**
-     * @return false|TblToPersonAddress
-     */
-    public function getServiceTblToPersonAddress()
-    {
-
-        $tblToPersonAddress = ( $this->serviceTblToPersonAddress != null
-            ? Address::useService()->getAddressToPersonById($this->serviceTblToPersonAddress)
-            : false );
-        if ($tblToPersonAddress) {
-            return $tblToPersonAddress;
-        }
-        return false;
-    }
-
-    /**
-     * @param null|TblToPersonAddress $tblToPersonAddress
-     */
-    public function setServiceTblToPersonAddress(TblToPersonAddress $tblToPersonAddress = null)
-    {
-
-        $this->serviceTblToPersonAddress = ( null === $tblToPersonAddress ? null : $tblToPersonAddress->getId() );
-    }
+//    /**
+//     * @return false|TblToPersonAddress
+//     */
+//    public function getServiceTblToPersonAddress()
+//    {
+//
+//        $tblToPersonAddress = ( $this->serviceTblToPersonAddress != null
+//            ? Address::useService()->getAddressToPersonById($this->serviceTblToPersonAddress)
+//            : false );
+//        if ($tblToPersonAddress) {
+//            return $tblToPersonAddress;
+//        }
+//        return false;
+//    }
+//
+//    /**
+//     * @param null|TblToPersonAddress $tblToPersonAddress
+//     */
+//    public function setServiceTblToPersonAddress(TblToPersonAddress $tblToPersonAddress = null)
+//    {
+//
+//        $this->serviceTblToPersonAddress = ( null === $tblToPersonAddress ? null : $tblToPersonAddress->getId() );
+//    }
 
 //    /**
 //     * @return false|TblToPersonMail
@@ -262,6 +260,7 @@ class TblUserAccount extends Element
         $groupByTime = $this->groupByTime;
         if ($groupByTime instanceof \DateTime) {
             return $groupByTime->format('d.m.Y H:i:s');
+//            return $groupByTime;
         }
         return false;
     }

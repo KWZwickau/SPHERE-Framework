@@ -49,9 +49,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint');
         }
-        if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblToPersonAddress')) {
-            $Table->addColumn('serviceTblToPersonAddress', 'bigint', array('notnull' => false));
-        }
+//        if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblToPersonAddress')) {
+//            $Table->addColumn('serviceTblToPersonAddress', 'bigint', array('notnull' => false));
+//        }
 //        if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblToPersonMail')) {
 //            $Table->addColumn('serviceTblToPersonMail', 'bigint', array('notnull' => false));
 //        }

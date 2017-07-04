@@ -21,7 +21,6 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -29,6 +28,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
@@ -47,6 +47,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
@@ -213,12 +214,12 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(
-                        new Panel('Person', array(
-                            new TextField('Person['.ViewPerson::TBL_PERSON_FIRST_NAME.']', '', 'Vorname'),
-                            new TextField('Person['.ViewPerson::TBL_PERSON_LAST_NAME.']', '', 'Nachname')
-                        ), Panel::PANEL_TYPE_INFO)
-                        , 4),
+//                    new FormColumn(
+//                        new Panel('Person', array(
+//                            new TextField('Person['.ViewPerson::TBL_PERSON_FIRST_NAME.']', '', 'Vorname'),
+//                            new TextField('Person['.ViewPerson::TBL_PERSON_LAST_NAME.']', '', 'Nachname')
+//                        ), Panel::PANEL_TYPE_INFO)
+//                        , 4),
                     new FormColumn(
                         new Panel('Bildung', array(
                             (new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Schuljahr',
@@ -384,7 +385,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblPerson->getId()
                         , array($tblPerson->getId())))->setChecked();
                     $DataPerson['Name'] = $tblPerson->getLastFirstName();
-//                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if ($tblStudent) {
                         $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -460,7 +460,10 @@ class Frontend extends Extension implements IFrontendInterface
             'Address' => 'Adresse',
         ),
             array(
-                'order'      => array(array(1, 'asc')),
+                'order'      => array(
+                    array(2, 'asc'),
+                    array(1, 'asc')
+                ),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
                 ),
@@ -497,7 +500,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel('Filterung', array(
                                 (!empty($TableContent) ? new ToggleCheckbox('Alle wählen/abwählen', $Table) : ''),
-                                Account::useService()->createAccount($formResult, $PersonIdArray, 'E')
+                                Account::useService()->createAccount($formResult, $PersonIdArray, 'C')
                             ))
                         )
                     )
@@ -531,9 +534,9 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(
-                        new Success('')
-                        , 4),
+//                    new FormColumn(
+//                        new Success('')
+//                        , 4),
                     new FormColumn(
                         new Panel('Bildung', array(
                             (new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Schuljahr',
@@ -618,7 +621,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblPerson->getId()
                                     , array($tblPerson->getId())))->setChecked();
                                 $DataPerson['Name'] = $tblPerson->getLastFirstName();
-//                                $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                             }
 
                             // ignor existing Accounts (By Person)
@@ -631,7 +633,6 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     });
                 }
-
             }
         }
 
@@ -681,16 +682,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['UserPassword'] = $tblUserAccount->getUserPassword();
                 }
 
-                $tblToPersonAddress = $tblUserAccount->getServiceTblToPersonAddress();
-                if ($tblToPersonAddress) {
-                    $tblAddress = $tblToPersonAddress->getTblAddress();
-                    if ($tblAddress) {
-                        $Item['Address'] = $tblAddress->getGuiString();
-                    }
-                }
-
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
+                    if (($tblAddress = $tblPerson->fetchMainAddress())) {
+                        $Item['Address'] = $tblAddress->getGuiString();
+                    }
 
                     if ($tblPerson->getSalutation() != '') {
                         $Item['Salutation'] = $tblPerson->getSalutation();
@@ -736,8 +732,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             (!empty($TableContent)
-                                ?
-                                new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
+                                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
                                     array(
                                         'Salutation'        => 'Anrede',
                                         'Name'              => 'Name',
@@ -797,16 +792,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['UserPassword'] = $tblUserAccount->getUserPassword();
                 }
 
-                $tblToPersonAddress = $tblUserAccount->getServiceTblToPersonAddress();
-                if ($tblToPersonAddress) {
-                    $tblAddress = $tblToPersonAddress->getTblAddress();
-                    if ($tblAddress) {
-                        $Item['Address'] = $tblAddress->getGuiString();
-                    }
-                }
-
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
+                    if (($tblAddress = $tblPerson->fetchMainAddress())) {
+                        $Item['Address'] = $tblAddress->getGuiString();
+                    }
 
                     if ($tblPerson->getSalutation() != '') {
                         $Item['Salutation'] = $tblPerson->getSalutation();
@@ -814,7 +804,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Name'] = $tblPerson->getLastFirstName();
 
                     $StudentList = array();
-                    $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                    $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                    $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                        $tblRelationshipType);
                     if ($tblRelationshipList) {
                         foreach ($tblRelationshipList as $tblRelationship) {
                             if ($tblRelationship->getTblType()->getName() == 'Sorgeberechtigt') {
@@ -851,15 +843,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             (!empty($TableContent)
-                                ?
-                                new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
+                                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
                                     array(
                                         'Salutation'        => 'Anrede',
                                         'Name'              => 'Name',
                                         'UserName'          => 'Account',
                                         'UserPassword'      => 'Passwort',      //ToDO remove from display
                                         'Address'           => 'Adresse',
-                                        'PersonListStudent' => 'Schüler',
+                                        'PersonListStudent' => 'Sorgeberechtigt für',
                                         'Option'            => ''
                                     ))
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.')
@@ -879,6 +870,54 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendAccountExport()
     {
         $Stage = new Stage('Account', 'Serienbrief Export');
+
+        $tblUserAccountAll = Account::useService()->getUserAccountAll();
+        $tblUserAccountList = Account::useService()->getUserAccountListAndCount($tblUserAccountAll);
+        $TableContent = array();
+        if ($tblUserAccountList) {
+            /** @var TblUserAccount[] $UserAccountList */
+            array_walk($tblUserAccountList, function ($tblUserAccountList, $groupByTime) use (&$TableContent) {
+                /** @var TblUserAccount $tblUserAccountTarget */
+                if (($tblUserAccountTarget = current($tblUserAccountList)) && $tblUserAccountTarget->getUserPassword()) {
+//                    Debugger::screenDump($groupByTime.' -> '.count($tblUserAccountList));
+                    $item['GroupByTime'] = $groupByTime;
+                    $item['UserAccountCount'] = count($tblUserAccountList);
+                    if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
+                        $item['AccountType'] = 'Schüler-Accounts';
+                    } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
+                        $item['AccountType'] = 'Sorgeberechtigten-Accounts';
+                    }
+                    $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
+                            , array('GroupByTime' => $groupByTime))
+                        .new Standard('', '/Setting/User/Account/Clear', new Remove(),
+                            array('GroupByTime' => $groupByTime),
+                            'Entfernen der Klartext Passwörter und des damit verbundenem verfügbaren Download');
+
+                    array_push($TableContent, $item);
+                }
+            });
+        }
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($TableContent, null
+                            , array(
+                                'GroupByTime'      => 'Erstellung am',
+                                'UserAccountCount' => 'Anzahl Accounts',
+                                'AccountType'      => 'Account Typ',
+                                'Option'           => '',
+                            ),
+                            array(
+                                'columnDefs' => array(
+                                    array('type' => 'de_date', 'targets' => 0),
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        ));
 
         return $Stage;
     }
@@ -1017,16 +1056,22 @@ class Frontend extends Extension implements IFrontendInterface
                 );
                 return $Stage;
             }
+            //default
+            $Route = '/Setting/User/Account/Student/Show';
+            if ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
+                $Route = '/Setting/User/Account/Student/Show';
+            } elseif ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
+                $Route = '/Setting/User/Account/Custody/Show';
+            }
             $Stage->addButton(
-                new Standard('Zurück', '/Setting/User', new ChevronLeft())
+                new Standard('Zurück', $Route, new ChevronLeft())
             );
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon().' Benutzerdaten',
                             array(
-                                'Person: '.new Bold($tblPerson->getFullName())
-                            ,
+                                'Person: '.new Bold($tblPerson->getFullName()),
                                 'Benutzer: '.new Bold($tblAccount->getUserName())
                             ),
                             Panel::PANEL_TYPE_SUCCESS
@@ -1037,7 +1082,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja', '/Setting/User/Account/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard('Nein', '/Setting/User', new Disable())
+                            .new Standard('Nein', $Route, new Disable())
                         )
                     )))))
                 );
@@ -1059,7 +1104,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new SuccessMessage(new SuccessIcon().' Der Benutzer wurde gelöscht')
                                 : new DangerMessage(new Ban().' Der Benutzer konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/Setting/User', Redirect::TIMEOUT_SUCCESS)
+                            new Redirect($Route, Redirect::TIMEOUT_SUCCESS)
                         )))
                     )))
                 );
@@ -1071,6 +1116,90 @@ class Frontend extends Extension implements IFrontendInterface
                         new DangerMessage(new Ban().' Der Benutzer konnte nicht gefunden werden'),
                         new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR)
                     )))
+                )))
+            );
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param string $GroupByTime
+     * @param bool   $Confirm
+     *
+     * @return Stage|string
+     */
+    public function clearPassword($GroupByTime, $Confirm = false)
+    {
+        $Stage = new Stage('Benutzer', 'Klartext Passwörter');
+        if ($GroupByTime) {
+            $GroupByTime = new \DateTime($GroupByTime);
+            $tblUserAccountList = Account::useService()->getUserAccountByTimeGroup($GroupByTime);
+            if (!$tblUserAccountList) {
+                return $Stage.new DangerMessage('Export nicht gefunden', new Ban())
+                    .new Redirect('/Setting/User/Account/Export', Redirect::TIMEOUT_ERROR);
+            }
+            $Stage->addButton(
+                new Standard('Zurück', '/Setting/User', new ChevronLeft())
+            );
+            if (!$Confirm) {
+
+                $AccountType = '';
+                if (($tblUserAccount = current($tblUserAccountList))) {
+                    if ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
+                        $AccountType = 'Schüler';
+                    }
+                    if ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
+                        $AccountType = 'Sorgeberechtigte';
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new PersonIcon().' Benutzer',
+                            array(
+                                'Anzahl: '.new Bold(count($tblUserAccountList)),
+                                'Account Typ: '.new Bold($AccountType)
+                            ),
+                            Panel::PANEL_TYPE_SUCCESS
+                        ),
+                        new Panel(new Question().' Klartext-Passwörter dieser Accounts wirklich löschen?',
+                            'Passwörter können hiernach nicht mehr exportiert werden!
+                            Das zurücksetzen von Passwörtern ist weiterhin möglich.',
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Setting/User/Account/Clear', new Ok(),
+                                array('GroupByTime' => $GroupByTime->format('d.m.Y H:i:s'), 'Confirm' => true)
+                            )
+                            .new Standard('Nein', '/Setting/User/Account/Export', new Disable())
+                        )
+                    )))))
+                );
+            } else {
+                $IsDestroy = false;
+                // remove tblUserAccount
+                if (Account::useService()->clearPassword($GroupByTime)) {
+                    $IsDestroy = true;
+                }
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(
+                        new LayoutColumn(array(
+                            ($IsDestroy
+                                ? new SuccessMessage(new SuccessIcon().' Der Klartext wurde gelöscht')
+                                : new DangerMessage(new Ban().' Der Klartext konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Setting/User/Account/Export', Redirect::TIMEOUT_SUCCESS)
+                        ))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(array(
+                        new DangerMessage(new Ban().' Export nicht gefunden'),
+                        new Redirect('/Setting/User/Account/Export', Redirect::TIMEOUT_ERROR)
+                    ))
                 )))
             );
         }

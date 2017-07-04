@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Setting\User\Account\Service;
 
-use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblToPersonAddress;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -100,6 +99,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param \DateTime $dateTime
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByTimeGroup(\DateTime $dateTime)
+    {
+
+        //ToDO Cache
+//        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_GROUP_BY_TIME => $dateTime
+            ));
+    }
+
+    /**
      * @param string $type
      *
      * @return bool|TblUserAccount[]
@@ -116,7 +131,6 @@ class Data extends AbstractData
     /**
      * @param TblAccount              $tblAccount
      * @param TblPerson               $tblPerson
-     * @param TblToPersonAddress|null $tblToPersonAddress
      * @param \DateTime               $TimeStamp
      * @param string                  $userPassword
      * @param string                  $type STUDENT|CUSTODY
@@ -126,7 +140,6 @@ class Data extends AbstractData
     public function createUserAccount(
         TblAccount $tblAccount,
         TblPerson $tblPerson,
-        TblToPersonAddress $tblToPersonAddress = null,
         \DateTime $TimeStamp,
         $userPassword,
         $type = 'STUDENT'
@@ -143,7 +156,6 @@ class Data extends AbstractData
             $Entity = new TblUserAccount();
             $Entity->setServiceTblAccount($tblAccount);
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblToPersonAddress($tblToPersonAddress);
             $Entity->setType($type);
             $Entity->setUserPassword($userPassword);
             $Entity->setAccountPassword(hash('sha256', $userPassword));
@@ -157,49 +169,55 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblUserAccount $tblUserAccount
-     * @param TblToPersonAddress $tblToPersonAddress
+     * @param TblUserAccount[] $tblUserAccountList
      *
      * @return bool
      */
-    public function updateUserAccountByToPersonAddress(
-        TblUserAccount $tblUserAccount,
-        TblToPersonAddress $tblToPersonAddress
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblUserAccount $Entity */
-        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setServiceTblToPersonAddress($tblToPersonAddress !== null ? $tblToPersonAddress : null);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param TblUserAccount $tblUserAccount
-     * @param bool           $IsExport
-     *
-     * @return bool
-     */
-    public function updateUserAccountByIsExport(TblUserAccount $tblUserAccount, $IsExport)
+    public function updateIsExportBulk($tblUserAccountList)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblUserAccount $Entity */
-        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setIsExport($IsExport);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
+        foreach ($tblUserAccountList as $tblUserAccount) {
+            $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setIsExport(true);
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity,
+                    true);
+                return true;
+            }
         }
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
         return false;
+    }
+
+    /**
+     * @param TblUserAccount[] $tblUserAccountList
+     *
+     * @return bool
+     */
+    public function updateUserAccountClearPassword($tblUserAccountList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        foreach ($tblUserAccountList as $tblUserAccount) {
+            /** @var TblUserAccount $Entity */
+            $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setUserPassword('');
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity,
+                    true);
+            }
+        }
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+        return true;
     }
 
     /**

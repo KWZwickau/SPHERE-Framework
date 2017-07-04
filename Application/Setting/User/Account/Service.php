@@ -1,12 +1,19 @@
 <?php
 namespace SPHERE\Application\Setting\User\Account;
 
-use SPHERE\Application\Contact\Address\Address;
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
+use MOC\V\Component\Document\Exception\DocumentTypeException;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblToPersonAddress;
+use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -26,7 +33,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Filter\Link\Pile;
 
@@ -110,6 +116,35 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getUserAccountAllByType($type);
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByTimeGroup(\DateTime $dateTime)
+    {
+
+        return (new Data($this->getBinding()))->getUserAccountByTimeGroup($dateTime);
+    }
+
+    /**
+     * @param false|array $tblUserAccountAll
+     *
+     * @return array|bool result[GroupByTime][]
+     * result[GroupByTime][]
+     */
+    public function getUserAccountListAndCount($tblUserAccountAll)
+    {
+
+        $result = array();
+        if ($tblUserAccountAll && !empty($tblUserAccountAll)) {
+            foreach ($tblUserAccountAll as $tblUserAccount) {
+                $result[$tblUserAccount->getGroupByTime()][] = $tblUserAccount;
+            }
+        }
+        return !empty($result) ? $result : false;
     }
 
     /**
@@ -306,9 +341,160 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array $tblUserAccountList
+     *
+     * @return array
+     */
+    public function getExcelData($tblUserAccountList = array())
+    {
+
+        $result = array();
+        if (!empty($tblUserAccountList)) {
+
+            // set flag IsExport
+            $this->updateIsExportBulk($tblUserAccountList);
+
+            array_walk($tblUserAccountList, function (TblUserAccount $tblUserAccount) use (&$result) {
+                $tblPerson = $tblUserAccount->getServiceTblPerson();
+                $tblAccount = $tblUserAccount->getServiceTblAccount();
+
+                $item['Salutation'] = $tblPerson->getSalutation();
+                $item['Title'] = $tblPerson->getTitle();
+                $item['FirstName'] = $tblPerson->getFirstName();
+                $item['SecondName'] = $tblPerson->getSecondName();
+                $item['LastName'] = $tblPerson->getLastName();
+                $item['Gender'] = '';
+                $item['AccountName'] = $tblAccount->getUsername();
+                $item['Password'] = $tblUserAccount->getUserPassword();
+
+                $item['StreetName'] = '';
+                $item['StreetNumber'] = '';
+                $item['CityCode'] = '';
+                $item['CityName'] = '';
+                $item['District'] = '';
+                $item['State'] = '';
+                $item['Nation'] = '';
+                $item['Country'] = '';
+
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if ($tblCommon) {
+                    $tblBirthDates = $tblCommon->getTblCommonBirthDates();
+                    if ($tblBirthDates) {
+                        $tblGender = $tblBirthDates->getTblCommonGender();
+                        if ($tblGender) {
+                            $item['Gender'] = substr($tblGender->getName(), 0, 1);
+                        }
+                    }
+                }
+
+                $tblAddress = $tblPerson->fetchMainAddress();
+                if ($tblAddress) {
+                    $item['StreetName'] = $tblAddress->getStreetName();
+                    $item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $tblCity = $tblAddress->getTblCity();
+                    if ($tblCity) {
+                        $item['CityCode'] = $tblCity->getCode();
+                        $item['CityName'] = $tblCity->getName();
+                        $item['District'] = $tblCity->getDistrict();
+                    }
+                    $tblState = $tblAddress->getTblState();
+                    if ($tblState) {
+                        $item['State'] = $tblState->getName();
+                    }
+                    $item['Nation'] = $tblAddress->getNation();
+                    $item['Country'] = $tblAddress->getCounty();
+                }
+
+                array_push($result, $item);
+            });
+        }
+        return $result;
+    }
+
+    /**
+     * @param array $result
+     *
+     * @return false|FilePointer
+     * @throws TypeFileException
+     * @throws DocumentTypeException
+     */
+    public function createClassListExcel($result = array())
+    {
+
+        if (!empty($result)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell("0", "0"), "Anrede");
+            $export->setValue($export->getCell("1", "0"), "Titel");
+            $export->setValue($export->getCell("2", "0"), "Vorname");
+            $export->setValue($export->getCell("3", "0"), "2. Vorn.");
+            $export->setValue($export->getCell("4", "0"), "Name");
+            $export->setValue($export->getCell("5", "0"), "M/W");
+            $export->setValue($export->getCell("6", "0"), "Account");
+            $export->setValue($export->getCell("7", "0"), "Passwort");
+            $export->setValue($export->getCell("8", "0"), "Straße");
+            $export->setValue($export->getCell("9", "0"), "Str.Nr.");
+            $export->setValue($export->getCell("10", "0"), "PLZ");
+            $export->setValue($export->getCell("11", "0"), "Stadt");
+            $export->setValue($export->getCell("12", "0"), "Ortsteil");
+            $export->setValue($export->getCell("13", "0"), "Bundesland");
+            $export->setValue($export->getCell("14", "0"), "Land");
+
+            $export->setStyle($export->getCell(0, 0), $export->getCell(14, 0))
+                ->setFontBold();
+
+            $Row = 0;
+
+            foreach ($result as $Data) {
+                $Row++;
+
+                $export->setValue($export->getCell("0", $Row), $Data['Salutation']);
+                $export->setValue($export->getCell("1", $Row), $Data['Title']);
+                $export->setValue($export->getCell("2", $Row), $Data['FirstName']);
+                $export->setValue($export->getCell("3", $Row), $Data['SecondName']);
+                $export->setValue($export->getCell("4", $Row), $Data['LastName']);
+                $export->setValue($export->getCell("5", $Row), $Data['Gender']);
+                $export->setValue($export->getCell("6", $Row), $Data['AccountName']);
+                $export->setValue($export->getCell("7", $Row), $Data['Password']);
+                $export->setValue($export->getCell("8", $Row), $Data['StreetName']);
+                $export->setValue($export->getCell("9", $Row), $Data['StreetNumber']);
+                $export->setValue($export->getCell("10", $Row), $Data['CityCode']);
+                $export->setValue($export->getCell("11", $Row), $Data['CityName']);
+                $export->setValue($export->getCell("12", $Row), $Data['District']);
+                $export->setValue($export->getCell("13", $Row), $Data['Nation']);
+                $export->setValue($export->getCell("14", $Row), $Data['Country']);
+            }
+
+            //Column width
+            $export->setStyle($export->getCell(0, 0), $export->getCell(0, $Row))->setColumnWidth(8);
+            $export->setStyle($export->getCell(1, 0), $export->getCell(1, $Row))->setColumnWidth(9);
+            $export->setStyle($export->getCell(2, 0), $export->getCell(2, $Row))->setColumnWidth(15);
+            $export->setStyle($export->getCell(3, 0), $export->getCell(3, $Row))->setColumnWidth(15);
+            $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setColumnWidth(15);
+            $export->setStyle($export->getCell(5, 0), $export->getCell(5, $Row))->setColumnWidth(5);
+            $export->setStyle($export->getCell(6, 0), $export->getCell(6, $Row))->setColumnWidth(22);
+            $export->setStyle($export->getCell(7, 0), $export->getCell(7, $Row))->setColumnWidth(12);
+            $export->setStyle($export->getCell(8, 0), $export->getCell(8, $Row))->setColumnWidth(22);
+            $export->setStyle($export->getCell(9, 0), $export->getCell(9, $Row))->setColumnWidth(7);
+            $export->setStyle($export->getCell(10, 0), $export->getCell(10, $Row))->setColumnWidth(7);
+            $export->setStyle($export->getCell(11, 0), $export->getCell(11, $Row))->setColumnWidth(15);
+            $export->setStyle($export->getCell(12, 0), $export->getCell(12, $Row))->setColumnWidth(12);
+            $export->setStyle($export->getCell(13, 0), $export->getCell(13, $Row))->setColumnWidth(11);
+            $export->setStyle($export->getCell(14, 0), $export->getCell(14, $Row))->setColumnWidth(12);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+        return false;
+    }
+
+    /**
      * @param IFormInterface $form
      * @param array          $PersonIdArray
-     * @param string         $AccountType S = Student, E = Custody
+     * @param string         $AccountType S = Student, C = Custody
      *
      * @return IFormInterface|Layout
      */
@@ -329,6 +515,9 @@ class Service extends AbstractService
         $IsMissingAddress = false;
         $TimeStamp = new \DateTime('now');
 
+        $successCount = 0;
+        $errorCount = 0;
+
         foreach ($PersonIdArray as $PersonId) {
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if ($tblPerson) {
@@ -337,9 +526,10 @@ class Service extends AbstractService
                     continue;
                 }
                 // ignore Person without Main Address
-                $tblAddressToPerson = Address::useService()->getAddressToPersonByPerson($tblPerson);
-                if (!$tblAddressToPerson) {
+                $tblAddress = $tblPerson->fetchMainAddress();
+                if (!$tblAddress) {
                     $IsMissingAddress = true;
+                    $errorCount++;
                     continue;
                 }
                 // ignore without Consumer
@@ -347,7 +537,12 @@ class Service extends AbstractService
                 if ($tblConsumer == '') {
                     continue;
                 }
-                $name = $this->generateUserName($tblPerson, $tblConsumer, $AccountType);
+                $Acronym = $AccountType;
+                if ($Acronym == 'C') {
+                    // Custody = "E"ltern
+                    $Acronym = 'E';
+                }
+                $name = $this->generateUserName($tblPerson, $tblConsumer, $Acronym);
                 $password = $this->generatePassword(8, 1, 2, 1);
 
                 $tblAccount = AccountPlatform::useService()->insertAccount($name, $password, null, $tblConsumer);
@@ -364,21 +559,19 @@ class Service extends AbstractService
                     if ($tblRole && !$tblRole->isSecure()) {
                         AccountPlatform::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
-                    if ($tblPerson) {
-                        AccountPlatform::useService()->addAccountPerson($tblAccount, $tblPerson);
-                    }
-
+                    AccountPlatform::useService()->addAccountPerson($tblAccount, $tblPerson);
+                    $successCount++;
 
                     if ($AccountType == 'S') {
                         $type = TblUserAccount::VALUE_TYPE_STUDENT;
-                    } elseif ($AccountType == 'E') {
+                    } elseif ($AccountType == 'C') {
                         $type = TblUserAccount::VALUE_TYPE_CUSTODY;
                     } else {
                         // default setting
                         $type = TblUserAccount::VALUE_TYPE_STUDENT;
                     }
                     // add tblUserAccount
-                    $this->createUserAccount($tblAccount, $tblPerson, $tblAddressToPerson, $TimeStamp, $password,
+                    $this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password,
                         $type);
                 }
             }
@@ -388,27 +581,28 @@ class Service extends AbstractService
                 new LayoutRow(array(
                     new LayoutColumn(
                         ($IsMissingAddress
-                            ? new Warning('Personen ohne Hauptadresse ignoriert (Accounts zu Personen mit Gültiger Hauptadresse wurden erfolgreich angelegt).')
-                            : new Success('Accounts wurden erfolgreich angelegt.')
+                            ? new Warning($errorCount.' Personen ohne Hauptadresse ignoriert ('.$successCount.
+                                ' Benutzerzugänge zu Personen mit Gültiger Hauptadresse wurden erfolgreich angelegt).')
+                            : new Success($successCount.' Benutzer wurden erfolgreich angelegt.')
                         )
                     ),
-                    new LayoutColumn(
-                        ($AccountType == 'S'
-                            ? new Redirect('/Setting/User/Account/Student/Add',
-                                ($IsMissingAddress
-                                    ? Redirect::TIMEOUT_ERROR
-                                    : Redirect::TIMEOUT_SUCCESS
-                                ))
-                            : ($AccountType == 'C'
-                                ? new Redirect('/Setting/User/Account/Custody/Add',
-                                    ($IsMissingAddress
-                                        ? Redirect::TIMEOUT_ERROR
-                                        : Redirect::TIMEOUT_SUCCESS
-                                    ))
-                                : ''
-                            )
-                        )
-                    )
+//                    new LayoutColumn(
+//                        ($AccountType == 'S'
+//                            ? new Redirect('/Setting/User/Account/Student/Add',
+//                                ($IsMissingAddress
+//                                    ? Redirect::TIMEOUT_ERROR
+//                                    : Redirect::TIMEOUT_SUCCESS
+//                                ))
+//                            : ($AccountType == 'C'
+//                                ? new Redirect('/Setting/User/Account/Custody/Add',
+//                                    ($IsMissingAddress
+//                                        ? Redirect::TIMEOUT_ERROR
+//                                        : Redirect::TIMEOUT_SUCCESS
+//                                    ))
+//                                : ''
+//                            )
+//                        )
+//                    )
                 ))
             )
         );
@@ -471,7 +665,6 @@ class Service extends AbstractService
     public function createUserAccount(
         TblAccount $tblAccount,
         TblPerson $tblPerson,
-        TblToPersonAddress $tblToPersonAddress,
         \DateTime $TimeStamp,
         $userPassword,
         $type
@@ -480,7 +673,6 @@ class Service extends AbstractService
         return ( new Data($this->getBinding()) )->createUserAccount(
             $tblAccount,
             $tblPerson,
-            $tblToPersonAddress,
             $TimeStamp,
             $userPassword,
             $type);
@@ -559,27 +751,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblUserAccount     $tblUserAccount
-     * @param TblToPersonAddress $tblToPersonAddress
+     * @param TblUserAccount[] $tblUserAccountList
      *
      * @return bool
      */
-    public function updateUserAccountByToPersonAddress(TblUserAccount $tblUserAccount, TblToPersonAddress $tblToPersonAddress)
+    public function updateIsExportBulk($tblUserAccountList)
     {
 
-        return ( new Data($this->getBinding()) )->updateUserAccountByToPersonAddress($tblUserAccount, $tblToPersonAddress);
-    }
-
-    /**
-     * @param TblUserAccount $tblUserAccount
-     * @param bool           $IsExport
-     *
-     * @return bool
-     */
-    public function updateUserAccountByIsExport(TblUserAccount $tblUserAccount, $IsExport)
-    {
-
-        return (new Data($this->getBinding()))->updateUserAccountByIsExport($tblUserAccount, $IsExport);
+        return (new Data($this->getBinding()))->updateIsExportBulk($tblUserAccountList);
     }
 
     /**
@@ -591,5 +770,20 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->removeUserAccount($tblUserAccount);
+    }
+
+    /**
+     * @param \DateTime $GroupByTime
+     *
+     * @return bool
+     */
+    public function clearPassword(\DateTime $GroupByTime)
+    {
+
+        $tblUserAccountList = $this->getUserAccountByTimeGroup($GroupByTime);
+        if ($tblUserAccountList) {
+            return (new Data($this->getBinding()))->updateUserAccountClearPassword($tblUserAccountList);
+        }
+        return false;
     }
 }

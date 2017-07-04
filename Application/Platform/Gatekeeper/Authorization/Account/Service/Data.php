@@ -1039,8 +1039,13 @@ class Data extends AbstractData
             foreach ($EntityList as $Entity) {
                 $tblAccount = $Entity->getTblAccount();
                 if ($tblAccount && $tblAccount->getServiceTblConsumer()) {
-                    if ($tblAccount->getServiceTblConsumer()->getId() == $tblConsumer->getId()) {
-                        $tblAccountList[] = $tblAccount;
+                    // ignor System Accounts (support etc.)
+                    if (($tblIdentification = $tblAccount->getServiceTblIdentification())
+                        && $tblIdentification->getName() != 'System'
+                    ) {
+                        if ($tblAccount->getServiceTblConsumer()->getId() == $tblConsumer->getId()) {
+                            $tblAccountList[] = $tblAccount;
+                        }
                     }
                 }
             }
