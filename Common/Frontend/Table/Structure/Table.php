@@ -113,7 +113,9 @@ class Table extends Extension implements ITemplateInterface
     public function getHash()
     {
 
-        $this->Hash = crc32(uniqid('Table', true));
+        if (empty($this->Hash)) {
+            $this->Hash = crc32(uniqid('Table', true));
+        }
         return $this->Hash;
     }
 

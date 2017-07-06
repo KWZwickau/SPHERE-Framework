@@ -59,17 +59,12 @@ class MsJHs extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Einschätzung:')
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Rating|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                        ->styleHeight('40px')
+                        ->setContent('Einschätzung: {% if(Content.P'.$personId.'.Input.Rating is not empty) %}
+                                {{ Content.P'.$personId.'.Input.Rating|nl2br }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
+                        ->styleHeight('50px')
                     )
                 )
                 ->styleMarginTop('15px')
@@ -85,7 +80,7 @@ class MsJHs extends Certificate
                 ->styleHeight('270px'))
             ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '45px', '8px'))
+            ->addSlice($this->getDescriptionContent($personId, '55px', '8px'))
             ->addSlice($this->getTransfer($personId, '13px'))
             ->addSlice($this->getDateLine($personId, '10px'))
             ->addSlice($this->getSignPart($personId, true, '15px'))

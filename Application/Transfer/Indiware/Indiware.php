@@ -3,8 +3,9 @@
 namespace SPHERE\Application\Transfer\Indiware;
 
 use SPHERE\Application\IApplicationInterface;
-//use SPHERE\Application\Transfer\Indiware\Export\Lectureship as ExportLectureship;
+use SPHERE\Application\Transfer\Indiware\Import\Import;
 use SPHERE\Application\Transfer\Indiware\Import\Lectureship as ImportLectureship;
+use SPHERE\Application\Transfer\Indiware\Import\StudentCourse as ImportStudentCourse;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -18,7 +19,9 @@ class Indiware implements IApplicationInterface
     public static function registerApplication()
     {
 
+        Import::registerModule();
         ImportLectureship::registerModule();
+        ImportStudentCourse::registerModule();
 //        ExportLectureship::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(

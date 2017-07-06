@@ -35,7 +35,7 @@ class CosHjSek extends Certificate
             self::TEXT_SIZE);
 
         return $this->buildContentPage($personId, $this->isSample(), 'Halbjahresinformation der Schule (Sekundarstufe)',
-            $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart
+            '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart
         );
     }
 
@@ -43,6 +43,7 @@ class CosHjSek extends Certificate
      * @param $personId
      * @param $isSample
      * @param string $title
+     * @param $term
      * @param Slice $gradeLanesSlice
      * @param Slice $subjectLanesSlice
      * @param Slice $obligationToVotePart
@@ -53,6 +54,7 @@ class CosHjSek extends Certificate
         $personId,
         $isSample,
         $title = 'Halbjahresinformation der Schule (Sekundarstufe)',
+        $term,
         Slice $gradeLanesSlice,
         Slice $subjectLanesSlice,
         Slice $obligationToVotePart
@@ -178,7 +180,7 @@ class CosHjSek extends Certificate
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '57%')
                                     ->addElementColumn((new Element())
-                                        ->setContent('1. Schulhalbjahr')
+                                        ->setContent($term)
                                         ->styleFontFamily('Trebuchet MS')
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '16%')

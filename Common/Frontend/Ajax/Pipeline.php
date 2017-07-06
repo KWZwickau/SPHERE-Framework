@@ -1,6 +1,5 @@
 <?php
 namespace SPHERE\Common\Frontend\Ajax;
-
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Component\Template\Template;
 use SPHERE\Common\Frontend\Ajax\Emitter\AbstractEmitter;
@@ -11,7 +10,6 @@ use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
-
 /**
  * Class Pipeline
  *
@@ -19,7 +17,6 @@ use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
  */
 class Pipeline implements IFrontendInterface
 {
-
     /** @var string $SuccessTitle */
     private $SuccessTitle = '';
     /** @var string $SuccessMessage */
@@ -32,7 +29,6 @@ class Pipeline implements IFrontendInterface
     private $Emitter = array();
     /** @var bool $Sync */
     private $Sync = true;
-
     /**
      * Pipeline constructor.
      * @param bool $Sync
@@ -41,7 +37,6 @@ class Pipeline implements IFrontendInterface
     {
         $this->Sync = $Sync;
     }
-
     /**
      * @param string $Title
      * @param string $Message
@@ -53,7 +48,6 @@ class Pipeline implements IFrontendInterface
         $this->SuccessMessage = $Message;
         return $this;
     }
-
     /**
      * @param string $Title
      * @param string $Message
@@ -65,7 +59,6 @@ class Pipeline implements IFrontendInterface
         $this->LoadingMessage = $Message;
         return $this;
     }
-
     /**
      * @param AbstractEmitter $AbstractEmitter
      * @return $this
@@ -75,7 +68,6 @@ class Pipeline implements IFrontendInterface
     {
         return $this->appendEmitter( $AbstractEmitter );
     }
-
     /**
      * @param AbstractEmitter $AbstractEmitter
      * @return $this
@@ -85,7 +77,6 @@ class Pipeline implements IFrontendInterface
         array_push($this->Emitter, $AbstractEmitter);
         return $this;
     }
-
     /**
      * @param AbstractEmitter $AbstractEmitter
      * @return $this
@@ -95,7 +86,6 @@ class Pipeline implements IFrontendInterface
         array_unshift($this->Emitter, $AbstractEmitter);
         return $this;
     }
-
     /**
      * @internal
      * @deprecated
@@ -107,7 +97,6 @@ class Pipeline implements IFrontendInterface
         $this->Emitter = array_merge($this->Emitter, $Pipeline->getEmitter());
         return $this;
     }
-
     /**
      * @return AbstractEmitter[]
      */
@@ -115,7 +104,6 @@ class Pipeline implements IFrontendInterface
     {
         return $this->Emitter;
     }
-
     /**
      *
      */
@@ -129,7 +117,6 @@ class Pipeline implements IFrontendInterface
             . '});'
             . '</script>';
     }
-
     /**
      * @param Form|AbstractField|null $FrontendElement
      * @return string
@@ -154,11 +141,11 @@ class Pipeline implements IFrontendInterface
                     }
                     $Data = $Emitter->getAjaxPostPayload();
                 } else if( $FrontendElement instanceof AbstractLink ) {
+                    $Method = 'POST';
                     /**
                      * Link
                      */
                     if (strlen($Emitter->getAjaxPostPayload()) > 2) {
-                        $Method = 'POST';
                         if( !empty( $FrontendElement->getData() ) ) {
                             $Payload = json_decode( $Emitter->getAjaxPostPayload(), true );
                             $Payload = array_merge( $FrontendElement->getData(), $Payload );
@@ -169,41 +156,18 @@ class Pipeline implements IFrontendInterface
                         }
                     } else {
                         if (!empty($FrontendElement->getData())) {
-                            $Method = 'POST';
                             $Payload = json_encode($FrontendElement->getData(), JSON_FORCE_OBJECT);
                         } else {
                             $Payload = json_encode($Data, JSON_FORCE_OBJECT);
                         }
                     }
-                    if( $Method == 'POST' ) {
-                        $Data = 'var EmitterData = ' . $Payload . '; ';
-                        $Data .= 'var Element = jQuery("#' . $FrontendElement->getHash() . '"); ';
-                        $Data .= 'var DataSet = Element.closest("form"); ';
-                        $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); ';
-                        $Data .= 'for( var Index in DataSet ) { EmitterData[DataSet[Index]["name"]] = DataSet[Index]["value"]; };';
-                        $Data .= '} ';
-                        $Data .= 'return EmitterData;';
-                    } else {
-                        $Data = $Payload;
-                    }
-//                    if (strlen($Emitter->getAjaxPostPayload()) > 2) {
-//                        $Method = 'POST';
-//                        if( !empty( $FrontendElement->getData() ) ) {
-//                            $Payload = json_decode( $Emitter->getAjaxPostPayload(), true );
-//                            $Payload = array_merge($FrontendElement->getData(), $Payload);
-//                            $Data = json_encode( $Payload, JSON_FORCE_OBJECT );
-//                        } else {
-//                            $Data = json_decode( $Emitter->getAjaxPostPayload() );
-//                            $Data = json_encode( $Data, JSON_FORCE_OBJECT );
-//                        }
-//                    } else {
-//                        if (!empty($FrontendElement->getData())) {
-//                            $Method = 'POST';
-//                            $Data = json_encode($FrontendElement->getData(), JSON_FORCE_OBJECT);
-//                        } else {
-//                            $Data = json_encode($Data, JSON_FORCE_OBJECT);
-//                        }
-//                    }
+                    $Data = 'var EmitterData = '.$Payload.'; ';
+                    $Data .= 'var Element = jQuery("#'.$FrontendElement->getHash().'"); ';
+                    $Data .= 'var DataSet = Element.closest("form"); ';
+                    $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); ';
+                    $Data .= 'for( var Index in DataSet ) { EmitterData[DataSet[Index]["name"]] = DataSet[Index]["value"]; };';
+                    $Data .= '} ';
+                    $Data .= 'return EmitterData;';
                 } else if( $FrontendElement instanceof Form ) {
                     /**
                      * Form
@@ -211,11 +175,11 @@ class Pipeline implements IFrontendInterface
                     $Method = 'POST';
                     if (strlen($Emitter->getAjaxPostPayload()) > 2) {
                         if( !empty( $FrontendElement->getData() ) ) {
-                            $Payload = json_decode( $Emitter->getAjaxPostPayload() );
+                            $Payload = json_decode($Emitter->getAjaxPostPayload(), true);
                             $Payload = array_merge( $FrontendElement->getData(), $Payload );
                             $Data = json_encode( $Payload, JSON_FORCE_OBJECT );
                         } else {
-                            $Data = json_decode( $Emitter->getAjaxPostPayload() );
+                            $Data = json_decode($Emitter->getAjaxPostPayload(), true);
                             $Data = json_encode( $Data, JSON_FORCE_OBJECT );
                         }
                         $Data = 'var EmitterData = ' . $Data . ';';
@@ -254,13 +218,11 @@ class Pipeline implements IFrontendInterface
                         $Data .= 'return DataSet';
                     }
                 }
-
                 $ReceiverList = $Emitter->getAjaxReceiver();
                 $ReceiverContext = array();
                 foreach ($ReceiverList as $Receiver) {
                     $ReceiverContext[] = $Receiver->getHandler();
                 }
-
                 /** @var IBridgeInterface $Template */
                 if (!isset($Template)) {
                     $Template = Template::getTwigTemplateString(
@@ -272,7 +234,6 @@ class Pipeline implements IFrontendInterface
                     );
                     $Template = Template::getTwigTemplateString($Template->getContent());
                 }
-
                 $Template->setVariable('Method', json_encode($Method));
                 $Template->setVariable('Url', json_encode($Url));
                 $Template->setVariable('Data', json_encode($Data));
@@ -310,7 +271,6 @@ class Pipeline implements IFrontendInterface
             throw new \Exception('Pipeline has no Emitter');
         }
     }
-
     /**
      * @param AbstractEmitter $Emitter
      * @return string
@@ -329,7 +289,6 @@ class Pipeline implements IFrontendInterface
         if (empty(($SuccessMessage = $Emitter->getSuccessMessage()))) {
             $SuccessMessage = $this->SuccessMessage;
         }
-
         return 'onLoad: { Title: ' . json_encode($LoadingTitle)
             . ', Message: ' . json_encode($LoadingMessage)
             . ' }, onSuccess: { Title: ' . json_encode($SuccessTitle)

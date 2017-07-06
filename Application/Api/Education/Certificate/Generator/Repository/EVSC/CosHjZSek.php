@@ -32,7 +32,7 @@ class CosHjZSek extends Certificate
             self::TEXT_SIZE);
 
         return CosHjSek::buildContentPage($personId, $this->isSample(), 'Halbjahreszeugnis der Schule (Sekundarstufe)',
-            $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart
+            '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart
         );
     }
 }

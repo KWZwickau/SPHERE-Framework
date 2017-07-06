@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\System\Extension\Extension;
 
@@ -102,16 +103,16 @@ class SubjectSelect extends Extension implements IApiInterface
                         'Name'        => $Subject['Name'],
                         'Description' => $Subject['Description'],
                         'Option'      => (new Standard('', SubjectSelect::getEndpoint(), new MinusSign(),
-                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId'])))
+                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId']), 'Entfernen'))
                             ->ajaxPipelineOnClick(SubjectSelect::pipelineMinus($Subject['Id'], $Subject['DivisionId']))
                     );
                 }
                 // Anzeige
-                $left = new TableData($Table, null, array(
+                $left = new TableData($Table, new Title('Ausgewählte', 'Fächer'), array(
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
-                    'Option'      => 'Option'
+                    'Option'      => ''
                 ),
                     array(
                         'columnDefs' => array(
@@ -136,16 +137,16 @@ class SubjectSelect extends Extension implements IApiInterface
                         'Name'        => $Subject['Name'],
                         'Description' => $Subject['Description'],
                         'Option'      => (new Standard('', SubjectSelect::getEndpoint(), new PlusSign(),
-                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId'])))
+                            array('Id' => $Subject['Id'], 'DivisionId' => $Subject['DivisionId']), 'Hinzufügen'))
                             ->ajaxPipelineOnClick(SubjectSelect::pipelinePlus($Subject['Id'], $Subject['DivisionId']))
                     );
                 }
                 // Anzeige
-                $right = new TableData($TableAvailable, null, array(
+                $right = new TableData($TableAvailable, new Title('Verfügbare', 'Fächer'), array(
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
-                    'Option'      => 'Option'
+                    'Option'      => ''
                 ),
                     array(
                         'columnDefs' => array(

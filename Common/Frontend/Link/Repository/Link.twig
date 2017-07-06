@@ -21,6 +21,7 @@
     <a href="#" class="{{ ElementType }}" data-trigger="hover" data-toggle="popover"
        data-content="{{ ElementToolTip }}" disabled>{{ ElementIcon }} {{ ElementName }}</a>
 {% endif %}
+{% if(ElementToolTip is not empty) %}
 <script>
     //noinspection JSUnresolvedFunction
     executeScript(function()
@@ -37,3 +38,4 @@
         });
     });
 </script>
+{% endif %}

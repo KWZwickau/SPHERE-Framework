@@ -18,3 +18,19 @@
         </div>
     </div>
 </div>
+{#Fix: DataTables - Fixed Header - Shows when Modal is hidden#}
+<script type="text/javascript">
+    //noinspection JSUnresolvedFunction
+    executeScript(function() {
+        Client.Use('ModTable', function () {
+            jQuery('#{{ IDENTIFIER }}').on('hidden.bs.modal', function (e) {
+                jQuery(this).find( 'table' ).each(function(){
+                    var Table = jQuery(this).DataTable();
+                    if( typeof Table.settings().fixedHeader === "function" ) {
+                        Table.fixedHeader.adjust();
+                    }
+                });
+            });
+        });
+    });
+</script>

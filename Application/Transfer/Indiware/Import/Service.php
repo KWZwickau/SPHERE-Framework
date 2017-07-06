@@ -12,6 +12,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Data;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportLectureship;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudent;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudentCourse;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -61,6 +63,44 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Id
+     *
+     * @return false|TblIndiwareImportStudent
+     */
+    public function getIndiwareImportStudentById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getIndiwareImportStudentById($Id);
+    }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     *
+     * @return false|TblIndiwareImportStudentCourse[]
+     */
+    public function getIndiwareImportStudentCourseByIndiwareImportStudent(
+        TblIndiwareImportStudent $tblIndiwareImportStudent
+    ) {
+
+        return (new Data($this->getBinding()))->getIndiwareImportStudentCourseByIndiwareImportStudent($tblIndiwareImportStudent);
+    }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param                          $Number
+     *
+     * @return false|TblIndiwareImportStudentCourse
+     */
+    public function getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber(
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        $Number
+    ) {
+
+        return (new Data($this->getBinding()))->getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber(
+            $tblIndiwareImportStudent, $Number);
+    }
+
+    /**
      * @param bool $ByAccount
      *
      * @return false|TblIndiwareImportLectureship[]
@@ -79,6 +119,24 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $ByAccount
+     *
+     * @return false|TblIndiwareImportStudent[]
+     */
+    public function getIndiwareImportStudentAll($ByAccount = false)
+    {
+        if ($ByAccount) {
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($tblAccount) {
+                return (new Data($this->getBinding()))->getIndiwareImportStudentAllByAccount($tblAccount);
+            }
+            return false;
+        } else {
+            return (new Data($this->getBinding()))->getIndiwareImportStudentAll();
+        }
+    }
+
+    /**
      * @param            $ImportList
      * @param TblYear    $tblYear
      * @param TblAccount $tblAccount
@@ -89,6 +147,21 @@ class Service extends AbstractService
     {
 
         (new Data($this->getBinding()))->createIndiwareImportLectureshipBulk($ImportList, $tblYear, $tblAccount);
+
+        return true;
+    }
+
+    /**
+     * @param            $ImportList
+     * @param TblYear    $tblYear
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function createIndiwareImportStudentByImportList($ImportList, TblYear $tblYear, TblAccount $tblAccount)
+    {
+
+        (new Data($this->getBinding()))->createIndiwareImportStudentBulk($ImportList, $tblYear, $tblAccount);
 
         return true;
     }
@@ -160,6 +233,70 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface|null $Stage
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param null|array $Data
+     * @param bool $Visible
+     * @param array $arraySubjectName
+     *
+     * @return IFormInterface|string
+     */
+    public function updateIndiwareImportStudentCourse(
+        IFormInterface $Stage = null,
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        $Data = null,
+        $Visible = false,
+        $arraySubjectName = array()
+        ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        if (isset($Data['DivisionId']) && $Data['DivisionId'] != 0) {
+            $tblDivision = Division::useService()->getDivisionById($Data['DivisionId']);
+        } else {
+            $tblDivision = null;
+        }
+        //ToDO Remove all existing Course by ImportStudent
+        $this->destroyIndiwareImportStudent($tblIndiwareImportStudent);
+
+        for ($i = 1; $i <= 17; $i++) {
+            $tblSubject = null;
+            $SubjectGroup = '';
+            $SubjectName = '';
+
+            if (isset($Data['SubjectId' . $i]) && !empty($Data['SubjectId' . $i])) {
+                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId' . $i]);
+            }
+            if (isset($Data['SubjectGroup'.$i]) && !empty($Data['SubjectGroup'.$i])) {
+                $SubjectGroup = $Data['SubjectGroup'.$i];
+            }
+            if (isset($Data['IsIntensivCourse' . $i]) && !empty($Data['IsIntensivCourse' . $i])) {
+                $IsIntensiveCourse = true;
+            } else {
+                $IsIntensiveCourse = false;
+            }
+            if (isset($arraySubjectName[$i])) {
+                $SubjectName = $arraySubjectName[$i];
+            }
+            if ($tblSubject || $SubjectGroup != '') {
+                (new Data($this->getBinding()))->createIndiwareImportStudentCourse($SubjectGroup,
+                    $SubjectName, $i, $IsIntensiveCourse, $tblIndiwareImportStudent, $tblSubject);
+            }
+        }
+
+        (new Data($this->getBinding()))->updateIndiwareImportStudent($tblIndiwareImportStudent, $tblDivision);
+
+        $Message = new Success('Änderungen gespeichert');
+        return $Message.new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS,
+                array('Visible' => $Visible));
+    }
+
+    /**
      * @param TblIndiwareImportLectureship $tblIndiwareImportLectureship
      * @param bool                         $isIgnore
      *
@@ -170,6 +307,20 @@ class Service extends AbstractService
         $isIgnore = true
     ) {
         return (new Data($this->getBinding()))->updateIndiwareImportLectureshipIsIgnore($tblIndiwareImportLectureship,
+            $isIgnore);
+    }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param bool                     $isIgnore
+     *
+     * @return mixed
+     */
+    public function updateIndiwareImportStudentIsIgnore(
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        $isIgnore = true
+    ) {
+        return (new Data($this->getBinding()))->updateIndiwareImportStudentIsIgnore($tblIndiwareImportStudent,
             $isIgnore);
     }
 
@@ -191,6 +342,34 @@ class Service extends AbstractService
         }
         return false;
     }
+
+    /**
+     * @return bool
+     */
+    public function destroyIndiwareImportStudentAll()
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
+            if ($tblIndiwareImportStudentList) {
+                foreach ($tblIndiwareImportStudentList as $tblIndiwareImportStudent) {
+                    (new Data($this->getBinding()))->destroyIndiwareImportStudentCourse($tblIndiwareImportStudent);
+                }
+            }
+            return (new Data($this->getBinding()))->destroyIndiwareImportStudentByAccount($tblAccount);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @return bool
+     */
+    public function destroyIndiwareImportStudent(TblIndiwareImportStudent $tblIndiwareImportStudent)
+     {
+         return (new Data($this->getBinding()))->destroyIndiwareImportStudentCourse($tblIndiwareImportStudent);
+     }
 
     /**
      * @param TblIndiwareImportLectureship[] $tblIndiwareImportLectureshipList
@@ -396,6 +575,171 @@ class Service extends AbstractService
             $LayoutRowCount++;
         }
 
+        return $LayoutRowList;
+    }
+
+    /**
+     * @return LayoutRow[]
+     */
+    public function importIndiwareStudentCourse()
+    {
+
+//        $InfoList = array();
+        $tblIndiwareImportStudentList = $this->getIndiwareImportStudentAll(true);
+        if ($tblIndiwareImportStudentList) {
+            $tblDivisionList = array();
+            array_walk($tblIndiwareImportStudentList,
+                function (TblIndiwareImportStudent $tblIndiwareImportStudent) use (&$tblDivisionList) {
+                    if (($tblDivision = $tblIndiwareImportStudent->getServiceTblDivision())
+                        && !array_key_exists($tblDivision->getId(), $tblDivisionList)
+                    ) {
+                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                    }
+                });
+
+            //remove SubjectStudent (by used Division [clear all Course-Data])
+            if (!empty($tblDivisionList)) {
+                array_walk($tblDivisionList, function (TblDivision $tblDivision) {
+                    $tblSubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
+                    if ($tblSubjectList) {
+                        foreach ($tblSubjectList as $tblSubject) {
+                            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
+                                $tblDivision);
+                            if ($tblDivisionSubjectList) {
+                                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                    $tblDivisionStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                    Division::useService()->removeSubjectStudentBulk($tblDivisionStudentList);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+
+            $createSubjectStudentList = array();
+//            $IsTeacherList = array();
+            foreach ($tblIndiwareImportStudentList as $Key => $tblIndiwareImportStudent) {
+//                $ImportError = 0;
+                if (!($tblDivision = $tblIndiwareImportStudent->getServiceTblDivision())) {
+//                    $ImportError++;
+                }
+                if ($tblIndiwareImportStudent->getIsIgnore()) {
+//                    $ImportError++;
+                }
+
+                $tblIndiwareImportStudentCourseList = Import::useService()
+                    ->getIndiwareImportStudentCourseByIndiwareImportStudent($tblIndiwareImportStudent);
+                if ($tblIndiwareImportStudentCourseList && $tblDivision) {
+                    foreach ($tblIndiwareImportStudentCourseList as $tblIndiwareImportStudentCourse) {
+                        $SubjectGroup = $tblIndiwareImportStudentCourse->getSubjectGroup();
+                        $tblSubject = $tblIndiwareImportStudentCourse->getServiceTblSubject();
+                        $tblPerson = $tblIndiwareImportStudent->getServiceTblPerson();
+
+                        if ($SubjectGroup && $tblSubject && !$tblIndiwareImportStudent->getIsIgnore()) {
+
+                            // insert Subject in Division if not exist
+                            if (!Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
+                                $tblDivision)
+                            ) {
+                                Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
+                            }
+
+                            // get Group
+                            $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($SubjectGroup,
+                                $tblDivision, $tblSubject);
+                            if ($tblSubjectGroup) {
+                                // get DivisionSubject with Group
+                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                    $tblSubject, $tblSubjectGroup);
+                            } else {
+
+                                // create Group + add/get DivisionSubject
+                                $tblDivisionSubject = Division::useService()->addSubjectToDivisionWithGroupImport($tblDivision,
+                                    $tblSubject, $SubjectGroup,
+                                    $tblIndiwareImportStudentCourse->getIsIntensiveCourse());
+                            }
+
+                            if ($tblPerson && $tblDivision &&
+                                Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson)
+                            ) {
+                                if ($tblDivisionSubject) {
+
+                                    // add Subject Teacher
+                                    $createSubjectStudentList[] = array(
+                                        'tblDivisionSubject' => $tblDivisionSubject,
+                                        'tblPerson'          => $tblPerson
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (!empty($createSubjectStudentList)) {
+                Division::useService()->addSubjectStudentList($createSubjectStudentList);
+                Import::useService()->destroyIndiwareImportStudentAll();
+            }
+        }
+
+//
+//            }
+//            // bulkSave for Lectureship
+//            Division::useService()->addSubjectTeacherList($createSubjectTeacherList);
+//
+//            //Delete tblImport
+//            Import::useService()->destroyIndiwareImportLectureship();
+//        }
+//
+//        $LayoutColumnArray = array();
+//        if (!empty($InfoList)) {
+//            // better show result
+//            foreach ($InfoList as $key => $Info) {
+//                $divisionName[$key] = strtoupper($Info['DivisionName']);
+//            }
+//            array_multisort($divisionName, SORT_NATURAL, $InfoList);
+//            foreach ($InfoList as $Info) {
+//
+//                if (isset($Info['DivisionName']) && isset($Info['SubjectList'])) {
+//                    $LayoutColumnList = array();
+//                    $PanelContent = array();
+//                    if (!empty($Info['SubjectList'])) {
+//                        foreach ($Info['SubjectList'] as $SubjectAndTeacherArray) {
+//                            if (!empty($SubjectAndTeacherArray)) {
+//                                foreach ($SubjectAndTeacherArray as $SubjectAndTeacher) {
+//                                    $PanelContent[] = $SubjectAndTeacher;
+//                                }
+//                            }
+//                        }
+//                        $LayoutColumnList[] = new LayoutColumn(array(
+//                                new Title('Klasse: '.$Info['DivisionName']),
+//                                new Panel('Acronym - Fach'.new PullRight('Lehrer'),
+//                                    $PanelContent, Panel::PANEL_TYPE_SUCCESS)
+//                            )
+//                            , 4);
+//                    }
+//                    $LayoutColumnArray = array_merge($LayoutColumnArray, $LayoutColumnList);
+//                }
+//            }
+//        }
+//
+//        // save clean view by LayoutRows
+//        $LayoutRowList = array();
+//        $LayoutRowCount = 0;
+//        $LayoutRow = null;
+//        /**
+//         * @var LayoutColumn $tblPhone
+//         */
+//        foreach ($LayoutColumnArray as $LayoutColumn) {
+//            if ($LayoutRowCount % 3 == 0) {
+//                $LayoutRow = new LayoutRow(array());
+//                $LayoutRowList[] = $LayoutRow;
+//            }
+//            $LayoutRow->addColumn($LayoutColumn);
+//            $LayoutRowCount++;
+//        }
+
+        $LayoutRowList = array();
         return $LayoutRowList;
     }
 }
