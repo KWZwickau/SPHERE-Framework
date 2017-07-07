@@ -71,6 +71,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
             'SPHERE\Application\Api\Document\Standard\KamenzReportGym\Create',
             new Download(), array(), 'Kamenz-Statistik des Gymnasiums herunterladen'));
 
+//        Debugger::screenDump(KamenzReportService::setKamenzReportContent(array()));
 
         $Stage->setContent(
             new Layout(
