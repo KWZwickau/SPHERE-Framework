@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Platform\System\Test;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -123,6 +124,13 @@ class Frontend extends Extension implements IFrontendInterface
             }
             ksort($IconList);
         }
+
+        $Receiver = ApiSystemTest::receiverModal().'Modal benötigt die API Route "/Api/Platform/Test/ApiSystemTest"'
+            .ApiSystemTest::receiverSecondModal();
+        $firstReceiverButton = (new Standard('Öffne ein Modal', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenModal());
+        $secondReceiverButton = (new Standard('Modal mit "Laden"', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenSecondModal());
 
         $Stage->setContent(
             (new Form(
@@ -282,6 +290,17 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
 
                 ), new Title('Layout Development')),
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $Receiver
+                            , 2),
+                        new LayoutColumn(
+                            $firstReceiverButton
+                            .$secondReceiverButton
+                            , 10)
+                    ))
+                    , new Title('ModalReceiver')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(implode($IconList)),
