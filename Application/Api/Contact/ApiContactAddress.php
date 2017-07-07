@@ -74,14 +74,14 @@ class ApiContactAddress extends Extension implements IApiInterface
 
         // include EditButton & AddressString/Warning & ModalReceiver
         $tblPerson = Person::useService()->getPersonById($PersonId);
-        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        $tblAddress = $tblPerson->fetchMainAddress();
         if ($tblAddress) {
             return (new BlockReceiver($tblAddress->getGuiString()))
-                ->setIdentifier('Target-'.$PersonId);
+                ->setIdentifier('AddressField-'.$PersonId);
         } else {
             return
                 (new BlockReceiver(new WarningMessage('Keine Adresse hinterlegt!')))
-                    ->setIdentifier('Target-'.$PersonId);
+                    ->setIdentifier('AddressField-'.$PersonId);
         }
     }
 
@@ -153,7 +153,7 @@ class ApiContactAddress extends Extension implements IApiInterface
         if (!$tblPerson) {
             return new DangerMessage('Person wurde nicht gefunden!');
         }
-        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        $tblAddress = $tblPerson->fetchMainAddress();
 
         // always select Main Address
         $Global = $this->getGlobal();
@@ -344,7 +344,7 @@ class ApiContactAddress extends Extension implements IApiInterface
         if (!$tblPerson) {
             return new DangerMessage('Person nicht gefunden!');
         }
-        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        $tblAddress = $tblPerson->fetchMainAddress();
         if ($tblAddress) {
             return $tblAddress->getGuiString();
         } else {

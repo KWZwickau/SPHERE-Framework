@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\User\Account;
 
 use SPHERE\Application\Api\Contact\ApiContactAddress;
+use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -12,6 +13,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
@@ -48,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
@@ -120,11 +123,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null  $Person
      * @param null  $Year
      * @param null  $Division
-     * @param array $PersonIdArray
      *
      * @return Stage
      */
-    public function frontendStudentAdd($Person = null, $Year = null, $Division = null, $PersonIdArray = array())
+    public function frontendStudentAdd($Person = null, $Year = null, $Division = null/*, $PersonIdArray = array()*/)
     {
 
         $Stage = new Stage('Schüler-Accounts', 'Erstellen');
@@ -141,11 +143,14 @@ class Frontend extends Extension implements IFrontendInterface
             'Course'        => 'Schulart',
             'Division'      => 'Klasse',
             'Address'       => 'Adresse',
+            'Option'        => '',
         ),
             array(
                 'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
+//                    array('width' => '1%', 'targets' => 1),
+//                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
                 'paging'     => false,
@@ -163,8 +168,17 @@ class Frontend extends Extension implements IFrontendInterface
                 : new WarningMessage('Die Filterung benötigt ein Schuljahr'))
         ))));
         if (!empty($TableContent)) {
-            $formResult = (new Form(new FormGroup(new FormRow(new FormColumn($Table)))))
-                ->appendFormButton(new Primary('Speichern', new Save()))
+            $formResult = (new Form(
+                new FormGroup(
+                    new FormRow(array(
+                        new FormColumn($Table),
+                        new FormColumn((new PrimaryLink('Speichern', ApiContactAddress::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiUserAccount::pipelineSaveAccount('S'))
+                        )
+                    ))
+                )
+            ))
+//                ->appendFormButton((new Primary('Speichern', new Save())))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
         }
 
@@ -178,9 +192,11 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Filterung', array(
+                            ApiUserAccount::receiverAccountModal()
+                            .new Panel('Filterung', array(
                                 (!empty($TableContent) ? new ToggleCheckbox('Alle wählen/abwählen', $Table) : ''),
-                                Account::useService()->createAccount($formResult, $PersonIdArray, 'S')
+                                $formResult
+//                                Account::useService()->createAccount($formResult, $PersonIdArray, 'S')
                             ))
                         )
                     )
@@ -230,7 +246,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
-                        new Panel('Klasse: Stufe', array(
+                        new Panel('Klasse', array(
                             new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Stufe',
                                 array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList)),
                             new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
@@ -353,77 +369,80 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var ViewDivisionStudent $DivisionStudent */
                 $DivisionStudent = $Row[2]->__toArray();
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Name'] = false;
-                $DataPerson['Check'] = '';
-                $DataPerson['Course'] = '';
-                $DataPerson['Course'] = '';
 
-                $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
-                    'Bearbeiten der Hauptadresse'))
-                    ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
+                // ignor existing Accounts (By Person)
+                if ($tblPerson && !Account::useService()->getUserAccountByPerson($tblPerson)) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $DataPerson['Name'] = false;
+                    $DataPerson['Check'] = '';
+                    $DataPerson['Course'] = '';
+                    $DataPerson['Course'] = '';
 
-                $AddressReceiver = new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                ApiContactAddress::receiverColumn($tblPerson->getId())
-                                , 11),
-                            new LayoutColumn(
-                                new Center($Button).ApiContactAddress::receiverModal($tblPerson->getId())
-                                , 1),
-                        ))
-                    )
-                );
-//                $AddressReceiver = ApiContactAddress::receiverColumn($tblPerson->getId()); // . new PullRight($Button);
+                    //                $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
+                    //                    'Bearbeiten der Hauptadresse'))
+                    //                    ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
+                    //
+                    //                $AddressReceiver = new Layout(
+                    //                    new LayoutGroup(
+                    //                        new LayoutRow(array(
+                    //                            new LayoutColumn(
+                    //                                ApiContactAddress::receiverColumn($tblPerson->getId())
+                    //                                , 11),
+                    //                            new LayoutColumn(
+                    //                                new Center($Button).ApiContactAddress::receiverModal($tblPerson->getId())
+                    //                                , 1),
+                    //                        ))
+                    //                    )
+                    //                );
+                    //                $AddressReceiver = ApiContactAddress::receiverColumn($tblPerson->getId()); // . new PullRight($Button);
 
 
-                $DataPerson['Address'] = $AddressReceiver;
+                    $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
+                    $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
 
-                if ($tblPerson) {
-                    $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
-                        $tblPerson->getId()
-                        , array($tblPerson->getId())))->setChecked();
-                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-                        $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                        if ($tblTransferType) {
-                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                $tblTransferType);
-                            if ($tblStudentTransfer && ($tblCourse = $tblStudentTransfer->getServiceTblCourse())) {
-                                $DataPerson['Course'] = $tblCourse->getName();
+                    if ($tblPerson) {
+                        $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
+                            $tblPerson->getId()
+                            , array($tblPerson->getId())))->setChecked();
+                        $DataPerson['Name'] = $tblPerson->getLastFirstName();
+                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                        if ($tblStudent) {
+                            $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                            if ($tblTransferType) {
+                                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                    $tblTransferType);
+                                if ($tblStudentTransfer && ($tblCourse = $tblStudentTransfer->getServiceTblCourse())) {
+                                    $DataPerson['Course'] = $tblCourse->getName();
+                                }
                             }
                         }
                     }
-                }
-                $DataPerson['Division'] = '';
-                $DataPerson['Level'] = '';
+                    $DataPerson['Division'] = '';
+                    $DataPerson['Level'] = '';
 
-                $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
-                if ($tblDivision) {
-                    $DataPerson['Division'] = $tblDivision->getDisplayName();
-                }
+                    $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
+                    if ($tblDivision) {
+                        $DataPerson['Division'] = $tblDivision->getDisplayName();
+                    }
 
-//                /** @noinspection PhpUndefinedFieldInspection */
-//                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-//                    /** @noinspection PhpUndefinedFieldInspection */
-//                    $DataPerson['Address'] = $AddressReceiver;
-//                }
-                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-                }
+                    //                /** @noinspection PhpUndefinedFieldInspection */
+                    //                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
+                    //                    /** @noinspection PhpUndefinedFieldInspection */
+                    //                    $DataPerson['Address'] = $AddressReceiver;
+                    //                }
+                    $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
+                    if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
+                        $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                    }
 
-                if (!isset($DataPerson['ProspectYear'])) {
-                    $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
-                }
-                if (!isset($DataPerson['ProspectDivision'])) {
-                    $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
-                }
+                    if (!isset($DataPerson['ProspectYear'])) {
+                        $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
+                    }
+                    if (!isset($DataPerson['ProspectDivision'])) {
+                        $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
+                    }
 
-                // ignor existing Accounts (By Person)
-                if (!Account::useService()->getUserAccountByPerson($tblPerson)) {
+
                     // ignore duplicated Person
                     if ($DataPerson['Name']) {
                         if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
@@ -438,14 +457,63 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return Layout
+     */
+    public function apiChangeMainAddress(TblPerson $tblPerson)
+    {
+        $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
+            'Bearbeiten der Hauptadresse'))
+            ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
+        $Layout = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        ApiContactAddress::receiverColumn($tblPerson->getId())
+                        , 11),
+                    new LayoutColumn(
+                        new Center($Button).ApiContactAddress::receiverModal($tblPerson->getId())
+                        , 1),
+                ))
+            )
+        );
+        return $Layout;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return \SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver
+     */
+    public function apiChangeMainAddressField(TblPerson $tblPerson)
+    {
+        $Content = ApiContactAddress::receiverColumn($tblPerson->getId());
+        return $Content;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string|Standard
+     */
+    public function apiChangeMainAddressButton(TblPerson $tblPerson)
+    {
+        $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
+            'Bearbeiten der Hauptadresse'))
+            ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
+
+        return ApiContactAddress::receiverModal($tblPerson->getId()).$Button;
+    }
+
+    /**
      * @param null  $Person
      * @param null  $Year
      * @param null  $Division
-     * @param array $PersonIdArray
      *
      * @return Stage
      */
-    public function frontendCustodyAdd($Person = null, $Year = null, $Division = null, $PersonIdArray = array())
+    public function frontendCustodyAdd($Person = null, $Year = null, $Division = null/*, $PersonIdArray = array()*/)
     {
         $Stage = new Stage('Sorbeberechtigten-Accounts', 'Erstellen');
 
@@ -458,14 +526,14 @@ class Frontend extends Extension implements IFrontendInterface
             'Check'   => 'Auswahl',
             'Name'    => 'Name',
             'Address' => 'Adresse',
+            'Option'  => '',
         ),
             array(
-                'order'      => array(
-                    array(2, 'asc'),
-                    array(1, 'asc')
-                ),
+                'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
+//                    array('width' => '1%', 'targets' => 0),
+//                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
                 'paging'     => false,
@@ -483,8 +551,17 @@ class Frontend extends Extension implements IFrontendInterface
                 : new WarningMessage('Die Filterung benötigt ein Schuljahr'))
         ))));
         if (!empty($TableContent)) {
-            $formResult = (new Form(new FormGroup(new FormRow(new FormColumn($Table)))))
-                ->appendFormButton(new Primary('Speichern', new Save()))
+            $formResult = (new Form(
+                new FormGroup(
+                    new FormRow(array(
+                        new FormColumn($Table),
+                        new FormColumn((new PrimaryLink('Speichern', ApiContactAddress::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiUserAccount::pipelineSaveAccount('C'))
+                        )
+                    ))
+                )
+            ))
+//                ->appendFormButton((new Primary('Speichern', new Save())))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
         }
 
@@ -498,9 +575,11 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Filterung', array(
+                            ApiUserAccount::receiverAccountModal()
+                            .new Panel('Filterung', array(
                                 (!empty($TableContent) ? new ToggleCheckbox('Alle wählen/abwählen', $Table) : ''),
-                                Account::useService()->createAccount($formResult, $PersonIdArray, 'C')
+                                $formResult
+//                                Account::useService()->createAccount($formResult, $PersonIdArray, 'C')
                             ))
                         )
                     )
@@ -547,7 +626,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
-                        new Panel('Klasse: Stufe', array(
+                        new Panel('Klasse', array(
                             new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Stufe',
                                 array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList)),
                             new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
@@ -597,24 +676,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $DataPerson['Name'] = false;
                             $DataPerson['Check'] = '';
 
-                            $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
-                                'Bearbeiten der Hauptadresse'))
-                                ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
-
-                            $AddressReceiver = new Layout(
-                                new LayoutGroup(
-                                    new LayoutRow(array(
-                                        new LayoutColumn(
-                                            ApiContactAddress::receiverColumn($tblPerson->getId())
-                                            , 11),
-                                        new LayoutColumn(
-                                            new Center($Button).ApiContactAddress::receiverModal($tblPerson->getId())
-                                            , 1),
-                                    ))
-                                )
-                            );
-
-                            $DataPerson['Address'] = $AddressReceiver;
+                            $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
+                            $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
 
                             if ($tblPerson) {
                                 $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
@@ -657,7 +720,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Name'] = '';
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
                 $Item['UserPassword'] = '';
-                $Item['Address'] = new Warning(new WarningIcon().' Keine Adresse gewählt');
+                $Item['Address'] = '';
                 $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
                 $Item['Option'] =
@@ -684,9 +747,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
-                    if (($tblAddress = $tblPerson->fetchMainAddress())) {
-                        $Item['Address'] = $tblAddress->getGuiString();
-                    }
+                    $Item['Address'] = $this->apiChangeMainAddressField($tblPerson);
+                    $Item['Option'] = $this->apiChangeMainAddressButton($tblPerson).$Item['Option'];
 
                     if ($tblPerson->getSalutation() != '') {
                         $Item['Salutation'] = $tblPerson->getSalutation();
@@ -741,7 +803,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address'           => 'Adresse',
                                         'PersonListCustody' => 'Sorgeberechtigte',
                                         'Option'            => ''
-                                    ))
+                                    ), array(
+                                        'order'      => array(array(1, 'asc')),
+                                        'columnDefs' => array(array('type' => 'german-string', 'targets' => 1))
+                                    )
+                                )
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.')
                             )
                         )
@@ -771,7 +837,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Name'] = '';
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
                 $Item['UserPassword'] = '';
-                $Item['Address'] = new Warning(new WarningIcon().' Keine Adresse gewählt');
+                $Item['Address'] = '';
                 $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
                 $Item['Option'] =
@@ -794,9 +860,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
-                    if (($tblAddress = $tblPerson->fetchMainAddress())) {
-                        $Item['Address'] = $tblAddress->getGuiString();
-                    }
+                    $Item['Address'] = $this->apiChangeMainAddressField($tblPerson);
+                    $Item['Option'] .= $this->apiChangeMainAddressButton($tblPerson);
 
                     if ($tblPerson->getSalutation() != '') {
                         $Item['Salutation'] = $tblPerson->getSalutation();
@@ -852,7 +917,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address'           => 'Adresse',
                                         'PersonListStudent' => 'Sorgeberechtigt für',
                                         'Option'            => ''
-                                    ))
+                                    ), array(
+                                        'order'      => array(array(1, 'asc')),
+                                        'columnDefs' => array(array('type' => 'german-string', 'targets' => 1))
+                                    )
+                                )
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.')
                             )
                         )
@@ -865,9 +934,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null|string $Time
+     *
      * @return Stage
      */
-    public function frontendAccountExport()
+    public function frontendAccountExport($Time = null)
     {
         $Stage = new Stage('Account', 'Serienbrief Export');
 
@@ -876,16 +947,27 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         if ($tblUserAccountList) {
             /** @var TblUserAccount[] $UserAccountList */
-            array_walk($tblUserAccountList, function ($tblUserAccountList, $groupByTime) use (&$TableContent) {
+            array_walk($tblUserAccountList, function ($tblUserAccountList, $groupByTime) use (&$TableContent, $Time) {
                 /** @var TblUserAccount $tblUserAccountTarget */
                 if (($tblUserAccountTarget = current($tblUserAccountList)) && $tblUserAccountTarget->getUserPassword()) {
 //                    Debugger::screenDump($groupByTime.' -> '.count($tblUserAccountList));
-                    $item['GroupByTime'] = $groupByTime;
-                    $item['UserAccountCount'] = count($tblUserAccountList);
-                    if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
-                        $item['AccountType'] = 'Schüler-Accounts';
-                    } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
-                        $item['AccountType'] = 'Sorgeberechtigten-Accounts';
+                    // bold Entry if linked
+                    if ($Time && $Time == $groupByTime) {
+                        $item['GroupByTime'] = new SuccessMessage(new Bold($groupByTime).' Aktuell erstellte Benutzer');
+                        $item['UserAccountCount'] = new Bold(count($tblUserAccountList));
+                        if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
+                            $item['AccountType'] = new Bold('Schüler-Accounts');
+                        } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
+                            $item['AccountType'] = new Bold('Sorgeberechtigten-Accounts');
+                        }
+                    } else {
+                        $item['GroupByTime'] = $groupByTime;
+                        $item['UserAccountCount'] = count($tblUserAccountList);
+                        if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
+                            $item['AccountType'] = 'Schüler-Accounts';
+                        } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
+                            $item['AccountType'] = 'Sorgeberechtigten-Accounts';
+                        }
                     }
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
                             , array('GroupByTime' => $groupByTime))

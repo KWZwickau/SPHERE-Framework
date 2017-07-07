@@ -6,7 +6,6 @@ use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
-use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblToPersonAddress;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -19,20 +18,13 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountPlatform;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\User\Account\Service\Data;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Setup;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Filter\Link\Pile;
 
@@ -492,44 +484,40 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $form
      * @param array          $PersonIdArray
      * @param string         $AccountType S = Student, C = Custody
      *
-     * @return IFormInterface|Layout
+     * @return array
+     * result['Time']
+     * result['AddressMissCount']
+     * result['AccountExistCount']
+     * result['SuccessCount']
      */
-    public function createAccount(IFormInterface $form, $PersonIdArray = array(), $AccountType = 'S')
+    public function createAccount(/*IFormInterface $form, */
+        $PersonIdArray = array(),
+        $AccountType = 'S'
+    )
     {
 
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit'])) {
-            return $form;
-        } elseif ($Global->POST['Button']['Submit'] != 'Speichern') {
-            return $form;
-        }
-
-        if (empty($PersonIdArray)) {
-            return $form;
-        }
-
-        $IsMissingAddress = false;
+//        $IsMissingAddress = false;
         $TimeStamp = new \DateTime('now');
 
         $successCount = 0;
-        $errorCount = 0;
+        $addressMissCount = 0;
+        $accountExistCount = 0;
 
         foreach ($PersonIdArray as $PersonId) {
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if ($tblPerson) {
                 // ignore Person with Account
-                if (AccountPlatform::useService()->getAccountAllByPerson($tblPerson)) {
+                if (AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson)) {
                     continue;
                 }
                 // ignore Person without Main Address
                 $tblAddress = $tblPerson->fetchMainAddress();
                 if (!$tblAddress) {
-                    $IsMissingAddress = true;
-                    $errorCount++;
+//                    $IsMissingAddress = true;
+                    $addressMissCount++;
                     continue;
                 }
                 // ignore without Consumer
@@ -544,22 +532,37 @@ class Service extends AbstractService
                 }
                 $name = $this->generateUserName($tblPerson, $tblConsumer, $Acronym);
                 $password = $this->generatePassword(8, 1, 2, 1);
+                if (($tblAccountList = AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson))) {
+                    $IsUserExist = false;
+                    foreach ($tblAccountList as $tblAccount) {
+                        // ignore System Accounts (Support)
+                        if ($tblAccount->getServiceTblIdentification()->getName() == 'System') {
+                            continue;
+                        }
+                        $IsUserExist = true;
+                    }
+                    if ($IsUserExist) {
+                        $accountExistCount++;
+                        continue;
+                    }
+                }
 
-                $tblAccount = AccountPlatform::useService()->insertAccount($name, $password, null, $tblConsumer);
+                $tblAccount = AccountGatekeeper::useService()->insertAccount($name, $password, null, $tblConsumer);
+
 
                 if ($tblAccount) {
-                    $tblIdentification = AccountPlatform::useService()->getIdentificationByName('UserCredential');
-                    AccountPlatform::useService()->addAccountAuthentication($tblAccount,
+                    $tblIdentification = AccountGatekeeper::useService()->getIdentificationByName('UserCredential');
+                    AccountGatekeeper::useService()->addAccountAuthentication($tblAccount,
                         $tblIdentification);
                     $tblRole = Access::useService()->getRoleByName('Einstellungen: Benutzer');
                     if ($tblRole && !$tblRole->isSecure()) {
-                        AccountPlatform::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        AccountGatekeeper::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
                     $tblRole = Access::useService()->getRoleByName('Bildung: Zensurenübersicht (Schüler/Eltern)');
                     if ($tblRole && !$tblRole->isSecure()) {
-                        AccountPlatform::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        AccountGatekeeper::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
-                    AccountPlatform::useService()->addAccountPerson($tblAccount, $tblPerson);
+                    AccountGatekeeper::useService()->addAccountPerson($tblAccount, $tblPerson);
                     $successCount++;
 
                     if ($AccountType == 'S') {
@@ -576,36 +579,46 @@ class Service extends AbstractService
                 }
             }
         }
-        return new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        ($IsMissingAddress
-                            ? new Warning($errorCount.' Personen ohne Hauptadresse ignoriert ('.$successCount.
-                                ' Benutzerzugänge zu Personen mit Gültiger Hauptadresse wurden erfolgreich angelegt).')
-                            : new Success($successCount.' Benutzer wurden erfolgreich angelegt.')
-                        )
-                    ),
+        $result = array();
+        $result['Time'] = $TimeStamp->format('d.m.Y H:i:s');
+        $result['AddressMissCount'] = $addressMissCount;
+        $result['AccountExistCount'] = $accountExistCount;
+        $result['SuccessCount'] = $successCount;
+        return $result;
+//        return new Layout(
+//            new LayoutGroup(
+//                new LayoutRow(array(
 //                    new LayoutColumn(
-//                        ($AccountType == 'S'
-//                            ? new Redirect('/Setting/User/Account/Student/Add',
-//                                ($IsMissingAddress
-//                                    ? Redirect::TIMEOUT_ERROR
-//                                    : Redirect::TIMEOUT_SUCCESS
-//                                ))
-//                            : ($AccountType == 'C'
-//                                ? new Redirect('/Setting/User/Account/Custody/Add',
-//                                    ($IsMissingAddress
-//                                        ? Redirect::TIMEOUT_ERROR
-//                                        : Redirect::TIMEOUT_SUCCESS
-//                                    ))
-//                                : ''
-//                            )
+//                        ($IsMissingAddress
+//                            ? new Warning($errorCount.' Personen ohne Hauptadresse ignoriert ('.$successCount.
+//                                ' Benutzerzugänge zu Personen mit Gültiger Hauptadresse wurden erfolgreich angelegt).'
+//                                . new Container('Weiter zum '.new Standard('Export', '/Setting/User/Account/Export', null,
+//                                    array('Time' => $TimeStamp->format('d.m.Y H:i:s')))))
+//                            : new Success($successCount.' Benutzer wurden erfolgreich angelegt.'
+//                                . new Container('Weiter zum '.new Standard('Export', '/Setting/User/Account/Export', null,
+//                                    array('Time' => $TimeStamp->format('d.m.Y H:i:s')))))
 //                        )
-//                    )
-                ))
-            )
-        );
+//                    ),
+////                    new LayoutColumn(
+////                        ($AccountType == 'S'
+////                            ? new Redirect('/Setting/User/Account/Student/Add',
+////                                ($IsMissingAddress
+////                                    ? Redirect::TIMEOUT_ERROR
+////                                    : Redirect::TIMEOUT_SUCCESS
+////                                ))
+////                            : ($AccountType == 'C'
+////                                ? new Redirect('/Setting/User/Account/Custody/Add',
+////                                    ($IsMissingAddress
+////                                        ? Redirect::TIMEOUT_ERROR
+////                                        : Redirect::TIMEOUT_SUCCESS
+////                                    ))
+////                                : ''
+////                            )
+////                        )
+////                    )
+//                ))
+//            )
+//        );
     }
 
     /**
@@ -655,7 +668,6 @@ class Service extends AbstractService
     /**
      * @param TblAccount              $tblAccount
      * @param TblPerson               $tblPerson
-     * @param TblToPersonAddress|null $tblToPersonAddress
      * @param \DateTime               $TimeStamp
      * @param string                  $userPassword
      * @param string                  $type STUDENT|CUSTODY
@@ -700,8 +712,17 @@ class Service extends AbstractService
 
         if ($tblConsumer) {
             $lengthCount = 8;
+
             $FirstName = $tblPerson->getFirstName();
             $LastName = $tblPerson->getLastName();
+            $PosFirstName = strpos($FirstName, ' ');
+            $PosLastName = strpos($LastName, ' ');
+            if ($PosFirstName) {
+                $FirstName = substr($tblPerson->getFirstName(), 0, $PosFirstName);
+            }
+            if ($PosLastName) {
+                $LastName = substr($tblPerson->getFirstName(), 0, $PosLastName);
+            }
             $lengthFirstName = strlen($FirstName);
             $lengthLastName = strlen($LastName);
             $length = $lengthFirstName + $lengthLastName;
@@ -732,12 +753,12 @@ class Service extends AbstractService
 //        $tblAccount = true;
 
         // find existing UserName?
-        $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserNamePrepare);
+        $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNamePrepare);
         if ($tblAccount) {
             while ($tblAccount) {
                 $randNumber = rand(1000, 9999);
                 $UserNameMod = $UserName.$randNumber;
-                $tblAccount = AccountPlatform::useService()->getAccountByUsername($UserNameMod);
+                $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
                 if (!$tblAccount) {
                     $UserName = $UserNameMod;
                 }
