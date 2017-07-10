@@ -55,6 +55,7 @@ class KamenzReportService
             $countForeignSubjectArray = array();
             $countSecondForeignSubjectArray = array();
             $countReligionArray = array();
+            $countOrientationArray = array();
             foreach ($tblCurrentYearList as $tblYear) {
                 if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
                     foreach ($tblDivisionList as $tblDivision) {
@@ -102,7 +103,8 @@ class KamenzReportService
                                     ) {
                                         if ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                                             $tblStudent, $tblStudentSubjectType
-                                        )) {
+                                        )
+                                        ) {
                                             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                                                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
                                                     && ($tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking())
@@ -182,6 +184,30 @@ class KamenzReportService
                                             $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
                                         } else {
                                             $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()] = 1;
+                                        }
+                                    }
+
+                                    /**
+                                     * E12 Schüler im NEIGUNGSKURSBEREICH im Schuljahr nach Klassenstufen
+                                     */
+                                    if (($tblStudent = $tblPerson->getStudent())
+                                        && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                                        && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                                            $tblStudent, $tblStudentSubjectType
+                                        ))
+                                    ) {
+                                        /** @var TblStudentSubject $tblStudentSubject */
+                                        if (($tblStudentSubject = reset($tblStudentSubjectList))
+                                            && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                                        ) {
+
+                                            if ($gender) {
+                                                if (isset($countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender])) {
+                                                    $countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender]++;
+                                                } else {
+                                                    $countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender] = 1;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -284,6 +310,43 @@ class KamenzReportService
                             $Content['E11']['S' . $count]['TotalCount'][$gender] += $value;
                         } else {
                             $Content['E11']['S' . $count]['TotalCount'][$gender] = $value;
+                        }
+                    }
+                }
+
+                $count++;
+            }
+
+            /**
+             * E12 Schüler im NEIGUNGSKURSBEREICH im Schuljahr nach Klassenstufen
+             */
+            ksort($countOrientationArray);
+            $count = 0;
+            foreach ($countOrientationArray as $acronym => $levelArray) {
+                $name = '';
+                if (($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))) {
+                    if (($startPos = strpos($tblSubject->getName(), '(')) !== false
+                        && ($endPos = strpos($tblSubject->getName(), ')')) !== false
+                    ) {
+                        $name = substr($tblSubject->getName(), $startPos + 1, $endPos - ($startPos + 1));
+                    }
+                }
+                $Content['E12']['S' . $count]['SubjectName'] = $name;
+                foreach ($levelArray as $level => $genderArray) {
+                    foreach ($genderArray as $gender => $value) {
+
+                        $Content['E12']['S' . $count]['L' . $level][$gender] = $value;
+
+                        if (isset($Content['E12']['TotalCount']['L' . $level][$gender])) {
+                            $Content['E12']['TotalCount']['L' . $level][$gender] += $value;
+                        } else {
+                            $Content['E12']['TotalCount']['L' . $level][$gender] = $value;
+                        }
+
+                        if (isset($Content['E12']['S' . $count]['TotalCount'][$gender])) {
+                            $Content['E12']['S' . $count]['TotalCount'][$gender] += $value;
+                        } else {
+                            $Content['E12']['S' . $count]['TotalCount'][$gender] = $value;
                         }
                     }
                 }
