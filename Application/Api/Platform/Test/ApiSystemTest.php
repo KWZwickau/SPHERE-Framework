@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -52,12 +53,14 @@ class ApiSystemTest extends Extension implements IApiInterface
         // function's have to exist!
         $Dispatcher = new Dispatcher(__CLASS__);
         //////////////////////////////////////// first Modal
-        $Dispatcher->registerMethod('openModal');
-        $Dispatcher->registerMethod('saveModal');
+        $Dispatcher->registerMethod('openFirstModal');
         //////////////////////////////////////// second Modal
         $Dispatcher->registerMethod('openSecondModal');
         $Dispatcher->registerMethod('saveSecondModal');
-        $Dispatcher->registerMethod('openSecondResult');
+        //////////////////////////////////////// third Modal
+        $Dispatcher->registerMethod('openThirdModal');
+        $Dispatcher->registerMethod('saveThirdModal');
+        $Dispatcher->registerMethod('openThirdResult');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -65,34 +68,102 @@ class ApiSystemTest extends Extension implements IApiInterface
     /**
      * @return ModalReceiver
      */ // place receiver into Frontend before using it
-    public static function receiverModal()
+    public static function receiverFirstModal()
     {
 
         return (new ModalReceiver('Überschrift (Header)', '(Footer) '.new Close()))
-            ->setIdentifier('ModalIdentifier');
-    }
-
-    /**
-     * @return BlockReceiver
-     */ // place receiver into Frontend before using it
-    public static function receiverAccountService()
-    {
-
-        return (new BlockReceiver(''))
-            ->setIdentifier('ServiceEntity');
+            ->setIdentifier('FirstModal');
     }
 
     /**
      * @return Pipeline
      */
-    public static function pipelineOpenModal()
+    public static function pipelineOpenFirstModal()
     {
 
         $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverFirstModal(), self::getEndpoint());
         // API-Target -> choose function
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'openModal'
+            self::API_TARGET => 'openFirstModal'
+        ));
+        $Pipeline->setLoadingMessage('Ladebalken', 'Anzeige des Modulverhaltens');
+        // queue Emitter to Pipeline
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    public function openFirstModal()
+    {
+
+        return new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Title('Beliebiger Inhalt für ein Modal')
+                    ),
+                    new LayoutColumn(
+                        new Panel('Head', '"Default"', Panel::PANEL_TYPE_DEFAULT)
+                        , 2),
+                    new LayoutColumn(
+                        new Panel('Head', '"Success"', Panel::PANEL_TYPE_SUCCESS)
+                        , 2),
+                    new LayoutColumn(
+                        new Panel('Head', '"Info"', Panel::PANEL_TYPE_INFO)
+                        , 2),
+                    new LayoutColumn(
+                        new Panel('Head', '"Warning"', Panel::PANEL_TYPE_WARNING)
+                        , 2),
+                    new LayoutColumn(
+                        new Panel('Head', '"Danger"', Panel::PANEL_TYPE_DANGER)
+                        , 2),
+                    new LayoutColumn(
+                        new Panel('Head', '"Primary"', Panel::PANEL_TYPE_PRIMARY)
+                        , 2),
+                )),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new SuccessMessage('Modal geöffnet')
+                    )
+                )
+            ))
+        );
+    }
+
+    //////////////////////////////////////// second Modal
+
+    /**
+     * @return ModalReceiver
+     */ // place receiver into Frontend before using it
+    public static function receiverSecondModal()
+    {
+
+        return (new ModalReceiver('Mit Form', new Close()))
+            ->setIdentifier('SecondModal');
+    }
+
+    /**
+     * @return BlockReceiver
+     */ // place receiver into Frontend before using it
+    public static function receiverSecondService()
+    {
+
+        return (new BlockReceiver(''))
+            ->setIdentifier('SecondServiceEntity');
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineOpenSecondModal()
+    {
+
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverSecondModal(), self::getEndpoint());
+        // API-Target -> choose function
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'openSecondModal'
         ));
         // extra information
         $Emitter->setPostPayload(array(
@@ -113,9 +184,9 @@ class ApiSystemTest extends Extension implements IApiInterface
     public static function pipelineSave()
     {
         $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverSecondModal(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'saveModal'
+            self::API_TARGET => 'saveSecondModal'
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -125,18 +196,18 @@ class ApiSystemTest extends Extension implements IApiInterface
     public static function pipelineClose()
     {
         $Pipeline = new Pipeline();
-        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
+        $Pipeline->appendEmitter((new CloseModal(self::receiverSecondModal()))->getEmitter());
         return $Pipeline;
     }
 
-    public function openModal()
+    public function openSecondModal()
     {
         // !important -> disableSubmitAction() "no enter on keyborad"
         $form = (new Form(
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(new TextField('Field[ArrayKey]', '', 'Formbeispiel')),
-                    // PrimaryFormButton doesn't work (to long URL's)
+                    // Form/Primary doesn't work (to long URL's) use Link/Primary
                     new FormColumn((new Primary('Speichern', self::getEndpoint(), new Save()))->ajaxPipelineOnClick(
                         self::pipelineSave()
                     ))
@@ -149,7 +220,7 @@ class ApiSystemTest extends Extension implements IApiInterface
             new LayoutGroup(
                 new LayoutRow(array(
                     new LayoutColumn(
-                        new Title('Eingabemaskte')
+                        new Title('Eingabemaske')
                     ),
                     new LayoutColumn(
                         new Well($form)
@@ -159,7 +230,7 @@ class ApiSystemTest extends Extension implements IApiInterface
         );
     }
 
-    public function saveModal($Field)
+    public function saveSecondModal($Field)
     {
 
         /** Service */
@@ -181,57 +252,58 @@ class ApiSystemTest extends Extension implements IApiInterface
         );
     }
 
-    //////////////////////////////////////// second Modal
+    //////////////////////////////////////// third Modal
 
     /**
      * @return ModalReceiver
      */
-    public static function receiverSecondModal()
+    public static function receiverThirdModal()
     {
 
         return (new ModalReceiver())
-            ->setIdentifier('secondModal');
+            ->setIdentifier('ThirdModal');
     }
 
     /**
      * @return InlineReceiver
      */
-    public static function receiverSecondService()
+    public static function receiverThirdService()
     {
 
         return (new InlineReceiver())
-            ->setIdentifier('secondModalService');
+            ->setIdentifier('ThirdModalService');
     }
 
     /**
      * @return Pipeline
      */
-    public static function pipelineOpenSecondModal()
+    public static function pipelineOpenThirdModal()
     {
         $Pipeline = new Pipeline();
         // open modal
-        $Emitter = new ServerEmitter(self::receiverSecondModal(), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverThirdModal(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'openSecondModal'
+            self::API_TARGET => 'openThirdModal'
         ));
         $Pipeline->appendEmitter($Emitter);
 
         // start service
-        $Emitter = new ServerEmitter(self::receiverSecondService(), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverThirdService(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'saveSecondModal'
+            self::API_TARGET => 'saveThirdModal'
         ));
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
     }
 
-    public function saveSecondModal() // get Information from Post
+    public function saveThirdModal() // get Information from Post
     {
 
         /** ToDo Service */
+
         sleep(2);   //ToDO delete (only to show Loading screen)
-        return self::pipelineServiceSecondModal();
+        return self::pipelineServiceThirdModal();
     }
 
     /**
@@ -239,19 +311,19 @@ class ApiSystemTest extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineServiceSecondModal()
+    public static function pipelineServiceThirdModal()
     {
         $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverSecondModal(), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverThirdModal(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'openSecondResult'
+            self::API_TARGET => 'openThirdResult'
         ));
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
     }
 
-    public function openSecondModal()
+    public function openThirdModal()
     {
 
         return new Layout(
@@ -263,13 +335,13 @@ class ApiSystemTest extends Extension implements IApiInterface
                                 ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
                         )
                     ),
-                    new LayoutColumn(self::receiverSecondService())
+                    new LayoutColumn(self::receiverThirdService())
                 ))
             )
         );
     }
 
-    public function openSecondResult()
+    public function openThirdResult()
     {
 
         return new Layout(

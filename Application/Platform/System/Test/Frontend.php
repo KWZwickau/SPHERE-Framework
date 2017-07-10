@@ -125,12 +125,16 @@ class Frontend extends Extension implements IFrontendInterface
             ksort($IconList);
         }
 
-        $Receiver = ApiSystemTest::receiverModal().'Modal benötigt die API Route "/Api/Platform/Test/ApiSystemTest"'
-            .ApiSystemTest::receiverSecondModal();
+        $Receiver = 'Modal benötigt die API Route "/Api/Platform/Test/ApiSystemTest"'
+            .ApiSystemTest::receiverFirstModal()
+            .ApiSystemTest::receiverSecondModal()
+            .ApiSystemTest::receiverThirdModal();
         $firstReceiverButton = (new Standard('Öffne ein Modal', ApiSystemTest::getEndpoint()))
-            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenModal());
-        $secondReceiverButton = (new Standard('Modal mit "Laden"', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFirstModal());
+        $secondReceiverButton = (new Standard('Modal mit Form', ApiSystemTest::getEndpoint()))
             ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenSecondModal());
+        $thirdReceiverButton = (new Standard('Modal mit "Laden"', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenThirdModal());
 
         $Stage->setContent(
             (new Form(
@@ -294,11 +298,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             $Receiver
-                            , 2),
+                            , 3),
                         new LayoutColumn(
                             $firstReceiverButton
                             .$secondReceiverButton
-                            , 10)
+                            .$thirdReceiverButton
+                            , 9)
                     ))
                     , new Title('ModalReceiver')),
                 new LayoutGroup(array(
