@@ -1023,17 +1023,26 @@ class Data extends AbstractData
     /**
      * @param TblPerson   $tblPerson
      * @param TblConsumer $tblConsumer
+     * @param bool        $isForce
      *
      * @return bool|TblAccount[]
      */
-    public function getAccountAllByPerson(TblPerson $tblPerson, TblConsumer $tblConsumer)
+    public function getAccountAllByPerson(TblPerson $tblPerson, TblConsumer $tblConsumer, $isForce = false)
     {
 
         $tblAccountList = array();
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUser',
-            array(
-                TblUser::SERVICE_TBL_PERSON => $tblPerson->getId(),
-        ));
+        if ($isForce) {
+            $EntityList = $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUser',
+                array(
+                    TblUser::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                ));
+        } else {
+            $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblUser',
+                array(
+                    TblUser::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                ));
+        }
         if ($EntityList) {
             /** @var TblUser $Entity */
             foreach ($EntityList as $Entity) {

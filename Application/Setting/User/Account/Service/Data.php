@@ -33,20 +33,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param bool $IsExport
-     *
-     * @return false|TblUserAccount[]
-     */
-    public function getUserAccountByIsExport($IsExport = false)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
-            array(
-                TblUserAccount::ATTR_IS_EXPORT => $IsExport
-            ));
-    }
-
-    /**
      * @param TblPerson $tblPerson
      *
      * @return false|TblUserAccount
@@ -85,16 +71,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $type
+     * @param string $Type
      *
      * @return bool|TblUserAccount[]
      */
-    public function getUserAccountAllByType($type)
+    public function getUserAccountAllByType($Type)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
             array(
-                TblUserAccount::ATTR_TYPE => $type
+                TblUserAccount::ATTR_TYPE => $Type
             ));
     }
 
@@ -106,34 +92,32 @@ class Data extends AbstractData
     public function getUserAccountByTimeGroup(\DateTime $dateTime)
     {
 
-        //ToDO Cache
-//        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
-        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
             array(
                 TblUserAccount::ATTR_GROUP_BY_TIME => $dateTime
             ));
     }
 
     /**
-     * @param string $type
+     * @param string $Type
      *
      * @return bool|TblUserAccount[]
      */
-    public function countUserAccountAllByType($type)
+    public function countUserAccountAllByType($Type)
     {
 
         return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
             array(
-                TblUserAccount::ATTR_TYPE => $type
+                TblUserAccount::ATTR_TYPE => $Type
             ));
     }
 
     /**
-     * @param TblAccount              $tblAccount
-     * @param TblPerson               $tblPerson
-     * @param \DateTime               $TimeStamp
-     * @param string                  $userPassword
-     * @param string                  $type STUDENT|CUSTODY
+     * @param TblAccount $tblAccount
+     * @param TblPerson  $tblPerson
+     * @param \DateTime  $TimeStamp
+     * @param string     $userPassword
+     * @param string     $Type STUDENT|CUSTODY
      *
      * @return TblUserAccount
      */
@@ -142,7 +126,7 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         \DateTime $TimeStamp,
         $userPassword,
-        $type = 'STUDENT'
+        $Type = 'STUDENT'
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -156,10 +140,11 @@ class Data extends AbstractData
             $Entity = new TblUserAccount();
             $Entity->setServiceTblAccount($tblAccount);
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setType($type);
+            $Entity->setType($Type);
             $Entity->setUserPassword($userPassword);
             $Entity->setAccountPassword(hash('sha256', $userPassword));
-            $Entity->setIsExport(false);
+//            $Entity->setExportDate(null);
+            $Entity->setLastDownloadAccount('');
             $Entity->setGroupByTime($TimeStamp);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -170,10 +155,12 @@ class Data extends AbstractData
 
     /**
      * @param TblUserAccount[] $tblUserAccountList
+     * @param \DateTime        $ExportDate
+     * @param string           $UserName
      *
      * @return bool
      */
-    public function updateIsExportBulk($tblUserAccountList)
+    public function updateDownloadBulk($tblUserAccountList, $ExportDate, $UserName)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -182,17 +169,16 @@ class Data extends AbstractData
             $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
             $Protocol = clone $Entity;
             if (null !== $Entity) {
-                $Entity->setIsExport(true);
+                $Entity->setExportDate($ExportDate);
+                $Entity->setLastDownloadAccount($UserName);
                 $Manager->bulkSaveEntity($Entity);
                 Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity,
                     true);
-                return true;
             }
         }
         $Manager->flushCache();
         Protocol::useService()->flushBulkEntries();
-
-        return false;
+        return true;
     }
 
     /**

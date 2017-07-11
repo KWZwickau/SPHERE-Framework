@@ -63,7 +63,7 @@ class AccountUserExcel implements IModuleInterface
                     $fileLocation = Account::useService()->createClassListExcel($result);
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Zugang"."-".$Type."-".$Date.".xlsx")->__toString();
+                        "Zugang-Schulsoftware-".$Type."-".$Date.".xlsx")->__toString();
                 }
             }
         }

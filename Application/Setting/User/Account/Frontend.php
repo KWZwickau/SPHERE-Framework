@@ -149,7 +149,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 1),
+//                    array('width' => '1%', 'targets' => 0), //ToDO Ansichtsproblem
 //                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
@@ -532,7 +532,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0),
+//                    array('width' => '1%', 'targets' => 0), //ToDO Ansichtsproblem
 //                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
@@ -943,26 +943,38 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Account', 'Serienbrief Export');
 
         $tblUserAccountAll = Account::useService()->getUserAccountAll();
-        $tblUserAccountList = Account::useService()->getUserAccountListAndCount($tblUserAccountAll);
+        $tblUserAccountList = Account::useService()->getGroupOfUserAccountList($tblUserAccountAll);
         $TableContent = array();
         if ($tblUserAccountList) {
             /** @var TblUserAccount[] $UserAccountList */
-            array_walk($tblUserAccountList, function ($tblUserAccountList, $groupByTime) use (&$TableContent, $Time) {
+            array_walk($tblUserAccountList, function ($tblUserAccountList, $GroupByTime) use (&$TableContent, $Time) {
                 /** @var TblUserAccount $tblUserAccountTarget */
                 if (($tblUserAccountTarget = current($tblUserAccountList)) && $tblUserAccountTarget->getUserPassword()) {
-//                    Debugger::screenDump($groupByTime.' -> '.count($tblUserAccountList));
-                    // bold Entry if linked
-                    if ($Time && $Time == $groupByTime) {
-                        $item['GroupByTime'] = new SuccessMessage(new Bold($groupByTime).' Aktuell erstellte Benutzer');
-                        $item['UserAccountCount'] = new Bold(count($tblUserAccountList));
+//                    Debugger::screenDump($GroupByTime.' -> '.count($tblUserAccountList));
+                    // Success Entry if linked
+                    if ($Time && $Time == $GroupByTime) {
+                        $item['GroupByTime'] = new SuccessMessage(new Bold($GroupByTime).' Aktuell erstellte Benutzer');
+                        $item['UserAccountCount'] = new SuccessMessage(count($tblUserAccountList));
+                        $item['ExportInfo'] = new SuccessMessage('&nbsp;');
+                        if ($tblUserAccountTarget->getExportDate()) {
+                            $item['ExportInfo'] = new SuccessMessage($tblUserAccountTarget->getLastDownloadAccount()
+                                .' ('.$tblUserAccountTarget->getExportDate().')');
+                        }
+
+
                         if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
-                            $item['AccountType'] = new Bold('Schüler-Accounts');
+                            $item['AccountType'] = new SuccessMessage('Schüler-Accounts');
                         } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
-                            $item['AccountType'] = new Bold('Sorgeberechtigten-Accounts');
+                            $item['AccountType'] = new SuccessMessage('Sorgeberechtigten-Accounts');
                         }
                     } else {
-                        $item['GroupByTime'] = $groupByTime;
+                        $item['GroupByTime'] = $GroupByTime;
                         $item['UserAccountCount'] = count($tblUserAccountList);
+                        $item['ExportInfo'] = '';
+                        if ($tblUserAccountTarget->getExportDate()) {
+                            $item['ExportInfo'] = $tblUserAccountTarget->getLastDownloadAccount()
+                                .' ('.$tblUserAccountTarget->getExportDate().')';
+                        }
                         if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
                             $item['AccountType'] = 'Schüler-Accounts';
                         } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
@@ -970,9 +982,9 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
-                            , array('GroupByTime' => $groupByTime))
+                            , array('GroupByTime' => $GroupByTime))
                         .new Standard('', '/Setting/User/Account/Clear', new Remove(),
-                            array('GroupByTime' => $groupByTime),
+                            array('GroupByTime' => $GroupByTime),
                             'Entfernen der Klartext Passwörter und des damit verbundenem verfügbaren Download');
 
                     array_push($TableContent, $item);
@@ -988,6 +1000,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'GroupByTime'      => 'Erstellung am',
                                 'UserAccountCount' => 'Anzahl Accounts',
                                 'AccountType'      => 'Account Typ',
+                                'ExportInfo'       => 'letzter Download',
                                 'Option'           => '',
                             ),
                             array(

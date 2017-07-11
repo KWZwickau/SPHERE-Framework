@@ -58,17 +58,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $IsExport
-     *
-     * @return false|TblUserAccount[]
-     */
-    public function getUserAccountByIsExport($IsExport)
-    {
-
-        return (new Data($this->getBinding()))->getUserAccountByIsExport($IsExport);
-    }
-
-    /**
      * @param TblPerson $tblPerson
      *
      * @return false|TblUserAccount
@@ -100,14 +89,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $type
+     * @param string $Type
      *
      * @return bool|TblUserAccount[]
      */
-    public function getUserAccountAllByType($type)
+    public function getUserAccountAllByType($Type)
     {
 
-        return (new Data($this->getBinding()))->getUserAccountAllByType($type);
+        return (new Data($this->getBinding()))->getUserAccountAllByType($Type);
     }
 
     /**
@@ -127,7 +116,7 @@ class Service extends AbstractService
      * @return array|bool result[GroupByTime][]
      * result[GroupByTime][]
      */
-    public function getUserAccountListAndCount($tblUserAccountAll)
+    public function getGroupOfUserAccountList($tblUserAccountAll)
     {
 
         $result = array();
@@ -140,14 +129,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $type
+     * @param string $Type
      *
      * @return bool|TblUserAccount[]
      */
-    public function countUserAccountAllByType($type)
+    public function countUserAccountAllByType($Type)
     {
 
-        return (new Data($this->getBinding()))->countUserAccountAllByType($type);
+        return (new Data($this->getBinding()))->countUserAccountAllByType($Type);
     }
 
     /**
@@ -344,7 +333,7 @@ class Service extends AbstractService
         if (!empty($tblUserAccountList)) {
 
             // set flag IsExport
-            $this->updateIsExportBulk($tblUserAccountList);
+            $this->updateDownloadBulk($tblUserAccountList);
 
             array_walk($tblUserAccountList, function (TblUserAccount $tblUserAccount) use (&$result) {
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
@@ -423,7 +412,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell("2", "0"), "Vorname");
             $export->setValue($export->getCell("3", "0"), "2. Vorn.");
             $export->setValue($export->getCell("4", "0"), "Name");
-            $export->setValue($export->getCell("5", "0"), "M/W");
+            $export->setValue($export->getCell("5", "0"), "Geschlecht");
             $export->setValue($export->getCell("6", "0"), "Account");
             $export->setValue($export->getCell("7", "0"), "Passwort");
             $export->setValue($export->getCell("8", "0"), "Straße");
@@ -465,7 +454,7 @@ class Service extends AbstractService
             $export->setStyle($export->getCell(2, 0), $export->getCell(2, $Row))->setColumnWidth(15);
             $export->setStyle($export->getCell(3, 0), $export->getCell(3, $Row))->setColumnWidth(15);
             $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setColumnWidth(15);
-            $export->setStyle($export->getCell(5, 0), $export->getCell(5, $Row))->setColumnWidth(5);
+            $export->setStyle($export->getCell(5, 0), $export->getCell(5, $Row))->setColumnWidth(11);
             $export->setStyle($export->getCell(6, 0), $export->getCell(6, $Row))->setColumnWidth(22);
             $export->setStyle($export->getCell(7, 0), $export->getCell(7, $Row))->setColumnWidth(12);
             $export->setStyle($export->getCell(8, 0), $export->getCell(8, $Row))->setColumnWidth(22);
@@ -510,7 +499,7 @@ class Service extends AbstractService
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if ($tblPerson) {
                 // ignore Person with Account
-                if (AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson)) {
+                if (AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson, true)) {
                     continue;
                 }
                 // ignore Person without Main Address
@@ -532,7 +521,7 @@ class Service extends AbstractService
                 }
                 $name = $this->generateUserName($tblPerson, $tblConsumer, $Acronym);
                 $password = $this->generatePassword(8, 1, 2, 1);
-                if (($tblAccountList = AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson))) {
+                if (($tblAccountList = AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson, true))) {
                     $IsUserExist = false;
                     foreach ($tblAccountList as $tblAccount) {
                         // ignore System Accounts (Support)
@@ -566,16 +555,16 @@ class Service extends AbstractService
                     $successCount++;
 
                     if ($AccountType == 'S') {
-                        $type = TblUserAccount::VALUE_TYPE_STUDENT;
+                        $Type = TblUserAccount::VALUE_TYPE_STUDENT;
                     } elseif ($AccountType == 'C') {
-                        $type = TblUserAccount::VALUE_TYPE_CUSTODY;
+                        $Type = TblUserAccount::VALUE_TYPE_CUSTODY;
                     } else {
                         // default setting
-                        $type = TblUserAccount::VALUE_TYPE_STUDENT;
+                        $Type = TblUserAccount::VALUE_TYPE_STUDENT;
                     }
                     // add tblUserAccount
                     $this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password,
-                        $type);
+                        $Type);
                 }
             }
         }
@@ -666,11 +655,11 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblAccount              $tblAccount
-     * @param TblPerson               $tblPerson
-     * @param \DateTime               $TimeStamp
-     * @param string                  $userPassword
-     * @param string                  $type STUDENT|CUSTODY
+     * @param TblAccount $tblAccount
+     * @param TblPerson  $tblPerson
+     * @param \DateTime  $TimeStamp
+     * @param string     $userPassword
+     * @param string     $Type STUDENT|CUSTODY
      *
      * @return false|TblUserAccount
      */
@@ -679,7 +668,7 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         \DateTime $TimeStamp,
         $userPassword,
-        $type
+        $Type
     ) {
 
         return ( new Data($this->getBinding()) )->createUserAccount(
@@ -687,7 +676,7 @@ class Service extends AbstractService
             $tblPerson,
             $TimeStamp,
             $userPassword,
-            $type);
+            $Type);
     }
 
     /**
@@ -701,7 +690,7 @@ class Service extends AbstractService
     {
         $UserName = '';
 
-        $StudentNumber = rand(1000, 9999);
+        $StudentNumber = '';
         // search StudentIdentifier
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         if ($tblStudent) {
@@ -756,7 +745,7 @@ class Service extends AbstractService
         $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNamePrepare);
         if ($tblAccount) {
             while ($tblAccount) {
-                $randNumber = rand(1000, 9999);
+                $randNumber = rand(100, 999);
                 $UserNameMod = $UserName.$randNumber;
                 $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
                 if (!$tblAccount) {
@@ -776,10 +765,16 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function updateIsExportBulk($tblUserAccountList)
+    public function updateDownloadBulk($tblUserAccountList)
     {
 
-        return (new Data($this->getBinding()))->updateIsExportBulk($tblUserAccountList);
+        $ExportDate = new \DateTime();
+        $UserName = '';
+        $tblAccount = AccountGatekeeper::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $UserName = $tblAccount->getUsername();
+        }
+        return (new Data($this->getBinding()))->updateDownloadBulk($tblUserAccountList, $ExportDate, $UserName);
     }
 
     /**

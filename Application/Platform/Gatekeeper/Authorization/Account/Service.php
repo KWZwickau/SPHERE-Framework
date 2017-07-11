@@ -696,14 +696,15 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool      $isForce
      *
      * @return bool|TblAccount[]
      */
-    public function getAccountAllByPerson(TblPerson $tblPerson)
+    public function getAccountAllByPerson(TblPerson $tblPerson, $isForce = false)
     {
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
-        return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson, $tblConsumer);
+        return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson, $tblConsumer, $isForce);
     }
 
     /**

@@ -57,7 +57,7 @@ class ApiUserAccount extends Extension implements IApiInterface
     public static function receiverAccountModal()
     {
 
-        return (new ModalReceiver('Erstellen der '.new Bold('Benutzer')))
+        return (new ModalReceiver('Erstellen der '.new Bold('Benutzer'), null, false))
             ->setIdentifier('Loadingscreen');
     }
 
@@ -119,7 +119,6 @@ class ApiUserAccount extends Extension implements IApiInterface
     {
 
         $result = Account::useService()->createAccount($PersonIdArray, $Type);
-        sleep(1);   //ToDO delete line
         return self::pipelineSaveAccountResult($result);
     }
 

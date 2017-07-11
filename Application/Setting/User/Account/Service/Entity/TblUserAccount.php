@@ -24,14 +24,12 @@ class TblUserAccount extends Element
 
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
-//    const ATTR_SERVICE_TBL_TO_PERSON_ADDRESS = 'serviceTblToPersonAddress';
-    const ATTR_TYPE = 'type';
-//    const ATTR_SERVICE_TBL_TO_PERSON_MAIL = 'serviceTblToPersonMail';
+    const ATTR_TYPE = 'Type';
     const ATTR_USER_PASSWORD = 'UserPassword';
     const ATTR_ACCOUNT_PASSWORD = 'AccountPassword';
-//    const ATTR_IS_SEND = 'IsSend';
-    const ATTR_IS_EXPORT = 'IsExport';
-    const ATTR_GROUP_BY_TIME = 'groupByTime';
+    const ATTR_EXPORT_DATE = 'ExportDate';
+    const ATTR_LAST_DOWNLOAD_ACCOUNT = 'LastDownloadAccount';
+    const ATTR_GROUP_BY_TIME = 'GroupByTime';
 
     /**
      * @Column(type="bigint")
@@ -41,18 +39,10 @@ class TblUserAccount extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
-//    /**
-//     * @Column(type="bigint")
-//     */
-//    protected $serviceTblToPersonAddress;
-//    /**
-//     * @Column(type="bigint")
-//     */
-//    protected $serviceTblToPersonMail;
     /**
      * @Column(type="string")
      */
-    protected $type;
+    protected $Type;
     /**
      * @Column(type="string")
      */
@@ -61,18 +51,18 @@ class TblUserAccount extends Element
      * @Column(type="string")
      */
     protected $AccountPassword;
-//    /**
-//     * @Column(type="boolean")
-//     */
-//    protected $IsSend;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsExport;
     /**
      * @Column(type="datetime")
      */
-    protected $groupByTime;
+    protected $ExportDate;
+    /**
+     * @Column(type="string")
+     */
+    protected $LastDownloadAccount;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $GroupByTime;
 
     /**
      * @return false|TblPerson
@@ -122,68 +112,20 @@ class TblUserAccount extends Element
         $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
     }
 
-//    /**
-//     * @return false|TblToPersonAddress
-//     */
-//    public function getServiceTblToPersonAddress()
-//    {
-//
-//        $tblToPersonAddress = ( $this->serviceTblToPersonAddress != null
-//            ? Address::useService()->getAddressToPersonById($this->serviceTblToPersonAddress)
-//            : false );
-//        if ($tblToPersonAddress) {
-//            return $tblToPersonAddress;
-//        }
-//        return false;
-//    }
-//
-//    /**
-//     * @param null|TblToPersonAddress $tblToPersonAddress
-//     */
-//    public function setServiceTblToPersonAddress(TblToPersonAddress $tblToPersonAddress = null)
-//    {
-//
-//        $this->serviceTblToPersonAddress = ( null === $tblToPersonAddress ? null : $tblToPersonAddress->getId() );
-//    }
-
-//    /**
-//     * @return false|TblToPersonMail
-//     */
-//    public function getServiceTblToPersonMail()
-//    {
-//
-//        $tblToPersonMail = ( $this->serviceTblToPersonMail != null
-//            ? Mail::useService()->getMailToPersonById($this->serviceTblToPersonMail)
-//            : false );
-//        if ($tblToPersonMail) {
-//            return $tblToPersonMail;
-//        }
-//        return false;
-//    }
-//
-//    /**
-//     * @param null|TblToPersonMail $tblToPersonMail
-//     */
-//    public function setServiceTblToPersonMail(TblToPersonMail $tblToPersonMail = null)
-//    {
-//
-//        $this->serviceTblToPersonMail = ( null === $tblToPersonMail ? null : $tblToPersonMail->getId() );
-//    }
-
     /**
      * @return mixed
      */
     public function getType()
     {
-        return $this->type;
+        return $this->Type;
     }
 
     /**
-     * @param mixed $type
+     * @param mixed $Type
      */
-    public function setType($type)
+    public function setType($Type)
     {
-        $this->type = $type;
+        $this->Type = $Type;
     }
 
     /**
@@ -197,7 +139,7 @@ class TblUserAccount extends Element
     /**
      * @param string $UserPassword
      */
-    public function setUserPassword($UserPassword = '')
+    public function setUserPassword($UserPassword)
     {
         $this->UserPassword = $UserPassword;
     }
@@ -218,36 +160,41 @@ class TblUserAccount extends Element
         $this->AccountPassword = $AccountPassword;
     }
 
-//    /**
-//     * @return string
-//     */
-//    public function getIsSend()
-//    {
-//        return $this->IsSend;
-//    }
-//
-//    /**
-//     * @param string $IsSend
-//     */
-//    public function setIsSend($IsSend = '')
-//    {
-//        $this->IsSend = $IsSend;
-//    }
+    /**
+     * @return mixed
+     */
+    public function getExportDate()
+    {
+        /** @var \DateTime $ExportDate */
+        $ExportDate = $this->ExportDate;
+        if ($ExportDate instanceof \DateTime) {
+            return $ExportDate->format('d.m.Y H:i:s');
+        }
+        return false;
+    }
+
+    /**
+     * @param mixed $ExportDate
+     */
+    public function setExportDate($ExportDate)
+    {
+        $this->ExportDate = $ExportDate;
+    }
 
     /**
      * @return string
      */
-    public function getIsExport()
+    public function getLastDownloadAccount()
     {
-        return $this->IsExport;
+        return $this->LastDownloadAccount;
     }
 
     /**
-     * @param string $IsExport
+     * @param string $LastDownloadAccount
      */
-    public function setIsExport($IsExport = '')
+    public function setLastDownloadAccount($LastDownloadAccount)
     {
-        $this->IsExport = $IsExport;
+        $this->LastDownloadAccount = $LastDownloadAccount;
     }
 
     /**
@@ -256,11 +203,10 @@ class TblUserAccount extends Element
     public function getGroupByTime()
     {
 
-        /** @var \DateTime $groupByTime */
-        $groupByTime = $this->groupByTime;
-        if ($groupByTime instanceof \DateTime) {
-            return $groupByTime->format('d.m.Y H:i:s');
-//            return $groupByTime;
+        /** @var \DateTime $GroupByTime */
+        $GroupByTime = $this->GroupByTime;
+        if ($GroupByTime instanceof \DateTime) {
+            return $GroupByTime->format('d.m.Y H:i:s');
         }
         return false;
     }
@@ -271,6 +217,6 @@ class TblUserAccount extends Element
     public function setGroupByTime($DateTime)
     {
 
-        $this->groupByTime = $DateTime;
+        $this->GroupByTime = $DateTime;
     }
 }
