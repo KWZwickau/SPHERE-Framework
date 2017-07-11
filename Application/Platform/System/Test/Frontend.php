@@ -135,6 +135,8 @@ class Frontend extends Extension implements IFrontendInterface
             ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenSecondModal());
         $thirdReceiverButton = (new Standard('Modal mit "Laden"', ApiSystemTest::getEndpoint()))
             ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenThirdModal());
+        $fourReceiverButton = (new Standard('Modal mit "Tabs"', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFourthModal());
 
         $Stage->setContent(
             (new Form(
@@ -303,6 +305,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $firstReceiverButton
                             .$secondReceiverButton
                             .$thirdReceiverButton
+                            .$fourReceiverButton
                             , 9)
                     ))
                     , new Title('ModalReceiver')),

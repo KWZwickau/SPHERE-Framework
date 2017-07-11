@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -27,6 +28,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
@@ -61,6 +63,10 @@ class ApiSystemTest extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openThirdModal');
         $Dispatcher->registerMethod('saveThirdModal');
         $Dispatcher->registerMethod('openThirdResult');
+        //////////////////////////////////////// Fourth Modal
+        $Dispatcher->registerMethod('openFourthModal');
+//        $Dispatcher->registerMethod('firstTab');
+//        $Dispatcher->registerMethod('secondTab');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -359,6 +365,109 @@ class ApiSystemTest extends Extension implements IApiInterface
                 ))
             )
         );
+    }
+
+    //////////////////////////////////////// fourth Modal
+
+    /**
+     * @return ModalReceiver
+     */
+    public static function receiverFourthModal()
+    {
+
+        return (new ModalReceiver())
+            ->setIdentifier('FourthModal');
+    }
+
+    /**
+     * @param string $Content
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverFourthBlockReceiver($Content = '')
+    {
+
+        return (new BlockReceiver($Content))
+            ->setIdentifier('FourthBlockReceiver');
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineOpenFourthModal()
+    {
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverThirdModal(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'openFourthModal'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    public function openFourthModal()
+    {
+
+        return new Panel('Header',
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Listing(array(
+                                (new Link('Erster Tab',
+                                    self::getEndpoint()))->ajaxPipelineOnClick(self::pipelineFirstTab()),
+                                (new Link('Zweiter Tab',
+                                    self::getEndpoint()))->ajaxPipelineOnClick(self::pipelineSecondTab())
+                            ))
+                            , 2),
+                        new LayoutColumn(
+                            self::receiverFourthBlockReceiver(self::pipelineFirstTab())
+                            , 10)
+                    ))
+                )
+            )
+        );
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineFirstTab()
+    {
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverFourthBlockReceiver(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'firstTab'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineSecondTab()
+    {
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverFourthBlockReceiver(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'secondTab'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    public function firstTab()
+    {
+        return 'Inhalt des 1. Tabs';
+    }
+
+    public function secondTab()
+    {
+        return new Panel('Inhalt des 2.ten Tab\'s', 'Content', Panel::PANEL_TYPE_INFO);
     }
 
 }
