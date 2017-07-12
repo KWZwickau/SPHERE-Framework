@@ -26,6 +26,7 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -513,16 +514,15 @@ class Service
                     'Beförderung_Fahrschüler' => null,
                     'Beförderung_Einsteigestelle' => null,
                     'Beförderung_Verkehrsmittel' => null,
-                    'Kommunikation_Telefon1' => null,
-                    'Kommunikation_Telefon2' => null,
-                    'Kommunikation_Telefon3' => null,
-                    'Kommunikation_Telefon4' => null,
-                    'Kommunikation_Telefon5' => null,
-                    'Kommunikation_Telefon6' => null,
-                    'Kommunikation_Fax' => null,
-                    'Kommunikation_Email' => null,
-                    'Kommunikation_Email1' => null,
-                    'Kommunikation_Email2' => null,
+                    'Schueler_Telefon1' => null,
+                    'Schueler_Telefon2' => null,
+                    'Sorgeberechtigte1_Telefon1' => null,
+                    'Sorgeberechtigte2_Telefon1' => null,
+                    'Sorgeberechtigte1_Telefon2' => null,
+                    'Sorgeberechtigte2_Telefon2' => null,
+                    'Schueler_Email' => null,
+                    'Sorgeberechtigte1_Email' => null,
+                    'Sorgeberechtigte2_Email' => null,
                     'Sorgeberechtigter1_Titel' => null,
                     'Sorgeberechtigter1_Name' => null,
                     'Sorgeberechtigter1_Vorname' => null,
@@ -614,7 +614,7 @@ class Service
                         $tblCompanyOber
                     );
 
-                    $year = 16;
+                    $year = 17;
                     // normales Schuljahr
                     $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
                     if ($tblYear) {
@@ -1072,74 +1072,77 @@ class Service
                                     }
                                 }
 
-                                for ($i = 1; $i <= 6; $i++) {
-                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon' . $i],
+                                // phone
+                                $phoneNumber = trim($Document->getValue($Document->getCell($Location['Schueler_Telefon1'],
+                                    $RunY)));
+                                if ($phoneNumber != '') {
+                                   $this->setPhoneNumber($tblPerson, $phoneNumber);
+                                }
+                                $phoneNumber = trim($Document->getValue($Document->getCell($Location['Schueler_Telefon2'],
+                                    $RunY)));
+                                if ($phoneNumber != '') {
+                                    $this->setPhoneNumber($tblPerson, $phoneNumber);
+                                }
+                                if ($tblPersonMother) {
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigte1_Telefon1'],
                                         $RunY)));
                                     if ($phoneNumber != '') {
-                                        $tblType = Phone::useService()->getTypeById(1);
-                                        if (0 === strpos($phoneNumber, '01')) {
-                                            $tblType = Phone::useService()->getTypeById(2);
-                                        }
+                                        $this->setPhoneNumber($tblPersonMother, $phoneNumber);
+                                    }
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigte1_Telefon2'],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $this->setPhoneNumber($tblPersonMother, $phoneNumber);
+                                    }
+                                }
+                                if ($tblPersonFather) {
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigte2_Telefon1'],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $this->setPhoneNumber($tblPersonFather, $phoneNumber);
+                                    }
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigte2_Telefon2'],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $this->setPhoneNumber($tblPersonFather, $phoneNumber);
+                                    }
+                                }
 
-                                        $remark = '';
-//                                        if (($pos = stripos($phoneNumber, ' '))) {
-//                                            $remark = substr($phoneNumber, $pos + 1);
-//                                            $phoneNumber = substr($phoneNumber, 0, $pos);
-//                                        } else {
-//                                            $remark = '';
-//                                        }
+                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Schueler_Email'],
+                                    $RunY)));
+                                if ($mailAddress != '') {
+                                    Mail::useService()->insertMailToPerson(
+                                        $tblPerson,
+                                        $mailAddress,
+                                        Mail::useService()->getTypeById(1),
+                                        ''
+                                    );
+                                }
 
-                                        Phone::useService()->insertPhoneToPerson(
-                                            $tblPerson,
-                                            $phoneNumber,
-                                            $tblType,
-                                            $remark
+                                if ($tblPersonMother) {
+                                    $mailAddress = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigte1_Email'],
+                                        $RunY)));
+                                    if ($mailAddress != '') {
+                                        Mail::useService()->insertMailToPerson(
+                                            $tblPersonMother,
+                                            $mailAddress,
+                                            Mail::useService()->getTypeById(1),
+                                            ''
                                         );
                                     }
                                 }
 
-                                $faxNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Fax'],
-                                    $RunY)));
-                                if ($faxNumber != '') {
-                                    Phone::useService()->insertPhoneToPerson(
-                                        $tblPerson,
-                                        $faxNumber,
-                                        Phone::useService()->getTypeById(7),
-                                        ''
-                                    );
-                                }
-
-                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email'],
-                                    $RunY)));
-                                if ($mailAddress != '') {
-                                    Mail::useService()->insertMailToPerson(
-                                        $tblPerson,
-                                        $mailAddress,
-                                        Mail::useService()->getTypeById(1),
-                                        ''
-                                    );
-                                }
-
-                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email1'],
-                                    $RunY)));
-                                if ($mailAddress != '') {
-                                    Mail::useService()->insertMailToPerson(
-                                        $tblPerson,
-                                        $mailAddress,
-                                        Mail::useService()->getTypeById(1),
-                                        ''
-                                    );
-                                }
-
-                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email2'],
-                                    $RunY)));
-                                if ($mailAddress != '') {
-                                    Mail::useService()->insertMailToPerson(
-                                        $tblPerson,
-                                        $mailAddress,
-                                        Mail::useService()->getTypeById(1),
-                                        ''
-                                    );
+                                if ($tblPersonFather) {
+                                    $mailAddress = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigte2_Email'],
+                                        $RunY)));
+                                    if ($mailAddress != '') {
+                                        Mail::useService()->insertMailToPerson(
+                                            $tblPersonFather,
+                                            $mailAddress,
+                                            Mail::useService()->getTypeById(1),
+                                            ''
+                                        );
+                                    }
                                 }
 
 
@@ -1536,6 +1539,15 @@ class Service
                         }
                     }
 
+                    // delete company description (fuxschool id)
+                    $tblCompanyAll = Company::useService()->getCompanyAll();
+                    if ($tblCompanyAll) {
+                        foreach ($tblCompanyAll as $tblCompany) {
+                            Company::useService()->updateCompanyWithoutForm($tblCompany, $tblCompany->getName(),
+                                $tblCompany->getExtendedName(), '');
+                        }
+                    }
+
                     Debugger::screenDump($error);
 
                     return
@@ -1581,4 +1593,25 @@ class Service
         return false;
     }
 
+    /**
+     * @param TblPerson|bool $tblPerson
+     * @param string $phoneNumber
+     */
+    private function setPhoneNumber($tblPerson, $phoneNumber)
+    {
+        $tblType = Phone::useService()->getTypeById(1);
+        if (0 === strpos($phoneNumber, '01')) {
+            $tblType = Phone::useService()->getTypeById(2);
+        }
+
+        $remark = trim(preg_replace('/[^a-zA-Z ]/', '', $phoneNumber));
+        $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+
+        Phone::useService()->insertPhoneToPerson(
+            $tblPerson,
+            $phoneNumber,
+            $tblType,
+            $remark
+        );
+    }
 }
