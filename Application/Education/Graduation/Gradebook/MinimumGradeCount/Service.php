@@ -234,6 +234,9 @@ abstract class Service extends AbstractService
                            if (!$tblGradeTypeItem->isHighlighted()) {
                                $count++;
                            }
+                       } else {
+                           // Alle Zensuren-Typen
+                           $count++;
                        }
                    }
                 }
