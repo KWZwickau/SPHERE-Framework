@@ -251,15 +251,15 @@ class Service extends AbstractService
                                 $tblPerson, $tblDivision, $tblSubject,
                                 Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')))
                         ) {
-                            $value = $tblPrepareGrade->getGrade();
+                            $value = trim($tblPrepareGrade->getGrade());
                             if ($value == 'nicht erteilt') {
-                                $value = 'n.e.';
+                                $value = 'ne';
                             } elseif ($value == 'teilgenommen') {
-                                $value = 't.';
+                                $value = 't';
                             } elseif ($value == 'Keine Benotung') {
-                                $value = 'K.B.';
+                                $value = 'KB';
                             } elseif ($value == 'befreit') {
-                                $value = 'b.';
+                                $value = 'b';
                             }
                             $Data['Certificate'][$typeId]['Data' . $count]['SubjectGrade'][$tblSubject->getAcronym()]
                                 = $value;
