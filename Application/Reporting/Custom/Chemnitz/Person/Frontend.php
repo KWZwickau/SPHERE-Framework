@@ -1000,7 +1000,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address' => 'Adresse',
                                         'PhoneNumbers' => 'Telefonnummer',
                                         'Group'        => 'Schüler&shy;gruppe',
-                                        'Orientation'  => 'NK/Profil',
+                                        'OrientationAndFrench'  => 'NK/Profil/FRZ',
                                         'Education'    => 'Bildungsgang',
                                         'Elective'     => 'Wahlfach',
                                     ),
