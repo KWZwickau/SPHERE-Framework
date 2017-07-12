@@ -1620,28 +1620,13 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
-        $tblPerson = false;
-        $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
-            if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
-            }
-        }
-
         if (!$tblTest->getServiceTblDivision()) {
             return new Danger(new Ban() . ' Klasse nicht gefunden')
             . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
-        if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblTest->getServiceTblDivision(),
-            $tblPerson)
-        ) {
-            $isEdit = true;
-        } else {
-            $isEdit = false;
-            $Stage->setMessage(new Warning(new Exclamation() . ' Bei einer Notenänderung muss für diese ein Grund angegeben werden.'));
-        }
+        $isEdit = false;
+        $Stage->setMessage(new Warning(new Exclamation() . ' Bei einer Notenänderung muss für diese ein Grund angegeben werden.'));
 
         $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Evaluation/Test/Teacher', $isEdit);
 
@@ -2179,7 +2164,7 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     $content = new WarningMessage(
                             'Zensuren können von Ihnen nur innerhalb des Bearbeitungszeitraums vergeben werden. Zur Nachträglichen Bearbeitung der Zensuren
-                             wenden Sie sich bitte an den Klassenlehrer oder die Schulleitung.',
+                             wenden Sie sich bitte an die Schulleitung.',
                             new Exclamation()
                         )
                         . ($tblScoreType ? '' : $warningNoScoreType)
