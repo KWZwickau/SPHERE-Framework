@@ -13,7 +13,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
@@ -514,12 +513,7 @@ class Service extends AbstractService
                 if ($tblConsumer == '') {
                     continue;
                 }
-                $Acronym = $AccountType;
-                if ($Acronym == 'C') {
-                    // Custody = "E"ltern
-                    $Acronym = 'E';
-                }
-                $name = $this->generateUserName($tblPerson, $tblConsumer, $Acronym);
+                $name = $this->generateUserName($tblPerson, $tblConsumer);
                 $password = $this->generatePassword(8, 1, 2, 1);
                 if (($tblAccountList = AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson, true))) {
                     $IsUserExist = false;
@@ -682,62 +676,29 @@ class Service extends AbstractService
     /**
      * @param TblPerson|null   $tblPerson
      * @param TblConsumer|null $tblConsumer
-     * @param string           $AccountType
      *
      * @return string
      */
-    public function generateUserName(TblPerson $tblPerson = null, TblConsumer $tblConsumer = null, $AccountType = 'S')
+    public function generateUserName(TblPerson $tblPerson = null, TblConsumer $tblConsumer = null)
     {
         $UserName = '';
 
-        $StudentNumber = '';
-        // search StudentIdentifier
-        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-        if ($tblStudent) {
-            if (($Number = $tblStudent->getIdentifier())) {
-                $StudentNumber = $Number;
-            }
-        }
-
         if ($tblConsumer) {
-            $lengthCount = 8;
+            mb_internal_encoding("UTF-8");
 
-            $FirstName = $tblPerson->getFirstName();
-            $LastName = $tblPerson->getLastName();
-            $PosFirstName = strpos($FirstName, ' ');
-            $PosLastName = strpos($LastName, ' ');
-            if ($PosFirstName) {
-                $FirstName = substr($tblPerson->getFirstName(), 0, $PosFirstName);
-            }
-            if ($PosLastName) {
-                $LastName = substr($tblPerson->getFirstName(), 0, $PosLastName);
-            }
-            $lengthFirstName = strlen($FirstName);
-            $lengthLastName = strlen($LastName);
-            $length = $lengthFirstName + $lengthLastName;
-
-            if ($lengthFirstName <= ($lengthCount / 2)) {         // full FirstName if short (prefer)
-                $lengthLastName = $lengthCount - $lengthFirstName;
-            } elseif ($lengthLastName <= ($lengthCount / 2)) {   // full LastName if short
-                $lengthFirstName = $lengthCount - $lengthLastName;
-            } else {
-                $modifier = $lengthCount / $length;          // get Number be Ration
-                $lengthFirstName = round($modifier * $lengthFirstName);
-                $lengthLastName = round($modifier * $lengthLastName);
-
-                // correct round error ([round 3.5] => 4 + [round 4.5] => 5)
-                if (($lengthFirstName + $lengthLastName) > $lengthCount) {
-                    $lengthLastName = $lengthLastName - 1;
-                }
-            }
+            $FirstName = mb_substr($tblPerson->getFirstName(), 0, 2);
+            $LastName = mb_substr($tblPerson->getLastName(), 0, 2);
 
             // cut string with UTF8 encoding
-            mb_internal_encoding("UTF-8");
-            $UserName = $tblConsumer->getAcronym().'-'.$AccountType.'-'.
-                mb_substr($FirstName, 0, $lengthFirstName).mb_substr($LastName, 0, $lengthLastName);
+
+            $UserName = $tblConsumer->getAcronym().'-'.$FirstName.$LastName;
         }
 
-        $UserNamePrepare = $UserName.$StudentNumber;
+        // Rand 1 - 99 with leading 0 if number < 10
+        $randNumber = rand(1, 99);
+        $randNumber = str_pad($randNumber, 2, '0', STR_PAD_LEFT);
+
+        $UserNamePrepare = $UserName.$randNumber;
 
 //        $tblAccount = true;
 
@@ -745,7 +706,8 @@ class Service extends AbstractService
         $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNamePrepare);
         if ($tblAccount) {
             while ($tblAccount) {
-                $randNumber = rand(100, 999);
+                $randNumber = rand(1, 99);
+                $randNumber = str_pad($randNumber, 2, '0', STR_PAD_LEFT);
                 $UserNameMod = $UserName.$randNumber;
                 $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
                 if (!$tblAccount) {
